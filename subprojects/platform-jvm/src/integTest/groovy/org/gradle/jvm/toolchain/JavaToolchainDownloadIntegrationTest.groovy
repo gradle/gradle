@@ -44,7 +44,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
                 .withToolchainDownloadEnabled()
-                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
+                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
                         "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
                         "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
                         "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
@@ -84,7 +84,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .requireOwnGradleUserHomeDir()
             .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
-            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
+            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
                     "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
                     "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
                     "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
@@ -152,7 +152,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .requireOwnGradleUserHomeDir()
             .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
-            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
+            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
                     "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
                     "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
                     "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
@@ -191,7 +191,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
             .expectDeprecationWarning('Due to changes in AdoptOpenJDK download endpoint, downloading a JDK with an explicit vendor of AdoptOpenJDK should be replaced with a spec without a vendor or using Eclipse Temurin / IBM Semeru.')
-            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
+            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
                     "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
                     "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
                     "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
@@ -228,7 +228,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .requireOwnGradleUserHomeDir()
             .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
-            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
+            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
                     "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
                     "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
                     "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
@@ -265,7 +265,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .requireOwnGradleUserHomeDir()
             .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
-            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
+            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
                     "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
                     "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
                     "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
@@ -281,26 +281,26 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
     private static String os() {
         OperatingSystem os = OperatingSystem.current()
         if (os.isWindows()) {
-            return "windows";
+            return "windows"
         } else if (os.isMacOsX()) {
-            return "mac";
+            return "mac"
         } else if (os.isLinux()) {
-            return "linux";
+            return "linux"
         }
-        return os.getFamilyName();
+        return os.getFamilyName()
     }
 
     private static String architecture() {
         SystemInfo systemInfo = NativeServices.getInstance().get(SystemInfo.class)
         switch (systemInfo.architecture) {
             case SystemInfo.Architecture.i386:
-                return "x32";
+                return "x32"
             case SystemInfo.Architecture.amd64:
-                return "x64";
+                return "x64"
             case SystemInfo.Architecture.aarch64:
-                return "aarch64";
+                return "aarch64"
             default:
-                return "unknown";
+                return "unknown"
         }
     }
 

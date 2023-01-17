@@ -249,6 +249,17 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchainFactory = newToolchainFactory()
         def installed = false
         def provisionService = new JavaToolchainProvisioningService() {
+            @Override
+            boolean isAutoDownloadEnabled() {
+                return true
+            }
+
+            @Override
+            boolean hasConfiguredToolchainRepositories() {
+                return true
+            }
+
+            @Override
             Optional<File> tryInstall(JavaToolchainSpec spec) {
                 installed = true
                 Optional.of(new File("/path/12"))
@@ -272,6 +283,17 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchainFactory = newToolchainFactory()
         def installed = false
         def provisionService = new JavaToolchainProvisioningService() {
+            @Override
+            boolean isAutoDownloadEnabled() {
+                return true
+            }
+
+            @Override
+            boolean hasConfiguredToolchainRepositories() {
+                return true
+            }
+
+            @Override
             Optional<File> tryInstall(JavaToolchainSpec spec) {
                 installed = true
                 Optional.of(new File("/path/12.broken"))
@@ -296,6 +318,17 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchainFactory = newToolchainFactory()
         int installed = 0
         def provisionService = new JavaToolchainProvisioningService() {
+            @Override
+            boolean isAutoDownloadEnabled() {
+                return true
+            }
+
+            @Override
+            boolean hasConfiguredToolchainRepositories() {
+                return true
+            }
+
+            @Override
             Optional<File> tryInstall(JavaToolchainSpec spec) {
                 installed++
                 Optional.of(new File("/path/12"))
