@@ -156,4 +156,14 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
         }
         result.assertHasErrorOutput("src/main/kotlin/code.kt:6:48 Null can not be a value of a non-null type Nothing")
     }
+
+    @Test
+    @Issue("https://youtrack.jetbrains.com/issue/KT-55880")
+    @Issue("https://github.com/gradle/gradle/issues/23491")
+    fun `compiling standalone scripts does not emit a warning at info level`() {
+        withBuildScript("""println("test")""")
+        build("help", "--info").apply {
+            assertNotOutput("is not supposed to be used along with regular Kotlin sources, and will be ignored in the future versions by default. (Use -Xallow-any-scripts-in-source-roots command line option to opt-in for the old behavior.)")
+        }
+    }
 }

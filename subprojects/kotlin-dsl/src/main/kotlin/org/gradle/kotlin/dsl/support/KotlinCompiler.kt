@@ -363,6 +363,7 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, jvmTarget: Java
         put(SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
         addJvmSdkRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettings)
+        put(CommonConfigurationKeys.ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS, true)
     }
 
 
