@@ -23,6 +23,4 @@ package org.gradle.tooling.internal.protocol.events;
  */
 public interface InternalFileDownloadResult {
     long getBytesDownloaded();
-
-//    FileDownloadResult toFileDownloadResult();
 }
