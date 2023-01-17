@@ -23,6 +23,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
+    private static final int VERSION = 17
+    private static final String ECLIPSE_DISTRO_NAME = "eclipse_adoptium"
+
     def setup() {
         settingsFile << """
             plugins {
@@ -37,7 +40,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(16)
+                    languageVersion = JavaLanguageVersion.of($VERSION)
                 }
             }
         """
@@ -45,7 +48,6 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         executer.requireOwnGradleUserHomeDir()
-        executer
             .withToolchainDownloadEnabled()
     }
 
@@ -57,7 +59,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then:
         javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded("eclipse_foundation")
+        assertJdkWasDownloaded(ECLIPSE_DISTRO_NAME)
     }
 
     def "can download missing j9 jdk automatically"() {
@@ -87,7 +89,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then: "suitable JDK gets auto-provisioned"
         javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded("eclipse_foundation")
+        assertJdkWasDownloaded(ECLIPSE_DISTRO_NAME)
 
         when: "the marker file of the auto-provisioned JDK is deleted, making the JDK not detectable"
         //delete marker file to make the previously downloaded installation undetectable
@@ -112,7 +114,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then: "suitable JDK gets auto-provisioned"
         javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded("eclipse_foundation")
+        assertJdkWasDownloaded(ECLIPSE_DISTRO_NAME)
 
         when: "build has no toolchain repositories configured"
         settingsFile.text = ''
@@ -128,7 +130,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     private void assertJdkWasDownloaded(String implementation) {
         assert executer.gradleUserHomeDir.file("jdks").listFiles({ file ->
-            file.name.contains("-16-") && file.name.contains(implementation)
+            file.name.contains("-$VERSION-") && file.name.contains(implementation)
         } as FileFilter)
     }
 
