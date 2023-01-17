@@ -139,7 +139,7 @@ public class DeprecationLogger {
             DeprecationMessage build() {
                 return new DeprecationMessage(behaviour + ". This behavior is deprecated.", "", advice, null, Documentation.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
             }
-        });
+        }); // TODO: it is not ok that NO_DOCUMENTATION is hardcoded here
     }
 
     /**
