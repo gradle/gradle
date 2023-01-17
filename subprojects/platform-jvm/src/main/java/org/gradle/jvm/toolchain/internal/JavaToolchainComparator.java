@@ -23,6 +23,10 @@ import java.util.Comparator;
 
 public class JavaToolchainComparator implements Comparator<JavaToolchain> {
 
+    public static Comparator<? super JavaToolchainInstantiationResult> forInstantiationResult() {
+        return Comparator.comparing(r -> r.getToolchain().get(), new JavaToolchainComparator());
+    }
+
     @Override
     public int compare(JavaToolchain o1, JavaToolchain o2) {
         return Comparator
