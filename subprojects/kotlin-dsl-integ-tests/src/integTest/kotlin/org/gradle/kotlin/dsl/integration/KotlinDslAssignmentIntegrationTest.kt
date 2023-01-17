@@ -181,6 +181,63 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         build("myTask")
     }
 
+    @Test
+    fun `assign operator compiles with all possible Property types`() {
+        // Given
+        withAssignmentOverload()
+        withBuildScript("""
+            abstract class MyTask : DefaultTask() {
+                @get:Input
+                abstract val input: Property<String>
+                @get:Input
+                abstract val mapInput: MapProperty<String, String>
+                @get:Input
+                abstract val setInput: SetProperty<String>
+                @get:Input
+                abstract val listInput: ListProperty<String>
+                @get:InputDirectory
+                abstract val dirInput: DirectoryProperty
+                @get:OutputFile
+                abstract val fileOutput: RegularFileProperty
+
+                @TaskAction
+                fun taskAction() {
+                    fileOutput.asFile.get().writeText(input.get())
+                }
+            }
+
+            tasks.register<MyTask>("myTask") {
+                file("src").mkdirs()
+                input = null
+                input = "Hello world"
+                input = provider { null }
+                input = provider { "Hello" }
+                mapInput = null
+                mapInput = mapOf<String, String>("a" to "b")
+                mapInput = provider { null }
+                mapInput = provider { mapOf<String, String>("a" to "b") }
+                setInput = null
+                setInput = listOf<String>("a")
+                setInput = provider { null }
+                setInput = provider { listOf<String>("a") }
+                listInput = null
+                listInput = listOf<String>("a")
+                listInput = provider { null }
+                listInput = provider { listOf<String>("a") }
+                dirInput = null as File?
+                dirInput = objects.directoryProperty()
+                dirInput = file("src")
+                fileOutput = null as File?
+                fileOutput = objects.fileProperty()
+                fileOutput = file("build/myTask/hello.txt")
+            }
+            """.trimIndent()
+        )
+
+        // When, Then
+        build("myTask")
+    }
+
     private
     fun withBuildScriptWithAssignment(): File {
         val outputFilePath = "${projectRoot.absolutePath.replace("\\", "/")}/build/myTask/hello-world.txt"

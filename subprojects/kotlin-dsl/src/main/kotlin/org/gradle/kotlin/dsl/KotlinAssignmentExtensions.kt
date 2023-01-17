@@ -23,6 +23,8 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.FileSystemLocationProperty
+import org.gradle.api.provider.HasMultipleValues
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.util.internal.IncubationLogger
@@ -35,7 +37,7 @@ import java.io.File
  * @since 8.1
  */
 @Incubating
-fun <T> Property<T>.assign(value: T) {
+fun <T> Property<T>.assign(value: T?) {
     emitIncubatingLogMessage()
     this.set(value)
 }
@@ -47,7 +49,7 @@ fun <T> Property<T>.assign(value: T) {
  * @since 8.1
  */
 @Incubating
-fun <T> Property<T>.assign(value: Provider<T>) {
+fun <T> Property<T>.assign(value: Provider<out T?>) {
     emitIncubatingLogMessage()
     this.set(value)
 }
@@ -59,9 +61,57 @@ fun <T> Property<T>.assign(value: Provider<T>) {
  * @since 8.1
  */
 @Incubating
-fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(file: File) {
+fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(file: File?) {
     emitIncubatingLogMessage()
     this.set(file)
+}
+
+
+/**
+ * Sets the value of the property to the elements of the given iterable, and replaces any existing value
+ *
+ * @since 8.1
+ */
+@Incubating
+fun <T> HasMultipleValues<T>.assign(elements: Iterable<T?>?) {
+    emitIncubatingLogMessage()
+    this.set(elements)
+}
+
+
+/**
+ * Sets the property to have the same value of the given provider, and replaces any existing value
+ *
+ * @since 8.1
+ */
+@Incubating
+fun <T> HasMultipleValues<T>.assign(provider: Provider<out Iterable<T?>?>) {
+    emitIncubatingLogMessage()
+    this.set(provider)
+}
+
+
+/**
+ * Sets the value of this property to the entries of the given Map, and replaces any existing value
+ *
+ * @since 8.1
+ */
+@Incubating
+fun <K, V> MapProperty<K, V>.assign(entries: Map<out K?, V?>?) {
+    emitIncubatingLogMessage()
+    this.set(entries)
+}
+
+
+/**
+ * Sets the property to have the same value of the given provider, and replaces any existing value
+ *
+ * @since 8.1
+ */
+@Incubating
+fun <K, V> MapProperty<K, V>.assign(provider: Provider<out Map<out K?, V?>?>) {
+    emitIncubatingLogMessage()
+    this.set(provider)
 }
 
 
