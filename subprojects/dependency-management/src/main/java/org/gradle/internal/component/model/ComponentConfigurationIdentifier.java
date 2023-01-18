@@ -17,7 +17,6 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
 /**
  * An general identifier for a variant that represents a configuration in a component.
@@ -46,10 +45,5 @@ public class ComponentConfigurationIdentifier implements VariantResolveMetadata.
     @Override
     public int hashCode() {
         return component.hashCode() ^ configurationName.hashCode();
-    }
-
-    @Override
-    public boolean isEligibleForCaching() {
-        return component instanceof ProjectComponentIdentifier;
     }
 }
