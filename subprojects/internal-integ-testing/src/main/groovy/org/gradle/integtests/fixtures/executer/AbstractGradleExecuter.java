@@ -1074,6 +1074,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             allArgs.add("-P" + AutoDetectingInstallationSupplier.AUTO_DETECT + "=false");
         }
 
+        boolean hasAgentArgument = args.stream().anyMatch(s -> s.contains(DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY));
+        if (!hasAgentArgument && isAgentInstrumentationEnabled()) {
+            allArgs.add("-D" + DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY + "=true");
+        }
+
         allArgs.addAll(args);
         allArgs.addAll(tasks);
         return allArgs;
