@@ -194,8 +194,6 @@ public abstract class InitBuild extends DefaultTask {
 
         BuildInitDsl dsl = getBuildInitDsl(inputHandler, initDescriptor);
 
-        boolean useIncubatingAPIs = shouldUseIncubatingAPIs(inputHandler);
-
         BuildInitTestFramework testFramework = getBuildInitTestFramework(inputHandler, initDescriptor, modularizationOption);
 
         String projectName = getProjectName(inputHandler, initDescriptor);
@@ -206,7 +204,7 @@ public abstract class InitBuild extends DefaultTask {
 
         java.util.Optional<JavaLanguageVersion> toolChainVersion = getJavaLanguageVersion(inputHandler, initDescriptor);
 
-        validatePackageName(packageName);
+        boolean useIncubatingAPIs = shouldUseIncubatingAPIs(inputHandler);
 
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
         InitSettings settings = new InitSettings(
