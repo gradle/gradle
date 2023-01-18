@@ -23,6 +23,8 @@ import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.specs.Spec;
+import org.gradle.internal.Cast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +43,11 @@ public class SkipOnlyIfTaskExecuter implements TaskExecuter {
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         SelfDescribingSpec<? super TaskInternal> unsatisfiedSpec;
         try {
-            unsatisfiedSpec = task.getOnlyIf().findUnsatisfiedSpec(task);
+            Spec<? super TaskInternal> onlyIf = task.getOnlyIf();
+            if (!(onlyIf instanceof DescribingAndSpec)) {
+                throw new IllegalStateException("unexpected type of onlyIf spec: " + onlyIf.getClass());
+            }
+            unsatisfiedSpec = Cast.<DescribingAndSpec<? super TaskInternal>>uncheckedCast(onlyIf).findUnsatisfiedSpec(task);
         } catch (Throwable t) {
             state.setOutcome(new GradleException(String.format("Could not evaluate onlyIf predicate for %s.", task), t));
             return TaskExecuterResult.WITHOUT_OUTPUTS;
