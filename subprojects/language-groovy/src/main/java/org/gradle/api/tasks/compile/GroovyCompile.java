@@ -36,6 +36,7 @@ import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFa
 import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec.JavaClassCompileOrder;
 import org.gradle.api.internal.tasks.compile.MinimalGroovyCompileOptions;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovyRecompilationSpecProvider;
@@ -232,6 +233,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         spec.setSourceFiles(stableSourcesAsFileTree);
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
+        spec.setJavaClassCompileOrder(JavaClassCompileOrder.fromInternalSystemProperty());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(determineGroovyCompileClasspath()));
         configureCompatibilityOptions(spec);
