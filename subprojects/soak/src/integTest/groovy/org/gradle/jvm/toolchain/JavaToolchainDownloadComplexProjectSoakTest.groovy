@@ -19,11 +19,15 @@ package org.gradle.jvm.toolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadSoakTest.FOOJAY_PLUGIN_SECTION
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadSoakTest.TOOLCHAIN_WITH_VERSION
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadSoakTest.VERSION
+
 class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
-        executer.withToolchainDownloadEnabled()
+            .withToolchainDownloadEnabled()
     }
 
     def "multiple subprojects with identical toolchain definitions"() {
@@ -61,13 +65,10 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
     }
 
     private String settingsForBuildWithSubprojects() {
-        return """
-            plugins {
-                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.3.0'
-            }
+        return """$FOOJAY_PLUGIN_SECTION
 
             rootProject.name = 'main'
-            
+
             include('subproject1')
             include('subproject2')
         """
@@ -78,10 +79,10 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
             plugins {
                 id 'java'
             }
-            
+
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of($VERSION)
                     vendor = JvmVendorSpec.${vendorName}
                 }
             }
@@ -112,11 +113,9 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
             pluginManagement {
                 includeBuild 'plugin1'
             }
-            
-            plugins {
-                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.3.0'
-            }
-            
+
+            $FOOJAY_PLUGIN_SECTION
+
             rootProject.name = 'main'
         """
     }
@@ -127,12 +126,8 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
                 id 'java'
                 id 'org.example.plugin1'
             }
-            
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
-                }
-            }
+
+            $TOOLCHAIN_WITH_VERSION
         """
     }
 
@@ -141,19 +136,19 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
             abstract class CustomToolchainResolverPlugin implements Plugin<Settings> {
                 @Inject
                 protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
-            
+
                 void apply(Settings settings) {
                     settings.getPlugins().apply("jvm-toolchain-management");
-            
+
                     JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
                     registry.register(CustomToolchainResolver.class);
                 }
             }
-            
-            
+
+
             import javax.inject.Inject
             import java.util.Optional;
-            
+
             abstract class CustomToolchainResolver implements JavaToolchainResolver {
                 @Override
                 Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
@@ -161,10 +156,10 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
                     return Optional.of(JavaToolchainDownload.fromUri(uri));
                 }
             }
-            
-            
+
+
             apply plugin: CustomToolchainResolverPlugin
-            
+
             toolchainManagement {
                 jvm {
                     javaRepositories {
@@ -174,27 +169,21 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
                     }
                 }
             }
-            
+
             rootProject.name = 'plugin1'
         """*/ //TODO: atm the included build will use the definition from its own settings file, so if this is the settings we use it won't be able to download toolchains; need to clarify if this ok in the long term
         file("plugin1/settings.gradle") << """
-            plugins {
-                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.3.0'
-            }
-            
+            $FOOJAY_PLUGIN_SECTION
+
             rootProject.name = 'plugin1'
         """
         file("plugin1/build.gradle") << """
             plugins {
                 id 'java-gradle-plugin'
             }
-            
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
-                }
-            }
-            
+
+            $TOOLCHAIN_WITH_VERSION
+
             gradlePlugin {
                 plugins {
                     simplePlugin {
@@ -209,9 +198,9 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
 
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
-            
+
             public class Plugin1 implements Plugin<Project> {
-            
+
                 @Override
                 public void apply(Project project) {
                     System.out.println("Plugin1 applied!");

@@ -22,9 +22,17 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public class JavaToolchainMatcher implements Predicate<JavaToolchain> {
+
+    public static Predicate<? super JavaToolchainInstantiationResult> forInstantiationResult(JavaToolchainSpec spec) {
+        return r -> {
+            Optional<JavaToolchain> toolchain = r.getToolchain();
+            return toolchain.isPresent() && new JavaToolchainMatcher(spec).test(toolchain.get());
+        };
+    }
 
     private final JavaToolchainSpec spec;
 
@@ -71,7 +79,6 @@ public class JavaToolchainMatcher implements Predicate<JavaToolchain> {
         return vendorSpec != DefaultJvmVendorSpec.any() && vendorSpec.test(JvmVendor.KnownJvmVendor.IBM.asJvmVendor());
     }
 
-    @SuppressWarnings("unchecked")
     private Predicate<JvmInstallationMetadata> vendorPredicate() {
         return (DefaultJvmVendorSpec) spec.getVendor().get();
     }

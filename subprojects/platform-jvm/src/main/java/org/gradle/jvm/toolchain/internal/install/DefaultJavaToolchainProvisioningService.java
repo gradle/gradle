@@ -21,7 +21,9 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.FileLock;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
+import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -85,21 +87,44 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         this.buildPlatform = buildPlatform;
     }
 
-    public Optional<File> tryInstall(JavaToolchainSpec spec) {
+    @Override
+    public boolean isAutoDownloadEnabled() {
+        return downloadEnabled.getOrElse(true);
+    }
+
+    @Override
+    public boolean hasConfiguredToolchainRepositories() {
+        return !toolchainResolverRegistry.requestedRepositories().isEmpty();
+    }
+
+    public File tryInstall(JavaToolchainSpec spec) {
         if (!isAutoDownloadEnabled()) {
-            return Optional.empty();
+            throw new ToolchainDownloadFailedException("No locally installed toolchains match (see " +
+                    Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() +
+                    ") and toolchain auto-provisioning is not enabled (see " +
+                    Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() + ").");
         }
 
         List<? extends RealizedJavaToolchainRepository> repositories = toolchainResolverRegistry.requestedRepositories();
+        if (repositories.isEmpty()) {
+            throw new ToolchainDownloadFailedException("No locally installed toolchains match (see " +
+                    Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() +
+                    ") and toolchain download repositories have not been configured (see " +
+                    Documentation.userManual("toolchains", "sub:download_repositories").documentationUrl() + ").");
+        }
+
         for (RealizedJavaToolchainRepository request : repositories) {
             Optional<JavaToolchainDownload> download = request.getResolver().resolve(new DefaultJavaToolchainRequest(spec, buildPlatform));
             if (download.isPresent()) {
                 Collection<Authentication> authentications = request.getAuthentications(download.get().getUri());
-                return Optional.of(provisionInstallation(spec, download.get().getUri(), authentications));
+                return provisionInstallation(spec, download.get().getUri(), authentications);
             }
         }
 
-        return Optional.empty();
+        throw new ToolchainDownloadFailedException("No locally installed toolchains match (see " +
+                Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() +
+                ") and the configured toolchain download repositories aren't able to provide a match either (see " +
+                Documentation.userManual("toolchains", "sub:download_repositories").documentationUrl() + ").");
     }
 
     private File provisionInstallation(JavaToolchainSpec spec, URI uri, Collection<Authentication> authentications) {
@@ -136,10 +161,6 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             throw new GradleException("Can't determine filename for resource located at: " + uri);
         }
         return fileName;
-    }
-
-    private boolean isAutoDownloadEnabled() {
-        return downloadEnabled.getOrElse(true);
     }
 
     private <T> T wrapInOperation(String displayName, Callable<T> provisioningStep) {
