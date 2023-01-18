@@ -30,12 +30,6 @@ abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends Abs
 
     String compileStaticAnnotation = ""
 
-    def setup() {
-        // We need to pass source files to javac in a stable order,
-        // only that way we can test that some classes were generated before the compilation failure.
-        propertiesFile << "systemProp.org.gradle.internal.javac.class.compile.order=reverse"
-    }
-
     def "detects deletion of a source base class that leads to compilation failure but keeps old files"() {
         def a = source "class A {}"
         source "class B extends A {}"
@@ -72,81 +66,93 @@ abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends Abs
     }
 
     def "new generated classes are removed on the compile failure and incremental compilation works after a failure"() {
-        source("class A {}", "class B {}")
+        def b = source("package b; class B {}")
+        source("class Unrelated {}")
         outputs.snapshot { run language.compileTaskName }
 
         when:
-        // Compile .java also for Groovy, so the file is written before failure
-        file("src/main/$languageName/c/C.java").text = "package c; class C {}"
-        def a = source("$compileStaticAnnotation class A { A m1() { return 0; } }")
+        // Compile more classes, so at least one class is generated before compile failure.
+        // Compile .java also for Groovy, so the file is written before failure.
+        sourceWithFileSuffix("java", "package a; class A {}")
+        b.text = "package b; $compileStaticAnnotation class B { B m1() { return 0; } }"
+        sourceWithFileSuffix("java", "package c; class C {}")
         runAndFail language.compileTaskName, "-d"
 
         then:
         outputs.noneRecompiled()
-        outputs.hasFiles(file("A.class"), file("B.class"))
-        outputContains("Deleting generated files: [${file("build/classes/$languageName/main/c/C.class")}]")
-        outputContains("Restoring stashed files: [${file("build/classes/$languageName/main/A.class")}]")
-        outputContains("Restoring overwritten files: []")
+        outputs.hasFiles(file("b/B.class"), file("Unrelated.class"))
+        outputContainsAtLeastOneDeletedGeneratedClass("a/A.class", "c/C.class")
+        outputContainsAllRestoredStashedClasses("b/B.class")
+        outputContainsNoneRestoredOverwrittenClass()
+        !file("build/classes/$languageName/main/a/").exists()
         !file("build/classes/$languageName/main/c/").exists()
 
         when:
-        a.text = "class A {}"
+        b.text = "package b; class B {}"
         run language.compileTaskName
 
         then:
-        outputs.recompiledClasses("C")
+        outputs.recompiledClasses("A", "C")
     }
 
     def "classes in renamed files are restored on the compile failure and incremental compilation works after a failure"() {
-        def a = source"class A {}"
-        def b = source "class B {}"
+        def a = source"package a; class A {}"
+        def b = source "package b; class B {}"
+        def c = source "package c; class C {}"
+        source "class Unrelated {}"
         outputs.snapshot { run language.compileTaskName }
 
         when:
-        // Compile .java also for Groovy, so the file is written before failure
-        file("src/main/$languageName/B1.java").text = "class B { void m1() {} }"
-        b.delete()
-        a.text = "$compileStaticAnnotation class A { A getA() { return new B(); } }"
+        // Compile more classes, so at least one class is generated before compile failure.
+        // Compile .java also for Groovy, so the file is written before failure.
+        a.delete()
+        c.delete()
+        file("src/main/$languageName/a/A1.java").text = "package a; class A { void m1() {} }"
+        b.text = "package b; $compileStaticAnnotation class B { B getB() { return 0; } }"
+        file("src/main/$languageName/c/C1.java").text = "package c; class C { void m1() {} }"
         runAndFail language.compileTaskName, "-d"
 
         then:
         outputs.noneRecompiled()
-        outputs.hasFiles(file("A.class"), file("B.class"))
-        outputContains("Deleting generated files: [${file("build/classes/$languageName/main/B.class")}]")
-        outputContains("Restoring stashed files: [${file("build/classes/$languageName/main/A.class")}, ${file("build/classes/$languageName/main/B.class")}]")
-        outputContains("Restoring overwritten files: []")
+        outputs.hasFiles(file("a/A.class"), file("b/B.class"), file("c/C.class"), file("Unrelated.class"))
+        outputContainsAtLeastOneDeletedGeneratedClass("a/A.class", "c/C.class")
+        outputContainsAllRestoredStashedClasses("a/A.class", "b/B.class", "c/C.class")
+        outputContainsNoneRestoredOverwrittenClass()
 
         when:
-        a.text = "class A {}"
+        b.text = "package b; class B {}"
         run language.compileTaskName
 
         then:
-        outputs.recompiledClasses("B")
+        outputs.recompiledClasses("A", "C")
     }
 
     def "overwritten classes are restored on the compile failure and incremental compilation works after a failure"() {
-        source("class A {}", "class B {}")
+        source("package a; class A {}", "package c; class C {}", "class Unrelated {}")
+        def b = source("package b; class B {}")
         outputs.snapshot { run language.compileTaskName }
 
         when:
-        // Compile .java also for Groovy, so the file is written before failure
-        file("src/main/$languageName/B1.java").text = "class B { void m1() {} }"
-        def a = source("$compileStaticAnnotation class A { A getA() { return new B(); } }")
+        // Compile more classes, so at least one class is generated before compile failure.
+        // Compile .java also for Groovy, so the file is written before failure.
+        file("src/main/$languageName/a/A1.java").text = "package a; class A { void m1() {} }"
+        b.text = "package b; $compileStaticAnnotation class B { B getB() { return 0; } }"
+        file("src/main/$languageName/c/C1.java").text = "package c; class C { void m1() {} }"
         runAndFail language.compileTaskName, "-d"
 
         then:
         outputs.noneRecompiled()
-        outputs.hasFiles(file("A.class"), file("B.class"))
-        outputContains("Deleting generated files: [${file("build/classes/$languageName/main/B.class")}]")
-        outputContains("Restoring stashed files: [${file("build/classes/$languageName/main/A.class")}]")
-        outputContains("Restoring overwritten files: [${file("build/classes/$languageName/main/B.class")}]")
+        outputs.hasFiles(file("a/A.class"), file("b/B.class"), file("c/C.class"), file("Unrelated.class"))
+        outputContainsAtLeastOneDeletedGeneratedClass("a/A.class", "c/C.class")
+        outputContainsAllRestoredStashedClasses("b/B.class")
+        outputContainsAtLeastOneRestoredOverwrittenClass("a/A.class", "c/C.class")
 
         when:
-        a.text = "class A {}"
+        b.text = "package b; class B {}"
         run language.compileTaskName
 
         then:
-        outputs.recompiledClasses("B")
+        outputs.recompiledClasses("A", "C")
     }
 
     def "incremental compilation works after a compile failure"() {
@@ -341,6 +347,37 @@ abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends Abs
         then:
         outputs.recompiledClasses("A", "B", "C")
         outputContains("Full recompilation is required")
+    }
+
+    /**
+     * Since order of classes passed to a compiler is not stable, we assert there is at least one generated class deleted
+     */
+    void outputContainsAtLeastOneDeletedGeneratedClass(String... classes) {
+        def classPaths = classes.collect {file("build/classes/$languageName/main/$it").toString() }
+        def deletedClassFilesSequences = classPaths.sort().subsequences().collect {
+            "Deleting generated files: [${it.join(", ")}]".toString()
+        }
+        outputContainsAnyOf(deletedClassFilesSequences)
+    }
+
+    void outputContainsAllRestoredStashedClasses(String... classes) {
+        def classPaths = classes.collect {file("build/classes/$languageName/main/$it").toString() }
+        outputContains("Restoring stashed files: [${classPaths.join(", ")}]")
+    }
+
+    void outputContainsNoneRestoredOverwrittenClass() {
+        outputContains("Restoring overwritten files: []")
+    }
+
+    /**
+     * Since order of classes passed to a compiler is not stable, we assert there is at least one restored overwritten class
+     */
+    void outputContainsAtLeastOneRestoredOverwrittenClass(String... classes) {
+        def classPaths = classes.collect {file("build/classes/$languageName/main/$it").toString() }
+        def overwrittenClassFilesSequences = classPaths.sort().subsequences().collect {
+            "Restoring overwritten files: [${it.join(", ")}]".toString()
+        }
+        outputContainsAnyOf(overwrittenClassFilesSequences)
     }
 }
 
