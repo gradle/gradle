@@ -187,6 +187,7 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
         buildAndFail("compileJava").apply {
             assertHasCause("Could not create an instance of type Build_gradle${'$'}FixOksocialOutput.")
             assertHasCause("Class Build_gradle.FixOksocialOutput is a non-static inner class.")
+        }
     }
 
     @Issue("https://youtrack.jetbrains.com/issue/KT-55880")
