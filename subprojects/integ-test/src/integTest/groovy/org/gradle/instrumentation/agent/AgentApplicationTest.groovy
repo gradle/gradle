@@ -52,7 +52,6 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         agentWasNotApplied()
     }
 
-    @Requires(value = { !GradleContextualExecuter.noDaemon }, reason = "Agent injection is not implemented for non-daemon mode")
     def "agent is applied to the daemon process running the build"() {
         given:
         withAgent()
@@ -65,7 +64,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         agentWasApplied()
     }
 
-    @Requires(value = { (GradleContextualExecuter.daemon && GradleContextualExecuter.configCache) }, reason = "Agent injection is not implemented for non-daemon and embedded modes")
+    @Requires(value = { GradleContextualExecuter.configCache }, reason = "Tests the configuration cache behavior")
     def "keeping agent status does not invalidate the configuration cache"() {
         def configurationCache = new ConfigurationCacheFixture(this)
         given:
@@ -90,7 +89,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         agentStatus << [true, false]
     }
 
-    @Requires(value = { (GradleContextualExecuter.daemon && GradleContextualExecuter.configCache) }, reason = "Agent injection is not implemented for non-daemon and embedded modes")
+    @Requires(value = { GradleContextualExecuter.configCache }, reason = "Tests the configuration cache behavior")
     def "changing agent status invalidates the configuration cache"() {
         def configurationCache = new ConfigurationCacheFixture(this)
         given:
