@@ -93,7 +93,7 @@ public abstract class DependencyScannerTask extends DefaultTask {
             }
 
             // SHOULD GO HERE VVVVV
-            analysis.getAnalyses().forEach(classAnalysis -> {
+            analysis.getClasses().forEach(classAnalysis -> {
                 Set<String> dependencyClasses = new TreeSet<>(classAnalysis.getPrivateClassDependencies());
                 dependencyClasses.addAll(classAnalysis.getAccessibleClassDependencies());
 

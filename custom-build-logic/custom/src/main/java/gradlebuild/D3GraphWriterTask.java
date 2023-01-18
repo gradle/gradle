@@ -97,7 +97,7 @@ public abstract class D3GraphWriterTask extends DefaultTask {
                 throw new GradleException("Error reading transformed dependency analysis for: " + file.getName(), e);
             }
 
-            analysis.getAnalyses().forEach(classAnalysis -> {
+            analysis.getClasses().forEach(classAnalysis -> {
                 Set<String> dependencyClasses = new TreeSet<>(classAnalysis.getPrivateClassDependencies());
                 dependencyClasses.addAll(classAnalysis.getAccessibleClassDependencies());
 

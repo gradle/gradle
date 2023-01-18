@@ -140,14 +140,14 @@ public abstract class AnalyzingArtifactTransform implements TransformAction<Tran
 
     public static class DependencyAnalysis {
 
-        private final List<ClassAnalysis> analyses;
+        private final List<ClassAnalysis> classes;
 
-        public DependencyAnalysis(List<ClassAnalysis> analyses) {
-            this.analyses = analyses;
+        public DependencyAnalysis(List<ClassAnalysis> classes) {
+            this.classes = classes;
         }
 
-        public List<ClassAnalysis> getAnalyses() {
-            return analyses;
+        public List<ClassAnalysis> getClasses() {
+            return classes;
         }
 
         public static class Serializer implements org.gradle.internal.serialize.Serializer<DependencyAnalysis> {
@@ -162,17 +162,17 @@ public abstract class AnalyzingArtifactTransform implements TransformAction<Tran
             public DependencyAnalysis read(Decoder decoder) throws Exception {
                 int num = decoder.readInt();
 
-                List<ClassAnalysis> analyses = new ArrayList<>(num);
+                List<ClassAnalysis> classes = new ArrayList<>(num);
                 for (int i = 0; i < num; i++) {
-                    analyses.add(serializer.read(decoder));
+                    classes.add(serializer.read(decoder));
                 }
-                return new DependencyAnalysis(analyses);
+                return new DependencyAnalysis(classes);
             }
 
             @Override
             public void write(Encoder encoder, DependencyAnalysis value) throws Exception {
-                encoder.writeInt(value.analyses.size());
-                for (ClassAnalysis classAnalysis : value.analyses) {
+                encoder.writeInt(value.classes.size());
+                for (ClassAnalysis classAnalysis : value.classes) {
                        serializer.write(encoder, classAnalysis);
                 }
             }

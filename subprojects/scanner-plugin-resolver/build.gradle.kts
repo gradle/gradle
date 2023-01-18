@@ -22,3 +22,9 @@ plugins {
 dependencies {
     dependencyScanner(project(":distributions-full"))
 }
+
+tasks.register<Exec>("devWebUi") {
+    commandLine = listOf("npm", "run", "dev")
+    workingDir = layout.projectDirectory.dir("react-ts").asFile
+    dependsOn(tasks.classAnalysisJson)
+}
