@@ -189,4 +189,13 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
             assertHasCause("Class Build_gradle.FixOksocialOutput is a non-static inner class.")
         }
     }
+
+    @Issue("https://youtrack.jetbrains.com/issue/KT-55880")
+    @Issue("https://github.com/gradle/gradle/issues/23491")
+    fun `compiling standalone scripts does not emit a warning at info level`() {
+        withBuildScript("""println("test")""")
+        build("help", "--info").apply {
+            assertNotOutput("is not supposed to be used along with regular Kotlin sources, and will be ignored in the future versions by default. (Use -Xallow-any-scripts-in-source-roots command line option to opt-in for the old behavior.)")
+        }
+    }
 }
