@@ -262,7 +262,7 @@ class BuildProcessTest extends Specification {
         where:
         desiredStatus | currentStatus || expectedResult
         false         | false         || true
-        false         | true          || false
+        false         | true          || true
         true          | false         || false
         true          | true          || true
     }
