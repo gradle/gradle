@@ -225,11 +225,21 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
                 listInput = provider { null }
                 listInput = provider { listOf("a") }
                 dirInput = null as File?
+                dirInput = null as Directory?
+                dirInput = provider { null as File? }
+                dirInput = provider { null as Directory? }
                 dirInput = objects.directoryProperty()
+                dirInput = objects.directoryProperty() as Provider<Directory>
                 dirInput = file("src")
+                dirInput = provider { file("src") }
                 fileOutput = null as File?
+                fileOutput = null as RegularFile?
+                fileOutput = provider { null as File? }
+                fileOutput = provider { null as RegularFile? }
                 fileOutput = objects.fileProperty()
+                fileOutput = objects.fileProperty() as Provider<RegularFile>
                 fileOutput = file("build/myTask/hello.txt")
+                fileOutput = provider { file("build/myTask/hello.txt") }
             }
             """.trimIndent()
         )
