@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A service that backups a class just before new version of a class is generated.
@@ -46,18 +47,22 @@ public class CompilationClassBackupService {
     private final File headerOutputDir;
     private final File classBackupDir;
     private final ApiCompilerResult result;
+    private final AtomicLong uniqueIndex;
+    private final boolean shouldBackupFiles;
 
     public CompilationClassBackupService(JavaCompileSpec spec, ApiCompilerResult result) {
         this.classesToCompile = spec.getClassesToCompile();
         this.destinationDir = spec.getDestinationDir();
         this.headerOutputDir = spec.getCompileOptions().getHeaderOutputDirectory();
         this.classBackupDir = spec.getClassBackupDir();
+        this.shouldBackupFiles = classBackupDir != null;
         this.result = result;
+        this.uniqueIndex = new AtomicLong();
     }
 
     public void maybeBackupClassFile(String classFqName) {
         // Classes to compile are stashed before the compilation, so there is nothing to backup
-        if (classBackupDir != null && !classesToCompile.contains(classFqName)) {
+        if (shouldBackupFiles && !classesToCompile.contains(classFqName)) {
             String classFilePath = classFqName.replace(".", "/").concat(".class");
             maybeBackupFile(classFqName, destinationDir, classFilePath, ".class");
             if (headerOutputDir != null) {
@@ -70,7 +75,7 @@ public class CompilationClassBackupService {
     private void maybeBackupFile(String classFqName, File destinationDir, String relativePath, String suffix) {
         File classFile = new File(destinationDir, relativePath);
         if (!result.getBackupClassFiles().containsKey(classFile.getAbsolutePath()) && classFile.exists()) {
-            File backupFile = new File(classBackupDir, classFqName + suffix);
+            File backupFile = new File(classBackupDir, classFqName + suffix + uniqueIndex.incrementAndGet());
             copy(classFile.toPath(), backupFile.toPath());
             result.getBackupClassFiles().put(classFile.getAbsolutePath(), backupFile.getAbsolutePath());
         }
