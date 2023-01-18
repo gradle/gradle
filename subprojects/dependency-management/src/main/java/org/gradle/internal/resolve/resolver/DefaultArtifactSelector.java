@@ -88,7 +88,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     private ImmutableSet<ResolvedVariant> buildResolvedVariants(ModuleVersionIdentifier moduleVersionId, ImmutableCapabilities fallbackCapabilities, ModuleSources sources, Set<? extends VariantResolveMetadata> allVariants, ExcludeSpec exclusions) {
         ImmutableSet.Builder<ResolvedVariant> resolvedVariantBuilder = ImmutableSet.builder();
         for (VariantResolveMetadata variant : allVariants) {
-            ResolvedVariant resolvedVariant = toResolvedVariant(variant.getIdentifier(), variant.asDescribable(), variant.getAttributes(), variant.getArtifacts(), withImplicitCapability(variant.getCapabilities().getCapabilities(), fallbackCapabilities), exclusions, moduleVersionId, sources, resolvedVariantCache);
+            ResolvedVariant resolvedVariant = toResolvedVariant(variant.getIdentifier(), variant.asDescribable(), variant.getAttributes(), variant.getArtifacts(), withImplicitCapability(variant.getCapabilities().getCapabilities(), fallbackCapabilities), exclusions, moduleVersionId, sources, resolvedVariantCache, variant.isEligibleForCaching());
             resolvedVariantBuilder.add(resolvedVariant);
         }
         return resolvedVariantBuilder.build();
@@ -102,7 +102,8 @@ public class DefaultArtifactSelector implements ArtifactSelector {
                                               ExcludeSpec exclusions,
                                               ModuleVersionIdentifier ownerId,
                                               ModuleSources moduleSources,
-                                              ResolvedVariantCache resolvedVariantCache) {
+                                              ResolvedVariantCache resolvedVariantCache,
+                                              boolean eligibleForCaching) {
         // artifactsToResolve are those not excluded by their owning module
         List<? extends ComponentArtifactMetadata> artifactsToResolve = CollectionUtils.filter(artifacts,
                 artifact -> !exclusions.excludesArtifact(ownerId.getModule(), artifact.getName())
@@ -111,9 +112,11 @@ public class DefaultArtifactSelector implements ArtifactSelector {
         boolean hasExcludedArtifact = artifactsToResolve.size() < artifacts.size();
         ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variantAttributes, artifacts);
 
-        if (hasExcludedArtifact || identifier == null) {
+        if (hasExcludedArtifact) {
             // An ad hoc variant, has no identifier
-            return createResolvedVariant(null, displayName, attributes, capabilities, ownerId, moduleSources, artifactsToResolve);
+            return ArtifactSetFactory.toResolvedVariant(null, displayName, attributes, artifactsToResolve, capabilities, ownerId, moduleSources, artifactResolver);
+        } else if (!eligibleForCaching) {
+            return ArtifactSetFactory.toResolvedVariant(identifier, displayName, attributes, artifactsToResolve, capabilities, ownerId, moduleSources, artifactResolver);
         } else {
             // This is a bit of a hack because we allow the artifactType registry to be different in every resolution scope.
             // This means it's not safe to assume a variant resolved in one consumer can be reused in another consumer with the same key.
@@ -121,12 +124,8 @@ public class DefaultArtifactSelector implements ArtifactSelector {
             // It might be better to tighten this up by either requiring a single artifactType registry for the entire build or eliminating this feature
             // entirely.
             VariantWithOverloadAttributes key = new VariantWithOverloadAttributes(identifier, attributes);
-            return resolvedVariantCache.computeIfAbsent(key, id -> createResolvedVariant(identifier, displayName, attributes, capabilities, ownerId, moduleSources, artifactsToResolve));
+            return resolvedVariantCache.computeIfAbsent(key, id -> ArtifactSetFactory.toResolvedVariant(identifier, displayName, attributes, artifactsToResolve, capabilities, ownerId, moduleSources, artifactResolver));
         }
-    }
-
-    private ResolvedVariant createResolvedVariant(VariantResolveMetadata.Identifier resolvedIdentifier, DisplayName displayName, ImmutableAttributes variantAttributes, ImmutableCapabilities capabilities, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, List<? extends ComponentArtifactMetadata> artifactsToResolve) {
-        return ArtifactSetFactory.toResolvedVariant(resolvedIdentifier, displayName, variantAttributes, artifactsToResolve, capabilities, ownerId, moduleSources, artifactResolver);
     }
 
     private static ImmutableCapabilities withImplicitCapability(Collection<? extends Capability> capabilities, ImmutableCapabilities fallbackCapabilities) {

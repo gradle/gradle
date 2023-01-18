@@ -35,6 +35,7 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -59,7 +60,7 @@ public class ArtifactSetFactory {
         return new DefaultArtifactSet(componentIdentifier, schema, selectionAttributes, () -> Collections.singleton(resolvedVariant), Collections.singleton(resolvedVariant));
     }
 
-    public static ResolvedVariant toResolvedVariant(VariantResolveMetadata.Identifier identifier,
+    public static ResolvedVariant toResolvedVariant(@Nullable VariantResolveMetadata.Identifier identifier,
                                                     DisplayName displayName,
                                                     ImmutableAttributes variantAttributes,
                                                     List<? extends ComponentArtifactMetadata> artifacts,
@@ -114,11 +115,6 @@ public class ArtifactSetFactory {
             }
             SingleArtifactVariantIdentifier other = (SingleArtifactVariantIdentifier) obj;
             return artifactIdentifier.equals(other.artifactIdentifier);
-        }
-
-        @Override
-        public boolean isEligibleForCaching() {
-            return false;
         }
     }
 

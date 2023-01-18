@@ -580,10 +580,7 @@ class DependencyManagementBuildScopeServices {
         return new ResolvedVariantCache() {
             @Override
             public ResolvedVariant computeIfAbsent(VariantResolveMetadata.Identifier key, Function<? super VariantResolveMetadata.Identifier, ? extends ResolvedVariant> mappingFunction) {
-                if (key.isEligibleForCaching()) {
-                    return map.computeIfAbsent(key, mappingFunction);
-                }
-                return mappingFunction.apply(key);
+                return map.computeIfAbsent(key, mappingFunction);
             }
         };
     }
