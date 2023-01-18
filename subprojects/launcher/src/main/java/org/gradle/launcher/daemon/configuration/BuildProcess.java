@@ -33,6 +33,7 @@ public class BuildProcess extends CurrentProcess {
 
     public BuildProcess(FileCollectionFactory fileCollectionFactory) {
         super(fileCollectionFactory);
+        // For purposes of this class, it is better to check if the agent is actually applied, regardless of the feature flag status.
         this.agentStatus = new DefaultAgentStatus();
     }
 
@@ -48,8 +49,8 @@ public class BuildProcess extends CurrentProcess {
      */
     public boolean configureForBuild(DaemonParameters requiredBuildParameters) {
         boolean javaHomeMatch = getJvm().equals(requiredBuildParameters.getEffectiveJvm());
-        // TODO(mlopatkin) This can be relaxed: even if the agent is installed for current process, running with the legacy instrumentation is possible.
-        boolean javaAgentStateMatch = agentStatus.isAgentInstrumentationEnabled() == requiredBuildParameters.shouldApplyInstrumentationAgent();
+        // Even if the agent is applied to this process, it is possible to run the build with the legacy instrumentation mode.
+        boolean javaAgentStateMatch = agentStatus.isAgentInstrumentationEnabled() || !requiredBuildParameters.shouldApplyInstrumentationAgent();
 
         boolean immutableJvmArgsMatch = true;
         if (requiredBuildParameters.hasUserDefinedImmutableJvmArgs()) {
