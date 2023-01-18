@@ -21,6 +21,9 @@ import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import static org.hamcrest.CoreMatchers.anyOf
+import static org.hamcrest.CoreMatchers.containsString
+
 abstract class AbstractXcodeCppProjectIntegrationTest extends AbstractXcodeNativeProjectIntegrationTest {
     @Override
     protected void assertXcodeProjectSources(List<String> rootChildren) {
@@ -48,12 +51,15 @@ abstract class AbstractXcodeCppProjectIntegrationTest extends AbstractXcodeNativ
 
         when:
         def result = xcodebuild
-                .withProject(rootXcodeProject)
-                .withScheme("App")
-                .fails()
+            .withProject(rootXcodeProject)
+            .withScheme("App")
+            .fails()
 
         then:
-        result.assertHasCause('No tool chain is available to build C++')
+        result.assertThatCause(anyOf(
+            containsString('No tool chain is available to build C++'),
+            containsString('My Mac doesn’t support any of App’s architectures. You can set App’s Architectures build setting to Standard Architectures to support My Mac'))
+        )
     }
 
     protected String configureToolChainSupport(String architecture) {
