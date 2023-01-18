@@ -24,14 +24,6 @@ import java.util.List;
 import java.util.Set;
 
 public interface JavaCompileSpec extends JvmLanguageCompileSpec {
-    enum JavaClassCompileOrder {
-        REVERSE_ALPHABETICALLY,
-        UNORDERED;
-
-        public static JavaClassCompileOrder fromInternalSystemProperty() {
-            return "reverse".equals(System.getProperty("org.gradle.internal.javac.class.compile.order")) ? REVERSE_ALPHABETICALLY : UNORDERED;
-        }
-    }
 
     MinimalJavaCompileOptions getCompileOptions();
 
@@ -42,10 +34,6 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
     File getClassBackupDir();
 
     void setClassBackupDir(@Nullable File classBackupDir);
-
-    JavaClassCompileOrder getJavaClassCompileOrder();
-
-    void setJavaClassCompileOrder(JavaClassCompileOrder javacClassCompileOrder);
 
     /**
      * The annotation processor path to use. When empty, no processing should be done. When not empty, processing should be done.

@@ -17,6 +17,8 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 
+import java.util.List;
+
 public interface ExecutionResult {
     /**
      * Returns a copy of this result that ignores `buildSrc` tasks.
@@ -105,6 +107,13 @@ public interface ExecutionResult {
      * @param expectedOutput The expected log message, with line endings normalized to a newline character.
      */
     ExecutionResult assertOutputContains(String expectedOutput);
+
+    /**
+     * Asserts that this result includes any given non-error log message. Does not consider any text in or following the build result message (use {@link #assertHasPostBuildOutput(String)} instead).
+     *
+     * @param expectedOutputs Any expected log message, with line endings normalized to a newline character.
+     */
+    ExecutionResult assertOutputContainsAnyOf(List<String> expectedOutputs);
 
     /**
      * Asserts that the given content includes the given log message.
