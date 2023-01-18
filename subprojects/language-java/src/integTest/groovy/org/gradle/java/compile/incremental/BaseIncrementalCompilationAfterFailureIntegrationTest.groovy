@@ -545,36 +545,38 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
      *
      * That is why we test restoring overwritten and deleting new files just with Java files.
      */
-    def 'incremental compilation after a failure works when #description compilation fails and new classes are deleted and overwritten classes are restored'() {
+    def 'incremental compilation after a failure works with mix java/groovy sources when #description compilation fails and new classes are deleted and overwritten classes are restored'() {
         given:
-        File a = sourceWithFileSuffix(fileWithErrorSuffix, "class A { }")
-        sourceWithFileSuffix("groovy", "class B {}")
-        sourceWithFileSuffix("groovy", "class C {}")
+        sourceWithFileSuffix("groovy", "package a; class A {}")
+        File b = sourceWithFileSuffix(fileWithErrorSuffix, "package b; class B { }")
+        sourceWithFileSuffix("groovy", "package c; class C {}")
         run "compileGroovy"
 
         when:
         outputs.snapshot {
-            file("src/main/groovy/B1.java").text = "class B { void m1() {} }"
-            sourceWithFileSuffix("java", "class D {}")
-            a.text = "$compileErrorClassAnnotation class A { A m1() { return 0; }; }"
+            file("src/main/groovy/a/A1.java").text = "package a; class A { void m1() {} }"
+            b.text = "package b; $compileErrorClassAnnotation class B { B m1() { return 0; }; }"
+            file("src/main/groovy/c/C1.java").text = "package c; class C { void m1() {} }"
+            sourceWithFileSuffix("java", "package d; class D {}")
         }
 
         then:
         runAndFail "compileGroovy", "-d"
         outputs.noneRecompiled()
-        outputContains("Deleting generated files: [${file("build/classes/$languageName/main/B.class")}, ${file("build/classes/$languageName/main/D.class")}]")
-        outputContains("Restoring stashed files: [${file("build/classes/$languageName/main/A.class")}]")
-        outputContains("Restoring overwritten files: [${file("build/classes/$languageName/main/B.class")}]")
+        outputContainsAtLeastOneDeletedGeneratedClass("a/A.class", "c/C.class", "d/D.class")
+        outputContainsAllRestoredStashedClasses("b/B.class")
+        outputContainsAtLeastOneRestoredOverwrittenClass("a/A.class", "c/C.class")
 
         when:
         outputs.snapshot {
-            a.text = "class A { A m1() { return new A(); }; }"
+            b.text = "package b; class B { B m1() { return new B(); }; }"
         }
-        file("src/main/groovy/B1.java").delete()
+        file("src/main/groovy/a/A1.java").delete()
+        file("src/main/groovy/c/C1.java").delete()
         run "compileGroovy"
 
         then:
-        outputs.recompiledClasses("A", "D")
+        outputs.recompiledClasses("B", "D")
 
         where:
         // We must trigger failure in a "Semantic Analysis" stage and not in parse stage, otherwise compiler won't output anything on a disk.
