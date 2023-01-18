@@ -16,12 +16,14 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.base.Optional;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -63,16 +65,17 @@ public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMe
 
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            // We do not currently cache ResolvedVariants for external modules
-            return artifactSelector.resolveArtifacts(artifactMetadata, null, this::buildAllVariants, graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
+            Set<? extends VariantResolveMetadata> fallbackVariants = graphSelectedVariant.getVariants();
+            Optional<List<? extends VariantGraphResolveMetadata>> variantsForGraphTraversal = graphMetadata.getVariantsForGraphTraversal();
+            return artifactSelector.resolveArtifacts(artifactMetadata, () -> buildAllVariants(fallbackVariants, variantsForGraphTraversal), fallbackVariants, exclusions, overriddenAttributes);
         }
 
-        private Set<? extends VariantResolveMetadata> buildAllVariants() {
+        private static Set<? extends VariantResolveMetadata> buildAllVariants(Set<? extends VariantResolveMetadata> fallbackVariants, Optional<List<? extends VariantGraphResolveMetadata>> variantsForGraphTraversal) {
             final Set<? extends VariantResolveMetadata> allVariants;
-            if (graphMetadata.getVariantsForGraphTraversal().isPresent()) {
-                allVariants = graphMetadata.getVariantsForGraphTraversal().get().stream().map(ModuleConfigurationMetadata.class::cast).flatMap(variant -> variant.getVariants().stream()).collect(Collectors.toSet());
+            if (variantsForGraphTraversal.isPresent()) {
+                allVariants = variantsForGraphTraversal.get().stream().map(ModuleConfigurationMetadata.class::cast).flatMap(variant -> variant.getVariants().stream()).collect(Collectors.toSet());
             } else {
-                allVariants = graphSelectedVariant.getVariants();
+                allVariants = fallbackVariants;
             }
             return allVariants;
         }
