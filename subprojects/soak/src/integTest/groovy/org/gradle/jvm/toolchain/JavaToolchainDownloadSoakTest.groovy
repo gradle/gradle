@@ -23,26 +23,31 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
-    private static final int VERSION = 17
+    public static final int VERSION = 17
     private static final String ECLIPSE_DISTRO_NAME = "eclipse_adoptium"
-
-    def setup() {
-        settingsFile << """
+    public static final String FOOJAY_PLUGIN_SECTION = """
             plugins {
                 id 'org.gradle.toolchains.foojay-resolver-convention' version '0.4.0'
             }
         """
+
+    public static final String TOOLCHAIN_WITH_VERSION = """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of($VERSION)
+                }
+            }
+        """
+
+    def setup() {
+        settingsFile << FOOJAY_PLUGIN_SECTION
 
         buildFile << """
             plugins {
                 id "java"
             }
 
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of($VERSION)
-                }
-            }
+            $TOOLCHAIN_WITH_VERSION
         """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
