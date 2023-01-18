@@ -16,23 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal.modifiers;
 
-public enum ModularizationOption implements WithIdentifier {
-    SINGLE_PROJECT("no - only one application project"),
-    WITH_LIBRARY_PROJECTS("yes - application and library projects");
-
-    private final String displayName;
-
-    ModularizationOption(String displayName) {
-        this.displayName = displayName;
-    }
-
-    @Override
-    public String getId() {
-        return Names.idFor(this);
-    }
-
-    @Override
-    public String toString() {
-        return displayName;
-    }
+public enum ModularizationOption {
+    SINGLE_PROJECT,
+    WITH_LIBRARY_PROJECTS;
 }
