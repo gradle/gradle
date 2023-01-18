@@ -25,4 +25,7 @@ public interface JavaToolchainProvisioningService {
 
     Optional<File> tryInstall(JavaToolchainSpec spec);
 
+    boolean isAutoDownloadEnabled();
+
+    boolean hasConfiguredToolchainRepositories();
 }
