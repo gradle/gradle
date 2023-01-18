@@ -262,24 +262,9 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return this;
     }
 
-    private ExecutionResult assertContentContainsAnyOf(String actualText, List<String> expectedOutputs, String label) {
-        boolean anyMatch = expectedOutputs.stream()
-            .map(expectedOutput -> LogContent.of(expectedOutput).withNormalizedEol())
-            .anyMatch(actualText::contains);
-        if (!anyMatch) {
-            failOnMissingOutput("Did not find any of expected texts in " + label.toLowerCase() + ".", label, "\n" + String.join(" or\n", expectedOutputs), actualText);
-        }
-        return this;
-    }
-
     @Override
     public ExecutionResult assertOutputContains(String expectedOutput) {
         return assertContentContains(getMainContent().withNormalizedEol(), expectedOutput, "Build output");
-    }
-
-    @Override
-    public ExecutionResult assertOutputContainsAnyOf(List<String> expectedOutputs) {
-        return assertContentContainsAnyOf(getMainContent().withNormalizedEol(), expectedOutputs, "Build output");
     }
 
     @Override

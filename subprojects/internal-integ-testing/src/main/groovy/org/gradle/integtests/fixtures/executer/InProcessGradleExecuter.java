@@ -511,12 +511,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
-        public ExecutionResult assertOutputContainsAnyOf(List<String> expectedOutputs) {
-            outputResult.assertOutputContainsAnyOf(expectedOutputs);
-            return this;
-        }
-
-        @Override
         public ExecutionResult assertContentContains(String content, String expectedOutput, String label) {
             outputResult.assertContentContains(content, expectedOutput, label);
             return null;
