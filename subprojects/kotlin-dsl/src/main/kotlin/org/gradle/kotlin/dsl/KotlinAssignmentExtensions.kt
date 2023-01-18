@@ -68,6 +68,18 @@ fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(file: File?) {
 
 
 /**
+ * Assign file provided by a Provider to a FileSystemLocationProperty with assign operator
+ *
+ * @since 8.1
+ */
+@Incubating
+fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(provider: Provider<File?>) {
+    emitIncubatingLogMessage()
+    this.fileProvider(provider)
+}
+
+
+/**
  * Sets the value of the property to the elements of the given iterable, and replaces any existing value
  *
  * @since 8.1
