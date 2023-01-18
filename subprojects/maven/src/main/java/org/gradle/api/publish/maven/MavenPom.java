@@ -63,7 +63,7 @@ public interface MavenPom {
     Property<String> getDescription();
 
     /**
-     * The home page for the project represented by this POM.
+     * The URL of the home page for the project represented by this POM.
      *
      * @since 4.8
      */
