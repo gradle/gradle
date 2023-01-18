@@ -273,7 +273,8 @@ public abstract class InitBuild extends DefaultTask {
         if (!isNullOrEmpty(type)) {
             return ModularizationOption.SINGLE_PROJECT;
         }
-        return inputHandler.selectOption("Split functionality across multiple subprojects?", initDescriptor.getModularizationOptions(), ModularizationOption.SINGLE_PROJECT);
+        boolean multipleSubprojects = inputHandler.askYesNoQuestion("Generate multiple subprojects for application?", false);
+        return multipleSubprojects ? ModularizationOption.WITH_LIBRARY_PROJECTS : ModularizationOption.SINGLE_PROJECT;
     }
 
     private boolean shouldUseIncubatingAPIs(UserInputHandler inputHandler) {

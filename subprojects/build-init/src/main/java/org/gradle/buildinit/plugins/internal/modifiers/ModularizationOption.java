@@ -16,29 +16,9 @@
 
 package org.gradle.buildinit.plugins.internal.modifiers;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public enum ModularizationOption implements WithIdentifier {
     SINGLE_PROJECT("no - only one application project"),
     WITH_LIBRARY_PROJECTS("yes - application and library projects");
-
-    public static ModularizationOption byId(String id) {
-        for (ModularizationOption option : values()) {
-            if (option.getId().equals(id)) {
-                return option;
-            }
-        }
-        return SINGLE_PROJECT;
-    }
-
-    public static List<String> listSupported() {
-        List<String> result = new ArrayList<>();
-        for (ModularizationOption option : values()) {
-            result.add(option.getId());
-        }
-        return result;
-    }
 
     private final String displayName;
 
