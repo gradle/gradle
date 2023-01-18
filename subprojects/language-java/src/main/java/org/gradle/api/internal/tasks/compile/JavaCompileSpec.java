@@ -25,6 +25,25 @@ import java.util.Set;
 
 public interface JavaCompileSpec extends JvmLanguageCompileSpec {
 
+    /**
+     * An order of classes compiled by javac.
+     * This effectively configures in what order Gradle will pass sources to javac. Currently, this is only used for Java compilation tests where we need stable order.
+     */
+    enum JavaClassCompileOrder {
+        /**
+         * Default order, which means order depends on the collection that contains sources, normally that is a FileTree.
+         */
+        DEFAULT,
+        /**
+         * Stable order, which means Gradle will always pass sources to javac in the same order. Currently, that means alphabetically.
+         */
+        STABLE;
+
+        public static JavaClassCompileOrder fromInternalSystemProperty() {
+            return "stable".equals(System.getProperty("org.gradle.internal.javac.class.compile.order")) ? STABLE : DEFAULT;
+        }
+    }
+
     MinimalJavaCompileOptions getCompileOptions();
 
     @Override
@@ -64,6 +83,13 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
     Set<String> getClassesToCompile();
 
     List<File> getModulePath();
+
+    void setJavaClassCompileOrder(JavaClassCompileOrder compileOrder);
+
+    /**
+     * Returns Java class compile order. Check {@link JavaClassCompileOrder}.
+     */
+    JavaClassCompileOrder getJavaClassCompileOrder();
 
     void setModulePath(List<File> modulePath);
 

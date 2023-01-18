@@ -38,6 +38,7 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     private List<File> sourceRoots;
     private Set<String> classesToCompile = Collections.emptySet();
     private File backupDestinationDir;
+    private JavaClassCompileOrder javacCompilerOrder = JavaClassCompileOrder.DEFAULT;
 
     @Override
     public MinimalJavaCompileOptions getCompileOptions() {
@@ -97,6 +98,16 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     @Override
     public Set<String> getClassesToCompile() {
         return classesToCompile;
+    }
+
+    @Override
+    public JavaClassCompileOrder getJavaClassCompileOrder() {
+        return javacCompilerOrder;
+    }
+
+    @Override
+    public void setJavaClassCompileOrder(JavaClassCompileOrder javaClassCompileOrder) {
+        this.javacCompilerOrder = javaClassCompileOrder;
     }
 
     @Override
