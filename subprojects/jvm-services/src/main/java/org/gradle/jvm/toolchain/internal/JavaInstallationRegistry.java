@@ -25,6 +25,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -38,7 +40,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-
+@ServiceScope(Scopes.Build.class)
 public class JavaInstallationRegistry {
     private final BuildOperationExecutor executor;
     private final Installations installations;
@@ -102,7 +104,7 @@ public class JavaInstallationRegistry {
         try {
             final File canonicalFile = file.getCanonicalFile();
             final File javaHome = findJavaHome(canonicalFile);
-            return new InstallationLocation(javaHome, location.getSource());
+            return new InstallationLocation(javaHome, location.getSource(), location.isAutoProvisioned());
         } catch (IOException e) {
             throw new GradleException(String.format("Could not canonicalize path to java installation: %s.", file), e);
         }

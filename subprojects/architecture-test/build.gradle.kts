@@ -45,7 +45,7 @@ val sortAcceptedApiChanges = tasks.register<gradlebuild.binarycompatibility.Sort
 
 tasks.test {
     // Looks like loading all the classes requires more than the default 512M
-    maxHeapSize = "900M"
+    maxHeapSize = "1g"
 
     // Only use one fork, so freezing doesn't have concurrency issues
     maxParallelForks = 1
