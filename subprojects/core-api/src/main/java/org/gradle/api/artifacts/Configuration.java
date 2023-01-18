@@ -446,15 +446,17 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     ResolvableDependencies getIncoming();
 
     /**
-     * Returns the outgoing artifacts of this configuration.
+     * Returns the outgoing publications object containing artifacts and variants published by this configuration.
+     * <p>
+     * This allows adding additional artifiacts and accessing and configuring variants to publish.
      *
-     * @return The outgoing artifacts of this configuration.
+     * @return The outgoing publications object containing artifacts and variants published by this configuration.
      * @since 3.4
      */
     ConfigurationPublications getOutgoing();
 
     /**
-     * Configures the outgoing artifacts of this configuration.
+     * Configures the outgoing publications object containing the artifacts and variants published by this configuration.
      *
      * @param action The action to perform the configuration.
      * @since 3.4
