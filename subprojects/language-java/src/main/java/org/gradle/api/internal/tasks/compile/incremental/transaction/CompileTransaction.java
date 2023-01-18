@@ -106,11 +106,11 @@ public class CompileTransaction {
                 spec.setClassBackupDir(backupDirectory);
             }
             T result = function.apply(WorkResults.didWork(!stashedFiles.isEmpty()));
-            deletePotentiallyEmptyDirectoriesAfterCompilation(stashedFiles);
+            deleteEmptyDirectoriesAfterCompilation(stashedFiles);
             return result;
         } catch (CompilationFailedException e) {
             if (supportsIncrementalCompilationAfterFailure()) {
-                rollback(stashedFiles, e.getCompilerPartialResult(ApiCompilerResult.class).orElse(null));
+                rollback(stashedFiles, e.getCompilerPartialResult().orElse(null));
             }
             throw e;
         }
@@ -161,7 +161,7 @@ public class CompileTransaction {
         return stashedFiles;
     }
 
-    private void deletePotentiallyEmptyDirectoriesAfterCompilation(List<StashedFile> stashedFiles) {
+    private void deleteEmptyDirectoriesAfterCompilation(List<StashedFile> stashedFiles) {
         ImmutableSet<File> outputDirectories = getOutputDirectories();
         Set<File> potentiallyEmptyFolders = stashedFiles.stream()
             .map(file -> file.sourceFile.getParentFile())

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@ import java.util.Optional;
 
 public class CompilationFailedException extends RuntimeException {
 
-    private final Object compilerPartialResult;
+    private final ApiCompilerResult compilerPartialResult;
 
     public CompilationFailedException() {
-        this((Object) null);
+        this((ApiCompilerResult) null);
     }
 
-    public CompilationFailedException(@Nullable Object compilerPartialResult) {
+    public CompilationFailedException(@Nullable ApiCompilerResult compilerPartialResult) {
         super("Compilation failed; see the compiler error output for details.");
         this.compilerPartialResult = compilerPartialResult;
     }
@@ -41,11 +41,7 @@ public class CompilationFailedException extends RuntimeException {
         this.compilerPartialResult = null;
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> Optional<T> getCompilerPartialResult(Class<T> type) {
-        if (compilerPartialResult != null && type.isAssignableFrom(compilerPartialResult.getClass())) {
-            return (Optional<T>) Optional.of(compilerPartialResult);
-        }
-        return Optional.empty();
+    public Optional<ApiCompilerResult> getCompilerPartialResult() {
+        return Optional.ofNullable(compilerPartialResult);
     }
 }

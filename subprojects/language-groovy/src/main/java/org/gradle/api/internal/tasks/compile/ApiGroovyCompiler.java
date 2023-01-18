@@ -265,7 +265,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                                 copyJavaCompilerResult((ApiCompilerResult) javaCompilerResult);
                             }
                         } catch (CompilationFailedException e) {
-                            Optional<ApiCompilerResult> partialResult = e.getCompilerPartialResult(ApiCompilerResult.class);
+                            Optional<ApiCompilerResult> partialResult = e.getCompilerPartialResult();
                             partialResult.ifPresent(result -> copyJavaCompilerResult(result));
                             cu.getErrorCollector().addFatalError(new SimpleMessage(e.getMessage(), cu));
                         }

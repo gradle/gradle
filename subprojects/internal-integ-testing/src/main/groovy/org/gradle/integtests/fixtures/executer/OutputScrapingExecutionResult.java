@@ -39,7 +39,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
     // This monster is to find lines in our logs that look like stack traces
