@@ -127,16 +127,16 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains("2: Groovy")
             assert handle.standardOutput.contains("3: Java")
             assert handle.standardOutput.contains("4: Kotlin")
+            assert handle.standardOutput.contains("5: Scala")
+            assert handle.standardOutput.contains("6: Swift")
         }
         handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'Single project'
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Split functionality across multiple subprojects?:")
-            assert handle.standardOutput.contains("1: no - only one application project")
-            assert handle.standardOutput.contains("2: yes - application and library projects")
+            assert handle.standardOutput.contains("Generate multiple subprojects for application?")
         }
-        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'kotlin' DSL
         ConcurrentTestUtil.poll(60) {
