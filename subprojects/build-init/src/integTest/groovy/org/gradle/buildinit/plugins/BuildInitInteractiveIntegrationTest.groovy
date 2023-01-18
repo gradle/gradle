@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.internal.TextUtil
 
@@ -158,6 +159,16 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         }
         handle.stdinPipe.write(("org.gradle.test" + TextUtil.platformLineSeparator).bytes)
 
+        // Enter a package name
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Enter target version of Java (min. 7) (default: ${Jvm.current().javaVersion.majorVersion})")
+        }
+        handle.stdinPipe.write(("15" + TextUtil.platformLineSeparator).bytes)
+        
+        // after generating the project, we suggest the user reads some documentation
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Get more help with your project")
+        }
         handle.stdinPipe.close()
         handle.waitForFinish()
 
