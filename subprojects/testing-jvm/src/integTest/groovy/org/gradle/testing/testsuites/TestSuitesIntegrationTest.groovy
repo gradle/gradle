@@ -18,7 +18,6 @@ package org.gradle.testing.testsuites
 
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework
-import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
@@ -40,6 +39,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
         expect:
         succeeds("eagerTest")
         succeeds("registerTest")
@@ -60,6 +60,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
         expect:
         succeeds("test")
     }
@@ -88,6 +89,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
         expect:
         succeeds("test")
     }
@@ -116,6 +118,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
         expect:
         succeeds("test")
     }
@@ -146,6 +149,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
         expect:
         succeeds("test")
     }
@@ -175,6 +179,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
         expect:
         succeeds("test")
     }
@@ -203,6 +208,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
         expect:
         succeeds("test")
     }
@@ -233,114 +239,9 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
         expect:
         succeeds("test")
-    }
-
-    def "conventional test framework on custom test suite is JUnit Jupiter"() {
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
-            testing {
-                suites {
-                    integTest(JvmTestSuite)
-                }
-            }
-
-            tasks.integTest {
-                doLast {
-                    assert testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert classpath.size() == 8
-                    assert classpath.any { it.name =~ /junit-platform-launcher-.*.jar/ }
-                    assert classpath.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
-                }
-            }
-        """
-        expect:
-        succeeds("integTest")
-    }
-
-    def "configuring test framework on custom test suite is honored in task and dependencies with #testingFrameworkDeclaration"() {
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
-            testing {
-                suites {
-                    integTest(JvmTestSuite) {
-                        ${testingFrameworkDeclaration}
-                    }
-                }
-            }
-
-            tasks.integTest {
-                doLast {
-                    assert testFramework instanceof ${testingFrameworkType.canonicalName}
-                    assert classpath.any { it.name == "${testingFrameworkDep}" }
-                }
-            }
-        """
-        expect:
-        succeeds("integTest")
-
-        where: // When testing a custom version, this should be a different version that the default
-        testingFrameworkDeclaration  | testingFrameworkType       | testingFrameworkDep
-        'useJUnit()'                 | JUnitTestFramework         | "junit-${DefaultJvmTestSuite.TestingFramework.JUNIT4.getDefaultVersion()}.jar"
-        'useJUnit("4.12")'           | JUnitTestFramework         | "junit-4.12.jar"
-        'useJUnitJupiter()'          | JUnitPlatformTestFramework | "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar"
-        'useJUnitJupiter("5.7.1")'   | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
-        'useSpock()'                 | JUnitPlatformTestFramework | "spock-core-${DefaultJvmTestSuite.TestingFramework.SPOCK.getDefaultVersion()}.jar"
-        'useSpock("2.2-groovy-3.0")' | JUnitPlatformTestFramework | "spock-core-2.2-groovy-3.0.jar"
-        'useSpock("2.2-groovy-4.0")' | JUnitPlatformTestFramework | "spock-core-2.2-groovy-4.0.jar"
-        'useKotlinTest()'            | JUnitPlatformTestFramework | "kotlin-test-junit5-${DefaultJvmTestSuite.TestingFramework.KOTLIN_TEST.getDefaultVersion()}.jar"
-        'useKotlinTest("1.5.30")'    | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
-        'useTestNG()'                | TestNGTestFramework        | "testng-${DefaultJvmTestSuite.TestingFramework.TESTNG.getDefaultVersion()}.jar"
-        'useTestNG("7.3.0")'         | TestNGTestFramework        | "testng-7.3.0.jar"
-    }
-
-    def "configuring test framework on custom test suite using a Provider is honored in task and dependencies with #testingFrameworkMethod version #testingFrameworkVersion"() {
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
-            Provider<String> frameworkVersion = project.provider(() -> '$testingFrameworkVersion')
-
-            testing {
-                suites {
-                    integTest(JvmTestSuite) {
-                        $testingFrameworkMethod(frameworkVersion)
-                    }
-                }
-            }
-
-            tasks.integTest {
-                doLast {
-                    assert testFramework instanceof ${testingFrameworkType.canonicalName}
-                    assert classpath.any { it.name == "$testingFrameworkDep" }
-                }
-            }
-        """
-        expect:
-        succeeds("integTest")
-
-        where: // When testing a custom version, this should be a different version that the default
-        testingFrameworkMethod       | testingFrameworkVersion      | testingFrameworkType       | testingFrameworkDep
-        'useJUnit'                   | '4.12'                       | JUnitTestFramework         | "junit-4.12.jar"
-        'useJUnitJupiter'            | '5.7.1'                      | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
-        'useSpock'                   | '2.2-groovy-3.0'             | JUnitPlatformTestFramework | "spock-core-2.2-groovy-3.0.jar"
-        'useSpock'                   | '2.2-groovy-4.0'             | JUnitPlatformTestFramework | "spock-core-2.2-groovy-4.0.jar"
-        'useKotlinTest'              | '1.5.30'                     | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
-        'useTestNG'                  | '7.3.0'                      | TestNGTestFramework        | "testng-7.3.0.jar"
     }
 
     def "can override previously configured test framework on a test suite"() {
@@ -376,6 +277,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
         expect:
         succeeds("integTest")
     }
@@ -406,6 +308,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             // force integTest to be configured
             tasks.named("integTest").get()
         """
+
         expect:
         fails("help")
         failure.assertHasCause("The value for task ':integTest' property 'testFrameworkProperty' cannot be changed any further.")
@@ -437,6 +340,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             // force integTest to be configured
             tasks.named("integTest").get()
         """
+
         expect:
         fails("help")
         failure.assertHasCause("The value for task ':integTest' property 'testFrameworkProperty' cannot be changed any further.")
@@ -460,7 +364,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-"""
+        """
+
         file('src/test/java/example/UnitTest.java') << '''
             package example;
 
@@ -474,6 +379,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         '''
+
         expect:
         succeeds("mytest")
         def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'build/test-results/mytest')
@@ -501,6 +407,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
         expect:
         succeeds("mytest", "assertNoTestClasses")
     }
@@ -624,6 +531,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
         expect:
         succeeds("integTest")
     }
@@ -783,5 +691,204 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         and: "running integration tests fails due to configuring tests"
         fails("integrationTest")
         failure.assertHasErrorOutput("Configuring tests failed")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19065")
+    def "test suites can add platforms using a #platformType with #format via coordinates"() {
+        given: "a project defining a platform"
+        file('platform/build.gradle') << """
+            plugins {
+                id 'java-platform'
+            }
+
+            group = "org.example.gradle"
+
+            dependencies {
+                constraints {
+                    api 'org.assertj:assertj-core:3.22.0'
+                }
+            }
+        """
+
+        and: "an application project with a test suite using the platform"
+        file('app/build.gradle') << """
+            plugins {
+                 id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+
+                        dependencies {
+                            implementation($expression)
+                            implementation 'org.assertj:assertj-core'
+                        }
+                    }
+                }
+            }
+        """
+        file('app/src/test/java/org/example/app/ExampleTest.java') << """
+            package org.example.app;
+
+            import org.junit.jupiter.api.Test;
+            import static org.assertj.core.api.Assertions.assertThat;
+
+            public class ExampleTest {
+                @Test public void testOK() {
+                    assertThat(1 + 1).isEqualTo(2);
+                }
+            }
+        """
+
+        settingsFile << """
+            dependencyResolutionManagement {
+                includeBuild("platform")
+            }
+
+            rootProject.name = 'example-of-platform-in-test-suites'
+
+            include("app")
+        """
+
+        expect: "should be able to reference the platform without failing"
+        succeeds ':app:test'
+        def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'app/build/test-results/test')
+        unitTestResults.assertTestClassesExecuted('org.example.app.ExampleTest')
+
+        where:
+        format                              | platformType  | expression
+        'single GAV string'                 | 'platform'            | "platform('org.example.gradle:platform')"
+        'module method'                     | 'platform'            | "platform(module('org.example.gradle', 'platform', null))"
+        'referencing project.dependencies'  | 'platform'            | "project.dependencies.platform('org.example.gradle:platform')"
+        'single GAV string'                 | 'enforcedPlatform'    | "enforcedPlatform('org.example.gradle:platform')"
+        'module method'                     | 'enforcedPlatform'    | "enforcedPlatform(module('org.example.gradle', 'platform', null))"
+        'referencing project.dependencies'  | 'enforcedPlatform'    | "project.dependencies.enforcedPlatform('org.example.gradle:platform')"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19065")
+    def "test suites can add project dependencies via coordinates"() {
+        given: "a project used as a dependency"
+        file('dep/build.gradle') << """
+            plugins {
+                id 'java-library'
+            }
+
+            group = "org.example.gradle"
+        """
+        file('dep/src/main/java/org/example/dep/Dep.java') << """
+            package org.example.dep;
+            public class Dep {}
+        """
+
+        and: "an application project with a test suite using a project dependency"
+        file('app/build.gradle') << """
+            plugins {
+                 id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+
+                        dependencies {
+                            implementation('org.example.gradle:dep')
+                        }
+                    }
+                }
+            }
+        """
+        file('app/src/test/java/org/example/app/ExampleTest.java') << """
+            package org.example.app;
+
+            import org.junit.jupiter.api.Test;
+            import org.example.dep.Dep;
+
+            public class ExampleTest {
+                @Test public void testOK() {
+                    new Dep();
+                }
+            }
+        """
+
+        settingsFile << """
+            dependencyResolutionManagement {
+                includeBuild("dep")
+            }
+
+            rootProject.name = 'example-of-project-reference-in-test-suites'
+
+            include("app")
+        """
+
+        expect: "should be able to reference the project without failing"
+        succeeds ':app:test'
+        def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'app/build/test-results/test')
+        unitTestResults.assertTestClassesExecuted('org.example.app.ExampleTest')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19065")
+    def "test suites can add self project dependency via coordinates"() {
+        given: "an application project with a custom test suite with a dependency on the project"
+        file('app/src/main/java/org/example/dep/Dep.java') << """
+            package org.example.dep;
+            public class Dep {}
+        """
+        file('app/build.gradle') << """
+            plugins {
+                 id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            group = "org.example.gradle"
+            version = "1.0"
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        useJUnitJupiter()
+
+                        dependencies {
+                            implementation('org.example.gradle:app:1.0')
+                        }
+                    }
+                }
+            }
+
+            tasks.named('compileIntegrationTestJava') {
+                dependsOn(tasks.named('jar'))
+            }
+        """
+        file('app/src/integrationTest/java/org/example/app/ExampleTest.java') << """
+            package org.example.app;
+
+            import org.junit.jupiter.api.Test;
+            import org.example.dep.Dep;
+
+            public class ExampleTest {
+                @Test public void testOK() {
+                    new Dep();
+                }
+            }
+        """
+
+        settingsFile << """
+            rootProject.name = 'example-of-project-reference-in-test-suites'
+
+            include("app")
+        """
+        executer.noDeprecationChecks()
+
+        expect: "should be able to reference the project without failing"
+        succeeds ':app:assemble', ':app:integrationTest'
+        def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'app/build/test-results/integrationTest')
+        unitTestResults.assertTestClassesExecuted('org.example.app.ExampleTest')
     }
 }
