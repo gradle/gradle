@@ -642,11 +642,6 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         result.assertOutputContains(string.trim())
     }
 
-    void outputContainsAnyOf(List<String> lines) {
-        assertHasResult()
-        result.assertOutputContainsAnyOf(lines)
-    }
-
     void postBuildOutputContains(String string) {
         assertHasResult()
         result.assertHasPostBuildOutput(string.trim())

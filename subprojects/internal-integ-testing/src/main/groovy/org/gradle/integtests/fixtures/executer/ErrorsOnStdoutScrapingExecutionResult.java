@@ -18,8 +18,6 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 
-import java.util.List;
-
 public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
     private final ExecutionResult delegate;
 
@@ -92,12 +90,6 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
     @Override
     public ExecutionResult assertOutputContains(String expectedOutput) {
         delegate.assertOutputContains(expectedOutput);
-        return this;
-    }
-
-    @Override
-    public ExecutionResult assertOutputContainsAnyOf(List<String> expectedOutputs) {
-        delegate.assertOutputContainsAnyOf(expectedOutputs);
         return this;
     }
 
