@@ -57,7 +57,7 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class InitBuild extends DefaultTask {
-    private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 6;
+    private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
@@ -232,17 +232,21 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     java.util.Optional<JavaLanguageVersion> getJavaLanguageVersion(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
-        if (!initDescriptor.isJvmLanguage()) {
+        if (!initDescriptor.supportsJavaTargets()) {
             return empty();
         }
 
         JavaLanguageVersion current = JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion());
-        String version = inputHandler.askQuestion("Which version of Java is this Project targeting (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString());
-        int parsedVersion = Integer.parseInt(version);
-        if(parsedVersion <= MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API) {
-            throw new GradleException("Java version not supported: " + version);
+        String version = inputHandler.askQuestion("Which version of Java is your project targeting (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString());
+        try {
+            int parsedVersion = Integer.parseInt(version);
+            if (parsedVersion < MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API) {
+                throw new GradleException("Java target version: '" + version + "' is not a supported target version. It must be equal to or greater than " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API);
+            }
+            return of(JavaLanguageVersion.of(parsedVersion));
+        } catch (NumberFormatException e) {
+            throw new GradleException("Invalid Java target version '" + version + "'. The version must be an integer.", e);
         }
-        return of(JavaLanguageVersion.of(parsedVersion));
     }
 
     private BuildInitDsl getBuildInitDsl(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
