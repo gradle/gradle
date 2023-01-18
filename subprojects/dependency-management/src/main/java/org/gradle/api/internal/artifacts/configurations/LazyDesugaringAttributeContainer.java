@@ -30,8 +30,12 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Map;
 
-// This does almost the same thing as passing through DesugaredAttributeContainerSerializer / DesugaringAttributeContainerSerializer.
-// Those make some assumptions about allowed attribute value types that we can't - we serialize everything else to a string instead.
+/**
+ * Desugars attributes of a container.
+ *
+ * This does almost the same thing as passing through DesugaredAttributeContainerSerializer / DesugaringAttributeContainerSerializer.
+ * Those make some assumptions about allowed attribute value types that we can't - we serialize everything else to a string instead.
+ */
 public final class LazyDesugaringAttributeContainer implements ImmutableAttributes {
 
     private final AttributeContainer source;
