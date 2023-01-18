@@ -60,17 +60,22 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         }
         handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
 
-        // Select 'no'
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(incubatingPrompt)
-        }
-        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
-
         // Select default project name
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectNamePrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
+        // Select 'no' for incubating APIs
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(incubatingPrompt)
+        }
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
+
+        // after generating the project, we suggest the user reads some documentation
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Get more help with your project")
+        }
         handle.stdinPipe.close()
         handle.waitForFinish()
 
@@ -90,6 +95,11 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains(projectNamePrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
+        // after generating the project, we suggest the user reads some documentation
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Get more help with your project")
+        }
         handle.stdinPipe.close()
         handle.waitForFinish()
 
@@ -134,12 +144,6 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         }
         handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
 
-        // Select 'no'
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(incubatingPrompt)
-        }
-        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
-
         // Select 'junit'
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains("Select test framework:")
@@ -164,7 +168,13 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains("Enter target version of Java (min. 7) (default: ${Jvm.current().javaVersion.majorVersion})")
         }
         handle.stdinPipe.write(("15" + TextUtil.platformLineSeparator).bytes)
-        
+
+        // Select 'no' for incubating APIs
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(incubatingPrompt)
+        }
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
+
         // after generating the project, we suggest the user reads some documentation
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains("Get more help with your project")
@@ -190,6 +200,23 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains(convertMavenBuildPrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
+        // Select 'groovy' DSL
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(dslPrompt)
+        }
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'no' for incubating APIs
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(incubatingPrompt)
+        }
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
+
+        // after generating the project, we suggest the user reads some documentation
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Get more help with your project")
+        }
         handle.stdinPipe.close()
         handle.waitForFinish()
 
@@ -230,17 +257,22 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         }
         handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
 
-        // Select 'no'
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains(incubatingPrompt)
-        }
-        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
-
         // Select default project name
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectNamePrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
+        // Select 'no' for incubating APIs
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(incubatingPrompt)
+        }
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
+
+        // after generating the project, we suggest the user reads some documentation
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Get more help with your project")
+        }
         handle.stdinPipe.close()
         handle.waitForFinish()
 
