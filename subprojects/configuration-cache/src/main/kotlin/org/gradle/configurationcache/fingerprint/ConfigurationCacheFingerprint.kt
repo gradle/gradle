@@ -78,7 +78,9 @@ sealed class ConfigurationCacheFingerprint {
         val value: Any?
     ) : ConfigurationCacheFingerprint()
 
-    data class RemoteScript(val uri: URI) : ConfigurationCacheFingerprint()
+    data class RemoteScript(
+        val uri: URI
+    ) : ConfigurationCacheFingerprint()
 
     abstract class ChangingDependencyResolutionValue(
         val expireAt: Long
