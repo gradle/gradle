@@ -16,10 +16,18 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 
 import java.util.Collection;
 
 public interface TransformationNodeFactory {
-    Collection<TransformationNode> create(ResolvedArtifactSet artifactSet, TransformationStep transformationStep, TransformUpstreamDependenciesResolver dependenciesResolver);
+
+    Collection<TransformationNode> create(
+        AttributeContainer sourceAttributes,
+        ResolvedArtifactSet artifactSet,
+        TransformationStep transformationStep,
+        TransformUpstreamDependenciesResolver dependenciesResolver
+    );
+
 }
