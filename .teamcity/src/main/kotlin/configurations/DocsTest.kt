@@ -131,6 +131,7 @@ class DocsTest(
         this,
         "docs:docsTest${if (testSplitType == EXCLUDE) " docs:checkSamples" else ""}",
         os = os,
+        arch = os.defaultArch,
         timeout = 60,
         extraParameters = buildScanTag(docsTestType.docsTestName) +
             " -PenableConfigurationCacheForDocsTests=${docsTestType.ccEnabled}" +
