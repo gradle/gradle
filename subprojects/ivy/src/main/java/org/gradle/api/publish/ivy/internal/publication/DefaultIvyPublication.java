@@ -528,9 +528,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     @Override
     public IvyArtifact addDerivedArtifact(IvyArtifact originalArtifact, DerivedArtifact fileProvider) {
-        if (originalArtifact == gradleModuleDescriptorArtifact) {
-            return null;
-        }
         IvyArtifact artifact = new DerivedIvyArtifact(originalArtifact, fileProvider, taskDependencyFactory);
         derivedArtifacts.add(artifact);
         return artifact;
