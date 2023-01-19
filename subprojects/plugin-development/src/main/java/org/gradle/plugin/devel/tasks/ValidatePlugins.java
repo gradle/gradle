@@ -71,7 +71,10 @@ public abstract class ValidatePlugins extends DefaultTask {
         getFailOnWarning().convention(true);
 
         JavaToolchainService service = getProject().getExtensions().findByType(JavaToolchainService.class);
-        if (service != null) getLauncher().convention(service.launcherFor(spec -> {})); // Use default JVM
+        if (service != null) {
+            // This will be the only case in v9.0
+            getLauncher().convention(service.launcherFor(spec -> {}));
+        }
     }
 
     @TaskAction
