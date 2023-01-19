@@ -73,10 +73,10 @@ public abstract class WarPlugin implements Plugin<Project> {
         project.getTasks().withType(War.class).configureEach(task -> {
             task.getWebAppDirectory().convention(project.getLayout().dir(project.provider(() -> pluginConvention.getWebAppDir())));
             task.from(task.getWebAppDirectory());
-            task.dependsOn((Callable) () -> component.getSources().getRuntimeClasspath());
+            task.dependsOn((Callable) () -> component.getSourceSet().getRuntimeClasspath());
             task.classpath((Callable) () -> {
                 Configuration providedRuntime = project.getConfigurations().getByName(PROVIDED_RUNTIME_CONFIGURATION_NAME);
-                return component.getSources().getRuntimeClasspath().minus(providedRuntime);
+                return component.getSourceSet().getRuntimeClasspath().minus(providedRuntime);
             });
         });
 
@@ -116,9 +116,9 @@ public abstract class WarPlugin implements Plugin<Project> {
             setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
         providedRuntimeConfiguration.setCanBeConsumed(false);
 
-        component.getImplementation().extendsFrom(providedCompileConfiguration);
-        component.getRuntimeClasspath().extendsFrom(providedRuntimeConfiguration);
-        component.getRuntimeElements().extendsFrom(providedRuntimeConfiguration);
+        component.getImplementationConfiguration().extendsFrom(providedCompileConfiguration);
+        component.getRuntimeClasspathConfiguration().extendsFrom(providedRuntimeConfiguration);
+        component.getRuntimeElementsConfiguration().extendsFrom(providedRuntimeConfiguration);
         configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
     }
 

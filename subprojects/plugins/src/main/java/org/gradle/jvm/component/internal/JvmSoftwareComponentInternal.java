@@ -27,15 +27,15 @@ import org.gradle.api.tasks.compile.JavaCompile;
 /**
  * A {@link SoftwareComponent} which produces variants intended for use within the JVM ecosystem.
  * <p>
- * There is currently no public interface for this type of component, as the JVM component
+ * TODO: There is currently no public interface for this type of component, as the JVM component
  * infrastructure is still under construction. The main blocker for publicizing this component
  * is the lack of multi-target functionality. This interface currently exposes the
- * {@link #getJar()}, {@link #getSources()}, {@link #getImplementation()}, etc. methods, which
- * imply that this component only supports a single compilation target. A multi-target component
- * would not expose these methods at the top-level, but would instead encapsulate them within
- * some kind of {@code targets} or {@code pipelines} container.
+ * {@link #getMainJarTask()}, {@link #getSourceSet()}, {@link #getImplementationConfiguration()},
+ * etc. methods, which imply that this component only supports a single compilation target. A
+ * multi-target component would not expose these methods at the top-level, but would instead
+ * encapsulate them within some kind of {@code targets} or {@code pipelines} container.
  * <p>
- * Before publicizing this component, we also need to consider how component extensibility works.
+ * TODO: Before publicizing this component, we also need to consider how component extensibility works.
  * For example, for the java-library plugin we have the additional {@code api} and {@code compileOnlyApi}
  * scopes. Do we expect that plugin to write a new component interface and extend this in order to add the
  * proper getter methods? What about the concrete component class which implements that new interface? Does
@@ -48,14 +48,14 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
      * this method also configures the necessary configurations and tasks required to produce
      * the javadoc artifact.
      */
-    void withJavadocJar();
+    void enableJavadocJarVariant();
 
     /**
      * Configures this component to publish a sources jar alongside the primary artifacts. As a result,
      * this method also configures the necessary configurations and tasks required to produce
      * the sources artifact.
      */
-    void withSourcesJar();
+    void enableSourcesJarVariant();
 
     /**
      * Get the {@link Jar} task which assembles the resources and compilation outputs into
@@ -63,24 +63,24 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
      *
      * @return A provider which supplies the component's {@link Jar} task.
      */
-    TaskProvider<Jar> getJar();
+    TaskProvider<Jar> getMainJarTask();
 
     /**
      * Get the {@link JavaCompile} task which compiles the Java source files into classes.
      *
      * @return A provider which supplies the component's {@link JavaCompile} task.
      */
-    TaskProvider<JavaCompile> getCompileJava();
+    TaskProvider<JavaCompile> getMainCompileJavaTask();
 
-    // TODO: This could use a better name. These "outputs" can be confused with a
+    // TODO: This could use a better name. "output" can be confused with a
     // component's "real" outputs, which are its variants.
     /**
      * Get the resources and compilation outputs for this component which are used as
-     * inputs for the {@link #getJar() jar} task.
+     * inputs for the {@link #getMainJarTask() main jar} task.
      *
      * @return The source set outputs.
      */
-    SourceSetOutput getOutput();
+    SourceSetOutput getMainOutput();
 
     /**
      * Get this component's backing source set.
@@ -92,12 +92,7 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
      *
      * @return This component's source set.
      */
-    SourceSet getSources();
-
-    // TODO: For these below Configuration-returning methods, we should consider using a
-    // "Configuration" suffix (ex. getImplementationConfiguration) so that when we update
-    // the JVM ecosystem to migrate away from Configurations towards scopes/resolvers/variants,
-    // we can utilize the "good" names without breaking changes.
+    SourceSet getSourceSet();
 
     /**
      * Gets the scope configuration for which to declare dependencies internal to the component.
@@ -106,7 +101,7 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
      *
      * @return The {@code implementation} configuration.
      */
-    Configuration getImplementation();
+    Configuration getImplementationConfiguration();
 
     /**
      * Gets the scope configuration for which to declare runtime-only dependencies.
@@ -115,7 +110,7 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
      *
      * @return The {@code runtimeOnly} configuration.
      */
-    Configuration getRuntimeOnly();
+    Configuration getRuntimeOnlyConfiguration();
 
     /**
      * Gets the scope configuration for which to declare compile-only dependencies.
@@ -124,7 +119,7 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
      *
      * @return The {@code compileOnly} configuration.
      */
-    Configuration getCompileOnly();
+    Configuration getCompileOnlyConfiguration();
 
     /**
      * Get the resolvable configuration containing the resolved runtime dependencies
@@ -133,7 +128,7 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
      *
      * @return The {@code runtimeClasspath} configuration.
      */
-    Configuration getRuntimeClasspath();
+    Configuration getRuntimeClasspathConfiguration();
 
     /**
      * Get the resolvable configuration containing the resolved compile dependencies
@@ -141,7 +136,7 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
      *
      * @return The {@code compileClasspath} configuration.
      */
-    Configuration getCompileClasspath();
+    Configuration getCompileClasspathConfiguration();
 
     /**
      * Get the consumable configuration which produces the {@code runtimeElements} variant of this component.
@@ -150,7 +145,7 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
      *
      * @return The {@code runtimeElements} configuration.
      */
-    Configuration getRuntimeElements();
+    Configuration getRuntimeElementsConfiguration();
 
     /**
      * Get the consumable configuration which produces the {@code apiElements} variant of this component.
@@ -160,6 +155,6 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
      *
      * @return The {@code apiElements} configuration.
      */
-    Configuration getApiElements();
+    Configuration getApiElementsConfiguration();
 
 }

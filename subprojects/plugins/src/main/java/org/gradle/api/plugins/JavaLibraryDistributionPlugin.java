@@ -39,12 +39,12 @@ public abstract class JavaLibraryDistributionPlugin implements Plugin<Project> {
         distributionContainer.named(DistributionPlugin.MAIN_DISTRIBUTION_NAME).configure(dist -> {
             JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
             CopySpec childSpec = project.copySpec();
-            childSpec.from(component.getJar());
+            childSpec.from(component.getMainJarTask());
             childSpec.from(project.file("src/dist"));
 
             CopySpec libSpec = project.copySpec();
             libSpec.into("lib");
-            libSpec.from(component.getRuntimeClasspath());
+            libSpec.from(component.getRuntimeClasspathConfiguration());
 
             childSpec.with(libSpec);
             dist.getContents().with(childSpec);

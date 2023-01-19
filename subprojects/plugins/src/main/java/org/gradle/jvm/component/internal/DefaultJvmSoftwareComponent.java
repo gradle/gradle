@@ -86,18 +86,6 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
     private final JvmPluginServices jvmPluginServices;
 
     private final SourceSet sourceSet;
-    private final Configuration implementation;
-    private final Configuration runtimeOnly;
-    private final Configuration compileOnly;
-
-    private final Configuration runtimeClasspath;
-    private final Configuration compileClasspath;
-
-    private final Configuration runtimeElements;
-    private final Configuration apiElements;
-
-    private final TaskProvider<JavaCompile> compileJava;
-    private final TaskProvider<Jar> jar;
 
     @Inject
     public DefaultJvmSoftwareComponent(
@@ -123,19 +111,11 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
 
         this.sourceSet = createMainSourceSet(javaExtension.getSourceSets());
 
-        this.compileJava = tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
-        this.jar = registerJarTask(tasks, sourceSet);
-
-        this.implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
-        this.compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
-        this.runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
-
-        this.runtimeClasspath = configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
-        this.compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
-
+        TaskProvider<Jar> jar = registerJarTask(tasks, sourceSet);
         PublishArtifact jarArtifact = configureArchives(project, jar, tasks, extensions);
-        this.runtimeElements = createRuntimeElements(configurations, sourceSet, jarArtifact);
-        this.apiElements = createApiElements(sourceSet, jarArtifact);
+
+        Configuration runtimeElements = createRuntimeElements(sourceSet, jarArtifact);
+        Configuration apiElements = createApiElements(sourceSet, jarArtifact);
         createSourceElements(configurations, providerFactory, objectFactory, sourceSet);
 
         JvmPluginsHelper.configureJavaDocTask(null, sourceSet, tasks, javaExtension);
@@ -189,15 +169,12 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         publications.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE);
     }
 
-    private Configuration createRuntimeElements(ConfigurationContainer configurations, final SourceSet sourceSet, PublishArtifact jarArtifact) {
-        Configuration implementationConfiguration = configurations.getByName(sourceSet.getImplementationConfigurationName());
-        Configuration runtimeOnlyConfiguration = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
-
-        final Configuration runtimeElementsConfiguration = jvmPluginServices.createOutgoingElements(sourceSet.getRuntimeElementsConfigurationName(),
+    private Configuration createRuntimeElements(SourceSet sourceSet, PublishArtifact jarArtifact) {
+        Configuration runtimeElementsConfiguration = jvmPluginServices.createOutgoingElements(sourceSet.getRuntimeElementsConfigurationName(),
             builder -> builder.fromSourceSet(sourceSet)
                 .providesRuntime()
                 .withDescription("Elements of runtime for main.")
-                .extendsFrom(implementationConfiguration, runtimeOnlyConfiguration));
+                .extendsFrom(getImplementationConfiguration(), getRuntimeOnlyConfiguration()));
         ((ConfigurationInternal) runtimeElementsConfiguration).setCanBeDeclaredAgainst(false);
 
         // Configure variants
@@ -209,7 +186,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
     }
 
     private Configuration createApiElements(SourceSet sourceSet, PublishArtifact jarArtifact) {
-        final Configuration apiElementsConfiguration = jvmPluginServices.createOutgoingElements(sourceSet.getApiElementsConfigurationName(),
+        Configuration apiElementsConfiguration = jvmPluginServices.createOutgoingElements(sourceSet.getApiElementsConfigurationName(),
             builder -> builder.fromSourceSet(sourceSet)
                 .providesApi()
                 .withDescription("API elements for main."));
@@ -221,8 +198,8 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         return apiElementsConfiguration;
     }
 
-    private Configuration createSourceElements(ConfigurationContainer configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, SourceSet sourceSet) {
-        final Configuration variant = configurations.create(SOURCE_ELEMENTS_VARIANT_NAME);
+    private static Configuration createSourceElements(ConfigurationContainer configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, SourceSet sourceSet) {
+        Configuration variant = configurations.create(SOURCE_ELEMENTS_VARIANT_NAME);
         variant.setDescription("List of source directories contained in the Main SourceSet.");
         variant.setVisible(false);
         variant.setCanBeResolved(false);
@@ -262,7 +239,10 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
     }
 
     @Override
-    public void withJavadocJar() {
+    public void enableJavadocJarVariant() {
+        if (project.getConfigurations().findByName(JAVADOC_ELEMENTS_CONFIGURATION_NAME) != null) {
+            return;
+        }
         Configuration javadocVariant = JvmPluginsHelper.createDocumentationVariantWithArtifact(
             JAVADOC_ELEMENTS_CONFIGURATION_NAME,
             null,
@@ -276,7 +256,10 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
     }
 
     @Override
-    public void withSourcesJar() {
+    public void enableSourcesJarVariant() {
+        if (project.getConfigurations().findByName(SOURCES_ELEMENTS_CONFIGURATION_NAME) != null) {
+            return;
+        }
         Configuration sourcesVariant = JvmPluginsHelper.createDocumentationVariantWithArtifact(
             SOURCES_ELEMENTS_CONFIGURATION_NAME,
             null,
@@ -290,57 +273,57 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
     }
 
     @Override
-    public TaskProvider<Jar> getJar() {
-        return jar;
+    public TaskProvider<Jar> getMainJarTask() {
+        return project.getTasks().named(sourceSet.getJarTaskName(), Jar.class);
     }
 
     @Override
-    public TaskProvider<JavaCompile> getCompileJava() {
-        return compileJava;
+    public TaskProvider<JavaCompile> getMainCompileJavaTask() {
+        return project.getTasks().named(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
     }
 
     @Override
-    public SourceSetOutput getOutput() {
+    public SourceSetOutput getMainOutput() {
         return sourceSet.getOutput();
     }
 
     @Override
-    public SourceSet getSources() {
+    public SourceSet getSourceSet() {
         return sourceSet;
     }
 
     @Override
-    public Configuration getImplementation() {
-        return implementation;
+    public Configuration getImplementationConfiguration() {
+        return project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName());
     }
 
     @Override
-    public Configuration getRuntimeOnly() {
-        return runtimeOnly;
+    public Configuration getRuntimeOnlyConfiguration() {
+        return project.getConfigurations().getByName(sourceSet.getRuntimeOnlyConfigurationName());
     }
 
     @Override
-    public Configuration getCompileOnly() {
-        return compileOnly;
+    public Configuration getCompileOnlyConfiguration() {
+        return project.getConfigurations().getByName(sourceSet.getCompileOnlyConfigurationName());
     }
 
     @Override
-    public Configuration getRuntimeClasspath() {
-        return runtimeClasspath;
+    public Configuration getRuntimeClasspathConfiguration() {
+        return project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
     }
 
     @Override
-    public Configuration getCompileClasspath() {
-        return compileClasspath;
+    public Configuration getCompileClasspathConfiguration() {
+        return project.getConfigurations().getByName(sourceSet.getCompileClasspathConfigurationName());
     }
 
     @Override
-    public Configuration getRuntimeElements() {
-        return runtimeElements;
+    public Configuration getRuntimeElementsConfiguration() {
+        return project.getConfigurations().getByName(sourceSet.getRuntimeElementsConfigurationName());
     }
 
     @Override
-    public Configuration getApiElements() {
-        return apiElements;
+    public Configuration getApiElementsConfiguration() {
+        return project.getConfigurations().getByName(sourceSet.getApiElementsConfigurationName());
     }
 }

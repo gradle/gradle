@@ -177,7 +177,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     private GradlePluginDevelopmentExtension createExtension(Project project) {
-        SourceSet defaultPluginSourceSet = JvmPluginsHelper.getJavaComponent(project).getSources();
+        SourceSet defaultPluginSourceSet = JvmPluginsHelper.getJavaComponent(project).getSourceSet();
         SourceSet defaultTestSourceSet = JvmPluginsHelper.getDefaultTestSuite(project).getSources();
         return project.getExtensions().create(EXTENSION_NAME, GradlePluginDevelopmentExtension.class, project, defaultPluginSourceSet, defaultTestSourceSet);
     }

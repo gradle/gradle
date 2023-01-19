@@ -49,10 +49,10 @@ public abstract class JavaLibraryPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaPlugin.class);
 
         JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
-        SourceSet sourceSet = component.getSources();
+        SourceSet sourceSet = component.getSourceSet();
 
         // TODO: Why do we not do this in createApiElements?
-        jvmEcosystemUtilities.configureClassesDirectoryVariant(component.getApiElements(), sourceSet);
+        jvmEcosystemUtilities.configureClassesDirectoryVariant(component.getApiElementsConfiguration(), sourceSet);
 
         RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
 
@@ -64,9 +64,9 @@ public abstract class JavaLibraryPlugin implements Plugin<Project> {
         compileOnlyApi.setDescription("Compile only API dependencies for " + sourceSet + ".");
         compileOnlyApi.setVisible(false);
 
-        component.getApiElements().extendsFrom(api, compileOnlyApi);
-        component.getImplementation().extendsFrom(api);
-        component.getCompileOnly().extendsFrom(compileOnlyApi);
+        component.getApiElementsConfiguration().extendsFrom(api, compileOnlyApi);
+        component.getImplementationConfiguration().extendsFrom(api);
+        component.getCompileOnlyConfiguration().extendsFrom(compileOnlyApi);
 
         // Make compileOnlyApi visible to tests.
         JvmTestSuite defaultTestSuite = JvmPluginsHelper.getDefaultTestSuite(project);
