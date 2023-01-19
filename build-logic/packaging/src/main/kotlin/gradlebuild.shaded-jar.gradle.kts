@@ -55,10 +55,9 @@ fun registerTransforms() {
             to.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
             parameters {
                 shadowPackage = "org.gradle.internal.impldep"
-                // TODO: Anze: Add SetProperty.assign
-                keepPackages.set(shadedJarExtension.keepPackages)
-                unshadedPackages.set(shadedJarExtension.unshadedPackages)
-                ignoredPackages.set(shadedJarExtension.ignoredPackages)
+                keepPackages = shadedJarExtension.keepPackages
+                unshadedPackages = shadedJarExtension.unshadedPackages
+                ignoredPackages = shadedJarExtension.ignoredPackages
             }
         }
 

@@ -54,5 +54,6 @@ packageCycles {
     excludePatterns.add("org/gradle/util/GradleVersion**")
 }
 
-// TODO: Anze: ListProperty.assign
-jmh.includes.set(listOf("HashingAlgorithmsBenchmark"))
+jmh {
+    includes = listOf("HashingAlgorithmsBenchmark")
+}

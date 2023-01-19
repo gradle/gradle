@@ -304,13 +304,12 @@ fun configureTests() {
 
                 if (BuildEnvironment.isCiServer) {
                     when {
-                        // TODO: Anze: Add SetProperty<T>.assign
-                        OperatingSystem.current().isLinux -> requirements.set(listOf("os=linux", "gbt-dogfooding"))
-                        OperatingSystem.current().isWindows -> requirements.set(listOf("os=windows", "gbt-dogfooding"))
-                        OperatingSystem.current().isMacOsX -> requirements.set(listOf("os=macos", "gbt-dogfooding"))
+                        OperatingSystem.current().isLinux -> requirements = listOf("os=linux", "gbt-dogfooding")
+                        OperatingSystem.current().isWindows -> requirements = listOf("os=windows", "gbt-dogfooding")
+                        OperatingSystem.current().isMacOsX -> requirements = listOf("os=macos", "gbt-dogfooding")
                     }
                 } else {
-                    requirements.set(listOf("gbt-dogfooding"))
+                    requirements = listOf("gbt-dogfooding")
                 }
             }
         }
