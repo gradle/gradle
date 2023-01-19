@@ -34,7 +34,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInter
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.JavaBasePlugin;
@@ -279,13 +278,8 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private Provider<JavaLauncher> toolchainLauncher(Project project) {
         JavaPluginExtension extension = project.getExtensions().findByType(JavaPluginExtension.class);
-        if (extension != null) {
-            JavaToolchainService service = project.getExtensions().findByType(JavaToolchainService.class);
-            if (service != null) {
-                return service.launcherFor(extension.getToolchain());
-            }
-        }
-        return Providers.notDefined();
+        JavaToolchainService service = project.getExtensions().findByType(JavaToolchainService.class);
+        return service.launcherFor(extension.getToolchain());
     }
 
     /**

@@ -29,13 +29,17 @@ import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.WorkValidationException;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.plugin.devel.tasks.internal.ValidateAction;
 import org.gradle.workers.WorkerExecutor;
 
@@ -65,13 +69,24 @@ public abstract class ValidatePlugins extends DefaultTask {
         getEnableStricterValidation().convention(false);
         getIgnoreFailures().convention(false);
         getFailOnWarning().convention(true);
+
+        JavaToolchainService service = getProject().getExtensions().findByType(JavaToolchainService.class);
+        if (service != null) getLauncher().convention(service.launcherFor(spec -> {})); // Use default JVM
     }
 
     @TaskAction
     public void validateTaskClasses() throws IOException {
         getWorkerExecutor()
             .processIsolation(spec -> {
-                spec.getForkOptions().setExecutable(getLauncher().get().getExecutablePath());
+                if (getLauncher().isPresent()) {
+                    spec.getForkOptions().setExecutable(getLauncher().get().getExecutablePath());
+                } else {
+                    DeprecationLogger.deprecateBehaviour("Using task ValidatePlugins without applying the Java Toolchain plugin.")
+                        .willBecomeAnErrorInGradle9()
+                        .withUpgradeGuideSection(8, "validate_plugins_without_java_toolchain")
+                        .nagUser();
+                    spec.getForkOptions().setExecutable(Jvm.current().getJavaExecutable());
+                }
                 spec.getClasspath().setFrom(getClasses(), getClasspath());
             })
             .submit(ValidateAction.class, params -> {
@@ -153,6 +168,7 @@ public abstract class ValidatePlugins extends DefaultTask {
      * @since 8.1.
      */
     @Nested
+    @Optional
     @Incubating
     public abstract Property<JavaLauncher> getLauncher();
 
