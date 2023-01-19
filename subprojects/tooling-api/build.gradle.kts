@@ -15,10 +15,9 @@ tasks.named<Jar>("sourcesJar") {
 
 shadedJar {
     shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
-    // TODO: Anze: SetProperty.assign
-    keepPackages.set(listOf("org.gradle.tooling"))
-    unshadedPackages.set(listOf("org.gradle", "org.slf4j", "sun.misc"))
-    ignoredPackages.set(setOf("org.gradle.tooling.provider.model"))
+    keepPackages = listOf("org.gradle.tooling")
+    unshadedPackages = listOf("org.gradle", "org.slf4j", "sun.misc")
+    ignoredPackages = setOf("org.gradle.tooling.provider.model")
 }
 
 dependencies {

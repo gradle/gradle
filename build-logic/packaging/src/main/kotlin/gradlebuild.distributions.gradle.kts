@@ -115,16 +115,14 @@ val dslMetaData by tasks.registering(ExtractDslMetaDataTask::class) {
 val defaultImports = tasks.register("defaultImports", GenerateDefaultImports::class) {
     metaDataFile = dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile)
     importsDestFile = generatedTxtFileFor("default-imports")
-    // TODO: Anze: Add SetProperty.assign
-    excludedPackages.set(GradleUserManualPlugin.getDefaultExcludedPackages())
+    excludedPackages = GradleUserManualPlugin.getDefaultExcludedPackages()
 }
 
 // Mapping of default imported types to their fully qualified name
 val apiMapping by tasks.registering(GenerateApiMapping::class) {
     metaDataFile = dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile)
     mappingDestFile = generatedTxtFileFor("api-mapping")
-    // TODO: Anze: Add SetProperty.assign
-    excludedPackages.set(GradleUserManualPlugin.getDefaultExcludedPackages())
+    excludedPackages = GradleUserManualPlugin.getDefaultExcludedPackages()
 }
 
 // Which plugins are in the distribution and which are part of the public API? Required to generate API and Kotlin DSL Jars

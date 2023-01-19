@@ -75,8 +75,7 @@ tasks.withType<Test>().configureEach {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    // TODO: Anze: Property<T>.assign should accept nullable value
-    options.release.set(null as? Int)
+    options.release = null
     sourceCompatibility = "8"
     targetCompatibility = "8"
 }

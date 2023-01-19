@@ -20,7 +20,6 @@ import gradlebuild.basics.parentOrRoot
 
 
 val buildEnvironmentExtension = extensions.create("buildEnvironment", BuildEnvironmentExtension::class)
-// TODO: Anze: Check why IntelliJ shows an error
 buildEnvironmentExtension.gitCommitId = git("rev-parse", "HEAD")
 buildEnvironmentExtension.gitBranch = git("rev-parse", "--abbrev-ref", "HEAD")
 buildEnvironmentExtension.repoRoot = layout.projectDirectory.parentOrRoot()

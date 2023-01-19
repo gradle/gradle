@@ -56,8 +56,7 @@ fun setupGeneratorTask(language: Language, kind: String, modularizationOption: M
         modularization = modularizationOption
     }
     samples.publishedSamples.create(sampleName) {
-        // TODO: Anze: Add SetProperty<T>.assign
-        dsls.set(setOf(Dsl.GROOVY, Dsl.KOTLIN))
+        dsls = setOf(Dsl.GROOVY, Dsl.KOTLIN)
         sampleDirectory = generateSampleTask.flatMap { it.target }
         displayName = "Building $languageDisplayName $capKind$multiProjectSuffix"
         description = "Setup a $languageDisplayName $kind project$multiProjectSuffix step-by-step."
