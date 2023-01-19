@@ -95,10 +95,10 @@ public abstract class EarPlugin implements Plugin<Project> {
             final JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
             project.getTasks().withType(Ear.class).configureEach(task -> {
                 task.dependsOn((Callable<FileCollection>) () ->
-                    component.getSources().getRuntimeClasspath()
+                    component.getSourceSet().getRuntimeClasspath()
                 );
                 task.from((Callable<FileCollection>) () ->
-                    component.getOutput()
+                    component.getMainOutput()
                 );
             });
         });
@@ -112,7 +112,7 @@ public abstract class EarPlugin implements Plugin<Project> {
 
             plugins.withType(JavaPlugin.class, javaPlugin -> {
                 final JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
-                component.getSources().getResources().srcDir(task.getAppDirectory());
+                    component.getSourceSet().getResources().srcDir(task.getAppDirectory());
             });
         });
 

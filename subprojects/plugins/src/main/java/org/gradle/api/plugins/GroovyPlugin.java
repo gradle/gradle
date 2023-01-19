@@ -46,9 +46,9 @@ public abstract class GroovyPlugin implements Plugin<Project> {
             groovyDoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
 
             JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
-            groovyDoc.setClasspath(component.getOutput().plus(component.getSources().getCompileClasspath()));
+            groovyDoc.setClasspath(component.getMainOutput().plus(component.getSourceSet().getCompileClasspath()));
 
-            SourceDirectorySet groovySourceSet = component.getSources().getExtensions().getByType(GroovySourceDirectorySet.class);
+            SourceDirectorySet groovySourceSet = component.getSourceSet().getExtensions().getByType(GroovySourceDirectorySet.class);
             groovyDoc.setSource(groovySourceSet);
         });
     }

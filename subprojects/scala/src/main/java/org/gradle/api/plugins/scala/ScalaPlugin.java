@@ -54,7 +54,7 @@ public abstract class ScalaPlugin implements Plugin<Project> {
         configureScaladoc(project, component);
 
         final Configuration incrementalAnalysisElements = project.getConfigurations().getByName("incrementalScalaAnalysisElements");
-        String compileTaskName = component.getSources().getCompileTaskName("scala");
+        String compileTaskName = component.getSourceSet().getCompileTaskName("scala");
         final TaskProvider<AbstractScalaCompile> compileScala = project.getTasks().withType(AbstractScalaCompile.class).named(compileTaskName);
         final Provider<RegularFile> compileScalaMapping = project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + compileTaskName + ".mapping");
         compileScala.configure(task -> task.getAnalysisMappingFile().set(compileScalaMapping));
@@ -66,12 +66,12 @@ public abstract class ScalaPlugin implements Plugin<Project> {
         project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
             scalaDoc.getConventionMapping().map("classpath", (Callable<FileCollection>) () -> {
                 ConfigurableFileCollection files = project.files();
-                files.from(component.getOutput());
-                files.from(component.getSources().getCompileClasspath());
+                files.from(component.getMainOutput());
+                files.from(component.getSourceSet().getCompileClasspath());
                 return files;
             });
-            scalaDoc.setSource(component.getSources().getExtensions().getByType(ScalaSourceDirectorySet.class));
-            scalaDoc.getCompilationOutputs().from(component.getOutput());
+            scalaDoc.setSource(component.getSourceSet().getExtensions().getByType(ScalaSourceDirectorySet.class));
+            scalaDoc.getCompilationOutputs().from(component.getMainOutput());
         });
         project.getTasks().register(SCALA_DOC_TASK_NAME, ScalaDoc.class, scalaDoc -> {
             scalaDoc.setDescription("Generates Scaladoc for the main source code.");

@@ -214,7 +214,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         maybeEmitMissingJavaComponentDeprecation("withJavadocJar()");
 
         if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-            JvmPluginsHelper.getJavaComponent(project).withJavadocJar();
+            JvmPluginsHelper.getJavaComponent(project).enableJavadocJarVariant();
         } else {
             SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
             JvmPluginsHelper.createDocumentationVariantWithArtifact(
@@ -234,7 +234,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         maybeEmitMissingJavaComponentDeprecation("withSourcesJar()");
 
         if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-            JvmPluginsHelper.getJavaComponent(project).withSourcesJar();
+            JvmPluginsHelper.getJavaComponent(project).enableSourcesJarVariant();
         } else {
             SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
             JvmPluginsHelper.createDocumentationVariantWithArtifact(
@@ -308,8 +308,8 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
                 JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
                 JvmTestSuite defaultTestSuite = JvmPluginsHelper.getDefaultTestSuite(project);
 
-                mainCompileClasspath = component.getCompileClasspath();
-                mainRuntimeClasspath = component.getRuntimeClasspath();
+                mainCompileClasspath = component.getCompileClasspathConfiguration();
+                mainRuntimeClasspath = component.getRuntimeClasspathConfiguration();
                 testCompileClasspath = findConfiguration(defaultTestSuite.getSources().getCompileClasspathConfigurationName());
                 testRuntimeClasspath = findConfiguration(defaultTestSuite.getSources().getRuntimeClasspathConfigurationName());
             } else {

@@ -58,19 +58,19 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", ext)
 
         then:
-        component.sources == ext.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
-        component.output == component.getSources().getOutput()
-        component.runtimeClasspath == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-        component.compileClasspath == project.configurations.getByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME)
-        component.runtimeElements == project.configurations.getByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
-        component.apiElements == project.configurations.getByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME)
+        component.sourceSet == ext.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
+        component.mainOutput == component.getSourceSet().getOutput()
+        component.runtimeClasspathConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+        component.compileClasspathConfiguration == project.configurations.getByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME)
+        component.runtimeElementsConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+        component.apiElementsConfiguration == project.configurations.getByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME)
         project.configurations.getByName('mainSourceElements')
-        component.implementation == project.configurations.getByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME)
-        component.runtimeOnly == project.configurations.getByName(JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME)
-        component.compileOnly == project.configurations.getByName(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME)
+        component.implementationConfiguration == project.configurations.getByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME)
+        component.runtimeOnlyConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME)
+        component.compileOnlyConfiguration == project.configurations.getByName(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME)
         project.configurations.getByName(JvmConstants.ANNOTATION_PROCESSOR_CONFIGURATION_NAME)
-        component.compileJava.get() == project.tasks.getByName(JvmConstants.COMPILE_JAVA_TASK_NAME)
-        component.jar.get() == project.tasks.getByName(JvmConstants.JAR_TASK_NAME)
+        component.mainCompileJavaTask.get() == project.tasks.getByName(JvmConstants.COMPILE_JAVA_TASK_NAME)
+        component.mainJarTask.get() == project.tasks.getByName(JvmConstants.JAR_TASK_NAME)
         project.tasks.getByName(JvmConstants.JAVADOC_TASK_NAME)
         project.tasks.getByName(JvmConstants.PROCESS_RESOURCES_TASK_NAME)
     }
@@ -88,7 +88,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
 
         when:
         def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", ext)
-        component.withJavadocJar()
+        component.enableJavadocJarVariant()
 
         then:
         def configuration = project.configurations.getByName(JvmConstants.JAVADOC_ELEMENTS_CONFIGURATION_NAME)
@@ -100,7 +100,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         (configuration.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE) as Category).name == Category.DOCUMENTATION
         (configuration.attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE) as Bundling).name == Bundling.EXTERNAL
         (configuration.attributes.getAttribute(DocsType.DOCS_TYPE_ATTRIBUTE) as DocsType).name == DocsType.JAVADOC
-        project.tasks.getByName(component.sources.javadocJarTaskName)
+        project.tasks.getByName(component.sourceSet.javadocJarTaskName)
         component.usages.find { it.name == JvmConstants.JAVADOC_ELEMENTS_CONFIGURATION_NAME}
     }
 
@@ -117,7 +117,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
 
         when:
         def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", ext)
-        component.withSourcesJar()
+        component.enableSourcesJarVariant()
 
         then:
         def configuration = project.configurations.getByName(JvmConstants.SOURCES_ELEMENTS_CONFIGURATION_NAME)
@@ -129,7 +129,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         (configuration.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE) as Category).name == Category.DOCUMENTATION
         (configuration.attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE) as Bundling).name == Bundling.EXTERNAL
         (configuration.attributes.getAttribute(DocsType.DOCS_TYPE_ATTRIBUTE) as DocsType).name == DocsType.SOURCES
-        project.tasks.getByName(component.sources.sourcesJarTaskName)
+        project.tasks.getByName(component.sourceSet.sourcesJarTaskName)
         component.usages.find { it.name == JvmConstants.SOURCES_ELEMENTS_CONFIGURATION_NAME}
     }
 

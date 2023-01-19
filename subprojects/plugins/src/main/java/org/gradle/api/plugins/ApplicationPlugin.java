@@ -79,7 +79,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         JavaApplication pluginExtension = addExtensions(project, pluginConvention);
         addRunTask(project, component, pluginExtension, pluginConvention);
         addCreateScriptsTask(project, component, pluginExtension, pluginConvention);
-        configureJavaCompileTask(component.getCompileJava(), pluginExtension);
+        configureJavaCompileTask(component.getMainCompileJavaTask(), pluginExtension);
         configureInstallTask(project.getProviders(), tasks.named(TASK_INSTALL_NAME, Sync.class), pluginConvention);
 
         DistributionContainer distributions = (DistributionContainer) project.getExtensions().getByName("distributions");
@@ -206,24 +206,24 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     }
 
     private FileCollection runtimeClasspath(JvmSoftwareComponentInternal component) {
-        return component.getSources().getRuntimeClasspath();
+        return component.getSourceSet().getRuntimeClasspath();
     }
 
     private FileCollection jarsOnlyRuntimeClasspath(JvmSoftwareComponentInternal component) {
-        return component.getJar().get().getOutputs().getFiles().plus(component.getRuntimeClasspath());
+        return component.getMainJarTask().get().getOutputs().getFiles().plus(component.getRuntimeClasspathConfiguration());
     }
 
     private CopySpec configureDistribution(Project project, JvmSoftwareComponentInternal component, Distribution mainDistribution, ApplicationPluginConvention pluginConvention) {
         mainDistribution.getDistributionBaseName().convention(project.provider(pluginConvention::getApplicationName));
         CopySpec distSpec = mainDistribution.getContents();
 
-        TaskProvider<Jar> jar = component.getJar();
+        TaskProvider<Jar> jar = component.getMainJarTask();
         TaskProvider<Task> startScripts = project.getTasks().named(TASK_START_SCRIPTS_NAME);
 
         CopySpec libChildSpec = project.copySpec();
         libChildSpec.into("lib");
         libChildSpec.from(jar);
-        libChildSpec.from(component.getRuntimeClasspath());
+        libChildSpec.from(component.getRuntimeClasspathConfiguration());
 
         CopySpec binChildSpec = project.copySpec();
 
