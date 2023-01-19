@@ -643,18 +643,10 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     """
                     |  Line 01: println(foo)
                     |                   ^ Unresolved reference: foo
-                    """.trimMargin()
-                ),
-
-                containsString(
-                    """
+                    |
                     |  Line 06: println("foo").bar.bazar
                     |                          ^ Unresolved reference: bar
-                    """.trimMargin()
-                ),
-
-                containsString(
-                    """
+                    |
                     |  Line 10: println(cathedral)
                     |                   ^ Unresolved reference: cathedral
                     """.trimMargin()
