@@ -35,9 +35,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         settingsKotlinFile << """
             dependencyResolutionManagement {
                 repositories {
-                    maven {
-                        setUrl("${mavenHttpRepo.uri}")
-                    }
+                    maven(url = "${mavenHttpRepo.uri}")
                 }
             }
         """
@@ -108,7 +106,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         """
         file("buildSrc/src/main/kotlin/my.plugin.gradle.kts") << """
             pluginManager.withPlugin("java") {
-                val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
+                val libs = the<VersionCatalogsExtension>().named("libs")
                 dependencies.addProvider("implementation", libs.findLibrary("lib").get())
             }
         """
