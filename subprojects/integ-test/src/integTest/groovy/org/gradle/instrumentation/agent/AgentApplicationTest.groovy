@@ -20,15 +20,18 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
+import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.agents.AgentStatus
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
+import spock.lang.IgnoreIf
 import spock.lang.Requires
 
 // This test doesn't live in :instrumentation-agent to avoid the latter being implicitly added to
 // the test runtime classpath as part of the main source set's output.
 // It is important to have the agent appended to the classpath of all integration tests.
 class AgentApplicationTest extends AbstractIntegrationSpec {
+    @IgnoreIf({ AbstractGradleExecuter.agentInstrumentationEnabled }) // TODO: agent is enabled by default in tests
     def "agent is disabled by default"() {
         given:
         withDumpAgentStatusTask()
