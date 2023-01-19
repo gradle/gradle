@@ -281,6 +281,7 @@ fun ClassWriter.emitAccessorMethodFor(accessor: PluginAccessor, signature: JvmMe
                 INVOKESPECIAL(returnType.internalName, "<init>", groupTypeConstructorSignature)
                 ARETURN()
             }
+
             is PluginAccessor.ForPlugin -> {
                 GETPLUGINS(receiverType)
                 LDC(accessor.id)
@@ -344,6 +345,7 @@ fun BufferedWriter.appendSourceCodeForPluginAccessors(
                     )
                 )
             }
+
             is PluginAccessor.ForGroup -> {
                 val groupType = extension.returnType.sourceName
                 appendReproducibleNewLine(
@@ -460,6 +462,7 @@ fun pluginAccessorsFor(pluginTrees: Map<String, PluginTree>, extendedType: TypeS
                 )
                 yieldAll(pluginAccessorsFor(pluginTree.plugins, groupTypeSpec))
             }
+
             is PluginTree.PluginSpec -> {
                 yield(
                     PluginAccessor.ForPlugin(
