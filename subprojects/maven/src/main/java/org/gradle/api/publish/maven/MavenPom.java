@@ -56,21 +56,21 @@ public interface MavenPom {
     Property<String> getName();
 
     /**
-     * A short, human-readable description for the project represented by this POM.
+     * A short, human-readable description for the publication represented by this POM.
      *
      * @since 4.8
      */
     Property<String> getDescription();
 
     /**
-     * The URL of the home page for the project represented by this POM.
+     * The URL of the home page for the project producing the publication represented by this POM.
      *
      * @since 4.8
      */
     Property<String> getUrl();
 
     /**
-     * The year the project was first created.
+     * The year the project producing the publication represented by this POM was first created.
      *
      * @since 4.8
      */
