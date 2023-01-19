@@ -15,7 +15,6 @@
  */
 package org.gradle.api.component;
 
-import com.sun.org.apache.xalan.internal.xsltc.compiler.If;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
