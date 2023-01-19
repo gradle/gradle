@@ -992,4 +992,59 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'app/build/test-results/integrationTest')
         unitTestResults.assertTestClassesExecuted('org.example.app.ExampleTest')
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/19065")
+    def "test suites can add self project dependency via coordinates"() {
+        given: "an application project with a custom test suite with a dependency on the project"
+        file('app/src/main/java/org/example/dep/Dep.java') << """
+            package org.example.dep;
+            public class Dep {}
+        """
+        file('app/build.gradle') << """
+            plugins {
+                 id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            group = "org.example.gradle"
+            version = "1.0"
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        useJUnitJupiter()
+
+                        dependencies {
+                            implementation('org.example.gradle:app:1.0')
+                        }
+                    }
+                }
+            }
+        """
+        file('app/src/integrationTest/java/org/example/app/ExampleTest.java') << """
+            package org.example.app;
+
+            import org.junit.jupiter.api.Test;
+            import org.example.dep.Dep;
+
+            public class ExampleTest {
+                @Test public void testOK() {
+                    new Dep();
+                }
+            }
+        """
+
+        settingsFile << """
+            rootProject.name = 'example-of-project-reference-in-test-suites'
+
+            include("app")
+        """
+        executer.noDeprecationChecks()
+
+        expect: "should be able to reference the project without failing"
+        succeeds ':app:assemble', ':app:integrationTest'
+        def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'app/build/test-results/integrationTest')
+        unitTestResults.assertTestClassesExecuted('org.example.app.ExampleTest')
+    }
 }
