@@ -26,8 +26,8 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.PluginAware
-
 import org.gradle.kotlin.dsl.ScriptHandlerScope
+import org.gradle.kotlin.dsl.PluginDependenciesSpecScope
 import org.gradle.plugin.use.PluginDependenciesSpec
 
 
@@ -57,7 +57,7 @@ open class CompiledKotlinBuildScript(
      * @see [PluginDependenciesSpec]
      */
     @Suppress("unused")
-    open fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpec.() -> Unit): Unit =
+    open fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
         invalidPluginsCall()
 }
 
