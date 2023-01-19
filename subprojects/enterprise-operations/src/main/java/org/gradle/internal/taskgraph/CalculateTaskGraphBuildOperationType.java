@@ -27,12 +27,40 @@ import java.util.List;
  */
 public final class CalculateTaskGraphBuildOperationType implements BuildOperationType<CalculateTaskGraphBuildOperationType.Details, CalculateTaskGraphBuildOperationType.Result> {
 
+    public interface NodeIdentity {}
+
+    public interface TransformationIdentity extends NodeIdentity {
+
+        String getProjectPath();
+
+        String getComponentId();
+
+        String getSourceAttributes();
+
+        Class<?> getTransformType();
+
+        String getFromAttributes();
+
+        String getToAttributes();
+
+        long getTransformationNodeId();
+
+    }
+
+    public interface PlannedNode {
+
+        NodeIdentity getNodeIdentity();
+
+        List<? extends NodeIdentity> getNodeDependencies();
+
+    }
+
     /**
      *
      * @since 6.2
      *
      * */
-    public interface TaskIdentity {
+    public interface TaskIdentity extends NodeIdentity {
 
         String getBuildPath();
 
@@ -50,7 +78,7 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
      * @since 6.2
      *
      * */
-    public interface PlannedTask {
+    public interface PlannedTask extends PlannedNode {
 
         TaskIdentity getTask();
 
@@ -97,6 +125,11 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
          * @since 6.2
          */
         List<PlannedTask> getTaskPlan();
+
+        List<PlannedNode> getExecutionPlan();
+
+        // TODO for extensibility:
+        // List<PlannedNode> getExecutionPlan(Set<NodeType> type);
     }
 
     private CalculateTaskGraphBuildOperationType() {
