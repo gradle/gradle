@@ -20,28 +20,37 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.Cast;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.util.Path;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DefaultProjectPublicationRegistry implements ProjectPublicationRegistry, HoldsProjectState {
-    private final SetMultimap<Path, Reference<?>> publicationsByProject = LinkedHashMultimap.create();
+    private final SetMultimap<Path, ProjectPublication> publicationsByProject = LinkedHashMultimap.create();
+    ProjectRegistry<ProjectInternal> projectRegistry;
+
+    @Inject
+    public DefaultProjectPublicationRegistry(ProjectRegistry<ProjectInternal> projectRegistry) {
+        this.projectRegistry = projectRegistry;
+    }
 
     @Override
     public <T extends ProjectPublication> Collection<T> getPublications(Class<T> type, Path projectIdentityPath) {
         synchronized (publicationsByProject) {
-            Collection<Reference<?>> projectPublications = publicationsByProject.get(projectIdentityPath);
+            Collection<ProjectPublication> projectPublications = publicationsByProject.get(projectIdentityPath);
             if (projectPublications.isEmpty()) {
                 return Collections.emptyList();
             }
             List<T> result = new ArrayList<>(projectPublications.size());
-            for (Reference<?> reference : projectPublications) {
-                if (type.isInstance(reference.get())) {
-                    result.add(type.cast(reference.get()));
+            for (ProjectPublication publication : projectPublications) {
+                if (type.isInstance(publication)) {
+                    result.add(type.cast(publication));
                 }
             }
             return result;
@@ -49,18 +58,23 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
     }
 
     @Override
-    public <T extends ProjectPublication> Collection<Reference<T>> getPublications(Class<T> type) {
+    public <T extends ProjectPublication> Map<ProjectInternal, Collection<T>> getPublicationsByProject(Class<T> type) {
         synchronized (publicationsByProject) {
-            Collection<Reference<?>> allPublications = publicationsByProject.values();
+            Collection<ProjectPublication> allPublications = publicationsByProject.values();
             if (allPublications.isEmpty()) {
-                return Collections.emptyList();
+                return Collections.emptyMap();
             }
-            List<Reference<T>> result = new ArrayList<>(allPublications.size());
-            for (Reference<?> reference : allPublications) {
-                if (type.isInstance(reference.get())) {
-                    result.add(Cast.uncheckedCast(reference));
+
+            Map<ProjectInternal, Collection<T>> result = new HashMap<>(allPublications.size());
+            publicationsByProject.entries().forEach(entry -> {
+                ProjectPublication publication = entry.getValue();
+                if (type.isInstance(publication)) {
+                    ProjectInternal project = projectRegistry.getProject(entry.getKey().getPath());
+                    Collection<T> publications = result.computeIfAbsent(project, p -> new ArrayList<>());
+                    publications.add(type.cast(publication));
                 }
-            }
+            });
+
             return result;
         }
     }
@@ -68,32 +82,12 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
     @Override
     public void registerPublication(ProjectInternal project, ProjectPublication publication) {
         synchronized (publicationsByProject) {
-            publicationsByProject.put(project.getIdentityPath(), new ReferenceImpl(publication, project));
+            publicationsByProject.put(project.getIdentityPath(), publication);
         }
     }
 
     @Override
     public void discardAll() {
         publicationsByProject.clear();
-    }
-
-    private static class ReferenceImpl implements Reference<ProjectPublication> {
-        private final ProjectPublication publication;
-        private final ProjectInternal project;
-
-        ReferenceImpl(ProjectPublication publication, ProjectInternal project) {
-            this.publication = publication;
-            this.project = project;
-        }
-
-        @Override
-        public ProjectPublication get() {
-            return publication;
-        }
-
-        @Override
-        public ProjectInternal getProducingProject() {
-            return project;
-        }
     }
 }

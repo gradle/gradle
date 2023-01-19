@@ -21,6 +21,7 @@ import org.gradle.util.Path;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * A build scoped service that collects information on the local "publications" of each project within a build. A "publication" here means some buildable thing that the project produces that can be consumed outside of the project.
@@ -37,14 +38,10 @@ public interface ProjectPublicationRegistry {
     <T extends ProjectPublication> Collection<T> getPublications(Class<T> type, Path projectIdentityPath);
 
     /**
-     * Returns all known publications.
+     * Returns all known publications, grouped by the project that produced it.
+     *
+     * This is used for resolving plugins in local composite builds.  See {@link org.gradle.composite.internal.plugins.LocalPluginResolution LocalPluginResolution}.
      */
-    <T extends ProjectPublication> Collection<Reference<T>> getPublications(Class<T> type);
-
-    interface Reference<T> {
-        T get();
-
-        // Should use ProjectState instead
-        ProjectInternal getProducingProject();
-    }
+    @SuppressWarnings("JavadocReference")
+    <T extends ProjectPublication> Map<ProjectInternal, Collection<T>> getPublicationsByProject(Class<T> type);
 }

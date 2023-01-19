@@ -24,9 +24,14 @@ import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 
-class LocalPluginResolution implements PluginResolution {
+/**
+  * Represents a {@link PluginResolution} which resolves to a local plugin project in a composite build.
+  */
+/* package */ class LocalPluginResolution implements PluginResolution {
     private final PluginId pluginId;
     private final ProjectInternal producingProject;
 
@@ -50,14 +55,23 @@ class LocalPluginResolution implements PluginResolution {
         context.addLegacy(pluginId, producingProject.getDependencies().create(producingProject));
     }
 
-    static Optional<PluginResolution> resolvePlugin(GradleInternal gradle, PluginId requestedPluginId) {
+    /**
+     * Attempt to resolve the given plugin id to a local plugin project in the publication registry for the current build.
+     *
+     * @return the resolved plugin if found, or {@link Optional#empty()} if not
+     */
+    /* package */ static Optional<PluginResolution> resolvePlugin(GradleInternal gradle, PluginId requestedPluginId) {
         ProjectPublicationRegistry publicationRegistry = gradle.getServices().get(ProjectPublicationRegistry.class);
-        for (ProjectPublicationRegistry.Reference<PluginPublication> reference : publicationRegistry.getPublications(PluginPublication.class)) {
-            PluginId pluginId = reference.get().getPluginId();
-            if (pluginId.equals(requestedPluginId)) {
-                return Optional.of(new LocalPluginResolution(pluginId, reference.getProducingProject()));
+        Map<ProjectInternal, Collection<PluginPublication>> pluginsByProject = publicationRegistry.getPublicationsByProject(PluginPublication.class);
+        for (Map.Entry<ProjectInternal, Collection<PluginPublication>> entry : pluginsByProject.entrySet()) {
+            ProjectInternal project = entry.getKey();
+            for (PluginPublication pluginPublication : entry.getValue()) {
+                if (pluginPublication.getPluginId().equals(requestedPluginId)) {
+                    return Optional.of(new LocalPluginResolution(requestedPluginId, project));
+                }
             }
         }
+
         return Optional.empty();
     }
 }
