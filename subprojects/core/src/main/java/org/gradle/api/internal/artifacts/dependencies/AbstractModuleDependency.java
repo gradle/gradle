@@ -191,6 +191,9 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         if (isTransitive() != dependencyRhs.isTransitive()) {
             return false;
         }
+        if (isEndorsingStrictVersions() != dependencyRhs.isEndorsingStrictVersions()) {
+            return false;
+        }
         if (!Objects.equal(getArtifacts(), dependencyRhs.getArtifacts())) {
             return false;
         }
