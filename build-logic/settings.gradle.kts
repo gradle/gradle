@@ -84,5 +84,6 @@ include("packaging")
 include("performance-testing")
 include("profiling")
 include("publishing")
+include("instrumentation")
 
 rootProject.name = "build-logic"
