@@ -47,7 +47,7 @@ fun performanceTestCommandLine(
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
     testJavaVersion: String = os.perfTestJavaVersion.major.toString(),
-    testJavaVendor: String = os.perfTestJavaVendor,
+    testJavaVendor: String = os.perfTestJavaVendor.toString(),
 ) = listOf(
     "$task${if (extraParameters.isEmpty()) "" else " $extraParameters"}",
     "-PperformanceBaselines=$baselines",
