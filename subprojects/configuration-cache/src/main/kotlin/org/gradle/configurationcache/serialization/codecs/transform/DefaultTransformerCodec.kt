@@ -47,6 +47,7 @@ class DefaultTransformerCodec(
         encodePreservingSharedIdentityOf(value) {
             writeClass(value.implementationClass)
             write(value.fromAttributes)
+            write(value.toAttributes)
             writeEnum(value.inputArtifactNormalizer as InputNormalizer)
             writeEnum(value.inputArtifactDependenciesNormalizer as InputNormalizer)
             writeBoolean(value.isCacheable)
@@ -63,6 +64,7 @@ class DefaultTransformerCodec(
         return decodePreservingSharedIdentity {
             val implementationClass = readClassOf<TransformAction<*>>()
             val fromAttributes = readNonNull<ImmutableAttributes>()
+            val toAttributes = readNonNull<ImmutableAttributes>()
             val inputArtifactNormalizer = readEnum<InputNormalizer>()
             val inputArtifactDependenciesNormalizer = readEnum<InputNormalizer>()
             val isCacheable = readBoolean()
@@ -75,6 +77,7 @@ class DefaultTransformerCodec(
                 implementationClass,
                 isolatedParameters,
                 fromAttributes,
+                toAttributes,
                 inputArtifactNormalizer,
                 inputArtifactDependenciesNormalizer,
                 isCacheable,

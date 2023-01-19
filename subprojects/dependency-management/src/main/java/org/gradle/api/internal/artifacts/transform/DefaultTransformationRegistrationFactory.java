@@ -154,6 +154,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             implementation,
             parameterObject,
             from,
+            to,
             FileParameterUtils.normalizerOrDefault(inputArtifactNormalizer),
             FileParameterUtils.normalizerOrDefault(dependenciesNormalizer),
             cacheable,
