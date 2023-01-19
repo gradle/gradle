@@ -299,6 +299,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
 
         @Override
+        public boolean isEligibleForCaching() {
+            return true;
+        }
+
+        @Override
         public ImmutableList<LocalComponentArtifactMetadata> getArtifacts() {
             return artifacts.get();
         }
