@@ -37,7 +37,9 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
@@ -46,6 +48,8 @@ import java.util.List;
 import java.util.Locale;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackageName;
 
 /**
@@ -53,6 +57,7 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class InitBuild extends DefaultTask {
+    private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 6;
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
@@ -199,6 +204,10 @@ public abstract class InitBuild extends DefaultTask {
 
         validatePackageName(packageName);
 
+        java.util.Optional<JavaLanguageVersion> toolChainVersion = getJavaLanguageVersion(inputHandler, initDescriptor);
+
+        validatePackageName(packageName);
+
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
         InitSettings settings = new InitSettings(
             projectName,
@@ -209,7 +218,8 @@ public abstract class InitBuild extends DefaultTask {
             packageName,
             testFramework,
             insecureProtocol.get(),
-            projectDir);
+            projectDir,
+            toolChainVersion);
         initDescriptor.generate(settings);
 
         initDescriptor.getFurtherReading(settings).ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
@@ -219,6 +229,20 @@ public abstract class InitBuild extends DefaultTask {
         if (!isNullOrEmpty(packageName) && !SourceVersion.isName(packageName)) {
             throw new GradleException("Package name: '" + packageName + "' is not valid - it may contain invalid characters or reserved words.");
         }
+    }
+
+    java.util.Optional<JavaLanguageVersion> getJavaLanguageVersion(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
+        if (!initDescriptor.isJvmLanguage()) {
+            return empty();
+        }
+
+        JavaLanguageVersion current = JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion());
+        String version = inputHandler.askQuestion("Which version of Java is this Project targeting (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString());
+        int parsedVersion = Integer.parseInt(version);
+        if(parsedVersion <= MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API) {
+            throw new GradleException("Java version not supported: " + version);
+        }
+        return of(JavaLanguageVersion.of(parsedVersion));
     }
 
     private BuildInitDsl getBuildInitDsl(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
