@@ -63,6 +63,11 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     }
 
     @Override
+    public boolean isJvmLanguage() {
+        return descriptor.isJvmLanguage();
+    }
+
+    @Override
     public Set<ModularizationOption> getModularizationOptions() {
         return descriptor.getModularizationOptions();
     }
