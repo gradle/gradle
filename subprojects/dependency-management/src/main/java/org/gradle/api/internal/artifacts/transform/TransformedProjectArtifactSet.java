@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.EndCollection;
@@ -48,6 +49,7 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
 
     public TransformedProjectArtifactSet(
         ComponentIdentifier componentIdentifier,
+        AttributeContainer sourceAttributes,
         ResolvedArtifactSet delegate,
         VariantDefinition variantDefinition,
         List<? extends Capability> capabilities,
@@ -58,7 +60,7 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
         this.targetAttributes = variantDefinition.getTargetAttributes();
         this.capabilities = capabilities;
         TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier, variantDefinition.getTransformation());
-        this.transformedArtifacts = transformationNodeFactory.create(delegate, variantDefinition.getTransformationStep(), dependenciesResolver);
+        this.transformedArtifacts = transformationNodeFactory.create(sourceAttributes, delegate, variantDefinition.getTransformationStep(), dependenciesResolver);
     }
 
     public TransformedProjectArtifactSet(ComponentIdentifier componentIdentifier, ImmutableAttributes targetAttributes, List<? extends Capability> capabilities, Collection<TransformationNode> transformedArtifacts) {
