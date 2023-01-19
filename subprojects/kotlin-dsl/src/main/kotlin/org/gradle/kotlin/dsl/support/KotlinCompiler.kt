@@ -465,10 +465,16 @@ data class ScriptCompilationError(val message: String, val location: CompilerMes
 
 
 internal
-data class ScriptCompilationException(val errors: List<ScriptCompilationError>) : RuntimeException() {
+data class ScriptCompilationException(private val scriptCompilationErrors: List<ScriptCompilationError>) : RuntimeException() {
+
+    val errors: List<ScriptCompilationError> by unsafeLazy {
+        scriptCompilationErrors.filter { it.location == null } +
+            scriptCompilationErrors.filter { it.location != null }
+                .sortedBy { it.location!!.line }
+    }
 
     init {
-        require(errors.isNotEmpty())
+        require(scriptCompilationErrors.isNotEmpty())
     }
 
     val firstErrorLine
