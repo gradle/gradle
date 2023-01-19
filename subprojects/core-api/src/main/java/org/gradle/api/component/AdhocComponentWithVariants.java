@@ -15,6 +15,7 @@
  */
 package org.gradle.api.component;
 
+import com.sun.org.apache.xalan.internal.xsltc.compiler.If;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
@@ -42,12 +43,12 @@ public interface AdhocComponentWithVariants extends SoftwareComponent {
     /**
      * Further configure previously declared variants.
      * <p>
-     * If the specified variant was not already added to this component, an {@link InvalidUserDataException} is thrown.  The action can be used to determine
-     * if the variant should be published or not, and to configure various options specific to the publishing format.  Note that if multiple actions are added,
-     * they are executed in the order they were added.
+     * The action can be used to determine if the variant should be published or not, and to configure various options specific to the publishing
+     * format.  Note that if multiple actions are added, they are executed in the order they were added.
      *
      * @param outgoingConfiguration the configuration corresponding to the variant to configure with a given action
      * @param action an additional action to be executed to configure the variant prior to publishing
+     * @throws InvalidUserDataException if the specified variant was not already added to this component
      */
     void withVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action);
 
