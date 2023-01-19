@@ -2368,9 +2368,11 @@ Second: 1.1"""
                 assert original.targetConfiguration == copied.targetConfiguration
                 assert original.attributes == copied.attributes
                 assert original.requestedCapabilities == copied.requestedCapabilities
+                assert original.endorsingStrictVersions == copied.endorsingStrictVersions
 
                 // ExternalDependency + ExternalModuleDependency
                 assert original.changing == copied.changing
+                assert original.versionConstraint == copied.versionConstraint
             }
 
             def getOriginal(dep) {
