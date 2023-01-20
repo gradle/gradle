@@ -886,7 +886,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
         buildAndFail("action").apply {
             assertHasFailure("Plugin [id: 'my-plugin'] was not found in any of the following sources") {
-                assertHasErrorOutput("Precompiled script plugin '${normaliseFileSeparators(precompiledScript.absolutePath)}' line: 1")
+                assertHasErrorOutput("Precompiled script plugin '${precompiledScript.absolutePath}' line: 1")
             }
         }
 
