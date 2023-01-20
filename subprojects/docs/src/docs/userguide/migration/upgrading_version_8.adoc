@@ -156,3 +156,38 @@ Applying the `kotlin-dsl` together with Kotlin Gradle Plugin < 1.8.0 is deprecat
 Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic.
 This will let the `kotlin-dsl` plugin decide which version of the Kotlin Gradle Plugin to use.
 If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0.
+
+[[validate_plugins_without_java_toolchain]]
+==== Using `ValidatePlugins` task without a Java Toolchain
+
+Using a task of type `org.gradle.plugin.devel.tasks.ValidatePlugins` from a Gradle build script
+that doesn't apply the link:https://docs.gradle.org/current/userguide/toolchains.html[Java Toolchains]
+plugin is deprecated, and it will become an error in Gradle 9.0.
+
+To avoid this warning, please apply the plugin to your project:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    jdk-toolchains
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'org.gradle.jdk-toolchains'
+}
+----
+=====
+====
+
+The Toolchains plugin is applied automatically by the link:https://docs.gradle.org/current/userguide/java_plugin.html[Java plugin],
+so you can also apply it to your project and it will fix the warning.
