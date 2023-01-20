@@ -19,8 +19,6 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.stream.Stream;
 
 public class DefaultJavaLanguageVersion implements JavaLanguageVersion, Serializable {
 
@@ -50,10 +48,6 @@ public class DefaultJavaLanguageVersion implements JavaLanguageVersion, Serializ
 
     private DefaultJavaLanguageVersion(int version) {
         this.version = version;
-    }
-
-    public static Stream<JavaLanguageVersion> getKnownVersions() {
-        return Arrays.stream(KNOWN_VERSIONS);
     }
 
     @Override

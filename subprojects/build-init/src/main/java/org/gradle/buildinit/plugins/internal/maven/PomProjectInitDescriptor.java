@@ -77,7 +77,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
-    public boolean isJvmLanguage() {
+    public boolean supportsJavaTargets() {
         return false;
     }
 
