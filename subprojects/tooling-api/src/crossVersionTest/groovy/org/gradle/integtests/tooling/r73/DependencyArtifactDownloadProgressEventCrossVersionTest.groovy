@@ -64,7 +64,6 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         events.operation("Download ${modules.projectD.artifact.uri}").assertIsDownload(modules.projectD.artifact)
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3638")
     @TargetGradleVersion('<8.0')
     def "generates success event for failing first attempt to get dependency"() {
         toolingApi.requireIsolatedUserHome()

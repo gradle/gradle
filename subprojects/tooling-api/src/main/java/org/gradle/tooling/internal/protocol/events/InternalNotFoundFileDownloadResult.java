@@ -16,5 +16,11 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 8.1
+ */
+
 public interface InternalNotFoundFileDownloadResult extends InternalFileDownloadResult {
 }

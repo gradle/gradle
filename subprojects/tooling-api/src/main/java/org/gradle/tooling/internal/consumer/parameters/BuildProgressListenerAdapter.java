@@ -791,7 +791,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    public static List<Failure> toFailures(List<? extends InternalFailure> causes) {
+    private static List<Failure> toFailures(List<? extends InternalFailure> causes) {
         if (causes == null) {
             return null;
         }
