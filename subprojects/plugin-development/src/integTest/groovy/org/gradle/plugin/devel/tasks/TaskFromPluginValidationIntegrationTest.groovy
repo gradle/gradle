@@ -18,14 +18,14 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.test.fixtures.IntegTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Requires
 
-@Requires({ GradleContextualExecuter.embedded })
+@Requires(IntegTestPreconditions.IsEmbeddedExecutor)
 // this test only works in embedded mode because of the use of validation test fixtures
 class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 

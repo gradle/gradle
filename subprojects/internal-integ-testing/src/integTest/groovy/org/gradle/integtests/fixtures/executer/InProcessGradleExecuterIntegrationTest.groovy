@@ -18,13 +18,14 @@ package org.gradle.integtests.fixtures.executer
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.fixtures.IntegTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
-import spock.lang.Requires
 import spock.lang.Specification
 
-@Requires({ GradleContextualExecuter.embedded })
+@Requires(IntegTestPreconditions.IsEmbeddedExecutor)
 class InProcessGradleExecuterIntegrationTest extends Specification {
     @Rule
     RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()

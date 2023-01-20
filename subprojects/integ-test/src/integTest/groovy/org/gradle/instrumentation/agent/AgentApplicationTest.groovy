@@ -24,7 +24,8 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.agents.AgentStatus
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.util.TestPrecondition
-import spock.lang.Requires
+import org.gradle.test.fixtures.IntegTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
@@ -67,7 +68,10 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         agentWasApplied()
     }
 
-    @Requires(value = { GradleContextualExecuter.configCache }, reason = "Tests the configuration cache behavior")
+    @Requires(
+        value = IntegTestPreconditions.IsConfigCached,
+        reason = "Agent injection is not implemented for non-daemon and embedded modes"
+    )
     def "keeping agent status does not invalidate the configuration cache"() {
         def configurationCache = new ConfigurationCacheFixture(this)
         given:
