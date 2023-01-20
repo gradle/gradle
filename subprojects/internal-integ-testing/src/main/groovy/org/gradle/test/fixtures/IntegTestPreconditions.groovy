@@ -40,7 +40,22 @@ class IntegTestPreconditions {
     static final class NotEmbeddedExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return !GradleContextualExecuter.embedded
+            return notSatisfies(IsEmbeddedExecutor)
+        }
+    }
+
+
+    static final class IsDaemonExecutor implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return GradleContextualExecuter.daemon
+        }
+    }
+
+    static final class NotDaemonExecutor implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return notSatisfies(IsDaemonExecutor)
         }
     }
 

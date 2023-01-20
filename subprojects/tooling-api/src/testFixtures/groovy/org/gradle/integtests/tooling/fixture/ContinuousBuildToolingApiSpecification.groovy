@@ -20,7 +20,6 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
@@ -64,13 +63,6 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
     boolean usesNativeWatchers() {
         return usesNativeWatchers(targetVersion)
-    }
-
-    // We have problems loading the file system watching library when starting a Gradle build via the tooling API in debug (= embedded) mode.
-    // The problem there is that Gradle then tries to load the native library in two different classloaders in the same JDK, which isn't allowed.
-    // We could try to fix this problems, though this is only a problem for testing.
-    static boolean canUseContinuousBuildViaToolingApi() {
-        return  !GradleContextualExecuter.embedded
     }
 
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()

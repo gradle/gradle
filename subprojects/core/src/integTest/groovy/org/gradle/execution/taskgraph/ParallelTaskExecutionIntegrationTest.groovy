@@ -21,11 +21,12 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.Flaky
+import org.gradle.test.fixtures.IntegTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Requires
 import spock.lang.Timeout
 
 @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -524,7 +525,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @Requires({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "other tasks are not started when an invalid task is running"() {
         given:
@@ -550,7 +551,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         run ":aPingWithCacheableWarnings", ":bPing", ":cPing"
     }
 
-    @Requires({ GradleContextualExecuter.embedded })
+    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "invalid task is not executed in parallel with other task"() {
         given:
