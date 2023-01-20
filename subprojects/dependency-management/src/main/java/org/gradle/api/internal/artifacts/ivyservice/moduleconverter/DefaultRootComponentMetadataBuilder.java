@@ -75,7 +75,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         this.dependencyLockingProvider = dependencyLockingProvider;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.factory = factory;
-        this.holder = new MetadataHolder();
+        this.holder = new MetadataHolder(configurationsProvider);
     }
 
     @Override
@@ -110,12 +110,12 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     private DefaultLocalComponentMetadata getRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, AttributesSchemaInternal schema, DependencyLockingProvider dependencyLockingHandler, ModelContainer<?> model) {
         DefaultLocalComponentMetadata metadata = new RootLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, dependencyLockingHandler, model, calculatedValueContainerFactory);
         for (ConfigurationInternal configuration : configurationsProvider.getAll()) {
-            addConfiguration(metadata, configuration);
+            addConfiguration(metadata, configuration, localComponentMetadataBuilder);
         }
         return metadata;
     }
 
-    private void addConfiguration(DefaultLocalComponentMetadata metadata, ConfigurationInternal configuration) {
+    private static void addConfiguration(DefaultLocalComponentMetadata metadata, ConfigurationInternal configuration, LocalComponentMetadataBuilder localComponentMetadataBuilder) {
         BuildableLocalConfigurationMetadata buildableLocalConfigurationMetadata = localComponentMetadataBuilder.addConfiguration(metadata, configuration);
         if (configuration.getResolutionStrategy().isDependencyLockingEnabled()) {
             buildableLocalConfigurationMetadata.enableLocking();
@@ -133,12 +133,22 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
     private static class MetadataHolder implements MutationValidator {
         private DefaultLocalComponentMetadata cachedValue;
+        private final ConfigurationsProvider configurationsProvider;
+
+        private MetadataHolder(ConfigurationsProvider configurationsProvider) {
+            this.configurationsProvider = configurationsProvider;
+        }
 
         @Override
         public void validateMutation(MutationType type) {
             if (type == MutationType.DEPENDENCIES || type == MutationType.ARTIFACTS || type == MutationType.DEPENDENCY_ATTRIBUTES) {
                 if (cachedValue != null) {
-                    cachedValue.reevaluate();
+                    if (cachedValue.getConfigurationNames().size() != configurationsProvider.getAll().size()) {
+                        // The number of configurations in the project has changed, so we need to regenerate the root component metadata
+                        cachedValue = null;
+                    } else {
+                        cachedValue.reevaluate();
+                    }
                 }
             }
         }
