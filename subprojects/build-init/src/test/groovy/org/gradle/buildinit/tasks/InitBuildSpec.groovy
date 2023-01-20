@@ -228,7 +228,7 @@ class InitBuildSpec extends Specification {
         def inputHandler = Mock(UserInputHandler)
         inputHandler.askQuestion(_ as String, _ as String) >> "11"
         def buildInitializer = Mock(BuildInitializer)
-        buildInitializer.isJvmLanguage() >> isJvmLanguage
+        buildInitializer.supportsJavaTargets() >> isJvmLanguage
 
         when:
         def languageVersion = init.getJavaLanguageVersion(inputHandler, buildInitializer)
@@ -246,6 +246,35 @@ class InitBuildSpec extends Specification {
         Language.SWIFT  | empty()                        | false
     }
 
+    def "gets useful error when requesting invalid Java target"() {
+        given:
+        def inputHandler = Mock(UserInputHandler)
+        inputHandler.askQuestion(_ as String, _ as String) >> "invalid"
+        def buildInitializer = Mock(BuildInitializer)
+        buildInitializer.supportsJavaTargets() >> true
+
+        when:
+        init.getJavaLanguageVersion(inputHandler, buildInitializer)
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Invalid Java target version 'invalid'. The version must be an integer."
+    }
+
+    def "gets useful error when requesting Java target below minimum"() {
+        given:
+        def inputHandler = Mock(UserInputHandler)
+        inputHandler.askQuestion(_ as String, _ as String) >> "5"
+        def buildInitializer = Mock(BuildInitializer)
+        buildInitializer.supportsJavaTargets() >> true
+
+        when:
+        init.getJavaLanguageVersion(inputHandler, buildInitializer)
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Java target version: '5' is not a supported target version. It must be equal to or greater than 7"
+    }
 
     def "should reject invalid package name: #invalidPackageName"() {
         given:
