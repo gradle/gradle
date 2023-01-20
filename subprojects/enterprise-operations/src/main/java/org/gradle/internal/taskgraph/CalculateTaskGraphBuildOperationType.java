@@ -31,6 +31,8 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
 
     public interface TransformationIdentity extends NodeIdentity {
 
+        String getBuildPath();
+
         String getProjectPath();
 
         String getComponentId();
