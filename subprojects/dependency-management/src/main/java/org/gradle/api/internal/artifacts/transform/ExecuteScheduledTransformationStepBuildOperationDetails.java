@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 
 public class ExecuteScheduledTransformationStepBuildOperationDetails implements ExecuteScheduledTransformationStepBuildOperationType.Details, CustomOperationTraceSerialization {
 
@@ -33,6 +34,11 @@ public class ExecuteScheduledTransformationStepBuildOperationDetails implements 
 
     public TransformationNode getTransformationNode() {
         return transformationNode;
+    }
+
+    @Override
+    public CalculateTaskGraphBuildOperationType.TransformationIdentity getTransformationIdentity() {
+        return transformationNode.getNodeIdentity();
     }
 
     @Override
