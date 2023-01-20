@@ -327,6 +327,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 dependencies {
                     artifactTypes {
                         blue {
+                            // Intentionally use different attributes in app2 vs app's artifactType registry
                             attributes.attribute(contents, 'bin')
                         }
                     }
