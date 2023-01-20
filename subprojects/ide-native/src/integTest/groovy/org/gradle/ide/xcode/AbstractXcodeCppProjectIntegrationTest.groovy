@@ -54,7 +54,7 @@ abstract class AbstractXcodeCppProjectIntegrationTest extends AbstractXcodeNativ
             .execWithFailure(XcodebuildExecutor.XcodeAction.BUILD)
 
         then:
-        result.error.contains('No tool chain is available to build C++') ||
+        result.out.contains('No tool chain is available to build C++') ||
             result.error.contains('My Mac doesn’t support any of App’s architectures. You can set App’s Architectures build setting to Standard Architectures to support My Mac')
     }
 
