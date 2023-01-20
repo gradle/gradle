@@ -60,8 +60,11 @@ fun BuildFeatures.enablePullRequestFeature() {
     pullRequests {
         vcsRootExtId = "Gradle_GradleRelease6x"
         provider = github {
-            authType = vcsRoot()
+            authType = token {
+                token = "%github.bot-teamcity.token%"
+            }
             filterAuthorRole = PullRequests.GitHubRoleFilter.EVERYBODY
+            filterTargetBranch = "+:refs/heads/release6x"
         }
     }
 }
