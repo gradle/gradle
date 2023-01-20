@@ -33,7 +33,7 @@ class ProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec im
                     output = file(project.name + ".txt")
                 }
                 def b = tasks.register("broken", FileProducer) {
-                    throw new RuntimeException("broken")
+                    throw new RuntimeException("broken task")
                 }
                 tasks.register("resolve", ShowFileCollection) {
                     def view = configurations.resolver.incoming.artifactView {
@@ -49,11 +49,11 @@ class ProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec im
                         attributes.attribute(color, 'orange')
                         outgoing {
                             artifact(b.flatMap { it.output })
-                            artifact(b.flatMap { throw new RuntimeException("broken") })
+                            artifact(b.flatMap { throw new RuntimeException("broken outgoing artifact") })
                             variants {
                                 create("broken") {
                                     artifact(b.flatMap { it.output })
-                                    artifact(b.flatMap { throw new RuntimeException("broken") })
+                                    artifact(b.flatMap { throw new RuntimeException("broken variant artifact") })
                                 }
                             }
                         }
@@ -63,7 +63,7 @@ class ProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec im
                 artifacts {
                     implementation p.flatMap { it.output }
                     broken b.flatMap { it.output }
-                    broken b.flatMap { throw new RuntimeException("broken") }
+                    broken b.flatMap { throw new RuntimeException("broken artifact") }
                 }
             }
 
