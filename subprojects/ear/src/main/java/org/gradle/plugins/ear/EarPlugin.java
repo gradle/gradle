@@ -135,13 +135,6 @@ public abstract class EarPlugin implements Plugin<Project> {
             }
         }
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new LazyPublishArtifact(ear, ((ProjectInternal) project).getFileResolver(), taskDependencyFactory));
-
-        project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
-            @Override
-            public void execute(Ear task) {
-
-            }
-        });
     }
 
     private void wireEarTaskConventions(Project project, final EarPluginConvention earConvention) {
