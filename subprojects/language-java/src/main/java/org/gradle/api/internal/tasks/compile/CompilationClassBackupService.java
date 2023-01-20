@@ -64,18 +64,18 @@ public class CompilationClassBackupService {
         // Classes to compile are stashed before the compilation, so there is nothing to backup
         if (shouldBackupFiles && !classesToCompile.contains(classFqName)) {
             String classFilePath = classFqName.replace(".", "/").concat(".class");
-            maybeBackupFile(classFqName, destinationDir, classFilePath, ".class");
+            maybeBackupFile(destinationDir, classFilePath);
             if (headerOutputDir != null) {
                 String headerFilePath = classFqName.replaceAll("[.$]", "_").concat(".h");
-                maybeBackupFile(classFqName, headerOutputDir, headerFilePath, ".h");
+                maybeBackupFile(headerOutputDir, headerFilePath);
             }
         }
     }
 
-    private void maybeBackupFile(String classFqName, File destinationDir, String relativePath, String suffix) {
+    private void maybeBackupFile(File destinationDir, String relativePath) {
         File classFile = new File(destinationDir, relativePath);
         if (!result.getBackupClassFiles().containsKey(classFile.getAbsolutePath()) && classFile.exists()) {
-            File backupFile = new File(classBackupDir, classFqName + suffix + uniqueIndex.incrementAndGet());
+            File backupFile = new File(classBackupDir, classFile.getName() + uniqueIndex.incrementAndGet());
             copy(classFile.toPath(), backupFile.toPath());
             result.getBackupClassFiles().put(classFile.getAbsolutePath(), backupFile.getAbsolutePath());
         }
