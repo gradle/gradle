@@ -181,7 +181,7 @@ plugins {
 [source,groovy]
 ----
 plugins {
-    id 'org.gradle.jdk-toolchains'
+    id 'jdk-toolchains'
 }
 ----
 =====
