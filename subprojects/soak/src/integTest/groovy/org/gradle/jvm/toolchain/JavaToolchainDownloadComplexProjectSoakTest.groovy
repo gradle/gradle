@@ -17,12 +17,13 @@
 package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadSoakTest.VERSION
 
-class JavaToolchainDownloadComplexProjectSoakTest  extends AbstractIntegrationSpec {
+class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
-        executer.withToolchainDownloadEnabled()
+            .withToolchainDownloadEnabled()
     }
 
     def "multiple subprojects with identical toolchain definitions"() {
@@ -65,7 +66,7 @@ class JavaToolchainDownloadComplexProjectSoakTest  extends AbstractIntegrationSp
                 id 'org.gradle.toolchains.foojay-resolver-convention' version '0.2'
             }
             rootProject.name = 'main'
-            
+
             include('subproject1')
             include('subproject2')
         """
@@ -76,15 +77,14 @@ class JavaToolchainDownloadComplexProjectSoakTest  extends AbstractIntegrationSp
             plugins {
                 id 'java'
             }
-            
+
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of($VERSION)
                     vendor = JvmVendorSpec.${vendorName}
                 }
             }
         """
         file("${subprojectName}/src/main/java/${className}.java") << "public class ${className} {}"
     }
-
 }
