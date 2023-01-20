@@ -222,7 +222,7 @@ Found the following publications in <project>:
     private void dependentProjectHasPublications(ProjectComponentPublication... added) {
         projectDependency.dependencyProject >> project
         projectConfigurer.configureFully(project)
-        publicationRegistry.getPublications(ProjectComponentPublication, Path.path(":path")) >> (added as LinkedHashSet)
+        publicationRegistry.getPublications(ProjectComponentPublication, ":path") >> (added as LinkedHashSet)
     }
 
     private ProjectComponentPublication pub(def name, def group, def module, def version) {

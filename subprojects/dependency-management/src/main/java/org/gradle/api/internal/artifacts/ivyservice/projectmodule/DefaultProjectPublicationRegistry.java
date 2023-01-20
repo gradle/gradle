@@ -21,7 +21,6 @@ import com.google.common.collect.SetMultimap;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.util.Path;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -32,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 public class DefaultProjectPublicationRegistry implements ProjectPublicationRegistry, HoldsProjectState {
-    private final SetMultimap<Path, ProjectPublication> publicationsByProject = LinkedHashMultimap.create();
+    private final SetMultimap<String, ProjectPublication> publicationsByProject = LinkedHashMultimap.create();
     ProjectRegistry<ProjectInternal> projectRegistry;
 
     @Inject
@@ -41,9 +40,9 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
     }
 
     @Override
-    public <T extends ProjectPublication> Collection<T> getPublications(Class<T> type, Path projectIdentityPath) {
+    public <T extends ProjectPublication> Collection<T> getPublications(Class<T> type, String projectPath) {
         synchronized (publicationsByProject) {
-            Collection<ProjectPublication> projectPublications = publicationsByProject.get(projectIdentityPath);
+            Collection<ProjectPublication> projectPublications = publicationsByProject.get(projectPath);
             if (projectPublications.isEmpty()) {
                 return Collections.emptyList();
             }
@@ -69,7 +68,7 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
             publicationsByProject.entries().forEach(entry -> {
                 ProjectPublication publication = entry.getValue();
                 if (type.isInstance(publication)) {
-                    ProjectInternal project = projectRegistry.getProject(entry.getKey().getPath());
+                    ProjectInternal project = projectRegistry.getProject(entry.getKey());
                     Collection<T> publications = result.computeIfAbsent(project, p -> new ArrayList<>());
                     publications.add(type.cast(publication));
                 }
@@ -82,7 +81,7 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
     @Override
     public void registerPublication(ProjectInternal project, ProjectPublication publication) {
         synchronized (publicationsByProject) {
-            publicationsByProject.put(project.getIdentityPath(), publication);
+            publicationsByProject.put(project.getPath(), publication);
         }
     }
 

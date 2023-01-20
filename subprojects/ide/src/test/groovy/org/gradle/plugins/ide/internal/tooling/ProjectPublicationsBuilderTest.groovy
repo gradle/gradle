@@ -27,7 +27,7 @@ import org.gradle.util.Path
 class ProjectPublicationsBuilderTest extends AbstractProjectBuilderSpec {
 
     def publicationRegistry = Stub(ProjectPublicationRegistry) {
-        getPublications(ProjectComponentPublication, Path.ROOT) >> [Stub(ProjectComponentPublication) {
+        getPublications(ProjectComponentPublication, Path.ROOT.getPath()) >> [Stub(ProjectComponentPublication) {
             getCoordinates(ModuleVersionIdentifier) >> Stub(ModuleVersionIdentifier) {
                 getGroup() >> "group"
                 getName() >> "name"

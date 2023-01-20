@@ -153,7 +153,7 @@ class SwiftBasePluginTest extends Specification {
         project.evaluate()
 
         then:
-        def publications = project.services.get(ProjectPublicationRegistry).getPublications(NativeProjectPublication, project.identityPath)
+        def publications = project.services.get(ProjectPublicationRegistry).getPublications(NativeProjectPublication, project.path)
         publications.size() == 1
         publications.first().getCoordinates(SwiftPmTarget).targetName == "SomeApp"
     }

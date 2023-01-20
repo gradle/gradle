@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.Path;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
@@ -35,7 +34,7 @@ public interface ProjectPublicationRegistry {
     /**
      * Returns the known publications for the given project.
      */
-    <T extends ProjectPublication> Collection<T> getPublications(Class<T> type, Path projectIdentityPath);
+    <T extends ProjectPublication> Collection<T> getPublications(Class<T> type, String projectPath);
 
     /**
      * Returns all known publications, grouped by the project that produced it.

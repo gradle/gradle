@@ -62,7 +62,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         projectConfigurer.configureFully(project);
 
         List<ProjectComponentPublication> publications = new ArrayList<>();
-        for (ProjectComponentPublication publication : publicationRegistry.getPublications(ProjectComponentPublication.class, project.getIdentityPath())) {
+        for (ProjectComponentPublication publication : publicationRegistry.getPublications(ProjectComponentPublication.class, project.getPath())) {
             if (!publication.isLegacy() && publication.getCoordinates(coordsType) != null) {
                 publications.add(publication);
             }
