@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.jvm
+package org.gradle.internal.classanalysis
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.jvm.JavaClassUtil
 import spock.lang.Specification
 
 class JavaClassUtilTest extends Specification {
@@ -52,6 +51,18 @@ class JavaClassUtilTest extends Specification {
 
     def "can extract java class file major version"() {
         expect:
-        JavaClassUtil.getClassMajorVersion(JavaClassUtil.class) == 52
+        JavaClassUtil.getClassMajorVersion(JavaClassUtil.class) == 50
     }
+
+    def "can extract java class name major version"() {
+        expect:
+        JavaClassUtil.getClassMajorVersion(JavaClassUtil.class.getName(), JavaClassUtil.getClassLoader()) == 50
+    }
+
+    def "can extract java class input stream major version"() {
+        expect:
+        def stream = JavaClassUtil.getClassLoader().getResourceAsStream(JavaClassUtil.getName().replace(".", "/") + ".class")
+        JavaClassUtil.getClassMajorVersion(stream) == 50
+    }
+
 }
