@@ -33,4 +33,6 @@ public interface LocalConfigurationGraphResolveMetadata extends ConfigurationGra
      * <p>Note that this may be expensive, and should be called only when required.</p>
      */
     LocalConfigurationMetadata prepareToResolveArtifacts();
+
+    boolean needsReevaluate();
 }
