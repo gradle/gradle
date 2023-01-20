@@ -269,6 +269,24 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         return ImmutableAttributes.EMPTY;
     }
 
+    /**
+     * We currently allow a configuration that has been partially observed for resolution to be modified
+     * in a beforeResolve callback.
+     *
+     * To reduce the number of instances of root component metadata we create, we mark all configurations
+     * as dirty and in need of re-evaluation when we see certain types of modifications to a configuration.
+     *
+     * In the future, we could narrow the number of configurations that need to be re-evaluated, but it would
+     * be better to get of the behavior that allows configurations to be modified once they've been observed.
+     *
+     * @see org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder.MetadataHolder#tryCached(ComponentIdentifier)
+     */
+    public void reevaluate() {
+        for (DefaultLocalConfigurationMetadata conf : allConfigurations.values()) {
+            conf.reevaluate();
+        }
+    }
+
     private class LocalVariantMetadata extends DefaultVariantMetadata {
         private final CalculatedValueContainer<ImmutableList<LocalComponentArtifactMetadata>, ?> artifacts;
 
@@ -325,6 +343,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private final CalculatedValueContainerFactory factory;
 
         private ConfigurationInternal backingConfiguration;
+        private boolean reevaluate = true;
         private LocalConfigurationMetadataBuilder configurationMetadataBuilder;
 
         private final List<LocalOriginDependencyMetadata> definedDependencies = Lists.newArrayList();
@@ -605,12 +624,30 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
 
         synchronized void realizeDependencies() {
-            if (backingConfiguration != null) {
+            if (reevaluate && backingConfiguration != null) {
                 backingConfiguration.runDependencyActions();
                 configurationMetadataBuilder.addDependenciesAndExcludes(this, backingConfiguration);
-                backingConfiguration = null;
             }
+            reevaluate = false;
         }
 
+        /**
+         * When the backing configuration could have been modified, we need to clear our retained cache/state,
+         * so that the next evaluation is clean.
+         */
+        synchronized void reevaluate() {
+            definedDependencies.clear();
+            definedFiles.clear();
+            definedExcludes.clear();
+            configurationDependencies = null;
+            configurationExcludes = null;
+            configurationFileDependencies = null;
+            reevaluate = true;
+        }
+
+        @Override
+        public boolean needsReevaluate() {
+            return reevaluate;
+        }
     }
 }

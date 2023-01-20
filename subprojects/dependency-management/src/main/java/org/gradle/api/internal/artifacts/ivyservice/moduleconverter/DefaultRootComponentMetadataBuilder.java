@@ -137,7 +137,9 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         @Override
         public void validateMutation(MutationType type) {
             if (type == MutationType.DEPENDENCIES || type == MutationType.ARTIFACTS || type == MutationType.DEPENDENCY_ATTRIBUTES) {
-                cachedValue = null;
+                if (cachedValue != null) {
+                    cachedValue.reevaluate();
+                }
             }
         }
 
