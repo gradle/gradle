@@ -71,19 +71,17 @@ abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends Abs
         outputs.snapshot { run language.compileTaskName }
 
         when:
-        // Compile more classes, so at least one class is generated before compile failure.
+        // Compile more classes, so there is possibility some is generated before a compile failure.
+        // Since order of passed classes to javac is unstable we can compile classes in different order on different platforms.
         // Compile .java also for Groovy, so the file is written before failure.
         sourceWithFileSuffix("java", "package a; class A {}")
         b.text = "package b; $compileStaticAnnotation class B { B m1() { return 0; } }"
         sourceWithFileSuffix("java", "package c; class C {}")
-        runAndFail language.compileTaskName, "-d"
+        runAndFail language.compileTaskName
 
         then:
         outputs.noneRecompiled()
         outputs.hasFiles(file("b/B.class"), file("Unrelated.class"))
-        outputContainsAtLeastOneDeletedGeneratedClass("a/A.class", "c/C.class")
-        outputContainsAllRestoredStashedClasses("b/B.class")
-        outputContainsNoneRestoredOverwrittenClass()
         !file("build/classes/$languageName/main/a/").exists()
         !file("build/classes/$languageName/main/c/").exists()
 
@@ -103,21 +101,19 @@ abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends Abs
         outputs.snapshot { run language.compileTaskName }
 
         when:
-        // Compile more classes, so at least one class is generated before compile failure.
+        // Compile more classes, so there is possibility some is generated before a compile failure.
+        // Since order of passed classes to javac is unstable we can compile classes in different order on different platforms.
         // Compile .java also for Groovy, so the file is written before failure.
         a.delete()
         c.delete()
         file("src/main/$languageName/a/A1.java").text = "package a; class A { void m1() {} }"
         b.text = "package b; $compileStaticAnnotation class B { B getB() { return 0; } }"
         file("src/main/$languageName/c/C1.java").text = "package c; class C { void m1() {} }"
-        runAndFail language.compileTaskName, "-d"
+        runAndFail language.compileTaskName
 
         then:
         outputs.noneRecompiled()
         outputs.hasFiles(file("a/A.class"), file("b/B.class"), file("c/C.class"), file("Unrelated.class"))
-        outputContainsAtLeastOneDeletedGeneratedClass("a/A.class", "c/C.class")
-        outputContainsAllRestoredStashedClasses("a/A.class", "b/B.class", "c/C.class")
-        outputContainsNoneRestoredOverwrittenClass()
 
         when:
         b.text = "package b; class B {}"
@@ -133,19 +129,17 @@ abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends Abs
         outputs.snapshot { run language.compileTaskName }
 
         when:
-        // Compile more classes, so at least one class is generated before compile failure.
+        // Compile more classes, so there is possibility some is generated before a compile failure.
+        // Since order of passed classes to javac is unstable we can compile classes in different order on different platforms.
         // Compile .java also for Groovy, so the file is written before failure.
         file("src/main/$languageName/a/A1.java").text = "package a; class A { void m1() {} }"
         b.text = "package b; $compileStaticAnnotation class B { B getB() { return 0; } }"
         file("src/main/$languageName/c/C1.java").text = "package c; class C { void m1() {} }"
-        runAndFail language.compileTaskName, "-d"
+        runAndFail language.compileTaskName
 
         then:
         outputs.noneRecompiled()
         outputs.hasFiles(file("a/A.class"), file("b/B.class"), file("c/C.class"), file("Unrelated.class"))
-        outputContainsAtLeastOneDeletedGeneratedClass("a/A.class", "c/C.class")
-        outputContainsAllRestoredStashedClasses("b/B.class")
-        outputContainsAtLeastOneRestoredOverwrittenClass("a/A.class", "c/C.class")
 
         when:
         b.text = "package b; class B {}"
@@ -348,37 +342,6 @@ abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends Abs
         outputs.recompiledClasses("A", "B", "C")
         outputContains("Full recompilation is required")
     }
-
-    /**
-     * Since order of classes passed to a compiler is not stable, we assert there is at least one generated class deleted
-     */
-    void outputContainsAtLeastOneDeletedGeneratedClass(String... classes) {
-        def classPaths = classes.collect {file("build/classes/$languageName/main/$it").toString() }
-        def deletedClassFilesSequences = classPaths.sort().subsequences().collect {
-            "Deleting generated files: [${it.join(", ")}]".toString()
-        }
-        outputContainsAnyOf(deletedClassFilesSequences)
-    }
-
-    void outputContainsAllRestoredStashedClasses(String... classes) {
-        def classPaths = classes.collect {file("build/classes/$languageName/main/$it").toString() }
-        outputContains("Restoring stashed files: [${classPaths.join(", ")}]")
-    }
-
-    void outputContainsNoneRestoredOverwrittenClass() {
-        outputContains("Restoring overwritten files: []")
-    }
-
-    /**
-     * Since order of classes passed to a compiler is not stable, we assert there is at least one restored overwritten class
-     */
-    void outputContainsAtLeastOneRestoredOverwrittenClass(String... classes) {
-        def classPaths = classes.collect {file("build/classes/$languageName/main/$it").toString() }
-        def overwrittenClassFilesSequences = classPaths.sort().subsequences().collect {
-            "Restoring overwritten files: [${it.join(", ")}]".toString()
-        }
-        outputContainsAnyOf(overwrittenClassFilesSequences)
-    }
 }
 
 class JavaIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrementalCompilationAfterFailureIntegrationTest {
@@ -436,29 +399,27 @@ class JavaIncrementalCompilationAfterFailureIntegrationTest extends BaseIncremen
 
     def "incremental compilation after failure works with header output"() {
         given:
-        def a = source("class A { public native void foo(); }")
-        source("class B {}")
+        source("class Unrelated {}")
+        def b = source("package b; class B { public native void foo(); }")
         succeeds "compileJava"
 
         when:
         outputs.snapshot {
-            a.text = "class A { public native void foo(); String m1() { return 0; } }"
+            source("package a; class A { public native void foo(); }")
+            b.text = "package b; class B { public native void foo(); String m1() { return 0; } }"
             source("package c; class C { public native void foo(); }")
         }
 
         then:
-        runAndFail "compileJava", "-d"
+        runAndFail "compileJava"
         outputs.noneRecompiled()
-        outputContains("Deleting generated files: [${file("build/classes/$languageName/main/c/C.class")}, ${file("build/generated/sources/headers/java/main/c_C.h")}]")
-        outputContains("Restoring stashed files: [${file("build/classes/$languageName/main/A.class")}, ${file("build/generated/sources/headers/java/main/A.h")}]")
-        outputContains("Restoring overwritten files: []")
 
         when:
-        a.text = 'class A { public native void foo(); String m1() { return ""; } }'
+        b.text = 'package b; class B { public native void foo(); String m1() { return ""; } }'
         run "compileJava"
 
         then:
-        outputs.recompiledClasses("A", "C")
+        outputs.recompiledClasses("A", "B", "C")
     }
 }
 
@@ -561,11 +522,8 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
         }
 
         then:
-        runAndFail "compileGroovy", "-d"
+        runAndFail "compileGroovy"
         outputs.noneRecompiled()
-        outputContainsAtLeastOneDeletedGeneratedClass("a/A.class", "c/C.class", "d/D.class")
-        outputContainsAllRestoredStashedClasses("b/B.class")
-        outputContainsAtLeastOneRestoredOverwrittenClass("a/A.class", "c/C.class")
 
         when:
         outputs.snapshot {
