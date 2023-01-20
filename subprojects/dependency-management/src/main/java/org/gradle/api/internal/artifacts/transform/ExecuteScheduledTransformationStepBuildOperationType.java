@@ -17,15 +17,18 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.NotUsedByScanPlugin;
+import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 
 /**
  * @since 5.1
  */
-@NotUsedByScanPlugin
+@UsedByScanPlugin
 public class ExecuteScheduledTransformationStepBuildOperationType implements BuildOperationType<ExecuteScheduledTransformationStepBuildOperationType.Details, ExecuteScheduledTransformationStepBuildOperationType.Result> {
 
     public interface Details {
+
+        CalculateTaskGraphBuildOperationType.TransformationIdentity getTransformationIdentity();
 
         /**
          * Returns the display name of the transformer.
