@@ -16,7 +16,7 @@
 
 package org.gradle.buildinit.plugins
 
-abstract class AbstractJvmLibraryInitIntegrationSpec extends AbstractInitIntegrationSpec{
+abstract class AbstractJvmLibraryInitIntegrationSpec extends AbstractInitIntegrationSpec {
 
     @Override
     String subprojectName() { 'lib' }
