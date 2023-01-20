@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.component;
+package org.gradle.internal.file.excludes;
 
-import org.gradle.api.Named;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
 
-/**
- * A software component produced by a Gradle software project.
- * <p>
- * An implementation of this interface may also implement {@link ComponentWithVariants} to provide
- * information about the variants that the component provides.
- */
-@HasInternalProtocol
-public interface SoftwareComponent extends Named {
+import java.util.List;
+
+
+@EventScope(Scopes.BuildSession.class)
+public interface FileSystemDefaultExcludesListener {
+
+    void onDefaultExcludesChanged(List<String> excludes);
 }

@@ -46,9 +46,16 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
                     + "Detailed information about configuring a multi-project build in Gradle can be found\n"
                     + "in the user manual at " + documentationRegistry.getDocumentationFor("multi_project_builds"));
         if (settings.getModularizationOption() == ModularizationOption.WITH_LIBRARY_PROJECTS && settings.isUseIncubatingAPIs()) {
-            builder.block(null, "pluginManagement").methodInvocation(
-                "Include 'plugins build' to define convention plugins.", "includeBuild", PLUGINS_BUILD_LOCATION);
+            builder.includePluginsBuild();
         }
+
+        if(settings.getJavaLanguageVersion().isPresent()){
+            builder.plugin(
+                "Apply the foojay-resolver plugin to allow automatic download of JDKs",
+                "org.gradle.toolchains.foojay-resolver",
+                "0.4.0");
+        }
+
         builder.propertyAssignment(null, "rootProject.name", settings.getProjectName());
         if (!settings.getSubprojects().isEmpty()) {
             builder.methodInvocation(null, "include", settings.getSubprojects().toArray());

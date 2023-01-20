@@ -213,7 +213,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         TransformationResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, InputChanges inputChanges) {
             def builder = TransformationResult.builderFor(inputArtifactProvider.get().asFile, outputDir)
             transformationAction.apply(inputArtifactProvider.get().asFile, outputDir).each {
-                builder.addOutput(it) { }
+                builder.addOutput(it) {}
             }
             return builder.build()
         }

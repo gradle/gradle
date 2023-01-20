@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.component;
+package org.gradle.internal.file;
 
-import org.gradle.api.Named;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.service.scopes.ListenerService;
+
+import java.util.List;
 
 /**
- * A software component produced by a Gradle software project.
- * <p>
- * An implementation of this interface may also implement {@link ComponentWithVariants} to provide
- * information about the variants that the component provides.
+ * Provides default excludes for file system traversing
  */
-@HasInternalProtocol
-public interface SoftwareComponent extends Named {
+@ListenerService
+public interface FileSystemDefaultExcludesProvider {
+
+    List<String> getCurrentDefaultExcludes();
+
+    void updateCurrentDefaultExcludes(List<String> excludes);
 }
