@@ -18,7 +18,7 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.jvm.JavaClassUtil
+import org.gradle.internal.classanalysis.JavaClassUtil
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.CoreMatchers.nullValue
@@ -134,7 +134,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
 
     private
     val printScriptJavaClassFileMajorVersion = """
-        println("Java Class Major Version = ${'$'}{org.gradle.integtests.fixtures.jvm.JavaClassUtil.getClassMajorVersion(this::class.java)}")
+        println("Java Class Major Version = ${'$'}{org.gradle.internal.classanalysis.JavaClassUtil.getClassMajorVersion(this::class.java)}")
     """
 
     private
