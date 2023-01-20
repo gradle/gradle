@@ -58,6 +58,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -73,7 +74,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     private static abstract class IncrementalCompilationCustomizer extends CompilationCustomizer {
         static IncrementalCompilationCustomizer fromSpec(GroovyJavaJointCompileSpec spec, ApiCompilerResult result) {
             if (spec.incrementalCompilationEnabled()) {
-                return new TrackingClassGenerationCompilationCustomizer(new CompilationSourceDirs(spec), result);
+                return new TrackingClassGenerationCompilationCustomizer(new CompilationSourceDirs(spec), result, new CompilationClassBackupService(spec, result));
             } else {
                 return new NoOpCompilationCustomizer();
             }
@@ -101,10 +102,12 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     private static class TrackingClassGenerationCompilationCustomizer extends IncrementalCompilationCustomizer {
         private final CompilationSourceDirs compilationSourceDirs;
         private final ApiCompilerResult result;
+        private final CompilationClassBackupService compilationClassBackupService;
 
-        private TrackingClassGenerationCompilationCustomizer(CompilationSourceDirs compilationSourceDirs, ApiCompilerResult result) {
+        private TrackingClassGenerationCompilationCustomizer(CompilationSourceDirs compilationSourceDirs, ApiCompilerResult result, CompilationClassBackupService compilationClassBackupService) {
             this.compilationSourceDirs = compilationSourceDirs;
             this.result = result;
+            this.compilationClassBackupService = compilationClassBackupService;
         }
 
         @Override
@@ -113,8 +116,10 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         }
 
         private void inspectClassNode(SourceUnit sourceUnit, ClassNode classNode) {
+            String classFqName = classNode.getName();
             String relativePath = compilationSourceDirs.relativize(new File(sourceUnit.getSource().getURI().getPath())).orElseThrow(IllegalStateException::new);
-            result.getSourceClassesMapping().computeIfAbsent(relativePath, key -> new HashSet<>()).add(classNode.getName());
+            result.getSourceClassesMapping().computeIfAbsent(relativePath, key -> new HashSet<>()).add(classFqName);
+            compilationClassBackupService.maybeBackupClassFile(classFqName);
             Iterator<InnerClassNode> iterator = classNode.getInnerClasses();
             while (iterator.hasNext()) {
                 inspectClassNode(sourceUnit, iterator.next());
@@ -257,13 +262,20 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                         try {
                             WorkResult javaCompilerResult = javaCompiler.execute(spec);
                             if (javaCompilerResult instanceof ApiCompilerResult) {
-                                result.getSourceClassesMapping().putAll(((ApiCompilerResult) javaCompilerResult).getSourceClassesMapping());
+                                copyJavaCompilerResult((ApiCompilerResult) javaCompilerResult);
                             }
                         } catch (CompilationFailedException e) {
+                            Optional<ApiCompilerResult> partialResult = e.getCompilerPartialResult();
+                            partialResult.ifPresent(result -> copyJavaCompilerResult(result));
                             cu.getErrorCollector().addFatalError(new SimpleMessage(e.getMessage(), cu));
                         }
                     }
                 };
+            }
+
+            private void copyJavaCompilerResult(ApiCompilerResult javaCompilerResult) {
+                result.getSourceClassesMapping().putAll(javaCompilerResult.getSourceClassesMapping());
+                result.getBackupClassFiles().putAll(javaCompilerResult.getBackupClassFiles());
             }
         });
 
@@ -274,7 +286,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             System.err.println(e.getMessage());
             // Explicit flush, System.err is an auto-flushing PrintWriter unless it is replaced.
             System.err.flush();
-            throw new CompilationFailedException();
+            throw new CompilationFailedException(result);
         } finally {
             // Remove compile and AST types from the Groovy loader
             compilerGroovyLoader.discardTypesFrom(classPathLoader);
