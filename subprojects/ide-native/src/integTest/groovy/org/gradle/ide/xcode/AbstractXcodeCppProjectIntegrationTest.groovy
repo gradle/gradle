@@ -16,13 +16,11 @@
 
 package org.gradle.ide.xcode
 
+import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-
-import static org.hamcrest.CoreMatchers.anyOf
-import static org.hamcrest.CoreMatchers.containsString
 
 abstract class AbstractXcodeCppProjectIntegrationTest extends AbstractXcodeNativeProjectIntegrationTest {
     @Override
@@ -53,13 +51,11 @@ abstract class AbstractXcodeCppProjectIntegrationTest extends AbstractXcodeNativ
         def result = xcodebuild
             .withProject(rootXcodeProject)
             .withScheme("App")
-            .fails()
+            .execWithFailure(XcodebuildExecutor.XcodeAction.BUILD)
 
         then:
-        result.assertThatCause(anyOf(
-            containsString('No tool chain is available to build C++'),
-            containsString('My Mac doesn’t support any of App’s architectures. You can set App’s Architectures build setting to Standard Architectures to support My Mac'))
-        )
+        result.error.contains('No tool chain is available to build C++') ||
+            result.error.contains('My Mac doesn’t support any of App’s architectures. You can set App’s Architectures build setting to Standard Architectures to support My Mac')
     }
 
     protected String configureToolChainSupport(String architecture) {
