@@ -54,6 +54,7 @@ public class ExecuteScheduledTransformationStepBuildOperationDetails implements 
     @Override
     public Object getCustomOperationTraceSerializableModel() {
         ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
+        builder.put("transformationIdentity", transformationNode.getNodeIdentity());
         builder.put("transformerName", transformerName);
         builder.put("subjectName", subjectName);
         return builder.build();
