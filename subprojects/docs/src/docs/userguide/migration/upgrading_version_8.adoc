@@ -160,9 +160,7 @@ If you explicitly declare which version of the Kotlin Gradle Plugin to use for y
 [[validate_plugins_without_java_toolchain]]
 ==== Using `ValidatePlugins` task without a Java Toolchain
 
-Using a task of type `org.gradle.plugin.devel.tasks.ValidatePlugins` from a Gradle build script
-that doesn't apply the link:https://docs.gradle.org/current/userguide/toolchains.html[Java Toolchains]
-plugin is deprecated, and it will become an error in Gradle 9.0.
+Using a task of type link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins] without applying the link:https://docs.gradle.org/current/userguide/toolchains.html[Java Toolchains] plugin is deprecated, and will become an error in Gradle 9.0.
 
 To avoid this warning, please apply the plugin to your project:
 
