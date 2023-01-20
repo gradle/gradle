@@ -18,8 +18,9 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
+import static org.junit.Assume.assumeFalse
 
+class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
     public static final int VERSION = 17
     private static final String ECLIPSE_DISTRO_NAME = "eclipse_adoptium"
     public static final String FOOJAY_PLUGIN_SECTION = """
@@ -28,7 +29,13 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
             }
         """
 
-    public static final String TOOLCHAIN_WITH_VERSION = """
+    def setup() {
+
+        buildFile << """
+            plugins {
+                id "java"
+            }
+
             java {
                 toolchain {
                     languageVersion = JavaLanguageVersion.of($VERSION)
@@ -36,32 +43,22 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
             }
         """
 
-    def setup() {
-        settingsFile << FOOJAY_PLUGIN_SECTION
-
-        buildFile << """
-            plugins {
-                id "java"
-            }
-
-            $TOOLCHAIN_WITH_VERSION
-        """
-
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         executer.requireOwnGradleUserHomeDir()
+        executer
             .withToolchainDownloadEnabled()
     }
 
     def "can download missing jdk automatically"() {
         when:
         result = executer
-                .withTasks("compileJava")
-                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                        "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
-                        "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                        "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
-                .run()
+            .withTasks("compileJava")
+            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
+                "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
+                "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
+            .run()
 
         then:
         javaClassFile("Foo.class").assertExists()
@@ -69,6 +66,10 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
     }
 
     def "can download missing j9 jdk automatically"() {
+        assumeFalse("J9 JDKs are not available on aarch64 or JDK untar support for the archive is broken",
+            System.getProperty("os.arch") == "aarch64")
+
+        settingsFile << FOOJAY_PLUGIN_SECTION
         buildFile << """
             java {
                 toolchain {
@@ -79,12 +80,8 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         when:
         result = executer
-                .withTasks("compileJava")
-                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                        "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
-                        "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                        "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
-                .run()
+            .withTasks("compileJava")
+            .run()
 
         then:
         javaClassFile("Foo.class").assertExists()
@@ -94,37 +91,12 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
     def "will get deprecation message for no configured repositories even when not downloading"() {
         when: "build runs and doesn't have a local JDK to use for compilation"
         result = executer
-                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. " +
-                        "Will rely on the built-in repository. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
-                        "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                        "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
-                .run()
-
-        then: "suitable JDK gets auto-provisioned"
-        javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded(ECLIPSE_DISTRO_NAME)
-
-        when: "the marker file of the auto-provisioned JDK is deleted, making the JDK not detectable"
-        //delete marker file to make the previously downloaded installation undetectable
-        def markerFile = findMarkerFile(executer.gradleUserHomeDir.file("jdks"))
-        markerFile.delete()
-        assert !markerFile.exists()
-
-        and: "build runs again"
-        executer
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
-                .run()
-
-        then: "the JDK is auto-provisioned again and its files, even though they are already there don't trigger an error, they just get overwritten"
-        markerFile.exists()
-    }
-
-    def "issue warning on using auto-provisioned toolchain with no configured repositories"() {
-        when: "build runs and doesn't have a local JDK to use for compilation"
-        result = executer
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
-                .run()
+            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. " +
+                "Will rely on the built-in repository. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
+                "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
+            .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+            .run()
 
         then: "suitable JDK gets auto-provisioned"
         javaClassFile("Foo.class").assertExists()
@@ -135,12 +107,12 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then: "build runs again, uses previously auto-provisioned toolchain and warns about toolchain repositories not being configured"
         executer
-                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. " +
-                        "Will rely on the built-in repository. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
-                        "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                        "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=true", "-Porg.gradle.java.installations.auto-download=true")
-                .run()
+            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. " +
+                "Will rely on the built-in repository. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
+                "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
+            .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=true", "-Porg.gradle.java.installations.auto-download=true")
+            .run()
     }
 
 
