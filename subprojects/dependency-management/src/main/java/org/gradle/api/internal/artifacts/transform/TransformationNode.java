@@ -94,6 +94,7 @@ public abstract class TransformationNode extends BaseTransformationNode {
     @Nonnull
     @Override
     public TransformationIdentity getNodeIdentity() {
+        String buildPath = transformationStep.getOwningProject().getBuildPath().toString();
         String projectPath = transformationStep.getOwningProject().getIdentityPath().toString();
         String componentId = artifact.getId().getComponentIdentifier().getDisplayName();
         String sourceAttributes = this.sourceAttributes.toString();
@@ -103,6 +104,12 @@ public abstract class TransformationNode extends BaseTransformationNode {
         long transformationNodeId = getTransformationNodeId();
 
         return new TransformationIdentity() {
+
+            @Override
+            public String getBuildPath() {
+                return buildPath;
+            }
+
             @Override
             public String getProjectPath() {
                 return projectPath;
