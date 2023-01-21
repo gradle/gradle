@@ -15,13 +15,13 @@
  */
 package org.gradle.testing.jacoco.plugins;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
@@ -35,8 +35,10 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 
 import javax.annotation.Nullable;
@@ -115,11 +117,7 @@ public abstract class JacocoPluginExtension {
         extension.setDestinationFile(layout.getBuildDirectory().file("jacoco/" + taskName + ".exec").map(RegularFile::getAsFile));
 
         task.getJvmArgumentProviders().add(new JacocoAgent(extension));
-        task.doFirst(new JacocoOutputCleanupTestTaskAction(
-            fs,
-            providers.provider(() -> extension.isEnabled() && extension.getOutput() == JacocoTaskExtension.Output.FILE),
-            providers.provider(extension::getDestinationFile)
-        ));
+        task.doFirst(new JacocoPrepareTestTaskAction(extension, agent, objects, fs));
 
         // Do not cache the task if we are not writing execution data to a file
         Provider<Boolean> doNotCachePredicate = providers.provider(() ->
@@ -132,28 +130,47 @@ public abstract class JacocoPluginExtension {
         );
     }
 
-    private static class JacocoOutputCleanupTestTaskAction implements Action<Task> {
+    private static class JacocoPrepareTestTaskAction implements Action<Task> {
+        private final JacocoTaskExtension extension;
+        private final JacocoAgentJar agent;
+        private final ObjectFactory objects;
         private final FileSystemOperations fs;
-        private final Provider<Boolean> hasFileOutput;
-        private final Provider<File> destinationFile;
 
-        private JacocoOutputCleanupTestTaskAction(FileSystemOperations fs, Provider<Boolean> hasFileOutput, Provider<File> destinationFile) {
+        private JacocoPrepareTestTaskAction(JacocoTaskExtension extension, JacocoAgentJar agent,
+                                            ObjectFactory objects, FileSystemOperations fs) {
+            this.extension = extension;
+            this.agent = agent;
+            this.objects = objects;
             this.fs = fs;
-            this.hasFileOutput = hasFileOutput;
-            this.destinationFile = destinationFile;
         }
 
         @Override
         public void execute(Task task) {
-            if (hasFileOutput.get()) {
+            if (!extension.isEnabled()) {
+                return;
+            }
+
+            if (extension.getOutput() == JacocoTaskExtension.Output.FILE) {
                 // Delete the coverage file before the task executes, so we don't append to a leftover file from the last execution.
                 // This makes the task cacheable even if multiple JVMs write to same destination file, e.g. when executing tests in parallel.
                 // The JaCoCo agent supports writing in parallel to the same file, see https://github.com/jacoco/jacoco/pull/52.
-                File coverageFile = destinationFile.getOrNull();
+                File coverageFile = extension.getDestinationFile();
                 if (coverageFile == null) {
                     throw new GradleException("JaCoCo destination file must not be null if output type is FILE");
                 }
                 fs.delete(spec -> spec.delete(coverageFile));
+            }
+
+            if (extension.getOffline().get()) {
+                FileCollection offlineClasspath = objects.fileCollection().from(agent.getJar()).plus(extension.getOfflineInstrumentedClasses());
+
+                if (task instanceof Test) {
+                    Test test = (Test) task;
+                    test.setClasspath(offlineClasspath.plus(test.getClasspath()));
+                } else if (task instanceof JavaExecSpec) {
+                    JavaExecSpec exec = (JavaExecSpec) task;
+                    exec.setClasspath(offlineClasspath.plus(exec.getClasspath()));
+                }
             }
         }
     }
@@ -175,7 +192,7 @@ public abstract class JacocoPluginExtension {
 
         @Override
         public Iterable<String> asArguments() {
-            return jacoco.isEnabled() ? ImmutableList.of(jacoco.getAsJvmArg()) : Collections.emptyList();
+            return jacoco.isEnabled() ? jacoco.asJvmArgs() : Collections.emptyList();
         }
 
         @Internal

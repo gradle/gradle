@@ -17,17 +17,23 @@
 package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.lang.StringUtils;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.RelativePathUtil;
@@ -39,6 +45,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.StringJoiner;
+import java.util.function.Consumer;
 
 /**
  * Extension for tasks that should run with a Jacoco agent to generate coverage execution data.
@@ -66,6 +74,8 @@ public abstract class JacocoTaskExtension {
     private final JavaForkOptions task;
 
     private boolean enabled = true;
+    private final Property<Boolean> offline;
+    private final ConfigurableFileCollection offlineInstrumentedClasses;
     private final Property<File> destinationFile;
     private List<String> includes = new ArrayList<>();
     private List<String> excludes = new ArrayList<>();
@@ -90,6 +100,8 @@ public abstract class JacocoTaskExtension {
     public JacocoTaskExtension(ObjectFactory objects, JacocoAgentJar agent, JavaForkOptions task) {
         this.agent = agent;
         this.task = task;
+        offline = objects.property(Boolean.class).convention(false);
+        offlineInstrumentedClasses = objects.fileCollection();
         destinationFile = objects.property(File.class);
     }
 
@@ -103,6 +115,30 @@ public abstract class JacocoTaskExtension {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    /**
+     * Whether offline instrumentation will be used. Defaults to {@code false}.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    @Input
+    public Property<Boolean> getOffline() {
+        return offline;
+    }
+
+    /**
+     * The collection of offline instrumented classes that will be added to the test runtime classpath.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    public ConfigurableFileCollection getOfflineInstrumentedClasses() {
+        return offlineInstrumentedClasses;
     }
 
     /**
@@ -300,64 +336,95 @@ public abstract class JacocoTaskExtension {
      * Gets all properties in the format expected of the agent JVM argument.
      *
      * @return state of extension in a JVM argument
+     * @deprecated Use {@link #asJvmArgs()} instead.
      */
+    @Deprecated
     @Internal
     public String getAsJvmArg() {
+        return getJavaAgentArg();
+    }
+
+    /**
+     * Gets all agent properties as JVM arguments.
+     *
+     * @return state of extension as JVM arguments
+     * @since 8.1
+     */
+    @Incubating
+    public List<String> asJvmArgs() {
+        if (getOffline().get()) {
+            ImmutableList.Builder<String> list = ImmutableList.builder();
+            generateAgentParameters(nameAndValue -> list.add("-Djacoco-agent." + nameAndValue));
+            return list.build();
+        }
+
+        return ImmutableList.of(getJavaAgentArg());
+    }
+
+    private String getJavaAgentArg() {
         StringBuilder builder = new StringBuilder();
-        ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDir());
         builder.append("-javaagent:");
         builder.append(agent.getJar().getAbsolutePath());
         builder.append('=');
-        argument.append("destfile", getDestinationFile());
-        argument.append("append", true);
-        argument.append("includes", getIncludes());
-        argument.append("excludes", getExcludes());
-        argument.append("exclclassloader", getExcludeClassLoaders());
-        if (agent.supportsInclNoLocationClasses()) {
-            argument.append("inclnolocationclasses", isIncludeNoLocationClasses());
-        }
-        argument.append("sessionid", getSessionId());
-        argument.append("dumponexit", isDumpOnExit());
-        argument.append("output", getOutput().getAsArg());
-        argument.append("address", getAddress());
-        argument.append("port", getPort());
-        argument.append("classdumpdir", getClassDumpDir());
 
-        if (agent.supportsJmx()) {
-            argument.append("jmx", isJmx());
-        }
-
+        StringJoiner joiner = new StringJoiner(",");
+        generateAgentParameters(joiner::add);
+        builder.append(joiner);
         return builder.toString();
     }
 
-    private static class ArgumentAppender {
+    private void generateAgentParameters(Consumer<String> consumer) {
+        ParameterFormatter formatter = new ParameterFormatter(task.getWorkingDir(), consumer);
 
-        private final StringBuilder builder;
+        formatter.add("destfile", getDestinationFile());
+        formatter.add("append", true);
+        formatter.add("includes", getIncludes());
+        formatter.add("excludes", getExcludes());
+        formatter.add("exclclassloader", getExcludeClassLoaders());
+        if (agent.supportsInclNoLocationClasses()) {
+            formatter.add("inclnolocationclasses", isIncludeNoLocationClasses());
+        }
+        formatter.add("sessionid", getSessionId());
+        formatter.add("dumponexit", isDumpOnExit());
+        formatter.add("output", getOutput().getAsArg());
+        formatter.add("address", getAddress());
+        formatter.add("port", getPort());
+        formatter.add("classdumpdir", getClassDumpDir());
+
+        if (agent.supportsJmx()) {
+            formatter.add("jmx", isJmx());
+        }
+    }
+
+    private static class ParameterFormatter {
         private final File workingDirectory;
-        private boolean anyArgs;
+        private final Consumer<String> consumer;
 
-        public ArgumentAppender(StringBuilder builder, File workingDirectory) {
-            this.builder = builder;
+        public ParameterFormatter(File workingDirectory, Consumer<String> consumer) {
             this.workingDirectory = workingDirectory;
+            this.consumer = consumer;
         }
 
-        public void append(String name, @Nullable Object value) {
-            if (value != null
-                && !((value instanceof Collection) && ((Collection) value).isEmpty())
-                && !((value instanceof String) && (StringUtils.isEmpty((String) value)))
-                && !((value instanceof Integer) && ((Integer) value == 0))) {
-                if (anyArgs) {
-                    builder.append(',');
-                }
-                builder.append(name).append('=');
-                if (value instanceof Collection) {
-                    builder.append(Joiner.on(':').join((Collection<?>) value));
-                } else if (value instanceof File) {
-                    builder.append(RelativePathUtil.relativePath(workingDirectory, (File) value));
-                } else {
-                    builder.append(value);
-                }
-                anyArgs = true;
+        public void add(String name, @Nullable Object value) {
+            if (value == null) {
+                return;
+            }
+
+            final @Nullable String formatted;
+            if (value instanceof Collection) {
+                formatted = ((Collection<?>) value).isEmpty() ? null : Joiner.on(':').join((Collection<?>) value);
+            } else if (value instanceof File) {
+                formatted = RelativePathUtil.relativePath(workingDirectory, (File) value);
+            } else if (value instanceof String) {
+                formatted = ((String) value).isEmpty() ? null : (String) value;
+            } else if (value instanceof Integer) {
+                formatted = (Integer) value == 0 ? null : value.toString();
+            } else {
+                formatted = value.toString();
+            }
+
+            if (formatted != null) {
+                consumer.accept(name + "=" + formatted);
             }
         }
     }
