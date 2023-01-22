@@ -23,7 +23,7 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 
 
 /**
- * Base class for `plugins` block evaluation.
+ * Base class for `plugins` block evaluation for any target.
  */
 open class CompiledKotlinPluginsBlock(private val pluginDependencies: PluginDependenciesSpec) {
 
