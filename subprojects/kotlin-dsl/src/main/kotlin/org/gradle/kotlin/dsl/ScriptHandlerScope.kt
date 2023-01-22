@@ -36,15 +36,9 @@ import org.gradle.kotlin.dsl.support.unsafeLazy
 /**
  * Receiver for the `buildscript` block.
  */
-class ScriptHandlerScope
-private constructor(
+class ScriptHandlerScope(
     private val delegate: ScriptHandler
 ) : ScriptHandler by delegate {
-
-    companion object {
-        fun of(scriptHandler: ScriptHandler) =
-            ScriptHandlerScope(scriptHandler)
-    }
 
     /**
      * The dependencies of the script.
