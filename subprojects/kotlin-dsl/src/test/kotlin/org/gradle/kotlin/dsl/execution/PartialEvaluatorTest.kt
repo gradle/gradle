@@ -113,6 +113,28 @@ class PartialEvaluatorTest {
     }
 
     @Test
+    fun `a top-level Project buildscript block`() {
+
+        val fragment = fragment("buildscript", "...")
+
+        assertThat(
+            "reduces to static program that collects build script dependencies",
+            partialEvaluationOf(
+                Program.Buildscript(fragment),
+                ProgramKind.TopLevel,
+                ProgramTarget.Project
+            ),
+            isResidualProgram(
+                Static(
+                    SetupEmbeddedKotlin,
+                    Eval(fragment.source),
+                    ApplyDefaultPluginRequests
+                )
+            )
+        )
+    }
+
+    @Test
     fun `a top-level Project plugins block`() {
 
         val program =
@@ -476,6 +498,189 @@ class PartialEvaluatorTest {
         )
     }
 
+    @Test
+    fun `an empty top-level Gradle script`() {
+
+        assertThat(
+            "reduces to static program that applies default plugin requests",
+            partialEvaluationOf(
+                Program.Empty,
+                ProgramKind.TopLevel,
+                ProgramTarget.Gradle
+            ),
+            isResidualProgram(
+                Static(
+                    ApplyDefaultPluginRequests
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `a non-empty top-level Gradle script`() {
+
+        val source = ProgramSource("init.gradle.kts", "dynamic")
+
+        assertThat(
+            "reduces to static program that applies default plugin requests and evaluates script body",
+            partialEvaluationOf(
+                Program.Script(source),
+                ProgramKind.TopLevel,
+                ProgramTarget.Gradle
+            ),
+            isResidualProgram(
+                Static(
+                    ApplyDefaultPluginRequests,
+                    Eval(source)
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `a top-level Gradle initscript block`() {
+
+        val fragment = fragment("initscript", "...")
+
+        assertThat(
+            "reduces to static program that collects build script dependencies",
+            partialEvaluationOf(
+                Program.Buildscript(fragment),
+                ProgramKind.TopLevel,
+                ProgramTarget.Gradle
+            ),
+            isResidualProgram(
+                Static(
+                    SetupEmbeddedKotlin,
+                    Eval(fragment.source),
+                    ApplyDefaultPluginRequests
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `a non-empty top-level Gradle initscript block`() {
+
+        val initscript = fragment("initscript", "...")
+        val body = ProgramSource("init.gradle.kts", "...")
+
+        val program = Program.Staged(
+            Program.Stage1Sequence(null, Program.Buildscript(initscript), null),
+            Program.Script(body)
+        )
+
+        assertThat(
+            "reduces to static program that applies plugin requests and evaluates script body",
+            partialEvaluationOf(
+                program,
+                ProgramKind.TopLevel,
+                ProgramTarget.Gradle
+            ),
+            isResidualProgram(
+                Dynamic(
+                    Static(
+                        SetupEmbeddedKotlin,
+                        ApplyPluginRequestsOf(program.stage1)
+                    ),
+                    body
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `an empty Gradle script plugin`() {
+
+        assertThat(
+            "reduces to static program that closes target scope",
+            partialEvaluationOf(
+                Program.Empty,
+                ProgramKind.ScriptPlugin,
+                ProgramTarget.Gradle
+            ),
+            isResidualProgram(
+                Static(
+                    CloseTargetScope
+                )
+            )
+        )
+    }
+
+
+    @Test
+    fun `a non-empty Gradle script plugin`() {
+
+        val source = ProgramSource("init.gradle.kts", "dynamic")
+
+        assertThat(
+            "reduces to static program that closes target scope then evaluates script body",
+            partialEvaluationOf(
+                Program.Script(source),
+                ProgramKind.ScriptPlugin,
+                ProgramTarget.Gradle
+            ),
+            isResidualProgram(
+                Static(
+                    CloseTargetScope,
+                    Eval(source)
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `an empty Gradle script plugin with initscript block`() {
+
+        val fragment = fragment("initscript", "...")
+
+        assertThat(
+            "reduces to static program that collects build script dependencies then closes target scope",
+            partialEvaluationOf(
+                Program.Buildscript(fragment),
+                ProgramKind.ScriptPlugin,
+                ProgramTarget.Gradle
+            ),
+            isResidualProgram(
+                Static(
+                    SetupEmbeddedKotlin,
+                    Eval(fragment.source),
+                    CloseTargetScope,
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `a non-empty Gradle script plugin with initscript block`() {
+
+        val initscript = fragment("initscript", "...")
+        val body = ProgramSource("init.gradle.kts", "...")
+
+        val program = Program.Staged(
+            Program.Stage1Sequence(null, Program.Buildscript(initscript), null),
+            Program.Script(body)
+        )
+
+        assertThat(
+            "reduces to static program that applies plugin requests then evaluates script body",
+            partialEvaluationOf(
+                program,
+                ProgramKind.ScriptPlugin,
+                ProgramTarget.Gradle
+            ),
+            isResidualProgram(
+                Dynamic(
+                    Static(
+                        SetupEmbeddedKotlin,
+                        ApplyPluginRequestsOf(program.stage1),
+                    ),
+                    body
+                )
+            )
+        )
+    }
+
     private
     fun partialEvaluationOf(
         program: Program,
@@ -485,5 +690,5 @@ class PartialEvaluatorTest {
 
     private
     fun isResidualProgram(program: ResidualProgram) =
-        equalTo<ResidualProgram>(program)
+        equalTo(program)
 }
