@@ -30,7 +30,6 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
-import org.gradle.kotlin.dsl.support.delegates.ScriptHandlerDelegate
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
 
@@ -39,8 +38,8 @@ import org.gradle.kotlin.dsl.support.unsafeLazy
  */
 class ScriptHandlerScope
 private constructor(
-    override val delegate: ScriptHandler
-) : ScriptHandlerDelegate() {
+    private val delegate: ScriptHandler
+) : ScriptHandler by delegate {
 
     companion object {
         fun of(scriptHandler: ScriptHandler) =
