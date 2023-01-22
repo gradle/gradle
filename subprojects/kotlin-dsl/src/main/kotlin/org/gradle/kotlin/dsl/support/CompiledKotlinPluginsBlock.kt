@@ -51,7 +51,7 @@ open class CompiledKotlinSettingsPluginManagementBlock(
      * @see [Project.buildscript]
      */
     open fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        buildscript.configureWith(block)
+        ScriptHandlerScope(buildscript).block()
     }
 
     open fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
@@ -77,7 +77,7 @@ open class CompiledKotlinBuildscriptAndPluginsBlock(
      * @see [Project.buildscript]
      */
     override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        buildscript.configureWith(block)
+        ScriptHandlerScope(buildscript).block()
     }
 
     override fun plugins(block: PluginDependenciesSpecScope.() -> Unit) {

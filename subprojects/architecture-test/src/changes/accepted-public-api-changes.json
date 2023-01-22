@@ -34,6 +34,22 @@
         },
         {
             "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Constructor org.gradle.kotlin.dsl.ScriptHandlerScope(org.gradle.api.initialization.dsl.ScriptHandler,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Simplify usage of ScriptHandlerScope",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Field Companion",
+            "acceptation": "Simplify usage of ScriptHandlerScope",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
             "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.access$getDelegate$p(org.gradle.kotlin.dsl.ScriptHandlerScope)",
             "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
             "changes": [

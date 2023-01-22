@@ -76,7 +76,7 @@ open class CompiledKotlinBuildscriptBlock(
      * @see [Project.buildscript]
      */
     override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        buildscript.configureWith(block)
+        ScriptHandlerScope(buildscript).block()
     }
 }
 
@@ -95,7 +95,7 @@ open class CompiledKotlinSettingsBuildscriptBlock(
      * @see [Settings.getBuildscript]
      */
     fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        buildscript.configureWith(block)
+        ScriptHandlerScope(buildscript).block()
     }
 }
 
@@ -133,7 +133,7 @@ open class CompiledKotlinInitscriptBlock(
      * Configures the classpath of the init script.
      */
     fun initscript(block: ScriptHandlerScope.() -> Unit) {
-        initscript.configureWith(block)
+        ScriptHandlerScope(initscript).block()
     }
 }
 
