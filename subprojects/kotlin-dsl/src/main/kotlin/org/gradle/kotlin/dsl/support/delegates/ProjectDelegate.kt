@@ -73,7 +73,7 @@ abstract class ProjectDelegate : Project {
 
     init {
         @Suppress("DEPRECATION")
-        if (this::class != org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript::class) {
+        if (!org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(ProjectDelegate::class.java)
                 .willBeRemovedInGradle9()
                 .undocumented()

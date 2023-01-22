@@ -43,7 +43,7 @@ abstract class GradleDelegate : Gradle {
 
     init {
         @Suppress("DEPRECATION")
-        if (this::class != org.gradle.kotlin.dsl.InitScriptApi::class) {
+        if (!org.gradle.kotlin.dsl.InitScriptApi::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(GradleDelegate::class.java)
                 .willBeRemovedInGradle9()
                 .undocumented()

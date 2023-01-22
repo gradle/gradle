@@ -47,7 +47,7 @@ abstract class SettingsDelegate : Settings {
 
     init {
         @Suppress("DEPRECATION")
-        if (this::class != org.gradle.kotlin.dsl.SettingsScriptApi::class) {
+        if (!org.gradle.kotlin.dsl.SettingsScriptApi::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(SettingsDelegate::class.java)
                 .willBeRemovedInGradle9()
                 .undocumented()
