@@ -55,6 +55,7 @@ import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.normalization.InputNormalizationHandler
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
@@ -69,6 +70,16 @@ import java.util.concurrent.Callable
  */
 @Deprecated("Will be removed in Gradle 9.0")
 abstract class ProjectDelegate : Project {
+
+    init {
+        @Suppress("DEPRECATION")
+        if (this::class != org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript::class) {
+            DeprecationLogger.deprecateType(ProjectDelegate::class.java)
+                .willBeRemovedInGradle9()
+                .undocumented()
+                .nagUser()
+        }
+    }
 
     internal
     abstract val delegate: Project
