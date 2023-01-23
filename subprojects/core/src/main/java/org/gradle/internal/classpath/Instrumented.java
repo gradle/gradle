@@ -41,6 +41,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -397,12 +398,16 @@ public class Instrumented {
         Lazy.locking().of(() -> findStaticOrThrowError(FilesKt.class, "readText$default", kotlinDefaultMethodType(String.class, File.class, Charset.class)));
 
     public static String filesReadString(Path file, String consumer) throws Throwable {
-        listener().fileOpened(file.toFile(), consumer);
+        if (file.getFileSystem() == FileSystems.getDefault()) {
+            listener().fileOpened(file.toFile(), consumer);
+        }
         return (String) FILES_READ_STRING_PATH.get().invokeExact(file);
     }
 
     public static String filesReadString(Path file, Charset charset, String consumer) throws Throwable {
-        listener().fileOpened(file.toFile(), consumer);
+        if (file.getFileSystem() == FileSystems.getDefault()) {
+            listener().fileOpened(file.toFile(), consumer);
+        }
         return (String) FILES_READ_STRING_PATH_CHARSET.get().invokeExact(file, charset);
     }
 
