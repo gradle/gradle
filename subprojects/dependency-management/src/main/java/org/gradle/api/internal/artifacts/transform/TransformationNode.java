@@ -25,8 +25,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.execution.plan.BaseTransformationNode;
+import org.gradle.execution.plan.CreationOrderedNode;
 import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.SelfExecutingNode;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Try;
@@ -45,9 +46,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
-public abstract class TransformationNode extends BaseTransformationNode {
+public abstract class TransformationNode extends CreationOrderedNode implements SelfExecutingNode {
 
+    private static final AtomicLong SEQUENCE = new AtomicLong();
+
+    private final long transformationNodeId;
     private final AttributeContainer sourceAttributes;
     protected final TransformationStep transformationStep;
     protected final ResolvableArtifact artifact;
@@ -75,16 +80,25 @@ public abstract class TransformationNode extends BaseTransformationNode {
         return new InitialTransformationNode(sourceAttributes, initial, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
     }
 
+    private static long createId() {
+        return SEQUENCE.incrementAndGet();
+    }
+
     protected TransformationNode(
         AttributeContainer sourceAttributes,
         TransformationStep transformationStep,
         ResolvableArtifact artifact,
         TransformUpstreamDependencies upstreamDependencies
     ) {
+        this.transformationNodeId = createId();
         this.sourceAttributes = sourceAttributes;
         this.transformationStep = transformationStep;
         this.artifact = artifact;
         this.upstreamDependencies = upstreamDependencies;
+    }
+
+    public long getTransformationNodeId() {
+        return transformationNodeId;
     }
 
     public AttributeContainer getSourceAttributes() {

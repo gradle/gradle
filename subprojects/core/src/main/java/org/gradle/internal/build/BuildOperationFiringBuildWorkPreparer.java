@@ -18,27 +18,24 @@ package org.gradle.internal.build;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.execution.plan.BaseTransformationNode;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
-import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.QueryableExecutionPlan;
-import org.gradle.execution.plan.TaskNode;
-import org.gradle.initialization.DefaultPlannedTask;
-import org.gradle.initialization.DefaultPlannedTransform;
+import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -46,15 +43,21 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.newSetFromMap;
-import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.*;
+import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.Details;
+import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.NodeIdentity;
+import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode;
+import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedTask;
+import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.Result;
 
 public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer {
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildWorkPreparer delegate;
+    private final List<ToPlannedNodeConverter> converters;
 
-    public BuildOperationFiringBuildWorkPreparer(BuildOperationExecutor buildOperationExecutor, BuildWorkPreparer delegate) {
+    public BuildOperationFiringBuildWorkPreparer(BuildOperationExecutor buildOperationExecutor, BuildWorkPreparer delegate, List<ToPlannedNodeConverter> converters) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;
+        this.converters = converters;
     }
 
     @Override
@@ -64,7 +67,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
     @Override
     public void populateWorkGraph(GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action) {
-        buildOperationExecutor.run(new PopulateWorkGraph(gradle, plan, delegate, action));
+        buildOperationExecutor.run(new PopulateWorkGraph(gradle, plan, action));
     }
 
     @Override
@@ -72,16 +75,16 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
         return delegate.finalizeWorkGraph(gradle, plan);
     }
 
-    private static class PopulateWorkGraph implements RunnableBuildOperation {
+    private class PopulateWorkGraph implements RunnableBuildOperation {
         private final GradleInternal gradle;
         private final ExecutionPlan plan;
-        private final BuildWorkPreparer delegate;
         private final Consumer<? super ExecutionPlan> action;
 
-        public PopulateWorkGraph(GradleInternal gradle, ExecutionPlan plan, BuildWorkPreparer delegate, Consumer<? super ExecutionPlan> action) {
+        private final Map<Class<?>, ToPlannedNodeConverter> convertersByNodeType = new HashMap<>();
+
+        public PopulateWorkGraph(GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action) {
             this.gradle = gradle;
             this.plan = plan;
-            this.delegate = delegate;
             this.action = action;
         }
 
@@ -141,38 +144,41 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                     }
                 });
         }
-    }
 
-    private static List<PlannedNode> toPlannedNodes(QueryableExecutionPlan.ScheduledNodes scheduledWork) {
-        List<PlannedNode> plannedNodes = new ArrayList<>();
-        scheduledWork.visitNodes(nodes -> {
-            for (Node node : nodes) {
-                if (node instanceof LocalTaskNode) { // TODO: why Local and not TaskNode?
-                    PlannedTask plannedTask = toPlannedTask((LocalTaskNode) node);
-                    plannedNodes.add(plannedTask);
-                } else if (node instanceof BaseTransformationNode) {
-                    plannedNodes.add(toPlannedTransform((BaseTransformationNode) node));
+        private ToPlannedNodeConverter getConverter(Node node) {
+            ToPlannedNodeConverter converter = convertersByNodeType.get(node.getClass());
+            if (converter != null) {
+                return converter;
+            }
+
+            for (ToPlannedNodeConverter converterCandidate : converters) {
+                if (converterCandidate.getSupportedNodeType().isAssignableFrom(node.getClass())) {
+                    converter = converterCandidate;
+                    break;
                 }
             }
-        });
-        return plannedNodes;
-    }
 
-    private static PlannedNode toPlannedTransform(BaseTransformationNode node) {
-        return new DefaultPlannedTransform(
-            node.getNodeIdentity(),
-            findDependencies(node)
-        );
-    }
+            if (converter != null) {
+                convertersByNodeType.put(node.getClass(), converter);
+            }
 
-    private static PlannedTask toPlannedTask(LocalTaskNode taskNode) {
-        return new DefaultPlannedTask(
-            taskNode.getNodeIdentity(),
-            findDependencies(taskNode),
-            taskIdentifiesOf(taskNode.getMustSuccessors()),
-            taskIdentifiesOf(taskNode.getShouldSuccessors()),
-            taskIdentifiesOf(taskNode.getFinalizers())
-        );
+            return converter;
+        }
+
+        private List<PlannedNode> toPlannedNodes(QueryableExecutionPlan.ScheduledNodes scheduledWork) {
+            List<PlannedNode> plannedNodes = new ArrayList<>();
+            scheduledWork.visitNodes(nodes -> {
+                for (Node node : nodes) {
+                    ToPlannedNodeConverter converter = getConverter(node);
+                    if (converter != null) {
+                        PlannedNode plannedNode = converter.convertToPlannedNode(node, BuildOperationFiringBuildWorkPreparer::findDependencies);
+                        plannedNodes.add(plannedNode);
+                    }
+                }
+            });
+            return plannedNodes;
+        }
+
     }
 
     private static List<? extends NodeIdentity> findDependencies(Node node) {
@@ -193,7 +199,6 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             return Stream.empty();
         }
 
-        // TODO: do we stop at transform nodes or do we continue until we reach tasks anyway?
         return nodes.stream()
             .filter(seen::add)
             .flatMap(node -> {
@@ -202,18 +207,6 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                     ? Stream.of(identity)
                     : findIdentifiedNodes(traverser.apply(node), traverser, seen);
             });
-    }
-
-    private static List<CalculateTaskGraphBuildOperationType.TaskIdentity> taskIdentifiesOf(Collection<Node> nodes) {
-        if (nodes.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return nodes.stream()
-            .filter(TaskNode.class::isInstance)
-            .map(TaskNode.class::cast)
-            .map(TaskNode::getNodeIdentity)
-            .collect(Collectors.toList());
     }
 
     private static List<String> toTaskPaths(Set<Task> tasks) {
