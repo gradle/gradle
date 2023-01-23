@@ -41,7 +41,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
-import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.model.ObjectFactory;
@@ -265,12 +264,14 @@ public class JvmPluginsHelper {
      * A custom artifact type which allows the getFile call to be done lazily only when the
      * artifact is actually needed.
      */
-    public abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
+    public static class LazyJavaDirectoryArtifact extends AbstractPublishArtifact {
         private final String type;
+        private final Provider<File> fileProvider;
 
-        public IntermediateJavaArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency) {
+        public LazyJavaDirectoryArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency, Provider<File> fileProvider) {
             super(taskDependencyFactory, dependency);
             this.type = type;
+            this.fileProvider = fileProvider;
         }
 
         @Override
@@ -302,32 +303,6 @@ public class JvmPluginsHelper {
         @Override
         public boolean shouldBePublished() {
             return false;
-        }
-    }
-
-    /**
-     * An {@link IntermediateJavaArtifact} which achieves lazy file access via a {@link Provider} instead
-     * of inheritance.
-     */
-    public static class ProviderBasedIntermediateJavaArtifact extends IntermediateJavaArtifact {
-
-        private final Provider<File> fileProvider;
-
-        // Used in the Gradle build;
-        // TODO: remove once the usage in gradlebuild.test-fixtures.gradle.kts is no longer there
-        /**
-         * @deprecated Use the overload accepting a TaskDependencyFactory
-         */
-        @Deprecated
-        public ProviderBasedIntermediateJavaArtifact(
-            String type, Object dependency, Provider<File> fileProvider
-        ) {
-            this(DefaultTaskDependencyFactory.withNoAssociatedProject(), type, dependency, fileProvider);
-        }
-
-        public ProviderBasedIntermediateJavaArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency, Provider<File> fileProvider) {
-            super(taskDependencyFactory, type, dependency);
-            this.fileProvider = fileProvider;
         }
 
         @Override

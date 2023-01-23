@@ -46,6 +46,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -59,7 +60,6 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -70,6 +70,7 @@ import java.util.stream.Collectors;
 public class DefaultJvmPluginServices implements JvmPluginServices {
     private final ConfigurationContainer configurations;
     private final ObjectFactory objectFactory;
+    private final ProviderFactory providerFactory;
     private final TaskContainer tasks;
     private final SoftwareComponentContainer components;
     private final InstanceGenerator instanceGenerator;
@@ -81,11 +82,13 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     @Inject
     public DefaultJvmPluginServices(ConfigurationContainer configurations,
                                     ObjectFactory objectFactory,
+                                    ProviderFactory providerFactory,
                                     TaskContainer tasks,
                                     SoftwareComponentContainer components,
                                     InstanceGenerator instanceGenerator) {
         this.configurations = configurations;
         this.objectFactory = objectFactory;
+        this.providerFactory = providerFactory;
         this.tasks = tasks;
         this.components = components;
         this.instanceGenerator = instanceGenerator;
@@ -184,7 +187,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
         DefaultSourceSetOutput.DirectoryContribution resourcesContribution = output.getResourcesContribution();
         if (resourcesContribution != null) {
-            variant.artifact(new JvmPluginsHelper.ProviderBasedIntermediateJavaArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, resourcesContribution.getTask(), resourcesContribution.getDirectory()));
+            variant.artifact(new JvmPluginsHelper.LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, resourcesContribution.getTask(), resourcesContribution.getDirectory()));
         }
         return variant;
     }
@@ -197,13 +200,8 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
         variant.artifactsProvider(() ->  {
             FileCollection classesDirs = sourceSet.getOutput().getClassesDirs();
-            return classesDirs.getFiles().stream().map(file ->
-                new JvmPluginsHelper.IntermediateJavaArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs) {
-                    @Override
-                    public File getFile() {
-                        return file;
-                    }
-                })
+            return classesDirs.getFiles().stream()
+                .map(file -> new JvmPluginsHelper.LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs, providerFactory.provider(() -> file)))
                 .collect(Collectors.toList());
         });
         return variant;
