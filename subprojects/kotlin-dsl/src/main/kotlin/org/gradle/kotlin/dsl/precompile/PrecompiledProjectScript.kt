@@ -21,7 +21,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.*
-import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependency
 import org.gradle.plugin.use.PluginDependencySpec
@@ -33,7 +32,7 @@ import org.gradle.plugin.use.PluginDependencySpec
 @Deprecated("Kept for compatibility with precompiled script plugins published with Gradle versions prior to 6.0")
 open class PrecompiledProjectScript(
     override val delegate: Project
-) : ProjectDelegate() {
+) : @Suppress("DEPRECATION") org.gradle.kotlin.dsl.support.delegates.ProjectDelegate() {
 
     init {
         DeprecationLogger.deprecateBehaviour("Applying a Kotlin DSL precompiled script plugin published with Gradle versions < 6.0.")
