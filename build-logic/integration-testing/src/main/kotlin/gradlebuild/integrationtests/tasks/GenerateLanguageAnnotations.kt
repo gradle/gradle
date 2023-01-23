@@ -26,7 +26,7 @@ import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.kotlin.dsl.submit
+import org.gradle.kotlin.dsl.*
 import org.gradle.workers.WorkerExecutor
 import javax.inject.Inject
 
@@ -51,8 +51,8 @@ abstract class GenerateLanguageAnnotations : DefaultTask() {
             classpath.setFrom(classpath)
         }
         queue.submit(AnnotationGeneratorWorkAction::class) {
-            packageName.set(this@GenerateLanguageAnnotations.packageName)
-            destDir.set(this@GenerateLanguageAnnotations.destDir)
+            packageName = this@GenerateLanguageAnnotations.packageName
+            destDir = this@GenerateLanguageAnnotations.destDir
         }
     }
 }

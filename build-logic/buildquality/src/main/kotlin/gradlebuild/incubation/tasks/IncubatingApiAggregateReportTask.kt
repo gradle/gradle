@@ -26,7 +26,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.kotlin.dsl.submit
+import org.gradle.kotlin.dsl.*
 import org.gradle.workers.WorkerExecutor
 import javax.inject.Inject
 
@@ -47,6 +47,6 @@ abstract class IncubatingApiAggregateReportTask : DefaultTask() {
     @TaskAction
     fun generateReport() = workerExecutor.noIsolation().submit(IncubatingApiReportAggregationWorkAction::class) {
         reports.from(this@IncubatingApiAggregateReportTask.reports)
-        htmlReportFile.set(this@IncubatingApiAggregateReportTask.htmlReportFile)
+        htmlReportFile = this@IncubatingApiAggregateReportTask.htmlReportFile
     }
 }

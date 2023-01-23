@@ -24,6 +24,7 @@ import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
+import org.gradle.kotlin.dsl.*
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
 
@@ -54,7 +55,7 @@ abstract class RunEmbeddedGradle : DefaultTask() {
     fun runGradle() {
         processOperations.javaexec {
             classpath(gradleClasspath)
-            mainClass.set("org.gradle.launcher.Main")
+            mainClass = "org.gradle.launcher.Main"
             workingDir = File(this@RunEmbeddedGradle.workingDir.get())
             jvmArgs?.add("-Dorg.gradle.daemon=false")
             args = this@RunEmbeddedGradle.args
