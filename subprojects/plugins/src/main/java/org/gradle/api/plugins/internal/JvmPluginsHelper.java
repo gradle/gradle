@@ -35,7 +35,6 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -61,8 +60,6 @@ import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -258,56 +255,5 @@ public class JvmPluginsHelper {
                 attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, libraryElements));
             }
         };
-    }
-
-    /**
-     * A custom artifact type which allows the getFile call to be done lazily only when the
-     * artifact is actually needed.
-     */
-    public static class LazyJavaDirectoryArtifact extends AbstractPublishArtifact {
-        private final String type;
-        private final Provider<File> fileProvider;
-
-        public LazyJavaDirectoryArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency, Provider<File> fileProvider) {
-            super(taskDependencyFactory, dependency);
-            this.type = type;
-            this.fileProvider = fileProvider;
-        }
-
-        @Override
-        public String getName() {
-            return getFile().getName();
-        }
-
-        @Override
-        public String getExtension() {
-            return "";
-        }
-
-        @Override
-        public String getType() {
-            return type;
-        }
-
-        @Nullable
-        @Override
-        public String getClassifier() {
-            return null;
-        }
-
-        @Override
-        public Date getDate() {
-            return null;
-        }
-
-        @Override
-        public boolean shouldBePublished() {
-            return false;
-        }
-
-        @Override
-        public File getFile() {
-            return fileProvider.get();
-        }
     }
 }
