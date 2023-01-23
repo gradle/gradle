@@ -573,6 +573,10 @@ tasks.withType(InstallSample).configureEach {
     }
 }
 
+tasks.named("quickTest") {
+    dependsOn("checkDeadInternalLinks")
+}
+
 // TODO add some kind of test precondition support in sample test conf
 tasks.named("docsTest") { task ->
     maxParallelForks = 2
