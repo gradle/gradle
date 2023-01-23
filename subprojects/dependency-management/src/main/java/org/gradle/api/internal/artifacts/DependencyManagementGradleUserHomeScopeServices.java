@@ -31,6 +31,7 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
+import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.internal.Try;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
@@ -40,6 +41,10 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
 public class DependencyManagementGradleUserHomeScopeServices {
+
+    ToPlannedNodeConverter createToPlannedTransformConverter() {
+        return new ToPlannedTransformConverter();
+    }
 
     DefaultArtifactCaches.WritableArtifactCacheLockingParameters createWritableArtifactCacheLockingParameters(FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions) {
         return new DefaultArtifactCaches.WritableArtifactCacheLockingParameters() {
