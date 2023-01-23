@@ -1,19 +1,25 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.codehaus.groovy.runtime.StringGroovyMethods
+import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.kotlin.dsl.fixtures.classEntriesFor
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.TextUtil.normaliseFileSeparators
+import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import spock.lang.Issue
 import java.io.File
 
 
@@ -547,8 +553,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     fun CharSequence.count(text: CharSequence): Int =
         StringGroovyMethods.count(this, text)
 
-    // https://github.com/gradle/gradle/issues/15416
     @Test
+    @Issue("https://github.com/gradle/gradle/issues/15416")
     fun `can use an empty plugins block in precompiled settings plugin`() {
         withFolders {
             "build-logic" {
@@ -588,8 +594,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         }
     }
 
-    // https://github.com/gradle/gradle/issues/15416
     @Test
+    @Issue("https://github.com/gradle/gradle/issues/15416")
     fun `can apply a plugin from the same project in precompiled settings plugin`() {
         withFolders {
             "build-logic" {
@@ -637,8 +643,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         }
     }
 
-    // https://github.com/gradle/gradle/issues/15416
     @Test
+    @Issue("https://github.com/gradle/gradle/issues/15416")
     fun `can apply a plugin from a repository in precompiled settings plugin`() {
         withFolders {
             "external-plugin" {
@@ -817,6 +823,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @Issue("https://github.com/gradle/gradle/issues/22091")
     fun `does not add extra task actions to kotlin compilation task`() {
         assumeNonEmbeddedGradleExecuter()
         withKotlinDslPlugin().appendText("""
@@ -830,5 +837,82 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         withPrecompiledKotlinScript("my-plugin.gradle.kts", "")
 
         compileKotlin()
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/23576")
+    @ToBeImplemented
+    fun `can compile precompiled scripts with compileOnly dependency`() {
+
+        fun withPluginJar(fileName: String, versionString: String): File =
+            withZip(
+                fileName,
+                classEntriesFor(MyPlugin::class.java, MyTask::class.java) + sequenceOf(
+                    "META-INF/gradle-plugins/my-plugin.properties" to "implementation-class=org.gradle.kotlin.dsl.integration.MyPlugin".toByteArray(),
+                    "my-plugin-version.txt" to versionString.toByteArray(),
+                )
+            )
+
+        val pluginJarV1 = withPluginJar("my-plugin-1.0.jar", "1.0")
+        val pluginJarV2 = withPluginJar("my-plugin-2.0.jar", "2.0")
+
+        withBuildScriptIn("buildSrc", """
+            plugins {
+                `kotlin-dsl`
+            }
+
+            $repositoriesBlock
+
+            dependencies {
+                compileOnly(files("${normaliseFileSeparators(pluginJarV1.absolutePath)}"))
+            }
+        """)
+        val precompiledScript = withFile("buildSrc/src/main/kotlin/my-precompiled-script.gradle.kts", """
+            plugins {
+                id("my-plugin")
+            }
+        """)
+
+        withBuildScript("""
+            buildscript {
+                dependencies {
+                    classpath(files("${normaliseFileSeparators(pluginJarV2.absolutePath)}"))
+                }
+            }
+            plugins {
+                id("my-precompiled-script")
+            }
+        """)
+
+        buildAndFail("action").apply {
+            assertHasFailure("Plugin [id: 'my-plugin'] was not found in any of the following sources") {
+                assertHasErrorOutput("Precompiled script plugin '${precompiledScript.absolutePath}' line: 1")
+            }
+        }
+
+        // Once implemented:
+        // build("action").apply {
+        //     assertOutputContains("Applied plugin 2.0")
+        // }
+    }
+}
+
+
+abstract class MyPlugin : Plugin<Project> {
+    override fun apply(project: Project) {
+        project.tasks.register("action", MyTask::class.java)
+    }
+}
+
+
+abstract class MyTask : DefaultTask() {
+    @TaskAction
+    fun action() {
+        this::class.java.classLoader
+            .getResource("my-plugin-version.txt")!!
+            .readText()
+            .let { version ->
+                println("Applied plugin $version")
+            }
     }
 }

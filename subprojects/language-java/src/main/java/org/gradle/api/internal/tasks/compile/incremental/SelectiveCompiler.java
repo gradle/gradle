@@ -93,7 +93,7 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
 
         CompileTransaction transaction = recompilationSpecProvider.initCompilationSpecAndTransaction(spec, recompilationSpec);
         return transaction.execute(workResult -> {
-            if (Iterables.isEmpty(spec.getSourceFiles()) && spec.getClasses().isEmpty()) {
+            if (Iterables.isEmpty(spec.getSourceFiles()) && spec.getClassesToProcess().isEmpty()) {
                 LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
                 return new RecompilationNotNecessary(previousCompilationData, recompilationSpec);
             }
