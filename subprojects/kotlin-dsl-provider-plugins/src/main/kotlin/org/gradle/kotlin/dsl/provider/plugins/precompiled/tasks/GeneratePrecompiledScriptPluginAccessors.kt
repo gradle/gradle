@@ -365,7 +365,8 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     projectDir,
                     null,
                     null
-                )
+                ),
+                startParameter.isOffline,
             )
         }
 
@@ -373,11 +374,15 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
      * A [StartParameter] subclass that provides no init scripts.
      */
     private
-    class ProjectSchemaBuildStartParameter(buildLayout: BuildLayoutParameters) : StartParameterInternal(buildLayout) {
+    class ProjectSchemaBuildStartParameter(
+        buildLayout: BuildLayoutParameters,
+        offline: Boolean,
+    ) : StartParameterInternal(buildLayout) {
 
         init {
             // Dry run in case a callback tries to access the task graph.
             isDryRun = true
+            isOffline = offline
             doNotSearchUpwards()
             useEmptySettings()
         }
