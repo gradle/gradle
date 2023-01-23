@@ -34,7 +34,7 @@ public class DefaultPlannedTransform implements CalculateTaskGraphBuildOperation
     }
 
     @Override
-    public CalculateTaskGraphBuildOperationType.NodeIdentity getNodeIdentity() {
+    public CalculateTaskGraphBuildOperationType.TransformationIdentity getNodeIdentity() {
         return transformationIdentity;
     }
 
