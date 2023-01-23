@@ -265,7 +265,7 @@ public class JvmPluginsHelper {
      * A custom artifact type which allows the getFile call to be done lazily only when the
      * artifact is actually needed.
      */
-    private abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
+    public abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
         private final String type;
 
         public IntermediateJavaArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency) {
@@ -302,24 +302,6 @@ public class JvmPluginsHelper {
         @Override
         public boolean shouldBePublished() {
             return false;
-        }
-    }
-
-    /**
-     * An {@link IntermediateJavaArtifact} with a non-lazy File.
-     */
-    public static class ImmediateIntermediateJavaArtifact extends IntermediateJavaArtifact {
-
-        private final File file;
-
-        public ImmediateIntermediateJavaArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency, File file) {
-            super(taskDependencyFactory, type, dependency);
-            this.file = file;
-        }
-
-        @Override
-        public File getFile() {
-            return file;
         }
     }
 

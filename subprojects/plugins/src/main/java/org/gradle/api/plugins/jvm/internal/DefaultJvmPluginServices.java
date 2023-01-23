@@ -59,6 +59,7 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -197,7 +198,12 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         variant.artifactsProvider(() ->  {
             FileCollection classesDirs = sourceSet.getOutput().getClassesDirs();
             return classesDirs.getFiles().stream().map(file ->
-                    new JvmPluginsHelper.ImmediateIntermediateJavaArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs, file))
+                new JvmPluginsHelper.IntermediateJavaArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs) {
+                    @Override
+                    public File getFile() {
+                        return file;
+                    }
+                })
                 .collect(Collectors.toList());
         });
         return variant;
