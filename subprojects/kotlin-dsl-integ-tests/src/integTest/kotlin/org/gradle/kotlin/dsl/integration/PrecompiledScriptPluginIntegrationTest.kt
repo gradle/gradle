@@ -895,6 +895,33 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         //     assertOutputContains("Applied plugin 2.0")
         // }
     }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/23564")
+    fun `respects offline start parameter on synthetic builds for accessors generation`() {
+
+        withSettings("""include("producer", "consumer")""")
+
+        withKotlinDslPluginIn("producer")
+        withFile("producer/src/main/kotlin/offline.gradle.kts", """
+            if (!gradle.startParameter.isOffline) throw IllegalStateException("Build is not offline!")
+        """)
+
+        withKotlinDslPluginIn("consumer").appendText("""
+           dependencies { implementation(project(":producer")) }
+        """)
+        withFile("consumer/src/main/kotlin/my-plugin.gradle.kts", """
+            plugins { id("offline") }
+        """)
+
+        buildAndFail(":consumer:generatePrecompiledScriptPluginAccessors").apply {
+            assertHasFailure("An exception occurred applying plugin request [id: 'offline']") {
+                assertHasCause("Build is not offline!")
+            }
+        }
+
+        build(":consumer:generatePrecompiledScriptPluginAccessors", "--offline")
+    }
 }
 
 
