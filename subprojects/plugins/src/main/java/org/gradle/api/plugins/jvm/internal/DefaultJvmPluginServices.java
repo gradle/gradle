@@ -38,13 +38,14 @@ import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
@@ -60,6 +61,8 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.File;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -187,7 +190,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
         DefaultSourceSetOutput.DirectoryContribution resourcesContribution = output.getResourcesContribution();
         if (resourcesContribution != null) {
-            variant.artifact(new JvmPluginsHelper.LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, resourcesContribution.getTask(), resourcesContribution.getDirectory()));
+            variant.artifact(new LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, resourcesContribution.getTask(), resourcesContribution.getDirectory()));
         }
         return variant;
     }
@@ -201,7 +204,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         variant.artifactsProvider(() ->  {
             FileCollection classesDirs = sourceSet.getOutput().getClassesDirs();
             return classesDirs.getFiles().stream()
-                .map(file -> new JvmPluginsHelper.LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs, providerFactory.provider(() -> file)))
+                .map(file -> new LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs, providerFactory.provider(() -> file)))
                 .collect(Collectors.toList());
         });
         return variant;
@@ -417,6 +420,57 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
                 return (AdhocComponentWithVariants) component;
             }
             return null;
+        }
+    }
+
+    /**
+     * A custom artifact type which allows the getFile call to be done lazily only when the
+     * artifact is actually needed.
+     */
+    private static class LazyJavaDirectoryArtifact extends AbstractPublishArtifact {
+        private final String type;
+        private final Provider<File> fileProvider;
+
+        public LazyJavaDirectoryArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency, Provider<File> fileProvider) {
+            super(taskDependencyFactory, dependency);
+            this.type = type;
+            this.fileProvider = fileProvider;
+        }
+
+        @Override
+        public String getName() {
+            return getFile().getName();
+        }
+
+        @Override
+        public String getExtension() {
+            return "";
+        }
+
+        @Override
+        public String getType() {
+            return type;
+        }
+
+        @Nullable
+        @Override
+        public String getClassifier() {
+            return null;
+        }
+
+        @Override
+        public Date getDate() {
+            return null;
+        }
+
+        @Override
+        public boolean shouldBePublished() {
+            return false;
+        }
+
+        @Override
+        public File getFile() {
+            return fileProvider.get();
         }
     }
 }
