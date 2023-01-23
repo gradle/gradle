@@ -22,6 +22,7 @@ import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.kotlin.dsl.*
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.After
 import org.junit.Assume
@@ -118,7 +119,7 @@ class DetermineBaselinesTest {
 
     private
     fun setCurrentBranch(branch: String) {
-        buildEnvironmentExtension.gitBranch.set(branch)
+        buildEnvironmentExtension.gitBranch = branch
     }
 
     private
@@ -127,9 +128,9 @@ class DetermineBaselinesTest {
         val determineBaselinesTask = createDetermineBaselinesTask(isCoordinatorBuild)
 
         // when
-        determineBaselinesTask.logicalBranch.set(currentBranch)
-        determineBaselinesTask.configuredBaselines.set(configuredBaseline)
-        determineBaselinesTask.defaultBaselines.set(defaultPerformanceBaselines)
+        determineBaselinesTask.logicalBranch = currentBranch
+        determineBaselinesTask.configuredBaselines = configuredBaseline
+        determineBaselinesTask.defaultBaselines = defaultPerformanceBaselines
         determineBaselinesTask.determineForkPointCommitBaseline()
 
         // then

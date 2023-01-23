@@ -128,10 +128,10 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
 
 
 fun Project.getBucketProvider() = gradle.sharedServices.registerIfAbsent("buildBucketProvider", BuildBucketProvider::class) {
-    parameters.includeTestClasses.set(project.testSplitIncludeTestClasses)
-    parameters.excludeTestClasses.set(project.testSplitExcludeTestClasses)
-    parameters.onlyTestGradleVersion.set(project.testSplitOnlyTestGradleVersion)
-    parameters.repoRoot.set(repoRoot())
+    parameters.includeTestClasses = project.testSplitIncludeTestClasses
+    parameters.excludeTestClasses = project.testSplitExcludeTestClasses
+    parameters.onlyTestGradleVersion = project.testSplitOnlyTestGradleVersion
+    parameters.repoRoot = repoRoot()
 }
 
 
