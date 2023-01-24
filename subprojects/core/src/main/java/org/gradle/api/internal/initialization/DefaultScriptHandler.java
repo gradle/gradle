@@ -51,6 +51,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private DependencyHandler dependencyHandler;
     private ConfigurationContainer configContainer;
     private Configuration classpathConfiguration;
+    private ClassPath resolvedClasspath;
     private DynamicObject dynamicObject;
 
     public DefaultScriptHandler(ScriptSource scriptSource, DependencyResolutionServices dependencyResolutionServices, ClassLoaderScope classLoaderScope, ScriptClassPathResolver scriptClassPathResolver) {
@@ -79,17 +80,29 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     @Override
     public ClassPath getInstrumentedScriptClassPath() {
-        return scriptClassPathResolver.resolveClassPath(classpathConfiguration);
+        if (resolvedClasspath==null) {
+            resolvedClasspath = scriptClassPathResolver.resolveClassPath(classpathConfiguration);
+            classpathConfiguration = null;
+            configContainer = null;
+            dependencyHandler = null;
+        }
+        return resolvedClasspath;
     }
 
     @Override
     public DependencyHandler getDependencies() {
+        if (resolvedClasspath != null) {
+            throw new IllegalStateException("Cannot modify dependencies after script classpath has been resolved");
+        }
         defineConfiguration();
         return dependencyHandler;
     }
 
     @Override
     public RepositoryHandler getRepositories() {
+        if (resolvedClasspath != null) {
+            throw new IllegalStateException("Cannot modify repositories after script classpath has been resolved");
+        }
         if (repositoryHandler == null) {
             repositoryHandler = dependencyResolutionServices.getResolveRepositoryHandler();
         }
@@ -103,6 +116,9 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     @Override
     public ConfigurationContainer getConfigurations() {
+        if (resolvedClasspath != null) {
+            throw new IllegalStateException("Cannot modify configurations after script classpath has been resolved");
+        }
         defineConfiguration();
         return configContainer;
     }
