@@ -51,7 +51,7 @@ import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.snapshot.ValueSnapshot
-import org.gradle.kotlin.dsl.accessors.PluginAccessorClassPathGenerator
+import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.execution.CompiledScript
 import org.gradle.kotlin.dsl.execution.EvalOption
@@ -155,10 +155,10 @@ class StandardKotlinScriptEvaluator(
 
     inner class InterpreterHost(override val jvmTarget: JavaVersion) : Interpreter.Host {
 
-        override fun pluginAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
+        override fun stage1BlocksAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             (scriptHost.target as? ProjectInternal)?.let {
-                val pluginAccessorClassPathGenerator = it.serviceOf<PluginAccessorClassPathGenerator>()
-                pluginAccessorClassPathGenerator.pluginSpecBuildersClassPath(it).bin
+                val stage1BlocksAccessorClassPathGenerator = it.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
+                stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(it).bin
             } ?: ClassPath.EMPTY
 
         override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =

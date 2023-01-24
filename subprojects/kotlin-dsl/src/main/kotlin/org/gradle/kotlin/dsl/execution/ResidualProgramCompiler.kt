@@ -93,7 +93,7 @@ class ResidualProgramCompiler(
     private val logger: Logger = interpreterLogger,
     private val temporaryFileProvider: TemporaryFileProvider,
     private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() },
-    private val pluginAccessorsClassPath: ClassPath = ClassPath.EMPTY,
+    private val stage1BlocksAccessorsClassPath: ClassPath = ClassPath.EMPTY,
     private val packageName: String? = null,
 ) {
 
@@ -213,7 +213,7 @@ class ResidualProgramCompiler(
     private
     fun MethodVisitor.emitCollectProjectScriptDependencies(source: ProgramSource) {
         val scriptDefinition = stage1ScriptDefinition
-        val compiledScriptClass = compileStage1(source, scriptDefinition, classPath + pluginsBlockClassPath)
+        val compiledScriptClass = compileStage1(source, scriptDefinition, classPath + stage1BlocksClassPath)
         emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptDefinition)
     }
 
@@ -249,7 +249,7 @@ class ResidualProgramCompiler(
                     it.preserve(stage1Seq.map { stage1 -> stage1.fragment.range })
                 },
                 scriptDefinition,
-                pluginsBlockClassPath
+                stage1BlocksClassPath
             )
 
         val implicitReceiverType = implicitReceiverOf(scriptDefinition)!!
@@ -555,12 +555,12 @@ class ResidualProgramCompiler(
         compileStage1(
             program.fragment.source.map { it.preserve(program.fragment.range) },
             pluginsScriptDefinition,
-            pluginsBlockClassPath
+            stage1BlocksClassPath
         )
 
     private
-    val pluginsBlockClassPath
-        get() = classPath + pluginAccessorsClassPath
+    val stage1BlocksClassPath
+        get() = classPath + stage1BlocksAccessorsClassPath
 
     private
     fun MethodVisitor.loadHashCode(hashCode: HashCode) {

@@ -101,12 +101,12 @@ class Interpreter(val host: Host) {
 
         /**
          * Provides an additional [ClassPath] to be used in the compilation of a top-level [Project] script
-         * `plugins` block.
+         * `buildscript` or `plugins` block.
          *
          * The [ClassPath] is assumed not to influence the cache key of the script by itself as it should
          * already be implied by [ProgramId.parentClassLoader].
          */
-        fun pluginAccessorsFor(
+        fun stage1BlocksAccessorsFor(
             scriptHost: KotlinScriptHost<*>
         ): ClassPath
 
@@ -250,9 +250,10 @@ class Interpreter(val host: Host) {
         programTarget: ProgramTarget
     ): CompiledScript {
 
-        // TODO: consider computing plugin accessors only when there's a plugins block
-        val pluginAccessorsClassPath = when {
-            requiresAccessors(programTarget, programKind) -> host.pluginAccessorsFor(scriptHost)
+        // TODO: consider computing stage 1 accessors only when there's a buildscript or plugins block
+        // TODO: consider splitting buildscript/plugins block accessors
+        val stage1BlocksAccessorsClassPath = when {
+            requiresAccessors(programTarget, programKind) -> host.stage1BlocksAccessorsFor(scriptHost)
             else -> ClassPath.EMPTY
         }
 
@@ -265,7 +266,7 @@ class Interpreter(val host: Host) {
             programKind,
             programTarget,
             host.compilationClassPathOf(targetScope.parent),
-            pluginAccessorsClassPath,
+            stage1BlocksAccessorsClassPath,
             scriptHost.temporaryFileProvider
         )
 
@@ -274,7 +275,7 @@ class Interpreter(val host: Host) {
             scriptPath,
             classesDir,
             programId.templateId,
-            pluginAccessorsClassPath,
+            stage1BlocksAccessorsClassPath,
             scriptSource
         )
     }
@@ -288,7 +289,7 @@ class Interpreter(val host: Host) {
         programKind: ProgramKind,
         programTarget: ProgramTarget,
         compilationClassPath: ClassPath,
-        pluginAccessorsClassPath: ClassPath,
+        stage1BlocksAccessorsClassPath: ClassPath,
         temporaryFileProvider: TemporaryFileProvider
     ): File = host.cachedDirFor(
         scriptHost,
@@ -324,7 +325,7 @@ class Interpreter(val host: Host) {
                     logger = interpreterLogger,
                     temporaryFileProvider = temporaryFileProvider,
                     compileBuildOperationRunner = host::runCompileBuildOperation,
-                    pluginAccessorsClassPath = pluginAccessorsClassPath,
+                    stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
                     packageName = residualProgram.packageName,
                 ).compile(residualProgram.document)
             }

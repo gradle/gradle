@@ -92,51 +92,37 @@ import kotlin.reflect.KClass
 
 
 /**
- * Produces an [AccessorsClassPath] with type-safe accessors for `plugins {}` blocks
- * providing content-assist for quick navigation to the source code.
+ * Produces an [AccessorsClassPath] with type-safe accessors for Stage 1 blocks such as
+ * `buildscript {}` and `plugins {}`.
  *
  * Generates accessors for:
  * - dependency version catalogs found in this build,
  * - plugin spec builders for all plugin ids found in the `buildSrc` classpath.
  */
-class PluginAccessorClassPathGenerator @Inject internal constructor(
+class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
     private val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     private val fileCollectionFactory: FileCollectionFactory,
     private val executionEngine: ExecutionEngine,
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) {
-    fun pluginSpecBuildersClassPath(project: ProjectInternal): AccessorsClassPath = project.owner.owner.projects.rootProject.mutableModel.let { rootProject ->
-
-        rootProject.getOrCreateProperty("gradleKotlinDsl.stage1AccessorsClassPath") {
-            val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
-            val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
-            val versionCatalogPluginAccessors = generateVersionCatalogPluginAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
-            val pluginSpecBuildersAccessors = generatePluginSpecBuildersAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
-            versionCatalogPluginAccessors + pluginSpecBuildersAccessors
+    fun stage1BlocksAccessorClassPath(project: ProjectInternal): AccessorsClassPath =
+        project.owner.owner.projects.rootProject.mutableModel.let { rootProject ->
+            rootProject.getOrCreateProperty("gradleKotlinDsl.stage1AccessorsClassPath") {
+                val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
+                val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
+                val versionCatalogAccessors = generateVersionCatalogAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
+                val pluginSpecBuildersAccessors = generatePluginSpecBuildersAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
+                versionCatalogAccessors + pluginSpecBuildersAccessors
+            }
         }
-    }
 
     private
-    fun generatePluginSpecBuildersAccessors(
-        rootProject: Project,
-        buildSrcClassLoaderScope: ClassLoaderScope,
-        classLoaderHash: HashCode,
-    ): AccessorsClassPath {
-        val work = GeneratePluginSpecsAccessors(
-            rootProject,
-            buildSrcClassLoaderScope,
-            classLoaderHash,
-            fileCollectionFactory,
-            inputFingerprinter,
-            workspaceProvider
-        )
-        val result = executionEngine.createRequest(work).execute()
-        return result.execution.get().output as AccessorsClassPath
-    }
+    fun baseClassLoaderScopeOf(rootProject: Project) =
+        (rootProject as ProjectInternal).baseClassLoaderScope
 
     private
-    fun generateVersionCatalogPluginAccessors(
+    fun generateVersionCatalogAccessors(
         rootProject: Project,
         buildSrcClassLoaderScope: ClassLoaderScope,
         classLoaderHash: HashCode,
@@ -146,7 +132,7 @@ class PluginAccessorClassPathGenerator @Inject internal constructor(
             .takeIf { it.isNotEmpty() }
             ?.let { versionCatalogExtensionSchemas ->
 
-                val work = GenerateVersionCatalogPluginAccessors(
+                val work = GenerateVersionCatalogAccessors(
                     versionCatalogExtensionSchemas,
                     rootProject,
                     buildSrcClassLoaderScope,
@@ -162,11 +148,29 @@ class PluginAccessorClassPathGenerator @Inject internal constructor(
 
     private
     val catalogExtensionBaseType = typeOf<ExternalModuleDependencyFactory>()
+
+    private
+    fun generatePluginSpecBuildersAccessors(
+        rootProject: Project,
+        buildSrcClassLoaderScope: ClassLoaderScope,
+        classLoaderHash: HashCode,
+    ): AccessorsClassPath {
+        val work = GeneratePluginSpecBuilderAccessors(
+            rootProject,
+            buildSrcClassLoaderScope,
+            classLoaderHash,
+            fileCollectionFactory,
+            inputFingerprinter,
+            workspaceProvider
+        )
+        val result = executionEngine.createRequest(work).execute()
+        return result.execution.get().output as AccessorsClassPath
+    }
 }
 
 
 internal
-abstract class AbstractPluginAccessorsUnitOfWork(
+abstract class AbstractStage1BlockAccessorsUnitOfWork(
     protected val rootProject: Project,
     protected val buildSrcClassLoaderScope: ClassLoaderScope,
     protected val classLoaderHash: HashCode,
@@ -206,11 +210,58 @@ abstract class AbstractPluginAccessorsUnitOfWork(
         visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir)))
         visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(classesOutputDir, fileCollectionFactory.fixed(classesOutputDir)))
     }
+
+    protected
+    fun getClassesOutputDir(workspace: File) = File(workspace, "classes")
+
+    protected
+    fun getSourcesOutputDir(workspace: File): File = File(workspace, "sources")
 }
 
 
 internal
-class GenerateVersionCatalogPluginAccessors(
+data class ExtensionSpec(
+    val name: String,
+    val receiverType: TypeSpec,
+    val returnType: TypeSpec
+)
+
+
+internal
+data class TypeSpec(val sourceName: String, val internalName: InternalName) {
+
+    val builder: KmTypeBuilder
+        get() = { visitClass(internalName) }
+
+    private
+    fun KmTypeVisitor.visitClass(internalName: InternalName) {
+        visitClass(internalName.value)
+    }
+}
+
+
+private
+fun IO.writeClassFileTo(binDir: File, internalClassName: InternalName, classBytes: ByteArray) {
+    val classFile = binDir.resolve("$internalClassName.class")
+    writeFile(classFile, classBytes)
+}
+
+
+private
+inline fun <T> Iterable<T>.runEach(f: T.() -> Unit) {
+    forEach { it.run(f) }
+}
+
+
+private
+val nonInlineGetterFlags = flagsOf(Flag.IS_PUBLIC, Flag.PropertyAccessor.IS_NOT_DEFAULT)
+
+
+// VERSION CATALOGS ===========================================================================================================
+
+
+internal
+class GenerateVersionCatalogAccessors(
     private val versionCatalogExtensionSchemas: List<ExtensionSchema>,
     rootProject: Project,
     buildSrcClassLoaderScope: ClassLoaderScope,
@@ -218,7 +269,7 @@ class GenerateVersionCatalogPluginAccessors(
     fileCollectionFactory: FileCollectionFactory,
     inputFingerprinter: InputFingerprinter,
     workspaceProvider: KotlinDslWorkspaceProvider,
-) : AbstractPluginAccessorsUnitOfWork(
+) : AbstractStage1BlockAccessorsUnitOfWork(
     rootProject, buildSrcClassLoaderScope, classLoaderHash, fileCollectionFactory, inputFingerprinter, workspaceProvider
 ) {
 
@@ -230,7 +281,7 @@ class GenerateVersionCatalogPluginAccessors(
         val workspace = executionRequest.workspace
         kotlinScriptClassPathProviderOf(rootProject).run {
             withAsynchronousIO(rootProject) {
-                buildVersionCatalogPluginAccessorsFor(
+                buildVersionCatalogAccessorsFor(
                     versionCatalogs = versionCatalogAccessorFrom(versionCatalogExtensionSchemas),
                     srcDir = getSourcesOutputDir(workspace),
                     binDir = getClassesOutputDir(workspace),
@@ -246,6 +297,15 @@ class GenerateVersionCatalogPluginAccessors(
 }
 
 
+internal
+data class VersionCatalogAccessor(
+    val name: String,
+    val publicType: TypeOf<*>,
+    val buildscriptExtension: ExtensionSpec,
+    val pluginsExtension: ExtensionSpec,
+)
+
+
 private
 fun versionCatalogAccessorFrom(versionCatalogExtensionSchemas: List<ExtensionSchema>): List<VersionCatalogAccessor> =
     versionCatalogExtensionSchemas.map {
@@ -259,70 +319,17 @@ fun versionCatalogAccessorFrom(versionCatalogExtensionSchemas: List<ExtensionSch
 
 
 internal
-data class VersionCatalogAccessor(
-    val name: String,
-    val publicType: TypeOf<*>,
-    val buildscriptExtension: ExtensionSpec,
-    val pluginsExtension: ExtensionSpec,
-)
-
-
-internal
-class GeneratePluginSpecsAccessors(
-    rootProject: Project,
-    buildSrcClassLoaderScope: ClassLoaderScope,
-    classLoaderHash: HashCode,
-    fileCollectionFactory: FileCollectionFactory,
-    inputFingerprinter: InputFingerprinter,
-    workspaceProvider: KotlinDslWorkspaceProvider,
-) : AbstractPluginAccessorsUnitOfWork(
-    rootProject, buildSrcClassLoaderScope, classLoaderHash, fileCollectionFactory, inputFingerprinter, workspaceProvider
-) {
-
-    override fun getDisplayName(): String = "Kotlin DSL plugin specs accessors for classpath '$classLoaderHash'"
-
-    override val identitySuffix: String = "PS"
-
-    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
-        val workspace = executionRequest.workspace
-        kotlinScriptClassPathProviderOf(rootProject).run {
-            withAsynchronousIO(rootProject) {
-                buildPluginAccessorsFor(
-                    pluginDescriptorsClassPath = exportClassPathFromHierarchyOf(buildSrcClassLoaderScope),
-                    srcDir = getSourcesOutputDir(workspace),
-                    binDir = getClassesOutputDir(workspace),
-                )
-            }
-        }
-        return object : UnitOfWork.WorkOutput {
-            override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
-
-            override fun getOutput() = loadAlreadyProducedOutput(workspace)
-        }
-    }
-}
-
-
-private
-fun getClassesOutputDir(workspace: File) = File(workspace, "classes")
-
-
-private
-fun getSourcesOutputDir(workspace: File): File = File(workspace, "sources")
-
-
-internal
-fun IO.buildVersionCatalogPluginAccessorsFor(
+fun IO.buildVersionCatalogAccessorsFor(
     versionCatalogs: List<VersionCatalogAccessor>,
     srcDir: File,
     binDir: File
 ) {
     makeAccessorOutputDirs(srcDir, binDir, kotlinDslPackagePath)
 
-    val baseFileName = "$kotlinDslPackagePath/VersionCatalogPluginAccessors"
+    val baseFileName = "$kotlinDslPackagePath/VersionCatalogAccessors"
     val sourceFile = srcDir.resolve("$baseFileName.kt")
 
-    writeVersionCatalogPluginAccessorsSourceCodeTo(sourceFile, versionCatalogs)
+    writeVersionCatalogAccessorsSourceCodeTo(sourceFile, versionCatalogs)
 
     val fileFacadeClassName = InternalName(baseFileName + "Kt")
     val moduleName = "kotlin-dsl-version-catalog-accessors"
@@ -391,7 +398,7 @@ fun IO.buildVersionCatalogPluginAccessorsFor(
 
 
 private
-fun IO.writeVersionCatalogPluginAccessorsSourceCodeTo(
+fun IO.writeVersionCatalogAccessorsSourceCodeTo(
     sourceFile: File,
     versionCatalogs: List<VersionCatalogAccessor>,
     format: AccessorFormat = AccessorFormats.default,
@@ -399,13 +406,13 @@ fun IO.writeVersionCatalogPluginAccessorsSourceCodeTo(
 ) = io {
     sourceFile.bufferedWriter().useToRun {
         appendReproducibleNewLine(header)
-        appendSourceCodeForVersionCatalogPluginAccessors(versionCatalogs, format)
+        appendSourceCodeForVersionCatalogAccessors(versionCatalogs, format)
     }
 }
 
 
 private
-fun BufferedWriter.appendSourceCodeForVersionCatalogPluginAccessors(
+fun BufferedWriter.appendSourceCodeForVersionCatalogAccessors(
     versionCatalogs: List<VersionCatalogAccessor>,
     format: AccessorFormat
 ) {
@@ -435,9 +442,9 @@ fun BufferedWriter.appendSourceCodeForVersionCatalogPluginAccessors(
         )
     }
 
-    versionCatalogs.forEach { catalog ->
-        appendCatalogExtension(catalog.buildscriptExtension, ScriptHandlerScopeInternal::class)
-        appendCatalogExtension(catalog.pluginsExtension, PluginDependenciesSpecScopeInternal::class)
+    versionCatalogs.runEach {
+        appendCatalogExtension(buildscriptExtension, ScriptHandlerScopeInternal::class)
+        appendCatalogExtension(pluginsExtension, PluginDependenciesSpecScopeInternal::class)
     }
 }
 
@@ -460,6 +467,33 @@ fun ClassWriter.emitVersionCatalogAccessorMethodFor(
 }
 
 
+private
+val scriptHandlerScopeTypeSpec = TypeSpec("ScriptHandlerScope", ScriptHandlerScope::class.internalName)
+
+
+private
+val scriptHandlerScopeInternalInternalName = ScriptHandlerScopeInternal::class.internalName
+
+
+private
+val scriptHandlerScopeInternalVersionCatalogExtensionMethodDesc = "(Ljava/lang/String;)L${ExternalModuleDependencyFactory::class.internalName};"
+
+
+private
+val pluginDependenciesSpecScopeInternalInternalName = PluginDependenciesSpecScopeInternal::class.internalName
+
+
+private
+val pluginDependenciesSpecScopeTypeSpec = TypeSpec("PluginDependenciesSpecScope", PluginDependenciesSpecScope::class.internalName)
+
+
+private
+val pluginDependenciesSpecScopeInternalVersionCatalogExtensionMethodDesc = "(Ljava/lang/String;)L${ExternalModuleDependencyFactory::class.internalName};"
+
+
+// PLUGIN DEPENDENCY SPECS ===========================================================================================================
+
+
 /**
  * Writes the source code of accessors to plugin spec builders.
  *
@@ -471,9 +505,9 @@ fun writeSourceCodeForPluginSpecBuildersFor(
     packageName: String
 ) {
     withSynchronousIO {
-        writePluginAccessorsSourceCodeTo(
+        writePluginDependencySpecAccessorsSourceCodeTo(
             sourceFile,
-            pluginAccessorsFor(pluginDescriptorsClassPath),
+            pluginDependencySpecAccessorsFor(pluginDescriptorsClassPath),
             format = AccessorFormats.internal,
             header = fileHeaderFor(packageName)
         )
@@ -481,13 +515,67 @@ fun writeSourceCodeForPluginSpecBuildersFor(
 }
 
 
-private
-fun pluginAccessorsFor(pluginDescriptorsClassPath: ClassPath): List<PluginAccessor> =
-    pluginAccessorsFor(pluginTreesFrom(pluginDescriptorsClassPath)).toList()
+internal
+class GeneratePluginSpecBuilderAccessors(
+    rootProject: Project,
+    buildSrcClassLoaderScope: ClassLoaderScope,
+    classLoaderHash: HashCode,
+    fileCollectionFactory: FileCollectionFactory,
+    inputFingerprinter: InputFingerprinter,
+    workspaceProvider: KotlinDslWorkspaceProvider,
+) : AbstractStage1BlockAccessorsUnitOfWork(
+    rootProject, buildSrcClassLoaderScope, classLoaderHash, fileCollectionFactory, inputFingerprinter, workspaceProvider
+) {
+
+    override fun getDisplayName(): String = "Kotlin DSL plugin specs accessors for classpath '$classLoaderHash'"
+
+    override val identitySuffix: String = "PS"
+
+    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
+        val workspace = executionRequest.workspace
+        kotlinScriptClassPathProviderOf(rootProject).run {
+            withAsynchronousIO(rootProject) {
+                buildPluginDependencySpecAccessorsFor(
+                    pluginDescriptorsClassPath = exportClassPathFromHierarchyOf(buildSrcClassLoaderScope),
+                    srcDir = getSourcesOutputDir(workspace),
+                    binDir = getClassesOutputDir(workspace),
+                )
+            }
+        }
+        return object : UnitOfWork.WorkOutput {
+            override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
+
+            override fun getOutput() = loadAlreadyProducedOutput(workspace)
+        }
+    }
+}
 
 
 internal
-fun IO.buildPluginAccessorsFor(
+sealed class PluginDependencySpecAccessor {
+
+    abstract val extension: ExtensionSpec
+
+    data class ForPlugin(
+        val id: String,
+        val implementationClass: String,
+        override val extension: ExtensionSpec
+    ) : PluginDependencySpecAccessor()
+
+    data class ForGroup(
+        val id: String,
+        override val extension: ExtensionSpec
+    ) : PluginDependencySpecAccessor()
+}
+
+
+private
+fun pluginDependencySpecAccessorsFor(pluginDescriptorsClassPath: ClassPath): List<PluginDependencySpecAccessor> =
+    pluginDependencySpecAccessorsFor(pluginTreesFrom(pluginDescriptorsClassPath)).toList()
+
+
+internal
+fun IO.buildPluginDependencySpecAccessorsFor(
     pluginDescriptorsClassPath: ClassPath,
     srcDir: File,
     binDir: File
@@ -496,11 +584,11 @@ fun IO.buildPluginAccessorsFor(
 
     val pluginTrees = pluginTreesFrom(pluginDescriptorsClassPath)
 
-    val baseFileName = "$kotlinDslPackagePath/PluginAccessors"
+    val baseFileName = "$kotlinDslPackagePath/PluginDependencySpecAccessors"
     val sourceFile = srcDir.resolve("$baseFileName.kt")
 
-    val accessorList = pluginAccessorsFor(pluginTrees).toList()
-    writePluginAccessorsSourceCodeTo(sourceFile, accessorList)
+    val accessorList = pluginDependencySpecAccessorsFor(pluginTrees).toList()
+    writePluginDependencySpecAccessorsSourceCodeTo(sourceFile, accessorList)
 
     val fileFacadeClassName = InternalName(baseFileName + "Kt")
     val moduleName = "kotlin-dsl-plugin-spec-accessors"
@@ -510,11 +598,11 @@ fun IO.buildPluginAccessorsFor(
         moduleMetadata
     )
 
-    val properties = ArrayList<Pair<PluginAccessor, JvmMethodSignature>>(accessorList.size)
+    val properties = ArrayList<Pair<PluginDependencySpecAccessor, JvmMethodSignature>>(accessorList.size)
     val header = writeFileFacadeClassHeader(moduleName) {
         accessorList.forEach { accessor ->
 
-            if (accessor is PluginAccessor.ForGroup) {
+            if (accessor is PluginDependencySpecAccessor.ForGroup) {
                 val (internalClassName, classBytes) = emitClassForGroup(accessor)
                 writeClassFileTo(binDir, internalClassName, classBytes)
             }
@@ -537,7 +625,7 @@ fun IO.buildPluginAccessorsFor(
 
     val classBytes = publicKotlinClass(fileFacadeClassName, header) {
         properties.forEach { (accessor, signature) ->
-            emitAccessorMethodFor(accessor, signature)
+            emitPluginDependencySpecAccessorMethodFor(accessor, signature)
         }
     }
 
@@ -545,18 +633,13 @@ fun IO.buildPluginAccessorsFor(
 }
 
 
-internal
-fun pluginTreesFrom(pluginDescriptorsClassPath: ClassPath): Map<String, PluginTree> =
-    PluginTree.of(pluginSpecsFrom(pluginDescriptorsClassPath))
-
-
 private
-fun ClassWriter.emitAccessorMethodFor(accessor: PluginAccessor, signature: JvmMethodSignature) {
+fun ClassWriter.emitPluginDependencySpecAccessorMethodFor(accessor: PluginDependencySpecAccessor, signature: JvmMethodSignature) {
     val extension = accessor.extension
     val receiverType = extension.receiverType
     publicStaticMethod(signature) {
         when (accessor) {
-            is PluginAccessor.ForGroup -> {
+            is PluginDependencySpecAccessor.ForGroup -> {
                 val returnType = extension.returnType
                 NEW(returnType.internalName)
                 DUP()
@@ -565,7 +648,7 @@ fun ClassWriter.emitAccessorMethodFor(accessor: PluginAccessor, signature: JvmMe
                 ARETURN()
             }
 
-            is PluginAccessor.ForPlugin -> {
+            is PluginDependencySpecAccessor.ForPlugin -> {
                 GETPLUGINS(receiverType)
                 LDC(accessor.id)
                 INVOKEINTERFACE(pluginDependenciesSpecInternalName, "id", pluginDependenciesSpecIdMethodDesc)
@@ -577,22 +660,22 @@ fun ClassWriter.emitAccessorMethodFor(accessor: PluginAccessor, signature: JvmMe
 
 
 private
-fun IO.writePluginAccessorsSourceCodeTo(
+fun IO.writePluginDependencySpecAccessorsSourceCodeTo(
     sourceFile: File,
-    accessors: List<PluginAccessor>,
+    accessors: List<PluginDependencySpecAccessor>,
     format: AccessorFormat = AccessorFormats.default,
     header: String = fileHeader
 ) = io {
     sourceFile.bufferedWriter().useToRun {
         appendReproducibleNewLine(header)
-        appendSourceCodeForPluginAccessors(accessors, format)
+        appendSourceCodeForPluginDependencySpecAccessors(accessors, format)
     }
 }
 
 
 private
-fun BufferedWriter.appendSourceCodeForPluginAccessors(
-    accessors: List<PluginAccessor>,
+fun BufferedWriter.appendSourceCodeForPluginDependencySpecAccessors(
+    accessors: List<PluginDependencySpecAccessor>,
     format: AccessorFormat
 ) {
 
@@ -615,7 +698,7 @@ fun BufferedWriter.appendSourceCodeForPluginAccessors(
         val extendedType = extension.receiverType.sourceName
         val pluginsRef = pluginDependenciesSpecOf(extendedType)
         when (this) {
-            is PluginAccessor.ForPlugin -> {
+            is PluginDependencySpecAccessor.ForPlugin -> {
                 appendReproducibleNewLine(
                     format(
                         """
@@ -629,7 +712,7 @@ fun BufferedWriter.appendSourceCodeForPluginAccessors(
                 )
             }
 
-            is PluginAccessor.ForGroup -> {
+            is PluginDependencySpecAccessor.ForGroup -> {
                 val groupType = extension.returnType.sourceName
                 appendReproducibleNewLine(
                     format(
@@ -656,21 +739,17 @@ fun BufferedWriter.appendSourceCodeForPluginAccessors(
 
 
 private
-fun defaultPackageTypesIn(pluginAccessors: List<PluginAccessor>) =
+fun defaultPackageTypesIn(pluginDependencySpecAccessors: List<PluginDependencySpecAccessor>) =
     defaultPackageTypesIn(
-        pluginImplementationClassesExposedBy(pluginAccessors)
+        pluginImplementationClassesExposedBy(pluginDependencySpecAccessors)
     )
 
 
 private
-fun pluginImplementationClassesExposedBy(pluginAccessors: List<PluginAccessor>) =
-    pluginAccessors
-        .filterIsInstance<PluginAccessor.ForPlugin>()
+fun pluginImplementationClassesExposedBy(pluginDependencySpecAccessors: List<PluginDependencySpecAccessor>) =
+    pluginDependencySpecAccessors
+        .filterIsInstance<PluginDependencySpecAccessor.ForPlugin>()
         .map { it.implementationClass }
-
-
-private
-const val pluginsFieldName = "plugins"
 
 
 private
@@ -680,88 +759,8 @@ fun pluginDependenciesSpecOf(extendedType: String): String = when (extendedType)
 }
 
 
-private
-inline fun <T> Iterable<T>.runEach(f: T.() -> Unit) {
-    forEach { it.run(f) }
-}
-
-
 internal
-data class TypeSpec(val sourceName: String, val internalName: InternalName) {
-
-    val builder: KmTypeBuilder
-        get() = { visitClass(internalName) }
-}
-
-
-internal
-fun KmTypeVisitor.visitClass(internalName: InternalName) {
-    visitClass(internalName.value)
-}
-
-
-private
-val scriptHandlerScopeInternalName = ScriptHandlerScope::class.internalName
-
-
-private
-val scriptHandlerScopeTypeSpec = TypeSpec("ScriptHandlerScope", scriptHandlerScopeInternalName)
-
-
-private
-val scriptHandlerScopeInternalInternalName = ScriptHandlerScopeInternal::class.internalName
-
-
-private
-val scriptHandlerScopeInternalVersionCatalogExtensionMethodDesc = "(Ljava/lang/String;)L${ExternalModuleDependencyFactory::class.internalName};"
-
-
-private
-val pluginDependencySpecInternalName = PluginDependencySpec::class.internalName
-
-
-private
-val pluginDependenciesSpecInternalName = PluginDependenciesSpec::class.internalName
-
-
-private
-val pluginDependenciesSpecScopeInternalName = PluginDependenciesSpecScope::class.internalName
-
-
-private
-val pluginDependenciesSpecScopeInternalInternalName = PluginDependenciesSpecScopeInternal::class.internalName
-
-
-internal
-val pluginDependenciesSpecTypeSpec = TypeSpec("PluginDependenciesSpec", pluginDependenciesSpecInternalName)
-
-
-private
-val pluginDependenciesSpecScopeTypeSpec = TypeSpec("PluginDependenciesSpecScope", pluginDependenciesSpecScopeInternalName)
-
-
-internal
-val pluginDependencySpecTypeSpec = TypeSpec("PluginDependencySpec", pluginDependencySpecInternalName)
-
-
-private
-val pluginDependenciesSpecTypeDesc = "L$pluginDependenciesSpecInternalName;"
-
-
-private
-val groupTypeConstructorSignature = "($pluginDependenciesSpecTypeDesc)V"
-
-
-private
-val pluginDependenciesSpecIdMethodDesc = "(Ljava/lang/String;)L$pluginDependencySpecInternalName;"
-
-
-private
-val pluginDependenciesSpecScopeInternalVersionCatalogExtensionMethodDesc = "(Ljava/lang/String;)L${ExternalModuleDependencyFactory::class.internalName};"
-
-
-internal
-fun pluginAccessorsFor(pluginTrees: Map<String, PluginTree>, extendedType: TypeSpec = pluginDependenciesSpecTypeSpec): Sequence<PluginAccessor> = sequence {
+fun pluginDependencySpecAccessorsFor(pluginTrees: Map<String, PluginTree>, extendedType: TypeSpec = pluginDependenciesSpecTypeSpec): Sequence<PluginDependencySpecAccessor> = sequence {
 
     for ((extensionName, pluginTree) in pluginTrees) {
         when (pluginTree) {
@@ -770,17 +769,17 @@ fun pluginAccessorsFor(pluginTrees: Map<String, PluginTree>, extendedType: TypeS
                 val groupType = pluginGroupTypeName(pluginTree.path)
                 val groupTypeSpec = typeSpecForPluginGroupType(groupType)
                 yield(
-                    PluginAccessor.ForGroup(
+                    PluginDependencySpecAccessor.ForGroup(
                         groupId,
                         ExtensionSpec(extensionName, extendedType, groupTypeSpec)
                     )
                 )
-                yieldAll(pluginAccessorsFor(pluginTree.plugins, groupTypeSpec))
+                yieldAll(pluginDependencySpecAccessorsFor(pluginTree.plugins, groupTypeSpec))
             }
 
             is PluginTree.PluginSpec -> {
                 yield(
-                    PluginAccessor.ForPlugin(
+                    PluginDependencySpecAccessor.ForPlugin(
                         pluginTree.id,
                         pluginTree.implementationClass,
                         ExtensionSpec(extensionName, extendedType, pluginDependencySpecTypeSpec)
@@ -798,29 +797,8 @@ fun typeSpecForPluginGroupType(groupType: String) =
 
 
 internal
-sealed class PluginAccessor {
-
-    abstract val extension: ExtensionSpec
-
-    data class ForPlugin(
-        val id: String,
-        val implementationClass: String,
-        override val extension: ExtensionSpec
-    ) : PluginAccessor()
-
-    data class ForGroup(
-        val id: String,
-        override val extension: ExtensionSpec
-    ) : PluginAccessor()
-}
-
-
-internal
-data class ExtensionSpec(
-    val name: String,
-    val receiverType: TypeSpec,
-    val returnType: TypeSpec
-)
+fun pluginTreesFrom(pluginDescriptorsClassPath: ClassPath): Map<String, PluginTree> =
+    PluginTree.of(pluginSpecsFrom(pluginDescriptorsClassPath))
 
 
 private
@@ -839,17 +817,6 @@ fun pluginGroupTypeName(path: List<String>) =
 
 
 private
-fun IO.writeClassFileTo(binDir: File, internalClassName: InternalName, classBytes: ByteArray) {
-    val classFile = binDir.resolve("$internalClassName.class")
-    writeFile(classFile, classBytes)
-}
-
-
-private
-val nonInlineGetterFlags = flagsOf(Flag.IS_PUBLIC, Flag.PropertyAccessor.IS_NOT_DEFAULT)
-
-
-private
 fun MethodVisitor.GETPLUGINS(receiverType: TypeSpec) {
     ALOAD(0)
     if (receiverType !== pluginDependenciesSpecTypeSpec) {
@@ -859,7 +826,7 @@ fun MethodVisitor.GETPLUGINS(receiverType: TypeSpec) {
 
 
 private
-fun emitClassForGroup(group: PluginAccessor.ForGroup): Pair<InternalName, ByteArray> = group.run {
+fun emitClassForGroup(group: PluginDependencySpecAccessor.ForGroup): Pair<InternalName, ByteArray> = group.run {
 
     val className = extension.returnType.internalName
     val classBytes = publicClass(className) {
@@ -887,5 +854,32 @@ fun ClassWriter.packagePrivateField(name: String, desc: String) {
 
 
 private
-fun baseClassLoaderScopeOf(rootProject: Project) =
-    (rootProject as ProjectInternal).baseClassLoaderScope
+const val pluginsFieldName = "plugins"
+
+
+private
+val pluginDependencySpecInternalName = PluginDependencySpec::class.internalName
+
+
+private
+val pluginDependenciesSpecInternalName = PluginDependenciesSpec::class.internalName
+
+
+internal
+val pluginDependenciesSpecTypeSpec = TypeSpec("PluginDependenciesSpec", pluginDependenciesSpecInternalName)
+
+
+internal
+val pluginDependencySpecTypeSpec = TypeSpec("PluginDependencySpec", pluginDependencySpecInternalName)
+
+
+private
+val pluginDependenciesSpecTypeDesc = "L$pluginDependenciesSpecInternalName;"
+
+
+private
+val groupTypeConstructorSignature = "($pluginDependenciesSpecTypeDesc)V"
+
+
+private
+val pluginDependenciesSpecIdMethodDesc = "(Ljava/lang/String;)L$pluginDependencySpecInternalName;"

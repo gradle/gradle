@@ -50,7 +50,7 @@ import java.io.File
 import java.util.zip.ZipException
 
 
-class PluginAccessorsClassPathTest : TestWithClassPath() {
+class PluginSpecBuilderAccessorsClassPathTest : TestWithClassPath() {
 
     @Test
     fun `exception caused by empty jar carries file information`() {
@@ -90,7 +90,7 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
 
         // when:
         withSynchronousIO {
-            buildPluginAccessorsFor(
+            buildPluginDependencySpecAccessorsFor(
                 pluginDescriptorsClassPath = classPathOf(pluginsJar),
                 srcDir = srcDir,
                 binDir = binDir
