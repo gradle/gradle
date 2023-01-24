@@ -224,7 +224,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         failure.assertHasDocumentedCause("Cannot access output property 'outputDir' of task ':producer'. " +
             "Accessing unreadable inputs or outputs is not supported. " +
             "Declare the task as untracked by using Task.doNotTrackState(). " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#disable-state-tracking for more details.")
+            "See https://docs.gradle.org/current/userguide/incremental_build.html#disable-state-tracking for more details.")
         failureHasCause("java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
 
         cleanup:
@@ -254,7 +254,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         failure.assertHasDocumentedCause("Cannot access output property 'outputDir' of task ':producer'. " +
             "Accessing unreadable inputs or outputs is not supported. " +
             "Declare the task as untracked by using Task.doNotTrackState(). " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#disable-state-tracking for more details.")
+            "See https://docs.gradle.org/current/userguide/incremental_build.html#disable-state-tracking for more details.")
         failureHasCause("java.io.IOException: Cannot snapshot ${namedPipe}: not a regular file")
     }
 
@@ -281,7 +281,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         failure.assertHasDocumentedCause("Cannot access input property 'inputDir' of task ':consumer'. " +
             "Accessing unreadable inputs or outputs is not supported. " +
             "Declare the task as untracked by using Task.doNotTrackState(). " +
-            "See https://docs.gradle.org/current/userguide/more_about_tasks.html#disable-state-tracking for more details.")
+            "See https://docs.gradle.org/current/userguide/incremental_build.html#disable-state-tracking for more details.")
         failureHasCause("java.nio.file.AccessDeniedException: ${unreadableDir.absolutePath}")
 
         cleanup:

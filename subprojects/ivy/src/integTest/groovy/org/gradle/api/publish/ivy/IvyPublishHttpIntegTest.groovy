@@ -18,8 +18,8 @@ package org.gradle.api.publish.ivy
 
 import org.eclipse.jetty.http.HttpStatus
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.file.TestFile
@@ -44,42 +44,30 @@ credentials {
     password 'bad'
 }
 '''
-    @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
-    @Rule HttpServer server = new HttpServer()
+    @Rule
+    ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
+    @Rule
+    HttpServer server = new HttpServer()
 
     private IvyHttpModule module
     private IvyHttpRepository ivyHttpRepo
 
+    final String group = "org.gradle"
+    final String name = "publish"
+    final String version = "2"
+
     def setup() {
         ivyHttpRepo = new IvyHttpRepository(server, ivyRepo)
-        module = ivyHttpRepo.module("org.gradle", "publish", "2")
+        module = ivyHttpRepo.module(group, name, version)
         server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         server.start()
 
-        settingsFile << 'rootProject.name = "publish"'
+        settingsFile << "rootProject.name = '$name'"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish to unauthenticated HTTP repository (extra checksums = #extraChecksums)"() {
         given:
-        buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
-
-            version = '2'
-            group = 'org.gradle'
-
-            publishing {
-                repositories {
-                    ivy { url "${ivyHttpRepo.uri}" }
-                }
-                publications {
-                    ivy(IvyPublication) {
-                        from components.java
-                    }
-                }
-            }
-        """
+        buildFile << publicationBuildWithoutCredentials(version, group, ivyHttpRepo.uri)
 
         if (!extraChecksums) {
             executer.withArgument("-Dorg.gradle.internal.publish.checksums.insecure=true")
@@ -122,27 +110,9 @@ credentials {
         extraChecksums << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish to a repository even if it doesn't support sha256/sha512 signatures"() {
         given:
-        buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
-
-            version = '2'
-            group = 'org.gradle'
-
-            publishing {
-                repositories {
-                    ivy { url "${ivyHttpRepo.uri}" }
-                }
-                publications {
-                    ivy(IvyPublication) {
-                        from components.java
-                    }
-                }
-            }
-        """
+        buildFile << publicationBuildWithoutCredentials(version, group, ivyHttpRepo.uri)
 
         and:
         maxUploadAttempts = 1
@@ -167,48 +137,19 @@ credentials {
         outputContains("remote repository doesn't support sha-512. This will not fail the build.")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
-        buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
-
-            version = '2'
-            group = 'org.gradle'
-
-            publishing {
-                repositories {
-                    ivy {
-                        credentials {
-                            username 'testuser'
-                            password 'password'
-                        }
-                        url "${ivyHttpRepo.uri}"
-                    }
-                }
-                publications {
-                    ivy(IvyPublication) {
-                        from components.java
-                    }
-                }
+        org.gradle.api.credentials.PasswordCredentials credentials = new DefaultPasswordCredentials('testuser', 'password')
+        buildFile << publicationBuild(version, group, ivyHttpRepo.uri, "ivy", """
+            credentials {
+                username '${credentials.username}'
+                password '${credentials.password}'
             }
-        """
+        """)
 
         and:
         server.authenticationScheme = authScheme
-        module.jar.expectPut('testuser', 'password')
-        module.jar.sha1.expectPut('testuser', 'password')
-        module.jar.sha256.expectPut('testuser', 'password')
-        module.jar.sha512.expectPut('testuser', 'password')
-        module.ivy.expectPut('testuser', 'password')
-        module.ivy.sha1.expectPut('testuser', 'password')
-        module.ivy.sha256.expectPut('testuser', 'password')
-        module.ivy.sha512.expectPut('testuser', 'password')
-        module.moduleMetadata.expectPut('testuser', 'password')
-        module.moduleMetadata.sha1.expectPut('testuser', 'password')
-        module.moduleMetadata.sha256.expectPut('testuser', 'password')
-        module.moduleMetadata.sha512.expectPut('testuser', 'password')
+        expectPublishModuleWithCredentials(module, credentials)
 
         when:
         run 'publish'
@@ -226,7 +167,6 @@ credentials {
         authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports failure publishing with #credsName credentials to authenticated repository using #authScheme auth"() {
         given:
         buildFile << """
@@ -271,29 +211,10 @@ credentials {
         AuthScheme.NTLM   | 'bad'     | BAD_CREDENTIALS
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports failure publishing to HTTP repository"() {
         given:
         def repositoryPort = server.port
-
-        buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'ivy-publish'
-            version = '2'
-            group = 'org.gradle'
-            publishing {
-                repositories {
-                    ivy {
-                        url "${ivyHttpRepo.uri}"
-                    }
-                }
-                publications {
-                    ivy(IvyPublication) {
-                        from components.java
-                    }
-                }
-            }
-        """
+        buildFile << publicationBuildWithoutCredentials(version, group, ivyHttpRepo.uri)
 
         and:
         server.addBroken("/")
@@ -318,7 +239,6 @@ credentials {
         failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses first configured pattern for publication"() {
         given:
         buildFile << """
@@ -365,7 +285,6 @@ credentials {
         !module.ivy.file.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)
     }
 
-    @ToBeFixedForConfigurationCache
     void "can publish large artifact to authenticated repository"() {
         given:
         def largeJar = file("large.jar")
@@ -422,7 +341,6 @@ credentials {
         module.jarFile.assertIsCopyOf(new TestFile(largeJar))
     }
 
-    @ToBeFixedForConfigurationCache
     void "does not upload meta-data file if artifact upload fails"() {
         given:
         buildFile << """
@@ -457,7 +375,6 @@ credentials {
         module.ivyFile.assertDoesNotExist()
     }
 
-    @ToBeFixedForConfigurationCache
     def "retries artifact upload for transient network error"() {
         given:
         buildFile << """
@@ -506,7 +423,6 @@ credentials {
         module.assertMetadataAndJarFilePublished()
     }
 
-    @ToBeFixedForConfigurationCache
     def "doesn't publish Gradle metadata if custom pattern is used for artifact"() {
         given:
         buildFile << """
@@ -548,7 +464,6 @@ credentials {
         ]
     }
 
-    @ToBeFixedForConfigurationCache
     def "does publish Gradle metadata if custom pattern is used only for Ivy file"() {
         def customIvyRepo = new IvyFileRepository(ivyRepo.rootDir, false, null, '[module]-[revision].ivy')
         def customModule = customIvyRepo.module("org.gradle", "publish", "2")
@@ -584,27 +499,13 @@ credentials {
         customModule.assertMetadataAndJarFilePublished()
     }
 
-    @ToBeFixedForConfigurationCache
     void "can publish artifact to authenticated repository using credentials provider"() {
         given:
-        String credentialsBlock = "credentials(PasswordCredentials)"
-        buildFile << publicationBuild('2', 'org.gradle', ivyHttpRepo.uri, credentialsBlock)
+        buildFile << publicationBuildWithCredentialsProvider('2', 'org.gradle', ivyHttpRepo.uri)
 
         and:
         PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
-
-        module.jar.expectPut(credentials)
-        module.jar.sha1.expectPut(credentials)
-        module.jar.sha256.expectPut(credentials)
-        module.jar.sha512.expectPut(credentials)
-        module.ivy.expectPut(credentials)
-        module.ivy.sha1.expectPut(credentials)
-        module.ivy.sha256.expectPut(credentials)
-        module.ivy.sha512.expectPut(credentials)
-        module.moduleMetadata.expectPut(credentials)
-        module.moduleMetadata.sha1.expectPut(credentials)
-        module.moduleMetadata.sha256.expectPut(credentials)
-        module.moduleMetadata.sha512.expectPut(credentials)
+        expectPublishModuleWithCredentials(module, credentials)
 
         when:
         executer.withArguments("-PivyUsername=${credentials.username}", "-PivyPassword=${credentials.password}")
@@ -617,8 +518,7 @@ credentials {
 
     def "fails at configuration time with helpful error message when username and password provider has no value"() {
         given:
-        String credentialsBlock = "credentials(PasswordCredentials)"
-        buildFile << publicationBuild('2', 'org.gradle', ivyHttpRepo.uri, credentialsBlock)
+        buildFile << publicationBuildWithCredentialsProvider('2', 'org.gradle', ivyHttpRepo.uri)
 
         when:
         succeeds 'jar'
@@ -637,11 +537,10 @@ credentials {
         failure.assertHasErrorOutput("- ivyPassword")
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/14902")
     def "does not fail when publishing is set to always up to date"() {
         given:
-        buildFile << publicationBuild('2', 'org.gradle', ivyHttpRepo.uri, """
+        buildFile << publicationBuild(version, group, ivyHttpRepo.uri, "ivy", """
         credentials {
             username 'foo'
             password 'bar'
@@ -649,18 +548,7 @@ credentials {
         """)
         server.authenticationScheme = AuthScheme.BASIC
         org.gradle.api.credentials.PasswordCredentials credentials = new DefaultPasswordCredentials('foo', 'bar')
-        module.jar.expectPut(credentials)
-        module.jar.sha1.expectPut(credentials)
-        module.jar.sha256.expectPut(credentials)
-        module.jar.sha512.expectPut(credentials)
-        module.ivy.expectPut(credentials)
-        module.ivy.sha1.expectPut(credentials)
-        module.ivy.sha256.expectPut(credentials)
-        module.ivy.sha512.expectPut(credentials)
-        module.moduleMetadata.expectPut(credentials)
-        module.moduleMetadata.sha1.expectPut(credentials)
-        module.moduleMetadata.sha256.expectPut(credentials)
-        module.moduleMetadata.sha512.expectPut(credentials)
+        expectPublishModuleWithCredentials(module, credentials)
 
         when:
         buildFile << """
@@ -673,7 +561,15 @@ credentials {
         succeeds 'publish'
     }
 
-    private static String publicationBuild(String version, String group, URI uri, String credentialsBlock) {
+    private static String publicationBuildWithoutCredentials(String version, String group, URI uri) {
+        return publicationBuild(version, group, uri, "ivy", '')
+    }
+
+    private static String publicationBuildWithCredentialsProvider(String version, String group, URI uri, Class<? extends Credentials> credentialsType = org.gradle.api.credentials.PasswordCredentials.class) {
+        return publicationBuild(version, group, uri, "ivy", "credentials(${credentialsType.simpleName})")
+    }
+
+    private static String publicationBuild(String version, String group, URI uri, String repoName = "ivy", String credentialsBlock = "credentials(PasswordCredentials)") {
         return """
             plugins {
                 id 'java'
@@ -685,6 +581,7 @@ credentials {
             publishing {
                 repositories {
                     ivy {
+                        name "$repoName"
                         url "$uri"
                         $credentialsBlock
                     }
@@ -696,6 +593,21 @@ credentials {
                 }
             }
             """
+    }
+
+    private static void expectPublishModuleWithCredentials(IvyHttpModule module, org.gradle.api.credentials.PasswordCredentials credentials) {
+        module.jar.expectPut(credentials)
+        module.jar.sha1.expectPut(credentials)
+        module.jar.sha256.expectPut(credentials)
+        module.jar.sha512.expectPut(credentials)
+        module.ivy.expectPut(credentials)
+        module.ivy.sha1.expectPut(credentials)
+        module.ivy.sha256.expectPut(credentials)
+        module.ivy.sha512.expectPut(credentials)
+        module.moduleMetadata.expectPut(credentials)
+        module.moduleMetadata.sha1.expectPut(credentials)
+        module.moduleMetadata.sha256.expectPut(credentials)
+        module.moduleMetadata.sha512.expectPut(credentials)
     }
 
 }

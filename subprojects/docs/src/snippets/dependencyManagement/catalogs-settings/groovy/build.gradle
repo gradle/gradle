@@ -18,8 +18,8 @@
 plugins {
     id 'java-library'
     id 'checkstyle'
-    // Use the plugin `jmh` as declared in the `libs` version catalog
-    alias(libs.plugins.jmh)
+    // Use the plugin `versions` as declared in the `libs` version catalog
+    alias(libs.plugins.versions)
 }
 // end::use_plugin[]
 

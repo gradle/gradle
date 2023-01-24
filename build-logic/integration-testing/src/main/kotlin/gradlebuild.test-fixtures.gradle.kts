@@ -77,6 +77,7 @@ testFixturesRuntimeElements.outgoing.variants.maybeCreate("resources").run {
     attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
     attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.RESOURCES))
 
+    @Suppress("DEPRECATION")
     artifact(JvmPluginsHelper.ProviderBasedIntermediateJavaArtifact(
         ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources, processResources.map { it.destinationDir }))
 }

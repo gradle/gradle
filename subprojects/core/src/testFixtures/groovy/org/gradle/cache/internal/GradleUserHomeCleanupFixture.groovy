@@ -23,6 +23,8 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.JarUtils
 import org.gradle.util.internal.DefaultGradleVersion
 
+import java.text.SimpleDateFormat
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 import static org.gradle.cache.internal.WrapperDistributionCleanupAction.WRAPPER_DISTRIBUTION_FILE_PATH
@@ -118,7 +120,7 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
         new File(initDir, "cache-settings.gradle") << """
             beforeSettings { settings ->
                 settings.caches {
-                    ${resources}.removeUnusedEntriesAfterDays = ${days}
+                    ${resources} { removeUnusedEntriesAfterDays = ${days} }
                 }
             }
         """
@@ -132,6 +134,75 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
         @Override
         String toString() {
             return super.toString().toLowerCase()
+        }
+    }
+
+    GradleDistDirs versionedDistDirs(String version, MarkerFileType lastUsed, String customDistName) {
+        def distVersion = GradleVersion.version(version)
+        return new GradleDistDirs(
+            createVersionSpecificCacheDir(distVersion, lastUsed),
+            createDistributionChecksumDir(distVersion).parentFile,
+            createCustomDistributionChecksumDir(customDistName, distVersion).parentFile
+        )
+    }
+
+    static class GradleDistDirs {
+        private final TestFile cacheDir
+        private final TestFile distDir
+        private final TestFile customDistDir
+
+        GradleDistDirs(TestFile cacheDir, TestFile distDir, TestFile customDistDir) {
+            this.cacheDir = cacheDir
+            this.distDir = distDir
+            this.customDistDir = customDistDir
+        }
+
+        void assertAllDirsExist() {
+            cacheDir.assertExists()
+            distDir.assertExists()
+            customDistDir.assertExists()
+        }
+
+        void assertAllDirsDoNotExist() {
+            cacheDir.assertDoesNotExist()
+            distDir.assertDoesNotExist()
+            customDistDir.assertDoesNotExist()
+        }
+    }
+
+    static enum DistType {
+        RELEASED() {
+            @Override
+            String version(String baseVersion) {
+                return baseVersion
+            }
+
+            @Override
+            String alternateVersion(String baseVersion) {
+                throw new UnsupportedOperationException()
+            }
+        },
+        SNAPSHOT() {
+            def formatter = new SimpleDateFormat("yyyyMMddHHmmssZ")
+            def now = Instant.now()
+
+            @Override
+            String version(String baseVersion) {
+                return baseVersion + '-' + formatter.format(Date.from(now))
+            }
+
+            @Override
+            String alternateVersion(String baseVersion) {
+                return baseVersion + '-' + formatter.format(Date.from(now.plusSeconds(60)))
+            }
+        }
+
+        abstract String version(String baseVersion)
+        abstract String alternateVersion(String baseVersion)
+
+        @Override
+        String toString() {
+            return name().toLowerCase()
         }
     }
 }

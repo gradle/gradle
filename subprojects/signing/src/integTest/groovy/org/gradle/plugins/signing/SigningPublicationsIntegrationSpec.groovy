@@ -16,12 +16,10 @@
 
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache
     def "signs single Maven publication"() {
         given:
         buildFile << """
@@ -53,7 +51,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "mavenJava", "pom-default.xml.asc").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "component can still be mutated after signing is configured for a Maven publication"() {
         given:
         buildFile << """
@@ -87,7 +84,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-3.0.jar").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "component can still be mutated after signing is configured for an Ivy publication"() {
         given:
         buildFile << """
@@ -121,7 +117,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-3.0.jar").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "artifacts can still be mutated after signing is configured"() {
         given:
 
@@ -163,7 +158,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0-custom2.jar.asc").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "signs single Ivy publication"() {
         given:
         buildFile << """
@@ -195,7 +189,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "ivyJava", "ivy.xml.asc").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "signs Gradle metadata"() {
         given:
         buildFile << """
@@ -233,7 +226,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "ivy", "module.json.asc").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "allows signing Gradle metadata if version is a snapshot"() {
         when:
         buildFile << """
@@ -260,7 +252,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         succeeds "signMavenPublication"
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishes signature files for Maven publication"() {
         given:
         buildFile << """
@@ -312,7 +303,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("$artifactId-${version}.module.asc").assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishes signature files for Ivy publication"() {
         given:
         buildFile << """
@@ -372,7 +362,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         outputContains "Publication of Gradle Module Metadata is disabled because you have configured an Ivy repository with a non-standard layout"
     }
 
-    @ToBeFixedForConfigurationCache
     def "sign task takes into account configuration changes"() {
         given:
         buildFile << """
@@ -414,7 +403,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "mavenJava", "pom-default.xml.asc").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "publish task takes into account configuration changes"() {
         given:
         buildFile << """
@@ -459,7 +447,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
     }
 
-    @ToBeFixedForConfigurationCache
     def "signs all publications in container"() {
         given:
         buildFile << """
@@ -497,7 +484,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "ivy", "ivy.xml.asc").assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "signs filtered publications of container"() {
         given:
         buildFile << """
@@ -531,7 +517,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5099")
-    @ToBeFixedForConfigurationCache
     def "disabling sign tasks skips uploading signature artifacts but does not break publishing"() {
         given:
         buildFile << """
@@ -595,7 +580,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/5136")
     def "doesn't publish stale signatures"() {
         buildFile << """
@@ -635,6 +619,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             }
 
             tasks.register("cleanRepo") {
+                def buildDir = project.buildDir
                 doLast {
                     new File("\${buildDir}/m2Repo").deleteDir()
                     new File("\${buildDir}/ivyRepo").deleteDir()
@@ -722,7 +707,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/20166")
     def "signs single Maven publication with similar artifacts"() {
         given:
@@ -790,7 +774,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("$artifactId-${version}-c.txt.asc").assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue([
         "https://github.com/gradle/gradle/issues/21857",
         "https://github.com/gradle/gradle/issues/22375"

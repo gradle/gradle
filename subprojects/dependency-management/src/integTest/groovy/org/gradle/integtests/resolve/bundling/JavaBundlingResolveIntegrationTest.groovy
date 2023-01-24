@@ -88,7 +88,6 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
                             'org.gradle.dependency.bundling': 'external',
                             'org.gradle.status': JavaBundlingResolveIntegrationTest.defaultStatus(),
                             'org.gradle.usage': 'java-api',
-                            'org.gradle.compile-view': 'java-internal',
                             'org.gradle.libraryelements': 'jar',
                             'org.gradle.category': 'library'
                     ])

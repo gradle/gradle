@@ -76,7 +76,7 @@ Property 'inputDirectory' is declared without normalization specified. Propertie
 Property 'outputFile' is not annotated with an input or output annotation. This behavior is scheduled to be removed in Gradle 7.0.
 ```
 
-If you own the code of the tasks in question, you can fix them by <<more_about_tasks.adoc#sec:task_input_validation, following the suggestions>>. You can also use `--stacktrace` to see where in the code each warning originates from.
+If you own the code of the tasks in question, you can fix them by <<incremental_build.adoc#sec:task_input_validation, following the suggestions>>. You can also use `--stacktrace` to see where in the code each warning originates from.
 
 Otherwise, you'll need to report the problems to the maintainer of the relevant task or plugin.
 

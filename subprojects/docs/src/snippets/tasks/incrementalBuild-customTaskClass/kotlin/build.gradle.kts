@@ -114,13 +114,14 @@ tasks.register<Zip>("packageFiles2") {
 
 // tag::adhoc-destroyable-task[]
 tasks.register("removeTempDir") {
-    destroyables.register(layout.projectDirectory.dir("tmpDir"))
+    val tmpDir = layout.projectDirectory.dir("tmpDir")
+    destroyables.register(tmpDir)
     doLast {
-        delete(layout.projectDirectory.dir("tmpDir"))
+        tmpDir.asFile.deleteRecursively()
     }
 }
 // end::adhoc-destroyable-task[]
 
 tasks.build {
-    dependsOn(processTemplates, "processTemplatesAdHoc", "processTemplatesAdHocSkipWhenEmpty", "processTemplatesWithExtraInputs", "processTemplatesWithoutAnnotations")
+    dependsOn(processTemplates, "processTemplatesAdHoc", "processTemplatesAdHocSkipWhenEmpty", "processTemplatesWithExtraInputs")
 }

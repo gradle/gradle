@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.configuration;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.agents.AgentControl;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.process.internal.JvmOptions;
@@ -42,6 +43,7 @@ public class BuildProcess extends CurrentProcess {
      */
     public boolean configureForBuild(DaemonParameters requiredBuildParameters) {
         boolean javaHomeMatch = getJvm().equals(requiredBuildParameters.getEffectiveJvm());
+        boolean javaAgentStateMatch = AgentControl.isInstrumentationAgentApplied() == requiredBuildParameters.shouldApplyInstrumentationAgent();
 
         boolean immutableJvmArgsMatch = true;
         if (requiredBuildParameters.hasUserDefinedImmutableJvmArgs()) {
@@ -52,7 +54,7 @@ public class BuildProcess extends CurrentProcess {
             );
             immutableJvmArgsMatch = getJvmOptions().getAllImmutableJvmArgs().equals(effectiveSingleUseJvmArgs);
         }
-        if (javaHomeMatch && immutableJvmArgsMatch && !isLowDefaultMemory(requiredBuildParameters)) {
+        if (javaHomeMatch && javaAgentStateMatch && immutableJvmArgsMatch && !isLowDefaultMemory(requiredBuildParameters)) {
             // Set the system properties and use this process
             Properties properties = new Properties();
             properties.putAll(requiredBuildParameters.getEffectiveSystemProperties());

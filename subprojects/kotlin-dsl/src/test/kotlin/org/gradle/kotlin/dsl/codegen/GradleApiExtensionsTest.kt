@@ -58,7 +58,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             ClassAndGroovyNamedArguments::class
         ) {
 
-            assertGeneratedJarHash("a34806fc8e3c454c9800866657872c65")
+            assertGeneratedJarHash("30fee7a97aedbcaee476f1c89fc28d70")
         }
     }
 

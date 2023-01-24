@@ -30,8 +30,9 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.compile.JavaCompileExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
@@ -56,6 +57,8 @@ import org.gradle.api.tasks.javadoc.internal.JavadocExecutableUtils;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
@@ -107,59 +110,57 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     );
 
     private final boolean javaClasspathPackaging;
+    private final ObjectFactory objectFactory;
     private final JvmPluginServices jvmPluginServices;
 
     @Inject
-    public JavaBasePlugin(JvmEcosystemUtilities jvmPluginServices) {
+    public JavaBasePlugin(ObjectFactory objectFactory, JvmEcosystemUtilities jvmPluginServices) {
+        this.objectFactory = objectFactory;
         this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
         this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
     }
 
     @Override
     public void apply(final Project project) {
-        ProjectInternal projectInternal = (ProjectInternal) project;
-
         project.getPluginManager().apply(BasePlugin.class);
         project.getPluginManager().apply(JvmEcosystemPlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
         project.getPluginManager().apply(JvmToolchainsPlugin.class);
 
-        DefaultJavaPluginExtension javaPluginExtension = addExtensions(projectInternal);
+        DefaultJavaPluginExtension javaPluginExtension = addExtensions(project);
 
-        configureSourceSetDefaults(project, javaPluginExtension);
         configureCompileDefaults(project, javaPluginExtension);
-
+        configureSourceSetDefaults(project, javaPluginExtension);
         configureJavaDoc(project, javaPluginExtension);
+
         configureTest(project, javaPluginExtension);
         configureBuildNeeded(project);
         configureBuildDependents(project);
+        configureArchiveDefaults(project);
     }
 
-    private DefaultJavaPluginExtension addExtensions(final ProjectInternal project) {
-        DefaultToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
+    private DefaultJavaPluginExtension addExtensions(final Project project) {
+        DefaultToolchainSpec toolchainSpec = objectFactory.newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
         DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec, jvmPluginServices);
-        project.getConvention().getPlugins().put("java", project.getObjects().newInstance(DefaultJavaPluginConvention.class, project, javaPluginExtension));
+        project.getConvention().getPlugins().put("java", objectFactory.newInstance(DefaultJavaPluginConvention.class, project, javaPluginExtension));
         return javaPluginExtension;
     }
 
     private void configureSourceSetDefaults(Project project, final JavaPluginExtension javaPluginExtension) {
         javaPluginExtension.getSourceSets().all(sourceSet -> {
-            ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
 
             ConfigurationContainer configurations = project.getConfigurations();
 
-            defineConfigurationsForSourceSet(sourceSet, configurations);
-            definePathsForSourceSet(sourceSet, outputConventionMapping, project);
+            defineConfigurationsForSourceSet(sourceSet, (RoleBasedConfigurationContainerInternal) configurations);
+            definePathsForSourceSet(sourceSet, project);
 
             createProcessResourcesTask(sourceSet, sourceSet.getResources(), project);
             TaskProvider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
             createClassesTask(sourceSet, project);
 
-            configureLibraryElements(compileTask, sourceSet, configurations, project.getObjects());
+            configureLibraryElements(compileTask, sourceSet, configurations, objectFactory);
             configureTargetPlatform(compileTask, sourceSet, configurations);
-
-            JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(JavaCompile::getOptions));
         });
     }
 
@@ -173,22 +174,28 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         jvmPluginServices.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), compileTask);
     }
 
-    private TaskProvider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
-        return target.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, compileTask -> {
-            compileTask.setDescription("Compiles " + sourceDirectorySet + ".");
-            compileTask.setSource(sourceDirectorySet);
-            ConventionMapping conventionMapping = compileTask.getConventionMapping();
+    private TaskProvider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet javaSource, final Project project) {
+        final TaskProvider<JavaCompile> compileTask = project.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, javaCompile -> {
+            ConventionMapping conventionMapping = javaCompile.getConventionMapping();
             conventionMapping.map("classpath", sourceSet::getCompileClasspath);
-            JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, compileTask.getOptions(), target);
-            String generatedHeadersDir = "generated/sources/headers/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
-            compileTask.getOptions().getHeaderOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(generatedHeadersDir));
-            JavaPluginExtension javaPluginExtension = target.getExtensions().getByType(JavaPluginExtension.class);
-            compileTask.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
-            ObjectFactory objectFactory = target.getObjects();
-            Provider<JavaToolchainSpec> toolchainOverrideSpec = target.provider(() ->
-                JavaCompileExecutableUtils.getExecutableOverrideToolchainSpec(compileTask, objectFactory));
-            compileTask.getJavaCompiler().convention(getToolchainTool(target, JavaToolchainService::compilerFor, toolchainOverrideSpec));
+
+            JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, javaSource, javaCompile.getOptions(), project);
+            javaCompile.setDescription("Compiles " + javaSource + ".");
+            javaCompile.setSource(javaSource);
+
+            Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
+                JavaCompileExecutableUtils.getExecutableOverrideToolchainSpec(javaCompile, objectFactory));
+            javaCompile.getJavaCompiler().convention(getToolchainTool(project, JavaToolchainService::compilerFor, toolchainOverrideSpec));
+
+            String generatedHeadersDir = "generated/sources/headers/" + javaSource.getName() + "/" + sourceSet.getName();
+            javaCompile.getOptions().getHeaderOutputDirectory().convention(project.getLayout().getBuildDirectory().dir(generatedHeadersDir));
+
+            JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
+            javaCompile.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
         });
+        JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, javaSource, project, compileTask, compileTask.map(JavaCompile::getOptions));
+
+        return compileTask;
     }
 
     private void createProcessResourcesTask(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
@@ -213,7 +220,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         );
     }
 
-    private void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {
+    private void definePathsForSourceSet(final SourceSet sourceSet, final Project project) {
+        ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
         outputConventionMapping.map("resourcesDir", () -> {
             String classesDirName = "resources/" + sourceSet.getName();
             return new File(project.getBuildDir(), classesDirName);
@@ -223,7 +231,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         sourceSet.getResources().srcDir("src/" + sourceSet.getName() + "/resources");
     }
 
-    private void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
+    private void defineConfigurationsForSourceSet(SourceSet sourceSet, RoleBasedConfigurationContainerInternal configurations) {
         String implementationConfigurationName = sourceSet.getImplementationConfigurationName();
         String runtimeOnlyConfigurationName = sourceSet.getRuntimeOnlyConfigurationName();
         String compileOnlyConfigurationName = sourceSet.getCompileOnlyConfigurationName();
@@ -232,44 +240,39 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String sourceSetName = sourceSet.toString();
 
-        Configuration implementationConfiguration = configurations.maybeCreate(implementationConfigurationName);
+        warnIfConfigurationAlreadyExists(configurations, implementationConfigurationName);
+        Configuration implementationConfiguration = configurations.maybeCreateWithRole(implementationConfigurationName, ConfigurationRoles.INTENDED_BUCKET, false, false);
         implementationConfiguration.setVisible(false);
         implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
-        implementationConfiguration.setCanBeConsumed(false);
-        implementationConfiguration.setCanBeResolved(false);
 
-        Configuration compileOnlyConfiguration = configurations.maybeCreate(compileOnlyConfigurationName);
+        warnIfConfigurationAlreadyExists(configurations, compileOnlyConfigurationName);
+        Configuration compileOnlyConfiguration = configurations.maybeCreateWithRole(compileOnlyConfigurationName, ConfigurationRoles.INTENDED_BUCKET, false, false);
         compileOnlyConfiguration.setVisible(false);
-        compileOnlyConfiguration.setCanBeConsumed(false);
-        compileOnlyConfiguration.setCanBeResolved(false);
         compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
-        ConfigurationInternal compileClasspathConfiguration = (ConfigurationInternal) configurations.maybeCreate(compileClasspathConfigurationName);
+        warnIfConfigurationAlreadyExists(configurations, compileClasspathConfigurationName);
+        ConfigurationInternal compileClasspathConfiguration = configurations.maybeCreateWithRole(compileClasspathConfigurationName, ConfigurationRoles.INTENDED_RESOLVABLE, false, false);
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
-        compileClasspathConfiguration.setCanBeConsumed(false);
-
         jvmPluginServices.configureAsCompileClasspath(compileClasspathConfiguration);
 
-        ConfigurationInternal annotationProcessorConfiguration = (ConfigurationInternal) configurations.maybeCreate(annotationProcessorConfigurationName);
+        warnIfConfigurationAlreadyExists(configurations, annotationProcessorConfigurationName);
+        ConfigurationInternal annotationProcessorConfiguration = configurations.maybeCreateWithRole(annotationProcessorConfigurationName, ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET, false, false);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
-        annotationProcessorConfiguration.setCanBeConsumed(false);
-        annotationProcessorConfiguration.setCanBeResolved(true);
-
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
 
-        Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyConfigurationName);
+        warnIfConfigurationAlreadyExists(configurations, runtimeOnlyConfigurationName);
+        Configuration runtimeOnlyConfiguration = configurations.maybeCreateWithRole(runtimeOnlyConfigurationName, ConfigurationRoles.INTENDED_BUCKET, false, false);
         runtimeOnlyConfiguration.setVisible(false);
-        runtimeOnlyConfiguration.setCanBeConsumed(false);
-        runtimeOnlyConfiguration.setCanBeResolved(false);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(runtimeClasspathConfigurationName);
+        // TODO: The jmh plugin prevents asserting this role upon creation; if it has been applied, then it will pre-create a runtime classpath configuration
+        // for the jmg sourceset, which is both resolvable and declarable against, so this would fail if we assert the role's usage here.
+        warnIfConfigurationAlreadyExists(configurations, runtimeClasspathConfigurationName);
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreateWithRole(runtimeClasspathConfigurationName, ConfigurationRoles.INTENDED_RESOLVABLE, false, false);
         runtimeClasspathConfiguration.setVisible(false);
-        runtimeClasspathConfiguration.setCanBeConsumed(false);
-        runtimeClasspathConfiguration.setCanBeResolved(true);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);
         jvmPluginServices.configureAsRuntimeClasspath(runtimeClasspathConfiguration);
@@ -277,9 +280,16 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
         sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
+    }
 
-        compileClasspathConfiguration.setCanBeDeclaredAgainst(false);
-        ((ConfigurationInternal) runtimeClasspathConfiguration).setCanBeDeclaredAgainst(false);
+    private void warnIfConfigurationAlreadyExists(ConfigurationContainer configurations, String configurationName) {
+        if (configurations.findByName(configurationName) != null) {
+            DeprecationLogger.deprecateBehaviour("The configuration " + configurationName + " was created explicitly. This configuration name is reserved for creation by Gradle.")
+                    .withAdvice("Do not create a configuration with this name.")
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "configurations_allowed_usage")
+                    .nagUser();
+        }
     }
 
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {
@@ -329,7 +339,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         project.getTasks().withType(Javadoc.class).configureEach(javadoc -> {
             javadoc.getConventionMapping().map("destinationDir", () -> new File(javaPluginExtension.getDocsDir().get().getAsFile(), "javadoc"));
             javadoc.getConventionMapping().map("title", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
-            ObjectFactory objectFactory = project.getObjects();
+
             Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
                 JavadocExecutableUtils.getExecutableOverrideToolchainSpec(javadoc, objectFactory));
             javadoc.getJavadocTool().convention(getToolchainTool(project, JavaToolchainService::javadocToolFor, toolchainOverrideSpec));
@@ -352,6 +362,15 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         });
     }
 
+    private void configureArchiveDefaults(Project project) {
+        // TODO: Gradle 8.1+: Deprecate `getLibsDirectory` in BasePluginExtension and move it to `JavaPluginExtension`
+        BasePluginExtension basePluginExtension = project.getExtensions().getByType(BasePluginExtension.class);
+
+        project.getTasks().withType(Jar.class).configureEach(task -> {
+            task.getDestinationDirectory().convention(basePluginExtension.getLibsDirectory());
+        });
+    }
+
     private void configureTest(final Project project, final JavaPluginExtension javaPluginExtension) {
         project.getTasks().withType(Test.class).configureEach(test -> configureTestDefaults(test, project, javaPluginExtension));
     }
@@ -365,7 +384,6 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         test.getBinaryResultsDirectory().convention(javaPluginExtension.getTestResultsDir().dir(test.getName() + "/binary"));
         test.workingDir(project.getProjectDir());
 
-        ObjectFactory objectFactory = project.getObjects();
         Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
             TestExecutableUtils.getExecutableToolchainSpec(test, objectFactory));
         test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));

@@ -21,9 +21,6 @@ import org.gradle.api.artifacts.DependencyConstraintSet
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.attributes.Bundling
-import org.gradle.api.attributes.Usage
-import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -31,7 +28,6 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.util.internal.ConfigureUtil
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultScriptHandlerTest extends Specification {
@@ -50,8 +46,7 @@ class DefaultScriptHandlerTest extends Specification {
         getLocalClassLoader() >> baseClassLoader
     }
     def classpathResolver = Mock(ScriptClassPathResolver)
-    def instantiator = TestUtil.objectInstantiator()
-    def handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope, classpathResolver, instantiator)
+    def handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope, classpathResolver)
     def attributes = Mock(AttributeContainerInternal)
 
     def "adds classpath configuration when configuration container is queried"() {
@@ -63,14 +58,7 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * configurationContainer.create('classpath') >> configuration
-        1 * configuration.attributes >> attributes
-        1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
-        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
-        1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
-        1 * configuration.getDependencyConstraints() >> dependencyConstraintSet
-        1 * dependencyConstraintSet.add(_)
-        1 * dependencyHandler.getConstraints() >> dependencyConstraintHandler
-        1 * dependencyConstraintHandler.create(_, _)
+        1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
         0 * configurationContainer._
         0 * depMgmtServices._
     }
@@ -84,21 +72,14 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * configurationContainer.create('classpath') >> configuration
-        1 * configuration.attributes >> attributes
-        1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
-        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
-        1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
-        1 * configuration.getDependencyConstraints() >> dependencyConstraintSet
-        1 * dependencyConstraintSet.add(_)
-        1 * dependencyHandler.getConstraints() >> dependencyConstraintHandler
-        1 * dependencyConstraintHandler.create(_, _)
+        1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
         0 * configurationContainer._
         0 * depMgmtServices._
     }
 
     def "does not resolve classpath configuration when configuration container has not been queried"() {
         when:
-        def classpath = handler.nonInstrumentedScriptClassPath
+        def classpath = handler.instrumentedScriptClassPath
 
         then:
         0 * configuration._
@@ -113,7 +94,7 @@ class DefaultScriptHandlerTest extends Specification {
 
         when:
         handler.configurations
-        def result = handler.nonInstrumentedScriptClassPath
+        def result = handler.instrumentedScriptClassPath
 
         then:
         result == classpath
@@ -122,14 +103,7 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * configurationContainer.create('classpath') >> configuration
-        1 * configuration.attributes >> attributes
-        1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
-        1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
-        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
-        1 * configuration.getDependencyConstraints() >> dependencyConstraintSet
-        1 * dependencyConstraintSet.add(_)
-        1 * dependencyHandler.getConstraints() >> dependencyConstraintHandler
-        1 * dependencyConstraintHandler.create(_, _)
+        1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
         1 * classpathResolver.resolveClassPath(configuration) >> classpath
     }
 
@@ -165,14 +139,7 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * configurationContainer.create('classpath') >> configuration
-        1 * configuration.attributes >> attributes
-        1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
-        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
-        1 * attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, _)
-        1 * configuration.getDependencyConstraints() >> dependencyConstraintSet
-        1 * dependencyConstraintSet.add(_)
-        1 * dependencyHandler.getConstraints() >> dependencyConstraintHandler
-        1 * dependencyConstraintHandler.create(_, _)
+        1 * classpathResolver.prepareClassPath(configuration, dependencyHandler)
         1 * dependencyHandler.add('config', 'dep')
     }
 }

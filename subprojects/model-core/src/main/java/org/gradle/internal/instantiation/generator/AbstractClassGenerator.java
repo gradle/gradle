@@ -51,6 +51,7 @@ import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
@@ -505,7 +506,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
             @Override
             public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-                return strategy.newInstance(services, nested, displayName, params);
+                return DeprecationLogger.whileDisabledThrowing(
+                    () -> strategy.newInstance(services, nested, displayName, params)
+                );
             }
 
             @Override

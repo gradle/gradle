@@ -17,8 +17,8 @@
 package org.gradle.internal.serialize;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -64,7 +64,7 @@ class ExceptionPlaceholder implements Serializable {
     private Throwable toStringRuntimeExec;
     private Throwable getMessageExec;
 
-    public ExceptionPlaceholder(Throwable original, Transformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator, Set<Throwable> dejaVu) {
+    public ExceptionPlaceholder(Throwable original, InternalTransformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator, Set<Throwable> dejaVu) {
         boolean hasCycle = !dejaVu.add(original);
         Throwable throwable = original;
         type = throwable.getClass().getName();
@@ -107,7 +107,7 @@ class ExceptionPlaceholder implements Serializable {
 
         StreamByteBuffer buffer = new StreamByteBuffer();
         ExceptionReplacingObjectOutputStream oos = objectOutputStreamCreator.transform(buffer.getOutputStream());
-        oos.setObjectTransformer(new Transformer<Object, Object>() {
+        oos.setObjectTransformer(new InternalTransformer<Object, Object>() {
             boolean seenFirst;
 
             @Override
@@ -167,7 +167,7 @@ class ExceptionPlaceholder implements Serializable {
         return Collections.emptyList();
     }
 
-    private static List<ExceptionPlaceholder> convertToExceptionPlaceholderList(List<? extends Throwable> throwables, Transformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator, Set<Throwable> dejaVu) {
+    private static List<ExceptionPlaceholder> convertToExceptionPlaceholderList(List<? extends Throwable> throwables, InternalTransformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator, Set<Throwable> dejaVu) {
         if (throwables.isEmpty()) {
             return Collections.emptyList();
         } else if (throwables.size() == 1) {
@@ -189,14 +189,14 @@ class ExceptionPlaceholder implements Serializable {
         return JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14);
     }
 
-    public Throwable read(Transformer<Class<?>, String> classNameTransformer, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
+    public Throwable read(InternalTransformer<Class<?>, String> classNameTransformer, InternalTransformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
         final List<Throwable> causes = recreateExceptions(this.causes, classNameTransformer, objectInputStreamCreator);
         final List<Throwable> suppressed = recreateExceptions(this.suppressed, classNameTransformer, objectInputStreamCreator);
 
         if (serializedException != null) {
             // try to deserialize the original exception
             final ExceptionReplacingObjectInputStream ois = objectInputStreamCreator.transform(new ByteArrayInputStream(serializedException));
-            ois.setObjectTransformer(new Transformer<Object, Object>() {
+            ois.setObjectTransformer(new InternalTransformer<Object, Object>() {
                 @Override
                 public Object transform(Object obj) {
                     if (obj instanceof NestedExceptionPlaceholder) {
@@ -339,7 +339,7 @@ class ExceptionPlaceholder implements Serializable {
         return null;
     }
 
-    private static List<Throwable> recreateExceptions(List<ExceptionPlaceholder> exceptions, Transformer<Class<?>, String> classNameTransformer, Transformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
+    private static List<Throwable> recreateExceptions(List<ExceptionPlaceholder> exceptions, InternalTransformer<Class<?>, String> classNameTransformer, InternalTransformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
         if (exceptions.isEmpty()) {
             return Collections.emptyList();
         } else if (exceptions.size() == 1) {

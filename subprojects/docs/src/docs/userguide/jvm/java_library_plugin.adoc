@@ -27,8 +27,8 @@ To use the Java Library plugin, include the following in your build script:
 
 .Using the Java Library plugin
 ====
-include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
 include::sample[dir="snippets/java-library/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 
@@ -42,8 +42,8 @@ The `api` configuration should be used to declare dependencies which are exporte
 
 .Declaring API and implementation dependencies
 ====
-include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradle[tags=dependencies]"]
 include::sample[dir="snippets/java-library/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 
@@ -115,8 +115,8 @@ Therefore, we can deduce that `httpclient` is an API dependency, whereas `common
 
 .Declaring API and implementation dependencies
 ====
-include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradle[tags=dependencies]"]
 include::sample[dir="snippets/java-library/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 
@@ -319,8 +319,8 @@ This version can be inspected when a module is running.
 
 .Declare the module version in the build script or directly as compile task option
 ====
-include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=declareVersion]"]
 include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kts[tags=declareVersion]"]
+include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=declareVersion]"]
 ====
 
 === Using libraries that are not modules
@@ -338,8 +338,8 @@ The classpath is then treated as one module (the so called _unnamed_ module) by 
 
 .Dependencies to modules and libraries declared in build file
 ====
-include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=dependencies]"]
 include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 [source,java,indent=0]
@@ -367,8 +367,8 @@ To make this work, you need to set `modularity.inferModulePath = false` on the J
 
 .Disable Gradle's module path inference
 ====
-include::sample[dir="snippets/java-library/module-disabled/groovy",files="build.gradle[tags=disableModulePath]"]
 include::sample[dir="snippets/java-library/module-disabled/kotlin",files="build.gradle.kts[tags=disableModulePath]"]
+include::sample[dir="snippets/java-library/module-disabled/groovy",files="build.gradle[tags=disableModulePath]"]
 ====
 
 [[sec:java_library_modular_auto]]
@@ -385,8 +385,8 @@ To turn a normal Java project into an _automatic module_, just add the manifest 
 
 .Declare an automatic module name as Jar manifest attribute
 ====
-include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=automaticModuleName]"]
 include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kts[tags=automaticModuleName]"]
+include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=automaticModuleName]"]
 ====
 
 [NOTE]

@@ -77,7 +77,6 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         ResolvedComponentResult.class
     );
 
-    @SuppressWarnings("rawtypes")
     public DependencyManagementValueSnapshotterSerializerRegistry(
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ImmutableAttributesFactory immutableAttributesFactory,
@@ -99,14 +98,16 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         register(ComponentFileArtifactIdentifier.class, new ComponentFileArtifactIdentifierSerializer());
         register(DefaultModuleComponentIdentifier.class, Cast.uncheckedCast(componentIdentifierSerializer));
         register(AttributeContainer.class, attributeContainerSerializer);
-        ResolvedVariantResultSerializer resolvedVariantResultSerializer = new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer);
-        register(ResolvedVariantResult.class, resolvedVariantResultSerializer);
+        registerWithFactory(ResolvedVariantResult.class, () -> new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer));
         register(ComponentSelectionDescriptor.class, new ComponentSelectionDescriptorSerializer(componentSelectionDescriptorFactory));
         ComponentSelectionReasonSerializer componentSelectionReasonSerializer = new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory);
         register(ComponentSelectionReason.class, componentSelectionReasonSerializer);
-        ComponentSelectorSerializer componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
-        register(ComponentSelector.class, componentSelectorSerializer);
-        register(ResolvedComponentResult.class, new ResolvedComponentResultSerializer(moduleVersionIdentifierSerializer, componentIdentifierSerializer, componentSelectorSerializer, resolvedVariantResultSerializer, componentSelectionReasonSerializer));
+        registerWithFactory(ComponentSelector.class, () -> new ComponentSelectorSerializer(attributeContainerSerializer));
+        registerWithFactory(ResolvedComponentResult.class, () -> {
+            ResolvedVariantResultSerializer resolvedVariantResultSerializer = new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer);
+            ComponentSelectorSerializer componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);
+            return new ResolvedComponentResultSerializer(moduleVersionIdentifierSerializer, componentIdentifierSerializer, componentSelectorSerializer, resolvedVariantResultSerializer, componentSelectionReasonSerializer);
+        });
     }
 
     @Override
@@ -128,6 +129,9 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         return type;
     }
 
+    /**
+     * A thread-safe and reusable serializer for {@link OpaqueComponentArtifactIdentifier}.
+     */
     private static class OpaqueComponentArtifactIdentifierSerializer implements Serializer<OpaqueComponentArtifactIdentifier> {
 
         @Override

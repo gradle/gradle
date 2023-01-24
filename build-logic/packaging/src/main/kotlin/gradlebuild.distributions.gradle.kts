@@ -27,7 +27,7 @@ import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
 import gradlebuild.packaging.tasks.PluginsManifest
-import org.gradle.api.internal.runtimeshaded.PackageListGenerator
+import gradlebuild.basics.tasks.PackageListGenerator
 import java.util.jar.Attributes
 
 /**
@@ -70,6 +70,8 @@ val coreRuntimeOnly by bucket()
 coreRuntimeOnly.description = "To define dependencies to the Gradle modules that make up the core of the distributions (lib/*.jar)"
 val pluginsRuntimeOnly by bucket()
 pluginsRuntimeOnly.description = "To define dependencies to the Gradle modules that represent additional plugins packaged in the distributions (lib/plugins/*.jar)"
+val agentsRuntimeOnly by bucket()
+agentsRuntimeOnly.description = "To define dependencies to the Gradle modules that represent Java agents packaged in the distribution (lib/agents/*.jar)"
 
 coreRuntimeOnly.withDependencies {
     // use 'withDependencies' to not attempt to find platform project during script compilation
@@ -81,6 +83,8 @@ val runtimeClasspath by libraryResolver(listOf(coreRuntimeOnly, pluginsRuntimeOn
 runtimeClasspath.description = "Resolves to all Jars that need to be in the distribution including all transitive dependencies"
 val coreRuntimeClasspath by libraryResolver(listOf(coreRuntimeOnly))
 coreRuntimeClasspath.description = "Resolves to all Jars, including transitives, that make up the core of the distribution (needed to decide if a Jar goes into 'plugins' or not)"
+val agentsRuntimeClasspath by libraryResolver(listOf(agentsRuntimeOnly))
+agentsRuntimeClasspath.description = "Resolves to all Jars that need to be added as agents"
 val gradleScriptPath by startScriptResolver(":launcher")
 gradleScriptPath.description = "Resolves to the Gradle start scripts (bin/*) - automatically adds dependency to the :launcher project"
 val sourcesPath by sourcesResolver(listOf(coreRuntimeOnly, pluginsRuntimeOnly))
@@ -92,8 +96,8 @@ docsPath.description = "Resolves to the complete Gradle documentation - automati
 
 // List of relocated packages that will be used at Gradle runtime to generate the runtime shaded jars
 val generateRelocatedPackageList by tasks.registering(PackageListGenerator::class) {
-    classpath = runtimeClasspath
-    outputFile = file(generatedTxtFileFor("api-relocated"))
+    classpath.from(runtimeClasspath)
+    outputFile.set(generatedTxtFileFor("api-relocated"))
 }
 
 // Extract pubic API metadata from source code of Gradle module Jars packaged in the distribution (used by the two tasks below to handle default imports in build scripts)

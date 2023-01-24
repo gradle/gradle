@@ -18,6 +18,7 @@ package org.gradle.api.services.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.Try;
@@ -41,6 +42,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     private final IsolatableFactory isolatableFactory;
     private final Listener listener;
     private Try<T> instance;
+    private boolean keepAlive;
 
     public RegisteredBuildServiceProvider(
         BuildIdentifier buildIdentifier,
@@ -90,6 +92,17 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     @Override
     public Class<T> getType() {
         return serviceDetails.getImplementationType();
+    }
+
+    /**
+     * When true, this service should be kept alive until the end of the build.
+     */
+    public boolean isKeepAlive() {
+        return keepAlive;
+    }
+
+    public void keepAlive() {
+        keepAlive = true;
     }
 
     @Override
@@ -161,5 +174,10 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
                 instance = null;
             }
         }
+    }
+
+    @Override
+    public ProviderInternal<T> withFinalValue(ValueConsumer consumer) {
+        return this;
     }
 }

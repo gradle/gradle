@@ -227,8 +227,9 @@ task check {
             }
 
             task checkDeps {
+                def runtimeClasspath = configurations.runtimeClasspath
                 doLast {
-                    assert configurations.runtimeClasspath*.name == ['a.jar', 'external-1.0.jar', 'b.jar']
+                    assert runtimeClasspath*.name == ['a.jar', 'external-1.0.jar', 'b.jar']
                 }
             }
 """

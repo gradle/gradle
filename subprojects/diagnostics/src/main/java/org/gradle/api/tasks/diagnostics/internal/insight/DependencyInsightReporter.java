@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics.internal.insight;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
@@ -40,6 +39,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RequestedVersion;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.ResolvedDependencyEdge;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -54,7 +54,7 @@ public class DependencyInsightReporter {
     private final VersionComparator versionComparator;
     private final VersionParser versionParser;
 
-    private static final Transformer<DependencyEdge, DependencyResult> TO_EDGES = result -> {
+    private static final InternalTransformer<DependencyEdge, DependencyResult> TO_EDGES = result -> {
         if (result instanceof UnresolvedDependencyResult) {
             return new UnresolvedDependencyEdge((UnresolvedDependencyResult) result);
         } else {

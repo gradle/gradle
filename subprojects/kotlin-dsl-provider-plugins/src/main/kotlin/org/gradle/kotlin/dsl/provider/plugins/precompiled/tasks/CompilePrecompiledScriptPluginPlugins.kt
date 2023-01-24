@@ -17,18 +17,24 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.JavaVersion
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.IgnoreEmptyDirectories
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.jvm.toolchain.JavaLauncher
 
 import org.gradle.kotlin.dsl.support.CompiledKotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.ImplicitImports
@@ -70,6 +76,16 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
         sourceDirectorySet.srcDir(dir)
     }
 
+    @get:Nested
+    internal
+    abstract val javaLauncher: Property<JavaLauncher>
+
+    @get:Optional
+    @get:Input
+    @Deprecated("Configure a Java Toolchain instead")
+    internal
+    abstract val jvmTarget: Property<JavaVersion>
+
     @TaskAction
     fun compile() {
         outputDir.withOutputDirectory { outputDir ->
@@ -77,6 +93,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
             if (scriptFiles.isNotEmpty())
                 compileKotlinScriptModuleTo(
                     outputDir,
+                    resolveJvmTarget(),
                     kotlinModuleName,
                     scriptFiles,
                     scriptDefinitionFromTemplate(
@@ -89,4 +106,10 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
                 )
         }
     }
+
+    @Suppress("DEPRECATION")
+    private
+    fun resolveJvmTarget(): JavaVersion =
+        if (jvmTarget.isPresent) jvmTarget.get()
+        else JavaVersion.toVersion(javaLauncher.get().metadata.languageVersion.asInt())
 }

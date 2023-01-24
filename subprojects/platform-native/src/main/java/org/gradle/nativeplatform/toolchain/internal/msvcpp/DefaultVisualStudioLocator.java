@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.rubygrapefruit.platform.SystemInfo;
-import org.gradle.api.Transformer;
 import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.VisualStudioInstallCandidate.Compatibility;
@@ -43,7 +42,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.*;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.AMD64_ON_AMD64;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.AMD64_ON_X86;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.ARM64_ON_AMD64;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.ARM64_ON_X86;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.ARM_ON_AMD64;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.ARM_ON_X86;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_AMD64;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_X86;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_ARM_ON_AMD64;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_ARM_ON_X86;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_IA64_ON_X86;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_X86_ON_AMD64;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_X86_ON_X86;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.X86_ON_AMD64;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.X86_ON_X86;
 
 public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultVisualStudioLocator.class);
@@ -196,6 +209,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         architectureDescriptorBuilders.add(X86_ON_X86);
         architectureDescriptorBuilders.add(AMD64_ON_X86);
         architectureDescriptorBuilders.add(ARM_ON_X86);
+        architectureDescriptorBuilders.add(ARM64_ON_X86);
 
         boolean isNativeAmd64 = systemInfo.getArchitecture() == SystemInfo.Architecture.amd64;
         if (isNativeAmd64) {
@@ -203,6 +217,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             architectureDescriptorBuilders.add(AMD64_ON_AMD64);
             architectureDescriptorBuilders.add(X86_ON_AMD64);
             architectureDescriptorBuilders.add(ARM_ON_AMD64);
+            architectureDescriptorBuilders.add(ARM64_ON_AMD64);
         }
 
         // populates descriptors, last descriptor in wins for a given architecture
@@ -233,12 +248,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             return new ComponentNotFound<VisualStudioInstall>("Could not locate a Visual Studio installation, using the command line tool, Windows registry or system path.");
         }
         return new ComponentNotFound<VisualStudioInstall>("Could not locate a Visual Studio installation. None of the following locations contain a valid installation",
-            CollectionUtils.collect(brokenInstalls, new ArrayList<String>(), new Transformer<String, File>() {
-                @Override
-                public String transform(File file) {
-                    return file.getAbsolutePath();
-                }
-            })
+            CollectionUtils.collect(brokenInstalls, new ArrayList<String>(), File::getAbsolutePath)
         );
     }
 

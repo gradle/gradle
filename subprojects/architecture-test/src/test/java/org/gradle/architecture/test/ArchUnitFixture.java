@@ -18,12 +18,14 @@ package org.gradle.architecture.test;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaGenericArrayType;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaParameter;
 import com.tngtech.archunit.core.domain.JavaParameterizedType;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
@@ -46,6 +48,7 @@ import org.gradle.util.TestPreconditionExtension;
 import org.gradle.util.UsesNativeServices;
 import org.gradle.util.UsesNativeServicesExtension;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
@@ -61,16 +64,29 @@ import java.util.stream.Stream;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideOutsideOfPackages;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static java.util.stream.Collectors.toSet;
 
 public interface ArchUnitFixture {
+    DescribedPredicate<JavaMember> not_written_in_kotlin = declaredIn(
+            resideOutsideOfPackages("org.gradle.configurationcache..", "org.gradle.kotlin.."))
+            .as("API written in Java");
+
+    DescribedPredicate<JavaMember> kotlin_internal_methods = declaredIn(gradlePublicApi())
+        .and(not(not_written_in_kotlin))
+        .and(modifier(PUBLIC))
+        .and(nameMatching(".+\\$[a-z_]+")) // Kotlin internal methods have `$kotlin_module_name` appended to their name
+        .as("Kotlin internal methods");
+
     DescribedPredicate<JavaMember> public_api_methods = declaredIn(gradlePublicApi())
         .and(modifier(PUBLIC))
+        .and(not(kotlin_internal_methods))
         .as("public API methods");
 
     static ArchRule freeze(ArchRule rule) {
@@ -122,6 +138,41 @@ public interface ArchUnitFixture {
 
     static ArchCondition<JavaMethod> haveOnlyArgumentsOrReturnTypesThatAre(DescribedPredicate<JavaClass> types) {
         return new HaveOnlyArgumentsOrReturnTypesThatAre(types);
+    }
+
+    static ArchCondition<JavaMethod> useJavaxAnnotationNullable() {
+        return new ArchCondition<JavaMethod>("use javax.annotation.Nullable") {
+            @Override
+            public void check(JavaMethod method, ConditionEvents events) {
+                // Check if method return type is annotated with the wrong Nullable
+                if (!method.isAnnotatedWith(Nullable.class)) {
+                    Set<JavaAnnotation<JavaMethod>> annotations = method.getAnnotations();
+                    Set<JavaAnnotation<JavaMethod>> nullableAnnotations = extractPossibleNullable(annotations);
+                    if (!nullableAnnotations.isEmpty()) {
+                        events.add(new SimpleConditionEvent(method, false, method.getFullName() + " is using forbidden Nullable annotations: " + nullableAnnotations.stream().map(a -> a.getType().getName()).collect(Collectors.joining(","))));
+                    } else {
+                        events.add(new SimpleConditionEvent(method, true, method.getFullName() + " is not using forbidden Nullable"));
+                    }
+                }
+
+                // Check if the method's parameters are annotated with the wrong Nullable
+                for (JavaParameter parameter : method.getParameters()) {
+                    if (!parameter.isAnnotatedWith(Nullable.class)) {
+                        Set<JavaAnnotation<JavaParameter>> annotations = parameter.getAnnotations();
+                        Set<JavaAnnotation<JavaParameter>> nullableAnnotations = extractPossibleNullable(annotations);
+                        if (!nullableAnnotations.isEmpty()) {
+                            events.add(new SimpleConditionEvent(method, false, "parameter " + parameter.getIndex() + " for " + method.getFullName() + " is using forbidden Nullable annotations: " + nullableAnnotations.stream().map(a -> a.getType().getName()).collect(Collectors.joining(","))));
+                        } else {
+                            events.add(new SimpleConditionEvent(method, true, method.getFullName() + " is not using forbidden Nullable"));
+                        }
+                    }
+                }
+            }
+
+            private <T extends HasDescription> Set<JavaAnnotation<T>> extractPossibleNullable(Set<JavaAnnotation<T>> annotations) {
+                return annotations.stream().filter(annotation -> annotation.getType().getName().endsWith("Nullable")).collect(toSet());
+            }
+        };
     }
 
     static DescribedPredicate<JavaMember> annotatedMaybeInSupertypeWith(final Class<? extends Annotation> annotationType) {

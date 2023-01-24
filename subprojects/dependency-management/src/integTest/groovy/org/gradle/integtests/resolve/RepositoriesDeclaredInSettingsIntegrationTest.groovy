@@ -540,7 +540,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
      * the `buildSrc` directory behaves like an included build. As such, it may have its own settings,
      * so repositories declared in the main build shouldn't be visible to buildSrc.
      */
-    def "repositories declared in settings shoudn't be used to resolve dependencies in buildSrc"() {
+    def "repositories declared in settings shouldn't be used to resolve dependencies in buildSrc"() {
         repository {
             'org:module:1.0'()
         }
@@ -559,7 +559,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         fails ':help'
 
         then:
-        result.assertTaskExecuted(':buildSrc:pluginUnderTestMetadata')
+        result.assertTaskExecuted(':buildSrc:jar')
         result.assertTaskNotExecuted(':help')
         failure.assertHasCause('Cannot resolve external dependency org:module:1.0 because no repositories are defined.')
     }

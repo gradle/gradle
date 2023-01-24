@@ -23,6 +23,6 @@ dependencies {
     }
 }
 
-tasks.test {
+tasks.named<Test>("test") {
     useJUnitPlatform()
 }

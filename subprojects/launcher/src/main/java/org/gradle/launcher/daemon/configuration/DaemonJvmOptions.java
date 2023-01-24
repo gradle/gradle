@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.specs.Spec;
 import org.gradle.cache.internal.HeapProportionalCacheSizer;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.process.internal.JvmOptions;
@@ -28,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 public class DaemonJvmOptions extends JvmOptions {
 
@@ -51,19 +52,16 @@ public class DaemonJvmOptions extends JvmOptions {
 
     private void handleDaemonImmutableProperties(Map<String, Object> systemProperties) {
         for (Map.Entry<String, ?> entry : systemProperties.entrySet()) {
-            if(IMMUTABLE_DAEMON_SYSTEM_PROPERTIES.contains(entry.getKey())){
+            if (IMMUTABLE_DAEMON_SYSTEM_PROPERTIES.contains(entry.getKey())) {
                 immutableSystemProperties.put(entry.getKey(), entry.getValue());
             }
         }
     }
 
     public Map<String, Object> getImmutableDaemonProperties() {
-        return CollectionUtils.filter(immutableSystemProperties, new Spec<Map.Entry<String, Object>>() {
-            @Override
-            public boolean isSatisfiedBy(Map.Entry<String, Object> element) {
-                return IMMUTABLE_DAEMON_SYSTEM_PROPERTIES.contains(element.getKey());
-            }
-        });
+        return CollectionUtils.filter(immutableSystemProperties, element ->
+            IMMUTABLE_DAEMON_SYSTEM_PROPERTIES.contains(element.getKey())
+        );
     }
 
     @Override
@@ -76,10 +74,12 @@ public class DaemonJvmOptions extends JvmOptions {
     }
 
     public List<String> getAllSingleUseImmutableJvmArgs() {
-        List<String> immutableDaemonParameters = new ArrayList<String>();
+        List<String> immutableDaemonParameters = new ArrayList<>();
         formatSystemProperties(getImmutableDaemonProperties(), immutableDaemonParameters);
-        final List<String> jvmArgs = getAllImmutableJvmArgs();
-        jvmArgs.removeAll(immutableDaemonParameters);
-        return jvmArgs;
+
+        return getAllImmutableJvmArgs().stream()
+            .filter(arg -> !immutableDaemonParameters.contains(arg))
+            .collect(toImmutableList());
+
     }
 }

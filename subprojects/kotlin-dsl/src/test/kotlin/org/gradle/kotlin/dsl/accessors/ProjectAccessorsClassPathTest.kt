@@ -24,6 +24,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.same
 import kotlinx.metadata.jvm.KmModuleVisitor
 import org.gradle.api.Action
+import org.gradle.api.JavaVersion
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
@@ -55,6 +56,7 @@ import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.loggerFor
+import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.gradle.nativeplatform.BuildType
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -161,7 +163,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             // then:
             schema.configurations.forEach { config ->
                 val name = config.target
-                val className = "${name.capitalize()}ConfigurationAccessorsKt"
+                val className = "${name.uppercaseFirstChar()}ConfigurationAccessorsKt"
                 val classFile = File(binaryAccessorsDir, "$className.class")
 
                 require(classFile.exists())
@@ -253,6 +255,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         require(
             compileToDirectory(
                 binDir,
+                JavaVersion.current(),
                 "bin",
                 kotlinFilesIn(srcDir),
                 loggerFor<ProjectAccessorsClassPathTest>(),

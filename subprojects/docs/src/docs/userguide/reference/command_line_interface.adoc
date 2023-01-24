@@ -141,7 +141,7 @@ $ gradle clean build
 
 However, the intention implied in the command line order is that `clean` should run first, and then `build`.  It would be incorrect to execute `clean` _after_ `build`, even if doing so would cause the build to execute faster, since `clean` would remove what `build` created.  Conversely, if the command line order was `build` followed by `clean`, it would not be correct to execute `clean` before `build`.  Although Gradle will execute the build as quickly as possible, it will also respect the safety of the order of tasks specified on the command line and ensure that `clean` runs before `build` when specified in that order.
 
-Note that command line order safety relies on tasks properly declaring what they create, consume or remove.  See <<more_about_tasks.adoc#sec:up_to_date_checks,up-to-date checks>> for further information.
+Note that command line order safety relies on tasks properly declaring what they create, consume or remove.  See <<incremental_build.adoc#incremental_build,up-to-date checks>> for further information.
 
 [[sec:excluding_tasks_from_the_command_line]]
 === Excluding tasks from execution
@@ -161,7 +161,7 @@ You can see that the `test` task is not executed, even though it is a dependency
 [[sec:rerun_tasks]]
 === Forcing tasks to execute
 
-You can force Gradle to execute all tasks ignoring <<more_about_tasks.adoc#sec:up_to_date_checks,up-to-date checks>> using the `--rerun-tasks` option:
+You can force Gradle to execute all tasks ignoring <<incremental_build.adoc#incremental_build,up-to-date checks>> using the `--rerun-tasks` option:
 
 ----
 $ gradle test --rerun-tasks
@@ -400,7 +400,7 @@ Print out the stacktrace also for user exceptions (e.g. compile error).  See als
 Create a https://gradle.com/build-scans[build scan] with fine-grained information about all aspects of your Gradle build.
 
 `-Dorg.gradle.debug=true`::
-Debug Gradle client (non-Daemon) process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
+Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
 
 `-Dorg.gradle.debug.host=(host address)`::
 Specifies the host address to listen on or connect to when debug is enabled.
@@ -417,7 +417,7 @@ If set to `true` and debugging is enabled, Gradle will run the build with the so
 When set to `true` and debugging is enabled, the JVM running Gradle will suspend until a debugger is attached. _Default is `true`._
 
 `-Dorg.gradle.daemon.debug=true`::
-Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process.
+Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. (duplicate of `-Dorg.gradle.debug`)
 
 [[sec:command_line_performance]]
 == Performance options
@@ -590,10 +590,6 @@ Indicates that versions for the specified modules have to be updated in the lock
 This flag also implies `--write-locks`.
 Learn more about this in <<dependency_locking.adoc#dependency-locking,dependency locking>>.
 
-`-a`, `--no-rebuild`::
-Do not rebuild project dependencies.
-Useful for <<organizing_gradle_projects.adoc#sec:build_sources, debugging and fine-tuning `buildSrc`>>, but can lead to wrong results. Use with caution!
-
 [[sec:dependency_verification_options]]
 == Dependency verification options
 Learn more about this in <<dependency_verification.adoc#verifying-dependencies,dependency verification>>.
@@ -684,10 +680,11 @@ $ gradle init --type java-library
 The built-in `gradle wrapper` task generates a script, `gradlew`, that invokes a declared version of Gradle, downloading it beforehand if necessary.
 
 ----
-$ gradle wrapper --gradle-version=4.4
+$ gradle wrapper --gradle-version=8.1
 ----
 
-You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`. Full details on how to use these options are documented in the <<gradle_wrapper.adoc#gradle_wrapper,Gradle wrapper section>>.
+You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`.
+Full details on how to use these options are documented in the <<gradle_wrapper.adoc#gradle_wrapper,Gradle wrapper section>>.
 
 [[sec:continuous_build]]
 == Continuous Build
@@ -735,7 +732,7 @@ Similarly, if the input is a <<working_with_files.adoc#filtering_files,filtered 
 [[sec:continuous_build_untracked]]
 ==== Inputs of untracked tasks
 
-Changes to the inputs of <<more_about_tasks.adoc#sec:disable-state-tracking,untracked tasks>> or tasks that have no outputs may not trigger a build.
+Changes to the inputs of <<incremental_build.adoc#sec:disable-state-tracking,untracked tasks>> or tasks that have no outputs may not trigger a build.
 
 [[sec:continuous_build_project_dir]]
 ==== Changes to files outside of project directories

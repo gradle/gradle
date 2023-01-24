@@ -40,7 +40,6 @@ import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Class for easy access to property validation from the validator task.
@@ -92,7 +91,7 @@ public class PropertyValidationAccess {
         }
 
         TypeToken<?> topLevelType = TypeToken.of(topLevelBean);
-        TypeMetadataWalker.typeWalker(metadataStore, Nested.class).walk(topLevelType, new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
+        TypeMetadataWalker.typeWalker(metadataStore, Nested.class).walk(topLevelType, new TypeMetadataWalker.StaticMetadataVisitor() {
             @Override
             public void visitRoot(TypeMetadata typeMetadata, TypeToken<?> value) {
                 typeMetadata.visitValidationFailures(null, validationContext);
@@ -101,10 +100,6 @@ public class PropertyValidationAccess {
             @Override
             public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, TypeToken<?> value) {
                 typeMetadata.visitValidationFailures(qualifiedName, validationContext);
-            }
-
-            @Override
-            public void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<TypeToken<?>> value) {
             }
         });
     }

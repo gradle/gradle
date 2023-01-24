@@ -575,8 +575,10 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             }
 
             task resolve {
+                def foo = configurations.foo
                 doLast {
-                    println "Output: \${configurations.foo.files.name}"
+                    println "Output: \${foo.files.name}"
+                    assert foo.files*.name.contains("srcLicenseDir")
                 }
             }
         """

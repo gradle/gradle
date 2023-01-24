@@ -22,10 +22,12 @@ import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
+import spock.lang.IgnoreIf
 
 import java.util.regex.Pattern
 
@@ -64,6 +66,8 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         }
     }
 
+    // Also covered by tests in configuration cache project
+    @IgnoreIf({ GradleContextualExecuter.configCache })
     def "generates build lifecycle operations for included builds with #display"() {
         given:
         dependency "org.test:${dependencyName}:1.0"
@@ -141,6 +145,8 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         "rootProject.name='someLib'" | "someLib"      | "configured root project name"
     }
 
+    // Also covered by tests in configuration cache project
+    @IgnoreIf({ GradleContextualExecuter.configCache })
     def "generates build lifecycle operations for multiple included builds"() {
         given:
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
@@ -194,6 +200,8 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         graphNotifyOps[2].parentId == treeTaskGraphOps[0].id
     }
 
+    // Also covered by tests in configuration cache project
+    @IgnoreIf({ GradleContextualExecuter.configCache })
     def "generates build lifecycle operations for multiple included builds used as buildscript dependencies"() {
         given:
         def buildC = multiProjectBuild("buildC", ["someLib"]) {
@@ -257,6 +265,8 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         graphNotifyOps[2].parentId == treeTaskGraphOps[1].id
     }
 
+    // Also covered by tests in configuration cache project
+    @IgnoreIf({ GradleContextualExecuter.configCache })
     def "generates build lifecycle operations for included build used as buildscript and production dependency"() {
         given:
         buildA.buildFile.text = """
