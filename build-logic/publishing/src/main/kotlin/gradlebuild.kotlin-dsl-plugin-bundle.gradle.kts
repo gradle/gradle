@@ -45,6 +45,14 @@ publishing.publications.withType<MavenPublication>().configureEach {
         groupId = project.group.toString()
         artifactId = moduleIdentity.baseName.get()
     }
+    pom {
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
+    }
 }
 
 // publish plugin to local repository for integration testing -----------------
@@ -72,15 +80,21 @@ val publishPluginsToTestRepository by tasks.registering {
     }
 }
 
+val futurePluginVersionsPropertiesFile = layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties")
 val writeFuturePluginVersions by tasks.registering(WriteProperties::class) {
-    outputFile = layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties").get().asFile
+    destinationFile.set(futurePluginVersionsPropertiesFile)
 }
-sourceSets.main.get().output.dir(
-    writeFuturePluginVersions.map { it.outputFile.parentFile }
-)
-configurations.runtimeElements.get().outgoing {
-    variants.named("resources") {
-        artifact(writeFuturePluginVersions.map { it.outputFile.parentFile })
+val futurePluginVersionsDestDir = futurePluginVersionsPropertiesFile.map { it.asFile.parentFile }
+sourceSets.main {
+    output.dir(mapOf("builtBy" to writeFuturePluginVersions), futurePluginVersionsDestDir)
+}
+configurations.runtimeElements {
+    outgoing {
+        variants.named("resources") {
+            artifact(futurePluginVersionsDestDir) {
+                builtBy(writeFuturePluginVersions)
+            }
+        }
     }
 }
 
@@ -94,8 +108,8 @@ publishing {
 }
 
 gradlePlugin {
-    website.set("https://github.com/gradle/kotlin-dsl")
-    vcsUrl.set("https://github.com/gradle/kotlin-dsl")
+    website.set("https://github.com/gradle/gradle/tree/HEAD/subprojects/kotlin-dsl-plugins")
+    vcsUrl.set("https://github.com/gradle/gradle/tree/HEAD/subprojects/kotlin-dsl-plugins")
 
     plugins.all {
 

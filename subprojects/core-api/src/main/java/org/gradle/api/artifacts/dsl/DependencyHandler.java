@@ -290,6 +290,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @param configureClosure The closure to use to configure the dependency.
      * @return The dependency, or null if dependencyNotation is a provider.
      */
+    @Nullable
     Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure);
 
     /**

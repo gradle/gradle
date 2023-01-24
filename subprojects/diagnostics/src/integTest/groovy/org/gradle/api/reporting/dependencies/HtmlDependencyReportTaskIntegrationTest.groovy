@@ -578,7 +578,7 @@ rootProject.name = 'root'
             configurations {
                 compileOnly.deprecateForResolution('compileClasspath')
                 compileOnly.deprecateForConsumption { builder ->
-                    builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
+                    builder.willBecomeAnErrorInGradle9().withUpgradeGuideSection(8, "foo")
                 }
             }
             dependencies {

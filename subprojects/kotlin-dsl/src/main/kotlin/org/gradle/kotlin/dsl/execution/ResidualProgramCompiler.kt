@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.plugins.ExtensionAware
@@ -43,6 +44,7 @@ import org.gradle.kotlin.dsl.support.bytecode.ASTORE
 import org.gradle.kotlin.dsl.support.bytecode.CHECKCAST
 import org.gradle.kotlin.dsl.support.bytecode.DUP
 import org.gradle.kotlin.dsl.support.bytecode.GETSTATIC
+import org.gradle.kotlin.dsl.support.bytecode.ICONST_0
 import org.gradle.kotlin.dsl.support.bytecode.INVOKEINTERFACE
 import org.gradle.kotlin.dsl.support.bytecode.INVOKESPECIAL
 import org.gradle.kotlin.dsl.support.bytecode.INVOKESTATIC
@@ -50,6 +52,7 @@ import org.gradle.kotlin.dsl.support.bytecode.INVOKEVIRTUAL
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.NEW
+import org.gradle.kotlin.dsl.support.bytecode.POP
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
 import org.gradle.kotlin.dsl.support.bytecode.TRY_CATCH
 import org.gradle.kotlin.dsl.support.bytecode.internalName
@@ -84,6 +87,7 @@ typealias CompileBuildOperationRunner = (String, String, () -> String) -> String
 internal
 class ResidualProgramCompiler(
     private val outputDir: File,
+    private val jvmTarget: JavaVersion,
     private val classPath: ClassPath = ClassPath.EMPTY,
     private val originalSourceHash: HashCode,
     private val programKind: ProgramKind,
@@ -190,9 +194,9 @@ class ResidualProgramCompiler(
         is Instruction.Eval -> emitEval(instruction.script)
         is Instruction.ApplyBasePlugins -> emitApplyBasePluginsTo()
         is Instruction.ApplyDefaultPluginRequests -> emitApplyEmptyPluginRequestsTo()
+        is Instruction.ApplyPluginRequests -> emitApplyPluginRequests(instruction.requests, instruction.source)
         is Instruction.ApplyPluginRequestsOf -> {
-            val program = instruction.program
-            when (program) {
+            when (val program = instruction.program) {
                 is Program.Plugins -> emitPrecompiledPluginsBlock(program)
                 is Program.PluginManagement -> emitStage1Sequence(program)
                 is Program.Stage1Sequence -> emitStage1Sequence(program.pluginManagement, program.buildscript, program.plugins)
@@ -263,6 +267,48 @@ class ResidualProgramCompiler(
 
             emitApplyPluginsTo()
         }
+    }
+
+    private
+    fun MethodVisitor.emitApplyPluginRequests(
+        pluginRequestSpecs: List<ResidualProgram.PluginRequestSpec>,
+        source: Program.Plugins?
+    ) {
+        emitPluginRequestCollectorInstantiation()
+        emitPluginRequestCollectorCreateSpecFor(source)
+        emitPluginRequests(pluginRequestSpecs)
+        emitApplyPluginsTo()
+    }
+
+    private
+    fun MethodVisitor.emitPluginRequests(specs: List<ResidualProgram.PluginRequestSpec>) {
+        specs.forEach { spec ->
+            DUP()
+            LDC(spec.id)
+            INVOKEINTERFACE(
+                InternalName("org/gradle/plugin/use/PluginDependenciesSpec"),
+                "id",
+                "(Ljava/lang/String;)Lorg/gradle/plugin/use/PluginDependencySpec;"
+            )
+            if (spec.version != null) {
+                LDC(spec.version)
+                INVOKEINTERFACE(
+                    InternalName("org/gradle/plugin/use/PluginDependencySpec"),
+                    "version",
+                    "(Ljava/lang/String;)Lorg/gradle/plugin/use/PluginDependencySpec;"
+                )
+            }
+            if (!spec.apply) {
+                ICONST_0()
+                INVOKEINTERFACE(
+                    InternalName("org/gradle/plugin/use/PluginDependencySpec"),
+                    "apply",
+                    "(Z)Lorg/gradle/plugin/use/PluginDependencySpec;"
+                )
+            }
+            POP()
+        }
+        POP()
     }
 
     /**
@@ -452,10 +498,9 @@ class ResidualProgramCompiler(
             ALOAD(0)
             ALOAD(Vars.ScriptHost)
             ALOAD(3)
-            ALOAD(4)
             GETSTATIC(programKind)
             GETSTATIC(programTarget)
-            ALOAD(5)
+            ALOAD(4)
             invokeHost(
                 ExecutableProgram.Host::compileSecondStageOf.name,
                 compileSecondStageOfDescriptor
@@ -497,8 +542,7 @@ class ResidualProgramCompiler(
         Type.getType(CompiledScript::class.java),
         Type.getType(ExecutableProgram.Host::class.java),
         Type.getType(KotlinScriptHost::class.java),
-        Type.getType(String::class.java),
-        Type.getType(HashCode::class.java),
+        Type.getType(ProgramId::class.java),
         Type.getType(ClassPath::class.java)
     )
 
@@ -507,8 +551,7 @@ class ResidualProgramCompiler(
         Type.getType(CompiledScript::class.java),
         stagedProgram,
         Type.getType(KotlinScriptHost::class.java),
-        Type.getType(String::class.java),
-        Type.getType(HashCode::class.java),
+        Type.getType(ProgramId::class.java),
         Type.getType(ProgramKind::class.java),
         Type.getType(ProgramTarget::class.java),
         Type.getType(ClassPath::class.java)
@@ -707,6 +750,7 @@ class ResidualProgramCompiler(
         compileBuildOperationRunner(originalPath, stage) {
             compileKotlinScriptToDirectory(
                 outputDir,
+                jvmTarget,
                 scriptFile,
                 scriptDefinition,
                 compileClassPath.asFiles,

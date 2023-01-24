@@ -31,10 +31,6 @@ public class BrokenArtifacts implements ResolvedArtifactSet.Artifacts {
     }
 
     @Override
-    public void finalizeNow(boolean requireFiles) {
-    }
-
-    @Override
     public void visit(ArtifactVisitor visitor) {
         visitor.visitFailure(failure);
     }

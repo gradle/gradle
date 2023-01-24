@@ -43,6 +43,8 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
             return "At least one daemon option is different.\n" + description(context);
         } else if (!priorityMatches(context)) {
             return "Process priority is different.\n" + description(context);
+        } else if (!agentStatusMatches(context)) {
+            return "Agent status is different.\n" + description(context);
         }
         return null;
     }
@@ -73,6 +75,10 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
 
     private boolean priorityMatches(DaemonContext context) {
         return desiredContext.getPriority() == context.getPriority();
+    }
+
+    private boolean agentStatusMatches(DaemonContext context) {
+        return desiredContext.shouldApplyInstrumentationAgent() == context.shouldApplyInstrumentationAgent();
     }
 
     @Override

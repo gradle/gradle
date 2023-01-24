@@ -238,10 +238,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
-        public void finalizeNow(boolean requireFiles) {
-        }
-
-        @Override
         public void visit(ArtifactVisitor visitor) {
             visitor.visitArtifact(variantName, variantAttributes, Collections.emptyList(), artifact);
             visitor.endVisitCollection(FileCollectionInternal.OTHER);
@@ -296,10 +292,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         @Override
         public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
-        }
-
-        @Override
-        public void finalizeNow(boolean requireFiles) {
         }
 
         @Override

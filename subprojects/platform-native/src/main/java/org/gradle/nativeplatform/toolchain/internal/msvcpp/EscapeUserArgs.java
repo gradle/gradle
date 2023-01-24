@@ -16,12 +16,12 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.api.Transformer;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.List;
 
-class EscapeUserArgs implements Transformer<String, String> {
+class EscapeUserArgs implements InternalTransformer<String, String> {
     public static String escapeUserArg(String original) {
         return new EscapeUserArgs().transform(original);
     }

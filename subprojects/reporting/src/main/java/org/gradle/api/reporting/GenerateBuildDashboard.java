@@ -23,7 +23,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.reporting.internal.BuildDashboardGenerator;
 import org.gradle.api.reporting.internal.DefaultBuildDashboardReports;
@@ -86,13 +85,9 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
         HashSet<Reporting<? extends ReportContainer<?>>> allAggregatedReports = Sets.newHashSet(aggregated);
         allAggregatedReports.addAll(getAggregatedTasks());
 
-        Set<NamedDomainObjectSet<? extends Report>> enabledReportSets = CollectionUtils.collect(allAggregatedReports,
-            new Transformer<NamedDomainObjectSet<? extends Report>, Reporting<? extends ReportContainer<?>>>() {
-            @Override
-            public NamedDomainObjectSet<? extends Report> transform(Reporting<? extends ReportContainer<?>> reporting) {
-                return reporting.getReports().getEnabled();
-            }
-        });
+        Set<NamedDomainObjectSet<? extends Report>> enabledReportSets = CollectionUtils.collect(
+            allAggregatedReports, reporting -> reporting.getReports().getEnabled()
+        );
         return new LinkedHashSet<Report>(CollectionUtils.flattenCollections(Report.class, enabledReportSets));
     }
 

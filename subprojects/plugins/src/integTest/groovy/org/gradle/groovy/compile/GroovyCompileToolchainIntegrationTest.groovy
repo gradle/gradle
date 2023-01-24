@@ -106,11 +106,11 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         JavaVersion.forClass(groovyClassFile("GroovyBar.class").bytes) == groovyTarget
 
         where:
-        what             | when                         | withTool | withJavaHome | withExecutable | withJavaExtension | target
-        "current JVM"    | "when nothing is configured" | null     | null         | null           | null              | "current"
-        "java extension" | "when configured"            | null     | null         | null           | "other"           | "other"
-        "assigned tool"  | "when configured"            | "other"  | null         | null           | null              | "other"
-        "assigned tool"  | "over java extension"        | "other"  | null         | null           | "current"         | "other"
+        what             | when                         | withTool | withJavaExtension | target
+        "current JVM"    | "when nothing is configured" | null     | null              | "current"
+        "java extension" | "when configured"            | null     | "other"           | "other"
+        "assigned tool"  | "when configured"            | "other"  | null              | "other"
+        "assigned tool"  | "over java extension"        | "other"  | "current"         | "other"
     }
 
     def "up-to-date depends on the toolchain for Groovy "() {
@@ -180,6 +180,8 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         withInstallations(jdk11).run(":compileGroovy")
 
         then:
+        executedAndNotSkipped(":compileGroovy")
+
         outputContains("project.sourceCompatibility = 11")
         outputContains("project.targetCompatibility = 11")
         outputContains("task.sourceCompatibility = $sourceOut")

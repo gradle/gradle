@@ -16,49 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.RunnableBuildOperation;
-
-public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
-    private final Throwable failure;
+/**
+ * Represents an artifact that failed to resolve, for instance, no variant matched the requested attributes or
+ * multiple variants matched the selected artifacts.
+ */
+public class BrokenResolvedArtifactSet extends AbstractFailedResolvedArtifactSet {
 
     public BrokenResolvedArtifactSet(Throwable failure) {
-        this.failure = failure;
-    }
-
-    @Override
-    public void visitDependencies(TaskDependencyResolveContext context) {
-        context.visitFailure(failure);
-    }
-
-    @Override
-    public void visit(Visitor visitor) {
-        visitor.visitArtifacts(this);
-    }
-
-    @Override
-    public void visitTransformSources(TransformSourceVisitor visitor) {
-        throw UncheckedException.throwAsUncheckedException(failure);
-    }
-
-    @Override
-    public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
-        throw UncheckedException.throwAsUncheckedException(failure);
-    }
-
-    @Override
-    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
-    }
-
-    @Override
-    public void finalizeNow(boolean requireFiles) {
-    }
-
-    @Override
-    public void visit(ArtifactVisitor visitor) {
-        visitor.visitFailure(failure);
+        super(failure);
     }
 }

@@ -63,12 +63,9 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
-import org.gradle.internal.resource.local.FileResourceConnector;
-import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.typeconversion.CrossBuildCachingNotationConverter;
@@ -80,10 +77,6 @@ import org.gradle.work.NormalizeLineEndings;
 class DependencyManagementGlobalScopeServices {
     void configure(ServiceRegistration registration) {
         registration.add(MarkConfigurationObservedListener.class);
-    }
-
-    FileResourceRepository createFileResourceRepository(FileSystem fileSystem) {
-        return new FileResourceConnector(fileSystem);
     }
 
     ImmutableModuleIdentifierFactory createModuleIdentifierFactory() {

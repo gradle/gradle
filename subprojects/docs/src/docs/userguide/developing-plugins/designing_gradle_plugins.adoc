@@ -62,8 +62,8 @@ The following example shows such a custom DSL for the discussed example:
 
 .build.gradle
 ====
-include::sample[dir="snippets/developingPlugins/conventionOverConfiguration/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/developingPlugins/conventionOverConfiguration/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/developingPlugins/conventionOverConfiguration/groovy",files="build.gradle[]"]
 ====
 
 As you can see, the user only declares the "what" - the server the plugin should reach out to.
@@ -134,8 +134,8 @@ To be able to build a Gradle plugin you’ll need to tell your project to use a 
 Your build script would usually contain the following declaration:
 
 ====
-include::sample[dir="snippets/base/customExternalTask/groovy/task",files="build.gradle[tags=gradle-api-dependencies]"]
 include::sample[dir="snippets/base/customExternalTask/kotlin/task",files="build.gradle.kts[tags=gradle-api-dependencies]"]
+include::sample[dir="snippets/base/customExternalTask/groovy/task",files="build.gradle[tags=gradle-api-dependencies]"]
 ====
 
 It’s important to understand that this dependency includes the full Gradle runtime.
@@ -160,8 +160,8 @@ However, you can call the help task `buildEnvironment` to render the full depend
 To demonstrate the functionality let’s assume the following build script:
 
 ====
-include::sample[dir="snippets/developingPlugins/externalLibraries/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/developingPlugins/externalLibraries/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/developingPlugins/externalLibraries/groovy",files="build.gradle[]"]
 ====
 
 The output of the task clearly indicates the classpath of the `classpath` configuration:

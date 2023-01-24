@@ -67,14 +67,14 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
 
     interface Artifacts {
         /**
+         * Called before any of the other methods are called on this set.
+         */
+        default void prepareForVisitingIfNotAlready() {}
+
+        /**
          * Queues up any work still remaining to finalize the set of artifacts contained in this set.
          */
         void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles);
-
-        /**
-         * Finalize the set of artifacts now.
-         */
-        void finalizeNow(boolean requireFiles);
 
         /**
          * Invoked once all async work as completed, to visit the final result. The result is visited using the current thread and in the relevant order.

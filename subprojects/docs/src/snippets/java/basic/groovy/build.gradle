@@ -6,7 +6,7 @@ plugins {
 // tag::java-extension[]
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 // end::java-extension[]
@@ -29,7 +29,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
 }
 
-test {
+tasks.named('test', Test) {
     useJUnitPlatform()
 
     maxHeapSize = '1G'

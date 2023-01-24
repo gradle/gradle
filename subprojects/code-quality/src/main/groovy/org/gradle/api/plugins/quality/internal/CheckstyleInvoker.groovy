@@ -25,6 +25,7 @@ import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.util.internal.GFileUtils
+import org.gradle.util.internal.VersionNumber
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -53,9 +54,13 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         def configDir = parameters.configDirectory.asFile.getOrNull()
         def isXmlRequired = parameters.isXmlRequired.get()
         def isHtmlRequired = parameters.isHtmlRequired.get()
+        def isSarifRequired = parameters.isSarifRequired.get()
         def xmlOutputLocation = parameters.xmlOuputLocation.asFile.getOrElse(null)
         def stylesheetString = parameters.stylesheetString
         def htmlOutputLocation = parameters.htmlOuputLocation.asFile.getOrElse(null)
+        def sarifOutputLocation = parameters.sarifOutputLocation.asFile.getOrElse(null)
+        VersionNumber currentToolVersion = determineCheckstyleVersion(Thread.currentThread().getContextClassLoader())
+        def sarifSupported = isSarifSupported(currentToolVersion)
 
         if (isHtmlReportEnabledOnly(isXmlRequired, isHtmlRequired)) {
             xmlOutputLocation = new File(parameters.temporaryDir.asFile.get(), xmlOutputLocation.name)
@@ -89,6 +94,14 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
                     formatter(type: 'xml', toFile: xmlOutputLocation)
                 }
 
+                if (isSarifRequired) {
+                    if (sarifSupported) {
+                        formatter(type: 'sarif', toFile: sarifOutputLocation)
+                    } else {
+                        assertUnsupportedReportFormatSARIF(currentToolVersion)
+                    }
+                }
+
                 configProperties.each { key, value ->
                     property(key: key, value: value.toString())
                 }
@@ -117,24 +130,52 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
 
         def reportXml = parseCheckstyleXml(isXmlRequired, xmlOutputLocation)
         if (ant.project.properties[FAILURE_PROPERTY_NAME] && !ignoreFailures) {
-            throw new GradleException(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, reportXml))
+            throw new GradleException(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, isSarifRequired, sarifOutputLocation, reportXml))
         } else {
             if (violationsExist(reportXml)) {
-                LOGGER.warn(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, reportXml))
+                LOGGER.warn(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, isSarifRequired, sarifOutputLocation, reportXml))
             }
         }
+    }
+
+    private static VersionNumber determineCheckstyleVersion(ClassLoader antLoader) {
+        Class checkstyleTaskClass
+        try {
+            checkstyleTaskClass = antLoader.loadClass("com.puppycrawl.tools.checkstyle.CheckStyleTask")
+        } catch (ClassNotFoundException e) {
+            checkstyleTaskClass = antLoader.loadClass("com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask")
+        }
+        return VersionNumber.parse(checkstyleTaskClass.getPackage().getImplementationVersion())
+    }
+
+    private static boolean isSarifSupported(VersionNumber versionNumber) {
+        return versionNumber >= VersionNumber.parse("10.3.3")
+    }
+
+    private static void assertUnsupportedReportFormatSARIF(VersionNumber version) {
+        throw new GradleException("SARIF report format is supported on Checkstyle versions 10.3.3 and newer. Please upgrade from Checkstyle " + version +" or disable the SARIF format.")
     }
 
     private static parseCheckstyleXml(Boolean isXmlRequired, File xmlOutputLocation) {
         return isXmlRequired ? new XmlParser().parse(xmlOutputLocation) : null
     }
 
-    private static String getMessage(Boolean isXmlRequired, File xmlOutputLocation, Boolean isHtmlRequired, File htmlOutputLocation, Node reportXml) {
-        return "Checkstyle rule violations were found.${getReportUrlMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation)}${getViolationMessage(reportXml)}"
+    private static String getMessage(Boolean isXmlRequired, File xmlOutputLocation, Boolean isHtmlRequired, File htmlOutputLocation, Boolean isSarifRequired, File sarifOutputLocation, Node reportXml) {
+        return "Checkstyle rule violations were found." +
+            "${getReportUrlMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, isSarifRequired, sarifOutputLocation)}${getViolationMessage(reportXml)}"
     }
 
-    private static String getReportUrlMessage(Boolean isXmlRequired, File xmlOutputLocation, Boolean isHtmlRequired, File htmlOutputLocation) {
-        def outputLocation = isHtmlRequired ? htmlOutputLocation : isXmlRequired ? xmlOutputLocation : null
+    private static String getReportUrlMessage(Boolean isXmlRequired, File xmlOutputLocation, Boolean isHtmlRequired, File htmlOutputLocation, Boolean isSarifRequired, File sarifOutputLocation) {
+        File outputLocation
+        if (isHtmlRequired) {
+            outputLocation = htmlOutputLocation
+        } else if (isXmlRequired) {
+            outputLocation = xmlOutputLocation
+        } else if (isSarifRequired) {
+            outputLocation = sarifOutputLocation
+        } else {
+            outputLocation = null
+        }
         return outputLocation ? " See the report at: ${new ConsoleRenderer().asClickableFileUrl(outputLocation)}" : "\n"
     }
 

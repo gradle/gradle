@@ -149,4 +149,27 @@ class DaemonCompatibilitySpecSpec extends Specification {
         !compatible
         unsatisfiedReason.contains "Process priority is different"
     }
+
+    def "context with different agent status"() {
+        client { applyInstrumentationAgent = clientStatus }
+        server { applyInstrumentationAgent = !clientStatus }
+
+        expect:
+        !compatible
+        unsatisfiedReason.contains "Agent status is different"
+
+        where:
+        clientStatus << [true, false]
+    }
+
+    def "context with same agent status"() {
+        client { applyInstrumentationAgent = status }
+        server { applyInstrumentationAgent = status }
+
+        expect:
+        compatible
+
+        where:
+        status << [true, false]
+    }
 }

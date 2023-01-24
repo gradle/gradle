@@ -64,6 +64,9 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+
         fails "validate"
         outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
         failure.assertHasCause("Could not find org.foo:unknown:1.0.")
@@ -116,6 +119,9 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+
         fails "validate"
         outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
         failure.assertHasCause("Could not find unknown-1.0.jar (org.foo:unknown:1.0).")
@@ -187,6 +193,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -263,6 +271,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         f1.allowAll()
 
         expect:
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -327,6 +337,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.artifact.expectGetUnauthorized()
 
         expect:
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -371,6 +383,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m2.allowAll()
 
         expect:
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -428,6 +442,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         bar1.allowAll()
 
         expect:
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 }

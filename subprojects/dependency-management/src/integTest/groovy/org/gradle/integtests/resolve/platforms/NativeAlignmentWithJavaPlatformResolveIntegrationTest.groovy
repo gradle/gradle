@@ -203,7 +203,7 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                         'org.gradle.status':'release',
                         'org.gradle.usage': 'java-api',
                         'org.gradle.libraryelements': 'jar',
-                        'org.gradle.compile-view': 'java-api']
+                    ]
                     module('com.acme.foo:platform:1.1') {
                         variant "apiElements", [
                             'org.gradle.category':'platform',
@@ -221,7 +221,7 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                             'org.gradle.status':'release',
                             'org.gradle.usage': 'java-api',
                             'org.gradle.libraryelements': 'jar',
-                            'org.gradle.compile-view': 'java-api']
+                        ]
                         byConstraint("platform alignment")
                     }
                 }
@@ -233,7 +233,7 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                         'org.gradle.status':'release',
                         'org.gradle.usage': 'java-api',
                         'org.gradle.libraryelements': 'jar',
-                        'org.gradle.compile-view': 'java-api']
+                    ]
                     module('com.acme.foo:platform:1.1') {
                         variant "apiElements", [
                             'org.gradle.category':'platform',

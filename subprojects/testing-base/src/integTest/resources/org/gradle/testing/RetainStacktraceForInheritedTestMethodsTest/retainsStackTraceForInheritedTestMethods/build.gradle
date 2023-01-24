@@ -12,7 +12,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 }
 
-tasks.named('test') {
+tasks.named('test', Test) {
     useJUnitPlatform()
     testLogging {
         exceptionFormat = TestExceptionFormat.FULL

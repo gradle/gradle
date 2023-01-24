@@ -325,7 +325,8 @@ class ConfigurationCacheIO internal constructor(
             includedTaskGraph = service(),
             buildStateRegistry = service(),
             documentationRegistry = service(),
-            javaSerializationEncodingLookup = service()
+            javaSerializationEncodingLookup = service(),
+            flowProviders = service(),
         )
 
     private

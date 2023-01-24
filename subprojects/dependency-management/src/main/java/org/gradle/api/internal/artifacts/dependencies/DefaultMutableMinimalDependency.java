@@ -15,22 +15,27 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 
-public class DefaultMutableMinimalDependency extends DefaultExternalModuleDependency implements MinimalExternalModuleDependency, Serializable {
-    public DefaultMutableMinimalDependency(ModuleIdentifier module, MutableVersionConstraint versionConstraint) {
-        super(module, versionConstraint);
+public class DefaultMutableMinimalDependency extends DefaultExternalModuleDependency implements MinimalExternalModuleDependencyInternal, Serializable {
+    public DefaultMutableMinimalDependency(ModuleIdentifier module, MutableVersionConstraint versionConstraint, @Nullable String configuration) {
+        super(module, versionConstraint, configuration);
     }
 
     @Override
     public DefaultMutableMinimalDependency copy() {
-        DefaultMutableMinimalDependency dependency = new DefaultMutableMinimalDependency(getModule(), new DefaultMutableVersionConstraint(getVersionConstraint()));
+        DefaultMutableMinimalDependency dependency = new DefaultMutableMinimalDependency(getModule(), new DefaultMutableVersionConstraint(getVersionConstraint()), getTargetConfiguration());
         copyTo(dependency);
         return dependency;
+    }
+
+    @Override
+    public void copyTo(AbstractExternalModuleDependency target) {
+        super.copyTo(target);
     }
 
     public String toString() {

@@ -66,6 +66,15 @@ sealed class ResidualProgram {
         data class ApplyPluginRequestsOf(val program: Program.Stage1) : StageTransition, Instruction()
 
         /**
+         * Causes the target scope to be closed with the plugin [requests] declared in the given [source]
+         * program plus the set of [auto-applied plugins][org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler].
+         */
+        data class ApplyPluginRequests(
+            val requests: List<PluginRequestSpec>,
+            val source: Program.Plugins? = null
+        ) : StageTransition, Instruction()
+
+        /**
          * An instruction that marks the transition from stage 1 to stage 2 by causing the
          * target scope to be closed thus making the resolved classpath available to stage 2.
          *
@@ -85,4 +94,6 @@ sealed class ResidualProgram {
 
         override fun toString(): String = javaClass.simpleName
     }
+
+    data class PluginRequestSpec(val id: String, val version: String? = null, val apply: Boolean = true)
 }

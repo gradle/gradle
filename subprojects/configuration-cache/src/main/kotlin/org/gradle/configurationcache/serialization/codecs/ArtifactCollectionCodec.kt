@@ -79,7 +79,7 @@ class ArtifactCollectionCodec(
 
 
 private
-class FixedFileArtifactSpec(
+data class FixedFileArtifactSpec(
     val id: ComponentArtifactIdentifier,
     val variantAttributes: AttributeContainer,
     val capabilities: List<Capability>,
@@ -92,6 +92,8 @@ private
 class CollectingArtifactVisitor : ArtifactVisitor {
     val elements = mutableListOf<Any>()
     val failures = mutableListOf<Throwable>()
+    private
+    val artifacts = mutableSetOf<ResolvableArtifact>()
 
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
         return if (source is TransformedProjectArtifactSet || source is LocalFileDependencyBackedArtifactSet || source is TransformedExternalArtifactSet) {
@@ -115,7 +117,9 @@ class CollectingArtifactVisitor : ArtifactVisitor {
     }
 
     override fun visitArtifact(variantName: DisplayName, variantAttributes: AttributeContainer, capabilities: List<Capability>, artifact: ResolvableArtifact) {
-        elements.add(FixedFileArtifactSpec(artifact.id, variantAttributes, capabilities, variantName, artifact.file))
+        if (artifacts.add(artifact)) {
+            elements.add(FixedFileArtifactSpec(artifact.id, variantAttributes, capabilities, variantName, artifact.file))
+        }
     }
 
     override fun endVisitCollection(source: FileCollectionInternal.Source) {

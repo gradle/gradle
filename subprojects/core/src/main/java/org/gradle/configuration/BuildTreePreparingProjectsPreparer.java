@@ -54,14 +54,16 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         generateDependenciesAccessorsAndAssignPluginVersions(gradle.getServices(), settings, buildSrcClassLoaderScope);
         // attaches root project
         buildLoader.load(gradle.getSettings(), gradle);
-        // Makes included build substitutions available
-        if (gradle.isRootBuild()) {
-            coordinator.registerGlobalLibrarySubstitutions();
-        }
+
+        // Makes included build substitutions available for this build
+        coordinator.registerSubstitutionsAvailableFor(gradle.getOwner());
+
         // Build buildSrc and export classpath to root project
         buildBuildSrcAndLockClassloader(gradle, buildSrcClassLoaderScope);
 
         delegate.prepareProjects(gradle);
+
+        coordinator.registerSubstitutionsProvidedBy(gradle.getOwner());
     }
 
     private void buildBuildSrcAndLockClassloader(GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {

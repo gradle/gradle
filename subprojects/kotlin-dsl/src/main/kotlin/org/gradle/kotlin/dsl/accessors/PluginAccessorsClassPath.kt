@@ -71,6 +71,7 @@ import org.gradle.kotlin.dsl.support.bytecode.publicMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.writeFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
+import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -516,7 +517,7 @@ fun pluginSpecsFrom(pluginDescriptorsClassPath: ClassPath): Sequence<PluginTree.
 
 private
 fun pluginGroupTypeName(path: List<String>) =
-    path.joinToString(separator = "") { it.capitalize() } + "PluginGroup"
+    path.joinToString(separator = "") { it.uppercaseFirstChar() } + "PluginGroup"
 
 
 private

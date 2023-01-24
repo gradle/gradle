@@ -277,6 +277,7 @@ class DefaultProjectTest extends Specification {
     private DefaultProject defaultProject(String name, ProjectState owner, def parent, File rootDir, ClassLoaderScope scope) {
         _ * owner.identityPath >> (parent == null ? Path.ROOT : parent.identityPath.child(name))
         _ * owner.projectPath >> (parent == null ? Path.ROOT : parent.projectPath.child(name))
+        _ * owner.depth >> owner.projectPath.segmentCount()
         def project = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultProject, name, parent, rootDir, new File(rootDir, 'build.gradle'), script, build, owner, projectServiceRegistryFactoryMock, scope, baseClassLoaderScope)
         _ * owner.applyToMutableState(_) >> { Consumer action -> action.accept(project) }
         return project

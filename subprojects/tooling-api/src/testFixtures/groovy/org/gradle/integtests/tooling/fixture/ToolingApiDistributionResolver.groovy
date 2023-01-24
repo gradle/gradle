@@ -21,11 +21,11 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.CommitDistribution
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
-
 
 class ToolingApiDistributionResolver {
 
@@ -93,10 +93,21 @@ class ToolingApiDistributionResolver {
     }
 
     private Collection<File> resolveDependency(String dependency) {
-        Dependency dep = resolutionServices.dependencyHandler.create(dependency)
-        Configuration config = resolutionServices.configurationContainer.detachedConfiguration(dep)
-        config.resolutionStrategy.disableDependencyVerification()
-        return config.files
+        LinkedList<Integer> retryMillis = [1000, 2000, 4000] as LinkedList
+        List<Throwable> exceptions = []
+        do {
+            try {
+                Dependency dep = resolutionServices.dependencyHandler.create(dependency)
+                Configuration config = resolutionServices.configurationContainer.detachedConfiguration(dep)
+                config.resolutionStrategy.disableDependencyVerification()
+                return config.files
+            } catch (Throwable t) {
+                exceptions.add(t)
+                Thread.sleep(retryMillis.removeFirst())
+            }
+        } while (!retryMillis.isEmpty())
+
+        throw new DefaultMultiCauseException("Failed to resolve $dependency", exceptions)
     }
 
     private boolean useToolingApiFromTestClasspath(String toolingApiVersion) {

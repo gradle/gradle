@@ -88,7 +88,7 @@ tasks.register('alwaysInstrumentClasses', Instrument) {
 
 // tag::git-clone[]
 tasks.register("cloneGradleProfiler", GitClone) {
-    destinationDir = layout.buildDirectory.dir("gradle-profiler")                      // <3>
+    destinationDir = layout.buildDirectory.dir("gradle-profiler") // <3>
     remoteUri = "https://github.com/gradle/gradle-profiler.git"
     commitId = "d6c18a21ca6c45fd8a9db321de4478948bdf801b"
 }

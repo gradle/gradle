@@ -35,15 +35,18 @@ class DefaultArchitectureTest extends Specification {
         arch.i386 == i386
         arch.amd64 == amd64
         arch.ia64 == ia64
-        arch.arm == arm
+        arch.arm == arm || arm64
+        arch.arm32 == arm
+        arch.arm64 == arm64
 
         where:
-        name        | i386  | amd64 | ia64  | arm
-        "x86"       | true  | false | false | false
-        "x86-64"    | false | true  | false | false
-        "ia-64"     | false | false | true  | false
-        "arm-v7"    | false | false | false | true
-        "arbitrary" | false | false | false | false
+        name        | i386  | amd64 | ia64  | arm   | arm64
+        "x86"       | true  | false | false | false | false
+        "x86-64"    | false | true  | false | false | false
+        "ia-64"     | false | false | true  | false | false
+        "arm-v7"    | false | false | false | true  | false
+        "aarch64"   | false | false | false | false | true
+        "arbitrary" | false | false | false | false | false
     }
 
     def "can create arbitrary operating system"() {

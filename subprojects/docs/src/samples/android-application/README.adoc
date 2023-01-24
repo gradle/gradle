@@ -4,8 +4,8 @@ This sample shows how a simple Android application written in Java can be built 
 The application was created following the https://developer.android.com/training/basics/firstapp[Build your first app guide].
 
 ====
-include::sample[dir="groovy",files="app/build.gradle[]"]
 include::sample[dir="kotlin",files="app/build.gradle.kts[]"]
+include::sample[dir="groovy",files="app/build.gradle[]"]
 ====
 
 To build the application:

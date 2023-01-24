@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":model-core"))
     implementation(project(":core"))
+    implementation(project(":functional"))
     implementation(project(":base-services-groovy")) // for 'Specs'
     implementation(project(":file-collections"))
     implementation(project(":resources"))
@@ -61,3 +62,8 @@ dependencies {
 }
 
 integTest.usesJavadocCodeSnippets.set(true)
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}

@@ -16,15 +16,12 @@
 
 package org.gradle.api.publish.maven.tasks;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository;
-import org.gradle.api.internal.credentials.CredentialListener;
-import org.gradle.api.internal.provider.MissingValueException;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -47,7 +44,6 @@ import javax.inject.Inject;
 import java.net.URI;
 
 import static org.gradle.internal.serialization.Transient.varOf;
-
 
 /**
  * Publishes a {@link org.gradle.api.publish.maven.MavenPublication} to a {@link MavenArtifactRepository}.
@@ -110,51 +106,11 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
         if (repository == null) {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
-
-        checkCredentialSafety(repository);
-
         MavenNormalizedPublication normalizedPublication = publicationInternal.asNormalisedPublication();
         return new PublishSpec(
                 RepositorySpec.of(repository),
                 normalizedPublication
         );
-    }
-
-    private void checkCredentialSafety(DefaultMavenArtifactRepository repository) {
-        Credentials value = repository.getConfiguredCredentials().getOrNull();
-        boolean safeCredentials = value == null || areCredentialsSafe(repository.getName(), value);
-        if (!safeCredentials) {
-            credentialListener().onUnsafeCredentials("repository " + repository.getName(), this);
-        }
-    }
-
-    private CredentialListener credentialListener() {
-        return getListenerManager().getBroadcaster(CredentialListener.class);
-    }
-
-    private boolean areCredentialsSafe(String identity, Credentials toCheck) {
-        // TODO:RC not using a provider does not necessarily imply unsafe credentials
-        // https://github.com/gradle/gradle/issues/22618
-        return true /* isUsingCredentialsProvider(identity, toCheck) */;
-    }
-
-    private boolean isUsingCredentialsProvider(String identity, Credentials toCheck) {
-        ProviderFactory providerFactory = getServices().get(ProviderFactory.class);
-        Credentials referenceCredentials;
-        try {
-            Provider<? extends Credentials> credentialsProvider;
-            try {
-                credentialsProvider = providerFactory.credentials(toCheck.getClass(), identity);
-            } catch (IllegalArgumentException e) {
-                // some possibilities are invalid repository names and invalid credential types
-                // either way, this is not the place to validate that
-                return false;
-            }
-            referenceCredentials = credentialsProvider.get();
-        } catch (MissingValueException e) {
-            return false;
-        }
-        return EqualsBuilder.reflectionEquals(toCheck, referenceCredentials);
     }
 
     private void doPublish(final MavenNormalizedPublication normalizedPublication, final MavenArtifactRepository repository) {

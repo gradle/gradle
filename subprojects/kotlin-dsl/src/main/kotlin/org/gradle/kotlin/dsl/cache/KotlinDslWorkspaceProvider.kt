@@ -20,7 +20,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
-import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider
 import org.gradle.internal.file.FileAccessTimeJournal
@@ -29,7 +29,7 @@ import java.io.Closeable
 
 
 class KotlinDslWorkspaceProvider(
-    cacheRepository: GlobalScopedCache,
+    cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
     fileAccessTimeJournal: FileAccessTimeJournal,
     inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
     stringInterner: StringInterner,
@@ -40,8 +40,8 @@ class KotlinDslWorkspaceProvider(
 
     private
     val kotlinDslWorkspace = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
-        cacheRepository
-            .cache("kotlin-dsl")
+        cacheBuilderFactory
+            .createCacheBuilder("kotlin-dsl")
             .withDisplayName("kotlin-dsl"),
         fileAccessTimeJournal,
         inMemoryCacheDecoratorFactory,

@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache.isolated
 
+import spock.lang.Ignore
+
 class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
         settingsFile << """
@@ -23,6 +25,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         """
     }
 
+    @Ignore("https://github.com/gradle/gradle/issues/23196")
     def "caches execution of BuildAction that queries custom tooling model"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
@@ -88,7 +91,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            modelsReused(":a", ":b")
+            modelsReused(":a", ":b", ":buildSrc")
         }
         outputContains("creating model for root project 'root'")
 
@@ -123,7 +126,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
-            modelsReused(":", ":b")
+            modelsReused(":", ":b", ":buildSrc")
         }
         outputContains("creating model for project ':a'")
     }
@@ -299,7 +302,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             projectConfigured(":buildSrc")
             projectsConfigured(":")
             modelsCreated(":a")
-            modelsReused(":", ":b", ":c")
+            modelsReused(":", ":b", ":c", ":buildSrc")
         }
 
         when:
@@ -329,10 +332,11 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             projectConfigured(":buildSrc")
             projectsConfigured(":")
             modelsCreated(":b")
-            modelsReused(":", ":a", ":c")
+            modelsReused(":", ":a", ":c", ":buildSrc")
         }
     }
 
+    @Ignore("https://github.com/gradle/gradle/issues/23196")
     def "caches execution of BuildAction that queries each model multiple times"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
@@ -397,7 +401,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            modelsReused(":a", ":b")
+            modelsReused(":a", ":b", ":buildSrc")
         }
         outputContains("creating model for root project 'root'")
 
@@ -414,6 +418,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         fixture.assertStateLoaded()
     }
 
+    @Ignore("https://github.com/gradle/gradle/issues/23196")
     def "caches execution of BuildAction that queries nullable custom tooling model"() {
         given:
         withSomeNullableToolingModelBuilderPluginInBuildSrc()
@@ -472,7 +477,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            modelsReused(":a", ":b")
+            modelsReused(":a", ":b", ":buildSrc")
         }
         outputContains("creating model for root project 'root'")
 

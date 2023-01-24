@@ -21,8 +21,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.test.fixtures.file.ClassFile
+import org.gradle.util.GradleVersion
 import org.junit.Assume
+
+import static org.gradle.internal.classanalysis.JavaClassUtil.getClassMajorVersion
 
 class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
     def "can configure the Java plugin to compile and run tests against Java #version JDK"() {
@@ -39,24 +41,9 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
                 testImplementation("junit:junit:4.13")
             }
             java {
-                sourceCompatibility = JavaVersion.${version.name()}
-            }
-
-            def launcher = javaToolchains.launcherFor {
-                languageVersion = JavaLanguageVersion.of(${version.majorVersion})
-            }.get()
-            def installationDirectory = launcher.metadata.installationPath
-
-            tasks.named("compileJava") {
-                options.fork = true
-                options.forkOptions.javaHome = installationDirectory.asFile
-            }
-            tasks.named("compileTestJava") {
-                options.fork = true
-                options.forkOptions.javaHome = installationDirectory.asFile
-            }
-            tasks.named("test") {
-                executable = launcher.executablePath.asFile
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${version.majorVersion})
+                }
             }
         """
 
@@ -102,12 +89,13 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         sourceFile.replace("() -> { }", "new Runnable() { public void run() { } }")
+        executer.expectDeprecationWarning("Running tests on Java versions earlier than 8 has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#minimum_test_jvm_version")
         run("build")
 
         then:
         new JarTestFixture(file("build/libs/oldjava.jar")).javaVersion == version
-        new ClassFile(file("build/classes/java/main/Thing.class")).javaVersion == version
-        new ClassFile(file("build/classes/java/test/ThingTest.class")).javaVersion == version
+        getClassMajorVersion(file("build/classes/java/main/Thing.class")) == getClassMajorVersion(version)
+        getClassMajorVersion(file("build/classes/java/test/ThingTest.class")) == getClassMajorVersion(version)
         new DefaultTestExecutionResult(testDirectory).assertTestClassesExecuted("ThingTest")
 
         where:

@@ -228,8 +228,9 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         expect:
         succeeds("greeting", ":build-logic:classes")
         2.times {
-            succeeds("greeting", "-x", ":build-logic:classes")
-            result.assertTaskNotExecuted(":build-logic:classes")
+            succeeds("greeting", "-x", ":build-logic:jar")
+            result.assertTaskNotExecuted(":build-logic:jar")
+            result.assertTaskNotExecuted(":build-logic:compileJava")
         }
     }
 
@@ -255,5 +256,4 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
             result.assertTaskNotExecuted(":app:processResources")
         }
     }
-
 }

@@ -215,9 +215,9 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             """
             package my
 
-            fun <T> applyActionTo(value: T, action: org.gradle.api.Action<T>) = action.execute(value)
+            fun <T : Any> applyActionTo(value: T, action: org.gradle.api.Action<T>) = action.execute(value)
 
-            fun <T> create(name: String, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(name)
+            fun <T : Any> create(name: String, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(name)
 
             fun <T : Any> create(type: kotlin.reflect.KClass<T>, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(type.simpleName!!)
             """
@@ -301,6 +301,44 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                 INIT: foo.txt
                 SETTINGS: foo.txt
                 PROJECT: foo.txt
+                """.trimIndent()
+            )
+        )
+    }
+
+    @Test
+    fun `can access project extensions`() {
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/MyExtension.kt", """
+            interface MyExtension {
+                fun some(message: String) { println(message) }
+            }
+        """)
+        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            extensions.create<MyExtension>("my")
+            tasks.register("noop")
+        """)
+        withBuildScript("""
+            plugins { id("my-plugin") }
+
+            extensions.getByType(MyExtension::class).some("api.get")
+            extensions.configure<MyExtension> { some("api.configure") }
+            the<MyExtension>().some("kotlin.get")
+            configure<MyExtension> { some("kotlin.configure") }
+            my.some("accessor.get")
+            my { some("accessor.configure") }
+        """)
+
+        assertThat(
+            build("noop", "-q").output.trim(),
+            equalTo(
+                """
+                api.get
+                api.configure
+                kotlin.get
+                kotlin.configure
+                accessor.get
+                accessor.configure
                 """.trimIndent()
             )
         )

@@ -26,9 +26,16 @@ public class InstallationLocation implements Describable {
 
     private String source;
 
+    private boolean autoProvisioned;
+
     public InstallationLocation(File location, String source) {
+        this(location, source, false);
+    }
+
+    public InstallationLocation(File location, String source, boolean autoProvisioned) {
         this.location = location;
         this.source = source;
+        this.autoProvisioned = autoProvisioned;
     }
 
     public File getLocation() {
@@ -44,4 +51,7 @@ public class InstallationLocation implements Describable {
         return source;
     }
 
+    public boolean isAutoProvisioned() {
+        return autoProvisioned;
+    }
 }

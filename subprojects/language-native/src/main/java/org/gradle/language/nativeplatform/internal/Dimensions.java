@@ -23,10 +23,11 @@ import org.gradle.api.Named;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.component.DefaultSoftwareComponentVariant;
+import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
-import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.MachineArchitecture;
@@ -143,15 +144,15 @@ public class Dimensions {
                     addCommonAttributes(buildType, targetMachine, runtimeAttributes);
                     runtimeAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
 
-                    DefaultUsageContext runtimeUsageContext = new DefaultUsageContext(variantName + "Runtime", runtimeAttributes);
+                    UsageContext runtimeVariant = new DefaultSoftwareComponentVariant(variantName + "Runtime", runtimeAttributes);
 
                     AttributeContainer linkAttributes = attributesFactory.mutable();
                     linkAttributes.attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
                     addCommonAttributes(buildType, targetMachine, linkAttributes);
                     linkAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
-                    DefaultUsageContext linkUsageContext = new DefaultUsageContext(variantName + "Link", linkAttributes);
+                    UsageContext linkVariant = new DefaultSoftwareComponentVariant(variantName + "Link", linkAttributes);
 
-                    NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, baseName, group, version, buildType.isDebuggable(), buildType.isOptimized(), targetMachine, linkUsageContext, runtimeUsageContext, linkage);
+                    NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, baseName, group, version, buildType.isDebuggable(), buildType.isOptimized(), targetMachine, linkVariant, runtimeVariant, linkage);
 
                     action.execute(variantIdentity);
                 }
@@ -180,11 +181,11 @@ public class Dimensions {
                 runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
                 addCommonAttributes(buildType, targetMachine, runtimeAttributes);
 
-                DefaultUsageContext runtimeUsageContext = new DefaultUsageContext(variantName + "Runtime", runtimeAttributes);
+                UsageContext runtimeVariant = new DefaultSoftwareComponentVariant(variantName + "Runtime", runtimeAttributes);
 
-                DefaultUsageContext linkUsageContext = null;
+                UsageContext linkVariant = null;
 
-                NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, baseName, group, version, buildType.isDebuggable(), buildType.isOptimized(), targetMachine, linkUsageContext, runtimeUsageContext, null);
+                NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, baseName, group, version, buildType.isDebuggable(), buildType.isOptimized(), targetMachine, linkVariant, runtimeVariant, null);
 
                 action.execute(variantIdentity);
             }

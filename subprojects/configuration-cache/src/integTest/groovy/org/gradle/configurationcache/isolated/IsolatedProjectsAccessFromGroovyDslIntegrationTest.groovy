@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache.isolated
 
+import spock.lang.Issue
+
 class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         settingsFile << """
@@ -34,8 +36,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access project ':b' from project ':'")
         }
 
         where:
@@ -63,8 +65,12 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'", 3)
-            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'", 3)
+            problem("Build file 'build.gradle': line 3: Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle': line 4: Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 4: Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle': line 5: Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 5: Cannot access project ':b' from project ':'")
         }
 
         where:
@@ -91,8 +97,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access project ':b' from project ':'")
         }
 
         where:
@@ -119,7 +125,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access project ':a' from project ':'")
         }
     }
 
@@ -138,7 +144,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 2: Cannot access project ':a' from project ':'")
         }
 
         where:
@@ -162,7 +168,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'a/build.gradle': Cannot access project '$target' from project ':a'")
+            problem("Build file 'a/build.gradle': line 2: Cannot access project '$target' from project ':a'")
         }
 
         where:
@@ -188,8 +194,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle': line 2: Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 2: Cannot access project ':b' from project ':'")
         }
 
         where:
@@ -220,7 +226,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'a/build.gradle': Cannot access project ':b' from project ':a'")
+            problem("Build file 'a/build.gradle': line 2: Cannot access project ':b' from project ':a'")
         }
 
         where:
@@ -250,8 +256,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'a/build.gradle': Cannot access project ':' from project ':a'")
-            problem("Build file 'a/build.gradle': Cannot access project ':b' from project ':a'")
+            problem("Build file 'a/build.gradle': line 2: Cannot access project ':' from project ':a'")
+            problem("Build file 'a/build.gradle': line 2: Cannot access project ':b' from project ':a'")
         }
 
         where:
@@ -278,7 +284,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
             accessedProjects.each {
-                problem("Build file 'a/build.gradle': Cannot access project '$it' from project ':a'")
+                problem("Build file 'a/build.gradle': line 3: Cannot access project '$it' from project ':a'")
             }
         }
 
@@ -306,7 +312,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":include")
-            problem("Build file 'include/build.gradle': Cannot access project ':' from project ':include'")
+            problem("Build file 'include/build.gradle': line 2: Cannot access project ':' from project ':include'")
         }
 
         where:
@@ -332,8 +338,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'a/build.gradle': Cannot access project ':' from project ':a'")
-            problem("Build file 'a/build.gradle': Cannot access project ':b' from project ':a'")
+            problem("Build file 'a/build.gradle': line 3: Cannot access project ':' from project ':a'")
+            problem("Build file 'a/build.gradle': line 3: Cannot access project ':b' from project ':a'")
         }
     }
 
@@ -358,7 +364,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
-            problem("Build file 'a/build.gradle': Cannot access project ':b' from project ':a'")
+            problem("Build file 'a/build.gradle': line 5: Cannot access project ':b' from project ':a'")
         }
 
         where:
@@ -415,14 +421,14 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'build.gradle': Project ':' cannot access the tasks in the task graph that were created by other projects")
+            problem("Build file 'build.gradle': line $line: Project ':' cannot access the tasks in the task graph that were created by other projects")
             failureCauseContains("Project ':' cannot access the tasks in the task graph that were created by other projects; tried to access ':x:unknown'")
         }
 
         where:
-        statement                                                                                       | _
-        "gradle.taskGraph.whenReady { graph -> graph.hasTask(':x:unknown') }"                           | _
-        "gradle.taskGraph.addTaskExecutionGraphListener(new MyListener())"                              | _
+        statement                                                                                       | line
+        "gradle.taskGraph.whenReady { graph -> graph.hasTask(':x:unknown') }"                           | 7
+        "gradle.taskGraph.addTaskExecutionGraphListener(new MyListener())"                              | 4
     }
 
     def "checking cross-project model access in task graph call `#statement` with #tasksToRun, should succeed: #shouldSucceed"() {
@@ -462,7 +468,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         } else {
             fixture.assertStateStoredAndDiscarded {
                 projectsConfigured(":", ":b")
-                problem("Build file 'b/build.gradle': Project ':b' cannot access the tasks in the task graph that were created by other projects")
+                problem("Build file 'b/build.gradle': line 10: Project ':b' cannot access the tasks in the task graph that were created by other projects")
             }
         }
 
@@ -574,6 +580,37 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/22949")
+    def "invocations of GroovyObject methods on DefaultProject track the dynamic call context"() {
+        settingsFile << """
+            include("a")
+        """
+        file("build.gradle") << """
+            ext.foo = 1
+            def bar() { }
+        """
+        file("a/build.gradle") << """
+            ext.baz = 0
+
+            def o = project as GroovyObject
+            o.getProperty('foo')
+            o.invokeMethod('bar', new Object[] {})
+            o.setProperty('baz', 1)
+
+            assert project.hasProperty('baz')
+        """
+
+        when:
+        configurationCacheFails(":a:help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a")
+            problem("Build file 'a/build.gradle': Project ':a' cannot dynamically look up a method in the parent project ':'")
+            problem("Build file 'a/build.gradle': Project ':a' cannot dynamically look up a property in the parent project ':'")
+        }
+    }
+
     def "build script can query basic details of projects in allprojects block"() {
         settingsFile << """
             rootProject.name = "root"
@@ -623,7 +660,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":")
-            problem("Build file 'build.gradle': Project ':' cannot access task dependencies directly")
+            problem("Build file 'build.gradle': line 5: Project ':' cannot access task dependencies directly")
         }
 
         where:
@@ -664,7 +701,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":a:b")
-            problem("Build file 'a/b/build.gradle': Project ':a:b' cannot access task dependencies directly")
+            problem("Build file 'a/b/build.gradle': line 3: Project ':a:b' cannot access task dependencies directly")
         }
     }
 

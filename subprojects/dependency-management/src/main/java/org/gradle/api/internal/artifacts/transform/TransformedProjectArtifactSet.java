@@ -100,10 +100,6 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
     }
 
     @Override
-    public void finalizeNow(boolean requireFiles) {
-    }
-
-    @Override
     public void visit(ArtifactVisitor visitor) {
         DisplayName displayName = Describables.of(componentIdentifier);
         for (TransformationNode node : transformedArtifacts) {

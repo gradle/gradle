@@ -39,12 +39,17 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.util.Path;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A serializer for {@link ComponentSelector} that is not thread-safe and not reusable.
+ */
+@NotThreadSafe
 public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSelector> {
     private final OptimizingAttributeContainerSerializer attributeContainerSerializer;
     private final BuildIdentifierSerializer buildIdentifierSerializer;

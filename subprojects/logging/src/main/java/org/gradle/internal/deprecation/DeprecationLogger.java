@@ -139,7 +139,7 @@ public class DeprecationLogger {
             DeprecationMessage build() {
                 return new DeprecationMessage(behaviour + ". This behavior is deprecated.", "", advice, null, Documentation.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
             }
-        });
+        }); // TODO: it is not ok that NO_DOCUMENTATION is hardcoded here
     }
 
     /**
@@ -265,6 +265,36 @@ public class DeprecationLogger {
         } finally {
             ENABLED.set(true);
         }
+    }
+
+    public static <T, E extends Exception> T whileDisabledThrowing(ThrowingFactory<T, E> factory) {
+        ENABLED.set(false);
+        try {
+            return toUncheckedThrowingFactory(factory).create();
+        } finally {
+            ENABLED.set(true);
+        }
+    }
+
+    public interface ThrowingFactory<T, E extends Exception> {
+        T create() throws E;
+    }
+
+    /**
+     * Turns a {@link ThrowingFactory} into a {@link Factory}.
+     * The compiler is happy with the casting that allows to hide the checked exception.
+     * The runtime is happy with the casting because the checked exception type information is captured in a generic type parameter which gets erased.
+     */
+    private static <T, E extends Exception> Factory<T> toUncheckedThrowingFactory(final ThrowingFactory<T, E> throwingFactory) {
+        return new Factory<T>() {
+            @Nullable
+            @Override
+            public T create() {
+                @SuppressWarnings("unchecked")
+                ThrowingFactory<T, RuntimeException> factory = (ThrowingFactory<T, RuntimeException>) throwingFactory;
+                return factory.create();
+            }
+        };
     }
 
     private static boolean isEnabled() {

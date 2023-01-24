@@ -101,14 +101,6 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                 dependencies {
                     compile project(':a')
                 }
-                task checkArtifacts {
-                    doLast {
-                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["a", "b", "c"]
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name } == ["a", "b", "c"]
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { "\$it.name:\$it.extension:\$it.type" } == ["thing-a:txt:report", "thing-b:txt:report", "thing-c::report"]
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.classifier } == ["report", "report", "report"]
-                    }
-                }
             }
         """
 
@@ -141,27 +133,25 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                         }
                     }
                 }
-                task checkArtifacts {
-                    doLast {
-                        assert configurations.compile.artifacts.size() == 2
-                    }
-                }
+                assert configurations.compile.artifacts.size() == 2
             }
             project(':b') {
                 dependencies {
                     compile project(':a')
                 }
-                task checkArtifacts {
-                    doLast {
-                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["lib1.jar", "lib2.zip"]
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name } == ["lib1.jar", "lib2.zip"]
-                    }
-                }
             }
 """
 
         expect:
-        succeeds("checkArtifacts")
+        succeeds(":b:checkDeps")
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                    artifact(name: "lib1")
+                    artifact(name: "not-a-lib", extension: "zip", type: "not-a-lib", fileName: "lib2.zip")
+                }
+            }
+        }
     }
 
     def "can define outgoing variants and artifacts for configuration"() {
@@ -189,16 +179,12 @@ configurations {
         }
     }
 }
-task checkArtifacts {
-    doLast {
-        def classes = configurations.compile.outgoing.variants['classes']
-        classes.attributes.keySet().collect { it.name } == ['usage', 'format']
-    }
-}
+def classes = configurations.compile.outgoing.variants['classes']
+classes.attributes.keySet().collect { it.name } == ['usage', 'format']
 """
 
         expect:
-        succeeds("checkArtifacts")
+        succeeds()
     }
 
     def "can declare build dependency of artifact using String notation"() {
@@ -217,20 +203,21 @@ task checkArtifacts {
                     compile project(':a')
                 }
                 task jar {} // ignored
-                task checkArtifacts {
-                    inputs.files configurations.compile
-                    doLast {
-                        configurations.compile.resolvedConfiguration.resolvedArtifacts.forEach { println it }
-                    }
-                }
             }
         """
 
         when:
-        succeeds ':b:checkArtifacts'
+        succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":a:jar", ":b:checkArtifacts")
+        result.assertTasksExecuted(":a:jar", ":b:checkDeps")
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                    artifact(name: "lib1")
+                }
+            }
+        }
     }
 
     def "can declare build dependency of outgoing artifact using String notation"() {
@@ -255,20 +242,21 @@ task checkArtifacts {
                     compile project(':a')
                 }
                 task jar {} // ignored
-                task checkArtifacts {
-                    inputs.files configurations.compile
-                    doLast {
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.each { println it }
-                    }
-                }
             }
 """
 
         when:
-        succeeds ':b:checkArtifacts'
+        succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":a:jar", ":b:checkArtifacts")
+        result.assertTasksExecuted(":a:jar", ":b:checkDeps")
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                    artifact(name: "lib1")
+                }
+            }
+        }
     }
 
     def "can declare build dependency of outgoing variant artifact using String notation"() {
@@ -297,20 +285,21 @@ task checkArtifacts {
                     compile project(':a')
                 }
                 task classes {} // ignored
-                task checkArtifacts {
-                    inputs.files configurations.compile
-                    doLast {
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.each { println it }
-                    }
-                }
             }
 """
 
         when:
-        succeeds ':b:checkArtifacts'
+        succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":a:classes", ":b:checkArtifacts")
+        result.assertTasksExecuted(":a:classes", ":b:checkDeps")
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                    artifact(name: "classes", type: "")
+                }
+            }
+        }
     }
 
     def "can define artifact using File provider"() {
@@ -326,20 +315,20 @@ task checkArtifacts {
                 dependencies {
                     compile project(':a')
                 }
-                task checkArtifacts {
-                    inputs.files configurations.compile
-                    doLast {
-                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["a.jar"]
-                    }
-                }
             }
         """
 
         when:
-        succeeds ':b:checkArtifacts'
+        succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":b:checkArtifacts")
+        result.assertTasksExecuted(":b:checkDeps")
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                }
+            }
+        }
     }
 
     def "can define artifact using RegularFile task output"() {
@@ -359,20 +348,20 @@ task checkArtifacts {
                 dependencies {
                     compile project(':a')
                 }
-                task checkArtifacts {
-                    inputs.files configurations.compile
-                    doLast {
-                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["a.jar"]
-                    }
-                }
             }
         """
 
         when:
-        succeeds ':b:checkArtifacts'
+        succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":a:classes", ":b:checkArtifacts")
+        result.assertTasksExecuted(":a:classes", ":b:checkDeps")
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                }
+            }
+        }
     }
 
     def "can define artifact using Directory task output"() {
@@ -392,20 +381,21 @@ task checkArtifacts {
                 dependencies {
                     compile project(':a')
                 }
-                task checkArtifacts {
-                    inputs.files configurations.compile
-                    doLast {
-                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["classes"]
-                    }
-                }
             }
         """
 
         when:
-        succeeds ':b:checkArtifacts'
+        succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":a:classes", ":b:checkArtifacts")
+        result.assertTasksExecuted(":a:classes", ":b:checkDeps")
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                    artifact(name: "classes", type: "")
+                }
+            }
+        }
     }
 
     def "can define artifact using RegularFile type"() {
@@ -420,17 +410,18 @@ task checkArtifacts {
                 dependencies {
                     compile project(':a')
                 }
-                task checkArtifacts {
-                    inputs.files configurations.compile
-                    doLast {
-                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["someFile.txt"]
-                    }
-                }
             }
         """
 
         expect:
-        succeeds ':b:checkArtifacts'
+        succeeds ':b:checkDeps'
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                    artifact(name: "someFile", type: "", extension: "txt")
+                }
+            }
+        }
     }
 
     def "can define artifact using Directory type"() {
@@ -445,17 +436,18 @@ task checkArtifacts {
                 dependencies {
                     compile project(':a')
                 }
-                task checkArtifacts {
-                    inputs.files configurations.compile
-                    doLast {
-                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["someDir"]
-                    }
-                }
             }
         """
 
         expect:
-        succeeds ':b:checkArtifacts'
+        succeeds ':b:checkDeps'
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                    artifact(name: "someDir", type: "")
+                }
+            }
+        }
     }
 
     // This isn't strictly supported and will be deprecated later
@@ -481,31 +473,26 @@ task checkArtifacts {
                         builtBy jar
                     }
                 }
-                task checkArtifacts {
-                    doLast {
-                        assert configurations.compile.artifacts.collect { it.file.name }  == ["lib1.jar"]
-                        assert configurations.compile.artifacts.collect { it.name }  == ["thing"]
-                    }
-                }
+                assert configurations.compile.artifacts.collect { it.file.name }  == ["lib1.jar"]
+                assert configurations.compile.artifacts.collect { it.name }  == ["thing"]
             }
             project(':b') {
                 dependencies {
                     compile project(':a')
                 }
-                task checkArtifacts {
-                    inputs.files configurations.compile
-                    doLast {
-                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["lib1.jar"]
-                        assert configurations.compile.incoming.artifacts.collect { it.id.displayName } == ["thing.jar (project :a)"]
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.name } == ["thing"]
-                    }
-                }
             }
 """
 
         expect:
-        succeeds("checkArtifacts")
-        result.assertTasksExecutedInOrder(":a:checkArtifacts", ":a:jar", ":b:checkArtifacts")
+        succeeds("b:checkDeps")
+        result.assertTasksExecutedInOrder(":a:jar", ":b:checkDeps")
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                    artifact(name: "thing", fileName: "lib1.jar")
+                }
+            }
+        }
     }
 
 }

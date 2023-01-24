@@ -21,9 +21,10 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.FileLock;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
+import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
 import org.gradle.platform.BuildPlatform;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -43,7 +44,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -64,7 +64,6 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     private static final Object PROVISIONING_PROCESS_LOCK = new Object();
 
     private final JavaToolchainResolverRegistryInternal toolchainResolverRegistry;
-    private final AdoptOpenJdkRemoteBinary openJdkBinary;
     private final SecureFileDownloader downloader;
     private final JdkCacheDirectory cacheDirProvider;
     private final Provider<Boolean> downloadEnabled;
@@ -74,7 +73,6 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     @Inject
     public DefaultJavaToolchainProvisioningService(
             JavaToolchainResolverRegistry toolchainResolverRegistry,
-            AdoptOpenJdkRemoteBinary openJdkBinary,
             SecureFileDownloader downloader,
             JdkCacheDirectory cacheDirProvider,
             ProviderFactory factory,
@@ -82,7 +80,6 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             BuildPlatform buildPlatform
     ) {
         this.toolchainResolverRegistry = (JavaToolchainResolverRegistryInternal) toolchainResolverRegistry;
-        this.openJdkBinary = openJdkBinary;
         this.downloader = downloader;
         this.cacheDirProvider = cacheDirProvider;
         this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).map(Boolean::parseBoolean);
@@ -90,35 +87,44 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         this.buildPlatform = buildPlatform;
     }
 
-    public Optional<File> tryInstall(JavaToolchainSpec spec) {
+    @Override
+    public boolean isAutoDownloadEnabled() {
+        return downloadEnabled.getOrElse(true);
+    }
+
+    @Override
+    public boolean hasConfiguredToolchainRepositories() {
+        return !toolchainResolverRegistry.requestedRepositories().isEmpty();
+    }
+
+    public File tryInstall(JavaToolchainSpec spec) {
         if (!isAutoDownloadEnabled()) {
-            return Optional.empty();
+            throw new ToolchainDownloadFailedException("No locally installed toolchains match (see " +
+                    Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() +
+                    ") and toolchain auto-provisioning is not enabled (see " +
+                    Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() + ").");
         }
 
         List<? extends RealizedJavaToolchainRepository> repositories = toolchainResolverRegistry.requestedRepositories();
-
-        DefaultJavaToolchainRequest toolchainRequest = new DefaultJavaToolchainRequest(spec, buildPlatform);
         if (repositories.isEmpty()) {
-            DeprecationLogger.deprecateBehaviour("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository.")
-                    .withAdvice("In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block.")
-                    .willBeRemovedInGradle8()
-                    .withUserManual("toolchains", "sec:provisioning")
-                    .nagUser();
-            Optional<JavaToolchainDownload> download = openJdkBinary.resolve(toolchainRequest);
+            throw new ToolchainDownloadFailedException("No locally installed toolchains match (see " +
+                    Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() +
+                    ") and toolchain download repositories have not been configured (see " +
+                    Documentation.userManual("toolchains", "sub:download_repositories").documentationUrl() + ").");
+        }
+
+        for (RealizedJavaToolchainRepository request : repositories) {
+            Optional<JavaToolchainDownload> download = request.getResolver().resolve(new DefaultJavaToolchainRequest(spec, buildPlatform));
             if (download.isPresent()) {
-                return Optional.of(provisionInstallation(spec, download.get().getUri(), Collections.emptyList()));
-            }
-        } else {
-            for (RealizedJavaToolchainRepository request : repositories) {
-                  Optional<JavaToolchainDownload> download = request.getResolver().resolve(toolchainRequest);
-                if (download.isPresent()) {
-                    Collection<Authentication> authentications = request.getAuthentications(download.get().getUri());
-                    return Optional.of(provisionInstallation(spec, download.get().getUri(), authentications));
-                }
+                Collection<Authentication> authentications = request.getAuthentications(download.get().getUri());
+                return provisionInstallation(spec, download.get().getUri(), authentications);
             }
         }
 
-        return Optional.empty();
+        throw new ToolchainDownloadFailedException("No locally installed toolchains match (see " +
+                Documentation.userManual("toolchains", "sec:auto_detection").documentationUrl() +
+                ") and the configured toolchain download repositories aren't able to provide a match either (see " +
+                Documentation.userManual("toolchains", "sub:download_repositories").documentationUrl() + ").");
     }
 
     private File provisionInstallation(JavaToolchainSpec spec, URI uri, Collection<Authentication> authentications) {
@@ -155,10 +161,6 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             throw new GradleException("Can't determine filename for resource located at: " + uri);
         }
         return fileName;
-    }
-
-    private boolean isAutoDownloadEnabled() {
-        return downloadEnabled.getOrElse(true);
     }
 
     private <T> T wrapInOperation(String displayName, Callable<T> provisioningStep) {

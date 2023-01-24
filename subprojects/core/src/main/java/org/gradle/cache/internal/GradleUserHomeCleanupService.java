@@ -17,7 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.cache.MonitoredCleanupAction;
 import org.gradle.internal.cache.MonitoredCleanupActionDecorator;
@@ -31,7 +31,7 @@ import java.io.File;
 public class GradleUserHomeCleanupService implements Stoppable {
     private final Deleter deleter;
     private final GradleUserHomeDirProvider userHomeDirProvider;
-    private final GlobalScopedCache globalScopedCache;
+    private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
     private final UsedGradleVersions usedGradleVersions;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final MonitoredCleanupActionDecorator cleanupActionDecorator;
@@ -41,7 +41,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
     public GradleUserHomeCleanupService(
         Deleter deleter,
         GradleUserHomeDirProvider userHomeDirProvider,
-        GlobalScopedCache globalScopedCache,
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         UsedGradleVersions usedGradleVersions,
         ProgressLoggerFactory progressLoggerFactory,
         MonitoredCleanupActionDecorator cleanupActionDecorator,
@@ -49,7 +49,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
     ) {
         this.deleter = deleter;
         this.userHomeDirProvider = userHomeDirProvider;
-        this.globalScopedCache = globalScopedCache;
+        this.cacheBuilderFactory = cacheBuilderFactory;
         this.usedGradleVersions = usedGradleVersions;
         this.progressLoggerFactory = progressLoggerFactory;
         this.cleanupActionDecorator = cleanupActionDecorator;
@@ -57,13 +57,13 @@ public class GradleUserHomeCleanupService implements Stoppable {
     }
 
     public void cleanup() {
-        File cacheBaseDir = globalScopedCache.getRootDir();
+        File cacheBaseDir = cacheBuilderFactory.getRootDir();
         boolean wasCleanedUp = execute(
             cleanupActionDecorator.decorate(
                 new VersionSpecificCacheCleanupAction(
                     cacheBaseDir,
-                    cacheConfigurations.getReleasedWrappers().getRemoveUnusedEntriesAfterDays().get(),
-                    cacheConfigurations.getSnapshotWrappers().getRemoveUnusedEntriesAfterDays().get(),
+                    cacheConfigurations.getReleasedWrappers().getRemoveUnusedEntriesOlderThanAsSupplier(),
+                    cacheConfigurations.getSnapshotWrappers().getRemoveUnusedEntriesOlderThanAsSupplier(),
                     deleter,
                     cacheConfigurations.getCleanupFrequency().get()
                 )

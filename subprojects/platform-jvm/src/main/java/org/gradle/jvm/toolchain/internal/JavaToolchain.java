@@ -157,6 +157,11 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
         eventEmitter.emitNowForCurrent(new DefaultJavaToolchainUsageProgressDetails(javaTool, metadata));
     }
 
+    @Override
+    public String toString() {
+        return "JavaToolchain(javaHome=" + getDisplayName() + ")";
+    }
+
     private Path computeEnclosingJavaHome(Path home) {
         final Path parentPath = home.getParent();
         final boolean isEmbeddedJre = home.getFileName().toString().equalsIgnoreCase("jre");

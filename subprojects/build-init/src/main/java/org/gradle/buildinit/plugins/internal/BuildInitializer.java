@@ -40,6 +40,8 @@ public interface BuildInitializer extends BuildContentGenerator {
      */
     Language getLanguage();
 
+    boolean supportsJavaTargets();
+
     /**
      * Can this type of project be split-up into multiple subprojects?
      */

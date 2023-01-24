@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.util.TestUtil
@@ -41,7 +40,6 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         getAll() >> ([] as Set)
     }
     ProjectStateRegistry projectStateRegistry = Mock()
-    DependencyLockingProvider dependencyLockingProvider = Mock()
 
     def mid = DefaultModuleIdentifier.newId('foo', 'bar')
 
@@ -51,7 +49,6 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         moduleIdentifierFactory,
         configurationComponentMetaDataBuilder,
         projectStateRegistry,
-        dependencyLockingProvider,
         TestUtil.calculatedValueContainerFactory()
     )
 
@@ -104,7 +101,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         mutationType                                | cached
         MutationValidator.MutationType.DEPENDENCIES | false
         MutationValidator.MutationType.ARTIFACTS    | false
-        MutationValidator.MutationType.ROLE         | true
+        MutationValidator.MutationType.USAGE        | true
         MutationValidator.MutationType.STRATEGY     | true
     }
 

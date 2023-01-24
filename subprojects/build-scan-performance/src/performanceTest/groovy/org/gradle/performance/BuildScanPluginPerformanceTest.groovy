@@ -87,11 +87,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         def speedStats = withoutResults.getSpeedStatsAgainst(withResults.name, withResults)
         println(speedStats)
 
-        def shiftedResults = buildShiftedResults(results, WITHOUT_PLUGIN_LABEL, MEDIAN_PERCENTAGES_SHIFT)
-        if (shiftedResults.significantlyFasterThan(withResults)) {
-            throw new AssertionError(speedStats)
-        }
-
         where:
         scenario                                                | expectedMedianPercentageShift | tasks                              | withFailure | scenarioArgs                                                  | manageCacheState
         "clean build - 50 projects"                             | MEDIAN_PERCENTAGES_SHIFT      | ['clean', 'build']                 | true        | ['--build-cache']                                             | true

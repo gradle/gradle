@@ -51,6 +51,8 @@ import org.gradle.initialization.buildsrc.GradlePluginApiVersionAttributeConfigu
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
@@ -193,18 +195,22 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
             pluginUnderTestMetadataTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(pluginUnderTestMetadataTask.getName()));
 
-            pluginUnderTestMetadataTask.getPluginClasspath().from((Callable<FileCollection>) () -> {
-                SourceSet sourceSet = extension.getPluginSourceSet();
-                Configuration runtimeClasspath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
-                ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
-                    config.componentFilter(spec(JavaGradlePluginPlugin::excludeGradleApi));
-                });
-                return pluginUnderTestMetadataTask.getProject().getObjects().fileCollection().from(
-                    sourceSet.getOutput(),
-                    view.getFiles().getElements()
-                );
-            });
+            pluginUnderTestMetadataTask.getPluginClasspath().from(classpathForPlugin(project, extension));
         });
+    }
+
+    private static Callable<FileCollection> classpathForPlugin(Project project, GradlePluginDevelopmentExtension extension) {
+        return () -> {
+            SourceSet sourceSet = extension.getPluginSourceSet();
+            Configuration runtimeClasspath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
+            ArtifactView view = runtimeClasspath.getIncoming().artifactView(config ->
+                config.componentFilter(spec(JavaGradlePluginPlugin::excludeGradleApi))
+            );
+            return project.getObjects().fileCollection().from(
+                sourceSet.getOutput(),
+                view.getFiles().getElements()
+            );
+        };
     }
 
     private static boolean excludeGradleApi(ComponentIdentifier componentId) {
@@ -260,12 +266,20 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
             task.getClasses().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getOutput().getClassesDirs());
             task.getClasspath().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getCompileClasspath());
+
+            task.getLauncher().convention(toolchainLauncher(project));
         });
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, check -> check.dependsOn(validatorTask));
     }
 
     private void configureDependencyGradlePluginsResolution(Project project) {
         new GradlePluginApiVersionAttributeConfigurationAction().execute((ProjectInternal) project);
+    }
+
+    private Provider<JavaLauncher> toolchainLauncher(Project project) {
+        JavaPluginExtension extension = project.getExtensions().findByType(JavaPluginExtension.class);
+        JavaToolchainService service = project.getExtensions().findByType(JavaToolchainService.class);
+        return service.launcherFor(extension.getToolchain());
     }
 
     /**

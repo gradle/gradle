@@ -19,6 +19,7 @@ package org.gradle.cache.internal
 import org.gradle.cache.CleanableStore
 import org.gradle.cache.CleanupProgressMonitor
 import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
+import org.gradle.internal.time.TimestampSuppliers
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -35,7 +36,7 @@ class LeastRecentlyUsedCacheCleanupTest extends Specification {
     def fileAccessTimeJournal = Spy(ModificationTimeFileAccessTimeJournal)
     def progressMonitor = Stub(CleanupProgressMonitor)
     @Subject def cleanupAction = new LeastRecentlyUsedCacheCleanup(
-        new SingleDepthFilesFinder(1), fileAccessTimeJournal, () -> 1)
+        new SingleDepthFilesFinder(1), fileAccessTimeJournal, TimestampSuppliers.daysAgo(1))
 
     def "finds files to delete when files are old"() {
         given:

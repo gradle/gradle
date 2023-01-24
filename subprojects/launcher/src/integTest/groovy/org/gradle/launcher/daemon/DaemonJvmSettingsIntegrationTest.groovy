@@ -44,8 +44,9 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         executer.useOnlyRequestedJvmOpts()
 
         file('build.gradle') << """
-            assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx1024m')
-            assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.count { !it.startsWith('--add-opens=') && !it.startsWith('-D') } == 1
+            def inputArguments = java.lang.management.ManagementFactory.runtimeMXBean.inputArguments
+            assert inputArguments.contains('-Xmx1024m')
+            assert inputArguments.count { !it.startsWith('--add-opens=') && !it.startsWith('-D') && !it.startsWith('-javaagent:') } == 1
         """
 
         when:

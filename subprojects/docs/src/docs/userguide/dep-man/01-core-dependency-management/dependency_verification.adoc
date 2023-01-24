@@ -851,7 +851,7 @@ This is facilitated by the fact the error message tells you were the file is loc
   This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums.
 
   For your information here are the path to the files which failed verification:
-    - GRADLE_USER_HOME/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1/976d8d30bebc251db406f2bdb3eb01962b5685b3/j2objc-annotations-1.1.jar (signature: GRADLE_USER_HOME/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1/82e922e14f57d522de465fd144ec26eb7da44501/j2objc-annotations-1.1.jar.asc)
+    - $<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1/976d8d30bebc251db406f2bdb3eb01962b5685b3/j2objc-annotations-1.1.jar (signature: GRADLE_USER_HOME/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1/82e922e14f57d522de465fd144ec26eb7da44501/j2objc-annotations-1.1.jar.asc)
 
   GRADLE_USER_HOME = /home/jiraya/.gradle
 ----
@@ -1038,14 +1038,14 @@ To do this, you need to call the `ResolutionStrategy#disableDependencyVerificati
 
 .Disabling dependency verification
 ====
-include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/groovy",files="build.gradle[tags=disabling-one-configuration]"]
 include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/kotlin",files="build.gradle.kts[tags=disabling-one-configuration]"]
+include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/groovy",files="build.gradle[tags=disabling-one-configuration]"]
 ====
 
 It's also possible to disable verification on detached configurations like in the following example:
 
 .Disabling dependency verification
 ====
-include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/groovy",files="build.gradle[tags=disabling-detached-configuration]"]
 include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/kotlin",files="build.gradle.kts[tags=disabling-detached-configuration]"]
+include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/groovy",files="build.gradle[tags=disabling-detached-configuration]"]
 ====
