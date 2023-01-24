@@ -23,9 +23,10 @@ import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 @TargetCoverage({ JacocoCoverage.supportedVersionsByJdk })
 class JacocoVersionCompatibilityIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
-    def "can run versions"() {
+    def "can run versions (offline: #offline)"() {
         given:
         javaProjectUnderTest.writeSourceFiles()
+        javaProjectUnderTest.writeOfflineInstrumentation(offline)
 
         when:
         succeeds('test', 'jacocoTestReport')
@@ -34,6 +35,9 @@ class JacocoVersionCompatibilityIntegrationTest extends JacocoMultiVersionIntegr
         def report = htmlReport()
         report.totalCoverage() == 100
         report.assertVersion(version)
+
+        where:
+        offline << [false, true]
     }
 
     private JacocoReportFixture htmlReport(String basedir = "build/reports/jacoco/test/html") {

@@ -62,6 +62,18 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
         succeeds 'help'
     }
 
+    def "jacoco plugin adds offline instrumentation for test task when java plugin applied"() {
+        given:
+        buildFile << '''
+            assert project.jacocoTestOfflineInstrumentation instanceof JacocoOfflineInstrumentation
+            assert project.jacocoTestOfflineInstrumentation.inputClassDirs*.absolutePath == project.sourceSets.main.output.classesDirs*.absolutePath
+            assert project.jacocoTestOfflineInstrumentation.outputDir.get() == project.layout.buildDirectory.dir("jacoco/test/instrumented-classes").get()
+        '''.stripIndent()
+
+        expect:
+        succeeds 'help'
+    }
+
     def "dependencies report shows default jacoco dependencies"() {
         when:
         succeeds("dependencies", "--configuration", "jacocoAgent")

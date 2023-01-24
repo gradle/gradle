@@ -47,19 +47,29 @@ class JavaProjectUnderTest {
         this
     }
 
-    JavaProjectUnderTest writeSourceFiles(int count = 1) {
-        writeProductionSourceFile(count)
-        writeTestSourceFile('src/test/java', count)
+    JavaProjectUnderTest writeOfflineInstrumentation(boolean enabled, String task = "test") {
+        buildFile << """
+            ${task} {
+                jacoco {
+                    offline.set(${enabled})
+                }
+            }
+        """
+        this
+    }
+
+    JavaProjectUnderTest writeSourceFiles(int count = 1, String sourceSet = "main", String classSuffix = "") {
+        writeProductionSourceFile(count, sourceSet, classSuffix)
+        writeTestSourceFile(count, "test", classSuffix + "Test", classSuffix)
         this
     }
 
     JavaProjectUnderTest writeIntegrationTestSourceFiles(int count = 1) {
-        String testSrcDir = 'src/integTest/java'
         buildFile << """
             sourceSets {
                 integrationTest {
                     java {
-                        srcDir file('$testSrcDir')
+                        srcDir file('src/integTest/java')
                     }
                     compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
                     runtimeClasspath += output + compileClasspath
@@ -82,16 +92,16 @@ class JavaProjectUnderTest {
             }
         """
 
-        writeTestSourceFile(testSrcDir, count, "IntegrationTest")
+        writeTestSourceFile(count, "integTest", "IntegrationTest", "")
         this
     }
 
-    private void writeProductionSourceFile(int count = 1) {
+    private void writeProductionSourceFile(int count, String sourceSet, String classSuffix) {
         (1..count).each { index ->
-            file("src/main/java/org/gradle/Class${index}.java").text = """
+            file("src/${sourceSet}/java/org/gradle/Class${index}${classSuffix}.java").text = """
             package org.gradle;
 
-            public class Class${index} {
+            public class Class${index}${classSuffix} {
                 public boolean isFoo(Object arg) {
                     return true;
                 }
@@ -100,17 +110,17 @@ class JavaProjectUnderTest {
         }
     }
 
-    private void writeTestSourceFile(String baseDir, int count = 1, String type="Test") {
+    private void writeTestSourceFile(int count, String testSourceSet, String testClassSuffix, String prodClassSuffix) {
         (1..count).each { index ->
-            file("$baseDir/org/gradle/Class${index}${type}.java").text = """
+            file("src/${testSourceSet}/java/org/gradle/Class${index}${testClassSuffix}.java").text = """
             package org.gradle;
 
             import org.junit.Test;
 
-            public class Class${index}${type} {
+            public class Class${index}${testClassSuffix} {
                 @Test
                 public void someTest() {
-                    new Class${index}().isFoo("test");
+                    new Class${index}${prodClassSuffix}().isFoo("test");
                 }
             }
         """
