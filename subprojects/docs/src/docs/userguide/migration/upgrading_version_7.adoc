@@ -556,7 +556,7 @@ includeBuild("nestedNested")
 Before Gradle 8.0, you ran `gradle :nestedNested:compileJava`.
 In Gradle 8.0 the invocation changes to `gradle :nested:nestedNested:compileJava`.
 
-==== Adding `jst.ejb` with the `eclipse wtp' plugin now removes the `jst.utility` facet
+==== Adding `jst.ejb` with the `eclipse wtp` plugin now removes the `jst.utility` facet
 
 The `eclipse wtp` plugin adds the `jst.utility` facet to java projects.
 Now, adding the `jst.ejb` facet implicitly removes the `jst.utility` facet:
