@@ -173,8 +173,9 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        def defaultEagerInputValue = eagerInputType.contains("Map<") ? "[:]" : "[]"
         buildFile.text = buildFileDefinition
-            .replace("{inputDeclaration}", "$eagerInputType input = []")
+            .replace("{inputDeclaration}", "$eagerInputType input = $defaultEagerInputValue")
             .replace("{inputValue}", inputValue)
 
         then:
@@ -189,20 +190,26 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         runAndAssert("myTask", lazyResult)
 
         where:
-        description                              | operation | eagerInputType | lazyInputType          | inputValue                               | eagerResult                          | lazyResult
-        "Collection<T> = T[]"                    | "="       | "List<String>" | "ListProperty<String>" | '["a"] as String[]'                      | 'Result: [a]'                        | failsWithCause("Cannot set the value of a property of type java.util.List using an instance of type [Ljava.lang.String;")
-        "Collection<T> = Iterable<T>"            | "="       | "List<String>" | "ListProperty<String>" | '["a"] as Iterable<String>'              | 'Result: [a]'                        | 'Result: [a]'
-        "Collection<T> = Provider<Iterable<T>>"  | "="       | "List<String>" | "ListProperty<String>" | 'provider { ["a"] as Iterable<String> }' | failsWithCause("Cannot cast object") | 'Result: [a]'
-        "Collection<T> += T"                     | "+="      | "List<String>" | "ListProperty<String>" | '"a"'                                    | 'Result: [a]'                        | failsWithCause("No signature of method")
-        "Collection<T> << T"                     | "<<"      | "List<String>" | "ListProperty<String>" | '"a"'                                    | 'Result: [a]'                        | failsWithCause("No signature of method")
-        "Collection<T> += Provider<T>"           | "+="      | "List<String>" | "ListProperty<String>" | 'provider { "a" }'                       | 'Result: [provider(?)]'              | failsWithCause("No signature of method")
-        "Collection<T> << Provider<T>"           | "<<"      | "List<String>" | "ListProperty<String>" | 'provider { "a" }'                       | 'Result: [provider(?)]'              | failsWithCause("No signature of method")
-        "Collection<T> += T[]"                   | "+="      | "List<String>" | "ListProperty<String>" | '["a"] as String[]'                      | 'Result: [[a]]'                      | failsWithCause("No signature of method")
-        "Collection<T> << T[]"                   | "<<"      | "List<String>" | "ListProperty<String>" | '["a"] as String[]'                      | 'Result: [[a]]'                      | failsWithCause("No signature of method")
-        "Collection<T> += Iterable<T>"           | "+="      | "List<String>" | "ListProperty<String>" | '["a"] as Iterable<String>'              | 'Result: [a]'                        | failsWithCause("No signature of method")
-        "Collection<T> << Iterable<T>"           | "<<"      | "List<String>" | "ListProperty<String>" | '["a"] as Iterable<String>'              | 'Result: [[a]]'                      | failsWithCause("No signature of method")
-        "Collection<T> += Provider<Iterable<T>>" | "+="      | "List<String>" | "ListProperty<String>" | 'provider { ["a"] as Iterable<String> }' | 'Result: [provider(?)]'              | failsWithCause("No signature of method")
-        "Collection<T> << Provider<Iterable<T>>" | "<<"      | "List<String>" | "ListProperty<String>" | 'provider { ["a"] as Iterable<String> }' | 'Result: [provider(?)]'              | failsWithCause("No signature of method")
+        description                              | operation | eagerInputType        | lazyInputType                 | inputValue                               | eagerResult                              | lazyResult
+        "Collection<T> = T[]"                    | "="       | "List<String>"        | "ListProperty<String>"        | '["a"] as String[]'                      | 'Result: [a]'                            | failsWithCause("Cannot set the value of a property of type java.util.List using an instance of type [Ljava.lang.String;")
+        "Collection<T> = Iterable<T>"            | "="       | "List<String>"        | "ListProperty<String>"        | '["a"] as Iterable<String>'              | 'Result: [a]'                            | 'Result: [a]'
+        "Collection<T> = Provider<Iterable<T>>"  | "="       | "List<String>"        | "ListProperty<String>"        | 'provider { ["a"] as Iterable<String> }' | failsWithCause("Cannot cast object")     | 'Result: [a]'
+        "Collection<T> += T"                     | "+="      | "List<String>"        | "ListProperty<String>"        | '"a"'                                    | 'Result: [a]'                            | failsWithCause("No signature of method")
+        "Collection<T> << T"                     | "<<"      | "List<String>"        | "ListProperty<String>"        | '"a"'                                    | 'Result: [a]'                            | failsWithCause("No signature of method")
+        "Collection<T> += Provider<T>"           | "+="      | "List<String>"        | "ListProperty<String>"        | 'provider { "a" }'                       | 'Result: [provider(?)]'                  | failsWithCause("No signature of method")
+        "Collection<T> << Provider<T>"           | "<<"      | "List<String>"        | "ListProperty<String>"        | 'provider { "a" }'                       | 'Result: [provider(?)]'                  | failsWithCause("No signature of method")
+        "Collection<T> += T[]"                   | "+="      | "List<String>"        | "ListProperty<String>"        | '["a"] as String[]'                      | 'Result: [[a]]'                          | failsWithCause("No signature of method")
+        "Collection<T> << T[]"                   | "<<"      | "List<String>"        | "ListProperty<String>"        | '["a"] as String[]'                      | 'Result: [[a]]'                          | failsWithCause("No signature of method")
+        "Collection<T> += Iterable<T>"           | "+="      | "List<String>"        | "ListProperty<String>"        | '["a"] as Iterable<String>'              | 'Result: [a]'                            | failsWithCause("No signature of method")
+        "Collection<T> << Iterable<T>"           | "<<"      | "List<String>"        | "ListProperty<String>"        | '["a"] as Iterable<String>'              | 'Result: [[a]]'                          | failsWithCause("No signature of method")
+        "Collection<T> += Provider<Iterable<T>>" | "+="      | "List<String>"        | "ListProperty<String>"        | 'provider { ["a"] as Iterable<String> }' | 'Result: [provider(?)]'                  | failsWithCause("No signature of method")
+        "Collection<T> << Provider<Iterable<T>>" | "<<"      | "List<String>"        | "ListProperty<String>"        | 'provider { ["a"] as Iterable<String> }' | 'Result: [provider(?)]'                  | failsWithCause("No signature of method")
+        "Map<K, V> = Map<K, V>"                  | "="       | "Map<String, String>" | "MapProperty<String, String>" | '["a": "b"]'                             | 'Result: [a:b]'                          | 'Result: [a:b]'
+        "Map<K, V> = Provider<Map<K, V>>"        | "="       | "Map<String, String>" | "MapProperty<String, String>" | 'provider { ["a": "b"] }'                | failsWithCause("Cannot cast object")     | 'Result: [a:b]'
+        "Map<K, V> += Map<K, V>"                 | "+="      | "Map<String, String>" | "MapProperty<String, String>" | '["a": "b"]'                             | 'Result: [a:b]'                          | failsWithCause("No signature of method")
+        "Map<K, V> << Map<K, V>"                 | "<<"      | "Map<String, String>" | "MapProperty<String, String>" | '["a": "b"]'                             | 'Result: [a:b]'                          | failsWithCause("No signature of method")
+        "Map<K, V> += Provider<Map<K, V>>"       | "+="      | "Map<String, String>" | "MapProperty<String, String>" | 'provider { ["a": "b"] }'                | failsWithCause("No signature of method") | failsWithCause("No signature of method")
+        "Map<K, V> << Provider<Map<K, V>>"       | "<<"      | "Map<String, String>" | "MapProperty<String, String>" | 'provider { ["a": "b"] }'                | failsWithCause("No signature of method") | failsWithCause("No signature of method")
     }
 
     def "test Kotlin collection types assignment for #description"() {
@@ -228,8 +235,9 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        def defaultEagerInputValue = eagerInputType.contains("Map<") ? "mutableMapOf<String, String>()" : "mutableListOf<String>()"
         buildKotlinFile.text = buildFileDefinition
-            .replace("{inputDeclaration}", "var input: $eagerInputType = mutableListOf<String>()")
+            .replace("{inputDeclaration}", "var input: $eagerInputType = $defaultEagerInputValue")
             .replace("{inputValue}", inputValue)
 
         then:
@@ -244,15 +252,21 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         runAndAssert("myTask", lazyResult)
 
         where:
-        description                              | operation | eagerInputType        | lazyInputType          | inputValue                                     | eagerResult                           | lazyResult
-        "Collection<T> = T[]"                    | "="       | "List<String>"        | "ListProperty<String>" | 'arrayOf("a")'                                 | failsWithDescription("Type mismatch") | failsWithDescription("No applicable 'assign' function found for '=' overload")
-        "Collection<T> = Iterable<T>"            | "="       | "List<String>"        | "ListProperty<String>" | 'listOf("a") as Iterable<String>'              | failsWithDescription("Type mismatch") | 'Result: [a]'
-        "Collection<T> = Provider<Iterable<T>>"  | "="       | "List<String>"        | "ListProperty<String>" | 'provider { listOf("a") as Iterable<String> }' | failsWithDescription("Type mismatch") | 'Result: [a]'
-        "Collection<T> += T"                     | "+="      | "MutableList<String>" | "ListProperty<String>" | '"a"'                                          | 'Result: [a]'                         | failsWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
-        "Collection<T> += Provider<T>"           | "+="      | "MutableList<String>" | "ListProperty<String>" | 'provider { "a" }'                             | failsWithDescription("Type mismatch") | failsWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
-        "Collection<T> += T[]"                   | "+="      | "MutableList<String>" | "ListProperty<String>" | 'arrayOf("a")'                                 | 'Result: [a]'                         | failsWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
-        "Collection<T> += Iterable<T>"           | "+="      | "MutableList<String>" | "ListProperty<String>" | 'listOf("a") as Iterable<String>'              | 'Result: [a]'                         | failsWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
-        "Collection<T> += Provider<Iterable<T>>" | "+="      | "MutableList<String>" | "ListProperty<String>" | 'provider { listOf("a") as Iterable<String> }' | failsWithDescription("Type mismatch") | failsWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        description                              | operation | eagerInputType               | lazyInputType                 | inputValue                                     | eagerResult                                   | lazyResult
+        "Collection<T> = T[]"                    | "="       | "List<String>"               | "ListProperty<String>"        | 'arrayOf("a")'                                 | failsWithDescription("Type mismatch")         | failsWithDescription("No applicable 'assign' function found for '=' overload")
+        "Collection<T> = Iterable<T>"            | "="       | "List<String>"               | "ListProperty<String>"        | 'listOf("a") as Iterable<String>'              | failsWithDescription("Type mismatch")         | 'Result: [a]'
+        "Collection<T> = Provider<Iterable<T>>"  | "="       | "List<String>"               | "ListProperty<String>"        | 'provider { listOf("a") as Iterable<String> }' | failsWithDescription("Type mismatch")         | 'Result: [a]'
+        "Collection<T> += T"                     | "+="      | "MutableList<String>"        | "ListProperty<String>"        | '"a"'                                          | 'Result: [a]'                                 | failsWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Collection<T> += Provider<T>"           | "+="      | "MutableList<String>"        | "ListProperty<String>"        | 'provider { "a" }'                             | failsWithDescription("Type mismatch")         | failsWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Collection<T> += T[]"                   | "+="      | "MutableList<String>"        | "ListProperty<String>"        | 'arrayOf("a")'                                 | 'Result: [a]'                                 | failsWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Collection<T> += Iterable<T>"           | "+="      | "MutableList<String>"        | "ListProperty<String>"        | 'listOf("a") as Iterable<String>'              | 'Result: [a]'                                 | failsWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Collection<T> += Provider<Iterable<T>>" | "+="      | "MutableList<String>"        | "ListProperty<String>"        | 'provider { listOf("a") as Iterable<String> }' | failsWithDescription("Type mismatch")         | failsWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Map<K, V> = Map<K, V>"                  | "="       | "Map<String, String>"        | "MapProperty<String, String>" | 'mapOf("a" to "b")'                            | 'Result: {a=b}'                               | 'Result: {a=b}'
+        "Map<K, V> = Provider<Map<K, V>>"        | "="       | "Map<String, String>"        | "MapProperty<String, String>" | 'provider { mapOf("a" to "b") }'               | failsWithDescription("Type mismatch")         | 'Result: {a=b}'
+        "Map<K, V> += Pair<K, V>"                | "+="      | "MutableMap<String, String>" | "MapProperty<String, String>" | '"a" to "b"'                                   | 'Result: {a=b}'                               | failsWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Map<K, V> += Provider<Pair<K, V>>"      | "+="      | "MutableMap<String, String>" | "MapProperty<String, String>" | 'provider { "a" to "b" }'                      | failsWithDescription("None of the following") | failsWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Map<K, V> += Map<K, V>"                 | "+="      | "MutableMap<String, String>" | "MapProperty<String, String>" | 'mapOf("a" to "b")'                            | 'Result: {a=b}'                               | failsWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
+        "Map<K, V> += Provider<Map<K, V>>"       | "+="      | "MutableMap<String, String>" | "MapProperty<String, String>" | 'provider { mapOf("a" to "b") }'               | failsWithDescription("None of the following") | failsWithDescription("Unresolved reference. None of the following candidates is applicable because of receiver type mismatch:")
     }
 
     private void runAndAssert(String task, Object expectedResult) {
