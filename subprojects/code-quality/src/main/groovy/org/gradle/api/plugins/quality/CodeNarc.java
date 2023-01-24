@@ -49,6 +49,8 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs;
+
 /**
  * Runs CodeNarc against some source files.
  */
@@ -139,6 +141,7 @@ public abstract class CodeNarc extends SourceTask implements VerificationTask, R
     public void run() {
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
             spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+            maybeAddOpensJvmArgs(javaLauncher.get(), spec);
         });
         workQueue.submit(CodeNarcAction.class, this::setupParameters);
     }
