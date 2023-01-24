@@ -100,7 +100,6 @@ dependencies {
            prefer '1.4.30'
         }
         transitive = false
-        force = true
     }
 }
 
@@ -113,12 +112,10 @@ task checkDeps {
         def configuredDep = deps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.dokka' && it.name == 'org.jetbrains.dokka.gradle.plugin' }
         assert configuredDep.version == '1.4.30'
         assert configuredDep.transitive == false
-        assert configuredDep.force == true
     }
 }
 """
         then:
-        executer.expectDeprecationWarning()
         succeeds 'checkDeps'
     }
 
