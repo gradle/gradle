@@ -74,7 +74,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
         ImmutableCapabilities fallbackCapabilities = ImmutableCapabilities.of(ImmutableCapability.defaultCapabilityForComponent(moduleVersionId));
 
         ImmutableSet<ResolvedVariant> legacyResolvedVariants = buildResolvedVariants(moduleVersionId, fallbackCapabilities, sources, legacyVariants, exclusions);
-        ComponentArtifactResolveVariantState allResolvedVariants = () -> buildResolvedVariants(moduleVersionId, fallbackCapabilities, sources, allVariants.get(), exclusions);
+        ComponentArtifactResolveVariantState allResolvedVariants = () -> buildResolvedVariants(moduleVersionId, fallbackCapabilities, sources, legacyVariants, exclusions);
 
         for (OriginArtifactSelector selector : selectors) {
             ArtifactSet artifacts = selector.resolveArtifacts(component, allResolvedVariants, legacyResolvedVariants, exclusions, overriddenAttributes);
