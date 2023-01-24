@@ -21,9 +21,6 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
 
-import java.nio.file.Files
-import java.nio.file.Path
-
 class JavaInstallationRegistryTest extends Specification {
 
     def "registry keeps track of initial installations"() {
