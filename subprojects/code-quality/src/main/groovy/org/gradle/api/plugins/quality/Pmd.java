@@ -59,6 +59,8 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.maybeAddOpensJvmArgs;
+
 /**
  * Runs a set of static code analysis rules on Java source code files and generates a report of problems found.
  *
@@ -132,6 +134,7 @@ public abstract class Pmd extends SourceTask implements VerificationTask, Report
 
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
             spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+            maybeAddOpensJvmArgs(javaLauncher.get(), spec);
         });
         workQueue.submit(PmdAction.class, this::setupParameters);
     }

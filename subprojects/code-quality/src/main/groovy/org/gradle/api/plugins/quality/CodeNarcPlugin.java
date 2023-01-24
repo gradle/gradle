@@ -30,7 +30,12 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.util.internal.VersionNumber;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 
+import javax.inject.Inject;
 import java.io.File;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
@@ -55,6 +60,11 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
     @Override
     protected Class<CodeNarc> getTaskType() {
         return CodeNarc.class;
+    }
+
+    @Inject
+    protected JavaToolchainService getToolchainService() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -84,6 +94,7 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
         Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
+        configureToolchains(task);
     }
 
     @Override
@@ -120,6 +131,15 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
                 return new File(reportsDir.get().getAsFile(), baseName + "." + fileSuffix).getAbsolutePath();
             })));
         }));
+    }
+
+    private void configureToolchains(CodeNarc task) {
+        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(new CurrentJvmToolchainSpec(project.getObjects()));
+        task.getJavaLauncher().convention(javaLauncherProvider);
+        project.getPluginManager().withPlugin("java-base", p -> {
+            JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
+            task.getJavaLauncher().convention(getToolchainService().launcherFor(toolchain).orElse(javaLauncherProvider));
+        });
     }
 
     @Override
