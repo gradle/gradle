@@ -355,4 +355,60 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
         'provider { "baz" }.zip(task.flatMap { it.outDir }) { f, d -> d.file(f) }' | _
         'provider { "baz" }.zip(task.get().outDir) { f, d -> d.file(f) }'          | _
     }
+
+    def "provider orElseThrow should not throw if provider has value"() {
+        given:
+        buildFile << """
+            import java.util.concurrent.Callable;
+
+            task myTask(type: MyTask)
+
+            class MyTask extends DefaultTask {
+
+                @TaskAction
+                void printText() {
+                    println project.providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return "$DEFAULT_TEXT";
+                        }
+                    }).orElseThrow(() -> new IllegalArgumentException("my exception message"))
+                }
+            }
+        """
+
+        when:
+        succeeds('myTask')
+
+        then:
+        outputContains(DEFAULT_TEXT)
+    }
+
+    def "provider orElseThrow should throw supplied exception if provider has no value"() {
+        given:
+        buildFile << """
+            import java.util.concurrent.Callable;
+
+            task myTask(type: MyTask)
+
+            class MyTask extends DefaultTask {
+
+                @TaskAction
+                void printText() {
+                    println project.providers.provider(new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return null;
+                        }
+                    }).orElseThrow(() -> new IllegalArgumentException("my exception message"))
+                }
+            }
+        """
+
+        when:
+        fails('myTask')
+
+        then:
+        failure.assertHasErrorOutput("> my exception message")
+    }
 }

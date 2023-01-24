@@ -23,6 +23,8 @@ import org.gradle.internal.HasInternalProtocol;
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
+import java.util.Optional;
 
 /**
  * A container object that provides a value of a specific type. The value can be retrieved using one of the query methods
@@ -99,10 +101,24 @@ public interface Provider<T> {
      * Returns the value of this provider if it has a value present. Returns the given default value if a value is
      * not available.
      *
+     * @param defaultValue the value to return when no provider value is present
      * @return the value or the default value.
      * @since 4.3
      */
     T getOrElse(T defaultValue);
+
+    /**
+     * Returns the value of this provider if it has a value present, otherwise throwing the supplied exception.
+     *
+     * @param exceptionSupplier the function supplying the exception to be thrown when no provider value is present
+     * @return the provider value
+     * @throws X if there is no value present
+     * @since 8.1
+     */
+    default <X extends Throwable> T orElseThrow(Supplier<? extends X> exceptionSupplier) throws X {
+        return Optional.ofNullable(getOrNull())
+                .orElseThrow(exceptionSupplier);
+    }
 
     /**
      * Returns a new {@link Provider} whose value is the value of this provider transformed using the given function.

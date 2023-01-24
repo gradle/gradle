@@ -130,6 +130,21 @@ class AbstractMinimalProviderTest extends ProviderSpec<String> {
         e.message == 'Cannot query the value of this provider because it has no value available.'
     }
 
+    def "does not throw supplied exception when value present"() {
+        expect:
+        provider.value("abc")
+        provider.orElseThrow() == "abc"
+    }
+
+    def "throws supplied exception when value not present"() {
+        when:
+        provider.orElseThrow(() -> new RuntimeException('supplied exception'))
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == 'supplied exception'
+    }
+
     def "toString() displays nice things"() {
         expect:
         new TestProvider().toString() == "provider(java.lang.String)"
