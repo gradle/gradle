@@ -16,65 +16,16 @@
 
 package org.gradle.initialization
 
-import org.gradle.StartParameter
+
 import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.initialization.Settings
-import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.FeaturePreviewsActivationFixture
-import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.plugins.DefaultPluginManager
-import org.gradle.configuration.ScriptPluginFactory
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.buildoption.FeatureFlags
-import org.gradle.internal.instantiation.InstantiatorFactory
-import org.gradle.internal.management.DependencyResolutionManagementInternal
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.ServiceRegistryFactory
-import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class DefaultSettingsTest extends Specification {
-    File settingsDir = new File('/somepath/root').absoluteFile
-    StartParameter startParameter = new StartParameter(currentDir: new File(settingsDir, 'current'), gradleUserHomeDir: new File('gradleUserHomeDir'))
-    ClassLoaderScope rootClassLoaderScope = Mock(ClassLoaderScope)
-    ClassLoaderScope classLoaderScope = Mock(ClassLoaderScope)
-    ScriptSource scriptSourceMock = Mock(ScriptSource)
-    GradleInternal gradleMock = Mock(GradleInternal)
-    ProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
-    ServiceRegistryFactory serviceRegistryFactory
-    FileResolver fileResolver = Mock(FileResolver)
-    ScriptPluginFactory scriptPluginFactory = Mock(ScriptPluginFactory)
-    ScriptHandlerFactory scriptHandlerFactory = Mock(ScriptHandlerFactory)
-    ScriptHandler settingsScriptHandler = Mock(ScriptHandler)
-    DefaultPluginManager pluginManager = Mock(DefaultPluginManager)
-    FeatureFlags previews = Mock(FeatureFlags)
-    DefaultSettings settings
+class DefaultSettingsTest extends DefaultSettingsCommonTest {
 
     def setup() {
-        fileResolver.resolve(_) >> { args -> args[0].canonicalFile }
-
-        def settingsServices = Mock(ServiceRegistry)
-        settingsServices.get(FileResolver) >> fileResolver
-        settingsServices.get(ScriptPluginFactory) >> scriptPluginFactory
-        settingsServices.get(ScriptHandlerFactory) >> scriptHandlerFactory
-        settingsServices.get(ProjectDescriptorRegistry) >> projectDescriptorRegistry
-        settingsServices.get(FeatureFlags) >> previews
-        settingsServices.get(DefaultPluginManager) >>> [pluginManager, null]
-        settingsServices.get(InstantiatorFactory) >> Stub(InstantiatorFactory)
-        settingsServices.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
-
-        serviceRegistryFactory = Mock(ServiceRegistryFactory) {
-           1 * createFor(_) >> settingsServices
-        }
-
-        def instantiator = TestUtil.instantiatorFactory().decorateLenient()
-        settings = instantiator.newInstance(DefaultSettings, serviceRegistryFactory,
-                gradleMock, classLoaderScope, rootClassLoaderScope, settingsScriptHandler,
-                settingsDir, scriptSourceMock, startParameter)
+        createSettings()
     }
 
     def 'is wired properly'() {
