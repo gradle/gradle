@@ -21,12 +21,16 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
 
-class JavaInstallationRegistryTest extends Specification {
+import java.nio.file.Files
+import java.nio.file.Path
 
-    def tempFolder = createTempDir()
+class JavaInstallationRegistryTest extends Specification {
 
     def "registry keeps track of initial installations"() {
         when:
+        def tempFolder = createTempDir()
+        createExecutable(tempFolder)
+
         def registry = newRegistry(tempFolder)
 
         then:
@@ -36,14 +40,29 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "registry filters non-unique locations"() {
         when:
+        def tempFolder = createTempDir()
+        createExecutable(tempFolder)
+
         def registry = newRegistry(tempFolder, tempFolder)
 
         then:
         registry.listInstallations()*.location == [tempFolder]
     }
 
+    def "registry filters locations without java executable"() {
+        when:
+        def tempFolder = createTempDir()
+        def registry = newRegistry(tempFolder)
+
+        then:
+        registry.listInstallations()*.location == []
+    }
+
     def "duplicates are detected using canonical form"() {
         given:
+        def tempFolder = createTempDir()
+        createExecutable(tempFolder)
+
         def registry = newRegistry(tempFolder, new File(tempFolder, "/."))
 
         when:
@@ -55,8 +74,12 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "can be initialized with suppliers"() {
         given:
+        def tempFolder = createTempDir()
+        createExecutable(tempFolder)
         def tmpDir2 = createTempDir()
+        createExecutable(tmpDir2)
         def tmpDir3 = createTempDir()
+        createExecutable(tmpDir3)
 
         when:
         def registry = newRegistry(tempFolder, tmpDir2, tmpDir3)
@@ -67,6 +90,9 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "list of installations is cached"() {
         given:
+        def tempFolder = createTempDir()
+        createExecutable(tempFolder)
+
         def registry = newRegistry(tempFolder)
 
         when:
@@ -79,8 +105,10 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "normalize installations to account for macOS folder layout"() {
         given:
+        def tempFolder = createTempDir()
         def expectedHome = new File(tempFolder, "Contents/Home")
-        assert expectedHome.mkdirs()
+        createExecutable(expectedHome)
+
         def registry = new JavaInstallationRegistry([forDirectory(tempFolder)], new TestBuildOperationExecutor(), OperatingSystem.MAC_OS)
 
         when:
@@ -92,11 +120,9 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "normalize installations to account for standalone jre"() {
         given:
+        def tempFolder = createTempDir()
         def expectedHome = new File(tempFolder, "jre")
-        assert expectedHome.mkdirs()
-        def jreBinFolder = new File(expectedHome, "bin")
-        assert jreBinFolder.mkdir()
-        assert new File(jreBinFolder, OperatingSystem.current().getExecutableName( "java")).createNewFile()
+        createExecutable(expectedHome)
 
         def registry = new JavaInstallationRegistry([forDirectory(tempFolder)], new TestBuildOperationExecutor(), OperatingSystem.current())
 
@@ -110,8 +136,10 @@ class JavaInstallationRegistryTest extends Specification {
     def "skip path normalization on non-osx systems"() {
         given:
         def rootWithMacOsLayout = createTempDir()
+        createExecutable(rootWithMacOsLayout)
         def expectedHome = new File(rootWithMacOsLayout, "Contents/Home")
         assert expectedHome.mkdirs()
+
         def registry = new JavaInstallationRegistry([forDirectory(rootWithMacOsLayout)], new TestBuildOperationExecutor(), OperatingSystem.LINUX)
 
         when:
@@ -163,6 +191,14 @@ class JavaInstallationRegistryTest extends Specification {
         def file = File.createTempDir()
         file.deleteOnExit()
         file.canonicalFile
+    }
+
+    void createExecutable(File javaHome) {
+        def executableName = OperatingSystem.current().getExecutableName("java")
+        def executable = new File(javaHome, "bin/$executableName")
+        assert executable.mkdirs()
+        executable.createNewFile()
+        executable.deleteOnExit()
     }
 
     private JavaInstallationRegistry newRegistry(File... location) {
