@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.slf4j.Logger;
@@ -32,11 +33,18 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGradlePropertiesLoader.class);
 
     private final StartParameterInternal startParameter;
+
     private final Environment environment;
 
-    public DefaultGradlePropertiesLoader(StartParameterInternal startParameter, Environment environment) {
+    private final EnvironmentChangeTracker environmentChangeTracker;
+
+    private final GradleInternal gradleInternal;
+
+    public DefaultGradlePropertiesLoader(StartParameterInternal startParameter, Environment environment, EnvironmentChangeTracker environmentChangeTracker, GradleInternal gradleInternal) {
         this.startParameter = startParameter;
         this.environment = environment;
+        this.environmentChangeTracker = environmentChangeTracker;
+        this.gradleInternal = gradleInternal;
     }
 
     @Override
@@ -57,13 +65,21 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         //    e.g., included-build/gradle.properties << systemProp.org.gradle.project.fromSystemProp=42
         setSystemPropertiesFromGradleProperties(defaultProperties);
         setSystemPropertiesFromGradleProperties(overrideProperties);
-        System.getProperties().putAll(startParameter.getSystemPropertiesArgs());
+        setSystemPropertiesFromStartParameter(startParameter.getSystemPropertiesArgs());
 
         overrideProperties.putAll(projectPropertiesFromEnvironmentVariables());
         overrideProperties.putAll(projectPropertiesFromSystemProperties());
         overrideProperties.putAll(startParameter.getProjectProperties());
 
         return new DefaultGradleProperties(defaultProperties, overrideProperties);
+    }
+
+    private void setSystemPropertiesFromStartParameter(Map<String, String> systemPropertiesArgs) {
+        for (String key : systemPropertiesArgs.keySet()) {
+            environmentChangeTracker.systemPropertyOverridden(key);
+        }
+
+        System.getProperties().putAll(startParameter.getSystemPropertiesArgs());
     }
 
     private void addGradlePropertiesFrom(File dir, Map<String, Object> target) {
@@ -97,7 +113,11 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         int prefixLength = prefix.length();
         for (String key : properties.keySet()) {
             if (key.length() > prefixLength && key.startsWith(prefix)) {
-                System.setProperty(key.substring(prefixLength), uncheckedNonnullCast(properties.get(key)));
+                String systemPropertyKey = key.substring(prefixLength);
+                if (!gradleInternal.isRootBuild()) {
+                    environmentChangeTracker.systemPropertyLoaded(systemPropertyKey, properties.get(key), System.getProperty(systemPropertyKey));
+                }
+                System.setProperty(systemPropertyKey, uncheckedNonnullCast(properties.get(key)));
             }
         }
     }
