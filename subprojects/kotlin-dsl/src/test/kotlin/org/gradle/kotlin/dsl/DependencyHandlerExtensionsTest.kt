@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Provider
-import org.gradle.plugin.use.PluginDependency
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
@@ -255,27 +254,6 @@ class DependencyHandlerExtensionsTest {
 
         verify(antModule).addDependency(antLauncherDependency)
         verify(antModule).addDependency(antJUnitDependency)
-    }
-
-    @Test
-    fun `given id and version, 'plugin' extension will build corresponding map`() {
-
-        val expectedModuleMap = mapOf(
-            "id" to "i",
-            "version" to "v",
-        )
-
-        val dependencies = newDependencyHandlerMock()
-        val dependency: PluginDependency = mock()
-        whenever(dependencies.plugin(expectedModuleMap)).thenReturn(dependency)
-
-        assertThat(
-            dependencies.plugin(
-                id = "i",
-                version = "v"
-            ),
-            sameInstance(dependency)
-        )
     }
 
     @Test

@@ -252,24 +252,6 @@ fun DependencyHandler.project(
         )
     )
 
-
-/**
- * Creates a dependency on a Gradle plugin.
- *
- * @param id the id of the plugin to be added as a dependency.
- * @param version the optional version of the module to be added as a dependency.
- *
- * @return The dependency.
- *
- * @see [DependencyHandler.plugin]
- */
-fun DependencyHandler.plugin(
-    id: String,
-    version: String? = null
-): PluginDependency =
-    plugin(mapOfNonNullValuesOf("id" to id, "version" to version))
-
-
 /**
  * Adds a dependency to the given configuration, and configures the dependency using the given expression.
  *
