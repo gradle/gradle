@@ -24,7 +24,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
-import org.gradle.api.internal.tasks.execution.DescribingAndSpec
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskExecutionException
@@ -543,18 +542,6 @@ class DefaultTaskTest extends AbstractTaskTest {
 
         then:
         1 * rewriter.rewrite(LogLevel.WARN, "test")
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/23520")
-    def "has getOnlyIf() method returning DescribingAndSpec for 7.6 compatibility"() {
-        given:
-        def method = task.class.methods.find { it.name == "getOnlyIf" && it.returnType == DescribingAndSpec }
-
-        when:
-        def onlyIfSpec = method.invoke(task)
-
-        then:
-        onlyIfSpec == (task as TaskInternal).onlyIf
     }
 }
 
