@@ -60,7 +60,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.time.Instant.now;
 import static org.apache.commons.lang.ArrayUtils.contains;
+import static org.gradle.internal.hash.Hashing.sha512;
 
 public abstract class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
     private ScriptSource settingsScript;
@@ -110,7 +112,8 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     private static String getProjectName(File settingsDir) {
         if(contains(File.listRoots(), settingsDir)) {
-            return "root project";
+            return "generated " +  settingsDir.toPath().getRoot().toString().replace("[\\:/]", "") + " " +
+                sha512().hashString(now().toString()).toString().substring(0, 6);
         }
         return settingsDir.getName();
     }
