@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.os.OperatingSystem
 import spock.lang.IgnoreIf
 import spock.lang.TempDir
 
@@ -33,10 +34,8 @@ class InvalidJvmInstallationReportingIntegrationTest extends AbstractIntegration
 
         // Use two invalid installation paths to verify that the implementation reports a warning on each of them
         // (as opposed to e.g. reporting only the first one)
-        def invalidJdkHome1 = new File(temporaryDirectory, "jdk1")
-        def invalidJdkHome2 = new File(temporaryDirectory, "jdk2")
-        assert(invalidJdkHome1.mkdirs())
-        assert(invalidJdkHome2.mkdirs())
+        def invalidJdkHome1 = createInvalidJdkHome("jdk1")
+        def invalidJdkHome2 = createInvalidJdkHome("jdk2")
 
         // The builds should trigger toolchains discovery; here it's done from different subprojects in order to test
         // that the JVM installation detection is cached during a build
@@ -89,5 +88,14 @@ class InvalidJvmInstallationReportingIntegrationTest extends AbstractIntegration
 
     private int countMatches(String pattern, String text) {
         return Pattern.compile(Pattern.quote(pattern)).matcher(text).count
+    }
+
+    private File createInvalidJdkHome(String name) {
+        def jdkHome = new File(temporaryDirectory, name)
+        def executableName = OperatingSystem.current().getExecutableName("java")
+        def executable = new File(jdkHome, "bin/$executableName")
+        assert executable.mkdirs()
+        executable.createNewFile()
+        jdkHome
     }
 }
