@@ -20,10 +20,8 @@ import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.GradleScriptException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
@@ -44,7 +42,6 @@ import org.gradle.kotlin.dsl.support.serviceRegistryOf
 import org.gradle.plugin.management.internal.PluginRequests
 import java.io.File
 import java.lang.reflect.InvocationTargetException
-import kotlin.script.experimental.api.KotlinType
 
 
 /**
@@ -329,29 +326,9 @@ class Interpreter(val host: Host) {
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     pluginAccessorsClassPath = pluginAccessorsClassPath,
                     packageName = residualProgram.packageName,
-                    injectedProperties = scriptHost.injectedProperties
                 ).compile(residualProgram.document)
             }
         }
-    }
-
-    private
-    val KotlinScriptHost<*>.injectedProperties: Map<String, KotlinType>
-        get() = when (target) {
-            is Project -> {
-                target.extensions.findByType(VersionCatalogsExtension::class.java)
-                    ?.map { it.name to target.extensions.findByName(it.name) }
-                    ?.filter { it.second != null }
-                    ?.associate { it.first to it.second!!.getKotlinType() }
-                    ?: mapOf()
-            }
-            else -> mapOf()
-        }
-
-    private
-    fun Any.getKotlinType(): KotlinType = when (this) {
-        is GeneratedSubclass -> KotlinType(this.publicType().kotlin)
-        else -> KotlinType(this.javaClass.kotlin)
     }
 
     private
