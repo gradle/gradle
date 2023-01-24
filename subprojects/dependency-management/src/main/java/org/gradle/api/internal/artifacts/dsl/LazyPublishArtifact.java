@@ -31,7 +31,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -51,37 +50,8 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
     private final TaskDependencyFactory taskDependencyFactory;
     private PublishArtifactInternal delegate;
 
-
-    // Used in a third-party plugin: used in a third-party plugin: https://github.com/gradle/playframework/blob/0d20d4550/src/main/java/org/gradle/playframework/plugins/PlayApplicationPlugin.java#L134
-    // TODO Remove once the third-party usage is considered obsolete.
-    /**
-     * @deprecated Provide a {@link FileResolver} instead using {@link #LazyPublishArtifact(Provider, FileResolver)}.
-     */
-    @Deprecated
-    public LazyPublishArtifact(Provider<?> provider) {
-        this(provider, (FileResolver) null);
-        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>)")
-                .replaceWith("constructor LazyPublishArtifact(Provider<?>, FileResolver)")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
-                .nagUser();
-    }
-
     public LazyPublishArtifact(Provider<?> provider, FileResolver fileResolver) {
         this(provider, fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject());
-    }
-
-    /**
-     * @deprecated Provide a {@link FileResolver} instead using {@link #LazyPublishArtifact(Provider, FileResolver, TaskDependencyFactory)}.
-     */
-    @Deprecated
-    public LazyPublishArtifact(Provider<?> provider, TaskDependencyFactory taskDependencyFactory) {
-        this(provider, null, taskDependencyFactory);
-        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>, TaskDependencyFactory)")
-            .replaceWith("constructor LazyPublishArtifact(Provider<?>, FileResolver, TaskDependencyFactory)")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
-            .nagUser();
     }
 
     public LazyPublishArtifact(Provider<?> provider, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
