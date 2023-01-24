@@ -460,6 +460,11 @@ fun ClassWriter.emitVersionCatalogAccessorMethodFor(
 }
 
 
+/**
+ * Writes the source code of accessors to plugin spec builders.
+ *
+ * This is public in order to be usable by precompiled script plugins support.
+ */
 fun writeSourceCodeForPluginSpecBuildersFor(
     pluginDescriptorsClassPath: ClassPath,
     sourceFile: File,
