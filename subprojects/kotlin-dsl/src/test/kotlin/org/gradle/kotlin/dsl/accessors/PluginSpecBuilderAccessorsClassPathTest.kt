@@ -76,7 +76,7 @@ class PluginSpecBuilderAccessorsClassPathTest : TestWithClassPath() {
     }
 
     @Test
-    fun `#buildPluginAccessorsFor`() {
+    fun `#buildPluginDependencySpecAccessorsFor`() {
 
         // given:
         val pluginsJar = jarWithPluginDescriptors(
@@ -98,7 +98,7 @@ class PluginSpecBuilderAccessorsClassPathTest : TestWithClassPath() {
         }
 
         // then:
-        val generatedAccessors = String(srcDir.resolve("org/gradle/kotlin/dsl/PluginAccessors.kt").readBytes())
+        val generatedAccessors = String(srcDir.resolve("org/gradle/kotlin/dsl/PluginDependencySpecAccessors.kt").readBytes())
         assertThat(
             generatedAccessors,
             allOf(
@@ -147,7 +147,7 @@ class PluginSpecBuilderAccessorsClassPathTest : TestWithClassPath() {
 
         // and:
         classLoaderFor(binDir).useToRun {
-            val className = "org.gradle.kotlin.dsl.PluginAccessorsKt"
+            val className = "org.gradle.kotlin.dsl.PluginDependencySpecAccessorsKt"
             val accessorsClass = loadClass(className)
             assertThat(
                 accessorsClass.declaredMethods.map { it.name },
