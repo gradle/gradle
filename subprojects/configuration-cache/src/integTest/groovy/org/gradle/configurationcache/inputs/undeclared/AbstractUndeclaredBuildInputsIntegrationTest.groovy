@@ -17,11 +17,19 @@
 package org.gradle.configurationcache.inputs.undeclared
 
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
+import org.junit.Assume
+
+import static org.gradle.configurationcache.inputs.undeclared.FileUtils.*
 
 abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     abstract void buildLogicApplication(BuildInputRead read)
 
     abstract String getLocation()
+
+    boolean isRestrictedDsl() {
+        return false
+    }
 
     def "reports undeclared system property read using #propertyRead.groovyExpression prior to task execution from plugin"() {
         buildLogicApplication(propertyRead)
@@ -138,4 +146,134 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         EnvVariableRead.getEnvGet("CI")                     | "true" | "false"
         EnvVariableRead.getEnvGetOrDefault("CI", "default") | "true" | "false"
     }
+
+    def "reports undeclared file system entry check for File.#kind"() {
+        Assume.assumeFalse("cannot use the file APIs in restricted DSL", isRestrictedDsl())
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        UndeclaredFileAccess.FileCheck check = fileCheck(testDirectory)
+        buildLogicApplication(check)
+        def accessedFile = new File(check.filePath)
+
+        when:
+        assert !accessedFile.exists()
+        configurationCacheRunLenient()
+
+        then:
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withInput("$location: file system entry '$testFileName'")
+            ignoringUnexpectedInputs()
+        }
+
+        when:
+        assert accessedFile.createNewFile()
+        configurationCacheRunLenient()
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("because the file system entry '$testFileName' has been created")
+
+        when:
+        assert accessedFile.delete()
+        assert accessedFile.mkdirs()
+        configurationCacheRunLenient()
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("because the file system entry '$testFileName' has changed")
+
+        when:
+        assert accessedFile.deleteDir()
+        configurationCacheRunLenient()
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("because the file system entry '$testFileName' has been removed")
+
+        where:
+        kind          | fileCheck
+        "exists"      | (TestFile it) -> { UndeclaredFileAccess.fileExists(testFilePath(it)) }
+        "isFile"      | (TestFile it) -> { UndeclaredFileAccess.fileIsFile(testFilePath(it)) }
+        "isDirectory" | (TestFile it) -> { UndeclaredFileAccess.fileIsDirectory(testFilePath(it)) }
+    }
+
+    def "reports reading directory contents with #filterOptions"() {
+        Assume.assumeFalse("cannot use the file APIs in restricted DSL", isRestrictedDsl())
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        UndeclaredFileAccess access = fileAccess(testDirectory)
+        buildLogicApplication(access)
+        def accessedFile = new File(access.filePath)
+
+        when:
+        assert accessedFile.mkdirs()
+        configurationCacheRunLenient()
+
+        then:
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withInput("$location: directory content '$testFileName'")
+            ignoringUnexpectedInputs()
+        }
+
+        when:
+        assert new File(accessedFile, "test1").createNewFile()
+        configurationCacheRunLenient()
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("because directory '$testFileName' has changed")
+
+        where:
+        filterOptions     | fileAccess
+        "no file filter"  | (TestFile it) -> { UndeclaredFileAccess.directoryContent(testFilePath(it)) }
+        "file filter"     | (TestFile it) -> { UndeclaredFileAccess.directoryContentWithFileFilter(testFilePath(it)) }
+        "filename filter" | (TestFile it) -> { UndeclaredFileAccess.directoryContentWithFilenameFilter(testFilePath(it)) }
+    }
+
+    def "reports reading file on #testCase"() {
+        Assume.assumeFalse("cannot use the file APIs in restricted DSL", isRestrictedDsl())
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        UndeclaredFileAccess access = fileAccess(testDirectory)
+        buildLogicApplication(access)
+        def accessedFile = new File(access.filePath)
+
+        when:
+        accessedFile.text = "foo"
+        configurationCacheRunLenient()
+
+        then:
+        configurationCache.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withInput("$location: file '$testFileName'")
+            ignoringUnexpectedInputs()
+        }
+
+        when:
+        accessedFile.text = "bar"
+        configurationCacheRunLenient()
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("because file '$testFileName' has changed")
+
+        where:
+        testCase                                | fileAccess
+        "reading text with default encoding"    | (TestFile it) -> { UndeclaredFileAccess.fileText(testFilePath(it)) }
+        "reading text with customized encoding" | (TestFile it) -> { UndeclaredFileAccess.fileTextWithEncoding(testFilePath(it)) }
+        "constructing a file input stream"      | (TestFile it) -> { UndeclaredFileAccess.fileInputStreamConstructor(testFilePath(it)) }
+    }
+}
+
+class FileUtils {
+    static String testFilePath(TestFile testDirectory) {
+        testDirectory.file(testFileName).absolutePath
+    }
+
+    static String testFileName = "testFile"
 }

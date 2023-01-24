@@ -68,13 +68,15 @@ trait GroovyPluginImplementation {
         """
     }
 
-    void staticGroovyPlugin(TestFile sourceFile, BuildInputRead read) {
+    void staticGroovyPlugin(TestFile sourceFile, BuildInputRead read, String pluginClassName = "SneakyPlugin") {
         sourceFile << """
             import ${Project.name}
             import ${Plugin.name}
 
+            ${read.requiredImports().collect { "import $it" }.join("\n")}
+
             @${CompileStatic.name}
-            class SneakyPlugin implements Plugin<Project> {
+            class $pluginClassName implements Plugin<Project> {
                 public void apply(Project project) {
                     def value = ${read.groovyExpression}
                     println("apply = " + value)
@@ -89,14 +91,16 @@ trait GroovyPluginImplementation {
                     }
                     cl("apply")
 
-                    project.tasks.register("thing") { t ->
-                        t.doLast {
-                            value = ${read.groovyExpression}
-                            println("task = " + value)
+                    if (!project.tasks.names.contains("thing")) {
+                        project.tasks.register("thing") { t ->
+                            t.doLast {
+                                value = ${read.groovyExpression}
+                                println("task = " + value)
 
-                            println("task INSTANCE = " + sys.getProperty("INSTANCE"))
+                                println("task INSTANCE = " + sys.getProperty("INSTANCE"))
 
-                            cl("task")
+                                cl("task")
+                            }
                         }
                     }
                 }
