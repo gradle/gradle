@@ -16,9 +16,12 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.configurations.LazyDesugaringAttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -45,6 +48,7 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.Transf
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -57,6 +61,8 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
     protected final TransformationStep transformationStep;
     protected final ResolvableArtifact artifact;
     protected final TransformUpstreamDependencies upstreamDependencies;
+
+    private TransformationIdentity cachedIdentity;
 
     public static ChainedTransformationNode chained(
         AttributeContainer sourceAttributes,
@@ -108,17 +114,23 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
     @Nonnull
     @Override
     public TransformationIdentity getNodeIdentity() {
+        if (cachedIdentity == null) {
+            cachedIdentity = createIdentity();
+        }
+        return cachedIdentity;
+    }
+
+    private TransformationIdentity createIdentity() {
         String buildPath = transformationStep.getOwningProject().getBuildPath().toString();
         String projectPath = transformationStep.getOwningProject().getIdentityPath().toString();
         String componentId = artifact.getId().getComponentIdentifier().getDisplayName();
-        String sourceAttributes = this.sourceAttributes.toString();
+        Map<String, String> sourceAttributes = convertToMap(this.sourceAttributes);
         Class<?> transformType = transformationStep.getTransformer().getImplementationClass();
-        String fromAttributes = transformationStep.getFromAttributes().toString();
-        String toAttributes = transformationStep.getToAttributes().toString();
+        Map<String, String> fromAttributes = convertToMap(transformationStep.getFromAttributes());
+        Map<String, String> toAttributes = convertToMap(transformationStep.getToAttributes());
         long transformationNodeId = getTransformationNodeId();
 
         return new TransformationIdentity() {
-
             @Override
             public String getBuildPath() {
                 return buildPath;
@@ -135,7 +147,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             }
 
             @Override
-            public String getSourceAttributes() {
+            public Map<String, String> getSourceAttributes() {
                 return sourceAttributes;
             }
 
@@ -145,12 +157,12 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             }
 
             @Override
-            public String getFromAttributes() {
+            public Map<String, String> getFromAttributes() {
                 return fromAttributes;
             }
 
             @Override
-            public String getToAttributes() {
+            public Map<String, String> getToAttributes() {
                 return toAttributes;
             }
 
@@ -164,6 +176,16 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
                 return "Transform '" + componentId + "' with " + transformType.getName();
             }
         };
+    }
+
+    private static Map<String, String> convertToMap(AttributeContainer attributes) {
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+        // TODO: should the attributes be sorted by name for consistency?
+        for (Attribute<?> attribute : attributes.keySet()) {
+            Object attributeValue = attributes.getAttribute(attribute);
+            LazyDesugaringAttributeContainer.desugar(attribute, attributeValue, (attr, value) -> builder.put(attribute.getName(), value.toString()));
+        }
+        return builder.build();
     }
 
     public ResolvableArtifact getInputArtifact() {

@@ -29,6 +29,7 @@ import org.gradle.api.provider.Provider;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * A container of attributes that desugars the attributes on demand.
@@ -45,7 +46,7 @@ public final class LazyDesugaringAttributeContainer implements ImmutableAttribut
     private final ImmutableAttributesFactory attributesFactory;
     private ImmutableAttributes desugared;
 
-    LazyDesugaringAttributeContainer(@Nullable AttributeContainer source, ImmutableAttributesFactory attributesFactory) {
+    public LazyDesugaringAttributeContainer(@Nullable AttributeContainer source, ImmutableAttributesFactory attributesFactory) {
         this.source = source;
         this.attributesFactory = attributesFactory;
     }
@@ -135,30 +136,32 @@ public final class LazyDesugaringAttributeContainer implements ImmutableAttribut
         AttributeContainerInternal result = attributesFactory.mutable();
         if (source != null) {
             for (Attribute<?> attribute : source.keySet()) {
-                String name = attribute.getName();
-                Class<?> type = attribute.getType();
-                Object attributeValue = source.getAttribute(attribute);
-                if (type.equals(Boolean.class)) {
-                    result.attribute((Attribute<Boolean>) attribute, (Boolean) attributeValue);
-                } else if (type.equals(String.class)) {
-                    result.attribute((Attribute<String>) attribute, (String) attributeValue);
-                } else if (type.equals(Integer.class)) {
-                    result.attribute((Attribute<Integer>) attribute, (Integer) attributeValue);
-                } else {
-                    // just serialize as a String as best we can
-                    Attribute<String> stringAtt = Attribute.of(name, String.class);
-                    String stringValue;
-                    if (attributeValue instanceof Named) {
-                        stringValue = ((Named) attributeValue).getName();
-                    } else if (attributeValue instanceof Object[]) { // don't bother trying to handle primitive arrays specially
-                        stringValue = Arrays.toString((Object[]) attributeValue);
-                    } else {
-                        stringValue = attributeValue.toString();
-                    }
-                    result.attribute(stringAtt, stringValue);
-                }
+                desugar(attribute, source.getAttribute(attribute), result::attribute);
             }
         }
         desugared = result.asImmutable();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void desugar(Attribute<?> attribute, Object attributeValue, BiConsumer<Attribute<Object>, Object> consumer) {
+        String name = attribute.getName();
+        Class<?> type = attribute.getType();
+
+        if (type.equals(Boolean.class) || type.equals(Integer.class) || type.equals(String.class)) {
+            consumer.accept((Attribute<Object>) attribute, attributeValue);
+            return;
+        }
+
+        // just serialize as a String as best we can
+        Attribute<?> stringAtt = Attribute.of(name, String.class);
+        String stringValue;
+        if (attributeValue instanceof Named) {
+            stringValue = ((Named) attributeValue).getName();
+        } else if (attributeValue instanceof Object[]) { // don't bother trying to handle primitive arrays specially
+            stringValue = Arrays.toString((Object[]) attributeValue);
+        } else {
+            stringValue = attributeValue.toString();
+        }
+        consumer.accept((Attribute<Object>) stringAtt, stringValue);
     }
 }
