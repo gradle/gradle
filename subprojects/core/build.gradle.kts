@@ -1,8 +1,5 @@
-import gradlebuild.instrumentation.classpostprocessing.ReintroduceGetOnlyIfMethod
-
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.postprocess-compiled-classes")
 }
 
 description = "Public and internal 'core' Gradle APIs with implementation"
@@ -17,10 +14,6 @@ tasks.classpathManifest {
     // It contains information services in ':core' need to reason about the complete Gradle distribution.
     // To allow parts of ':core' code to be instantiated in unit tests without relying on this functionality, the dependency is optional.
     optionalProjects.add("gradle-runtime-api-info")
-}
-
-postProcessCompiledClasses {
-    classPostProcessors.add(ReintroduceGetOnlyIfMethod)
 }
 
 dependencies {
