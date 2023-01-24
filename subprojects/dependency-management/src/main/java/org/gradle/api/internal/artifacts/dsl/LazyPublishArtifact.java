@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileSystemLocation;
@@ -30,13 +31,22 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Date;
 
+@SuppressWarnings("DataFlowIssue") // FileResolver may be initialized with null if deprecated constructors are used
 public class LazyPublishArtifact implements PublishArtifactInternal {
     private final ProviderInternal<?> provider;
     private final String version;
+    /**
+     * This field actaully being {@code null} should be considered deprecated, but this will still be the case
+     * if a deprecated constructor is used.
+     */
+    @SuppressWarnings("NullableProblems")
+    @Nullable
     private final FileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
     private PublishArtifactInternal delegate;
@@ -45,25 +55,33 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
     // Used in a third-party plugin: used in a third-party plugin: https://github.com/gradle/playframework/blob/0d20d4550/src/main/java/org/gradle/playframework/plugins/PlayApplicationPlugin.java#L134
     // TODO Remove once the third-party usage is considered obsolete.
     /**
-     * @deprecated Use the overload with TaskDependencyFactory
+     * @deprecated Provide a {@link FileResolver} instead using {@link #LazyPublishArtifact(Provider, FileResolver)}.
      */
     @Deprecated
     public LazyPublishArtifact(Provider<?> provider) {
-        this(provider, DefaultTaskDependencyFactory.withNoAssociatedProject());
+        this(provider, (FileResolver) null);
+        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>)")
+                .replaceWith("constructor LazyPublishArtifact(Provider<?>, FileResolver)")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
+                .nagUser();
     }
+
+    public LazyPublishArtifact(Provider<?> provider, FileResolver fileResolver) {
+        this(provider, fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject());
+    }
+
     /**
-     * @deprecated Provide a {@link FileResolver} instead using {@link LazyPublishArtifact#LazyPublishArtifact(Provider, FileResolver)}.
+     * @deprecated Provide a {@link FileResolver} instead using {@link #LazyPublishArtifact(Provider, FileResolver, TaskDependencyFactory)}.
      */
     @Deprecated
     public LazyPublishArtifact(Provider<?> provider, TaskDependencyFactory taskDependencyFactory) {
         this(provider, null, taskDependencyFactory);
-        // TODO after Spring Boot resolves their usage of this constructor, uncomment this nag
-        // https://github.com/spring-projects/spring-boot/issues/29074
-        //        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>)")
-        //            .replaceWith("constructor LazyPublishArtifact(Provider<?>, FileResolver)")
-        //            .willBeRemovedInGradle9()
-        //            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
-        //            .nagUser();
+        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>, TaskDependencyFactory)")
+            .replaceWith("constructor LazyPublishArtifact(Provider<?>, FileResolver, TaskDependencyFactory)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
+            .nagUser();
     }
 
     public LazyPublishArtifact(Provider<?> provider, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
@@ -71,14 +89,6 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
     }
 
     public LazyPublishArtifact(Provider<?> provider, String version, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
-        // TODO after Spring Boot resolves their usage of this constructor, uncomment this nag
-        // https://github.com/spring-projects/spring-boot/issues/29074
-        //        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>, FileResolver) or constructor LazyPublishArtifact(Provider<?>, String, FileResolver)"
-        //        + " with a null FileResolver")
-        //            .replaceWith("a non-null FileResolver")
-        //            .willBeRemovedInGradle9()
-        //            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
-        //            .nagUser();
         this.provider = Providers.internal(provider);
         this.version = version;
         this.fileResolver = fileResolver;
@@ -115,6 +125,7 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
         return new Date();
     }
 
+    @SuppressWarnings("ConstantValue") // fileResolver may be null if deprecated constructor is used
     private PublishArtifactInternal getDelegate() {
         if (delegate == null) {
             Object value = provider.get();
@@ -129,6 +140,8 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
                 delegate = fromFile(((Task) value).getOutputs().getFiles().getSingleFile());
             } else if (fileResolver != null) {
                 delegate = fromFile(fileResolver.resolve(value));
+            } else if (fileResolver == null) {
+                throw new GradleException(String.format("Cannot resolve artifact file value (%s) because a FileResolver was not provided.", value));
             } else {
                 throw new InvalidUserDataException(String.format("Cannot convert provided value (%s) to a file.", value));
             }
@@ -143,9 +156,7 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return taskDependencyFactory.visitingDependencies(context -> {
-            context.add(provider);
-        });
+        return taskDependencyFactory.visitingDependencies(context -> context.add(provider));
     }
 
     @Override
