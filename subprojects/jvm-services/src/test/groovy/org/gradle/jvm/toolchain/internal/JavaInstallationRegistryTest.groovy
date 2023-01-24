@@ -49,15 +49,6 @@ class JavaInstallationRegistryTest extends Specification {
         registry.listInstallations()*.location == [tempFolder]
     }
 
-    def "registry filters locations without java executable"() {
-        when:
-        def tempFolder = createTempDir()
-        def registry = newRegistry(tempFolder)
-
-        then:
-        registry.listInstallations()*.location == []
-    }
-
     def "duplicates are detected using canonical form"() {
         given:
         def tempFolder = createTempDir()
@@ -181,6 +172,21 @@ class JavaInstallationRegistryTest extends Specification {
         path        | exists | directory | valid | logOutput
         '/unknown'  | false  | null      | false | 'Directory {} used for java installations does not exist'
         '/foo/file' | true   | false     | false | 'Path for java installation {} points to a file, not a directory'
+    }
+
+    def "warns and filters installations without java executable"() {
+        given:
+        def logger = Mock(Logger)
+        def tempFolder = createTempDir()
+        def registry = JavaInstallationRegistry.withLogger([forDirectory(tempFolder)], logger, new TestBuildOperationExecutor())
+        def logOutput = "Path for java installation {} does not contain a java executable"
+
+        when:
+        def installations = registry.listInstallations()
+
+        then:
+        installations.isEmpty()
+        1 * logger.warn(logOutput, "'" + tempFolder + "' (testSource)")
     }
 
     InstallationSupplier forDirectory(File directory) {
