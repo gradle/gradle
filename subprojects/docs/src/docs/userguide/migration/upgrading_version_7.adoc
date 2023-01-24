@@ -1635,7 +1635,7 @@ They are replaced by the properties of link:{groovyDslPath}/org.gradle.api.plugi
 
 Some of the core Gradle plugins declare configurations that are used by the plugin itself and are not meant to be
 published or consumed by another subproject directly.
-Gradle did not explicitly prohobit this.
+Gradle did not explicitly prohibit this.
 Gradle 7.1 deprecates consumption of those configurations and this will become an error in Gradle 8.0.
 
 The following plugin configurations have been deprecated for consumption:
