@@ -18,7 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
 import org.gradle.configurationcache.serialization.Workarounds
-import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
@@ -68,7 +68,7 @@ internal
 class InstrumentedInputAccessListener(
     listenerManager: ListenerManager,
     configurationCacheProblemsListener: ConfigurationCacheProblemsListener,
-    private val environmentChangeTracker: EnvironmentChangeTracker,
+    private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
 ) : Instrumented.Listener {
 
     private
