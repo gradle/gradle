@@ -41,22 +41,33 @@ public class SkipOnlyIfTaskExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        SelfDescribingSpec<? super TaskInternal> unsatisfiedSpec;
+        Spec<? super TaskInternal> unsatisfiedSpec = null;
         try {
             Spec<? super TaskInternal> onlyIf = task.getOnlyIf();
-            if (!(onlyIf instanceof DescribingAndSpec)) {
-                throw new IllegalStateException("unexpected type of onlyIf spec: " + onlyIf.getClass());
+            // Some third-party plugins override getOnlyIf, returning a generic Spec
+            if (onlyIf instanceof DescribingAndSpec) {
+                DescribingAndSpec<? super TaskInternal> describingAndSpec = Cast.uncheckedCast(onlyIf);
+                unsatisfiedSpec = describingAndSpec.findUnsatisfiedSpec(task);
+            } else {
+                if (!onlyIf.isSatisfiedBy(task)) {
+                    unsatisfiedSpec = onlyIf;
+                }
             }
-            unsatisfiedSpec = Cast.<DescribingAndSpec<? super TaskInternal>>uncheckedCast(onlyIf).findUnsatisfiedSpec(task);
         } catch (Throwable t) {
             state.setOutcome(new GradleException(String.format("Could not evaluate onlyIf predicate for %s.", task), t));
             return TaskExecuterResult.WITHOUT_OUTPUTS;
         }
 
         if (unsatisfiedSpec != null) {
-            LOGGER.info("Skipping {} as task onlyIf '{}' is false.", task, unsatisfiedSpec.getDisplayName());
+            if (unsatisfiedSpec instanceof SelfDescribingSpec) {
+                SelfDescribingSpec<? super TaskInternal> selfDescribingSpec = Cast.uncheckedCast(unsatisfiedSpec);
+                LOGGER.info("Skipping {} as task onlyIf '{}' is false.", task, selfDescribingSpec.getDisplayName());
+                state.setSkipReasonMessage("'" + selfDescribingSpec.getDisplayName() + "' not satisfied");
+            } else {
+                LOGGER.info("Skipping {} as task onlyIf is false.", task);
+                state.setSkipReasonMessage("onlyIf not satisfied");
+            }
             state.setOutcome(TaskExecutionOutcome.SKIPPED);
-            state.setSkipReasonMessage("'" + unsatisfiedSpec.getDisplayName() + "' not satisfied");
             return TaskExecuterResult.WITHOUT_OUTPUTS;
         }
 
