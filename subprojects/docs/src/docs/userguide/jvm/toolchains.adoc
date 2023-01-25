@@ -198,7 +198,7 @@ JVM auto-detection knows how to work with:
 
 Among the set of all detected JRE/JDK installations, one will be picked according to the <<sec:precedence,Toolchain Precedence Rules>>.
 
-If you are configuring <<custom_loc>>, note that installations that are non-existing or without a
+If you are configuring <<sec:custom_loc>>, note that installations that are non-existing or without a
 `bin/java` executable will be ignored with a warning, but they won't generate an error.
 
 [[sub:disable_auto_detect]]
