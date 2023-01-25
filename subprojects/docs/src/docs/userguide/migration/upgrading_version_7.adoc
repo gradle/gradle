@@ -418,8 +418,6 @@ This behavior is now default.
 The property has been deprecated and its usage should be removed.
 You can find more information about this property <<upgrading_version_7.adoc#strict-kotlin-dsl-precompiled-scripts-accessors, below>>.
 
-==== Adding `jst.ejb` with the `eclipse wtp` plugin now removes the `jst.utility` facet
-
 ==== Init scripts are applied to `buildSrc` builds
 
 Init scripts specified using `--init-script` are now applied to `buildSrc` builds. In previous releases these were applied to included builds but not `buildSrc builds.
@@ -444,7 +442,7 @@ the tasks for `buildSrc` completed and before any requested tasks started.
 
 This behavior is now consistent for `buildSrc` and included builds.
 
-==== Adding `jst.ejb` with the `eclipse wtp' plugin now removes the `jst.utility` facet
+==== Adding `jst.ejb` with the `eclipse wtp` plugin now removes the `jst.utility` facet
 
 The `eclipse wtp` plugin adds the `jst.utility` facet to java projects.
 Now, adding the `jst.ejb` facet implicitly removes the `jst.utility` facet:
@@ -463,34 +461,6 @@ eclipse {
 
 Previously, you had to explicitly configure PMD to ignore default rules with `ruleSets = []`.
 In the Gradle 8.0, setting `ruleSetConfig` or `ruleSetFiles` to a non-empty value implicitly ignores default rules.
-
-==== Changing test framework after setting test framework options is now an error
-
-When configuring the built-in test task for Java, Groovy, and Scala projects, Gradle no longer allows you to
-change the test framework used by the `Test` task after configuring options.
-This was deprecated since it silently discarded configuration in some cases.
-
-The following code example now produces an error:
-```
-test {
-   options {
-   }
-
-   useJUnitPlatform()
-}
-```
-Instead, you can:
-
-- set the test framework before configuring options
-- migrate to the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>>
-```
-test {
-   // select test framework before configuring options
-   useJUnitPlatform()
-   options {
-   }
-}
-```
 
 ==== Report `getOutputLocation` return type changed from Provider to Property
 
@@ -1635,7 +1605,7 @@ They are replaced by the properties of link:{groovyDslPath}/org.gradle.api.plugi
 
 Some of the core Gradle plugins declare configurations that are used by the plugin itself and are not meant to be
 published or consumed by another subproject directly.
-Gradle did not explicitly prohobit this.
+Gradle did not explicitly prohibit this.
 Gradle 7.1 deprecates consumption of those configurations and this will become an error in Gradle 8.0.
 
 The following plugin configurations have been deprecated for consumption:
