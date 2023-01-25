@@ -32,7 +32,7 @@ public class HttpResourceLister implements ExternalResourceLister {
     @Override
     public List<String> list(final ExternalResourceName directory) {
         return accessor.withContent(directory, true, (inputStream, metaData) -> {
-            if(metaData.wasMissing()){
+            if (metaData.wasMissing()) {
                 return null;
             }
             String contentType = metaData.getContentType();
