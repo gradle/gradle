@@ -34,7 +34,7 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     private ModuleIdentifier mid = DefaultModuleIdentifier.newId('org', 'foo')
 
     @Override
-    protected DefaultLocalComponentMetadata createMetadata() {
+    protected AbstractLocalComponentMetadata<?> createMetadata() {
         dependencyLockingHandler = Mock(DependencyLockingProvider)
         return new RootLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal), dependencyLockingHandler, RootScriptDomainObjectContext.INSTANCE, TestUtil.calculatedValueContainerFactory())
     }

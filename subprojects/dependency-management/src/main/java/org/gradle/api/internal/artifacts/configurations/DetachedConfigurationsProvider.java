@@ -32,6 +32,14 @@ class DetachedConfigurationsProvider implements ConfigurationsProvider {
         return ImmutableSet.of(theOnlyConfiguration);
     }
 
+    @Override
+    public ConfigurationInternal findByName(String name) {
+        if (name.equals(theOnlyConfiguration.getName())) {
+            return theOnlyConfiguration;
+        }
+        return null;
+    }
+
     public void setTheOnlyConfiguration(ConfigurationInternal theOnlyConfiguration) {
         this.theOnlyConfiguration = theOnlyConfiguration;
     }

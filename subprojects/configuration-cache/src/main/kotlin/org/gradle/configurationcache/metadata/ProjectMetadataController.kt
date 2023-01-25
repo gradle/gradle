@@ -127,7 +127,7 @@ class ProjectMetadataController(
         return context.runReadOperation {
             val id = readNonNull<ComponentIdentifier>()
             val moduleVersionId = readNonNull<ModuleVersionIdentifier>()
-            val metadata = DefaultLocalComponentMetadata(moduleVersionId, id, Project.DEFAULT_STATUS, EmptySchema.INSTANCE, RootScriptDomainObjectContext.INSTANCE, ownerService())
+            val metadata = DefaultLocalComponentMetadata(moduleVersionId, id, Project.DEFAULT_STATUS, EmptySchema.INSTANCE, RootScriptDomainObjectContext.INSTANCE, ownerService(), ownerService())
             readConfigurationsInto(metadata)
             DefaultLocalComponentGraphResolveState(metadata)
         }

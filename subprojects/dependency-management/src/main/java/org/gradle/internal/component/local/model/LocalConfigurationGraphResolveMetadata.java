@@ -39,5 +39,5 @@ public interface LocalConfigurationGraphResolveMetadata extends ConfigurationGra
      * Returns if this metadata needs to be re-evaluated
      */
     @VisibleForTesting
-    boolean needsReevaluate();
+    boolean needsEvaluation();
 }

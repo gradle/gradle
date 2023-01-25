@@ -29,4 +29,7 @@ public interface ConfigurationsProvider {
     int size();
 
     Set<? extends ConfigurationInternal> getAll();
+
+    ConfigurationInternal findByName(String name);
+
 }

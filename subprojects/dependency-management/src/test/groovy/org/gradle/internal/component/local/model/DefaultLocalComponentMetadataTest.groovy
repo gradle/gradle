@@ -45,7 +45,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
     def metadata = createMetadata()
 
-    protected DefaultLocalComponentMetadata createMetadata() {
+    protected AbstractLocalComponentMetadata<?> createMetadata() {
         new DefaultLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal), RootScriptDomainObjectContext.INSTANCE, TestUtil.calculatedValueContainerFactory())
     }
 

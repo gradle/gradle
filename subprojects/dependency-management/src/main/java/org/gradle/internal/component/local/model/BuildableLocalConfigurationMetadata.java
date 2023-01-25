@@ -50,7 +50,7 @@ public interface BuildableLocalConfigurationMetadata {
     void addFiles(LocalFileDependencyMetadata files);
 
     /**
-     * Adds some artifacts to this configuration. Artifacts are attached to the this configuration and each of its children.
+     * Adds some artifacts to this configuration. Artifacts are attached to this configuration and each of its children.
      */
     void addArtifacts(Collection<? extends PublishArtifact> artifacts);
 

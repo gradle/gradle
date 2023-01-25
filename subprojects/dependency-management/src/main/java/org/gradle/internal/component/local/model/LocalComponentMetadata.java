@@ -18,6 +18,7 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
@@ -29,4 +30,6 @@ public interface LocalComponentMetadata extends ComponentResolveMetadata, Compon
     LocalConfigurationGraphResolveMetadata getConfiguration(String name);
 
     LocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts);
+
+    void reevaluate(ConfigurationsProvider configurations);
 }

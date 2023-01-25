@@ -20,11 +20,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.internal.Cast;
+import org.gradle.internal.Actions;
 import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
@@ -39,16 +40,16 @@ import javax.annotation.Nullable;
  * <p>Currently, the metadata for a component is different based on whether it is consumed from the producing build or from another build. This difference should go away.
  */
 public class DefaultProjectLocalComponentProvider implements LocalComponentProvider {
-    private final LocalComponentMetadataBuilder metadataBuilder;
+    private final LocalConfigurationMetadataBuilder configurationMetadataBuilder;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     public DefaultProjectLocalComponentProvider(
-        LocalComponentMetadataBuilder metadataBuilder,
+        LocalConfigurationMetadataBuilder configurationMetadataBuilder,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        this.metadataBuilder = metadataBuilder;
+        this.configurationMetadataBuilder = configurationMetadataBuilder;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
@@ -65,9 +66,10 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         Module module = project.getDependencyMetaDataProvider().getModule();
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ProjectComponentIdentifier componentIdentifier = projectState.getComponentIdentifier();
-        DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), (AttributesSchemaInternal) project.getDependencies().getAttributesSchema(), projectState, calculatedValueContainerFactory);
+
+        DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), (AttributesSchemaInternal) project.getDependencies().getAttributesSchema(), projectState, calculatedValueContainerFactory, configurationMetadataBuilder);
         for (Configuration configuration : project.getConfigurations()) {
-            metadataBuilder.addConfiguration(metaData, Cast.uncheckedCast(configuration));
+            metaData.registerConfiguration((ConfigurationInternal) configuration, Actions.doNothing());
         }
         return metaData;
     }

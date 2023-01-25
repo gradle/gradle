@@ -18,7 +18,6 @@ package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
@@ -29,6 +28,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -43,13 +43,11 @@ import org.gradle.internal.model.ModelContainer;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
+public class RootLocalComponentMetadata extends AbstractLocalComponentMetadata<RootLocalComponentMetadata.RootLocalConfigurationMetadata> {
     private final DependencyLockingProvider dependencyLockingProvider;
-    private final Map<String, RootLocalConfigurationMetadata> rootConfigs = Maps.newHashMap();
 
     public RootLocalComponentMetadata(
         ModuleVersionIdentifier moduleVersionIdentifier,
@@ -58,27 +56,39 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
         AttributesSchemaInternal schema,
         DependencyLockingProvider dependencyLockingProvider,
         ModelContainer<?> model,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        LocalConfigurationMetadataBuilder configurationMetadataBuilder
     ) {
-        super(moduleVersionIdentifier, componentIdentifier, status, schema, model, calculatedValueContainerFactory);
+        super(moduleVersionIdentifier, componentIdentifier, status, schema, model, calculatedValueContainerFactory, configurationMetadataBuilder);
         this.dependencyLockingProvider = dependencyLockingProvider;
     }
 
     @Override
-    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, DeprecationMessageBuilder.WithDocumentation consumptionDeprecation, boolean canBeResolved, ImmutableCapabilities capabilities, Supplier<List<DependencyConstraint>> consistentResolutionConstraints) {
-        assert hierarchy.contains(name);
-        RootLocalConfigurationMetadata conf = new RootLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionDeprecation, canBeResolved, capabilities, model, calculatedValueContainerFactory, consistentResolutionConstraints);
-        addToConfigurations(name, conf);
-        rootConfigs.put(name, conf);
-        return conf;
+    public RootLocalConfigurationMetadata createConfiguration(
+        String name,
+        String description,
+        boolean visible,
+        boolean transitive,
+        Set<String> extendsFrom,
+        ImmutableSet<String> hierarchy,
+        ImmutableAttributes attributes,
+        boolean canBeConsumed,
+        DeprecationMessageBuilder.WithDocumentation consumptionDeprecation,
+        boolean canBeResolved,
+        ImmutableCapabilities capabilities,
+        ModelContainer<?> model,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        Supplier<List<DependencyConstraint>> consistentResolutionConstraints
+    ) {
+        return new RootLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionDeprecation, canBeResolved, capabilities, model, calculatedValueContainerFactory, consistentResolutionConstraints, this);
     }
 
     @Override
     public List<? extends DependencyMetadata> getSyntheticDependencies(String configuration) {
-        return rootConfigs.get(configuration).getSyntheticDependencies();
+        return getConfiguration(configuration).getSyntheticDependencies();
     }
 
-    class RootLocalConfigurationMetadata extends DefaultLocalConfigurationMetadata implements RootConfigurationMetadata {
+    public class RootLocalConfigurationMetadata extends DefaultLocalComponentMetadata.DefaultLocalConfigurationMetadata implements RootConfigurationMetadata {
         private final Supplier<List<DependencyConstraint>> consistentResolutionConstraints;
         private boolean configurationLocked;
         private DependencyLockingState dependencyLockingState;
@@ -97,8 +107,9 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
                                        ImmutableCapabilities capabilities,
                                        ModelContainer<?> model,
                                        CalculatedValueContainerFactory calculatedValueContainerFactory,
-                                       Supplier<List<DependencyConstraint>> consistentResolutionConstraints) {
-            super(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionDeprecation, canBeResolved, capabilities, model, calculatedValueContainerFactory);
+                                       Supplier<List<DependencyConstraint>> consistentResolutionConstraints,
+                                       RootLocalComponentMetadata component) {
+            super(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionDeprecation, canBeResolved, capabilities, model, calculatedValueContainerFactory, component);
             this.consistentResolutionConstraints = consistentResolutionConstraints;
         }
 
