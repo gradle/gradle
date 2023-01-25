@@ -37,6 +37,8 @@ import java.util.SortedSet
 
 /**
  * Facilitates the implementation of the [TaskContainer] interface by delegation via subclassing.
+ *
+ * See [GradleDelegate] for why this is currently necessary.
  */
 abstract class TaskContainerDelegate : TaskContainer {
 

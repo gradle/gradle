@@ -22,9 +22,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
-import kotlin.script.experimental.annotations.KotlinScript
-import kotlin.script.experimental.api.ScriptCompilationConfiguration
-import kotlin.script.experimental.util.PropertiesCollection
+import kotlin.script.templates.ScriptTemplateDefinition
 
 
 @RunWith(Parameterized::class)
@@ -69,23 +67,8 @@ class KotlinBuildScriptPatternTest(val script: Script) {
 
     private
     fun checkScriptRecognizedBy(scriptParserClass: KClass<*>, supportedScriptType: ScriptType) {
-        val buildScriptPattern = filePathPatternFrom(scriptParserClass)
+        val buildScriptPattern = scriptParserClass.findAnnotation<ScriptTemplateDefinition>()!!.scriptFilePattern
         val shouldMatch = script.type == supportedScriptType
-        assertEquals(
-            "${script.name} should${if (shouldMatch) "" else " not"} match $buildScriptPattern",
-            shouldMatch,
-            script.name.matches(buildScriptPattern.toRegex())
-        )
-    }
-
-    private
-    fun filePathPatternFrom(scriptParserClass: KClass<*>): String {
-        val kotlinScriptAnnotation = scriptParserClass.findAnnotation<KotlinScript>()!!
-        val compilationConfigClass = kotlinScriptAnnotation.compilationConfiguration
-        val compilationConfigConstructor = compilationConfigClass.java.constructors.single().apply {
-            isAccessible = true
-        }
-        val compilationConfig = compilationConfigConstructor.newInstance() as ScriptCompilationConfiguration
-        return compilationConfig[PropertiesCollection.Key<String>("filePathPattern")]!!
+        assertEquals("${script.name} should${if (shouldMatch) "" else " not"} match $buildScriptPattern", shouldMatch, script.name.matches(buildScriptPattern.toRegex()))
     }
 }

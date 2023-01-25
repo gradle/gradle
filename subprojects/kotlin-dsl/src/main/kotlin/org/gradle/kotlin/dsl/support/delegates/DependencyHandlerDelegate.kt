@@ -40,6 +40,8 @@ import org.gradle.api.provider.ProviderConvertible
 
 /**
  * Facilitates the implementation of the [DependencyHandler] interface by delegation via subclassing.
+ *
+ * See [GradleDelegate] for why this is currently necessary.
  */
 abstract class DependencyHandlerDelegate : DependencyHandler {
 

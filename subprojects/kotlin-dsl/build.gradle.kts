@@ -86,9 +86,7 @@ dependencies {
     testImplementation(libs.kotlinCoroutines)
     testImplementation(libs.awaitility)
 
-    integTestImplementation(project(":build-option")) {
-        because("KotlinSettingsScriptIntegrationTest makes uses of FeatureFlag")
-    }
+    integTestImplementation(project(":language-groovy"))
     integTestImplementation(project(":language-groovy")) {
         because("ClassBytesRepositoryTest makes use of Groovydoc task.")
     }

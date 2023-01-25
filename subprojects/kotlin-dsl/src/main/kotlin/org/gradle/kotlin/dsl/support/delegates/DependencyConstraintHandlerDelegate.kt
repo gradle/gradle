@@ -23,6 +23,8 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 
 /**
  * Facilitates the implementation of the [DependencyConstraintHandler] interface by delegation via subclassing.
+ *
+ * See [GradleDelegate] for why this is currently necessary.
  */
 abstract class DependencyConstraintHandlerDelegate : DependencyConstraintHandler {
 
