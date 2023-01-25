@@ -1,12 +1,13 @@
 
 The Gradle team is excited to announce a new major version of Gradle, 8.0. This major version has breaking changes; please consult the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) for guidance.
 
-This release includes several improvements to the [Kotlin DSL](#kotlin-dsl) for increased performance. This includes an interpreter to skip the Kotlin compiler for declarative plugins and an upgrade to Kotlin API level 1.8.
+This release includes several improvements to the [Kotlin DSL](#kotlin-dsl). This consists of an interpreter to skip the Kotlin compiler for declarative plugins and an upgrade to Kotlin API level 1.8.
 
-The benefits of using included builds are now available with [`buildSrc`](#improvements-for-buildsrc-builds), such as running `buildSrc` tasks directly, skipping tests, and including other builds with `buildSrc`. 
+Many of the benefits of included builds are now available with [`buildSrc`](#improvements-for-buildsrc-builds), such as running `buildSrc` tasks directly, skipping tests, and including other builds with `buildSrc`. For now, there are still some advantages to included builds that will be incorporated into `buildSrc` in future releases. 
 
-Additionally, we have made enhancements to the [configuration cache](#configuration-cache), like loading tasks from the cache entry and running tasks as isolated and in parallel on the first build, along with several bug fixes and other [general improvements](#general-improvements).
+Additionally, we have made enhancements to the [configuration cache](#configuration-cache). This includes more fine-grained parallelism by loading tasks from the cache entry and running tasks as isolated on the first build.
 
+Gradle 8.0 also has several bug fixes, removes depreciated features, and other [general improvements](#general-improvements).
 <!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -19,6 +20,7 @@ We would like to thank the following community members for their contributions t
 [Abdul Rauf](https://github.com/armujahid),
 [Andrei Nevedomskii](https://github.com/monosoul),
 [aSemy](https://github.com/aSemy),
+[Ben Cox](https://github.com/ind1go),
 [Björn Kautler](https://github.com/Vampire),
 [bodhili](https://github.com/bodhili),
 [Cédric Champeau](https://github.com/melix),
@@ -34,6 +36,7 @@ We would like to thank the following community members for their contributions t
 [Fedor Ihnatkevich](https://github.com/Jeffset),
 [Gabriel Rodriguez](https://github.com/gabrielrodriguez2746),
 [Herbert von Broeuschmeul](https://github.com/HvB),
+[Hyeonmin Park](https://github.com/KENNYSOFT),
 [Jeff](https://github.com/mathjeff),
 [Jendrik Johannes](https://github.com/jjohannes),
 [Korov](https://github.com/Korov),
@@ -47,6 +50,7 @@ We would like to thank the following community members for their contributions t
 [prasad-333](https://github.com/prasad-333),
 [RicardoJiang](https://github.com/RicardoJiang),
 [Róbert Papp](https://github.com/TWiStErRob),
+[Siarhei](https://github.com/madhead),
 [Siddardha Bezawada](https://github.com/SidB3),
 [Stephen Topley](https://github.com/stopley),
 [Victor Maldonado](https://github.com/vmmaldonadoz),
