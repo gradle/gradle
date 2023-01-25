@@ -326,7 +326,7 @@ Maven builds use exclusions to keep unwanted dependencies -- or unwanted _versio
 You can do the same thing with Gradle, but that's not necessarily the _right_ thing to do.
 Gradle provides other options that may be more appropriate for a given situation, so you really need to understand _why_ an exclusion is in place to migrate it properly.
 
-If you want to exclude a dependency for reasons unrelated to versions, then check out the section on <<dependency_downgrade_and_exclude.adoc#sec:excluding-transitive-deps>>.
+If you want to exclude a dependency for reasons unrelated to versions, then check out the section on <<dependency_downgrade_and_exclude.adoc#sec:excluding-transitive-deps,excluding transitive dependencies>>.
 It shows you how to attach an exclusion either to an entire configuration (often the most appropriate solution) or to a dependency.
 You can even easily apply an exclusion to all configurations.
 
