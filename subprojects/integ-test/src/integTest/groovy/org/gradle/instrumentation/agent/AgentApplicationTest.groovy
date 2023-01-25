@@ -96,7 +96,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         agentStatus << [true, false]
     }
 
-    @Requires(value = { GradleContextualExecuter.configCache }, reason = "Tests the configuration cache behavior")
+    @Requires(value = IntegTestPreconditions.IsConfigCached, reason = "Tests the configuration cache behavior")
     def "changing agent status invalidates the configuration cache"() {
         def configurationCache = new ConfigurationCacheFixture(this)
         given:
@@ -124,7 +124,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         false              | true
     }
 
-    @Requires(value = { GradleContextualExecuter.daemon }, reason = "Testing the daemons")
+    @Requires(value = IntegTestPreconditions.IsDaemonExecutor, reason = "Testing the daemons")
     def "daemon with the same agent status is reused"() {
         given:
         executer.requireIsolatedDaemons()
