@@ -35,7 +35,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         new File(initDir, "cache-settings.gradle") << """
             beforeSettings { settings ->
                 settings.caches {
-                    mark = false
+                    markingStrategy = MarkingStrategy.NONE
                     cleanup = Cleanup.DISABLED
                     releasedWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}
                     snapshotWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}
@@ -46,7 +46,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
         settingsFile << """
             caches {
-                assert !mark.get()
+                assert markingStrategy.get() == MarkingStrategy.NONE
                 releasedWrappers { ${assertValueIsSameInDays(MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS)} }
                 snapshotWrappers { ${assertValueIsSameInDays(MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS)} }
                 downloadedResources { ${assertValueIsSameInDays(MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES)} }
@@ -72,7 +72,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
             beforeSettings { settings ->
                 settings.caches {
-                    mark = false
+                    markingStrategy = MarkingStrategy.NONE
                     cleanup = Cleanup.DISABLED
                     releasedWrappers.removeUnusedEntriesOlderThan = ${releasedDistTimestamp}
                     snapshotWrappers.removeUnusedEntriesOlderThan = ${snapshotDistTimestamp}
@@ -83,7 +83,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
         settingsFile << """
             caches {
-                assert !mark.get()
+                assert markingStrategy.get() == MarkingStrategy.NONE
                 assert releasedWrappers.removeUnusedEntriesOlderThan.get() == ${releasedDistTimestamp}
                 assert snapshotWrappers.removeUnusedEntriesOlderThan.get() == ${snapshotDistTimestamp}
                 assert downloadedResources.removeUnusedEntriesOlderThan.get() == ${downloadedResourcesTimestamp}
@@ -108,7 +108,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         property                                           | errorProperty                  | value
-        'mark'                                             | 'mark'                         | 'false'
+        'markingStrategy'                                  | 'markingStrategy'              | 'MarkingStrategy.NONE'
         'cleanup'                                          | 'cleanup'                      | 'Cleanup.DISABLED'
         'releasedWrappers.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesOlderThan' | "${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}"
         'snapshotWrappers.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesOlderThan' | "${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}"

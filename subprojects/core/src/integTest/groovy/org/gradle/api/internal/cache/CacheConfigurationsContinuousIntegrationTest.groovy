@@ -43,7 +43,7 @@ class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousInt
         new File(initDir, "cache-settings.gradle") << """
             beforeSettings { settings ->
                 settings.caches {
-                    mark = false
+                    markingStrategy = MarkingStrategy.NONE
                     cleanup = Cleanup.DISABLED
                     releasedWrappers.removeUnusedEntriesAfterDays = 10
                     snapshotWrappers.removeUnusedEntriesAfterDays = 5
@@ -54,7 +54,7 @@ class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousInt
         """
         settingsFile << """
             caches {
-                assert !mark.get()
+                assert markingStrategy.get() == MarkingStrategy.NONE
                 releasedWrappers { ${assertValueIsSameInDays(10)} }
                 snapshotWrappers { ${assertValueIsSameInDays(5)} }
                 downloadedResources { ${assertValueIsSameInDays(10)} }
@@ -96,7 +96,7 @@ class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousInt
                 def retentionFileProperty = settings.services.get(ObjectFactory).fileProperty().fileValue(retentionFile)
                 def retentionTimeStampProvider = settings.providers.fileContents(retentionFileProperty).asText.map { it as long }
                 settings.caches {
-                    mark = false
+                    markingStrategy = MarkingStrategy.NONE
                     cleanup = Cleanup.DISABLED
                     releasedWrappers.removeUnusedEntriesOlderThan = retentionTimeStampProvider
                     snapshotWrappers.removeUnusedEntriesOlderThan = retentionTimeStampProvider
@@ -115,7 +115,7 @@ class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousInt
                     println "retention timestamp is " + retentionTimestamp
                     def caches = services.get(CacheConfigurations)
                     caches.with {
-                        assert !mark.get()
+                        assert markingStrategy.get() == MarkingStrategy.NONE
                         releasedWrappers { assert removeUnusedEntriesOlderThan.get() == retentionTimestamp }
                         snapshotWrappers { assert removeUnusedEntriesOlderThan.get() == retentionTimestamp }
                         downloadedResources { assert removeUnusedEntriesOlderThan.get() == retentionTimestamp}

@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.cache.Cleanup
+import org.gradle.api.cache.MarkingStrategy
 import org.gradle.api.file.FileCollection
 import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.api.flow.FlowScope
@@ -636,7 +637,7 @@ class ConfigurationCacheState(
             write(cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.createdResources.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.cleanup)
-            write(cacheConfigurations.mark)
+            write(cacheConfigurations.markingStrategy)
         }
     }
 
@@ -648,7 +649,7 @@ class ConfigurationCacheState(
             cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.cleanup.value(readNonNull<Provider<Cleanup>>())
-            cacheConfigurations.mark.value(readNonNull<Provider<Boolean>>())
+            cacheConfigurations.markingStrategy.value(readNonNull<Provider<MarkingStrategy>>())
         }
         if (gradle.isRootBuild) {
             gradle.serviceOf<CacheConfigurationsInternal>().setCleanupHasBeenConfigured(true)
