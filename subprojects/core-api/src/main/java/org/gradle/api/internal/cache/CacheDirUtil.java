@@ -34,14 +34,10 @@ class CacheDirUtil {
     /**
      * Mark a directory as a cache directory. This typically involves setting attributes or creating files in it.
      */
-    public static void tryMarkCacheDirectory(Path dir) {
+    public static void tryMarkCacheDirectoryByTag(Path dir) {
         if (!Files.isDirectory(dir)) {
             return;
         }
-        createCacheDirTag(dir);
-    }
-
-    private static void createCacheDirTag(Path dir) {
         Path cacheDirTag = dir.resolve("CACHEDIR.TAG");
         OutputStream stream;
         try {
