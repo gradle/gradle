@@ -5,7 +5,6 @@ import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.concurrent.CompositeStoppable
 
-import org.gradle.kotlin.dsl.KotlinBuildScript
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
@@ -33,7 +32,7 @@ class KotlinBuildScriptTemplateModelIntegrationTest : AbstractKotlinIntegrationT
 
         loadClassesFrom(
             model.classPath,
-            KotlinBuildScript::class.qualifiedName!!,
+            @Suppress("DEPRECATION") org.gradle.kotlin.dsl.KotlinBuildScript::class.qualifiedName!!,
             KotlinBuildScriptDependenciesResolver::class.qualifiedName!!
         )
     }
