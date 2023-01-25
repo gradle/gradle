@@ -29,7 +29,6 @@ dependencies {
     implementation(project(":tooling-api"))
     implementation(project(":file-watching"))
     implementation(project(":problems"))
-    implementation(project(":wrapper-shared"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
     implementation(libs.slf4jApi)

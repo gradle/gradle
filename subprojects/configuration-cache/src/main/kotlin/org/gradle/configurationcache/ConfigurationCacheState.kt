@@ -636,6 +636,7 @@ class ConfigurationCacheState(
             write(cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.createdResources.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.cleanup)
+            write(cacheConfigurations.mark)
         }
     }
 
@@ -647,6 +648,7 @@ class ConfigurationCacheState(
             cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.cleanup.value(readNonNull<Provider<Cleanup>>())
+            cacheConfigurations.mark.value(readNonNull<Provider<Boolean>>())
         }
         if (gradle.isRootBuild) {
             gradle.serviceOf<CacheConfigurationsInternal>().setCleanupHasBeenConfigured(true)

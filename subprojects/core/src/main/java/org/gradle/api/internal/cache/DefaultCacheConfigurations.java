@@ -23,10 +23,12 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.CleanupFrequency;
+import org.gradle.cache.internal.WrapperDistributionCleanupAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 
@@ -50,6 +52,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private final CacheResourceConfigurationInternal downloadedResourcesConfiguration;
     private final CacheResourceConfigurationInternal createdResourcesConfiguration;
     private final Property<Cleanup> cleanup;
+    private final Property<Boolean> mark;
 
     private boolean cleanupHasBeenConfigured;
 
@@ -60,6 +63,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, DOWNLOADED_RESOURCES, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
         this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, CREATED_RESOURCES, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
         this.cleanup = new ContextualErrorMessageProperty<>(propertyHost, Cleanup.class, "cleanup").convention(Cleanup.DEFAULT);
+        this.mark = new ContextualErrorMessageProperty<>(propertyHost, Boolean.class, "mark").convention(true);
     }
 
     private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, String name, int defaultDays) {
@@ -114,6 +118,11 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
+    public Property<Boolean> getMark() {
+        return mark;
+    }
+
+    @Override
     public Provider<CleanupFrequency> getCleanupFrequency() {
         return getCleanup().map(cleanup ->
             new MustBeConfiguredCleanupFrequency(((CleanupInternal) cleanup).getCleanupFrequency())
@@ -127,14 +136,38 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         persistentCacheConfigurations.getDownloadedResources().getRemoveUnusedEntriesOlderThan().value(getDownloadedResources().getRemoveUnusedEntriesOlderThan());
         persistentCacheConfigurations.getCreatedResources().getRemoveUnusedEntriesOlderThan().value(getCreatedResources().getRemoveUnusedEntriesOlderThan());
         persistentCacheConfigurations.getCleanup().value(getCleanup());
+        persistentCacheConfigurations.getMark().value(getMark());
     }
 
-    public void finalizeConfigurationValues() {
+    public void finalizeConfiguration(Gradle gradle) {
+        finalizeConfigurationValues();
+        if (getMark().get()) {
+            markCacheDirectories(gradle);
+        }
+    }
+
+    private void finalizeConfigurationValues() {
         releasedWrappersConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         snapshotWrappersConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         downloadedResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         createdResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         getCleanup().finalizeValue();
+        getMark().finalizeValue();
+    }
+
+    private static void markCacheDirectories(Gradle gradle) {
+        CacheDirUtil.tryMarkCacheDirectory(gradle.getGradleUserHomeDir().toPath().resolve(
+            WrapperDistributionCleanupAction.WRAPPER_DISTRIBUTION_FILE_PATH
+        ));
+        CacheDirUtil.tryMarkCacheDirectory(gradle.getGradleUserHomeDir().toPath().resolve(
+            "daemon"
+        ));
+        CacheDirUtil.tryMarkCacheDirectory(gradle.getGradleUserHomeDir().toPath().resolve(
+            "caches"
+        ));
+        CacheDirUtil.tryMarkCacheDirectory(gradle.getGradleUserHomeDir().toPath().resolve(
+            "jdks"
+        ));
     }
 
     @Override
