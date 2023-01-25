@@ -185,6 +185,26 @@ public class DefaultDependencyAdder implements DependencyAdder {
     }
 
     @Override
+    public void plugin(String id) {
+        doAddEager(dependencyFactory.create(id + ":" + id + ".gradle.plugin"), null);
+    }
+
+    @Override
+    public void plugin(String id, Action<? super ExternalModuleDependency> configuration) {
+        doAddEager(dependencyFactory.create(id + ":" + id + ".gradle.plugin"), configuration);
+    }
+
+    @Override
+    public void plugin(String id, String version) {
+        plugin(id, version, null);
+    }
+
+    @Override
+    public void plugin(String id, String version, Action<? super ExternalModuleDependency> configuration) {
+        doAddEager(dependencyFactory.create(id + ":" + id + ".gradle.plugin" + ":" + version), configuration);
+    }
+
+    @Override
     public String toString() {
         return DependencyAdder.class.getSimpleName() + " for " + configuration.getName();
     }

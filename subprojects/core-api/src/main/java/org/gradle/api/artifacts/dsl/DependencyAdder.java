@@ -173,4 +173,12 @@ public interface DependencyAdder {
      */
     <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
 
+    void plugin(String id);
+
+    void plugin(String id, Action<? super ExternalModuleDependency> configuration);
+
+    void plugin(String id, String version);
+
+    void plugin(String id, String version, Action<? super ExternalModuleDependency> configuration);
+
 }

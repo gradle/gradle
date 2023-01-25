@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,6 @@ import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
-import org.gradle.plugin.use.PluginDependency;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -332,15 +331,15 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @Override
-    public PluginDependency plugin(Object notation) {
-        return dependencyFactory.createPluginDependency(notation);
+    public String plugin(String id) {
+        return id + ":" + id + ".gradle.plugin";
     }
 
+    //    format: "$id:$id.gradle.plugin:$version"
+
     @Override
-    public PluginDependency plugin(Object notation, Action<? super PluginDependency> configureAction) {
-        PluginDependency dependency = plugin(notation);
-        configureAction.execute(dependency);
-        return dependency;
+    public String plugin(String id, String version) {
+        return plugin(id) + ":" + version;
     }
 
     @Override

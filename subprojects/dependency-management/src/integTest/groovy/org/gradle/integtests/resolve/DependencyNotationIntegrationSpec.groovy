@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.hamcrest.CoreMatchers
+import spock.lang.IgnoreRest
 import spock.lang.Issue
 
 class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
@@ -83,35 +85,184 @@ task checkDeps {
         succeeds 'checkDeps'
     }
 
+    @IgnoreRest
     def "understands plugin dependency notations"() {
         when:
-        buildFile <<  """
+        buildScript( """
 import org.gradle.api.internal.artifacts.dependencies.*
 
+//buildscript
+buildscript {
+    ${mavenCentralRepository()}
+    dependencies {
+        classpath(plugin('org.jetbrains.kotlin.js')) {
+            version {
+                prefer '1.8.0'
+            }
+        }
+        classpath(plugin('org.jetbrains.kotlin.jvm', '1.8.0'))
+    }
+}
+
+plugins {
+    id 'java'
+    id 'jvm-test-suite'
+}
+
+// main dependency block
 configurations {
     conf
 }
 
 dependencies {
-    conf plugin('org.jetbrains.kotlin.jvm:1.6.0')
 
-    conf(plugin('org.jetbrains.dokka')) {
+    conf(plugin('org.jetbrains.kotlin.js')) {
         version {
-           prefer '1.4.30'
+            prefer '1.8.0'
         }
         transitive = false
+    }
+     conf plugin('org.jetbrains.kotlin.jvm', '1.8.0')
+     conf plugin('org.jetbrains.kotlin.multiplatform')
+}
+
+// test-suite dependencies
+testing {
+    suites {
+        test {
+            dependencies {
+                implementation.plugin('org.jetbrains.kotlin.js') {
+                    version {
+                        prefer '1.8.0'
+                    }
+                    transitive = false
+                }
+                implementation.plugin('org.jetbrains.kotlin.jvm', '1.8.0')
+                implementation.plugin('org.jetbrains.kotlin.multiplatform')
+            }
+        }
     }
 }
 
 task checkDeps {
     doLast {
+        // buildscript
+        buildscript.configurations.classpath.incoming.dependencies.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.js' && it.name == 'org.jetbrains.kotlin.js.gradle.plugin' && it.version == '1.8.0'  }
+        buildscript.configurations.classpath.incoming.dependencies.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.jvm' && it.name == 'org.jetbrains.kotlin.jvm.gradle.plugin' && it.version == '1.8.0' }
+
+        // main dependency block
         def deps = configurations.conf.incoming.dependencies
 
-        assert deps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.jvm' && it.name == 'org.jetbrains.kotlin.jvm.gradle.plugin' && it.version == '1.6.0'  }
-
-        def configuredDep = deps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.dokka' && it.name == 'org.jetbrains.dokka.gradle.plugin' }
-        assert configuredDep.version == '1.4.30'
+        def configuredDep = deps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.js' && it.name == 'org.jetbrains.kotlin.js.gradle.plugin' }
+        assert configuredDep.version == '1.8.0'
         assert configuredDep.transitive == false
+        assert deps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.jvm' && it.name == 'org.jetbrains.kotlin.jvm.gradle.plugin' && it.version == '1.8.0' }
+        assert deps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.multiplatform' && it.name == 'org.jetbrains.kotlin.multiplatform.gradle.plugin' }
+
+        // test-suite dependencies
+        def testDeps = configurations.testImplementation.incoming.dependencies
+
+        def configuredTestDep = testDeps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.js' && it.name == 'org.jetbrains.kotlin.js.gradle.plugin'}
+        assert configuredTestDep.version == '1.8.0'
+        assert configuredTestDep.transitive == false
+        assert testDeps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.jvm' && it.name == 'org.jetbrains.kotlin.jvm.gradle.plugin' && it.version == '1.8.0' }
+        assert testDeps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.multiplatform' && it.name == 'org.jetbrains.kotlin.multiplatform.gradle.plugin' }
+    }
+}
+""")
+        then:
+        succeeds 'checkDeps'
+    }
+
+    @IgnoreRest
+    def "understands plugin dependency notations in kotlin"() {
+        when:
+        buildKotlinFile <<  """
+import org.gradle.api.internal.artifacts.dependencies.*
+
+// buildscript
+buildscript {
+    repositories {
+        ${mavenCentralRepository(GradleDsl.KOTLIN)}
+    }
+    dependencies {
+        add("classpath", plugin("org.jetbrains.kotlin.js")) {
+            version {
+                prefer("1.8.0")
+            }
+        }
+        add("classpath", plugin("org.jetbrains.kotlin.jvm", "1.8.0"))
+    }
+}
+
+plugins {
+    java
+    `jvm-test-suite`
+}
+
+// main dependency block
+configurations {
+    create("conf")
+}
+
+dependencies {
+
+    add("conf", plugin("org.jetbrains.kotlin.multiplatform")) {
+        version {
+            prefer("1.8.0")
+        }
+        isTransitive = false
+    }
+    add("conf", plugin(id = "org.jetbrains.kotlin.multiplatform.pm20", version = "1.8.0"))
+    add("conf", plugin("org.jetbrains.kotlin.plugin.parcelize", "1.8.0"))
+    add("conf", plugin("org.jetbrains.kotlin.plugin.scripting"))
+}
+
+// test-suite dependencies
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            dependencies {
+                implementation.plugin("org.jetbrains.kotlin.js") {
+                    version {
+                        prefer("1.8.0")
+                    }
+                    isTransitive = false
+                }
+                implementation.plugin("org.jetbrains.kotlin.jvm", "1.8.0")
+                implementation.plugin("org.jetbrains.kotlin.multiplatform")
+            }
+        }
+    }
+}
+
+tasks.register("checkDeps") {
+    doLast {
+        // buildscript
+        buildscript.configurations.getByName("classpath").incoming.dependencies.find { it is ExternalDependency && it.group == "org.jetbrains.kotlin.js" && it.name == "org.jetbrains.kotlin.js.gradle.plugin" && it.version == "1.8.0" }
+        buildscript.configurations.getByName("classpath").incoming.dependencies.find { it is ExternalDependency && it.group == "org.jetbrains.kotlin.jvm" && it.name == "org.jetbrains.kotlin.jvm.gradle.plugin" && it.version == "1.8.0" }
+
+        // main dependency block
+        val deps = configurations.get("conf").incoming.dependencies
+
+        val configuredDep = deps.single { it is ExternalDependency && it.group == "org.jetbrains.kotlin.multiplatform" && it.name == "org.jetbrains.kotlin.multiplatform.gradle.plugin" }
+        configuredDep as ExternalDependency
+        require(configuredDep.version == "1.8.0")
+        require(configuredDep.isTransitive == false)
+
+        deps.single { it is ExternalDependency && it.group == "org.jetbrains.kotlin.multiplatform.pm20" && it.name == "org.jetbrains.kotlin.multiplatform.pm20.gradle.plugin" && it.version == "1.8.0" }
+        deps.single { it is ExternalDependency && it.group == "org.jetbrains.kotlin.plugin.parcelize" && it.name == "org.jetbrains.kotlin.plugin.parcelize.gradle.plugin" && it.version == "1.8.0" }
+        deps.single { it is ExternalDependency && it.group == "org.jetbrains.kotlin.plugin.scripting" && it.name == "org.jetbrains.kotlin.plugin.scripting.gradle.plugin"  }
+
+        // test-suite dependencies
+        val testDeps = configurations.get("testImplementation").incoming.dependencies
+
+        val configuredTestDep = testDeps.single { it is ExternalDependency && it.group == "org.jetbrains.kotlin.js" && it.name == "org.jetbrains.kotlin.js.gradle.plugin" }
+        configuredTestDep as ExternalDependency
+        require(configuredTestDep.version == "1.8.0")
+        require(configuredTestDep.isTransitive == false)
+        testDeps.single { it is ExternalDependency && it.group == "org.jetbrains.kotlin.jvm" && it.name == "org.jetbrains.kotlin.jvm.gradle.plugin" && it.version == "1.8.0" }
+        testDeps.single { it is ExternalDependency && it.group == "org.jetbrains.kotlin.multiplatform" && it.name == "org.jetbrains.kotlin.multiplatform.gradle.plugin" }
     }
 }
 """

@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
@@ -29,7 +30,6 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-import org.gradle.plugin.use.PluginDependency;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -540,26 +540,28 @@ public interface DependencyHandler extends ExtensionAware {
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
     /**
-     * Declares a dependency on a Gradle plugin.
+     * Returns the coordinates string of a Gradle plugin, specified by id.
      *
-     * @param notation the id of the plugin
-     * @return The dependency.
+     * @param id the id of the plugin
+     * @return The plugin coordinates string
      *
      * @since 8.0
      */
-    PluginDependency plugin(Object notation);
+    @Incubating
+    String plugin(String id);
 
     /**
-     * Declares a dependency on a Gradle plugin. The dependency is configured using the given closure before
-     * it is returned.
+     * Returns the coordinates string of a Gradle plugin,
+     * specified by id and version string.
      *
-     * @param notation the id of the plugin
-     * @param configureAction the dependency configuration block
-     * @return The dependency.
+     * @param id the id of the plugin
+     * @param version the version of the plugin
+     * @return The plugin coordinates string
      *
      * @since 8.0
      */
-    PluginDependency plugin(Object notation, Action<? super PluginDependency> configureAction);
+    @Incubating
+    String plugin(String id, String version);
 
     /**
      * Declares a dependency on a platform. If the target coordinates represent multiple
