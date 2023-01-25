@@ -113,7 +113,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     private static String getProjectName(File settingsDir) {
         if(contains(File.listRoots(), settingsDir)) {
             String rootIndicator = settingsDir.toPath().getRoot().toString().replaceAll("[\\\\:\\/]*", "");
-            return "generated " + rootIndicator  + (rootIndicator.isEmpty() ? "" : " ") +
+            return "generated-" + rootIndicator  + (rootIndicator.isEmpty() ? "" : "-") +
                 sha512().hashString(now().toString()).toString().substring(0, 6);
         }
         return settingsDir.getName();
