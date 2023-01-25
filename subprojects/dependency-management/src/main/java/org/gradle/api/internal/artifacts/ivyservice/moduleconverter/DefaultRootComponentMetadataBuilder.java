@@ -110,12 +110,12 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     private DefaultLocalComponentMetadata getRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, AttributesSchemaInternal schema, DependencyLockingProvider dependencyLockingHandler, ModelContainer<?> model) {
         DefaultLocalComponentMetadata metadata = new RootLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, dependencyLockingHandler, model, calculatedValueContainerFactory);
         for (ConfigurationInternal configuration : configurationsProvider.getAll()) {
-            addConfiguration(metadata, configuration, localComponentMetadataBuilder);
+            addConfiguration(metadata, configuration);
         }
         return metadata;
     }
 
-    private static void addConfiguration(DefaultLocalComponentMetadata metadata, ConfigurationInternal configuration, LocalComponentMetadataBuilder localComponentMetadataBuilder) {
+    private void addConfiguration(DefaultLocalComponentMetadata metadata, ConfigurationInternal configuration) {
         BuildableLocalConfigurationMetadata buildableLocalConfigurationMetadata = localComponentMetadataBuilder.addConfiguration(metadata, configuration);
         if (configuration.getResolutionStrategy().isDependencyLockingEnabled()) {
             buildableLocalConfigurationMetadata.enableLocking();
