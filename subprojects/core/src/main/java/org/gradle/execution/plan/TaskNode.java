@@ -19,10 +19,7 @@ package org.gradle.execution.plan;
 import com.google.common.collect.Iterables;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 
-import javax.annotation.Nonnull;
 import java.util.NavigableSet;
 import java.util.Set;
 
@@ -96,33 +93,6 @@ public abstract class TaskNode extends Node {
     }
 
     public abstract TaskInternal getTask();
-
-    @Nonnull
-    @Override
-    public CalculateTaskGraphBuildOperationType.TaskIdentity getNodeIdentity() {
-        TaskIdentity<?> delegate = getTask().getTaskIdentity();
-        return new CalculateTaskGraphBuildOperationType.TaskIdentity() {
-            @Override
-            public String getBuildPath() {
-                return delegate.getBuildPath();
-            }
-
-            @Override
-            public String getTaskPath() {
-                return delegate.getTaskPath();
-            }
-
-            @Override
-            public long getTaskId() {
-                return delegate.getId();
-            }
-
-            @Override
-            public String toString() {
-                return "Task " + delegate.getTaskPath();
-            }
-        };
-    }
 
     protected void deprecateLifecycleHookReferencingNonLocalTask(String hookName, Node taskNode) {
         if (taskNode instanceof TaskInAnotherBuild) {
