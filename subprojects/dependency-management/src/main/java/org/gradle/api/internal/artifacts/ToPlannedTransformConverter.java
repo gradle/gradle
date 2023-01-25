@@ -28,12 +28,23 @@ import java.util.function.Function;
 public class ToPlannedTransformConverter implements ToPlannedNodeConverter {
 
     @Override
-    public Class<?> getSupportedNodeType() {
+    public Class<? extends Node> getSupportedNodeType() {
         return TransformationNode.class;
     }
 
     @Override
-    public CalculateTaskGraphBuildOperationType.PlannedNode convertToPlannedNode(Node node, Function<Node, List<? extends CalculateTaskGraphBuildOperationType.NodeIdentity>> findDependencies) {
+    public CalculateTaskGraphBuildOperationType.TransformationIdentity getNodeIdentity(Node node) {
+        TransformationNode transformationNode = (TransformationNode) node;
+        return transformationNode.getNodeIdentity();
+    }
+
+    @Override
+    public boolean isInSamePlan(Node node) {
+        return true;
+    }
+
+    @Override
+    public CalculateTaskGraphBuildOperationType.PlannedNode convert(Node node, Function<Node, List<? extends CalculateTaskGraphBuildOperationType.NodeIdentity>> findDependencies) {
         TransformationNode transformationNode = (TransformationNode) node;
         return new DefaultPlannedTransform(
             transformationNode.getNodeIdentity(),

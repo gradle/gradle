@@ -111,8 +111,6 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         return sourceAttributes;
     }
 
-    @Nonnull
-    @Override
     public TransformationIdentity getNodeIdentity() {
         if (cachedIdentity == null) {
             cachedIdentity = createIdentity();

@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.initialization.DefaultPlannedTask;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 
@@ -28,15 +29,51 @@ import java.util.stream.Collectors;
 public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
 
     @Override
-    public Class<?> getSupportedNodeType() {
-        return LocalTaskNode.class;
+    public Class<? extends Node> getSupportedNodeType() {
+        return TaskNode.class;
     }
 
     @Override
-    public CalculateTaskGraphBuildOperationType.PlannedNode convertToPlannedNode(Node node, Function<Node, List<? extends CalculateTaskGraphBuildOperationType.NodeIdentity>> findDependencies) {
+    public CalculateTaskGraphBuildOperationType.TaskIdentity getNodeIdentity(Node node) {
+        TaskNode taskNode = (TaskNode) node;
+        TaskIdentity<?> delegate = taskNode.getTask().getTaskIdentity();
+        return new CalculateTaskGraphBuildOperationType.TaskIdentity() {
+            @Override
+            public String getBuildPath() {
+                return delegate.getBuildPath();
+            }
+
+            @Override
+            public String getTaskPath() {
+                return delegate.getTaskPath();
+            }
+
+            @Override
+            public long getTaskId() {
+                return delegate.getId();
+            }
+
+            @Override
+            public String toString() {
+                return "Task " + delegate.getTaskPath();
+            }
+        };
+    }
+
+    @Override
+    public boolean isInSamePlan(Node node) {
+        return node instanceof LocalTaskNode;
+    }
+
+    @Override
+    public CalculateTaskGraphBuildOperationType.PlannedTask convert(Node node, Function<Node, List<? extends CalculateTaskGraphBuildOperationType.NodeIdentity>> findDependencies) {
+        if (!isInSamePlan(node)) {
+            throw new IllegalArgumentException("Cannot convert task from another plan: " + node);
+        }
+
         LocalTaskNode taskNode = (LocalTaskNode) node;
         return new DefaultPlannedTask(
-            taskNode.getNodeIdentity(),
+            getNodeIdentity(taskNode),
             findDependencies.apply(taskNode),
             taskIdentifiesOf(taskNode.getMustSuccessors()),
             taskIdentifiesOf(taskNode.getShouldSuccessors()),
@@ -44,7 +81,7 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
         );
     }
 
-    private static List<CalculateTaskGraphBuildOperationType.TaskIdentity> taskIdentifiesOf(Collection<Node> nodes) {
+    private List<CalculateTaskGraphBuildOperationType.TaskIdentity> taskIdentifiesOf(Collection<Node> nodes) {
         if (nodes.isEmpty()) {
             return Collections.emptyList();
         }
@@ -52,7 +89,7 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
         return nodes.stream()
             .filter(TaskNode.class::isInstance)
             .map(TaskNode.class::cast)
-            .map(TaskNode::getNodeIdentity)
+            .map(this::getNodeIdentity)
             .collect(Collectors.toList());
     }
 }
