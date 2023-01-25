@@ -23,7 +23,6 @@ import org.gradle.api.tasks.VerificationException;
 import org.gradle.execution.plan.edges.DependencyNodesSet;
 import org.gradle.execution.plan.edges.DependentNodesSet;
 import org.gradle.internal.resources.ResourceLock;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.NodeIdentity;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -607,11 +606,6 @@ public abstract class Node {
      */
     public List<? extends ResourceLock> getResourcesToLock() {
         return Collections.emptyList();
-    }
-
-    @Nullable
-    public NodeIdentity getNodeIdentity() {
-        return null;
     }
 
     @Override
