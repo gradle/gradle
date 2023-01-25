@@ -81,4 +81,19 @@ public interface CacheConfigurations {
      */
     Property<Cleanup> getCleanup();
 
+    /**
+     * If caches should be marked with a {@code CACHEDIR.TAG} file.
+     *
+     * <p>
+     * By default, caches are marked.
+     * </p>
+     * <p>
+     * This is used by some tools to identify caches.
+     * </p>
+     *
+     * @see <a href="https://bford.info/cachedir/">Cache Directory Tagging Specification</a>
+     * @since 8.1
+     */
+    Property<Boolean> getMark();
+
 }

@@ -16,8 +16,6 @@
 
 package org.gradle.wrapper;
 
-import org.gradle.util.internal.CacheDirUtil;
-
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -81,8 +79,6 @@ public class Install {
                 }
 
                 fetchDistribution(localZipFile, distributionUrl, distDir, configuration);
-
-                CacheDirUtil.markAsCacheDirectory(distDir.getParentFile());
 
                 InstallCheck installCheck = verifyDistributionRoot(distDir, safeUri(distributionUrl).toString());
                 if (installCheck.isVerified()) {
