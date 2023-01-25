@@ -184,6 +184,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         ServicesPropertyHandler servicesHandler = new ServicesPropertyHandler();
         InjectAnnotationPropertyHandler injectionHandler = new InjectAnnotationPropertyHandler();
         PropertyTypePropertyHandler propertyTypedHandler = new PropertyTypePropertyHandler();
+        ConfigurableFileCollectionPropertyHandler configurableFileCollectionPropertyHandler = new ConfigurableFileCollectionPropertyHandler();
         ManagedPropertiesHandler managedPropertiesHandler = new ManagedPropertiesHandler();
         NamePropertyHandler namePropertyHandler = new NamePropertyHandler();
         ExtensibleTypePropertyHandler extensibleTypeHandler = new ExtensibleTypePropertyHandler();
@@ -194,6 +195,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         handlers.add(extensibleTypeHandler);
         handlers.add(dslMixInHandler);
         handlers.add(propertyTypedHandler);
+        handlers.add(configurableFileCollectionPropertyHandler);
         handlers.add(servicesHandler);
         handlers.add(namePropertyHandler);
         handlers.add(managedPropertiesHandler);
@@ -423,6 +425,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         return Property.class.isAssignableFrom(type) ||
             HasMultipleValues.class.isAssignableFrom(type) ||
             MapProperty.class.isAssignableFrom(type);
+    }
+
+    private static boolean isConfigurableFileCollectionType(Class<?> type) {
+        return ConfigurableFileCollection.class.isAssignableFrom(type);
     }
 
     private static boolean isAttachableType(MethodMetadata method) {
@@ -1159,6 +1165,24 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
+    private static class ConfigurableFileCollectionPropertyHandler extends ClassGenerationHandler {
+        private final List<PropertyMetadata> configurableFileCollectionTyped = new ArrayList<>();
+
+        @Override
+        void visitProperty(PropertyMetadata property) {
+            if (property.isReadOnly() && isConfigurableFileCollectionType(property.getType())) {
+                configurableFileCollectionTyped.add(property);
+            }
+        }
+
+        @Override
+        void applyTo(ClassGenerationVisitor visitor) {
+            for (PropertyMetadata property : configurableFileCollectionTyped) {
+                visitor.addConfigurableFileCollectionSetterOverloads(property, property.mainGetter);
+            }
+        }
+    }
+
     private static class InjectionAnnotationValidator implements ClassValidator {
         private final Set<Class<? extends Annotation>> annotationTypes;
         private final ImmutableMultimap<Class<? extends Annotation>, TypeToken<?>> allowedTypesForAnnotation;
@@ -1477,6 +1501,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void addActionMethod(Method method);
 
         void addPropertySetterOverloads(PropertyMetadata property, MethodMetadata getter);
+
+        void addConfigurableFileCollectionSetterOverloads(PropertyMetadata property, MethodMetadata getter);
 
         void addNameProperty();
 
