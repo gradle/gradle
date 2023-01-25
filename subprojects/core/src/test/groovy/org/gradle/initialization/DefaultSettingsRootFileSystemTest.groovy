@@ -32,10 +32,8 @@ class DefaultSettingsRootFileSystemTest extends DefaultSettingsCommonTest {
 
     private getRootProjectNamePattern() {
         if(OperatingSystem.current().isWindows()) {
-            return 'generated [a-zA-Z] [a-z0-9]{6}'
+            return 'generated-[a-zA-Z]-[a-z0-9]{6}'
         }
-        return 'generated [a-z0-9]{6}'
-
+        return 'generated-[a-z0-9]{6}'
     }
-
 }
