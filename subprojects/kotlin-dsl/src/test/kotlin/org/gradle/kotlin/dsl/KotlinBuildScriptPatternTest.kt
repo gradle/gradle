@@ -25,6 +25,7 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.util.PropertiesCollection
+import kotlin.script.templates.ScriptTemplateDefinition
 
 
 @RunWith(Parameterized::class)
@@ -53,29 +54,43 @@ class KotlinBuildScriptPatternTest(val script: Script) {
     }
 
     @Test
-    fun `recognizes build scripts`() {
-        checkScriptRecognizedBy(KotlinBuildScript::class, ScriptType.BUILD)
+    fun `recognizes build scripts from script templates`() {
+        checkScriptRecognizedBy(KotlinProjectScriptTemplate::class, ScriptType.BUILD)
     }
 
     @Test
-    fun `recognizes settings scripts`() {
-        checkScriptRecognizedBy(KotlinSettingsScript::class, ScriptType.SETTINGS)
+    fun `recognizes settings scripts from script templates`() {
+        checkScriptRecognizedBy(KotlinSettingsScriptTemplate::class, ScriptType.SETTINGS)
     }
 
     @Test
-    fun `recognizes init scripts`() {
-        checkScriptRecognizedBy(KotlinInitScript::class, ScriptType.INIT)
+    fun `recognizes init scripts from script templates`() {
+        checkScriptRecognizedBy(KotlinGradleScriptTemplate::class, ScriptType.INIT)
+    }
+
+    @Test
+    fun `recognizes build scripts from legacy script templates`() {
+        checkScriptRecognizedByLegacy(KotlinBuildScript::class, ScriptType.BUILD)
+    }
+
+    @Test
+    fun `recognizes settings scripts from legacy script templates`() {
+        checkScriptRecognizedByLegacy(KotlinSettingsScript::class, ScriptType.SETTINGS)
+    }
+
+    @Test
+    fun `recognizes init scripts from legacy script templates`() {
+        checkScriptRecognizedByLegacy(KotlinInitScript::class, ScriptType.INIT)
     }
 
     private
     fun checkScriptRecognizedBy(scriptParserClass: KClass<*>, supportedScriptType: ScriptType) {
-        val buildScriptPattern = filePathPatternFrom(scriptParserClass)
-        val shouldMatch = script.type == supportedScriptType
-        assertEquals(
-            "${script.name} should${if (shouldMatch) "" else " not"} match $buildScriptPattern",
-            shouldMatch,
-            script.name.matches(buildScriptPattern.toRegex())
-        )
+        assertScriptFilePatternMatches(filePathPatternFrom(scriptParserClass), supportedScriptType)
+    }
+
+    private
+    fun checkScriptRecognizedByLegacy(scriptParserClass: KClass<*>, supportedScriptType: ScriptType) {
+        assertScriptFilePatternMatches(scriptFilePatternFromLegacy(scriptParserClass), supportedScriptType)
     }
 
     private
@@ -87,5 +102,19 @@ class KotlinBuildScriptPatternTest(val script: Script) {
         }
         val compilationConfig = compilationConfigConstructor.newInstance() as ScriptCompilationConfiguration
         return compilationConfig[PropertiesCollection.Key<String>("filePathPattern")]!!
+    }
+
+    private
+    fun scriptFilePatternFromLegacy(scriptParserClass: KClass<*>): String =
+        scriptParserClass.findAnnotation<ScriptTemplateDefinition>()!!.scriptFilePattern
+
+    private
+    fun assertScriptFilePatternMatches(scriptFilePattern: String, supportedScriptType: ScriptType) {
+        val shouldMatch = script.type == supportedScriptType
+        assertEquals(
+            "${script.name} should${if (shouldMatch) "" else " not"} match $scriptFilePattern",
+            shouldMatch,
+            script.name.matches(scriptFilePattern.toRegex())
+        )
     }
 }

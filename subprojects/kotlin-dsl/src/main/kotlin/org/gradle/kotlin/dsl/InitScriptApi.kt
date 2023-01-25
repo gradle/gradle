@@ -55,7 +55,8 @@ abstract class InitScriptApi(
 
     init {
         @Suppress("DEPRECATION")
-        if (this::class != org.gradle.kotlin.dsl.precompile.PrecompiledInitScript::class) {
+        if (!org.gradle.kotlin.dsl.precompile.PrecompiledInitScript::class.java.isAssignableFrom(this::class.java) &&
+            !org.gradle.kotlin.dsl.KotlinInitScript::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(InitScriptApi::class.java)
                 .willBeRemovedInGradle9()
                 .undocumented()
