@@ -66,7 +66,7 @@ public class JavaPropertyReflectionUtil {
     }
 
     @Nullable
-    private static Method findGetterMethod(Class<?> target, String property) {
+    public static Method findGetterMethod(Class<?> target, String property) {
         Method[] methods = target.getMethods();
         String getter = toMethodName("get", property);
         String iser = toMethodName("is", property);

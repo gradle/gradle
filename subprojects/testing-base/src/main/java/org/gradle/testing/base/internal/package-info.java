@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.base;
-
-import org.gradle.api.Incubating;
-
-/**
- * This DSL element exists to contain a collection of {@link TestSuite}s.
- *
- * @since 7.3
- */
-@Incubating
-public interface TestingExtension {
-    /**
-     * Available test suites in this project.
-     *
-     * The type of test suites available depend on which other plugins are applied.
-     */
-    TestSuiteContainerX getSuites();
-}
+@org.gradle.api.NonNullApi
+package org.gradle.testing.base.internal;

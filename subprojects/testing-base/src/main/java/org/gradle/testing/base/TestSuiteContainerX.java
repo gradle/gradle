@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,18 @@
 
 package org.gradle.testing.base;
 
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 
 /**
- * This DSL element exists to contain a collection of {@link TestSuite}s.
+ * A {@code TestSuiteContainerX} manages a set of {@link TestSuite} objects.
  *
- * @since 7.3
+ * @since 8.1
  */
 @Incubating
-public interface TestingExtension {
-    /**
-     * Available test suites in this project.
-     *
-     * The type of test suites available depend on which other plugins are applied.
-     */
-    TestSuiteContainerX getSuites();
+public interface TestSuiteContainerX extends ExtensiblePolymorphicDomainObjectContainer<TestSuite> {
+
+    //todo: rename class to TestSuiteContainer
+    // after renaming the existing interface with that name to TestSuiteSpecContainer
+
 }

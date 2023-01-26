@@ -408,27 +408,19 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     @Override
     public NamedDomainObjectCollectionSchema getCollectionSchema() {
-        return new NamedDomainObjectCollectionSchema() {
-            @Override
-            public Iterable<? extends NamedDomainObjectSchema> getElements() {
-                // Simple scheme is to just present the public type of the container
-                return Iterables.transform(getNames(), new Function<String, NamedDomainObjectSchema>() {
-                    @Override
-                    public NamedDomainObjectSchema apply(final String name) {
-                        return new NamedDomainObjectSchema() {
-                            @Override
-                            public String getName() {
-                                return name;
-                            }
+        return () -> {
+            // Simple scheme is to just present the public type of the container
+            return Iterables.transform(getNames(), (Function<String, NamedDomainObjectCollectionSchema.NamedDomainObjectSchema>) name -> new NamedDomainObjectCollectionSchema.NamedDomainObjectSchema() {
+                @Override
+                public String getName() {
+                    return name;
+                }
 
-                            @Override
-                            public TypeOf<?> getPublicType() {
-                                return TypeOf.typeOf(getType());
-                            }
-                        };
-                    }
-                });
-            }
+                @Override
+                public TypeOf<?> getPublicType() {
+                    return TypeOf.typeOf(getType());
+                }
+            });
         };
     }
 

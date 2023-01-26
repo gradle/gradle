@@ -614,6 +614,30 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    fun `can access NamedDomainObjectContainer extension content via generated accessor`() {
+        withBuildScript(
+            """
+
+            plugins {
+                java
+                `jvm-test-suite`
+            }
+
+            testing {
+                suites.test.get().useJUnitJupiter()
+
+                suites.test {
+                    useJUnit()
+                }
+            }
+
+            """
+        )
+
+        build("help")
+    }
+
+    @Test
     fun `can access extensions registered by declared plugins via jit accessor`() {
 
         withBuildScript(

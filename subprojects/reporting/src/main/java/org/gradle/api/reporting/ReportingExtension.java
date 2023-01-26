@@ -143,5 +143,5 @@ public abstract class ReportingExtension {
     @Incubating
     public ExtensiblePolymorphicDomainObjectContainer<ReportSpec> getReports() {
         return reports;
-    }
+    } //todo: potentially fix the same way as TestingExtension.getSuites()
 }

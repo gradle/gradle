@@ -15,12 +15,16 @@
  */
 package org.gradle.api.internal;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Namer;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
@@ -112,6 +116,26 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
     @Override
     protected ConfigureDelegate createConfigureDelegate(Closure configureClosure) {
         return new PolymorphicDomainObjectContainerConfigureDelegate<>(configureClosure, this);
+    }
+
+    @Override
+    public NamedDomainObjectCollectionSchema getCollectionSchema() {
+        return () -> Iterables.transform(getAsMap().entrySet(), (Function<Map.Entry<String, T>, NamedDomainObjectCollectionSchema.NamedDomainObjectSchema>) entry -> new NamedDomainObjectCollectionSchema.NamedDomainObjectSchema() {
+            @Override
+            public String getName() {
+                return entry.getKey();
+            }
+
+            @Override
+            public TypeOf<?> getPublicType() {
+                return TypeOf.typeOf(entry.getValue().getClass());
+                //TODO: this is not quite ok; we don't need the concrete type, like DefaultJvmTestSuite (implementation),
+                // but the type that was used to create the element, like JvmTestSuite (interface);
+                // to make that happen I think we need to add tracking of those types, because we don't have it
+                // -
+                // ALTERNATIVELY: stick to the concrete type but search parents for first public interface?
+            }
+        });
     }
 
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {

@@ -30,6 +30,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.internal.deprecation.DeprecatableConfiguration
+import org.gradle.internal.reflect.JavaPropertyReflectionUtil
 import org.gradle.kotlin.dsl.accessors.ConfigurationEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
@@ -76,7 +77,17 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
         if (target is ExtensionAware) {
             accessibleContainerSchema(target.extensions.extensionsSchema).forEach { schema ->
                 extensions.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
-                collectSchemaOf(target.extensions.getByName(schema.name), schema.publicType)
+                val extension = target.extensions.getByName(schema.name)
+                collectSchemaOf(extension, schema.publicType)
+                JavaPropertyReflectionUtil.propertyNames(extension)
+                    .asSequence()
+                    .map { JavaPropertyReflectionUtil.findGetterMethod(extension::class.java, it) }
+                    .filterNotNull()
+                    .filter { NamedDomainObjectContainer::class.java.isAssignableFrom(it.returnType) && it.returnType.typeParameters.isEmpty() }
+                    .map { it.invoke(extension) to it.returnType } // todo: does the invoke cause eager realisation?
+                    .forEach { (container, containerType) ->
+                        collectSchemaOf(container, TypeOf.typeOf(containerType))
+                    }
             }
         }
         if (target is Project) {
@@ -93,7 +104,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
             // WARN eagerly realize all source sets
             sourceSetsOf(target)?.forEach { sourceSet ->
                 collectSchemaOf(sourceSet, typeOfSourceSet)
-            }
+            } // todo: we have duplicate containerElements for sourceSets; sourceSet extension + java.sourceSets? address the duplication problem in general
         }
         if (target is NamedDomainObjectContainer<*>) {
             accessibleContainerSchema(target.collectionSchema).forEach { schema ->
