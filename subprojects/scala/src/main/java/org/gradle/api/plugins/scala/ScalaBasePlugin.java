@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
@@ -62,6 +63,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
@@ -107,14 +109,15 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         ScalaPluginExtension scalaPluginExtension = project.getExtensions().create(ScalaPluginExtension.class, "scala", DefaultScalaPluginExtension.class);
 
         Usage incrementalAnalysisUsage = objectFactory.named(Usage.class, "incremental-analysis");
-        configureConfigurations(project, incrementalAnalysisUsage, scalaPluginExtension);
+        Category incrementalAnalysisCategory = objectFactory.named(Category.class, "scala-analysis");
+        configureConfigurations(project, incrementalAnalysisCategory, incrementalAnalysisUsage, scalaPluginExtension);
 
         configureCompileDefaults(project, scalaRuntime, (DefaultJavaPluginExtension) javaPluginExtension(project));
-        configureSourceSetDefaults(project, incrementalAnalysisUsage);
+        configureSourceSetDefaults(project, incrementalAnalysisCategory, incrementalAnalysisUsage);
         configureScaladoc(project, scalaRuntime);
     }
 
-    private void configureConfigurations(final Project project, final Usage incrementalAnalysisUsage, ScalaPluginExtension scalaPluginExtension) {
+    private void configureConfigurations(final Project project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage, ScalaPluginExtension scalaPluginExtension) {
         DependencyHandler dependencyHandler = project.getDependencies();
 
         ConfigurationInternal plugins = (ConfigurationInternal) project.getConfigurations().create(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME);
@@ -160,6 +163,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         incrementalAnalysisElements.setCanBeResolved(false);
         incrementalAnalysisElements.setCanBeConsumed(true);
         incrementalAnalysisElements.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
+        incrementalAnalysisElements.getAttributes().attribute(CATEGORY_ATTRIBUTE, incrementalAnalysisCategory);
 
         AttributeMatchingStrategy<Usage> matchingStrategy = dependencyHandler.getAttributesSchema().attribute(USAGE_ATTRIBUTE);
         matchingStrategy.getDisambiguationRules().add(UsageDisambiguationRules.class, actionConfiguration -> {
@@ -169,7 +173,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void configureSourceSetDefaults(final Project project, final Usage incrementalAnalysisUsage) {
+    private void configureSourceSetDefaults(final Project project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage) {
         javaPluginExtension(project).getSourceSets().all(sourceSet -> {
 
             ScalaSourceDirectorySet scalaSource = getScalaSourceDirectorySet(sourceSet);
@@ -184,7 +188,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             sourceSet.getAllJava().source(scalaSource);
             sourceSet.getAllSource().source(scalaSource);
 
-            Configuration incrementalAnalysis = createIncrementalAnalysisConfigurationFor(project.getConfigurations(), incrementalAnalysisUsage, sourceSet);
+            Configuration incrementalAnalysis = createIncrementalAnalysisConfigurationFor(project.getConfigurations(), incrementalAnalysisCategory, incrementalAnalysisUsage, sourceSet);
 
             createScalaCompileTask(project, sourceSet, scalaSource, incrementalAnalysis);
         });
@@ -201,7 +205,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         return scalaSourceSet.getScala();
     }
 
-    private static Configuration createIncrementalAnalysisConfigurationFor(ConfigurationContainer configurations, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
+    private static Configuration createIncrementalAnalysisConfigurationFor(ConfigurationContainer configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
         Configuration classpath = configurations.getByName(sourceSet.getImplementationConfigurationName());
         Configuration incrementalAnalysis = configurations.create("incrementalScalaAnalysisFor" + sourceSet.getName());
         incrementalAnalysis.setVisible(false);
@@ -210,6 +214,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         incrementalAnalysis.setCanBeConsumed(false);
         incrementalAnalysis.extendsFrom(classpath);
         incrementalAnalysis.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
+        incrementalAnalysis.getAttributes().attribute(CATEGORY_ATTRIBUTE, incrementalAnalysisCategory);
         return incrementalAnalysis;
     }
 

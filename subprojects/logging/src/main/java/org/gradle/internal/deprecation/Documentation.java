@@ -43,7 +43,7 @@ public abstract class Documentation {
     }
 
     @Nullable
-    abstract String documentationUrl();
+    public abstract String documentationUrl();
 
     @Nullable
     public String consultDocumentationMessage() {
@@ -96,7 +96,7 @@ public abstract class Documentation {
         }
 
         @Override
-        String documentationUrl() {
+        public String documentationUrl() {
             return null;
         }
 
@@ -116,7 +116,7 @@ public abstract class Documentation {
         }
 
         @Override
-        String documentationUrl() {
+        public String documentationUrl() {
             if (section != null) {
                 return DOCUMENTATION_REGISTRY.getDocumentationFor(id, section);
             }
@@ -134,7 +134,7 @@ public abstract class Documentation {
         }
 
         @Override
-        String documentationUrl() {
+        public String documentationUrl() {
             return DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_" + majorVersion, section);
         }
 
@@ -154,7 +154,7 @@ public abstract class Documentation {
         }
 
         @Override
-        String documentationUrl() {
+        public String documentationUrl() {
             return DOCUMENTATION_REGISTRY.getDslRefForProperty(targetClass, property);
         }
     }

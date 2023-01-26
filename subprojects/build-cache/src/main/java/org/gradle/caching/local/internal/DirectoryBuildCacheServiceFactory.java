@@ -21,12 +21,12 @@ import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
@@ -52,8 +52,8 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private static final String DIRECTORY_BUILD_CACHE_TYPE = "directory";
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
-    private final CacheRepository cacheRepository;
-    private final GlobalScopedCache globalScopedCache;
+    private final UnscopedCacheBuilderFactory unscopedCacheBuilderFactory;
+    private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
     private final PathToFileResolver resolver;
     private final DirectoryBuildCacheFileStoreFactory fileStoreFactory;
     private final CleanupActionDecorator cleanupActionDecorator;
@@ -61,10 +61,11 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private final TemporaryFileProvider temporaryFileProvider;
 
     @Inject
-    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, GlobalScopedCache globalScopedCache, PathToFileResolver resolver, DirectoryBuildCacheFileStoreFactory fileStoreFactory,
-                                             CleanupActionDecorator cleanupActionDecorator, FileAccessTimeJournal fileAccessTimeJournal, TemporaryFileProvider temporaryFileProvider) {
-        this.cacheRepository = cacheRepository;
-        this.globalScopedCache = globalScopedCache;
+    public DirectoryBuildCacheServiceFactory(
+            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory, GlobalScopedCacheBuilderFactory cacheBuilderFactory, PathToFileResolver resolver, DirectoryBuildCacheFileStoreFactory fileStoreFactory,
+            CleanupActionDecorator cleanupActionDecorator, FileAccessTimeJournal fileAccessTimeJournal, TemporaryFileProvider temporaryFileProvider) {
+        this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
+        this.cacheBuilderFactory = cacheBuilderFactory;
         this.resolver = resolver;
         this.fileStoreFactory = fileStoreFactory;
         this.cleanupActionDecorator = cleanupActionDecorator;
@@ -79,7 +80,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         if (cacheDirectory != null) {
             target = resolver.resolve(cacheDirectory);
         } else {
-            target = globalScopedCache.baseDirForCrossVersionCache(BUILD_CACHE_KEY);
+            target = cacheBuilderFactory.baseDirForCrossVersionCache(BUILD_CACHE_KEY);
         }
         checkDirectory(target);
 
@@ -90,7 +91,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             config("removeUnusedEntriesAfter", String.valueOf(removeUnusedEntriesAfterDays) + " days");
 
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
-        PersistentCache persistentCache = cacheRepository
+        PersistentCache persistentCache = unscopedCacheBuilderFactory
             .cache(target)
             .withCleanupStrategy(createCacheCleanupStrategy(removeUnusedEntriesOlderThan))
             .withDisplayName("Build cache")

@@ -27,6 +27,7 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.HasInternalProtocol;
@@ -41,7 +42,7 @@ import java.util.Collection;
  * <p>You can obtain a {@code Gradle} instance by calling {@link Project#getGradle()}.</p>
  */
 @HasInternalProtocol
-public interface Gradle extends PluginAware {
+public interface Gradle extends PluginAware, ExtensionAware {
     /**
      * Returns the current Gradle version.
      *

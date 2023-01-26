@@ -388,7 +388,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public DescribingAndSpec<? super TaskInternal> getOnlyIf() {
+    public Spec<? super TaskInternal> getOnlyIf() {
         return onlyIfSpec;
     }
 

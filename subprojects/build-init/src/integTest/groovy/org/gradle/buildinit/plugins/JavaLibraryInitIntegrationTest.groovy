@@ -16,7 +16,6 @@
 
 package org.gradle.buildinit.plugins
 
-
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
@@ -26,14 +25,11 @@ import org.gradle.util.TestPrecondition
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.hamcrest.CoreMatchers.allOf
 
-class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
+class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.java"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.java"
     public static final String SAMPLE_SPOCK_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.groovy"
-
-    @Override
-    String subprojectName() { 'lib' }
 
     def "defaults to Groovy build scripts"() {
         when:
@@ -80,7 +76,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixture.assertHasTestSuite('test')
 
         when:
-        succeeds('test')
+        run('test')
         then:
         assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 

@@ -45,6 +45,14 @@ publishing.publications.withType<MavenPublication>().configureEach {
         groupId = project.group.toString()
         artifactId = moduleIdentity.baseName.get()
     }
+    pom {
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
+    }
 }
 
 // publish plugin to local repository for integration testing -----------------
@@ -100,8 +108,8 @@ publishing {
 }
 
 gradlePlugin {
-    website.set("https://github.com/gradle/kotlin-dsl")
-    vcsUrl.set("https://github.com/gradle/kotlin-dsl")
+    website.set("https://github.com/gradle/gradle/tree/HEAD/subprojects/kotlin-dsl-plugins")
+    vcsUrl.set("https://github.com/gradle/gradle/tree/HEAD/subprojects/kotlin-dsl-plugins")
 
     plugins.all {
 

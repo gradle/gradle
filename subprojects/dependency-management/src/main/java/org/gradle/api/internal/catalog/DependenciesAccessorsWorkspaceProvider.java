@@ -19,7 +19,7 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.scopes.BuildTreeScopedCache;
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
@@ -31,7 +31,7 @@ public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider
     private final DefaultImmutableWorkspaceProvider delegate;
 
     public DependenciesAccessorsWorkspaceProvider(
-        BuildTreeScopedCache scopedCache,
+        BuildTreeScopedCacheBuilderFactory cacheBuilderFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner,
@@ -40,8 +40,8 @@ public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider
         CacheConfigurationsInternal cacheConfigurations
     ) {
         this.delegate = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
-            scopedCache
-                .cache("dependencies-accessors")
+            cacheBuilderFactory
+                .createCacheBuilder("dependencies-accessors")
                 .withDisplayName("dependencies-accessors"),
             fileAccessTimeJournal,
             inMemoryCacheDecoratorFactory,

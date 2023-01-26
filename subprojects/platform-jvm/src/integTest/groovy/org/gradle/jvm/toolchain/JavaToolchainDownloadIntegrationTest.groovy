@@ -33,6 +33,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
                 toolchain {
                     languageVersion = JavaLanguageVersion.of(14)
                     implementation = JvmImplementation.J9
+                    vendor = JvmVendorSpec.ADOPTIUM
                 }
             }
         """
@@ -49,8 +50,11 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
+            .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("No compatible toolchains found for request specification: {languageVersion=14, vendor=any, implementation=J9} (auto-detect true, auto-download true).")
+            .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=ADOPTIUM, implementation=J9}.")
+            .assertHasDocumentedCause("No locally installed toolchains match (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection) " +
+                    "and the configured toolchain download repositories aren't able to provide a match either (see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories).")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -81,8 +85,11 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
+            .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("No compatible toolchains found for request specification: {languageVersion=14, vendor=any, implementation=vendor-specific} (auto-detect false, auto-download false)")
+            .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=any, implementation=vendor-specific}.")
+            .assertHasDocumentedCause("No locally installed toolchains match (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection) " +
+                    "and toolchain auto-provisioning is not enabled (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection).")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -119,7 +126,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
     private TestFile setFoojayDiscoToolchainProvider() {
         settingsFile << """
             plugins {
-                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.3.0'
+                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.4.0'
             }
         """
     }

@@ -1,0 +1,19 @@
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :assemble
+> Task :compileTestJava
+> Task :processTestResources
+> Task :testClasses
+
+> Task :test
+Running tests on Java versions earlier than 8 has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/0.0.0/userguide/upgrading_version_8.html#minimum_test_jvm_version
+
+> Task :check
+> Task :javadoc
+> Task :checkJavadocOutput
+> Task :build
+
+BUILD SUCCESSFUL in 0s
+8 actionable tasks: 8 executed

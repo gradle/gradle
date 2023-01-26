@@ -62,9 +62,9 @@ class DefaultLocalComponentMetadataBuilderTest extends Specification {
 
         then:
         _ * metaData.id >> Stub(ComponentIdentifier)
-        1 * metaData.addConfiguration("config1", '', emptySet, emptySet, false, false, _, false, _, false, ImmutableCapabilities.EMPTY, _) >> targetConfig1
+        1 * metaData.addConfiguration("config1", '', emptySet, emptySet, false, false, _, false, _, false, ImmutableCapabilities.EMPTY) >> targetConfig1
         1 * metaData.addDependenciesAndExcludesForConfiguration(sourceConfig1, configurationMetadataBuilder)
-        1 * metaData.addConfiguration("config2", '', emptySet, emptySet, false, false, _, false, _, false, ImmutableCapabilities.EMPTY, _) >> targetConfig2
+        1 * metaData.addConfiguration("config2", '', emptySet, emptySet, false, false, _, false, _, false, ImmutableCapabilities.EMPTY) >> targetConfig2
         1 * metaData.addDependenciesAndExcludesForConfiguration(sourceConfig2, configurationMetadataBuilder)
         1 * targetConfig1.addArtifacts(artifacts1)
         1 * targetConfig1.addVariant("config1-child1", _, _, _, _, _)

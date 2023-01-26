@@ -378,13 +378,6 @@
     "crossVersionTests": true
   },
   {
-    "dirName": "internal-android-performance-testing",
-    "name": "internal-android-performance-testing",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "dirName": "internal-architecture-testing",
     "name": "internal-architecture-testing",
     "unitTests": false,

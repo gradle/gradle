@@ -100,6 +100,14 @@ public class XcodebuildExecutor {
         return fails(XcodeAction.BUILD);
     }
 
+    // Xcode 14.2 seems to return the error in the format
+    // that can't be recognized by OutputScrapingExecutionFailure.
+    // Returns raw output of `xcodebuild`
+    public ExecOutput execWithFailure(XcodeAction action) {
+        withArgument(action.toString());
+        return findXcodeBuild().execWithFailure(args, buildEnvironment(testDirectory));
+    }
+
     public ExecutionFailure fails(XcodeAction action) {
         withArgument(action.toString());
         ExecOutput result = findXcodeBuild().execWithFailure(args, buildEnvironment(testDirectory));
