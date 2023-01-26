@@ -85,7 +85,6 @@ public class ReleaseNotesTransformer extends FilterReader {
 
         wrapH2InSectionTopic(document);
         addAnchorsForHeadings(document);
-        //document.body().prepend("<h3 class='releaseinfo'>Version @version@</h3>");
         document.body().prepend("<h1>Gradle Release Notes</h1>");
         addTOC(document);
         wrapContentInContainer(document);
@@ -161,7 +160,6 @@ public class ReleaseNotesTransformer extends FilterReader {
         Element toc = tocSection.append("<ul class='toc'/>").children().last();
 
         for (Element topic : document.body().select("h2")) {
-            //Element topicHeading = topic.select("h2,h3").first();
             String name = topic.text();
             String anchor = topic.attr("id");
             //Table of Content is repeated from above's h2 but this would put it in the wrong location. So print everything not starting with Tale
