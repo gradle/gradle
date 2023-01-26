@@ -20,8 +20,11 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Describable;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -121,7 +124,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
     private TransformationIdentity createIdentity() {
         String buildPath = transformationStep.getOwningProject().getBuildPath().toString();
         String projectPath = transformationStep.getOwningProject().getIdentityPath().toString();
-        String componentId = artifact.getId().getComponentIdentifier().getDisplayName();
+        ComponentIdentifier componentId = getComponentIdentifier(artifact.getId().getComponentIdentifier());
         Map<String, String> sourceAttributes = convertToMap(this.sourceAttributes);
         Class<?> transformType = transformationStep.getTransformer().getImplementationClass();
         Map<String, String> fromAttributes = convertToMap(transformationStep.getFromAttributes());
@@ -140,7 +143,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             }
 
             @Override
-            public String getComponentId() {
+            public ComponentIdentifier getComponentId() {
                 return componentId;
             }
 
@@ -174,6 +177,68 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
                 return "Transform '" + componentId + "' with " + transformType.getName();
             }
         };
+    }
+
+    private static ComponentIdentifier getComponentIdentifier(org.gradle.api.artifacts.component.ComponentIdentifier componentId) {
+        if (componentId instanceof ProjectComponentIdentifier) {
+            ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) componentId;
+            return new org.gradle.api.internal.artifacts.component.ProjectComponentIdentifier() {
+                @Override
+                public String getBuildPath() {
+                    return projectComponentIdentifier.getBuild().getName();
+                }
+
+                @Override
+                public String getProjectPath() {
+                    return projectComponentIdentifier.getProjectPath();
+                }
+
+                @Override
+                public String toString() {
+                    return projectComponentIdentifier.getDisplayName();
+                }
+            };
+        } else if (componentId instanceof ModuleComponentIdentifier) {
+            ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) componentId;
+            return new org.gradle.api.internal.artifacts.component.ModuleComponentIdentifier() {
+                @Override
+                public String getGroup() {
+                    return moduleComponentIdentifier.getGroup();
+                }
+
+                @Override
+                public String getModule() {
+                    return moduleComponentIdentifier.getModule();
+                }
+
+                @Override
+                public String getVersion() {
+                    return moduleComponentIdentifier.getVersion();
+                }
+
+                @Override
+                public String toString() {
+                    return moduleComponentIdentifier.getDisplayName();
+                }
+            };
+        } else {
+            return new org.gradle.api.internal.artifacts.component.UnknownComponentIdentifier() {
+                @Override
+                public String getDisplayName() {
+                    return componentId.getDisplayName();
+                }
+
+                @Override
+                public String getClassName() {
+                    return componentId.getClass().getName();
+                }
+
+                @Override
+                public String toString() {
+                    return componentId.getDisplayName();
+                }
+            };
+        }
     }
 
     /**
