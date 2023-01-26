@@ -23,14 +23,15 @@ import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifie
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class PgpKeyGrouperTest extends Specification {
     private DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
     private DependencyVerifier verifier
     private PgpKeyGrouper pgpKeyGrouper
 
-    @Unroll
+    private static final String KEY_1 = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+    private static final String KEY_2 = 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB'
+
     def "common prefix for groups #groups == #expected"() {
         expect:
         PgpKeyGrouper.tryComputeCommonPrefixes(groups) == expected
@@ -66,39 +67,39 @@ class PgpKeyGrouperTest extends Specification {
 
     def "groups entries which have the same module component id"() {
         grouper {
-            entry("org", "foo", "1.0", "foo-1.0.jar").addVerifiedKey("key1")
-            entry("org", "foo", "1.0", "foo-1.0.pom").addVerifiedKey("key1")
+            entry("org", "foo", "1.0", "foo-1.0.jar").addVerifiedKey(KEY_1)
+            entry("org", "foo", "1.0", "foo-1.0.pom").addVerifiedKey(KEY_1)
         }
 
         when:
         executeGrouping()
 
         then:
-        verifier.configuration.trustedKeys*.keyId == ["key1"]
+        verifier.configuration.trustedKeys*.keyId == [KEY_1]
         verifier.verificationMetadata.empty
     }
 
     def "groups entries which have the same module id"() {
         grouper {
-            entry("org", "foo", "1.0", "foo-1.0.jar").addVerifiedKey("key1")
-            entry("org", "foo", "1.0", "foo-1.0.pom").addVerifiedKey("key1")
-            entry("org", "foo", "1.1", "foo-1.1.jar").addVerifiedKey("key1")
-            entry("org", "foo", "1.1", "foo-1.1.pom").addVerifiedKey("key1")
+            entry("org", "foo", "1.0", "foo-1.0.jar").addVerifiedKey(KEY_1)
+            entry("org", "foo", "1.0", "foo-1.0.pom").addVerifiedKey(KEY_1)
+            entry("org", "foo", "1.1", "foo-1.1.jar").addVerifiedKey(KEY_1)
+            entry("org", "foo", "1.1", "foo-1.1.pom").addVerifiedKey(KEY_1)
         }
 
         when:
         executeGrouping()
 
         then:
-        verifier.configuration.trustedKeys*.keyId == ["key1"]
+        verifier.configuration.trustedKeys*.keyId == [KEY_1]
     }
 
     def "doesn't group entries which have the same module id but different keys"() {
         grouper {
-            entry("org", "foo", "1.0", "foo-1.0.jar").addVerifiedKey("key1")
-            entry("org", "foo", "1.0", "foo-1.0.pom").addVerifiedKey("key1")
-            entry("org", "foo", "1.1", "foo-1.1.jar").addVerifiedKey("key2")
-            entry("org", "foo", "1.1", "foo-1.1.pom").addVerifiedKey("key2")
+            entry("org", "foo", "1.0", "foo-1.0.jar").addVerifiedKey(KEY_1)
+            entry("org", "foo", "1.0", "foo-1.0.pom").addVerifiedKey(KEY_1)
+            entry("org", "foo", "1.1", "foo-1.1.jar").addVerifiedKey(KEY_2)
+            entry("org", "foo", "1.1", "foo-1.1.pom").addVerifiedKey(KEY_2)
         }
 
         when:
@@ -106,17 +107,17 @@ class PgpKeyGrouperTest extends Specification {
 
         then:
         def keys = verifier.configuration.trustedKeys
-        keys*.keyId == ["key1", "key2"]
+        keys*.keyId == [KEY_1, KEY_2]
         keys[0].version == '1.0'
         keys[1].version == '1.1'
     }
 
     def "groups entries which have the same group id"() {
         grouper {
-            entry("org", "foo", "1.0", "foo-1.0.jar").addVerifiedKey("key1")
-            entry("org", "foo", "1.0", "foo-1.0.pom").addVerifiedKey("key1")
-            entry("org", "bar", "1.1", "bar-1.1.jar").addVerifiedKey("key1")
-            entry("org", "bar", "1.1", "bar-1.1.pom").addVerifiedKey("key1")
+            entry("org", "foo", "1.0", "foo-1.0.jar").addVerifiedKey(KEY_1)
+            entry("org", "foo", "1.0", "foo-1.0.pom").addVerifiedKey(KEY_1)
+            entry("org", "bar", "1.1", "bar-1.1.jar").addVerifiedKey(KEY_1)
+            entry("org", "bar", "1.1", "bar-1.1.pom").addVerifiedKey(KEY_1)
         }
 
         when:
@@ -124,7 +125,7 @@ class PgpKeyGrouperTest extends Specification {
 
         then:
         def keys = verifier.configuration.trustedKeys
-        keys*.keyId == ["key1"]
+        keys*.keyId == [KEY_1]
         keys[0].group == 'org'
         keys[0].name == null
         keys[0].version == null
@@ -133,10 +134,10 @@ class PgpKeyGrouperTest extends Specification {
 
     def "groups entries which have a common group prefix"() {
         grouper {
-            entry("org.group.a", "foo", "1.0", "foo-1.0.jar").addVerifiedKey("key1")
-            entry("org.group.a", "foo", "1.0", "foo-1.0.pom").addVerifiedKey("key1")
-            entry("org.group.b", "bar", "1.1", "bar-1.1.jar").addVerifiedKey("key1")
-            entry("org.group.b", "bar", "1.1", "bar-1.1.pom").addVerifiedKey("key1")
+            entry("org.group.a", "foo", "1.0", "foo-1.0.jar").addVerifiedKey(KEY_1)
+            entry("org.group.a", "foo", "1.0", "foo-1.0.pom").addVerifiedKey(KEY_1)
+            entry("org.group.b", "bar", "1.1", "bar-1.1.jar").addVerifiedKey(KEY_1)
+            entry("org.group.b", "bar", "1.1", "bar-1.1.pom").addVerifiedKey(KEY_1)
         }
 
         when:
@@ -144,7 +145,7 @@ class PgpKeyGrouperTest extends Specification {
 
         then:
         def keys = verifier.configuration.trustedKeys
-        keys*.keyId == ["key1"]
+        keys*.keyId == [KEY_1]
         keys[0].group == '^org[.]group($|([.].*))'
         keys[0].name == null
         keys[0].version == null

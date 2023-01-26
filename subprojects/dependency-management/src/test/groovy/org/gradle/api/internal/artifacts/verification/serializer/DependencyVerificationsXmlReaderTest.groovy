@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.verification.serializer
 
-import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
@@ -31,7 +31,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         parse("invalid")
 
         then:
-        InvalidUserDataException e = thrown()
+        DependencyVerificationException e = thrown()
         e.message == "Unable to read dependency verification metadata"
     }
 
@@ -55,7 +55,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
 </verification-metadata>"""
 
         then:
-        InvalidUserDataException e = thrown()
+        DependencyVerificationException e = thrown()
         e.message == "Unable to read dependency verification metadata"
         e.cause.message == "Invalid dependency verification metadata file: <component> must be found under the <components> tag"
     }
@@ -167,7 +167,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
 </verification-metadata>
 """
         then:
-        InvalidUserDataException ex = thrown()
+        DependencyVerificationException ex = thrown()
         ex.message == "Unable to read dependency verification metadata"
         ex.cause.message == "A trusted artifact must have at least one of group, name, version or file name not null"
     }
@@ -197,13 +197,13 @@ class DependencyVerificationsXmlReaderTest extends Specification {
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
       <trusted-keys>
-         <trusted-key id="012345" group="g2" name="m1" file="file.jar" regex="true"/>
-         <trusted-key id="456DEF">
+         <trusted-key id="A000000000000000000000000000000000000000" group="g2" name="m1" file="file.jar" regex="true"/>
+         <trusted-key id="B000000000000000000000000000000000000000">
             <trusting name="m3" version="1.4" file="file.zip"/>
             <trusting name="m4" file="other-file.zip" regex="true"/>
          </trusted-key>
-         <trusted-key id="ABC123" group="g3" name="m2" version="1.0" regex="true"/>
-         <trusted-key id="ABCDEF" group="g1"/>
+         <trusted-key id="C000000000000000000000000000000000000000" group="g3" name="m2" version="1.0" regex="true"/>
+         <trusted-key id="D000000000000000000000000000000000000000" group="g1"/>
       </trusted-keys>
    </configuration>
    <components/>
@@ -214,35 +214,35 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         def trustedKeys = verifier.configuration.trustedKeys
         trustedKeys.size() == 5
 
-        trustedKeys[0].keyId == "012345"
+        trustedKeys[0].keyId == "A000000000000000000000000000000000000000"
         trustedKeys[0].group == "g2"
         trustedKeys[0].name == "m1"
         trustedKeys[0].version == null
         trustedKeys[0].fileName == "file.jar"
         trustedKeys[0].regex == true
 
-        trustedKeys[1].keyId == "456DEF"
+        trustedKeys[1].keyId == "B000000000000000000000000000000000000000"
         trustedKeys[1].group == null
         trustedKeys[1].name == "m3"
         trustedKeys[1].version == "1.4"
         trustedKeys[1].fileName == "file.zip"
         trustedKeys[1].regex == false
 
-        trustedKeys[2].keyId == "456DEF"
+        trustedKeys[2].keyId == "B000000000000000000000000000000000000000"
         trustedKeys[2].group == null
         trustedKeys[2].name == "m4"
         trustedKeys[2].version == null
         trustedKeys[2].fileName == "other-file.zip"
         trustedKeys[2].regex == true
 
-        trustedKeys[3].keyId == "ABC123"
+        trustedKeys[3].keyId == "C000000000000000000000000000000000000000"
         trustedKeys[3].group == "g3"
         trustedKeys[3].name == "m2"
         trustedKeys[3].version == "1.0"
         trustedKeys[3].fileName == null
         trustedKeys[3].regex == true
 
-        trustedKeys[4].keyId == "ABCDEF"
+        trustedKeys[4].keyId == "D000000000000000000000000000000000000000"
         trustedKeys[4].group == "g1"
         trustedKeys[4].name == null
         trustedKeys[4].version == null

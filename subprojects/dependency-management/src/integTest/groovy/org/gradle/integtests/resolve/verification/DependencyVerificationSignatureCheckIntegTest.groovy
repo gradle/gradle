@@ -27,7 +27,7 @@ import spock.lang.Unroll
 import static org.gradle.security.fixtures.SigningFixtures.getValidPublicKeyLongIdHexString
 import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
 import static org.gradle.security.fixtures.SigningFixtures.validPublicKeyHexString
-import static org.gradle.security.internal.SecuritySupport.toLongIdHexString
+import static org.gradle.security.internal.SecuritySupport.toHexString
 
 class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVerificationIntegrationTest {
 
@@ -60,36 +60,6 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
         outputContains("Dependency verification is an incubating feature.")
     }
 
-    def "doesn't need checksums if signature is verified and trust using long id"() {
-        createMetadataFile {
-            keyServer(keyServerFixture.uri)
-            verifySignatures()
-            addTrustedKey("org:foo:1.0", validPublicKeyLongIdHexString)
-            addTrustedKey("org:foo:1.0", validPublicKeyLongIdHexString, "pom", "pom")
-        }
-
-        given:
-        javaLibrary()
-        uncheckedModule("org", "foo", "1.0") {
-            withSignature {
-                signAsciiArmored(it)
-            }
-        }
-        buildFile << """
-            dependencies {
-                implementation "org:foo:1.0"
-            }
-        """
-
-        when:
-        serveValidKey()
-        succeeds ":compileJava"
-
-        then:
-        outputContains("Dependency verification is an incubating feature.")
-    }
-
-    @Unroll
     def "if signature is verified and checksum is declared in configuration, verify checksum (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -490,8 +460,8 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
-            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-classy.jar", trustedKey)
-            addTrustedKey("org:foo:1.0", trustedKey, "pom", "pom")
+            addTrustedKeyByFileName("org:foo:1.0", "foo-1.0-classy.jar", validPublicKeyHexString)
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
         }
 
         given:
@@ -519,11 +489,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
 
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
 
-        where:
-        trustedKey << [
-            validPublicKeyHexString,
-            validPublicKeyLongIdHexString
-        ]
     }
 
     @Unroll
@@ -575,7 +540,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         def keyring = newKeyRing()
         def secondServer = new KeyServer(temporaryFolder.createDir("keyserver-${UUID.randomUUID()}"))
         secondServer.registerPublicKey(keyring.publicKey)
-        def pkId = toLongIdHexString(keyring.publicKey.keyID)
+        def pkId = toHexString(keyring.publicKey.fingerprint)
         secondServer.start()
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -1145,7 +1110,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     def "passes verification if an artifact is signed with multiple keys and one of them is ignored"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
-        def pkId = toLongIdHexString(keyring.publicKey.keyID)
+        def pkId = toHexString(keyring.publicKey.fingerprint)
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
@@ -1311,7 +1276,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     def "can read public keys from keyring"() {
         // key will not be published on the server fixture but available locally
         def keyring = newKeyRing()
-        def pkId = toLongIdHexString(keyring.publicKey.keyID)
+        def pkId = toHexString(keyring.publicKey.fingerprint)
 
         createMetadataFile {
             keyServer(keyServerFixture.uri)
