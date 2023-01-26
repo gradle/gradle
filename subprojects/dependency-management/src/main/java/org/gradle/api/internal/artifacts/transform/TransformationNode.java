@@ -45,6 +45,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
@@ -180,63 +181,11 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
     private static ComponentIdentifier getComponentIdentifier(org.gradle.api.artifacts.component.ComponentIdentifier componentId) {
         if (componentId instanceof ProjectComponentIdentifier) {
-            ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) componentId;
-            return new org.gradle.api.internal.artifacts.component.ProjectComponentIdentifier() {
-                @Override
-                public String getBuildPath() {
-                    return projectComponentIdentifier.getBuild().getName();
-                }
-
-                @Override
-                public String getProjectPath() {
-                    return projectComponentIdentifier.getProjectPath();
-                }
-
-                @Override
-                public String toString() {
-                    return projectComponentIdentifier.getDisplayName();
-                }
-            };
+            return new DefaultProjectComponentIdentifier((ProjectComponentIdentifier) componentId);
         } else if (componentId instanceof ModuleComponentIdentifier) {
-            ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) componentId;
-            return new org.gradle.api.internal.artifacts.component.ModuleComponentIdentifier() {
-                @Override
-                public String getGroup() {
-                    return moduleComponentIdentifier.getGroup();
-                }
-
-                @Override
-                public String getModule() {
-                    return moduleComponentIdentifier.getModule();
-                }
-
-                @Override
-                public String getVersion() {
-                    return moduleComponentIdentifier.getVersion();
-                }
-
-                @Override
-                public String toString() {
-                    return moduleComponentIdentifier.getDisplayName();
-                }
-            };
+            return new DefaultModuleComponentIdentifier((ModuleComponentIdentifier) componentId);
         } else {
-            return new org.gradle.api.internal.artifacts.component.UnknownComponentIdentifier() {
-                @Override
-                public String getDisplayName() {
-                    return componentId.getDisplayName();
-                }
-
-                @Override
-                public String getClassName() {
-                    return componentId.getClass().getName();
-                }
-
-                @Override
-                public String toString() {
-                    return componentId.getDisplayName();
-                }
-            };
+            return new DefaultUnknownComponentIdentifier(componentId);
         }
     }
 
@@ -462,6 +411,108 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
                     }
                 });
             }
+        }
+    }
+
+    private static class DefaultProjectComponentIdentifier implements org.gradle.api.internal.artifacts.component.ProjectComponentIdentifier, CustomOperationTraceSerialization {
+
+        private final ProjectComponentIdentifier projectComponentIdentifier;
+
+        public DefaultProjectComponentIdentifier(ProjectComponentIdentifier projectComponentIdentifier) {
+            this.projectComponentIdentifier = projectComponentIdentifier;
+        }
+
+        @Override
+        public String getBuildPath() {
+            return projectComponentIdentifier.getBuild().getName();
+        }
+
+        @Override
+        public String getProjectPath() {
+            return projectComponentIdentifier.getProjectPath();
+        }
+
+        @Override
+        public String toString() {
+            return projectComponentIdentifier.getDisplayName();
+        }
+
+        @Override
+        public Object getCustomOperationTraceSerializableModel() {
+            ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
+            builder.put("buildPath", getBuildPath());
+            builder.put("projectPath", getProjectPath());
+            return builder.build();
+        }
+    }
+
+    private static class DefaultModuleComponentIdentifier implements org.gradle.api.internal.artifacts.component.ModuleComponentIdentifier, CustomOperationTraceSerialization {
+
+        private final ModuleComponentIdentifier moduleComponentIdentifier;
+
+        public DefaultModuleComponentIdentifier(ModuleComponentIdentifier moduleComponentIdentifier) {
+            this.moduleComponentIdentifier = moduleComponentIdentifier;
+        }
+
+        @Override
+        public String getGroup() {
+            return moduleComponentIdentifier.getGroup();
+        }
+
+        @Override
+        public String getModule() {
+            return moduleComponentIdentifier.getModule();
+        }
+
+        @Override
+        public String getVersion() {
+            return moduleComponentIdentifier.getVersion();
+        }
+
+        @Override
+        public String toString() {
+            return moduleComponentIdentifier.getDisplayName();
+        }
+
+        @Override
+        public Object getCustomOperationTraceSerializableModel() {
+            ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
+            builder.put("group", getGroup());
+            builder.put("module", getModule());
+            builder.put("version", getVersion());
+            return builder.build();
+        }
+    }
+
+    private static class DefaultUnknownComponentIdentifier implements org.gradle.api.internal.artifacts.component.UnknownComponentIdentifier, CustomOperationTraceSerialization {
+
+        private final org.gradle.api.artifacts.component.ComponentIdentifier componentId;
+
+        public DefaultUnknownComponentIdentifier(org.gradle.api.artifacts.component.ComponentIdentifier componentId) {
+            this.componentId = componentId;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return componentId.getDisplayName();
+        }
+
+        @Override
+        public String getClassName() {
+            return componentId.getClass().getName();
+        }
+
+        @Override
+        public String toString() {
+            return componentId.getDisplayName();
+        }
+
+        @Override
+        public Object getCustomOperationTraceSerializableModel() {
+            ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
+            builder.put("displayName", getDisplayName());
+            builder.put("className", getClassName());
+            return builder.build();
         }
     }
 
