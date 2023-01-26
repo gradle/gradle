@@ -7,7 +7,7 @@ Many of the benefits of included builds are now available with [`buildSrc`](#imp
 
 Additionally, we have made enhancements to the [configuration cache](#configuration-cache). This includes more fine-grained parallelism by loading tasks from the cache entry and running tasks as isolated on the first build.
 
-Gradle 8.0 also has several bug fixes, removes depreciated features, and other [general improvements](#general-improvements).
+Gradle 8.0 also has several bug fixes, removes deprecated features, and other [general improvements](#general-improvements).
 <!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -68,7 +68,7 @@ See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@b
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
-## New features and usability improvements
+## New features, performance and usability improvements
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
