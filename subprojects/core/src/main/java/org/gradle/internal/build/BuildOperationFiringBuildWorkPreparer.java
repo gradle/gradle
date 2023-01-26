@@ -27,6 +27,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -44,7 +45,6 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.newSetFromMap;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.Details;
-import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.NodeIdentity;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedTask;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.Result;
@@ -145,33 +145,13 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                 });
         }
 
-        private ToPlannedNodeConverter getConverter(Node node) {
-            ToPlannedNodeConverter converter = convertersByNodeType.get(node.getClass());
-            if (converter != null) {
-                return converter;
-            }
-
-            for (ToPlannedNodeConverter converterCandidate : converters) {
-                if (converterCandidate.getSupportedNodeType().isAssignableFrom(node.getClass())) {
-                    converter = converterCandidate;
-                    break;
-                }
-            }
-
-            if (converter != null) {
-                convertersByNodeType.put(node.getClass(), converter);
-            }
-
-            return converter;
-        }
-
         private List<PlannedNode> toPlannedNodes(QueryableExecutionPlan.ScheduledNodes scheduledWork) {
             List<PlannedNode> plannedNodes = new ArrayList<>();
             scheduledWork.visitNodes(nodes -> {
                 for (Node node : nodes) {
                     ToPlannedNodeConverter converter = getConverter(node);
-                    if (converter != null) {
-                        PlannedNode plannedNode = converter.convertToPlannedNode(node, BuildOperationFiringBuildWorkPreparer::findDependencies);
+                    if (converter != null && converter.isInSamePlan(node)) {
+                        PlannedNode plannedNode = converter.convert(node, this::findDependencies);
                         plannedNodes.add(plannedNode);
                     }
                 }
@@ -179,34 +159,56 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             return plannedNodes;
         }
 
-    }
-
-    private static List<? extends NodeIdentity> findDependencies(Node node) {
-        return findDependencies(node.getDependencySuccessors(), Node::getDependencySuccessors);
-    }
-
-    private static List<? extends NodeIdentity> findDependencies(Collection<Node> nodes, Function<? super Node, ? extends Collection<Node>> traverser) {
-        if (nodes.isEmpty()) {
-            return Collections.emptyList();
+        private List<? extends NodeIdentity> findDependencies(Node node) {
+            return findDependencies(node.getDependencySuccessors(), Node::getDependencySuccessors);
         }
 
-        return findIdentifiedNodes(nodes, traverser, newSetFromMap(new IdentityHashMap<>()))
-            .collect(Collectors.toList());
-    }
+        private List<? extends NodeIdentity> findDependencies(Collection<Node> nodes, Function<? super Node, ? extends Collection<Node>> traverser) {
+            if (nodes.isEmpty()) {
+                return Collections.emptyList();
+            }
 
-    private static Stream<NodeIdentity> findIdentifiedNodes(Collection<Node> nodes, Function<? super Node, ? extends Collection<Node>> traverser, Set<Node> seen) {
-        if (nodes.isEmpty()) {
-            return Stream.empty();
+            return findIdentifiedNodes(nodes, traverser, newSetFromMap(new IdentityHashMap<>()))
+                .collect(Collectors.toList());
         }
 
-        return nodes.stream()
-            .filter(seen::add)
-            .flatMap(node -> {
-                NodeIdentity identity = node.getNodeIdentity();
-                return identity != null
-                    ? Stream.of(identity)
-                    : findIdentifiedNodes(traverser.apply(node), traverser, seen);
-            });
+        private Stream<NodeIdentity> findIdentifiedNodes(Collection<Node> nodes, Function<? super Node, ? extends Collection<Node>> traverser, Set<Node> seen) {
+            if (nodes.isEmpty()) {
+                return Stream.empty();
+            }
+
+            return nodes.stream()
+                .filter(seen::add)
+                .flatMap(node -> {
+                    ToPlannedNodeConverter converter = getConverter(node);
+                    // We do not check for the same execution plan, because a node can depend on nodes from other plans
+                    return converter != null
+                        ? Stream.of(converter.getNodeIdentity(node))
+                        : findIdentifiedNodes(traverser.apply(node), traverser, seen);
+                });
+        }
+
+        private ToPlannedNodeConverter getConverter(Node node) {
+            Class<? extends Node> nodeType = node.getClass();
+            ToPlannedNodeConverter converter = convertersByNodeType.get(nodeType);
+            if (converter != null) {
+                return converter;
+            }
+
+            for (ToPlannedNodeConverter converterCandidate : converters) {
+                Class<? extends Node> supportedNodeType = converterCandidate.getSupportedNodeType();
+                if (supportedNodeType.isAssignableFrom(nodeType)) {
+                    converter = converterCandidate;
+                    break;
+                }
+            }
+
+            if (converter != null) {
+                convertersByNodeType.put(nodeType, converter);
+            }
+
+            return converter;
+        }
     }
 
     private static List<String> toTaskPaths(Set<Task> tasks) {

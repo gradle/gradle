@@ -21,6 +21,8 @@ import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.initialization.DefaultPlannedTransform;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.internal.taskgraph.NodeIdentity;
+import org.gradle.api.internal.artifacts.transform.TransformationIdentity;
 
 import java.util.List;
 import java.util.function.Function;
@@ -28,12 +30,23 @@ import java.util.function.Function;
 public class ToPlannedTransformConverter implements ToPlannedNodeConverter {
 
     @Override
-    public Class<?> getSupportedNodeType() {
+    public Class<? extends Node> getSupportedNodeType() {
         return TransformationNode.class;
     }
 
     @Override
-    public CalculateTaskGraphBuildOperationType.PlannedNode convertToPlannedNode(Node node, Function<Node, List<? extends CalculateTaskGraphBuildOperationType.NodeIdentity>> findDependencies) {
+    public TransformationIdentity getNodeIdentity(Node node) {
+        TransformationNode transformationNode = (TransformationNode) node;
+        return transformationNode.getNodeIdentity();
+    }
+
+    @Override
+    public boolean isInSamePlan(Node node) {
+        return true;
+    }
+
+    @Override
+    public CalculateTaskGraphBuildOperationType.PlannedNode convert(Node node, Function<Node, List<? extends NodeIdentity>> findDependencies) {
         TransformationNode transformationNode = (TransformationNode) node;
         return new DefaultPlannedTransform(
             transformationNode.getNodeIdentity(),

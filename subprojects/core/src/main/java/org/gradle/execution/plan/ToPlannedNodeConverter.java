@@ -17,15 +17,33 @@
 package org.gradle.execution.plan;
 
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.NodeIdentity;
+import org.gradle.internal.taskgraph.NodeIdentity;
 
 import java.util.List;
 import java.util.function.Function;
 
 public interface ToPlannedNodeConverter {
 
-    Class<?> getSupportedNodeType();
+    /**
+     * Type of node that this converter can identify and convert to a planned node.
+     */
+    Class<? extends Node> getSupportedNodeType();
 
-    CalculateTaskGraphBuildOperationType.PlannedNode convertToPlannedNode(Node node, Function<Node, List<? extends NodeIdentity>> findDependencies);
+    /**
+     * Provides a unique identity for the node of the {@link #getSupportedNodeType() supported type}.
+     */
+    NodeIdentity getNodeIdentity(Node node);
+
+    /**
+     * Returns true if the given is not an actual executable node but only represents a node from another execution plan.
+     */
+    boolean isInSamePlan(Node node);
+
+    /**
+     * Converts a node to a planned node.
+     * <p>
+     * Expects a node of the {@link #getSupportedNodeType() supported type} that is in the {@link #isInSamePlan(Node) same plan}.
+     */
+    CalculateTaskGraphBuildOperationType.PlannedNode convert(Node node, Function<Node, List<? extends NodeIdentity>> findDependencies);
 
 }

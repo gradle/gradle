@@ -18,10 +18,13 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Describable;
+import org.gradle.api.Named;
 import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.configurations.LazyDesugaringAttributeContainer;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -43,10 +46,9 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TransformationIdentity;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -111,8 +113,6 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         return sourceAttributes;
     }
 
-    @Nonnull
-    @Override
     public TransformationIdentity getNodeIdentity() {
         if (cachedIdentity == null) {
             cachedIdentity = createIdentity();
@@ -123,7 +123,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
     private TransformationIdentity createIdentity() {
         String buildPath = transformationStep.getOwningProject().getBuildPath().toString();
         String projectPath = transformationStep.getOwningProject().getIdentityPath().toString();
-        String componentId = artifact.getId().getComponentIdentifier().getDisplayName();
+        ComponentIdentifier componentId = getComponentIdentifier(artifact.getId().getComponentIdentifier());
         Map<String, String> sourceAttributes = convertToMap(this.sourceAttributes);
         Class<?> transformType = transformationStep.getTransformer().getImplementationClass();
         Map<String, String> fromAttributes = convertToMap(transformationStep.getFromAttributes());
@@ -142,7 +142,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             }
 
             @Override
-            public String getComponentId() {
+            public ComponentIdentifier getComponentId() {
                 return componentId;
             }
 
@@ -178,14 +178,97 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         };
     }
 
+    private static ComponentIdentifier getComponentIdentifier(org.gradle.api.artifacts.component.ComponentIdentifier componentId) {
+        if (componentId instanceof ProjectComponentIdentifier) {
+            ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) componentId;
+            return new org.gradle.api.internal.artifacts.component.ProjectComponentIdentifier() {
+                @Override
+                public String getBuildPath() {
+                    return projectComponentIdentifier.getBuild().getName();
+                }
+
+                @Override
+                public String getProjectPath() {
+                    return projectComponentIdentifier.getProjectPath();
+                }
+
+                @Override
+                public String toString() {
+                    return projectComponentIdentifier.getDisplayName();
+                }
+            };
+        } else if (componentId instanceof ModuleComponentIdentifier) {
+            ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) componentId;
+            return new org.gradle.api.internal.artifacts.component.ModuleComponentIdentifier() {
+                @Override
+                public String getGroup() {
+                    return moduleComponentIdentifier.getGroup();
+                }
+
+                @Override
+                public String getModule() {
+                    return moduleComponentIdentifier.getModule();
+                }
+
+                @Override
+                public String getVersion() {
+                    return moduleComponentIdentifier.getVersion();
+                }
+
+                @Override
+                public String toString() {
+                    return moduleComponentIdentifier.getDisplayName();
+                }
+            };
+        } else {
+            return new org.gradle.api.internal.artifacts.component.UnknownComponentIdentifier() {
+                @Override
+                public String getDisplayName() {
+                    return componentId.getDisplayName();
+                }
+
+                @Override
+                public String getClassName() {
+                    return componentId.getClass().getName();
+                }
+
+                @Override
+                public String toString() {
+                    return componentId.getDisplayName();
+                }
+            };
+        }
+    }
+
+    /**
+     * Convert to a map preserving the order of the attributes.
+     */
     private static Map<String, String> convertToMap(AttributeContainer attributes) {
         ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
-        // TODO: should the attributes be sorted by name for consistency?
         for (Attribute<?> attribute : attributes.keySet()) {
-            Object attributeValue = attributes.getAttribute(attribute);
-            LazyDesugaringAttributeContainer.desugar(attribute, attributeValue, (attr, value) -> builder.put(attribute.getName(), value.toString()));
+            String strValue = getAttributeValueAsString(attributes, attribute);
+            builder.put(attribute.getName(), strValue);
         }
         return builder.build();
+    }
+
+    private static String getAttributeValueAsString(AttributeContainer attributeContainer, Attribute<?> attribute) {
+        // We use the same algorithm that Gradle uses when desugaring these on the build op, so that we don't end up
+        // with unexpectedly different values due to arrays or Named objects being converted to Strings differently.
+        // See LazyDesugaringAttributeContainer in the gradle/gradle codebase.
+        Object attributeValue = attributeContainer.getAttribute(attribute);
+        if (attributeValue == null) {
+            throw new IllegalStateException("No attribute value for " + attribute);
+        }
+
+        if (attributeValue instanceof Named) {
+            return ((Named) attributeValue).getName();
+        } else if (attributeValue instanceof Object[]) {
+            // don't bother trying to handle primitive arrays specially
+            return Arrays.toString((Object[]) attributeValue);
+        } else {
+            return attributeValue.toString();
+        }
     }
 
     public ResolvableArtifact getInputArtifact() {

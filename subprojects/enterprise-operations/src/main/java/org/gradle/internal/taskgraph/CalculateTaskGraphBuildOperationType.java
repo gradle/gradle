@@ -28,34 +28,6 @@ import java.util.Map;
  */
 public final class CalculateTaskGraphBuildOperationType implements BuildOperationType<CalculateTaskGraphBuildOperationType.Details, CalculateTaskGraphBuildOperationType.Result> {
 
-    public interface NodeIdentity {}
-
-    public interface TransformationIdentity extends NodeIdentity {
-
-        /**
-         * Path of an included build.
-         */
-        String getBuildPath();
-
-        /**
-         * Project path within the build.
-         */
-        String getProjectPath();
-
-        String getComponentId();
-
-        Map<String, String> getSourceAttributes();
-
-        Class<?> getTransformType();
-
-        Map<String, String> getFromAttributes();
-
-        Map<String, String> getToAttributes();
-
-        long getTransformationNodeId();
-
-    }
-
     public interface PlannedNode {
 
         NodeIdentity getNodeIdentity();
