@@ -20,6 +20,7 @@ import com.google.common.io.Files;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.cache.FileLock;
@@ -233,6 +234,7 @@ public class JdkCacheDirectory {
             operations.copy(spec -> {
                 spec.from(fileTree);
                 spec.into(unpackFolder);
+                spec.setDuplicatesStrategy(DuplicatesStrategy.WARN);
             });
         }
 
