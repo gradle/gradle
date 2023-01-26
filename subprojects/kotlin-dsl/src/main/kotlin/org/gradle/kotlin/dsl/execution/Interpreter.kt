@@ -72,6 +72,7 @@ import kotlin.script.experimental.api.KotlinType
  * @see ResidualProgram
  * @see ResidualProgramCompiler
  */
+internal
 class Interpreter(val host: Host) {
 
     interface Host {

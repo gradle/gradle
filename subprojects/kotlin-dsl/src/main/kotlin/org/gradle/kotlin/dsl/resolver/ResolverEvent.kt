@@ -20,16 +20,14 @@ import kotlin.script.dependencies.KotlinScriptExternalDependencies
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
-import com.google.common.annotations.VisibleForTesting
-
 import java.io.File
 
 
-@VisibleForTesting
+internal
 sealed class ResolverEvent
 
 
-@VisibleForTesting
+internal
 data class ResolutionRequest internal constructor(
     val correlationId: String,
     val scriptFile: File?,
@@ -38,7 +36,7 @@ data class ResolutionRequest internal constructor(
 ) : ResolverEvent()
 
 
-@VisibleForTesting
+internal
 data class ResolutionFailure internal constructor(
     val correlationId: String,
     val scriptFile: File?,
@@ -46,7 +44,7 @@ data class ResolutionFailure internal constructor(
 ) : ResolverEvent()
 
 
-@VisibleForTesting
+internal
 data class SubmittedModelRequest internal constructor(
     val correlationId: String,
     val scriptFile: File?,
@@ -62,7 +60,7 @@ data class RequestCancelled(
 ) : ResolverEvent()
 
 
-@VisibleForTesting
+internal
 data class ReceivedModelResponse internal constructor(
     val correlationId: String,
     val scriptFile: File?,
@@ -70,7 +68,7 @@ data class ReceivedModelResponse internal constructor(
 ) : ResolverEvent()
 
 
-@VisibleForTesting
+internal
 data class ResolvedDependencies internal constructor(
     val correlationId: String,
     val scriptFile: File?,
@@ -78,7 +76,7 @@ data class ResolvedDependencies internal constructor(
 ) : ResolverEvent()
 
 
-@VisibleForTesting
+internal
 data class ResolvedDependenciesWithErrors internal constructor(
     val correlationId: String,
     val scriptFile: File?,
