@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 
 /**
  * @since 5.1
@@ -28,7 +27,7 @@ public class ExecuteScheduledTransformationStepBuildOperationType implements Bui
 
     public interface Details {
 
-        CalculateTaskGraphBuildOperationType.TransformationIdentity getTransformationIdentity();
+        TransformationIdentity getTransformationIdentity();
 
         /**
          * Returns the display name of the transformer.

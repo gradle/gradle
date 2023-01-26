@@ -27,6 +27,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -44,7 +45,6 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.newSetFromMap;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.Details;
-import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.NodeIdentity;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedTask;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.Result;

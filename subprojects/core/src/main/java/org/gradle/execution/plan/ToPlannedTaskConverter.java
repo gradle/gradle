@@ -19,6 +19,7 @@ package org.gradle.execution.plan;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.initialization.DefaultPlannedTask;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.internal.taskgraph.NodeIdentity;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -66,7 +67,7 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
     }
 
     @Override
-    public CalculateTaskGraphBuildOperationType.PlannedTask convert(Node node, Function<Node, List<? extends CalculateTaskGraphBuildOperationType.NodeIdentity>> findDependencies) {
+    public CalculateTaskGraphBuildOperationType.PlannedTask convert(Node node, Function<Node, List<? extends NodeIdentity>> findDependencies) {
         if (!isInSamePlan(node)) {
             throw new IllegalArgumentException("Cannot convert task from another plan: " + node);
         }
