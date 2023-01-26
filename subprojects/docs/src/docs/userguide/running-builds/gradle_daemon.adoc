@@ -96,7 +96,7 @@ To disable the Daemon for a single build, pass the `--no-daemon` flag when you r
 ====
 [listing.terminal]
 ----
-$ gradle <task> --nodaemon
+$ gradle <task> --no-daemon
 ----
 ====
 

@@ -18,7 +18,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 
-class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
+class GroovyApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "some/thing/App.groovy"
     public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.groovy"

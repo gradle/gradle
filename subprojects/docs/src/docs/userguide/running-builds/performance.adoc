@@ -741,7 +741,7 @@ To enable incremental compilation by default in older Gradle versions, add the f
 [source.multi-language-sample,kotlin]
 ----
 tasks.withType<JavaCompile>().configureEach {
-    options.incremental = true
+    options.isIncremental = true
 }
 ----
 .build.gradle

@@ -23,8 +23,8 @@ import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPSignatureList;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.scopes.BuildScopedCache;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -59,32 +59,32 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
     private static final HashCode NO_KEYRING_FILE_HASH = Hashing.signature(DefaultSignatureVerificationServiceFactory.class);
 
     private final RepositoryTransportFactory transportFactory;
-    private final GlobalScopedCache cacheRepository;
+    private final GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory;
     private final InMemoryCacheDecoratorFactory decoratorFactory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final FileHasher fileHasher;
-    private final BuildScopedCache buildScopedCache;
+    private final BuildScopedCacheBuilderFactory buildScopedCacheBuilderFactory;
     private final BuildCommencedTimeProvider timeProvider;
     private final boolean refreshKeys;
     private final FileResourceListener fileResourceListener;
 
     public DefaultSignatureVerificationServiceFactory(
         RepositoryTransportFactory transportFactory,
-        GlobalScopedCache cacheRepository,
+        GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory,
         InMemoryCacheDecoratorFactory decoratorFactory,
         BuildOperationExecutor buildOperationExecutor,
         FileHasher fileHasher,
-        BuildScopedCache buildScopedCache,
+        BuildScopedCacheBuilderFactory buildScopedCacheBuilderFactory,
         BuildCommencedTimeProvider timeProvider,
         boolean refreshKeys,
         FileResourceListener fileResourceListener
     ) {
         this.transportFactory = transportFactory;
-        this.cacheRepository = cacheRepository;
+        this.globalScopedCacheBuilderFactory = globalScopedCacheBuilderFactory;
         this.decoratorFactory = decoratorFactory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.fileHasher = fileHasher;
-        this.buildScopedCache = buildScopedCache;
+        this.buildScopedCacheBuilderFactory = buildScopedCacheBuilderFactory;
         this.timeProvider = timeProvider;
         this.refreshKeys = refreshKeys;
         this.fileResourceListener = fileResourceListener;
@@ -97,7 +97,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         PublicKeyService keyService;
         if (useKeyServers) {
             PublicKeyDownloadService keyDownloadService = new PublicKeyDownloadService(ImmutableList.copyOf(keyServers), repository);
-            keyService = new CrossBuildCachingKeyService(cacheRepository, decoratorFactory, buildOperationExecutor, keyDownloadService, timeProvider, refreshKeys);
+            keyService = new CrossBuildCachingKeyService(globalScopedCacheBuilderFactory, decoratorFactory, buildOperationExecutor, keyDownloadService, timeProvider, refreshKeys);
         } else {
             keyService = EmptyPublicKeyService.getInstance();
         }
@@ -110,7 +110,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         return new CrossBuildSignatureVerificationService(
             delegate,
             fileHasher,
-            buildScopedCache,
+            buildScopedCacheBuilderFactory,
             decoratorFactory,
             timeProvider,
             refreshKeys,

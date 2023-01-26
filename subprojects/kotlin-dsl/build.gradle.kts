@@ -63,6 +63,9 @@ dependencies {
     implementation(libs.futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
     }
+    implementation(libs.futureKotlin("assignment-compiler-plugin-embeddable")) {
+        isTransitive = false
+    }
     implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0") {
         isTransitive = false
     }
@@ -83,7 +86,9 @@ dependencies {
     testImplementation(libs.kotlinCoroutines)
     testImplementation(libs.awaitility)
 
-    integTestImplementation(project(":language-groovy"))
+    integTestImplementation(project(":build-option")) {
+        because("KotlinSettingsScriptIntegrationTest makes uses of FeatureFlag")
+    }
     integTestImplementation(project(":language-groovy")) {
         because("ClassBytesRepositoryTest makes use of Groovydoc task.")
     }

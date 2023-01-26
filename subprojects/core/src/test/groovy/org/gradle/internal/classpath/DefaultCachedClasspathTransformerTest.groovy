@@ -24,7 +24,7 @@ import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.GlobalCacheLocations
 import org.gradle.cache.internal.UsedGradleVersions
-import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.Pair
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.file.FileAccessTimeJournal
@@ -57,8 +57,8 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         withLockOptions(_) >> { cacheBuilder }
         withCleanupStrategy(_) >> { cacheBuilder }
     }
-    def cacheRepository = Stub(GlobalScopedCache) {
-        crossVersionCache(_) >> cacheBuilder
+    def cacheBuilderFactory = Stub(GlobalScopedCacheBuilderFactory) {
+        createCrossVersionCacheBuilder(_) >> cacheBuilder
     }
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
     def usedGradleVersions = Stub(UsedGradleVersions)
@@ -74,7 +74,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
 
     @Subject
     DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(
-        cacheRepository,
+        cacheBuilderFactory,
         cacheFactory,
         fileAccessTimeJournal,
         classpathWalker,

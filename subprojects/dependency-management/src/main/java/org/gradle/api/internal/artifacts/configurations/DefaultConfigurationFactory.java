@@ -22,8 +22,10 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -53,6 +55,8 @@ public class DefaultConfigurationFactory {
     private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
     private final DependencyMetaDataProvider metaDataProvider;
+    private final ComponentIdentifierFactory componentIdentifierFactory;
+    private final DependencyLockingProvider dependencyLockingProvider;
     private final DomainObjectContext domainObjectContext;
     private final FileCollectionFactory fileCollectionFactory;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -73,6 +77,8 @@ public class DefaultConfigurationFactory {
         ConfigurationResolver resolver,
         ListenerManager listenerManager,
         DependencyMetaDataProvider metaDataProvider,
+        ComponentIdentifierFactory componentIdentifierFactory,
+        DependencyLockingProvider dependencyLockingProvider,
         DomainObjectContext domainObjectContext,
         FileCollectionFactory fileCollectionFactory,
         BuildOperationExecutor buildOperationExecutor,
@@ -90,6 +96,8 @@ public class DefaultConfigurationFactory {
         this.resolver = resolver;
         this.listenerManager = listenerManager;
         this.metaDataProvider = metaDataProvider;
+        this.componentIdentifierFactory = componentIdentifierFactory;
+        this.dependencyLockingProvider = dependencyLockingProvider;
         this.domainObjectContext = domainObjectContext;
         this.fileCollectionFactory = fileCollectionFactory;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -127,6 +135,8 @@ public class DefaultConfigurationFactory {
                 dependencyResolutionListeners,
                 listenerManager.getBroadcaster(ProjectDependencyObservedListener.class),
                 metaDataProvider,
+                componentIdentifierFactory,
+                dependencyLockingProvider,
                 resolutionStrategyFactory,
                 fileCollectionFactory,
                 buildOperationExecutor,

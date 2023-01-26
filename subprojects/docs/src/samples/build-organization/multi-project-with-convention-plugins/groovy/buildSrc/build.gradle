@@ -15,7 +15,7 @@ dependencies {
     testImplementation 'org.spockframework:spock-core'
 }
 
-tasks.named('test') {
+tasks.named('test', Test) {
     useJUnitPlatform()
 }
 // end::repositories-and-dependencies[]

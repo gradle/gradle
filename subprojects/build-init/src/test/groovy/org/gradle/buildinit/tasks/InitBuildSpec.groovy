@@ -28,6 +28,7 @@ import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType
 import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
@@ -36,6 +37,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static java.util.Optional.empty
+import static java.util.Optional.of
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT
@@ -153,7 +155,7 @@ class InitBuildSpec extends Specification {
         projectName == "other"
     }
 
-    def "should use project name as asked for"() {
+    def "should use project name from user input"() {
         given:
         projectSetupDescriptor.supportsProjectName() >> true
         def userInputHandler = Mock(UserInputHandler)
@@ -194,7 +196,7 @@ class InitBuildSpec extends Specification {
         e.message == "Package name is not supported for 'some-type' build type."
     }
 
-    def "should use package name as asked for"() {
+    def "should use package name from user input"() {
         given:
         projectSetupDescriptor.id >> "some-type"
         projectSetupDescriptor.supportsPackage() >> true
@@ -220,6 +222,60 @@ class InitBuildSpec extends Specification {
         then:
         packageName == "myPackageName"
     }
+
+    def "get tool chain for #language"() {
+        given:
+        def inputHandler = Mock(UserInputHandler)
+        inputHandler.askQuestion(_ as String, _ as String) >> "11"
+        def buildInitializer = Mock(BuildInitializer)
+        buildInitializer.supportsJavaTargets() >> isJvmLanguage
+
+        when:
+        def languageVersion = init.getJavaLanguageVersion(inputHandler, buildInitializer)
+
+        then:
+        languageVersion == result
+
+        where:
+        language        | result                         | isJvmLanguage
+        Language.JAVA   | of(JavaLanguageVersion.of(11)) | true
+        Language.SCALA  | of(JavaLanguageVersion.of(11)) | true
+        Language.KOTLIN | of(JavaLanguageVersion.of(11)) | true
+        Language.GROOVY | of(JavaLanguageVersion.of(11)) | true
+        Language.CPP    | empty()                        | false
+        Language.SWIFT  | empty()                        | false
+    }
+
+    def "gets useful error when requesting invalid Java target"() {
+        given:
+        def inputHandler = Mock(UserInputHandler)
+        inputHandler.askQuestion(_ as String, _ as String) >> "invalid"
+        def buildInitializer = Mock(BuildInitializer)
+        buildInitializer.supportsJavaTargets() >> true
+
+        when:
+        init.getJavaLanguageVersion(inputHandler, buildInitializer)
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Invalid Java target version 'invalid'. The version must be an integer."
+    }
+
+    def "gets useful error when requesting Java target below minimum"() {
+        given:
+        def inputHandler = Mock(UserInputHandler)
+        inputHandler.askQuestion(_ as String, _ as String) >> "5"
+        def buildInitializer = Mock(BuildInitializer)
+        buildInitializer.supportsJavaTargets() >> true
+
+        when:
+        init.getJavaLanguageVersion(inputHandler, buildInitializer)
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Java target version: '5' is not a supported target version. It must be equal to or greater than 7"
+    }
+
     def "should reject invalid package name: #invalidPackageName"() {
         given:
         projectLayoutRegistry.get("java-library") >> projectSetupDescriptor

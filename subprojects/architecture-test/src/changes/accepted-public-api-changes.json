@@ -1,3 +1,164 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.setForkEvery(long)",
+            "acceptation": "Test.forkEvery setter with same nullability as the getter",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinAssignmentExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.KotlinAssignmentExtensionsKt.assign(org.gradle.api.file.FileSystemLocationProperty,java.io.File)",
+            "acceptation": "Compatibility check has an issue with generic extension function",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinAssignmentExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.KotlinAssignmentExtensionsKt.assign(org.gradle.api.provider.Property,java.lang.Object)",
+            "acceptation": "Compatibility check has an issue with generic extension function",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinBuildScript",
+            "member": "Superclass [removed]",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Superclass has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinInitScript.apply(groovy.lang.Closure)",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinInitScript.apply(java.util.Map)",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinInitScript.getFileOperations()",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinInitScript.getInitscript()",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinInitScript.getPluginManager()",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinInitScript.getPlugins()",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinInitScript.getProcessOperations()",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScript",
+            "member": "Superclass [removed]",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Superclass has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinSettingsScript.apply(groovy.lang.Closure)",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinSettingsScript.apply(java.util.Map)",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinSettingsScript.getFileOperations()",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinSettingsScript.getPluginManager()",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinSettingsScript.getPlugins()",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.KotlinSettingsScript.getProcessOperations()",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScript",
+            "member": "Superclass [removed]",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Superclass has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScriptKt",
+            "member": "Class org.gradle.kotlin.dsl.KotlinSettingsScriptKt",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Class has been removed"
+            ]
+        }
+    ]
 }

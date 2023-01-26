@@ -50,6 +50,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
         for (String reject : rejects) {
             this.rejectedVersions.add(nullToEmpty(reject));
         }
+        this.branch = branch;
     }
 
     private void updateVersions(@Nullable String preferredVersion, @Nullable String requiredVersion, @Nullable String strictVersion) {

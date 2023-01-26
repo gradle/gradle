@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
+import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.Test
 import spock.lang.Issue
@@ -90,7 +92,6 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
         result.assertHasErrorOutput("src/main/kotlin/code.kt:7:25 Unresolved reference. None of the following candidates is applicable because of receiver type mismatch")
     }
 
-
     @Test
     @Issue("https://youtrack.jetbrains.com/issue/KT-55068")
     fun `kotlin ir backend issue kt-55068`() {
@@ -155,5 +156,46 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
             it.assertHasCause("Compilation error. See log for more details")
         }
         result.assertHasErrorOutput("src/main/kotlin/code.kt:6:48 Null can not be a value of a non-null type Nothing")
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/8423")
+    fun `non-static inner class for component metadata rule fails with a reasonable error message`() {
+        withBuildScript("""
+            plugins {
+                id("java")
+            }
+            ${mavenCentralRepository(KOTLIN)}
+            dependencies {
+               components.all(FixOksocialOutput::class.java)
+               implementation("com.baulsupp:oksocial-output:4.19.0")
+            }
+            open class FixOksocialOutput: ComponentMetadataRule {
+               override fun execute(context: ComponentMetadataContext) = context.details.run {
+                  if (id.group == "com.baulsupp" && id.name == "oksocial-output") {
+                      allVariants {
+                         withDependencies {
+                            removeAll { name == "jackson-bom" }
+                         }
+                      }
+                  }
+               }
+            }
+        """)
+        withFile("src/main/java/Main.java", "public class Main {}")
+
+        buildAndFail("compileJava").apply {
+            assertHasCause("Could not create an instance of type Build_gradle${'$'}FixOksocialOutput.")
+            assertHasCause("Class Build_gradle.FixOksocialOutput is a non-static inner class.")
+        }
+    }
+
+    @Issue("https://youtrack.jetbrains.com/issue/KT-55880")
+    @Issue("https://github.com/gradle/gradle/issues/23491")
+    fun `compiling standalone scripts does not emit a warning at info level`() {
+        withBuildScript("""println("test")""")
+        build("help", "--info").apply {
+            assertNotOutput("is not supposed to be used along with regular Kotlin sources, and will be ignored in the future versions by default. (Use -Xallow-any-scripts-in-source-roots command line option to opt-in for the old behavior.)")
+        }
     }
 }

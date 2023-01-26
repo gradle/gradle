@@ -99,6 +99,7 @@ public class DefaultTransformer implements Transformer {
 
     private final Class<? extends TransformAction<?>> implementationClass;
     private final ImmutableAttributes fromAttributes;
+    private final ImmutableAttributes toAttributes;
     private final FileNormalizer fileNormalizer;
     private final FileNormalizer dependenciesNormalizer;
     private final FileLookup fileLookup;
@@ -117,6 +118,7 @@ public class DefaultTransformer implements Transformer {
         Class<? extends TransformAction<?>> implementationClass,
         @Nullable TransformParameters parameterObject,
         ImmutableAttributes fromAttributes,
+        ImmutableAttributes toAttributes,
         FileNormalizer inputArtifactNormalizer,
         FileNormalizer dependenciesNormalizer,
         boolean cacheable,
@@ -138,6 +140,7 @@ public class DefaultTransformer implements Transformer {
     ) {
         this.implementationClass = implementationClass;
         this.fromAttributes = fromAttributes;
+        this.toAttributes = toAttributes;
         this.fileNormalizer = inputArtifactNormalizer;
         this.dependenciesNormalizer = dependenciesNormalizer;
         this.fileLookup = fileLookup;
@@ -162,6 +165,7 @@ public class DefaultTransformer implements Transformer {
         Class<? extends TransformAction<?>> implementationClass,
         CalculatedValueContainer<IsolatedParameters, IsolateTransformerParameters> isolatedParameters,
         ImmutableAttributes fromAttributes,
+        ImmutableAttributes toAttributes,
         FileNormalizer inputArtifactNormalizer,
         FileNormalizer dependenciesNormalizer,
         boolean cacheable,
@@ -175,6 +179,7 @@ public class DefaultTransformer implements Transformer {
     ) {
         this.implementationClass = implementationClass;
         this.fromAttributes = fromAttributes;
+        this.toAttributes = toAttributes;
         this.fileNormalizer = inputArtifactNormalizer;
         this.dependenciesNormalizer = dependenciesNormalizer;
         this.fileLookup = fileLookup;
@@ -402,6 +407,11 @@ public class DefaultTransformer implements Transformer {
     @Override
     public ImmutableAttributes getFromAttributes() {
         return fromAttributes;
+    }
+
+    @Override
+    public ImmutableAttributes getToAttributes() {
+        return toAttributes;
     }
 
     @Override

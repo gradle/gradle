@@ -21,7 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classanalysis.AsmConstants;
@@ -61,15 +61,15 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final GlobalScopedCache cacheRepository;
+    private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final CachedClasspathTransformer classpathTransformer;
 
     public FileCacheBackedScriptClassCompiler(
-        GlobalScopedCache cacheRepository, ScriptCompilationHandler scriptCompilationHandler,
-        ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        CachedClasspathTransformer classpathTransformer) {
-        this.cacheRepository = cacheRepository;
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory, ScriptCompilationHandler scriptCompilationHandler,
+            ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            CachedClasspathTransformer classpathTransformer) {
+        this.cacheBuilderFactory = cacheBuilderFactory;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -108,7 +108,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         // Both caches can be closed directly after use because:
         // For 1, if the script changes or its compile classpath changes, a different directory will be used
         // For 2, if the script changes, a different cache is used. If the classpath changes, the cache is invalidated, but classes are remapped to 1. anyway so never directly used
-        final PersistentCache cache = cacheRepository.cache("scripts/" + key)
+        final PersistentCache cache = cacheBuilderFactory.createCacheBuilder("scripts/" + key)
             .withDisplayName(dslId + " generic class cache for " + source.getDisplayName())
             .withInitializer(new ProgressReportingInitializer(
                 progressLoggerFactory,
