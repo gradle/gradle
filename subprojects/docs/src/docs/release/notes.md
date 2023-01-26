@@ -12,8 +12,13 @@ Include only their name, impactful features should be called out separately belo
 We would like to thank the following community members for their contributions to this release of Gradle:
 
 [Martin Bonnin](https://github.com/martinbonnin),
+<<<<<<< gh/pr/21004
+[Yanshun Li](https://github.com/Chaoba),
+[Xin Wang](https://github.com/scaventz).
+=======
 [valery1707](https://github.com/valery1707),
 [Yanshun Li](https://github.com/Chaoba).
+>>>>>>> master
 
 ## Upgrade instructions
 
