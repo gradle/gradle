@@ -19,12 +19,10 @@ package org.gradle.kotlin.dsl.tooling.builders.r75
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import spock.lang.Ignore
 
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.Matchers.not
 
-@Ignore("seems to be broken")
 @TargetGradleVersion(">=7.5")
 class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
