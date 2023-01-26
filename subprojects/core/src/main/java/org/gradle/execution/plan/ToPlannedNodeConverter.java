@@ -17,7 +17,7 @@
 package org.gradle.execution.plan;
 
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.NodeIdentity;
+import org.gradle.internal.taskgraph.NodeIdentity;
 
 import java.util.List;
 import java.util.function.Function;
