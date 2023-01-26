@@ -286,7 +286,9 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     // run integMultiVersionTest with all version to cover
     allVersionsIntegMultiVersion(false, true, false),
     parallel(false, true, false),
-    noDaemon(false, true, false, 300),
+    // FIXME: timeout increased because of https://github.com/gradle/gradle-private/issues/3695
+    //        revert it to 300 after fixed
+    noDaemon(false, true, false, 360),
     configCache(false, true, false),
     soak(false, false, false),
     forceRealizeDependencyManagement(false, true, false)
