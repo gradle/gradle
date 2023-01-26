@@ -16,6 +16,8 @@
 
 package org.gradle.initialization;
 
+import org.gradle.internal.taskgraph.NodeIdentity;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
