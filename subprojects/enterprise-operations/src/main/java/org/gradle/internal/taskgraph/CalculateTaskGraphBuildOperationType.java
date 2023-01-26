@@ -16,11 +16,9 @@
 
 package org.gradle.internal.taskgraph;
 
-import org.gradle.api.internal.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.operations.BuildOperationType;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Computing the task graph for a given build in the build tree based on the inputs and build configuration.
@@ -28,34 +26,6 @@ import java.util.Map;
  * @since 4.0
  */
 public final class CalculateTaskGraphBuildOperationType implements BuildOperationType<CalculateTaskGraphBuildOperationType.Details, CalculateTaskGraphBuildOperationType.Result> {
-
-    public interface NodeIdentity {}
-
-    public interface TransformationIdentity extends NodeIdentity {
-
-        /**
-         * Path of an included build.
-         */
-        String getBuildPath();
-
-        /**
-         * Project path within the build.
-         */
-        String getProjectPath();
-
-        ComponentIdentifier getComponentId();
-
-        Map<String, String> getSourceAttributes();
-
-        Class<?> getTransformType();
-
-        Map<String, String> getFromAttributes();
-
-        Map<String, String> getToAttributes();
-
-        long getTransformationNodeId();
-
-    }
 
     public interface PlannedNode {
 

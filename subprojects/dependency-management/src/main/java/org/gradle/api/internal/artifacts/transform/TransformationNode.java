@@ -46,7 +46,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TransformationIdentity;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
