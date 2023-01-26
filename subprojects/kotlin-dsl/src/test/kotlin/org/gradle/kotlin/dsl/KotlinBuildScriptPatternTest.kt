@@ -70,16 +70,19 @@ class KotlinBuildScriptPatternTest(val script: Script) {
 
     @Test
     fun `recognizes build scripts from legacy script templates`() {
+        @Suppress("DEPRECATION")
         checkScriptRecognizedByLegacy(KotlinBuildScript::class, ScriptType.BUILD)
     }
 
     @Test
     fun `recognizes settings scripts from legacy script templates`() {
+        @Suppress("DEPRECATION")
         checkScriptRecognizedByLegacy(KotlinSettingsScript::class, ScriptType.SETTINGS)
     }
 
     @Test
     fun `recognizes init scripts from legacy script templates`() {
+        @Suppress("DEPRECATION")
         checkScriptRecognizedByLegacy(KotlinInitScript::class, ScriptType.INIT)
     }
 
