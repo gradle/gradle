@@ -16,6 +16,7 @@
 
 package org.gradle.internal.taskgraph;
 
+import org.gradle.api.internal.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.operations.BuildOperationType;
 
 import java.util.List;
@@ -42,7 +43,7 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
          */
         String getProjectPath();
 
-        String getComponentId();
+        ComponentIdentifier getComponentId();
 
         Map<String, String> getSourceAttributes();
 
