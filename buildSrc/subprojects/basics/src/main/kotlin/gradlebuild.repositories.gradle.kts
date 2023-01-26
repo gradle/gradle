@@ -19,4 +19,12 @@ repositories {
         name = "Gradle libs"
         url = uri("https://repo.gradle.org/gradle/libs")
     }
+    mavenCentral()
+    google()
+    jcenter() {
+        content {
+            includeVersion("org.samba.jcifs", "jcifs", "1.3.17")
+            includeVersionByRegex("org\\.sonatype\\.pmaven", "pmaven.*", "0\\.8-20100325")
+        }
+    }
 }
