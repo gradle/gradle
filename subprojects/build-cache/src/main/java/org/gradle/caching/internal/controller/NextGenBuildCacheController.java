@@ -27,6 +27,7 @@ import org.gradle.caching.internal.controller.CacheManifest.ManifestEntry;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.RelativePathSupplier;
+import org.gradle.internal.file.TreeType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -43,8 +44,6 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -85,22 +84,34 @@ public class NextGenBuildCacheController implements BuildCacheController {
             ImmutableSortedMap.Builder<String, FileSystemSnapshot> snaphsots = ImmutableSortedMap.naturalOrder();
             cacheableEntity.visitOutputTrees((propertyName, type, root) -> {
                 List<ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
-                Map<BuildCacheKey, String> contentHashes = indexManifestEntries(manifestEntries);
+                if (type == TreeType.FILE) {
+                    root.getParentFile().mkdirs();
+                } else {
+                    root.mkdirs();
+                }
+
+                // Ugly hack
+                manifestEntries.forEach(entry -> {
+                    if (entry.getType() == CacheManifest.EntryType.DIRECTORY) {
+                        new File(root, entry.getRelativePath()).mkdirs();
+                    }
+                });
+
+                Map<BuildCacheKey, String> fileContentHashes = indexManifestFileEntries(manifestEntries);
 
                 // TODO Filter out entries that are already in the right place in the output directory
                 // TODO Handle missing entries
 
-                cacheAccess.load(contentHashes.keySet(), (contentHash, input) -> {
-                    String relativePath = contentHashes.get(contentHash);
+                cacheAccess.load(fileContentHashes.keySet(), (contentHash, input) -> {
+                    String relativePath = fileContentHashes.get(contentHash);
                     File file = new File(root, relativePath);
                     try {
-                        file.getParentFile().mkdirs();
                         file.createNewFile();
                         try (FileOutputStream output = new FileOutputStream(file)) {
                             ByteStreams.copy(input, output);
                         }
                     } catch (IOException e) {
-                        throw new UncheckedIOException(e);
+                        throw new UncheckedIOException("Couldn't create " + file.getAbsolutePath(), e);
                     }
                     entryCount.incrementAndGet();
                 });
@@ -143,9 +154,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
             rootSnapshot.accept(new RelativePathTracker(), new RelativePathTrackingFileSystemSnapshotHierarchyVisitor() {
                 @Override
                 public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
-                    CacheManifest.EntryType type = (snapshot instanceof RegularFileSnapshot)
-                        ? CacheManifest.EntryType.FILE
-                        : CacheManifest.EntryType.DIRECTORY;
+                    CacheManifest.EntryType type = (snapshot instanceof RegularFileSnapshot) ? CacheManifest.EntryType.FILE : CacheManifest.EntryType.DIRECTORY;
                     manifestEntries.add(new ManifestEntry(type, relativePath.toRelativePath(), snapshot.getHash().toString()));
                     return SnapshotVisitResult.CONTINUE;
                 }
@@ -155,13 +164,11 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
         CacheManifest manifest = new CacheManifest(
             // TODO Set build invocation ID properly
-            new OriginMetadata("", executionTime),
-            propertyManifests.build()
-        );
+            new OriginMetadata("", executionTime), propertyManifests.build());
 
         entity.visitOutputTrees((propertyName, type, root) -> {
             List<ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
-            Map<BuildCacheKey, String> manifestIndex = indexManifestEntries(manifestEntries);
+            Map<BuildCacheKey, String> manifestIndex = indexManifestFileEntries(manifestEntries);
 
             cacheAccess.store(manifestIndex.keySet(), (buildCacheKey, outputStream) -> {
                 String relativePath = manifestIndex.get(buildCacheKey);
@@ -190,12 +197,10 @@ public class NextGenBuildCacheController implements BuildCacheController {
     public void close() throws IOException {
     }
 
-    private static Map<BuildCacheKey, String> indexManifestEntries(List<ManifestEntry> manifestEntries) {
+    private static Map<BuildCacheKey, String> indexManifestFileEntries(List<ManifestEntry> manifestEntries) {
         return manifestEntries.stream()
-            .collect(ImmutableMap.toImmutableMap(
-                manifestEntry -> new SimpleBuildCacheKey(manifestEntry.getContentHash()),
-                ManifestEntry::getRelativePath
-            ));
+            .filter(entry -> entry.getType() == CacheManifest.EntryType.FILE)
+            .collect(ImmutableMap.toImmutableMap(manifestEntry -> new SimpleBuildCacheKey(manifestEntry.getContentHash()), ManifestEntry::getRelativePath));
     }
 
     private static class SimpleBuildCacheKey implements BuildCacheKey {
