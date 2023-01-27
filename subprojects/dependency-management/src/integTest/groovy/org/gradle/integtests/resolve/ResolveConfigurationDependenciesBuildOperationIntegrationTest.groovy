@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
+import org.gradle.api.internal.initialization.DefaultScriptHandler
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
@@ -189,19 +190,28 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         m1.allowAll()
 
         when:
-        run "buildEnvironment"
+        if (resetClasspathConfiguration) {
+            succeeds("buildEnvironment")
+        } else {
+            succeeds("buildEnvironment", "-D${DefaultScriptHandler.DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY}=true")
+        }
 
         then:
         def resolveOperations = operations.all(ResolveConfigurationDependenciesBuildOperationType)
-        resolveOperations.size() == 2
-        resolveOperations[0].details.configurationName == "classpath"
-        resolveOperations[0].details.projectPath == null
-        resolveOperations[0].details.buildPath == ":"
-        resolveOperations[0].details.scriptConfiguration == true
-        resolveOperations[0].details.configurationDescription == null
-        resolveOperations[0].details.configurationVisible == true
-        resolveOperations[0].details.configurationTransitive == true
-        resolveOperations[0].result.resolvedDependenciesCount == 2
+        def classpathOperations = resetClasspathConfiguration
+            ? [resolveOperations[0], resolveOperations[2]]
+            : [resolveOperations[0]]
+        resolveOperations.size() == resetClasspathConfiguration ? 3 : 2
+        classpathOperations.each {
+            assert it.details.configurationName == "classpath"
+            assert it.details.projectPath == null
+            assert it.details.buildPath == ":"
+            assert it.details.scriptConfiguration == true
+            assert it.details.configurationDescription == null
+            assert it.details.configurationVisible == true
+            assert it.details.configurationTransitive == true
+            assert it.result.resolvedDependenciesCount == 2
+        }
 
         resolveOperations[1].details.configurationName == "compileClasspath"
         resolveOperations[1].details.projectPath == ":"
@@ -211,6 +221,9 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolveOperations[1].details.configurationVisible == false
         resolveOperations[1].details.configurationTransitive == true
         resolveOperations[1].result.resolvedDependenciesCount == 1
+
+        where:
+        resetClasspathConfiguration << [true, false]
     }
 
     def "#scriptType script classpath configurations are exposed"() {
