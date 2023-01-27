@@ -16,23 +16,28 @@
 
 package org.gradle.api.internal.cache;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.cache.CacheResourceConfiguration;
 import org.gradle.api.cache.Cleanup;
+import org.gradle.api.cache.MarkingStrategy;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.CleanupFrequency;
+import org.gradle.cache.internal.WrapperDistributionCleanupAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.File;
 import java.util.function.Supplier;
 
 import static org.gradle.internal.time.TimestampSuppliers.daysAgo;
@@ -50,6 +55,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private final CacheResourceConfigurationInternal downloadedResourcesConfiguration;
     private final CacheResourceConfigurationInternal createdResourcesConfiguration;
     private final Property<Cleanup> cleanup;
+    private final Property<MarkingStrategy> markingStrategy;
 
     private boolean cleanupHasBeenConfigured;
 
@@ -60,6 +66,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, DOWNLOADED_RESOURCES, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
         this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, CREATED_RESOURCES, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
         this.cleanup = new ContextualErrorMessageProperty<>(propertyHost, Cleanup.class, "cleanup").convention(Cleanup.DEFAULT);
+        this.markingStrategy = new ContextualErrorMessageProperty<>(propertyHost, MarkingStrategy.class, "markingStrategy").convention(MarkingStrategy.CACHEDIR_TAG);
     }
 
     private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, String name, int defaultDays) {
@@ -114,6 +121,11 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
+    public Property<MarkingStrategy> getMarkingStrategy() {
+        return markingStrategy;
+    }
+
+    @Override
     public Provider<CleanupFrequency> getCleanupFrequency() {
         return getCleanup().map(cleanup ->
             new MustBeConfiguredCleanupFrequency(((CleanupInternal) cleanup).getCleanupFrequency())
@@ -127,14 +139,42 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         persistentCacheConfigurations.getDownloadedResources().getRemoveUnusedEntriesOlderThan().value(getDownloadedResources().getRemoveUnusedEntriesOlderThan());
         persistentCacheConfigurations.getCreatedResources().getRemoveUnusedEntriesOlderThan().value(getCreatedResources().getRemoveUnusedEntriesOlderThan());
         persistentCacheConfigurations.getCleanup().value(getCleanup());
+        persistentCacheConfigurations.getMarkingStrategy().value(getMarkingStrategy());
     }
 
-    public void finalizeConfigurationValues() {
+    public void finalizeConfiguration(Gradle gradle) {
+        finalizeConfigurationValues();
+        markCacheDirectories(gradle);
+    }
+
+    @VisibleForTesting
+    void finalizeConfigurationValues() {
         releasedWrappersConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         snapshotWrappersConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         downloadedResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         createdResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         getCleanup().finalizeValue();
+        getMarkingStrategy().finalizeValue();
+    }
+
+    private void markCacheDirectories(Gradle gradle) {
+        MarkingStrategy strategy = getMarkingStrategy().get();
+        strategy.tryMarkCacheDirectory(new File(
+            gradle.getGradleUserHomeDir(),
+            WrapperDistributionCleanupAction.WRAPPER_DISTRIBUTION_FILE_PATH
+        ));
+        strategy.tryMarkCacheDirectory(new File(
+            gradle.getGradleUserHomeDir(),
+            "daemon"
+        ));
+        strategy.tryMarkCacheDirectory(new File(
+            gradle.getGradleUserHomeDir(),
+            "caches"
+        ));
+        strategy.tryMarkCacheDirectory(new File(
+            gradle.getGradleUserHomeDir(),
+            "jdks"
+        ));
     }
 
     @Override

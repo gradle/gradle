@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.kotlin.dsl.support
 
-import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.kotlin.dsl.ScriptHandlerScope
+package org.gradle.api.internal.cache;
 
+import org.gradle.api.cache.MarkingStrategy;
 
-internal
-inline fun ScriptHandler.configureWith(block: ScriptHandlerScope.() -> Unit) {
-    ScriptHandlerScope.of(this).block()
+import java.io.File;
+import java.io.Serializable;
+
+public class CacheDirTagMarkingStrategy implements MarkingStrategy, Serializable {
+    @Override
+    public void tryMarkCacheDirectory(File file) {
+        CacheDirUtil.tryMarkCacheDirectoryByTag(file.toPath());
+    }
 }

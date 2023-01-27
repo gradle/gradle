@@ -18,27 +18,25 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
-
+import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.invalidPluginsCall
 import org.gradle.kotlin.dsl.template.KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider
-
-import org.gradle.plugin.use.PluginDependenciesSpec
-
 import kotlin.script.extensions.SamWithReceiverAnnotations
 import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
 /**
- * Base class for Kotlin build scripts.
+ * Legacy base class for Gradle Kotlin DSL standalone [Project] scripts IDE support, aka. build scripts.
+ *
+ * @see KotlinProjectScriptTemplate
  */
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
-    scriptFilePattern = ".+(?<!(^|\\.)(init|settings))\\.gradle\\.kts"
+    scriptFilePattern = ".+(?<!(^|\\.)(init|settings))\\.gradle\\.kts",
 )
 @ScriptTemplateAdditionalCompilerArguments(
     [
@@ -53,9 +51,10 @@ import kotlin.script.templates.ScriptTemplateDefinition
 )
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
+@Deprecated("Will be removed in Gradle 9.0")
 abstract class KotlinBuildScript(
     private val host: KotlinScriptHost<Project>
-) : ProjectDelegate() /* TODO:kotlin-dsl configure Project as implicit receiver */ {
+) : @Suppress("DEPRECATION") org.gradle.kotlin.dsl.support.delegates.ProjectDelegate() {
 
     override val delegate: Project
         get() = host.target
@@ -72,7 +71,7 @@ abstract class KotlinBuildScript(
      * @see [Project.buildscript]
      */
     @Suppress("unused")
-    open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit): Unit =
+    open fun buildscript(block: ScriptHandlerScope.() -> Unit): Unit =
         internalError()
 
     /**

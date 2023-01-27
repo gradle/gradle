@@ -22,6 +22,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 
 import java.io.Serializable;
+import java.util.concurrent.Callable;
 
 /**
  * Provides a mechanism for creating Java lambdas that can be stored to the configuration cache.
@@ -46,6 +47,10 @@ public class SerializableLambdas {
         return transformer;
     }
 
+    public static <T> Callable<T> callable(SerializableCallable<T> callable) {
+        return callable;
+    }
+
     /**
      * A {@link Serializable} version of {@link Spec}.
      */
@@ -68,6 +73,12 @@ public class SerializableLambdas {
      * A {@link Serializable} version of {@link org.gradle.api.Transformer}.
      */
     public interface SerializableTransformer<OUT, IN> extends Transformer<OUT, IN>, Serializable {
+    }
+
+    /**
+     * A {@link Serializable} version of {@link Callable}.
+     */
+    public interface SerializableCallable<T> extends Callable<T>, Serializable {
     }
 
     private SerializableLambdas() {

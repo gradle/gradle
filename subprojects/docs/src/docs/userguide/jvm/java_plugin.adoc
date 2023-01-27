@@ -515,26 +515,6 @@ To help you understand how incremental compilation works, the following provides
 * Having a source structure that does not match the package names, while legal for compilation, might end up causing trouble in the toolchain.
     Even more if annotation processing and <<build_cache.adoc#build_cache,caching>> are involved.
 
-Additionally, Gradle might temporarily change the output location while running incremental compilation.
-This might affect some annotation processors that inspect output locations or accept file paths as arguments (e.g., `-XepExcludedPaths` in Error Prone).
-There are two options:
-
- - Disable `incremental after failure` by setting link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getIncrementalAfterFailure--[`options.incrementalAfterFailure`] to `false` on the JavaCompile task.
--  Keep `incremental after failure` enabled by instead passing a temporary output value to the annotation processor as a parameter so that the annotation processor is aware of the temporary path. 
-
-In the case of Error Prone, `-XepExcludedPaths` must be set. Given an existing value of `-XepExcludedPaths=.\*/build/generated/.*`, the updated value would be
-`-XepExcludedPaths=.\*/(build/generated|compileJava/compileTransaction/annotation-output)/.*`.
-
-The following table shows the mapping from default output location to temporary output location:
-
-.Compiler output to temporary output location
-|===
-| JavaCompile location property | Default output location | Temporary output location
-| `destinationDirectory` | `build/classes/java/main` | `build/tmp/<task-name>/compileTransaction/compile-output`
-| `options.generatedSourceOutputDirectory` | `build/generated/sources/annotationProcessor/java/main` | `build/tmp/<task-name>/compileTransaction/annotation-output`
-| `options.headerOutputDirectory` | `build/generated/sources/headers/java/main` | `build/tmp/<task-name>/compileTransaction/header-output`
-|===
-
 [[sec:incremental_annotation_processing]]
 == Incremental annotation processing
 
