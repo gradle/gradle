@@ -24,6 +24,8 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.inject)
+    implementation("com.h2database:h2:2.1.214")
+    implementation("com.zaxxer:HikariCP:5.0.0")
 
     jmhImplementation(platform(project(":distributions-dependencies")))
     jmhImplementation(libs.ant)
