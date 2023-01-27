@@ -31,6 +31,7 @@ import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.kotlin.dsl.support.loggerFor
 
 
+internal
 class KotlinCompileClasspathFingerprinter(
     cacheService: ResourceSnapshotterCacheService,
     fileCollectionSnapshotter: FileCollectionSnapshotter,

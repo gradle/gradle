@@ -88,7 +88,7 @@ import javax.inject.Inject
  *
  * The accessors provide content-assist for plugin ids and quick navigation to the plugin source code.
  */
-class PluginAccessorClassPathGenerator @Inject constructor(
+class PluginAccessorClassPathGenerator @Inject internal constructor(
     private val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     private val fileCollectionFactory: FileCollectionFactory,
     private val executionEngine: ExecutionEngine,
@@ -115,6 +115,7 @@ class PluginAccessorClassPathGenerator @Inject constructor(
 }
 
 
+internal
 class GeneratePluginAccessors(
     private val rootProject: Project,
     private val buildSrcClassLoaderScope: ClassLoaderScope,
