@@ -31,6 +31,118 @@
             "changes": [
                 "Class has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Constructor org.gradle.kotlin.dsl.ScriptHandlerScope(org.gradle.api.initialization.dsl.ScriptHandler,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Simplify usage of ScriptHandlerScope",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Field Companion",
+            "acceptation": "Simplify usage of ScriptHandlerScope",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.access$getDelegate$p(org.gradle.kotlin.dsl.ScriptHandlerScope)",
+            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.dependencies(groovy.lang.Closure)",
+            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.dependencyLocking(groovy.lang.Closure)",
+            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getClassLoader()",
+            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getConfigurations()",
+            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getDependencies()",
+            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getDependencyLocking()",
+            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getRepositories()",
+            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getSourceFile()",
+            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getSourceURI()",
+            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.repositories(groovy.lang.Closure)",
+            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Superclass [removed]",
+            "acceptation": "Removed usage of ScriptHandlerDelegate, now ScriptHandlerScope : ScriptHandler",
+            "changes": [
+                "Superclass has been removed"
+            ]
         }
     ]
 }
