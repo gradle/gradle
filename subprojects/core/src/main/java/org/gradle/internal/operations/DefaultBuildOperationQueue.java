@@ -71,6 +71,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                 // `getMaxWorkerCount() - 1` because main thread executes work as well. See https://github.com/gradle/gradle/issues/3273
                 // TODO This could be more efficient, so that we only start a worker when there are none idle _and_ there is a worker lease available
                 executor.execute(new WorkerRunnable());
+                workerCount++;
             }
         } finally {
             lock.unlock();

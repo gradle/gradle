@@ -26,7 +26,11 @@ import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 class DefaultBuildOperationQueueTest extends Specification {
 
@@ -51,6 +55,30 @@ class DefaultBuildOperationQueueTest extends Specification {
 
     static class SimpleWorker implements BuildOperationQueue.QueueWorker<TestBuildOperation> {
         void execute(TestBuildOperation run) {
+            run.run(null)
+        }
+
+        String getDisplayName() {
+            return getClass().simpleName
+        }
+    }
+
+    static class BlockingWorker implements BuildOperationQueue.QueueWorker<TestBuildOperation> {
+        private final CyclicBarrier barrier
+        private final AtomicInteger workersStarted
+
+        BlockingWorker(CyclicBarrier barrier, AtomicInteger workersStarted) {
+            this.barrier = barrier
+            this.workersStarted = workersStarted
+        }
+
+        void execute(TestBuildOperation run) {
+            def currentCount = workersStarted.incrementAndGet()
+            def waitCount = barrier.getParties() - currentCount
+            if (waitCount >= 0) {
+                println "started worker in thread ${Thread.currentThread().id} (waiting for ${barrier.getParties() - currentCount}).."
+                barrier.await(5, TimeUnit.SECONDS)
+            }
             run.run(null)
         }
 
@@ -101,6 +129,43 @@ class DefaultBuildOperationQueueTest extends Specification {
         5    | 1
         5    | 4
         5    | 10
+    }
+
+    def "does not submit more workers than #threads threads"() {
+        given:
+        setupQueue(threads)
+        def success = Mock(TestBuildOperation)
+        def workerCount = Math.min(runs, threads)
+        def workersStarted = new AtomicInteger()
+        def barrier = new CyclicBarrier(workerCount, { println "all expected concurrent workers have started..." })
+        def executorService = Mock(ExecutorService)
+        def delegateExecutor = Executors.newFixedThreadPool(threads)
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, executorService, new BlockingWorker(barrier, workersStarted))
+
+        println "expecting ${workerCount} concurrent workers to be started..."
+
+        when:
+        runs.times { operationQueue.add(success) }
+
+        and:
+        operationQueue.waitForCompletion()
+
+        then:
+        runs * success.run(_)
+        // The main thread sometimes processes items when there are more items than threads available, so
+        // we may only submit workerCount - 1 worker threads, but we should never submit more than workerCount
+        // threads
+        (_..workerCount) * executorService.execute(_) >> { args -> delegateExecutor.execute(args[0]) }
+
+        where:
+        runs | threads
+        1    | 1
+        1    | 4
+        1    | 10
+        5    | 1
+        5    | 4
+        5    | 10
+        20   | 10
     }
 
     def "cannot use operation queue once it has completed"() {
