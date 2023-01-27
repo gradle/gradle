@@ -16,6 +16,9 @@
 
 package org.gradle.caching.local.internal
 
+import org.gradle.caching.BuildCacheEntryReader
+import org.gradle.caching.BuildCacheEntryWriter
+import org.gradle.caching.BuildCacheKey
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -25,6 +28,11 @@ class H2LocalCacheServiceTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
+    String hashCode = "1234abcd"
+    BuildCacheKey key = Mock(BuildCacheKey) {
+        getHashCode() >> hashCode
+    }
+
     def "h2 database is initialized"() {
         def dbDir = temporaryFolder.createDir("h2db")
 
@@ -32,4 +40,45 @@ class H2LocalCacheServiceTest extends Specification {
         new H2LocalCacheService(dbDir.toPath())
     }
 
+    def "can write to h2"() {
+        def dbDir = temporaryFolder.createDir("h2db")
+        def service = new H2LocalCacheService(dbDir.toPath())
+
+        expect:
+        service.store(key, new BuildCacheEntryWriter() {
+            @Override
+            void writeTo(OutputStream output) throws IOException {
+                output << "Hello world"
+            }
+
+            @Override
+            long getSize() {
+                return 100
+            }
+        })
+    }
+
+    def "can write and read from h2"() {
+        def dbDir = temporaryFolder.createDir("h2db")
+        def service = new H2LocalCacheService(dbDir.toPath())
+        service.store(key, new BuildCacheEntryWriter() {
+            @Override
+            void writeTo(OutputStream output) throws IOException {
+                output << "Hello world"
+            }
+
+            @Override
+            long getSize() {
+                return 100
+            }
+        })
+
+        expect:
+        service.load(key, new BuildCacheEntryReader() {
+            @Override
+            void readFrom(InputStream input) throws IOException {
+                assert input.text == "Hello world"
+            }
+        })
+    }
 }
