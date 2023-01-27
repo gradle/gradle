@@ -48,6 +48,7 @@ import org.gradle.internal.InternalListener;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.agents.AgentUtils;
 import org.gradle.internal.agents.DefaultClassFileTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -239,7 +240,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             builder.jvmArgs(invocation.launcherJvmArgs);
             if (isAgentInstrumentationEnabled()) {
                 // Apply the agent to the newly created daemon.
-                for (File agent : cleanup(GLOBAL_SERVICES.get(ModuleRegistry.class).getModule("gradle-instrumentation-agent").getClasspath().getAsFiles())) {
+                for (File agent : cleanup(GLOBAL_SERVICES.get(ModuleRegistry.class).getModule(AgentUtils.AGENT_MODULE_NAME).getClasspath().getAsFiles())) {
                     builder.jvmArgs("-javaagent:" + agent.getAbsolutePath());
                 }
             }
