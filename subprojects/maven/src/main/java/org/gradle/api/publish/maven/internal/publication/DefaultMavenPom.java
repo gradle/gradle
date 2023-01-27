@@ -23,7 +23,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
-import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPomCiManagement;
 import org.gradle.api.publish.maven.MavenPomContributor;
 import org.gradle.api.publish.maven.MavenPomContributorSpec;
@@ -37,14 +36,12 @@ import org.gradle.api.publish.maven.MavenPomMailingList;
 import org.gradle.api.publish.maven.MavenPomMailingListSpec;
 import org.gradle.api.publish.maven.MavenPomOrganization;
 import org.gradle.api.publish.maven.MavenPomScm;
-import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, MavenPomDeveloperSpec, MavenPomContributorSpec, MavenPomMailingListSpec {
 
@@ -57,6 +54,8 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     private Property<String> description;
     private Property<String> url;
     private Property<String> inceptionYear;
+    private final MapProperty<String, String> properties;
+    private final Property<MavenPomDependencies> dependencies;
     private final List<MavenPomLicense> licenses = new ArrayList<>();
     private MavenPomOrganization organization;
     private final List<MavenPomDeveloper> developers = new ArrayList<>();
@@ -66,7 +65,6 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     private MavenPomCiManagement ciManagement;
     private MavenPomDistributionManagementInternal distributionManagement;
     private final List<MavenPomMailingList> mailingLists = new ArrayList<>();
-    private final MapProperty<String, String> properties;
 
     public DefaultMavenPom(MavenPublicationInternal mavenPublication, Instantiator instantiator, ObjectFactory objectFactory) {
         this.mavenPublication = mavenPublication;
@@ -77,6 +75,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
         this.url = objectFactory.property(String.class);
         this.inceptionYear = objectFactory.property(String.class);
         this.properties = objectFactory.mapProperty(String.class, String.class);
+        this.dependencies = objectFactory.property(MavenPomDependencies.class);
     }
 
     @Override
@@ -263,38 +262,13 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     }
 
     @Override
+    public Property<MavenPomDependencies> getDependencies() {
+        return dependencies;
+    }
+
+    @Override
     public MavenProjectIdentity getProjectIdentity() {
         return mavenPublication.getMavenProjectIdentity();
-    }
-
-    @Override
-    public Set<MavenDependencyInternal> getApiDependencies() {
-        return mavenPublication.getApiDependencies();
-    }
-
-    @Override
-    public Set<MavenDependencyInternal> getOptionalDependencies() {
-        return mavenPublication.getOptionalDependencies();
-    }
-
-    @Override
-    public Set<MavenDependencyInternal> getRuntimeDependencies() {
-        return mavenPublication.getRuntimeDependencies();
-    }
-
-    @Override
-    public Set<MavenDependency> getApiDependencyManagement() {
-        return mavenPublication.getApiDependencyConstraints();
-    }
-
-    @Override
-    public Set<MavenDependency> getRuntimeDependencyManagement() {
-        return mavenPublication.getRuntimeDependencyConstraints();
-    }
-
-    @Override
-    public Set<MavenDependency> getImportDependencyManagement() {
-        return mavenPublication.getImportDependencyConstraints();
     }
 
     private <T> void configureAndAdd(Class<? extends T> clazz, Action<? super T> action, List<T> items) {

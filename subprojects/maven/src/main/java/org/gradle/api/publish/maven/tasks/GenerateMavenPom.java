@@ -19,10 +19,10 @@ package org.gradle.api.publish.maven.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
+import org.gradle.api.publish.maven.internal.publication.MavenPomDependencies;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator;
 import org.gradle.api.tasks.Internal;
@@ -137,26 +137,31 @@ public abstract class GenerateMavenPom extends DefaultTask {
             pomInternal.writeGradleMetadataMarker());
         pomGenerator.configureFrom(pomInternal);
 
-        for (MavenDependency mavenDependency : pomInternal.getApiDependencyManagement()) {
-            pomGenerator.addApiDependencyManagement(mavenDependency);
+        MavenPomDependencies dependencies = pomInternal.getDependencies().get();
+        for (MavenDependencyInternal mavenDependency : dependencies.getApiDependencyManagement()) {
+            pomGenerator.addDependencyManagement(mavenDependency, "compile");
         }
 
-        for (MavenDependency mavenDependency : pomInternal.getRuntimeDependencyManagement()) {
-            pomGenerator.addRuntimeDependencyManagement(mavenDependency);
+        for (MavenDependencyInternal mavenDependency : dependencies.getRuntimeDependencyManagement()) {
+            pomGenerator.addDependencyManagement(mavenDependency, "runtime");
         }
 
-        for (MavenDependency mavenDependency : pomInternal.getImportDependencyManagement()) {
-            pomGenerator.addImportDependencyManagement(mavenDependency);
+        for (MavenDependencyInternal mavenDependency : dependencies.getImportDependencyManagement()) {
+            pomGenerator.addDependencyManagement(mavenDependency, "import");
         }
 
-        for (MavenDependencyInternal runtimeDependency : pomInternal.getApiDependencies()) {
-            pomGenerator.addApiDependency(runtimeDependency);
+        for (MavenDependencyInternal runtimeDependency : dependencies.getApiDependencies()) {
+            pomGenerator.addDependency(runtimeDependency, "compile");
         }
-        for (MavenDependencyInternal runtimeDependency : pomInternal.getRuntimeDependencies()) {
-            pomGenerator.addRuntimeDependency(runtimeDependency);
+
+        for (MavenDependencyInternal runtimeDependency : dependencies.getRuntimeDependencies()) {
+            pomGenerator.addDependency(runtimeDependency, "runtime");
         }
-        for (MavenDependencyInternal optionalDependency : pomInternal.getOptionalDependencies()) {
-            pomGenerator.addOptionalDependency(optionalDependency);
+
+        for (MavenDependencyInternal optionalDependency : dependencies.getOptionalDependencies()) {
+            // For Maven we don't really know if an optional dependency is required for runtime or compile
+            // so we use the safest: compile
+            pomGenerator.addDependency(optionalDependency, "compile", true);
         }
 
         pomGenerator.withXml(pomInternal.getXmlAction());
