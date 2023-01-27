@@ -1706,7 +1706,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
             addTrustedKey("org:foo:1.0", validPublicKeyHexString, "pom", "pom")
         }
 
-        // We need to manually replace the key in the XML, as even the XML serialization will fail (used by 'createMetadataFile')
+        // We need to manually replace the key in the XML, as 'createMetadataFile' will already fail if we use a non-fingerprint ID
         def longId = validPublicKeyHexString.substring(validPublicKeyHexString.length() - 16)
         file("gradle/verification-metadata.xml").replace(validPublicKeyHexString, longId)
 
