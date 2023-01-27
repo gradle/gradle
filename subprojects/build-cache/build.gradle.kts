@@ -30,6 +30,8 @@ dependencies {
     implementation(libs.gson) {
         because("Cache manifest uses JSON format")
     }
+    implementation(libs.commonsIo)
+
 
     jmhImplementation(platform(project(":distributions-dependencies")))
     jmhImplementation(libs.ant)

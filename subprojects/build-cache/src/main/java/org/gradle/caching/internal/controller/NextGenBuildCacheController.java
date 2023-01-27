@@ -21,12 +21,14 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
+import org.apache.commons.io.FileUtils;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.CacheManifest.ManifestEntry;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.RelativePathSupplier;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -55,10 +57,13 @@ import java.util.concurrent.atomic.AtomicReference;
 public class NextGenBuildCacheController implements BuildCacheController {
     private final NextGenBuildCacheAccess cacheAccess;
     private final FileSystemAccess fileSystemAccess;
+    private final Deleter deleter;
 
-    public NextGenBuildCacheController(NextGenBuildCacheAccess cacheAccess, FileSystemAccess fileSystemAccess) {
+
+    public NextGenBuildCacheController(NextGenBuildCacheAccess cacheAccess, FileSystemAccess fileSystemAccess, Deleter deleter) {
         this.cacheAccess = cacheAccess;
         this.fileSystemAccess = fileSystemAccess;
+        this.deleter = deleter;
     }
 
     @Override
@@ -77,12 +82,15 @@ public class NextGenBuildCacheController implements BuildCacheController {
         cacheAccess.load(Collections.singleton(manifestCacheKey), (__, manifestStream) -> {
             CacheManifest manifest = new Gson().fromJson(new InputStreamReader(manifestStream), CacheManifest.class);
 
-            // TODO Remove task outputs first
-
             // TODO Do all properties at once instead of doing separate bathches
             AtomicLong entryCount = new AtomicLong(0);
             ImmutableSortedMap.Builder<String, FileSystemSnapshot> snaphsots = ImmutableSortedMap.naturalOrder();
             cacheableEntity.visitOutputTrees((propertyName, type, root) -> {
+                try {
+                    cleanOutputDirectory(type, root);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
                 List<ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
                 if (type == TreeType.FILE) {
                     root.getParentFile().mkdirs();
@@ -195,6 +203,36 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
     @Override
     public void close() throws IOException {
+    }
+
+    // FIXME code duplicate
+    private void cleanOutputDirectory(TreeType type, File root) throws IOException {
+        switch (type) {
+            case DIRECTORY:
+                deleter.ensureEmptyDirectory(root);
+                break;
+            case FILE:
+                if (!makeDirectory(root.getParentFile())) {
+                    if (root.exists()) {
+                        deleter.deleteRecursively(root);
+                    }
+                }
+                break;
+            default:
+                throw new AssertionError();
+        }
+    }
+
+    // FIXME code duplicate
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean makeDirectory(File target) throws IOException {
+        if (target.isDirectory()) {
+            return false;
+        } else if (target.isFile()) {
+            deleter.delete(target);
+        }
+        FileUtils.forceMkdir(target);
+        return true;
     }
 
     private static Map<BuildCacheKey, String> indexManifestFileEntries(List<ManifestEntry> manifestEntries) {

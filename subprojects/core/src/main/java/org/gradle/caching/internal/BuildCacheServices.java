@@ -193,7 +193,8 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                         serviceRegistry.get(GlobalScopedCacheBuilderFactory.class),
                         buildCacheConfiguration,
                         fileSystemAccess,
-                        instantiator
+                        instantiator,
+                        serviceRegistry.get(Deleter.class)
                     );
                 }
                 Path buildIdentityPath = gradle.getIdentityPath();
