@@ -26,6 +26,7 @@ import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
 import org.gradle.caching.internal.controller.BuildCacheController;
+import org.gradle.caching.internal.controller.NextGenBuildCacheController;
 import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
@@ -172,10 +173,20 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
             }
 
             private BuildCacheController doCreateBuildCacheController(
-                ServiceRegistry serviceRegistry, BuildCacheConfigurationInternal buildCacheConfiguration, BuildOperationExecutor buildOperationExecutor, InstantiatorFactory instantiatorFactory,
-                GradleInternal gradle, TemporaryFileProvider temporaryFileProvider, FileSystemAccess fileSystemAccess, BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory,
+                ServiceRegistry serviceRegistry,
+                BuildCacheConfigurationInternal buildCacheConfiguration,
+                BuildOperationExecutor buildOperationExecutor,
+                InstantiatorFactory instantiatorFactory,
+                GradleInternal gradle,
+                TemporaryFileProvider temporaryFileProvider,
+                FileSystemAccess fileSystemAccess,
+                BuildCacheEntryPacker packer,
+                OriginMetadataFactory originMetadataFactory,
                 StringInterner stringInterner
             ) {
+                if (Boolean.getBoolean("org.gradle.unsafe.cache.ng")) {
+                    return new NextGenBuildCacheController();
+                }
                 StartParameter startParameter = gradle.getStartParameter();
                 Path buildIdentityPath = gradle.getIdentityPath();
                 BuildCacheControllerFactory.BuildCacheMode buildCacheMode = startParameter.isBuildCacheEnabled() ? BuildCacheControllerFactory.BuildCacheMode.ENABLED : BuildCacheControllerFactory.BuildCacheMode.DISABLED;
