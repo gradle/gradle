@@ -16,35 +16,50 @@
 
 package org.gradle.caching.internal.controller;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
+import org.gradle.caching.internal.controller.CacheManifest.ManifestEntry;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.RelativePathSupplier;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.RelativePathTracker;
+import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class NextGenBuildCacheController implements BuildCacheController {
     private final NextGenBuildCacheAccess cacheAccess;
+    private final FileSystemAccess fileSystemAccess;
 
-    public NextGenBuildCacheController(NextGenBuildCacheAccess cacheAccess) {
+    public NextGenBuildCacheController(NextGenBuildCacheAccess cacheAccess, FileSystemAccess fileSystemAccess) {
         this.cacheAccess = cacheAccess;
+        this.fileSystemAccess = fileSystemAccess;
     }
 
     @Override
@@ -66,35 +81,40 @@ public class NextGenBuildCacheController implements BuildCacheController {
             // TODO Remove task outputs first
 
             // TODO Do all properties at once instead of doing separate bathches
+            AtomicLong entryCount = new AtomicLong(0);
+            ImmutableSortedMap.Builder<String, FileSystemSnapshot> snaphsots = ImmutableSortedMap.naturalOrder();
             cacheableEntity.visitOutputTrees((propertyName, type, root) -> {
-                List<CacheManifest.ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
-                Map<HashCode, String> contentHashes = manifestEntries.stream()
-                        .collect(ImmutableMap.toImmutableMap(
-                            CacheManifest.ManifestEntry::getContentHash,
-                            CacheManifest.ManifestEntry::getRelativePath
-                        ));
+                List<ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
+                Map<BuildCacheKey, String> contentHashes = indexManifestEntries(manifestEntries);
 
                 // TODO Filter out entries that are already in the right place in the output directory
                 // TODO Handle missing entries
 
-                Iterable<BuildCacheKey> buildCacheKeys = contentHashes.keySet().stream()
-                    .map(SimpleBuildCacheKey::new)
-                    .collect(ImmutableSet.toImmutableSet());
-                cacheAccess.load(buildCacheKeys, (contentHash, inputStream) -> {
+                cacheAccess.load(contentHashes.keySet(), (contentHash, input) -> {
                     String relativePath = contentHashes.get(contentHash);
+                    File file = new File(root, relativePath);
                     try {
-                        Files.copy(inputStream, new File(root, relativePath).toPath());
+                        file.getParentFile().mkdirs();
+                        file.createNewFile();
+                        try (FileOutputStream output = new FileOutputStream(file)) {
+                            ByteStreams.copy(input, output);
+                        }
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
+                    entryCount.incrementAndGet();
                 });
+
+                // TODO Reuse the data in the manifest instead of re-reading just written files
+                FileSystemLocationSnapshot snapshot = fileSystemAccess.read(root.getAbsolutePath());
+
+                snaphsots.put(propertyName, snapshot);
             });
 
             result.set(new BuildCacheLoadResult() {
                 @Override
                 public long getArtifactEntryCount() {
-                    // TODO Set count
-                    return 0;
+                    return entryCount.get();
                 }
 
                 @Override
@@ -105,7 +125,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 @Override
                 public ImmutableSortedMap<String, FileSystemSnapshot> getResultingSnapshots() {
                     // TODO Collect snapshots
-                    return null;
+                    return snaphsots.build();
                 }
             });
         });
@@ -115,10 +135,22 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
     @Override
     public void store(BuildCacheKey manifestCacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
-        ImmutableMap.Builder<String, List<CacheManifest.ManifestEntry>> propertyManifests = ImmutableMap.builder();
+        ImmutableMap.Builder<String, List<ManifestEntry>> propertyManifests = ImmutableMap.builder();
 
         entity.visitOutputTrees((propertyName, type, root) -> {
-            // TODO Do this
+            ImmutableList.Builder<ManifestEntry> manifestEntries = ImmutableList.builder();
+            FileSystemSnapshot rootSnapshot = snapshots.get(propertyName);
+            rootSnapshot.accept(new RelativePathTracker(), new RelativePathTrackingFileSystemSnapshotHierarchyVisitor() {
+                @Override
+                public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
+                    CacheManifest.EntryType type = (snapshot instanceof RegularFileSnapshot)
+                        ? CacheManifest.EntryType.FILE
+                        : CacheManifest.EntryType.DIRECTORY;
+                    manifestEntries.add(new ManifestEntry(type, relativePath.toRelativePath(), snapshot.getHash().toString()));
+                    return SnapshotVisitResult.CONTINUE;
+                }
+            });
+            propertyManifests.put(propertyName, manifestEntries.build());
         });
 
         CacheManifest manifest = new CacheManifest(
@@ -127,10 +159,22 @@ public class NextGenBuildCacheController implements BuildCacheController {
             propertyManifests.build()
         );
 
-//        cacheAccess.store(propertyManifest.getAllHashes(), (hashCode, outputStream) -> {
-//            // TODO Handle only files
-//            // TODO Handle empty directories, too
-//        });
+        entity.visitOutputTrees((propertyName, type, root) -> {
+            List<ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
+            Map<BuildCacheKey, String> manifestIndex = indexManifestEntries(manifestEntries);
+
+            cacheAccess.store(manifestIndex.keySet(), (buildCacheKey, outputStream) -> {
+                String relativePath = manifestIndex.get(buildCacheKey);
+                File file = new File(root, relativePath);
+                if (file.isFile()) {
+                    try {
+                        Files.copy(file.toPath(), outputStream);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }
+            });
+        });
 
         cacheAccess.store(Collections.singleton(manifestCacheKey), (__, outputStream) -> {
             String manifestJson = new Gson().toJson(manifest);
@@ -146,11 +190,19 @@ public class NextGenBuildCacheController implements BuildCacheController {
     public void close() throws IOException {
     }
 
+    private static Map<BuildCacheKey, String> indexManifestEntries(List<ManifestEntry> manifestEntries) {
+        return manifestEntries.stream()
+            .collect(ImmutableMap.toImmutableMap(
+                manifestEntry -> new SimpleBuildCacheKey(manifestEntry.getContentHash()),
+                ManifestEntry::getRelativePath
+            ));
+    }
+
     private static class SimpleBuildCacheKey implements BuildCacheKey {
         private final HashCode hashCode;
 
-        public SimpleBuildCacheKey(HashCode hashCode) {
-            this.hashCode = hashCode;
+        public SimpleBuildCacheKey(String hashCode) {
+            this.hashCode = HashCode.fromString(hashCode);
         }
 
         @Override
@@ -166,6 +218,25 @@ public class NextGenBuildCacheController implements BuildCacheController {
         @Override
         public byte[] toByteArray() {
             return hashCode.toByteArray();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            SimpleBuildCacheKey that = (SimpleBuildCacheKey) o;
+
+            return hashCode.equals(that.hashCode);
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode.hashCode();
         }
     }
 }

@@ -17,7 +17,6 @@
 package org.gradle.caching.internal.controller;
 
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.hash.HashCode;
 
 import java.util.List;
 import java.util.Map;
@@ -39,20 +38,31 @@ public class CacheManifest {
         return propertyManifests;
     }
 
-    public static class ManifestEntry {
-        private final String relativePath;
-        private final HashCode contentHash;
+    public enum EntryType {
+        DIRECTORY, FILE
+    }
 
-        public ManifestEntry(String relativePath, HashCode contentHash) {
+    public static class ManifestEntry {
+        private final EntryType type;
+        private final String relativePath;
+        private final String contentHash;
+        // TODO Add length
+
+        public ManifestEntry(EntryType type, String relativePath, String contentHash) {
+            this.type = type;
             this.relativePath = relativePath;
             this.contentHash = contentHash;
+        }
+
+        public EntryType getType() {
+            return type;
         }
 
         public String getRelativePath() {
             return relativePath;
         }
 
-        public HashCode getContentHash() {
+        public String getContentHash() {
             return contentHash;
         }
     }

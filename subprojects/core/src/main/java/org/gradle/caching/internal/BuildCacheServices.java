@@ -192,6 +192,7 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                     return NextGenBuildCacheControllerFactory.create(
                         serviceRegistry.get(GlobalScopedCacheBuilderFactory.class),
                         buildCacheConfiguration,
+                        fileSystemAccess,
                         instantiator
                     );
                 }
