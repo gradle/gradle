@@ -19,7 +19,7 @@ package org.gradle.internal.resolve.resolver;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.capabilities.Capability;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyArtifactSet;
@@ -87,7 +87,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     private ImmutableSet<ResolvedVariant> buildResolvedVariants(ModuleVersionIdentifier moduleVersionId, ModuleSources sources, Set<? extends VariantResolveMetadata> allVariants, ExcludeSpec exclusions) {
         ImmutableSet.Builder<ResolvedVariant> resolvedVariantBuilder = ImmutableSet.builder();
         for (VariantResolveMetadata variant : allVariants) {
-            ResolvedVariant resolvedVariant = toResolvedVariant(variant.getIdentifier(), variant.asDescribable(), variant.getAttributes(), variant.getArtifacts(), withImplicitCapability(variant.getCapabilities().getCapabilities(), moduleVersionId), exclusions, moduleVersionId, sources, resolvedVariantCache, variant.isEligibleForCaching());
+            ResolvedVariant resolvedVariant = toResolvedVariant(variant.getIdentifier(), variant.asDescribable(), variant.getAttributes(), variant.getArtifacts(), withImplicitCapability(variant.getCapabilities(), moduleVersionId), exclusions, moduleVersionId, sources, resolvedVariantCache, variant.isEligibleForCaching());
             resolvedVariantBuilder.add(resolvedVariant);
         }
         return resolvedVariantBuilder.build();
@@ -127,12 +127,14 @@ public class DefaultArtifactSelector implements ArtifactSelector {
         }
     }
 
-    private static ImmutableCapabilities withImplicitCapability(Collection<? extends Capability> capabilities, ModuleVersionIdentifier moduleVersionId) {
+    private static ImmutableCapabilities withImplicitCapability(CapabilitiesMetadata capabilitiesMetadata, ModuleVersionIdentifier moduleVersionId) {
         // TODO: This doesn't seem right. We should know the capability of the variant before we get here instead of assuming that it's the same as the owner
-        if (capabilities.isEmpty()) {
+        if (capabilitiesMetadata.getCapabilities().isEmpty()) {
             return ImmutableCapabilities.of(ImmutableCapability.defaultCapabilityForComponent(moduleVersionId));
+        } else if (capabilitiesMetadata instanceof ImmutableCapabilities) {
+            return (ImmutableCapabilities) capabilitiesMetadata;
         } else {
-            return ImmutableCapabilities.copyAsImmutable(capabilities);
+            return ImmutableCapabilities.copyAsImmutable(capabilitiesMetadata.getCapabilities());
         }
     }
 

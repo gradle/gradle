@@ -15,12 +15,16 @@
  */
 package org.gradle.internal.component.external.model;
 
-public class DefaultShadowedCapability implements ShadowedCapability {
+public class ImmutableShadowedCapability implements ShadowedCapability {
     private final CapabilityInternal shadowed;
     private final String appendix;
 
-    public DefaultShadowedCapability(CapabilityInternal shadowed, String appendix) {
-        this.shadowed = shadowed;
+    public ImmutableShadowedCapability(CapabilityInternal shadowed, String appendix) {
+        if (shadowed instanceof ImmutableShadowedCapability) {
+            this.shadowed = shadowed;
+        } else {
+            this.shadowed = new ImmutableCapability(shadowed.getGroup(), shadowed.getName(), shadowed.getVersion());
+        }
         this.appendix = appendix;
     }
 

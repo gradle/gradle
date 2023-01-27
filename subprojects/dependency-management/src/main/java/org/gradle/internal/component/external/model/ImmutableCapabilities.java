@@ -57,7 +57,22 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
     }
 
     public ImmutableCapabilities(ImmutableList<? extends Capability> capabilities) {
-        this.capabilities = capabilities;
+        ImmutableList.Builder<CapabilityInternal> builder = ImmutableList.builder();
+
+        for (Capability capability : capabilities) {
+            if (capability instanceof ImmutableCapability) {
+                builder.add((ImmutableCapability) capability);
+            } else if (capability instanceof ImmutableShadowedCapability) {
+                builder.add((ImmutableShadowedCapability) capability);
+            } else if (capability instanceof ShadowedCapability) {
+                ShadowedCapability shadowedCapability = (ShadowedCapability) capability;
+                builder.add(new ImmutableShadowedCapability(shadowedCapability, shadowedCapability.getAppendix()));
+            } else {
+                builder.add(new ImmutableCapability(capability.getGroup(), capability.getName(), capability.getVersion()));
+            }
+        }
+
+        this.capabilities = builder.build();
     }
 
     public static ImmutableCapabilities copyAsImmutable(Collection<? extends Capability> capabilities) {
