@@ -80,6 +80,30 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         ]
     }
 
+    def "buildSrc is relative to its including build"() {
+        def builds = nestedBuilds {
+            includedBuild {
+                nested
+            }
+            includingBuild {
+                nested
+            }
+        }
+
+
+        def includingBuild = builds.find { it.rootProjectName == 'includingBuild' }
+        builds.each { build ->
+            def buildSrc = build.createDir('buildSrc')
+            buildSrc.createFile('settings.gradle')
+            buildSrc.createFile('build.gradle') << """println("Configured build '\$identityPath'")"""
+        }
+
+        when:
+        succeeds(includingBuild, 'help')
+        then:
+        assignedBuildPaths ==~ [':nested', ':nested:buildSrc', ':', ':buildSrc']
+    }
+
     private List<Object> getAssignedBuildPaths() {
         output.lines().findAll { it.startsWith("Configured build '") }.collect { it.substring(18, it.length() - 1) }
     }
