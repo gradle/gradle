@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.verification.verifier
 
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.verification.exceptions.ComponentVerificationException
-import org.gradle.api.internal.artifacts.verification.exceptions.InvalidGpgKeyIds
+import org.gradle.api.internal.artifacts.verification.exceptions.InvalidGpgKeyIdsException
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
@@ -67,7 +67,7 @@ class DependencyVerifierBuilderTest extends Specification {
         verificationBuilder.buildTrustedPgpKeys();
 
         then:
-        def ex = thrown(InvalidGpgKeyIds)
+        def ex = thrown(InvalidGpgKeyIdsException)
         println(ex.getMessage())
 
         where:

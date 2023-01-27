@@ -22,7 +22,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
+import org.gradle.api.internal.artifacts.verification.exceptions.ComponentVerificationException;
+import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
+import org.gradle.api.internal.artifacts.verification.exceptions.InvalidGpgKeyIdsException;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
@@ -169,7 +171,7 @@ public class DependencyVerifierBuilder {
             byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addIgnoredKey(key);
         }
 
-        private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<String, ArtifactVerificationBuilder> entry) {
+        private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<String, ArtifactVerificationBuilder> entry) throws InvalidGpgKeyIdsException {
             String key = entry.getKey();
             ArtifactVerificationBuilder value = entry.getValue();
             return new ImmutableArtifactVerificationMetadata(
@@ -180,13 +182,17 @@ public class DependencyVerifierBuilder {
         }
 
         ComponentVerificationMetadata build() {
-            return new ImmutableComponentVerificationMetadata(component,
-                byArtifact.entrySet()
-                    .stream()
-                    .map(ComponentVerificationsBuilder::toArtifactVerification)
-                    .sorted(Comparator.comparing(ArtifactVerificationMetadata::getArtifactName))
-                    .collect(Collectors.toList())
-            );
+            try {
+                return new ImmutableComponentVerificationMetadata(component,
+                    byArtifact.entrySet()
+                        .stream()
+                        .map(ComponentVerificationsBuilder::toArtifactVerification)
+                        .sorted(Comparator.comparing(ArtifactVerificationMetadata::getArtifactName))
+                        .collect(Collectors.toList())
+                );
+            } catch (InvalidGpgKeyIdsException ex) {
+                throw new ComponentVerificationException(component, ex::formatMessage);
+            }
         }
     }
 
@@ -229,9 +235,9 @@ public class DependencyVerifierBuilder {
          * We do not accept either short or long formats, as they can be vulnerable to collision attacks.
          *
          * @return a list of trusted GPG keys
-         * @throws InvalidGpgKeyIds if keys not fitting the requirements were found
+         * @throws InvalidGpgKeyIdsException if keys not fitting the requirements were found
          */
-        public Set<String> buildTrustedPgpKeys() throws InvalidGpgKeyIds {
+        public Set<String> buildTrustedPgpKeys() throws InvalidGpgKeyIdsException {
             final List<String> wrongPgpKeys = pgpKeys
                 .stream()
                 .filter(key -> key.getBytes(StandardCharsets.US_ASCII).length != 40)
@@ -240,7 +246,7 @@ public class DependencyVerifierBuilder {
             if (wrongPgpKeys.isEmpty()) {
                 return pgpKeys;
             } else {
-                throw new InvalidGpgKeyIds(wrongPgpKeys);
+                throw new InvalidGpgKeyIdsException(wrongPgpKeys);
             }
         }
 
