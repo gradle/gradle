@@ -17,8 +17,8 @@
 package org.gradle.caching.local.internal
 
 import org.gradle.caching.BuildCacheEntryReader
-import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheKey
+import org.gradle.caching.internal.controller.service.StoreTarget
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -28,12 +28,12 @@ class H2LocalCacheServiceTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    String hashCode = "1234abcd"
     BuildCacheKey key = Mock(BuildCacheKey) {
-        getHashCode() >> hashCode
+        getHashCode() >> "1234abcd"
     }
 
     def "h2 database is initialized"() {
+        given:
         def dbDir = temporaryFolder.createDir("h2db")
 
         expect:
@@ -41,37 +41,26 @@ class H2LocalCacheServiceTest extends Specification {
     }
 
     def "can write to h2"() {
+        given:
         def dbDir = temporaryFolder.createDir("h2db")
         def service = new H2LocalCacheService(dbDir.toPath())
 
-        expect:
-        service.store(key, new BuildCacheEntryWriter() {
-            @Override
-            void writeTo(OutputStream output) throws IOException {
-                output << "Hello world"
-            }
+        def tmpFile = temporaryFolder.createFile("test")
+        tmpFile << "Hello world"
 
-            @Override
-            long getSize() {
-                return 100
-            }
-        })
+        expect:
+        service.store(key, new StoreTarget(tmpFile))
     }
 
     def "can write and read from h2"() {
+        given:
         def dbDir = temporaryFolder.createDir("h2db")
         def service = new H2LocalCacheService(dbDir.toPath())
-        service.store(key, new BuildCacheEntryWriter() {
-            @Override
-            void writeTo(OutputStream output) throws IOException {
-                output << "Hello world"
-            }
 
-            @Override
-            long getSize() {
-                return 100
-            }
-        })
+        def tmpFile = temporaryFolder.createFile("test")
+        tmpFile << "Hello world"
+
+        service.store(key, new StoreTarget(tmpFile))
 
         expect:
         service.load(key, new BuildCacheEntryReader() {
