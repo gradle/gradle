@@ -28,16 +28,18 @@ import org.gradle.caching.internal.controller.NextGenBuildCacheController;
 import org.gradle.caching.local.internal.H2LocalCacheService;
 import org.gradle.internal.Cast;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.vfs.FileSystemAccess;
 
-import java.nio.file.Path;
+import java.io.File;
 
 public final class NextGenBuildCacheControllerFactory {
 
     public static BuildCacheController create(
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         BuildCacheConfigurationInternal buildCacheConfiguration,
+        PathToFileResolver resolver,
         FileSystemAccess fileSystemAccess,
         Instantiator instantiator,
         Deleter deleter
@@ -46,8 +48,14 @@ public final class NextGenBuildCacheControllerFactory {
         BuildCache remote = buildCacheConfiguration.getRemote();
         boolean remoteEnabled = remote != null && remote.isEnabled();
 
-        Path localCacheLocation = cacheBuilderFactory.baseDirForCrossVersionCache("build-cache-2").toPath();
-        BuildCacheService localService = new H2LocalCacheService(localCacheLocation);
+        Object cacheDirectory = buildCacheConfiguration.getLocal().getDirectory();
+        File target;
+        if (cacheDirectory != null) {
+            target = resolver.resolve(cacheDirectory);
+        } else {
+            target = cacheBuilderFactory.baseDirForCrossVersionCache("build-cache-2");
+        }
+        BuildCacheService localService = new H2LocalCacheService(target.toPath());
 
         BuildCacheService remoteService = remoteEnabled
             ? createBuildCacheService(remote, buildCacheConfiguration, instantiator)
