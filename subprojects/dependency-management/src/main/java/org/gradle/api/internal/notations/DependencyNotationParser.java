@@ -42,6 +42,7 @@ import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapt
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
+import org.gradle.plugin.use.PluginDependency;
 
 import java.util.Map;
 
