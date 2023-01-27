@@ -228,6 +228,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             builder.setExecutable(new File(getJavaHome(), "bin/java"));
             builder.classpath(getExecHandleFactoryClasspath());
             builder.jvmArgs(invocation.launcherJvmArgs);
+            if (isAgentInstrumentationEnabled()) {
+                // Apply the agent to the newly created daemon.
+                for (File agent : cleanup(GLOBAL_SERVICES.get(ModuleRegistry.class).getModule("gradle-instrumentation-agent").getClasspath().getAsFiles())) {
+                    builder.jvmArgs("-javaagent:" + agent.getAbsolutePath());
+                }
+            }
             builder.environment(invocation.environmentVars);
 
             builder.getMainClass().set(Main.class.getName());
