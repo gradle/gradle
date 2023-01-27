@@ -16,14 +16,15 @@
 
 package org.gradle.caching.internal.controller;
 
+import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public interface NextGenBuildCacheAccess {
     void load(Iterable<BuildCacheKey> keys, BiConsumer<BuildCacheKey, InputStream> processor);
 
-    void store(Iterable<BuildCacheKey> keys, BiConsumer<BuildCacheKey, OutputStream> processor);
+    void store(Iterable<BuildCacheKey> keys, Function<BuildCacheKey, BuildCacheEntryWriter> processor);
 }
