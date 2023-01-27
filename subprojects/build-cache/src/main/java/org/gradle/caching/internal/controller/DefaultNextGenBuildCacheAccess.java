@@ -74,7 +74,6 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         Streams.stream(keys).forEach(key -> {
             BuildCacheEntryWriter writer = processor.apply(key);
             local.store(key, writer);
-            // TODO Make it conditional
             remote.store(key, writer);
         });
     }
