@@ -25,8 +25,15 @@ import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class H2LocalCacheService implements BuildCacheService {
 
@@ -61,12 +68,40 @@ public class H2LocalCacheService implements BuildCacheService {
 
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-        return false;
+        try (Connection conn = dataSource.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement("select entry_content from filestore.catalog where entry_key = ?")) {
+                stmt.setString(1, key.getHashCode());
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    Blob content = rs.getBlob(1);
+                    reader.readFrom(content.getBinaryStream());
+                    return true;
+                }
+                return false;
+            }
+        } catch (SQLException | IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            writer.writeTo(out);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        try (Connection conn = dataSource.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement("insert into filestore.catalog(entry_key, entry_size, entry_content) values (?, ?, ?)")) {
+                stmt.setString(1, key.getHashCode());
+                stmt.setLong(2, writer.getSize());
+                stmt.setBinaryStream(3, new ByteArrayInputStream(out.toByteArray()));
+                stmt.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
