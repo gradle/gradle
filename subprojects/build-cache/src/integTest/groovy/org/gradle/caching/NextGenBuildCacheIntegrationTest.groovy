@@ -158,6 +158,43 @@ class NextGenBuildCacheIntegrationTest extends AbstractIntegrationSpec implement
         file("build/output2.txt").text == "data2"
     }
 
+    def "cacheable task with identical output files is cached"() {
+        buildFile << """
+            @CacheableTask
+            abstract class CustomTask extends DefaultTask {
+                @OutputDirectory abstract DirectoryProperty getOutputDir()
+
+                @TaskAction
+                void execute() {
+                    outputDir.file("output1.txt").get().asFile.text = "data"
+                    outputDir.file("output2.txt").get().asFile.text = "data"
+                    outputDir.file("output3.txt").get().asFile.text = "data"
+                }
+            }
+
+            task customTask(type: CustomTask) {
+                outputDir = layout.buildDir
+            }
+        """
+
+        when:
+        runWithCacheNG "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+        file("build/output1.txt").text == "data"
+        file("build/output2.txt").text == "data"
+        file("build/output3.txt").text == "data"
+
+        when:
+        cleanBuildDir()
+        runWithCacheNG "customTask"
+        then:
+        skipped ":customTask"
+        file("build/output1.txt").text == "data"
+        file("build/output2.txt").text == "data"
+        file("build/output3.txt").text == "data"
+    }
+
     def "ad hoc tasks are not cacheable by default"() {
         given:
         file("input.txt") << "data"

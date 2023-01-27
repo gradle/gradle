@@ -17,8 +17,11 @@
 package org.gradle.caching.internal.controller;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
@@ -107,23 +110,30 @@ public class NextGenBuildCacheController implements BuildCacheController {
                     }
                 });
 
-                Map<BuildCacheKey, String> fileContentHashes = indexManifestFileEntries(manifestEntries);
+                Multimap<BuildCacheKey, String> fileContentHashes = indexManifestFileEntries(manifestEntries);
 
                 // TODO Filter out entries that are already in the right place in the output directory
                 // TODO Handle missing entries
 
                 cacheAccess.load(fileContentHashes.keySet(), (contentHash, input) -> {
-                    String relativePath = fileContentHashes.get(contentHash);
-                    File file = new File(root, relativePath);
+                    byte[] data;
                     try {
-                        file.createNewFile();
-                        try (FileOutputStream output = new FileOutputStream(file)) {
-                            ByteStreams.copy(input, output);
-                        }
+                        data = ByteStreams.toByteArray(input);
                     } catch (IOException e) {
-                        throw new UncheckedIOException("Couldn't create " + file.getAbsolutePath(), e);
+                        throw new UncheckedIOException("Could not read cache entry " + contentHash, e);
                     }
-                    entryCount.incrementAndGet();
+                    fileContentHashes.get(contentHash).forEach(relativePath -> {
+                        File file = new File(root, relativePath);
+                        try {
+                            file.createNewFile();
+                            try (FileOutputStream output = new FileOutputStream(file)) {
+                                output.write(data);
+                            }
+                        } catch (IOException e) {
+                            throw new UncheckedIOException("Couldn't create " + file.getAbsolutePath(), e);
+                        }
+                        entryCount.incrementAndGet();
+                    });
                 });
 
                 // TODO Reuse the data in the manifest instead of re-reading just written files
@@ -178,10 +188,12 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
         entity.visitOutputTrees((propertyName, type, root) -> {
             List<ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
-            Map<BuildCacheKey, String> manifestIndex = indexManifestFileEntries(manifestEntries);
+            ListMultimap<BuildCacheKey, String> manifestIndex = indexManifestFileEntries(manifestEntries);
 
             cacheAccess.store(manifestIndex.keySet(), buildCacheKey -> {
-                String relativePath = manifestIndex.get(buildCacheKey);
+                // It doesn't matter which identical file we read
+                // TODO We can do this without a multimap actually
+                String relativePath = manifestIndex.get(buildCacheKey).get(0);
                 File file = new File(root, relativePath);
                 return new BuildCacheEntryWriter() {
                     @Override
@@ -249,10 +261,13 @@ public class NextGenBuildCacheController implements BuildCacheController {
         return true;
     }
 
-    private static Map<BuildCacheKey, String> indexManifestFileEntries(List<ManifestEntry> manifestEntries) {
+    private static ListMultimap<BuildCacheKey, String> indexManifestFileEntries(List<ManifestEntry> manifestEntries) {
         return manifestEntries.stream()
             .filter(entry -> entry.getType() == CacheManifest.EntryType.FILE)
-            .collect(ImmutableMap.toImmutableMap(manifestEntry -> new SimpleBuildCacheKey(manifestEntry.getContentHash()), ManifestEntry::getRelativePath));
+            .collect(ImmutableListMultimap.toImmutableListMultimap(
+                manifestEntry -> new SimpleBuildCacheKey(manifestEntry.getContentHash()),
+                ManifestEntry::getRelativePath)
+            );
     }
 
     private static class SimpleBuildCacheKey implements BuildCacheKey {
@@ -294,6 +309,11 @@ public class NextGenBuildCacheController implements BuildCacheController {
         @Override
         public int hashCode() {
             return hashCode.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return hashCode.toString();
         }
     }
 }
