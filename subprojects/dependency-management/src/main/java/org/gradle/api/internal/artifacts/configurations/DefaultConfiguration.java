@@ -98,6 +98,7 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.initialization.ResettableConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -174,7 +175,7 @@ import static org.gradle.api.internal.artifacts.configurations.ConfigurationInte
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
 @SuppressWarnings("rawtypes")
-public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
+public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConfiguration.class);
 
     private static final Action<Throwable> DEFAULT_ERROR_HANDLER = throwable -> {
@@ -902,6 +903,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 });
         }
         return dependenciesResolverFactory;
+    }
+
+    @Override
+    public void resetResolutionState() {
+        currentResolveState.set(ResolveState.NOT_RESOLVED);
     }
 
     private ResolverResults getResultsForBuildDependencies() {
