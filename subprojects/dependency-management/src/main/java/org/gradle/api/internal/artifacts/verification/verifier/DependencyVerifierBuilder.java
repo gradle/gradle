@@ -234,12 +234,23 @@ public class DependencyVerifierBuilder {
          * This method will verify if all the trusted keys are in 160-bit fingerprint format.
          * We do not accept either short or long formats, as they can be vulnerable to collision attacks.
          *
-         * @return a list of trusted GPG keys
+         * <p>
+         * Note: the fingerprints' formatting is not verified (i.e. if it's true base32 or not) at this stage.
+         * It will happen when these fingerprints will be converted to {@link org.gradle.security.internal.Fingerprint}.
+         *
+         * @return a set of trusted GPG keys
          * @throws InvalidGpgKeyIdsException if keys not fitting the requirements were found
          */
         public Set<String> buildTrustedPgpKeys() throws InvalidGpgKeyIdsException {
             final List<String> wrongPgpKeys = pgpKeys
                 .stream()
+                // The key is 160 bits long, encoded in base32 (case-insensitive characters).
+                //
+                // Base32 gives us 4 bits per character, so the whole fingerprint will be:
+                // (160 bits) / (4 bits / character) = 40 characters
+                //
+                // By getting ASCII bytes (aka. strictly 1 byte per character, no variable-length magic)
+                // we can safely check if the fingerprint is of the correct length.
                 .filter(key -> key.getBytes(StandardCharsets.US_ASCII).length != 40)
                 .collect(Collectors.toList());
 
