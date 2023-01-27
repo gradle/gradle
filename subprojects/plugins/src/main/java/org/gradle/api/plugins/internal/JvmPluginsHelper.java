@@ -17,7 +17,6 @@ package org.gradle.api.plugins.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
@@ -215,7 +214,7 @@ public class JvmPluginsHelper {
                 tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).configure(task -> task.dependsOn(jarTask));
             }
         }
-        TaskProvider<Task> jar = tasks.named(jarTaskName);
+        TaskProvider<Jar> jar = tasks.named(jarTaskName, Jar.class);
         variant.getOutgoing().artifact(new LazyPublishArtifact(jar, fileResolver, taskDependencyFactory));
         if (component != null) {
             component.addVariantsFromConfiguration(variant, new JavaConfigurationVariantMapping("runtime", true));
