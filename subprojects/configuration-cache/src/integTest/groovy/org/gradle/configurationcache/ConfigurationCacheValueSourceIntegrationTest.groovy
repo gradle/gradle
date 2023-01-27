@@ -464,4 +464,64 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         outputContains("configuration value = someValue")
         outputContains("execution value = someValue")
     }
+
+    def "value source changes its value invalidating the cache if its input #providerType provider changes"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+        import org.gradle.api.provider.*
+
+        abstract class IdentitySource implements ValueSource<String, Parameters> {
+            interface Parameters extends ValueSourceParameters {
+                Property<String> getValue()
+            }
+
+            @Override String obtain() {
+                return parameters.value.orNull
+            }
+        }
+
+        def vsResult = providers.of(IdentitySource) {
+            parameters.value = providers.$providerType("property")
+        }
+
+        println("configuration value = \${vsResult.getOrElse("NO VALUE")}")
+
+        tasks.register("echo") {
+            doLast {
+                println("execution value = \${vsResult.getOrElse("NO VALUE")}")
+            }
+        }
+
+        defaultTasks "echo"
+        """)
+
+        when:
+        configurationCacheRun("${setterSwitch}property=someValue")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("configuration value = someValue")
+        outputContains("execution value = someValue")
+
+        when:
+        configurationCacheRun("${setterSwitch}property=someValue")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("execution value = someValue")
+
+        when:
+        configurationCacheRun("${setterSwitch}property=newValue")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("configuration value = newValue")
+        outputContains("execution value = newValue")
+
+        where:
+        providerType     | setterSwitch
+        "systemProperty" | "-D"
+        "gradleProperty" | "-P"
+    }
 }
