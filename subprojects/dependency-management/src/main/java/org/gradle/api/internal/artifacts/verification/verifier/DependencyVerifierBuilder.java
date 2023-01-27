@@ -222,8 +222,26 @@ public class DependencyVerifierBuilder {
             ignoredPgpKeys.add(key);
         }
 
-        public Set<String> buildTrustedPgpKeys() {
-            return pgpKeys;
+        /**
+         * Builds the list of trusted GPG keys.
+         * <p>
+         * This method will verify if all the trusted keys are in 160-bit fingerprint format.
+         * We do not accept either short or long formats, as they can be vulnerable to collision attacks.
+         *
+         * @return a list of trusted GPG keys
+         * @throws InvalidGpgKeyIds if keys not fitting the requirements were found
+         */
+        public Set<String> buildTrustedPgpKeys() throws InvalidGpgKeyIds {
+            final List<String> wrongPgpKeys = pgpKeys
+                .stream()
+                .filter(key -> key.getBytes(StandardCharsets.US_ASCII).length != 40)
+                .collect(Collectors.toList());
+
+            if (wrongPgpKeys.isEmpty()) {
+                return pgpKeys;
+            } else {
+                throw new InvalidGpgKeyIds(wrongPgpKeys);
+            }
         }
 
         public Set<IgnoredKey> buildIgnoredPgpKeys() {
