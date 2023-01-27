@@ -18,27 +18,36 @@ package org.gradle.caching.local.internal;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.flywaydb.core.Flyway;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.util.Path;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 public class H2LocalCacheService implements BuildCacheService {
 
-    private final HikariDataSource hikariDataSource;
+    private final HikariDataSource dataSource;
 
     public H2LocalCacheService(Path dbPath) {
-        this.hikariDataSource = createHikariDataSource(dbPath);
+        this.dataSource = createHikariDataSource(dbPath);
+        Flyway flyway = Flyway.configure()
+            .schemas("filestore")
+            .dataSource(dataSource)
+            .validateOnMigrate(true)
+            .cleanDisabled(true)
+            .failOnMissingLocations(true)
+            .load();
+        flyway.migrate();
     }
 
     private static HikariDataSource createHikariDataSource(Path dbPath) {
         HikariConfig hikariConfig = new HikariConfig();
         // RETENTION_TIME=0 prevents uncontrolled DB growth with old pages retention
-        String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0", dbPath);
+        String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0", dbPath.resolve("filestore"));
         hikariConfig.setJdbcUrl(h2JdbcUrl);
         hikariConfig.setUsername("sa");
         hikariConfig.setPassword("");
@@ -57,11 +66,11 @@ public class H2LocalCacheService implements BuildCacheService {
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-        
+
     }
 
     @Override
     public void close() throws IOException {
-        hikariDataSource.close();
+        dataSource.close();
     }
 }
