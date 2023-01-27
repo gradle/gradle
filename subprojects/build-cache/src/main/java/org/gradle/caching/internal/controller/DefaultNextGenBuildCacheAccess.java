@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     private final BuildCacheService local;
@@ -68,21 +69,10 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     }
 
     @Override
-    public void store(Iterable<BuildCacheKey> keys, BiConsumer<BuildCacheKey, OutputStream> processor) {
+    public void store(Iterable<BuildCacheKey> keys, Function<BuildCacheKey, BuildCacheEntryWriter> processor) {
         // TODO Fan out to multiple threads
         Streams.stream(keys).forEach(key -> {
-            BuildCacheEntryWriter writer = new BuildCacheEntryWriter() {
-                @Override
-                public void writeTo(OutputStream output) throws IOException {
-                    processor.accept(key, output);
-                }
-
-                @Override
-                public long getSize() {
-                    // TODO Pass size in here
-                    return 0;
-                }
-            };
+            BuildCacheEntryWriter writer = processor.apply(key);
             local.store(key, writer);
             // TODO Make it conditional
             remote.store(key, writer);
