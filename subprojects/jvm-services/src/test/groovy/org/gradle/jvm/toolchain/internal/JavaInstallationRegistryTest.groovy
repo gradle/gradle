@@ -95,7 +95,7 @@ class JavaInstallationRegistryTest extends Specification {
         given:
         def tempFolder = createTempDir()
         def expectedHome = new File(tempFolder, "Contents/Home")
-        createExecutable(expectedHome)
+        createExecutable(expectedHome, OperatingSystem.MAC_OS)
 
         def registry = new JavaInstallationRegistry([forDirectory(tempFolder)], new TestBuildOperationExecutor(), OperatingSystem.MAC_OS)
 
@@ -124,7 +124,7 @@ class JavaInstallationRegistryTest extends Specification {
     def "skip path normalization on non-osx systems"() {
         given:
         def rootWithMacOsLayout = createTempDir()
-        createExecutable(rootWithMacOsLayout)
+        createExecutable(rootWithMacOsLayout, OperatingSystem.LINUX)
         def expectedHome = new File(rootWithMacOsLayout, "Contents/Home")
         assert expectedHome.mkdirs()
 
@@ -196,12 +196,11 @@ class JavaInstallationRegistryTest extends Specification {
         file.canonicalFile
     }
 
-    void createExecutable(File javaHome) {
-        def executableName = OperatingSystem.current().getExecutableName("java")
+    void createExecutable(File javaHome, os = OperatingSystem.current()) {
+        def executableName = os.getExecutableName("java")
         def executable = new File(javaHome, "bin/$executableName")
-        assert executable.mkdirs()
+        assert executable.parentFile.mkdirs()
         executable.createNewFile()
-        executable.deleteOnExit()
     }
 
     private JavaInstallationRegistry newRegistry(File... location) {
