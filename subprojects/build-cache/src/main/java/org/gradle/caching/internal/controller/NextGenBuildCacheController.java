@@ -17,20 +17,22 @@
 package org.gradle.caching.internal.controller;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.gson.Gson;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -40,7 +42,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class NextGenBuildCacheController implements BuildCacheController {
     private final NextGenBuildCacheAccess cacheAccess;
-    private final OriginMetadataFactory originMetadataFactory;
+
+    public NextGenBuildCacheController(NextGenBuildCacheAccess cacheAccess) {
+        this.cacheAccess = cacheAccess;
+    }
 
     @Override
     public boolean isEnabled() {
@@ -72,9 +77,16 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 // TODO Filter out entries that are already in the right place in the output directory
                 // TODO Handle missing entries
 
-                cacheAccess.load(contentHashes.keySet(), (contentHash, inputStream) -> {
+                Iterable<BuildCacheKey> buildCacheKeys = contentHashes.keySet().stream()
+                    .map(SimpleBuildCacheKey::new)
+                    .collect(ImmutableSet.toImmutableSet());
+                cacheAccess.load(buildCacheKeys, (contentHash, inputStream) -> {
                     String relativePath = contentHashes.get(contentHash);
-                    new File(root, relativePath) << inputStream;
+                    try {
+                        Files.copy(inputStream, new File(root, relativePath).toPath());
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
                 });
             });
 
@@ -102,7 +114,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
     }
 
     @Override
-    public void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
+    public void store(BuildCacheKey manifestCacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
         ImmutableMap.Builder<String, List<CacheManifest.ManifestEntry>> propertyManifests = ImmutableMap.builder();
 
         entity.visitOutputTrees((propertyName, type, root) -> {
@@ -115,18 +127,45 @@ public class NextGenBuildCacheController implements BuildCacheController {
             propertyManifests.build()
         );
 
-        cacheAccess.store(propertyManifest.getAllHashes(), (hashCode, outputStream) -> {
-            // TODO Handle only files
-            // TODO Handle empty directories, too
-        });
+//        cacheAccess.store(propertyManifest.getAllHashes(), (hashCode, outputStream) -> {
+//            // TODO Handle only files
+//            // TODO Handle empty directories, too
+//        });
 
-        cacheAccess.store(Collections.singleton(manifestHash), (__, outputStream) -> {
+        cacheAccess.store(Collections.singleton(manifestCacheKey), (__, outputStream) -> {
             String manifestJson = new Gson().toJson(manifest);
-            outputStream.write(manifestJson.getBytes(StandardCharsets.UTF_8));
+            try {
+                outputStream.write(manifestJson.getBytes(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         });
     }
 
     @Override
     public void close() throws IOException {
+    }
+
+    private static class SimpleBuildCacheKey implements BuildCacheKey {
+        private final HashCode hashCode;
+
+        public SimpleBuildCacheKey(HashCode hashCode) {
+            this.hashCode = hashCode;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return getHashCode();
+        }
+
+        @Override
+        public String getHashCode() {
+            return hashCode.toString();
+        }
+
+        @Override
+        public byte[] toByteArray() {
+            return hashCode.toByteArray();
+        }
     }
 }

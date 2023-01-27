@@ -29,7 +29,7 @@ class NextGenBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run "compileJava"
+        run "compileJava", "-Dorg.gradle.unsafe.cache.ng=true"
         then:
         executedAndNotSkipped(":compileJava")
 
