@@ -28,6 +28,7 @@ import org.gradle.caching.internal.controller.NextGenBuildCacheController;
 import org.gradle.caching.local.internal.H2LocalCacheService;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.nio.file.Path;
 
@@ -36,6 +37,7 @@ public final class NextGenBuildCacheControllerFactory {
     public static BuildCacheController create(
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         BuildCacheConfigurationInternal buildCacheConfiguration,
+        FileSystemAccess fileSystemAccess,
         Instantiator instantiator
     ) {
         // DirectoryBuildCache local = buildCacheConfiguration.getLocal();
@@ -52,8 +54,8 @@ public final class NextGenBuildCacheControllerFactory {
         return new NextGenBuildCacheController(
             new DefaultNextGenBuildCacheAccess(
                 localService, remoteService
-            )
-        );
+            ),
+            fileSystemAccess);
     }
 
     private static BuildCacheService createBuildCacheService(
