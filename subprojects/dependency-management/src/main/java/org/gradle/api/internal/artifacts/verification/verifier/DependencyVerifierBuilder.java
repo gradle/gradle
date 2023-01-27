@@ -36,6 +36,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
