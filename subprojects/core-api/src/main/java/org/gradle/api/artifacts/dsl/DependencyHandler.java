@@ -543,22 +543,22 @@ public interface DependencyHandler extends ExtensionAware {
      * Returns the coordinates string of a Gradle plugin, specified by id.
      *
      * @param id the id of the plugin
-     * @return The plugin coordinates string
+     * @return the plugin coordinates string
      *
-     * @since 8.0
+     * @since 8.1
      */
     @Incubating
     String plugin(String id);
 
     /**
      * Returns the coordinates string of a Gradle plugin,
-     * specified by id and version string.
+     * specified by id and version.
      *
      * @param id the id of the plugin
      * @param version the version of the plugin
-     * @return The plugin coordinates string
+     * @return the plugin coordinates string
      *
-     * @since 8.0
+     * @since 8.1
      */
     @Incubating
     String plugin(String id, String version);

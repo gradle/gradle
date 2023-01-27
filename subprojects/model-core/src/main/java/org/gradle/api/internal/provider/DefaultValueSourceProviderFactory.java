@@ -92,6 +92,33 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     }
 
     @Override
+    public <T, P extends ValueSourceParameters> Provider<T> createProviderOf(Class<T> providerType, Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configureAction) {
+        try {
+            Class<P> parametersType = extractParametersTypeOf(valueSourceType);
+            P parameters = parametersType != null
+                ? paramsInstantiator.newInstance(parametersType)
+                : null;
+
+            // TODO - consider deferring configuration
+            configureParameters(parameters, configureAction);
+
+            return instantiateValueSourceProvider(providerType, valueSourceType, parametersType, parameters);
+        } catch (GradleException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GradleException(couldNotCreateProviderOf(valueSourceType), e);
+        }
+    }
+
+    private <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(Class<T> providerType, Class<? extends ValueSource<T, P>> valueSourceType, Class<P> parametersType, P parameters) {
+        ValueSourceProvider<T, P> tpValueSourceProvider = new ValueSourceProvider<>(
+            providerType,
+            new LazilyObtainedValue<>(valueSourceType, parametersType, parameters)
+        );
+        return tpValueSourceProvider;
+    }
+
+    @Override
     public void addValueListener(ValueListener listener) {
         valueBroadcaster.add(listener);
     }
@@ -194,8 +221,16 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         protected final LazilyObtainedValue<T, P> value;
 
+        private final Class<T> type;
+
         public ValueSourceProvider(LazilyObtainedValue<T, P> value) {
             this.value = value;
+            this.type = null;
+        }
+
+        public ValueSourceProvider(Class<T> type, LazilyObtainedValue<T, P> value) {
+            this.value = value;
+            this.type = type;
         }
 
         public Class<? extends ValueSource<T, P>> getValueSourceType() {
@@ -239,7 +274,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         @Nullable
         @Override
         public Class<T> getType() {
-            return null;
+            return type;
         }
 
         @Override

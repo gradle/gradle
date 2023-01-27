@@ -31,7 +31,6 @@ import org.gradle.kotlin.dsl.support.delegates.ClientModuleDelegate
 import org.gradle.kotlin.dsl.support.excludeMapFor
 import org.gradle.kotlin.dsl.support.mapOfNonNullValuesOf
 import org.gradle.kotlin.dsl.support.uncheckedCast
-import org.gradle.plugin.use.PluginDependency
 
 
 /**
@@ -251,6 +250,7 @@ fun DependencyHandler.project(
             else mapOf("path" to path)
         )
     )
+
 
 /**
  * Adds a dependency to the given configuration, and configures the dependency using the given expression.

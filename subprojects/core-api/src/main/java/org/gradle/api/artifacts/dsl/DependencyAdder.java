@@ -173,12 +173,47 @@ public interface DependencyAdder {
      */
     <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
 
+    /**
+     * Add a plugin dependency, specified by id.
+     *
+     * @param id the id of the dependency
+     * @since 8.1
+     */
     void plugin(String id);
 
+    /**
+     * Add a plugin dependency, specified by id.
+     *
+     * @param id the id of the dependency
+     * @param configuration the action to configure the dependency
+     * @since 8.1
+     */
     void plugin(String id, Action<? super ExternalModuleDependency> configuration);
 
+    /**
+     * Add a plugin dependency, specified by id and version.
+     *
+     * @param id the id of the dependency
+     * @param version the version of the dependency
+     * @since 8.1
+     */
     void plugin(String id, String version);
 
+    /**
+     * Add a plugin dependency, specified by id and version.
+     *
+     * @param id the id of the dependency
+     * @param version the version of the dependency
+     * @param configuration the action to configure the dependency
+     * @since 8.1
+     */
     void plugin(String id, String version, Action<? super ExternalModuleDependency> configuration);
 
+    /**
+     * Add a plugin dependency, provided by the provider.
+     *
+     * @param pluginDependencyProvider the provider of the dependency
+     * @since 8.1
+     */
+    <D extends Dependency> void plugin(Provider<D> pluginDependencyProvider);
 }

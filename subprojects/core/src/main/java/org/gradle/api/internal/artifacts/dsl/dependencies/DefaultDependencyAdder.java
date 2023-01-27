@@ -23,10 +23,13 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.internal.Cast;
+import org.gradle.plugin.use.PluginDependency;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -61,6 +64,20 @@ public class DefaultDependencyAdder implements DependencyAdder {
     private <D extends Dependency> void doAddLazy(Provider<D> dependency, @Nullable Action<? super D> config) {
         @SuppressWarnings("unchecked")
         Provider<D> provider = dependency.map((Object dep) -> {
+            if (dep instanceof PluginDependency) {
+                PluginDependency pluginDependency = Cast.uncheckedCast(dep);
+                ExternalModuleDependency externalModuleDependency = Cast.uncheckedCast(dep);
+                externalModuleDependency.version(versionConstraint -> {
+                    VersionConstraint constraint = pluginDependency.getVersion();
+                    versionConstraint.setBranch(constraint.getBranch());
+                    versionConstraint.require(constraint.getRequiredVersion());
+                    versionConstraint.prefer(constraint.getPreferredVersion());
+                    versionConstraint.strictly(constraint.getStrictVersion());
+                    versionConstraint.reject(constraint.getRejectedVersions().toArray(new String[0]));
+                });
+                dep = Cast.uncheckedCast(externalModuleDependency);
+            }
+
             // Generic failure check (for Groovy which ignores this when dynamic)
             if (!(dep instanceof Dependency)) {
                 throw new InvalidUserCodeException(
@@ -102,6 +119,10 @@ public class DefaultDependencyAdder implements DependencyAdder {
     private <D extends Dependency> void doAddBundleLazy(Provider<? extends Iterable<? extends D>> dependency, @Nullable Action<? super D> config) {
         Provider<List<Dependency>> provider = dependency.map(bundle -> createDependencyList(bundle, config));
         configuration.getDependencies().addAllLater(provider);
+    }
+
+    private String pluginNotation(String id) {
+        return id + ":" + id + ".gradle.plugin";
     }
 
     @Override
@@ -186,7 +207,7 @@ public class DefaultDependencyAdder implements DependencyAdder {
 
     @Override
     public void plugin(String id) {
-        doAddEager(dependencyFactory.create(id + ":" + id + ".gradle.plugin"), null);
+        doAddEager(dependencyFactory.create(pluginNotation(id)), null);
     }
 
     @Override
@@ -201,7 +222,12 @@ public class DefaultDependencyAdder implements DependencyAdder {
 
     @Override
     public void plugin(String id, String version, Action<? super ExternalModuleDependency> configuration) {
-        doAddEager(dependencyFactory.create(id + ":" + id + ".gradle.plugin" + ":" + version), configuration);
+        doAddEager(dependencyFactory.create(pluginNotation(id) + ":" + version), configuration);
+    }
+
+    @Override
+    public <D extends Dependency> void plugin(Provider<D> pluginDependencyProvider) {
+        doAddLazy(pluginDependencyProvider, null);
     }
 
     @Override

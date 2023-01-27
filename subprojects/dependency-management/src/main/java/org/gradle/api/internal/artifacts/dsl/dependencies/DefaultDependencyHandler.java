@@ -31,6 +31,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
@@ -60,6 +61,7 @@ import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
+import org.gradle.plugin.use.PluginDependency;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -181,7 +183,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
             return doAdd(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
         } else if (dependencyNotation instanceof ProviderInternal<?>) {
             ProviderInternal<?> provider = (ProviderInternal<?>) dependencyNotation;
-            if (provider.getType()!=null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
+            if (provider.getType() != null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
                 ExternalModuleDependencyBundle bundle = Cast.uncheckedCast(provider.get());
                 for (MinimalExternalModuleDependency dependency : bundle) {
                     doAddRegularDependency(configuration, dependency, configureClosure);
@@ -211,6 +213,20 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
                 for (MinimalExternalModuleDependency dependency : bundle) {
                     doAddRegularDependency(configuration, dependency, configureClosure);
                 }
+                return null;
+            } else if (provider.getType() != null && PluginDependency.class.isAssignableFrom(provider.getType())) {
+                PluginDependency pluginDependency = Cast.uncheckedCast(provider.get());
+                String pluginNotation = plugin(pluginDependency.getPluginId());
+                ExternalModuleDependency dependency = Cast.uncheckedCast(create(pluginNotation));
+                dependency.version(versionConstraint -> {
+                    VersionConstraint constraint = pluginDependency.getVersion();
+                    versionConstraint.setBranch(constraint.getBranch());
+                    versionConstraint.require(constraint.getRequiredVersion());
+                    versionConstraint.prefer(constraint.getPreferredVersion());
+                    versionConstraint.strictly(constraint.getStrictVersion());
+                    versionConstraint.reject(constraint.getRejectedVersions().toArray(new String[0]));
+                });
+                ConfigureUtil.configure(configureClosure, dependency);
                 return null;
             }
         }
@@ -334,8 +350,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     public String plugin(String id) {
         return id + ":" + id + ".gradle.plugin";
     }
-
-    //    format: "$id:$id.gradle.plugin:$version"
 
     @Override
     public String plugin(String id, String version) {
