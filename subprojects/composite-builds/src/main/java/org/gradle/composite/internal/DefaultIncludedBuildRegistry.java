@@ -162,7 +162,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
 
         BuildDefinition buildDefinition = buildStateFactory.buildDefinitionFor(buildSrcDir, owner);
-        Path identityPath = assignPath(owner, buildDefinition.getName(), buildDefinition.getBuildRootDir());
+        Path identityPath = assignPathForBuildSrc(owner, buildDefinition.getName(), buildDefinition.getBuildRootDir());
         BuildIdentifier buildIdentifier = idFor(buildDefinition.getName());
         StandAloneNestedBuild build = buildStateFactory.createNestedBuild(buildIdentifier, identityPath, buildDefinition, owner);
         buildSrcBuildsByOwner.put(owner, build);
@@ -264,6 +264,21 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         return toCheck.toPath().toAbsolutePath().startsWith(prefix.toPath().toAbsolutePath());
     }
 
+    /**
+     * Assign path for a buildSrc build.
+     *
+     * buildSrc is special, since it is registered before the owning build has been registered.
+     * Therefore, we can't detect the hierarchy by looking at the already registered builds.
+     */
+    private Path assignPathForBuildSrc(BuildState owner, String name, File dir) {
+        Path requestedPath = owner.getIdentityPath().append(Path.path(name));
+        File existingForPath = includedBuildDirectoriesByPath.putIfAbsent(requestedPath, dir);
+        if (existingForPath != null) {
+            throw new GradleException("Included build " + dir + " has build path " + requestedPath + " which is the same as included build " + existingForPath);
+        }
+
+        return requestedPath;
+    }
 
     @Override
     public void resetStateForAllBuilds() {
