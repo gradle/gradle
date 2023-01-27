@@ -31,19 +31,63 @@ public interface ClassPath {
 
     ClassPath EMPTY = new DefaultClassPath();
 
+    /**
+     * Returns {@code true} if this class path is empty, {@code false} otherwise.
+     *
+     * @return {@code true} if this class path is empty
+     */
     boolean isEmpty();
 
+    /**
+     * Returns the list of URIs of the classpath entries (JARs or class directories) that this classpath consists of. The order is the classpath search order.
+     *
+     * @return the list of URIs of the classpath entries
+     */
     List<URI> getAsURIs();
 
+    /**
+     * Returns the list of the classpath entries (JARs or class directories) that this classpath consists of. The order is the classpath search order.
+     *
+     * @return the list of the classpath entries
+     */
     List<File> getAsFiles();
 
+    /**
+     * Returns the list of URLs of the classpath entries (JARs or class directories) that this classpath consists of. The order is the classpath search order.
+     *
+     * @return the list of the classpath entries
+     */
     List<URL> getAsURLs();
 
+    /**
+     * Returns the array of URLs of the classpath entries (JARs or class directories) that this classpath consists of. The order is the classpath search order.
+     *
+     * @return the array of the classpath entries
+     * @see #getAsURLs()
+     */
     URL[] getAsURLArray();
 
+    /**
+     * Returns a new classpath with entries from the given {@code classPath} appended. Duplicate entries are not appended.
+     *
+     * @param classPath the list of files to append
+     * @return the new classpath
+     */
     ClassPath plus(Collection<File> classPath);
 
+    /**
+     * Returns a new classpath with entries from the given {@code classPath} appended. Duplicate entries are not appended.
+     *
+     * @param classPath the classpath to append
+     * @return the new classpath
+     */
     ClassPath plus(ClassPath classPath);
 
+    /**
+     * Returns a new classpath without entries matching the {@code filter}.
+     *
+     * @param filter the predicate to match entries to remove
+     * @return the new classpath
+     */
     ClassPath removeIf(Spec<? super File> filter);
 }
