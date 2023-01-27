@@ -2,7 +2,6 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
 
-Gradle 8.0 also has several bug fixes, removes deprecated features, and other [general improvements](#general-improvements).
 <!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -38,6 +37,7 @@ The [`--gradle-version`](userguide/gradle_wrapper.html#sec:adding_wrapper) param
 now supports using predefined labels to select a version.
 
 The allowed labels are:
+
 - `latest`
 - `release-candidate`
 - `nightly`
@@ -84,6 +84,7 @@ ADD RELEASE FEATURES ABOVE
 -->
 
 ## Promoted features
+
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
