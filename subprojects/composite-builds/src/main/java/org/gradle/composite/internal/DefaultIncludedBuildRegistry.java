@@ -243,10 +243,10 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private Path assignPath(BuildState owner, String name, File dir) {
         // Get the closest ancestor build of the build directory which we are currently adding
         Optional<Map.Entry<File, IncludedBuildState>> parentBuild = includedBuildsByRootDir.entrySet().stream()
-            .filter(entry -> dir.getAbsolutePath().startsWith(entry.getKey().getAbsolutePath()))
-            .reduce((a, b) -> a.getKey().getAbsolutePath().startsWith(b.getKey().getAbsolutePath())
-                ? a
-                : b
+            .filter(entry -> isPrefix(entry.getKey(), dir))
+            .reduce((a, b) -> isPrefix(a.getKey(), b.getKey())
+                ? b
+                : a
             );
         // If there is an ancestor, then we use it to qualify the path of the build we are adding
         Path requestedPath = parentBuild.map(
@@ -259,6 +259,11 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
         return requestedPath;
     }
+
+    private static boolean isPrefix(File prefix, File toCheck) {
+        return toCheck.toPath().toAbsolutePath().startsWith(prefix.toPath().toAbsolutePath());
+    }
+
 
     @Override
     public void resetStateForAllBuilds() {
