@@ -17,6 +17,8 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 class CompositeBuildMultipleBuildLogicIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
@@ -52,4 +54,110 @@ class CompositeBuildMultipleBuildLogicIntegrationTest extends AbstractCompositeB
         succeeds(buildA, "help")
 
     }
+
+    def "names are stable"() {
+        def builds = nestedBuilds {
+            buildA {
+                buildLogic
+            }
+            buildB {
+                def buildB = delegate
+                buildBClosure.each { buildB.with(it) }
+            }
+        }
+        builds.each {
+            it.buildFile << """
+                    subprojects {
+                        apply plugin: 'java'
+                    }
+                    println("Configured build '\$identityPath'")
+                """
+        }
+        def buildB = builds.find { it.rootProjectName == 'buildB' }
+
+        when:
+        succeeds(buildB, 'assemble')
+        then:
+        [':buildA', ':buildA:buildLogic', ':', ':buildLogic', ':nested',':nested:buildLogic'].each { buildName ->
+            outputContains("Configured build '$buildName'")
+        }
+
+        where:
+        buildBClosure << [
+            { nested {
+                includeBuild '../buildLogic'
+                buildLogic
+            }},
+            { buildLogic },
+            { includeBuild '../buildA' }
+        ].permutations()
+
+    }
+
+    List<BuildTestFile> nestedBuilds(Closure configuration) {
+        new RootNestedBuildSpec(temporaryFolder).with(configuration).nestedBuilds
+    }
+
+    class RootNestedBuildSpec {
+        private final TestDirectoryProvider temporaryFolder
+        List<BuildTestFile> nestedBuilds = []
+
+        RootNestedBuildSpec(TestDirectoryProvider temporaryFolder) {
+            this.temporaryFolder = temporaryFolder
+        }
+
+        def methodMissing(String name, def args) {
+            def build = new BuildTestFile(temporaryFolder.testDirectory.file(name), name)
+            new BuildTestFixture(build).multiProjectBuild(name, ["project1", "project2"])
+            nestedBuilds.add(build)
+
+            def nestedBuildSpec = new NestedBuildSpec(build, nestedBuilds)
+            if (args.length == 1 && args[0] instanceof Closure) {
+                nestedBuildSpec.with(args[0])
+            } else {
+                throw new MissingMethodException(name, getClass(), args)
+            }
+            return nestedBuildSpec
+        }
+    }
+
+    class NestedBuildSpec {
+        private final BuildTestFile build
+        private final List<BuildTestFile> nestedBuilds
+
+        NestedBuildSpec(BuildTestFile build, nestedBuilds) {
+            this.nestedBuilds = nestedBuilds
+            this.build = build
+        }
+
+        def includeBuild(String path) {
+            build.settingsFile << """
+                includeBuild '$path'
+            """
+        }
+
+        def propertyMissing(String name) {
+            createNestedBuild(name)
+        }
+
+        def methodMissing(String name, def args) {
+            if (args.length == 1 && args[0] instanceof Closure) {
+                return createNestedBuild(name, args[0])
+            } else {
+                throw new MissingMethodException(name, getClass(), args)
+            }
+        }
+
+        NestedBuildSpec createNestedBuild(String name, Closure configuration = {}) {
+            includeBuild(name)
+            def nestedBuild = new BuildTestFile(build.file(name), name)
+            nestedBuilds.add(nestedBuild)
+            new BuildTestFixture(nestedBuild).multiProjectBuild(name, ["project1", "project2"])
+            def nestedBuildSpec = new NestedBuildSpec(nestedBuild, nestedBuilds)
+            nestedBuildSpec.with(configuration)
+            return nestedBuildSpec
+        }
+    }
 }
+
+
