@@ -281,6 +281,7 @@ class ConfigurationCacheState(
         withGradleIsolate(gradle, userTypesCodec) {
             write(gradle.settings.settingsScript.resource.file)
             writeBuildDefinition(state.buildDefinition)
+            write(state.identityPath)
         }
         // Encode the build state using the contextualized IO service for the nested build
         state.projects.withMutableStateOfAllProjects {
@@ -293,7 +294,8 @@ class ConfigurationCacheState(
         val build = withGradleIsolate(rootBuild.gradle, userTypesCodec) {
             val settingsFile = read() as File?
             val definition = readIncludedBuildDefinition(rootBuild)
-            rootBuild.addIncludedBuild(definition, settingsFile)
+            val buildPath = read() as Path
+            rootBuild.addIncludedBuild(definition, settingsFile, buildPath)
         }
         // Decode the build state using the contextualized IO service for the build
         return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(stateFileFor((build.state as NestedBuildState).buildDefinition), build)
