@@ -216,15 +216,15 @@ fun BufferedWriter.appendSourceCodeForVersionCatalogAccessors(
 ) {
     appendReproducibleNewLine(
         """
-        import ${ScriptHandlerScope::class.qualifiedName}
-        import ${PluginDependenciesSpecScope::class.qualifiedName}
         import ${ScriptHandlerScopeInternal::class.qualifiedName}
         import ${PluginDependenciesSpecScopeInternal::class.qualifiedName}
         """.trimIndent()
     )
 
-    versionCatalogs.map { it.publicType }.forEach {
-        appendReproducibleNewLine("import ${it.fullyQualifiedName}")
+    versionCatalogs.flatMap {
+        listOf(it.buildscriptExtension.returnType, it.buildscriptExtension.receiverType, it.pluginsExtension.returnType, it.pluginsExtension.receiverType)
+    }.forEach {
+        appendReproducibleNewLine("import ${it.sourceName}")
     }
 
     fun appendCatalogExtension(extSpec: ExtensionSpec, receiverInternalType: KClass<*>) {
