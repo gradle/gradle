@@ -27,6 +27,9 @@ dependencies {
     implementation("com.h2database:h2:2.1.214")
     implementation("com.zaxxer:HikariCP:5.0.0!!")
     implementation("org.flywaydb:flyway-core:9.12.0")
+    implementation(libs.gson) {
+        because("Cache manifest uses JSON format")
+    }
 
     jmhImplementation(platform(project(":distributions-dependencies")))
     jmhImplementation(libs.ant)
