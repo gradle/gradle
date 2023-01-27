@@ -24,9 +24,8 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
+import org.gradle.internal.io.StreamByteBuffer;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.Blob;
@@ -80,27 +79,23 @@ public class H2LocalCacheService implements BuildCacheService {
                 return false;
             }
         } catch (SQLException | IOException e) {
-            throw new RuntimeException(e);
+            throw new BuildCacheException("loading " + key, e);
         }
     }
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try {
-            writer.writeTo(out);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("insert into filestore.catalog(entry_key, entry_size, entry_content) values (?, ?, ?)")) {
+                StreamByteBuffer buffer = new StreamByteBuffer();
+                writer.writeTo(buffer.getOutputStream());
                 stmt.setString(1, key.getHashCode());
                 stmt.setLong(2, writer.getSize());
-                stmt.setBinaryStream(3, new ByteArrayInputStream(out.toByteArray()));
+                stmt.setBinaryStream(3, buffer.getInputStream());
                 stmt.executeUpdate();
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException | IOException e) {
+            throw new BuildCacheException("storing " + key, e);
         }
     }
 
