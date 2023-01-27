@@ -17,6 +17,10 @@
 package org.gradle.caching.internal.services;
 
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
+import org.gradle.caching.BuildCacheEntryReader;
+import org.gradle.caching.BuildCacheEntryWriter;
+import org.gradle.caching.BuildCacheException;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
@@ -33,6 +37,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
+import java.io.IOException;
 
 public final class NextGenBuildCacheControllerFactory {
 
@@ -81,7 +86,33 @@ public final class NextGenBuildCacheControllerFactory {
 
         BuildCacheServiceFactory<BuildCache> factory = instantiator.newInstance(castFactoryType);
         Describer describer = new Describer();
-        return factory.createBuildCacheService(configuration, describer);
+        BuildCacheService service = factory.createBuildCacheService(configuration, describer);
+        return configuration.isPush()
+            ? service
+            : new NoPushBuildCacheService(service);
+    }
+
+    private static class NoPushBuildCacheService implements BuildCacheService {
+        private final BuildCacheService delegate;
+
+        public NoPushBuildCacheService(BuildCacheService delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+            return delegate.load(key, reader);
+        }
+
+        @Override
+        public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+            // Do nothing
+        }
+
+        @Override
+        public void close() throws IOException {
+            delegate.close();
+        }
     }
 
     private static class Describer implements BuildCacheServiceFactory.Describer {
