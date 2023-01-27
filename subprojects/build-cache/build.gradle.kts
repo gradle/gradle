@@ -25,7 +25,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
     implementation("com.h2database:h2:2.1.214")
-    implementation("com.zaxxer:HikariCP:5.0.0!!")
+    implementation(libs.hikariCP)
     implementation("org.flywaydb:flyway-core:9.12.0")
     implementation(libs.gson) {
         because("Cache manifest uses JSON format")
