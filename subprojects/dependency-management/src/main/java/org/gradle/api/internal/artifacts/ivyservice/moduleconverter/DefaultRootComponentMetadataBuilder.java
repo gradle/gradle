@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
+import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
@@ -143,7 +144,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         public void validateMutation(MutationType type) {
             if (type == MutationType.DEPENDENCIES || type == MutationType.ARTIFACTS || type == MutationType.DEPENDENCY_ATTRIBUTES) {
                 if (cachedValue != null) {
-                    if (cachedValue.getConfigurationNames().size() != configurationsProvider.getAll().size()) {
+                    if (cachedValue.getConfigurationNames().size() != configurationsProvider.size()) {
                         // The number of configurations in the project has changed, so we need to regenerate the root component metadata
                         cachedValue = null;
                     } else {
