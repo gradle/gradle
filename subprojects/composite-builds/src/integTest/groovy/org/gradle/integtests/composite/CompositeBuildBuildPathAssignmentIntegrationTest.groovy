@@ -20,51 +20,71 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 
-class CompositeBuildMultipleBuildLogicIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
-    def "can have build-logic build and include build with build-logic build"() {
-        def rootBuildBuildLogic = new BuildTestFile(buildA.file("build-logic"), "build-logic")
-        rootBuildBuildLogic.buildFile """
-            plugins {
-                id 'java-gradle-plugin'
-            }
-        """
-        rootBuildBuildLogic.settingsFile.createFile()
-        buildA.settingsFile << """
-            includeBuild 'build-logic'
-        """
-
-        def includedBuild = multiProjectBuild("buildB", ["project1", "project2"]) {
-            includeBuild(buildA)
-            settingsFile << """
-                includeBuild 'build-logic'
-            """
-        }
-        def includedBuildBuildLogic = new BuildTestFile(includedBuild.file("build-logic"), "build-logic")
-        includedBuildBuildLogic.buildFile """
-            plugins {
-                id 'java-gradle-plugin'
-            }
-        """
-        includedBuildBuildLogic.settingsFile.createFile()
-
-        includeBuild(includedBuild)
-
-        expect:
-        succeeds(buildA, "help")
-
-    }
-
-    def "names are stable"() {
+    def "can have buildLogic build and include build with buildLogic build"() {
         def builds = nestedBuilds {
-            buildA {
+            includedBuild {
                 buildLogic
             }
-            buildB {
-                def buildB = delegate
-                buildBClosure.each { buildB.with(it) }
+            includingBuild {
+                buildLogic
+                includeBuild '../includedBuild'
             }
         }
+        def includingBuild = builds.find { it.rootProjectName == 'includingBuild' }
+
+        when:
+        succeeds(includingBuild, "help")
+        then:
+        assignedBuildPaths ==~ [
+            ':includedBuild',
+            ':includedBuild:buildLogic',
+            ':',
+            ':buildLogic'
+        ]
+    }
+
+    def "build paths are selected based on the directory hierarchy"() {
+        def builds = nestedBuilds {
+            includedBuild {
+                buildLogic
+                nested {
+                    buildLogic
+                    includeBuild '../buildLogic'
+                }
+            }
+            includingBuild {
+                includeBuild '../includedBuild'
+                buildLogic
+                nested {
+                    includeBuild '../buildLogic'
+                    buildLogic
+                }
+            }
+        }
+        def includingBuild = builds.find { it.rootProjectName == 'includingBuild' }
+
+        when:
+        succeeds(includingBuild, 'help')
+        then:
+        assignedBuildPaths ==~ [
+            ':includedBuild',
+            ':includedBuild:buildLogic',
+            ':includedBuild:nested',
+            ':includedBuild:nested:buildLogic',
+            ':',
+            ':buildLogic',
+            ':nested',
+            ':nested:buildLogic'
+        ]
+    }
+
+    private List<Object> getAssignedBuildPaths() {
+        output.lines().findAll { it.startsWith("Configured build '") }.collect { it.substring(18, it.length() - 1) }
+    }
+
+    private void configureBuildConfigurationOutput(List<BuildTestFile> builds) {
         builds.each {
             it.buildFile << """
                     subprojects {
@@ -73,29 +93,12 @@ class CompositeBuildMultipleBuildLogicIntegrationTest extends AbstractCompositeB
                     println("Configured build '\$identityPath'")
                 """
         }
-        def buildB = builds.find { it.rootProjectName == 'buildB' }
-
-        when:
-        succeeds(buildB, 'assemble')
-        then:
-        [':buildA', ':buildA:buildLogic', ':', ':buildLogic', ':nested',':nested:buildLogic'].each { buildName ->
-            outputContains("Configured build '$buildName'")
-        }
-
-        where:
-        buildBClosure << [
-            { nested {
-                includeBuild '../buildLogic'
-                buildLogic
-            }},
-            { buildLogic },
-            { includeBuild '../buildA' }
-        ].permutations()
-
     }
 
     List<BuildTestFile> nestedBuilds(Closure configuration) {
-        new RootNestedBuildSpec(temporaryFolder).with(configuration).nestedBuilds
+        def builds = new RootNestedBuildSpec(temporaryFolder).with(configuration).nestedBuilds
+        configureBuildConfigurationOutput(builds)
+        builds
     }
 
     class RootNestedBuildSpec {
