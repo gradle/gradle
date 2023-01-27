@@ -116,6 +116,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 // TODO Handle missing entries
 
                 cacheAccess.load(fileContentHashes.keySet(), (contentHash, input) -> {
+                    // TODO Do not load whole input into memory when it needs to be written to single file only
                     byte[] data;
                     try {
                         data = ByteStreams.toByteArray(input);
