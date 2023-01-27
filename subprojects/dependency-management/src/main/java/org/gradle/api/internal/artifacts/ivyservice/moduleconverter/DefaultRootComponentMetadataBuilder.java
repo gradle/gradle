@@ -76,7 +76,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         this.dependencyLockingProvider = dependencyLockingProvider;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.factory = factory;
-        this.holder = new MetadataHolder();
+        this.holder = new MetadataHolder(configurationsProvider);
     }
 
     @Override
@@ -139,11 +139,23 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
     private static class MetadataHolder implements MutationValidator {
         private DefaultLocalComponentMetadata cachedValue;
+        private final ConfigurationsProvider configurationsProvider;
+
+        private MetadataHolder(ConfigurationsProvider configurationsProvider) {
+            this.configurationsProvider = configurationsProvider;
+        }
 
         @Override
         public void validateMutation(MutationType type) {
             if (type == MutationType.DEPENDENCIES || type == MutationType.ARTIFACTS || type == MutationType.DEPENDENCY_ATTRIBUTES) {
-                cachedValue = null;
+                if (cachedValue != null) {
+                    if (cachedValue.getConfigurationNames().size() != configurationsProvider.size()) {
+                        // The number of configurations in the project has changed, so we need to regenerate the root component metadata
+                        cachedValue = null;
+                    } else {
+                        cachedValue.reevaluate();
+                    }
+                }
             }
         }
 
