@@ -16,11 +16,15 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.initialization.BuildIdentifiedProgressDetails
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+
+    BuildOperationsFixture fixture = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "can have buildLogic build and include build with buildLogic build"() {
         def builds = nestedBuilds {
@@ -95,7 +99,7 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         builds.each { build ->
             def buildSrc = build.createDir('buildSrc')
             buildSrc.createFile('settings.gradle')
-            buildSrc.createFile('build.gradle') << """println("Configured build '\$identityPath'")"""
+            buildSrc.createFile('build.gradle')
         }
 
         when:
@@ -105,16 +109,16 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
     }
 
     private List<Object> getAssignedBuildPaths() {
-        output.lines().findAll { it.startsWith("Configured build '") }.collect { it.substring(18, it.length() - 1) }
+        fixture.progress(BuildIdentifiedProgressDetails).findAll { it.details.buildPath }*.details*.buildPath
     }
 
     private void configureBuildConfigurationOutput(List<BuildTestFile> builds) {
         builds.each {
             it.buildFile << """
                     subprojects {
+                        // The Java plugin forces the configuration of the included builds
                         apply plugin: 'java'
                     }
-                    println("Configured build '\$identityPath'")
                 """
         }
     }
