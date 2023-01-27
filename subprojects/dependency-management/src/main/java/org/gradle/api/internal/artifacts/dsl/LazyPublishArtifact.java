@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
@@ -26,7 +24,6 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
@@ -36,29 +33,19 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Date;
 
-@SuppressWarnings("DataFlowIssue") // FileResolver may be initialized with null if deprecated constructors are used
 public class LazyPublishArtifact implements PublishArtifactInternal {
     private final ProviderInternal<?> provider;
-    private final String version;
-    /**
-     * This field actaully being {@code null} should be considered deprecated, but this will still be the case
-     * if a deprecated constructor is used.
-     */
-    @SuppressWarnings("NullableProblems")
     @Nullable
+    private final String version;
     private final FileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
     private PublishArtifactInternal delegate;
 
-    public LazyPublishArtifact(Provider<?> provider, FileResolver fileResolver) {
-        this(provider, fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject());
+    public LazyPublishArtifact(Provider<? extends AbstractArchiveTask> archiveTask, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
+        this(archiveTask, null, fileResolver, taskDependencyFactory);
     }
 
-    public LazyPublishArtifact(Provider<?> provider, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
-        this(provider, null, fileResolver, taskDependencyFactory);
-    }
-
-    public LazyPublishArtifact(Provider<?> provider, String version, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
+    public LazyPublishArtifact(Provider<?> provider, @Nullable String version, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
         this.provider = Providers.internal(provider);
         this.version = version;
         this.fileResolver = fileResolver;
@@ -95,7 +82,6 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
         return new Date();
     }
 
-    @SuppressWarnings("ConstantValue") // fileResolver may be null if deprecated constructor is used
     private PublishArtifactInternal getDelegate() {
         if (delegate == null) {
             Object value = provider.get();
@@ -108,18 +94,14 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
                 delegate = new ArchivePublishArtifact(taskDependencyFactory, (AbstractArchiveTask) value);
             } else if (value instanceof Task) {
                 delegate = fromFile(((Task) value).getOutputs().getFiles().getSingleFile());
-            } else if (fileResolver != null) {
-                delegate = fromFile(fileResolver.resolve(value));
-            } else if (fileResolver == null) {
-                throw new GradleException(String.format("Cannot resolve artifact file value (%s) because a FileResolver was not provided.", value));
             } else {
-                throw new InvalidUserDataException(String.format("Cannot convert provided value (%s) to a file.", value));
+                delegate = fromFile(fileResolver.resolve(value));
             }
         }
         return delegate;
     }
 
-    private DefaultPublishArtifact fromFile(File file) {
+    private PublishArtifactInternal fromFile(File file) {
         ArtifactFile artifactFile = new ArtifactFile(file, version);
         return new DefaultPublishArtifact(taskDependencyFactory, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier(), null, file);
     }
