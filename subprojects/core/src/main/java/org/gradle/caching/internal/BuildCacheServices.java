@@ -21,11 +21,18 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.caching.BuildCacheEntryReader;
+import org.gradle.caching.BuildCacheEntryWriter;
+import org.gradle.caching.BuildCacheException;
+import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
 import org.gradle.caching.internal.controller.BuildCacheController;
+import org.gradle.caching.internal.controller.DefaultNextGenBuildCacheAccess;
+import org.gradle.caching.internal.controller.NextGenBuildCacheAccess;
 import org.gradle.caching.internal.controller.NextGenBuildCacheController;
 import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
@@ -39,6 +46,7 @@ import org.gradle.caching.internal.services.BuildCacheControllerFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheFileStoreFactory;
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
+import org.gradle.caching.local.internal.H2LocalCacheService;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileException;
@@ -61,6 +69,7 @@ import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -184,10 +193,28 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 OriginMetadataFactory originMetadataFactory,
                 StringInterner stringInterner
             ) {
-                if (Boolean.getBoolean("org.gradle.unsafe.cache.ng")) {
-                    return new NextGenBuildCacheController();
-                }
                 StartParameter startParameter = gradle.getStartParameter();
+                if (Boolean.getBoolean("org.gradle.unsafe.cache.ng")) {
+                    // TODO Set location from local cache configuration instead
+                    BuildCacheService local = new H2LocalCacheService(new File(startParameter.getGradleUserHomeDir(), "caches/build-cache-2").toPath());
+                    // TODO Use real HTTP build cache service
+                    BuildCacheService remote = new BuildCacheService() {
+                        @Override
+                        public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+                            return false;
+                        }
+
+                        @Override
+                        public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+                        }
+
+                        @Override
+                        public void close() throws IOException {
+                        }
+                    };
+                    NextGenBuildCacheAccess cacheAccess = new DefaultNextGenBuildCacheAccess(local, remote);
+                    return new NextGenBuildCacheController(cacheAccess);
+                }
                 Path buildIdentityPath = gradle.getIdentityPath();
                 BuildCacheControllerFactory.BuildCacheMode buildCacheMode = startParameter.isBuildCacheEnabled() ? BuildCacheControllerFactory.BuildCacheMode.ENABLED : BuildCacheControllerFactory.BuildCacheMode.DISABLED;
                 BuildCacheControllerFactory.RemoteAccessMode remoteAccessMode = startParameter.isOffline() ? BuildCacheControllerFactory.RemoteAccessMode.OFFLINE : BuildCacheControllerFactory.RemoteAccessMode.ONLINE;
