@@ -38,7 +38,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.component.external.model.DefaultShadowedCapability;
+import org.gradle.internal.component.external.model.ImmutableShadowedCapability;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
@@ -135,7 +135,7 @@ public class GradleModuleMetadataParser {
     }
 
     private Capability buildShadowPlatformCapability(ModuleComponentIdentifier componentId) {
-        return new DefaultShadowedCapability(new ImmutableCapability(
+        return new ImmutableShadowedCapability(new ImmutableCapability(
                 componentId.getGroup(),
                 componentId.getModule(),
                 componentId.getVersion()
