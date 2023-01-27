@@ -70,13 +70,14 @@ public class H2LocalCacheService implements BuildCacheService {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("select entry_content from filestore.catalog where entry_key = ?")) {
                 stmt.setString(1, key.getHashCode());
-                ResultSet rs = stmt.executeQuery();
-                if (rs.next()) {
-                    Blob content = rs.getBlob(1);
-                    reader.readFrom(content.getBinaryStream());
-                    return true;
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        Blob content = rs.getBlob(1);
+                        reader.readFrom(content.getBinaryStream());
+                        return true;
+                    }
+                    return false;
                 }
-                return false;
             }
         } catch (SQLException | IOException e) {
             throw new BuildCacheException("loading " + key, e);
