@@ -16,10 +16,13 @@
 
 package org.gradle.caching
 
+import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 
 class NextGenBuildCacheIntegrationTest extends AbstractIntegrationSpec {
-    def "does something"() {
+
+    def "compile task is loaded from cache"() {
         buildFile << """
             apply plugin: "java"
         """
@@ -29,14 +32,181 @@ class NextGenBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run "compileJava", "-Dorg.gradle.unsafe.cache.ng=true"
+        runWithCacheNG "compileJava"
         then:
-        executedAndNotSkipped(":compileJava")
+        executedAndNotSkipped ":compileJava"
 
         when:
-        run "clean", "compileJava", "-Dorg.gradle.unsafe.cache.ng=true"
+        runWithCacheNG "clean", "compileJava"
         then:
-        // We are using a dummy cache controller now, should be skipped once we create the real controller
-        executedAndNotSkipped(":compileJava")
+        skipped ":compileJava"
     }
+
+    def "empty output directory is cached properly"() {
+        given:
+        buildFile << """
+            task customTask {
+                def outputDir = file("build/empty")
+                outputs.dir outputDir withPropertyName "empty"
+                outputs.cacheIf { true }
+                doLast {
+                    outputDir.mkdirs()
+                }
+            }
+        """
+
+        when:
+        runWithCacheNG "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+        file("build/empty").assertIsEmptyDir()
+
+        when:
+        cleanBuildDir()
+        runWithCacheNG "customTask"
+        then:
+        skipped ":customTask"
+        file("build/empty").assertIsEmptyDir()
+    }
+
+    def "non-cacheable task with cache enabled gets cached"() {
+        file("input.txt") << "data"
+        buildFile << """
+            class NonCacheableTask extends DefaultTask {
+                @InputFile inputFile
+                @OutputFile outputFile
+
+                @TaskAction copy() {
+                    outputFile.parentFile.mkdirs()
+                    outputFile.text = inputFile.text
+                }
+            }
+            task customTask(type: NonCacheableTask) {
+                inputFile = file("input.txt")
+                outputFile = file("\$buildDir/output.txt")
+                outputs.cacheIf { true }
+            }
+        """
+
+        when:
+        runWithCacheNG "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        when:
+        cleanBuildDir()
+        runWithCacheNG "customTask"
+        then:
+        skipped ":customTask"
+    }
+
+    def "cacheable task with multiple outputs declared via runtime API with matching cardinality get cached"() {
+        buildFile << """
+            task customTask {
+                outputs.cacheIf { true }
+                outputs.files files("build/output1.txt", "build/output2.txt") withPropertyName("out")
+                doLast {
+                    file("build/output1.txt") << "data"
+                    file("build/output2.txt") << "data"
+                }
+            }
+        """
+
+        when:
+        runWithCacheNG "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        when:
+        cleanBuildDir()
+        runWithCacheNG "customTask"
+        then:
+        skipped ":customTask"
+    }
+
+    def "cacheable task with multiple output properties with matching cardinality get cached"() {
+        buildFile << """
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @OutputFiles Iterable<File> out
+
+                @TaskAction
+                void execute() {
+                    out.eachWithIndex { file, index ->
+                        file.text = "data\${index + 1}"
+                    }
+                }
+            }
+
+            task customTask(type: CustomTask) {
+                out = files("build/output1.txt", "build/output2.txt")
+            }
+        """
+
+        when:
+        runWithCacheNG "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        when:
+        cleanBuildDir()
+        runWithCacheNG "customTask"
+        then:
+        skipped ":customTask"
+        file("build/output1.txt").text == "data1"
+        file("build/output2.txt").text == "data2"
+    }
+
+    def "ad hoc tasks are not cacheable by default"() {
+        given:
+        file("input.txt") << "data"
+        buildFile << adHocTaskWithInputs()
+
+        expect:
+        runWithCacheNG ":adHocTask"
+        executedAndNotSkipped ":adHocTask"
+        cleanBuildDir()
+
+        runWithCacheNG ":adHocTask"
+        executedAndNotSkipped ":adHocTask"
+    }
+
+    def "ad hoc tasks are cached when explicitly requested"() {
+        given:
+        file("input.txt") << "data"
+        buildFile << adHocTaskWithInputs()
+        buildFile << 'adHocTask { outputs.cacheIf { true } }'
+
+        expect:
+        runWithCacheNG ":adHocTask"
+        executedAndNotSkipped ":adHocTask"
+        cleanBuildDir()
+
+        runWithCacheNG ":adHocTask"
+        skipped ":adHocTask"
+    }
+
+    private runWithCacheNG(String... task) {
+        run Lists.asList("-Dorg.gradle.unsafe.cache.ng=true", task)
+    }
+
+    private TestFile cleanBuildDir() {
+        file("build").assertIsDir().deleteDir()
+    }
+
+    private static String adHocTaskWithInputs() {
+        """
+        task adHocTask {
+            def inputFile = file("input.txt")
+            def outputFile = file("\$buildDir/output.txt")
+            inputs.file(inputFile)
+            outputs.file(outputFile)
+            doLast {
+                outputFile.parentFile.mkdirs()
+                outputFile.text = inputFile.text
+            }
+        }
+        """.stripIndent()
+    }
+
 }
