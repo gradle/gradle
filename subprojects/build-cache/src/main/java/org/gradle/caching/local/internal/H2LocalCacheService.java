@@ -61,7 +61,6 @@ public class H2LocalCacheService implements BuildCacheService {
         hikariConfig.setPoolName("filestore-pool");
         hikariConfig.setMaximumPoolSize(20);
         hikariConfig.setConnectionInitSql("select 1;");
-        hikariConfig.setRegisterMbeans(true);
         return new HikariDataSource(hikariConfig);
     }
 
