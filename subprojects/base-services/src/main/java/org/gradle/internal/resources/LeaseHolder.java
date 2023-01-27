@@ -16,22 +16,53 @@
 
 package org.gradle.internal.resources;
 
+import com.google.common.base.Optional;
+
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 public class LeaseHolder {
-    private final int maxWorkerCount;
-    private int leasesInUse;
+    private final Set<Lease> availableLeases = new LinkedHashSet<Lease>();
 
     public LeaseHolder(int maxWorkerCount) {
-        this.maxWorkerCount = maxWorkerCount;
-    }
-
-    public int grantLease() {
-        if (leasesInUse >= maxWorkerCount) {
-            return -1;
+        for (int i=0; i<maxWorkerCount; i++) {
+            availableLeases.add(new Lease(i));
         }
-        return leasesInUse++;
     }
 
-    public void releaseLease() {
-        leasesInUse--;
+    public Optional<Lease> grantLease() {
+        if (availableLeases.isEmpty()) {
+            return Optional.absent();
+        } else {
+            return Optional.of(pop());
+        }
+    }
+
+    private Lease pop() {
+        Iterator<Lease> iterator = availableLeases.iterator();
+        Lease next = iterator.next();
+        iterator.remove();
+        return next;
+    }
+
+    private void push(Lease lease) {
+        availableLeases.add(lease);
+    }
+
+    public void releaseLease(Lease lease) {
+        push(lease);
+    }
+
+    static class Lease {
+        private final int leaseNumber;
+
+        private Lease(int leaseNumber) {
+            this.leaseNumber = leaseNumber;
+        }
+
+        public int getLeaseNumber() {
+            return leaseNumber;
+        }
     }
 }

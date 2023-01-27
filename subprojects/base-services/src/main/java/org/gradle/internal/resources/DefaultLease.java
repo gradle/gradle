@@ -19,7 +19,7 @@ package org.gradle.internal.resources;
 public class DefaultLease extends AbstractTrackedResourceLock {
     private final LeaseHolder parent;
     private Thread ownerThread;
-    private int workerLeaseNumber = -1;
+    private LeaseHolder.Lease lease;
 
     public DefaultLease(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, LeaseHolder parent) {
         super(displayName, coordinationService, owner);
@@ -38,15 +38,15 @@ public class DefaultLease extends AbstractTrackedResourceLock {
 
     @Override
     protected boolean acquireLock() {
-        workerLeaseNumber = parent.grantLease();
-        if (workerLeaseNumber >= 0) {
+        lease = parent.grantLease().orNull();
+        if (lease != null) {
             ownerThread = Thread.currentThread();
         }
         return ownerThread != null;
     }
 
     public int getWorkerLeaseNumber() {
-        return workerLeaseNumber;
+        return lease.getLeaseNumber();
     }
 
     @Override
@@ -55,7 +55,8 @@ public class DefaultLease extends AbstractTrackedResourceLock {
             // Not implemented - not yet required. Please implement if required
             throw new UnsupportedOperationException("Must complete operation from owner thread.");
         }
-        parent.releaseLease();
+        parent.releaseLease(lease);
+        lease = null;
         ownerThread = null;
     }
 }
