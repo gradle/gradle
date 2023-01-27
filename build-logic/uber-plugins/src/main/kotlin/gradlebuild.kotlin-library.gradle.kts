@@ -34,6 +34,20 @@ configurations.transitiveSourcesElements {
     }
 }
 
+kotlin {
+    target.compilations.named("testFixtures") {
+        associateWith(target.compilations["main"])
+    }
+    target.compilations.named("test") {
+        associateWith(target.compilations["main"])
+        associateWith(target.compilations["testFixtures"])
+    }
+    target.compilations.named("integTest") {
+        associateWith(target.compilations["main"])
+        associateWith(target.compilations["testFixtures"])
+    }
+}
+
 tasks {
     withType<KotlinCompile>().configureEach {
         configureKotlinCompilerForGradleBuild()

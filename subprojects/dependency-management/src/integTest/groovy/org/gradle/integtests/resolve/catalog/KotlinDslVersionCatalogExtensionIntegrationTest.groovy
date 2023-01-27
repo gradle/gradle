@@ -17,8 +17,6 @@
 package org.gradle.integtests.resolve.catalog
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
@@ -37,15 +35,12 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         settingsKotlinFile << """
             dependencyResolutionManagement {
                 repositories {
-                    maven {
-                        setUrl("${mavenHttpRepo.uri}")
-                    }
+                    maven(url = "${mavenHttpRepo.uri}")
                 }
             }
         """
     }
 
-    @UnsupportedWithConfigurationCache(because = "test uses project state directly")
     def "can override version of a library via an extension method"() {
         def lib = mavenHttpRepo.module('org.gradle.test', 'lib', '1.1').publish()
         settingsKotlinFile << """
@@ -71,9 +66,10 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             }
 
             tasks.register("checkDeps") {
-                inputs.files(configurations.compileClasspath)
+                val classpath: FileCollection = configurations.compileClasspath.get()
+                inputs.files(classpath)
                 doLast {
-                    val fileNames = configurations.compileClasspath.get().files.map(File::getName)
+                    val fileNames = classpath.files.map(File::getName)
                     assert(fileNames == listOf("lib-1.1.jar"))
                 }
             }
@@ -89,7 +85,6 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
 
     @Issue("https://github.com/gradle/gradle/issues/15382")
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-    @ToBeFixedForConfigurationCache
     def "can add a dependency in a project via a precompiled script plugin"() {
         settingsKotlinFile << """
             dependencyResolutionManagement {
@@ -111,7 +106,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         """
         file("buildSrc/src/main/kotlin/my.plugin.gradle.kts") << """
             pluginManager.withPlugin("java") {
-                val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
+                val libs = the<VersionCatalogsExtension>().named("libs")
                 dependencies.addProvider("implementation", libs.findLibrary("lib").get())
             }
         """
@@ -123,9 +118,10 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             }
 
             tasks.register("checkDeps") {
-                inputs.files(configurations.compileClasspath)
+                val classpath: FileCollection = configurations.compileClasspath.get()
+                inputs.files(classpath)
                 doLast {
-                    val fileNames = configurations.compileClasspath.get().files.map(File::getName)
+                    val fileNames = classpath.files.map(File::getName)
                     assert(fileNames == listOf("test-1.0.jar"))
                 }
             }

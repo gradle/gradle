@@ -44,6 +44,9 @@ import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
 import javax.inject.Inject
 
 
+/**
+ * Compiles the extracted `plugins {}` blocks from precompiled scripts of all targets.
+ */
 @CacheableTask
 abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
 

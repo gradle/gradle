@@ -178,10 +178,10 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
         withOwnershipNow(() -> {
             try {
-                crossProcessCacheAccess.close();
                 if (fileLockHeldByOwner != null) {
                     fileLockHeldByOwner.run();
                 }
+                crossProcessCacheAccess.close();
 
                 // If cleanup is required, but has not already been invoked (e.g. at the end of the build session)
                 // perform cleanup on close.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,33 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import javax.annotation.Nullable;
+import java.util.Optional;
+
 public class CompilationFailedException extends RuntimeException {
+
+    private final ApiCompilerResult compilerPartialResult;
+
     public CompilationFailedException() {
+        this((ApiCompilerResult) null);
+    }
+
+    public CompilationFailedException(@Nullable ApiCompilerResult compilerPartialResult) {
         super("Compilation failed; see the compiler error output for details.");
+        this.compilerPartialResult = compilerPartialResult;
     }
 
     public CompilationFailedException(int exitCode) {
         super(String.format("Compilation failed with exit code %d; see the compiler error output for details.", exitCode));
+        this.compilerPartialResult = null;
     }
 
     public CompilationFailedException(Throwable cause) {
         super(cause);
+        this.compilerPartialResult = null;
+    }
+
+    public Optional<ApiCompilerResult> getCompilerPartialResult() {
+        return Optional.ofNullable(compilerPartialResult);
     }
 }
