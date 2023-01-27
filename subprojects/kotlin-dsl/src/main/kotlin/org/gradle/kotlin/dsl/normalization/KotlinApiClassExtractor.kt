@@ -37,6 +37,7 @@ import org.objectweb.asm.ClassVisitor
 import java.util.Optional
 
 
+internal
 class KotlinApiClassExtractor : ApiClassExtractor(
     emptySet(),
     { classWriter -> KotlinApiMemberWriter(MethodStubbingApiMemberAdapter(classWriter)) }
@@ -163,6 +164,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
 }
 
 
+internal
 class CompileAvoidanceException(message: String) : GradleException(message) {
 
     companion object Factory {
