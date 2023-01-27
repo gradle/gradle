@@ -5,6 +5,8 @@ plugins {
 description = "Public and internal 'core' Gradle APIs that are required by other subprojects"
 
 dependencies {
+    compileOnly(libs.jetbrainsAnnotations)
+
     api(project(":process-services"))
     api(project(":base-annotations"))
     api(project(":logging-api"))
