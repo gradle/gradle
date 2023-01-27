@@ -43,6 +43,7 @@ import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileException;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -192,6 +193,7 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                     return NextGenBuildCacheControllerFactory.create(
                         serviceRegistry.get(GlobalScopedCacheBuilderFactory.class),
                         buildCacheConfiguration,
+                        serviceRegistry.get(PathToFileResolver.class),
                         fileSystemAccess,
                         instantiator
                     );
