@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.verification.serializer
 
 
-import org.gradle.api.internal.artifacts.verification.DependencyVerificationException
+import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
