@@ -155,7 +155,6 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
                 @Override
                 public ImmutableSortedMap<String, FileSystemSnapshot> getResultingSnapshots() {
-                    // TODO Collect snapshots
                     return snaphsots.build();
                 }
             });
