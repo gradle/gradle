@@ -360,11 +360,11 @@ class ResidualProgramCompiler(
 
     fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
 
-        val scriptDef = stage2ScriptDefinition
+        val scriptDefinition = stage2ScriptDefinition
         val compiledScriptClass = compileScript(
             scriptFile,
             originalPath,
-            scriptDef,
+            scriptDefinition,
             StableDisplayNameFor.stage2
         )
 
@@ -372,10 +372,7 @@ class ResidualProgramCompiler(
 
             overrideExecute {
 
-                emitInstantiationOfCompiledScriptClass(
-                    compiledScriptClass,
-                    scriptDef
-                )
+                emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptDefinition)
             }
         }
     }
