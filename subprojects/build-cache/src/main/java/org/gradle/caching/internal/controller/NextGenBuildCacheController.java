@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
+import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.CacheManifest.ManifestEntry;
@@ -43,6 +44,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -178,26 +180,38 @@ public class NextGenBuildCacheController implements BuildCacheController {
             List<ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
             Map<BuildCacheKey, String> manifestIndex = indexManifestFileEntries(manifestEntries);
 
-            cacheAccess.store(manifestIndex.keySet(), (buildCacheKey, outputStream) -> {
+            cacheAccess.store(manifestIndex.keySet(), buildCacheKey -> {
                 String relativePath = manifestIndex.get(buildCacheKey);
                 File file = new File(root, relativePath);
-                if (file.isFile()) {
-                    try {
-                        Files.copy(file.toPath(), outputStream);
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
+                return new BuildCacheEntryWriter() {
+                    @Override
+                    public void writeTo(OutputStream output) throws IOException {
+                        Files.copy(file.toPath(), output);
                     }
-                }
+
+                    @Override
+                    public long getSize() {
+                        return file.length();
+                    }
+                };
             });
         });
 
-        cacheAccess.store(Collections.singleton(manifestCacheKey), (__, outputStream) -> {
+        cacheAccess.store(Collections.singleton(manifestCacheKey), __ -> {
             String manifestJson = new Gson().toJson(manifest);
-            try {
-                outputStream.write(manifestJson.getBytes(StandardCharsets.UTF_8));
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
+            byte[] bytes = manifestJson.getBytes(StandardCharsets.UTF_8);
+
+            return new BuildCacheEntryWriter() {
+                @Override
+                public void writeTo(OutputStream output) throws IOException {
+                    output.write(bytes);
+                }
+
+                @Override
+                public long getSize() {
+                    return bytes.length;
+                }
+            };
         });
     }
 
