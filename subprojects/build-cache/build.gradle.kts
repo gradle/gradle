@@ -24,6 +24,9 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.inject)
+    implementation(libs.gson) {
+        because("Cache manifest uses JSON format")
+    }
 
     jmhImplementation(platform(project(":distributions-dependencies")))
     jmhImplementation(libs.ant)
