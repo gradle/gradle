@@ -29,15 +29,13 @@ public class InvalidGpgKeyIds extends GradleException {
     }
 
     public void formatMessage(TreeFormatter formatter) {
-        formatter.node("The following trusted GPG IDs are not in 160-bit fingerprint format:");
-
+        formatter.node("The following trusted GPG IDs are not in 160-bit fingerprint format (see: https://docs.gradle.org/current/userguide/dependency_verification.html#sec:understanding-signature-verification):");
         formatter.startChildren();
         wrongKeys
             .stream()
             .map(key -> String.format("'%s'", key))
             .forEach(formatter::node);
         formatter.endChildren();
-        formatter.node("See: https://docs.gradle.org/current/userguide/dependency_verification.html#sec:understanding-signature-verification");
     }
 
     @Override
