@@ -50,6 +50,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             remote.load(key, input -> {
                 ByteArrayOutputStream temp = new ByteArrayOutputStream();
                 ByteStreams.copy(input, temp);
+                // TODO Make this more performant
                 byte[] data = temp.toByteArray();
                 // Mirror data in local cache
                 local.store(key, new BuildCacheEntryWriter() {
