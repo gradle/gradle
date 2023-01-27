@@ -36,6 +36,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -106,7 +107,12 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition) {
-        return registerBuild(buildDefinition, false);
+        return registerBuild(buildDefinition, false, null);
+    }
+
+    @Override
+    public IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition, Path buildPath) {
+        return registerBuild(buildDefinition, false, buildPath);
     }
 
     @Override
@@ -114,7 +120,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         // TODO: synchronization with other methods
         IncludedBuildState includedBuild = includedBuildsByRootDir.get(buildDefinition.getBuildRootDir());
         if (includedBuild == null) {
-            includedBuild = registerBuild(buildDefinition, true);
+            includedBuild = registerBuild(buildDefinition, true, null);
         }
         return includedBuild;
     }
@@ -197,7 +203,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
     }
 
-    private IncludedBuildState registerBuild(BuildDefinition buildDefinition, boolean isImplicit) {
+    private IncludedBuildState registerBuild(BuildDefinition buildDefinition, boolean isImplicit, @Nullable Path buildPath) {
         // TODO: synchronization
         File buildDir = buildDefinition.getBuildRootDir();
         if (buildDir == null) {
@@ -213,7 +219,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
                 throw new IllegalStateException("build name is required");
             }
             validateNameIsNotBuildSrc(buildName, buildDir);
-            Path idPath = assignPath(rootBuild, buildDefinition.getName(), buildDir);
+            Path idPath = buildPath != null ? buildPath : assignPath(rootBuild, buildDefinition.getName(), buildDir);
             BuildIdentifier buildIdentifier = idFor(buildName);
 
             includedBuild = includedBuildFactory.createBuild(buildIdentifier, idPath, buildDefinition, isImplicit, rootBuild);
