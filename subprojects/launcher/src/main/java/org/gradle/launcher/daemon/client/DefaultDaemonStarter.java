@@ -21,6 +21,7 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.agents.AgentUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -106,7 +107,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             daemonArgs.add(JvmOptions.getDebugArgument(true, true, "5005"));
         }
 
-        ClassPath agentClasspath = registry.getModule("gradle-instrumentation-agent").getImplementationClasspath();
+        ClassPath agentClasspath = registry.getModule(AgentUtils.AGENT_MODULE_NAME).getImplementationClasspath();
         if (daemonParameters.shouldApplyInstrumentationAgent()) {
             if (agentClasspath.isEmpty()) {
                 throw new IllegalStateException("Cannot find the agent JAR");

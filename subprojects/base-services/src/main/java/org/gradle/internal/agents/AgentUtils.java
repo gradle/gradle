@@ -39,4 +39,8 @@ public final class AgentUtils {
     public static boolean isJavaAgentSwitch(String jvmArg) {
         return jvmArg.startsWith("-javaagent:");
     }
+
+    public static boolean isThirdPartyJavaAgentSwitch(String jvmArg) {
+        return isJavaAgentSwitch(jvmArg) && !jvmArg.contains(AGENT_MODULE_NAME);
+    }
 }
