@@ -21,13 +21,30 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
 
-public class InvalidGpgKeyIds extends GradleException {
+/**
+ * Exception class used when a GPG IDs were not correct.
+ *
+ * <p>
+ * An example is using short/long IDs instead of fingerprints when trusting keys
+ */
+public class InvalidGpgKeyIdsException extends GradleException {
     private final List<String> wrongKeys;
 
-    public InvalidGpgKeyIds(List<String> wrongKeys) {
+    /**
+     * Creates a new exception with a list of incorrect keys.
+     *
+     * @param wrongKeys the list of incorrect IDs, which will be nicely formatted as part of the exception messages so the user can find them
+     */
+    public InvalidGpgKeyIdsException(List<String> wrongKeys) {
         this.wrongKeys = wrongKeys;
     }
 
+    /**
+     * Formats a nice error message by using a {@link TreeFormatter}.
+     *
+     * <p>
+     * Idea for this method is that you can pass a higher-level {@link TreeFormatter} into here, and get a coherent, nice error message printed out - so the user will see a nice chain of causes.
+     */
     public void formatMessage(TreeFormatter formatter) {
         formatter.node("The following trusted GPG IDs are not in 160-bit fingerprint format (see: https://docs.gradle.org/current/userguide/dependency_verification.html#sec:understanding-signature-verification):");
         formatter.startChildren();
