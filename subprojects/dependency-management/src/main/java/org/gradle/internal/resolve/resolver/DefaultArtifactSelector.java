@@ -71,10 +71,9 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Supplier<Set<? extends VariantResolveMetadata>> allVariants, Set<? extends VariantResolveMetadata> legacyVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
         ModuleVersionIdentifier moduleVersionId = component.getModuleVersionId();
         ModuleSources sources = component.getSources();
-        ImmutableCapabilities fallbackCapabilities = ImmutableCapabilities.of(ImmutableCapability.defaultCapabilityForComponent(moduleVersionId));
 
-        ImmutableSet<ResolvedVariant> legacyResolvedVariants = buildResolvedVariants(moduleVersionId, fallbackCapabilities, sources, legacyVariants, exclusions);
-        ComponentArtifactResolveVariantState allResolvedVariants = () -> buildResolvedVariants(moduleVersionId, fallbackCapabilities, sources, allVariants.get(), exclusions);
+        ImmutableSet<ResolvedVariant> legacyResolvedVariants = buildResolvedVariants(moduleVersionId, sources, legacyVariants, exclusions);
+        ComponentArtifactResolveVariantState allResolvedVariants = () -> buildResolvedVariants(moduleVersionId, sources, allVariants.get(), exclusions);
 
         for (OriginArtifactSelector selector : selectors) {
             ArtifactSet artifacts = selector.resolveArtifacts(component, allResolvedVariants, legacyResolvedVariants, exclusions, overriddenAttributes);
@@ -85,10 +84,10 @@ public class DefaultArtifactSelector implements ArtifactSelector {
         throw new IllegalStateException("No artifacts selected.");
     }
 
-    private ImmutableSet<ResolvedVariant> buildResolvedVariants(ModuleVersionIdentifier moduleVersionId, ImmutableCapabilities fallbackCapabilities, ModuleSources sources, Set<? extends VariantResolveMetadata> allVariants, ExcludeSpec exclusions) {
+    private ImmutableSet<ResolvedVariant> buildResolvedVariants(ModuleVersionIdentifier moduleVersionId, ModuleSources sources, Set<? extends VariantResolveMetadata> allVariants, ExcludeSpec exclusions) {
         ImmutableSet.Builder<ResolvedVariant> resolvedVariantBuilder = ImmutableSet.builder();
         for (VariantResolveMetadata variant : allVariants) {
-            ResolvedVariant resolvedVariant = toResolvedVariant(variant.getIdentifier(), variant.asDescribable(), variant.getAttributes(), variant.getArtifacts(), withImplicitCapability(variant.getCapabilities().getCapabilities(), fallbackCapabilities), exclusions, moduleVersionId, sources, resolvedVariantCache, variant.isEligibleForCaching());
+            ResolvedVariant resolvedVariant = toResolvedVariant(variant.getIdentifier(), variant.asDescribable(), variant.getAttributes(), variant.getArtifacts(), withImplicitCapability(variant.getCapabilities().getCapabilities(), moduleVersionId), exclusions, moduleVersionId, sources, resolvedVariantCache, variant.isEligibleForCaching());
             resolvedVariantBuilder.add(resolvedVariant);
         }
         return resolvedVariantBuilder.build();
@@ -128,10 +127,10 @@ public class DefaultArtifactSelector implements ArtifactSelector {
         }
     }
 
-    private static ImmutableCapabilities withImplicitCapability(Collection<? extends Capability> capabilities, ImmutableCapabilities fallbackCapabilities) {
+    private static ImmutableCapabilities withImplicitCapability(Collection<? extends Capability> capabilities, ModuleVersionIdentifier moduleVersionId) {
         // TODO: This doesn't seem right. We should know the capability of the variant before we get here instead of assuming that it's the same as the owner
         if (capabilities.isEmpty()) {
-            return fallbackCapabilities;
+            return ImmutableCapabilities.of(ImmutableCapability.defaultCapabilityForComponent(moduleVersionId));
         } else {
             return ImmutableCapabilities.copyAsImmutable(capabilities);
         }
