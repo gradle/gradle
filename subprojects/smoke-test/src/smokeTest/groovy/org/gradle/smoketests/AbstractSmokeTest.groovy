@@ -126,7 +126,7 @@ abstract class AbstractSmokeTest extends Specification {
         static errorProne = "2.0.2"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
-        static protobufPlugin = "0.8.19"
+        static protobufPlugin = "0.9.2"
 
         static protobufTools = "3.21.5"
 
