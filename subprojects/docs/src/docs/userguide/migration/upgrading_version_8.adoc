@@ -199,3 +199,5 @@ These members will be removed in Gradle 9.0.
 * `WrapUtil.toDomainObjectSet(...)`
 * `GUtil.toCamelCase(...)`
 * `GUtil.toLowerCase(...)`
+* `ConfigureUtil.configureByMap(...)`
+* `ConfigureUtil.configure(...)`
