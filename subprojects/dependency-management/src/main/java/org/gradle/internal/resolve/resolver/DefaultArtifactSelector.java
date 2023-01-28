@@ -134,7 +134,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
         } else if (capabilitiesMetadata instanceof ImmutableCapabilities) {
             return (ImmutableCapabilities) capabilitiesMetadata;
         } else {
-            return ImmutableCapabilities.copyAsImmutable(capabilitiesMetadata.getCapabilities());
+            return ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities());
         }
     }
 
