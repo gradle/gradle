@@ -58,16 +58,20 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     private final Map<String, Integer> classNameCounter = new HashMap<>();
     private final Map<ClassNode, String> classNameCache = new HashMap<>();
 
-    public LibrariesSourceGenerator(Writer writer,
-                                    DefaultVersionCatalog config) {
+    public LibrariesSourceGenerator(
+        Writer writer,
+        DefaultVersionCatalog config
+    ) {
         super(writer);
         this.config = config;
     }
 
-    public static void generateSource(Writer writer,
-                                      DefaultVersionCatalog config,
-                                      String packageName,
-                                      String className) {
+    public static void generateSource(
+        Writer writer,
+        DefaultVersionCatalog config,
+        String packageName,
+        String className
+    ) {
         LibrariesSourceGenerator generator = new LibrariesSourceGenerator(writer, config);
         try {
             generator.generate(packageName, className);
@@ -176,7 +180,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private void writeBundleAccessorClass(ClassNode classNode) throws IOException {
         boolean isProvider = classNode.isAlsoProvider();
-        String interfaces = isProvider ? " implements BundleNotationSupplier":"";
+        String interfaces = isProvider ? " implements BundleNotationSupplier" : "";
         String bundleClassName = getClassName(classNode);
         List<String> aliases = classNode.aliases
             .stream()
@@ -193,7 +197,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                 BundleModel bundle = config.getBundle(path);
                 List<String> coordinates = bundle.getComponents().stream()
                     .map(config::getDependencyData)
-                    .map(this::coordinatesDescriptorFor)
+                    .map(LibrariesSourceGenerator::coordinatesDescriptorFor)
                     .collect(Collectors.toList());
                 writeBundle(path, coordinates, bundle.getContext(), true);
             }
@@ -203,7 +207,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                     BundleModel bundle = config.getBundle(alias);
                     List<String> coordinates = bundle.getComponents().stream()
                         .map(config::getDependencyData)
-                        .map(this::coordinatesDescriptorFor)
+                        .map(LibrariesSourceGenerator::coordinatesDescriptorFor)
                         .collect(Collectors.toList());
                     writeBundle(alias, coordinates, bundle.getContext(), false);
                 }
@@ -235,7 +239,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private void writePluginAccessorClass(ClassNode classNode) throws IOException {
         boolean isProvider = classNode.isAlsoProvider();
-        String interfaces = isProvider ? " implements PluginNotationSupplier":"";
+        String interfaces = isProvider ? " implements PluginNotationSupplier" : "";
         String pluginClassName = getClassName(classNode);
         List<String> aliases = classNode.aliases
             .stream()
@@ -304,7 +308,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                 BundleModel model = config.getBundle(alias);
                 List<String> coordinates = model.getComponents().stream()
                     .map(config::getDependencyData)
-                    .map(this::coordinatesDescriptorFor)
+                    .map(LibrariesSourceGenerator::coordinatesDescriptorFor)
                     .collect(Collectors.toList());
                 writeBundle(alias, coordinates, model.getContext(), false);
             }
@@ -341,7 +345,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private void writeLibraryAccessorClass(ClassNode classNode) throws IOException {
         boolean isProvider = classNode.isAlsoProvider();
-        String interfaces = isProvider ? " implements DependencyNotationSupplier":"";
+        String interfaces = isProvider ? " implements DependencyNotationSupplier" : "";
         writeLn("public static class " + getClassName(classNode) + " extends SubDependencyFactory" + interfaces + " {");
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.library);
@@ -371,7 +375,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private void writeVersionAccessorClass(ClassNode classNode) throws IOException {
         boolean isProvider = classNode.isAlsoProvider();
-        String interfaces = isProvider ? " implements VersionNotationSupplier":"";
+        String interfaces = isProvider ? " implements VersionNotationSupplier" : "";
         String versionsClassName = getClassName(classNode);
         Set<String> versionAliases = classNode.getAliases();
         writeLn("public static class " + versionsClassName + " extends VersionFactory " + interfaces + " {");
@@ -412,7 +416,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         }
         writeLn(" */");
         String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(versionAlias));
-        writeLn("public Provider<String> " +  methodName + "() { return getVersion(\"" + versionAlias + "\"); }");
+        writeLn("public Provider<String> " + methodName + "() { return getVersion(\"" + versionAlias + "\"); }");
         writeLn();
     }
 
@@ -446,16 +450,16 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             .filter(e -> e.getValue().size() > 1)
             .map(e -> buildProblem(VersionCatalogProblemId.ACCESSOR_NAME_CLASH, spec ->
                 spec.inContext(this::standardErrorLocation)
-                .withShortDescription(() -> prefix + " " + e.getValue().stream().sorted().collect(Collectors.joining(" and ")) + " are mapped to the same accessor name get" + e.getKey() + suffix + "()")
-                .happensBecause("A name clash was detected")
-                .addSolution(() -> "Use a different alias for " + e.getValue().stream().sorted().collect(Collectors.joining(" and ")))
-                .documented()
+                    .withShortDescription(() -> prefix + " " + e.getValue().stream().sorted().collect(Collectors.joining(" and ")) + " are mapped to the same accessor name get" + e.getKey() + suffix + "()")
+                    .happensBecause("A name clash was detected")
+                    .addSolution(() -> "Use a different alias for " + e.getValue().stream().sorted().collect(Collectors.joining(" and ")))
+                    .documented()
             ))
             .collect(Collectors.toList());
         maybeThrowError(ERROR_HEADER, errors);
     }
 
-    private String coordinatesDescriptorFor(DependencyModel dependencyData) {
+    private static String coordinatesDescriptorFor(DependencyModel dependencyData) {
         return dependencyData.getGroup() + ":" + dependencyData.getName();
     }
 
@@ -473,8 +477,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private static String leafNodeForAlias(String alias) {
-        List<String> splitted = nameSplitter().splitToList(alias);
-        return splitted.get(splitted.size() - 1);
+        List<String> split = nameSplitter().splitToList(alias);
+        return split.get(split.size() - 1);
     }
 
     private void writeSubAccessor(ClassNode classNode, AccessorKind kind) throws IOException {
@@ -665,7 +669,5 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         public String accessorVariableNameFor(String className) {
             return variablePrefix + "For" + className;
         }
-
     }
-
 }
