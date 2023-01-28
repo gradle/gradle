@@ -43,13 +43,6 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
         return of(capabilities.getCapabilities());
     }
 
-    public static ImmutableCapabilities of(@Nullable Collection<? extends Capability> capabilities) {
-        if (capabilities == null || capabilities.isEmpty()) {
-            return EMPTY;
-        }
-        return new ImmutableCapabilities(capabilities);
-    }
-
     public static ImmutableCapabilities of(@Nullable Capability capability) {
         if (capability == null) {
             return EMPTY;
@@ -57,7 +50,18 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
         if (capability instanceof ShadowedCapability) {
             return new ShadowedSingleImmutableCapabilities(capability);
         }
-        return of(Collections.singleton(capability));
+        return new ImmutableCapabilities(Collections.singleton(capability));
+    }
+
+    public static ImmutableCapabilities of(@Nullable Collection<? extends Capability> capabilities) {
+        if (capabilities == null || capabilities.isEmpty()) {
+            return EMPTY;
+        }
+        if (capabilities.size() == 1) {
+            Capability single = capabilities.iterator().next();
+            return of(single);
+        }
+        return new ImmutableCapabilities(capabilities);
     }
 
     private ImmutableCapabilities(Collection<? extends Capability> capabilities) {
