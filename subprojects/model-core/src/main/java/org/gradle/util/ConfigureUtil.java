@@ -145,7 +145,7 @@ public class ConfigureUtil {
      * @return The delegate param
      */
     public static <T> T configure(@Nullable Closure configureClosure, T target) {
-        logDeprecation(8);
+        // TODO log deprecation once the shadow plugin is fixed
         if (configureClosure == null) {
             return target;
         }

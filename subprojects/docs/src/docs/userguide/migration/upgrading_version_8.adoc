@@ -200,7 +200,6 @@ These members will be removed in Gradle 9.0.
 * `GUtil.toCamelCase(...)`
 * `GUtil.toLowerCase(...)`
 * `ConfigureUtil.configureByMap(...)`
-* `ConfigureUtil.configure(...)`
 
 [[for_use_at_configuration_time_deprecation]]
 ==== `Provider.forUseAtConfigurationTime()`
