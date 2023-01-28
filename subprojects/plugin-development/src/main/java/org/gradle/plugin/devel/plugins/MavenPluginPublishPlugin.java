@@ -82,9 +82,6 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
 
     private void createMavenMarkerPublication(PluginDeclaration declaration, final MavenPublication coordinates, PublicationContainer publications) {
         String pluginId = declaration.getId();
-        String pluginGroupId = coordinates.getGroupId();
-        String pluginArtifactId = coordinates.getArtifactId();
-        String pluginVersion = coordinates.getVersion();
         MavenPublicationInternal publication = (MavenPublicationInternal) publications.create(declaration.getName() + "PluginMarkerMaven", MavenPublication.class);
         publication.setAlias(true);
         publication.setArtifactId(pluginId + PLUGIN_MARKER_SUFFIX);
@@ -97,11 +94,11 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
                 Node dependencies = root.appendChild(document.createElement("dependencies"));
                 Node dependency = dependencies.appendChild(document.createElement("dependency"));
                 Node groupId = dependency.appendChild(document.createElement("groupId"));
-                groupId.setTextContent(pluginGroupId);
+                groupId.setTextContent(coordinates.getGroupId());
                 Node artifactId = dependency.appendChild(document.createElement("artifactId"));
-                artifactId.setTextContent(pluginArtifactId);
+                artifactId.setTextContent(coordinates.getArtifactId());
                 Node version = dependency.appendChild(document.createElement("version"));
-                version.setTextContent(pluginVersion);
+                version.setTextContent(coordinates.getVersion());
             }
         });
         publication.getPom().getName().set(declaration.getDisplayName());
