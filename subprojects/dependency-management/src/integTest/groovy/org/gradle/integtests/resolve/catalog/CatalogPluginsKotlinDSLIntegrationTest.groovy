@@ -235,7 +235,7 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
         outputContains 'Hello from second plugin!'
     }
 
-    def "#useCase from plugins block"() {
+    def "emits deprecation warning when #useCase from plugins block"() {
 
         String taskName = 'greet'
         String message = 'Hello from plugin!'
@@ -269,6 +269,13 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
 
         when:
         plugin.allowAll()
+        executer.expectDocumentedDeprecationWarning(
+            "Accessing libraries or bundles from version catalogs in the plugins block. " +
+                "This behavior has been deprecated. " +
+                "This behavior is scheduled to be removed in Gradle 9.0. " +
+                "Only use versions or plugins from catalogs in the plugins block. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#kotlin_dsl_deprecated_catalogs_plugins_block"
+        )
         succeeds taskName
 
         then:
