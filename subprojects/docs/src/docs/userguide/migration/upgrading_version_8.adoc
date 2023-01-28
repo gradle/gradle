@@ -189,3 +189,8 @@ plugins {
 
 The Java Toolchains plugin is applied automatically by the link:https://docs.gradle.org/current/userguide/java_plugin.html[Java plugin],
 so you can also apply it to your project and it will fix the warning.
+
+[[org_gradle_util_reports_deprecations]]
+==== Deprecated members of the `org.gradle.util` package now report their deprecation
+
+These members will be removed in Gradle 9.0.
