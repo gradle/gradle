@@ -16,7 +16,6 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.util.internal.VersionNumber
 
@@ -24,7 +23,6 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "kotlin android on android-kotlin-example-kotlin-dsl (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"(String kotlinPluginVersion, String androidPluginVersion, boolean workers) {
         given:
         AndroidHome.assertIsSet()

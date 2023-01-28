@@ -46,7 +46,6 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 abstract class AbstractSmokeTest extends Specification {
 
     protected static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
-    protected static final String AGP_NO_CC_ITERATION_MATCHER = ".*agp=4\\..*"
 
     protected static final KotlinGradlePluginVersions KOTLIN_VERSIONS = new KotlinGradlePluginVersions()
 
