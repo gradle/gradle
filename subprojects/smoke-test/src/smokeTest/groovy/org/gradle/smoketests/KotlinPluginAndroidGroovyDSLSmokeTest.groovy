@@ -24,7 +24,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [KGP_NO_CC_ITERATION_MATCHER, AGP_NO_CC_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "kotlin android on android-kotlin-example (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"(String kotlinPluginVersion, String androidPluginVersion, boolean workers) {
         given:
         AndroidHome.assertIsSet()
