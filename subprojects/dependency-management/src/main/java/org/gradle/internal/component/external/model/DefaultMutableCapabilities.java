@@ -37,7 +37,7 @@ public class DefaultMutableCapabilities implements MutableCapabilitiesMetadata {
                 throw new InvalidUserDataException("Cannot add capability " + group + ":" + name + " with version " + version + " because it's already defined with version " + descriptor.getVersion());
             }
         }
-        descriptors.add(new ImmutableCapability(group, name, version));
+        descriptors.add(new DefaultImmutableCapability(group, name, version));
     }
 
     @Override

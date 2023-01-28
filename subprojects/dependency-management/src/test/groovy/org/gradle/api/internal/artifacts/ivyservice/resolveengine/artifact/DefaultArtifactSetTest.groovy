@@ -29,7 +29,7 @@ import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.external.model.ImmutableCapability
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
 
@@ -90,7 +90,7 @@ class DefaultArtifactSetTest extends Specification {
 
     private static ResolvedVariant makeVariantNamed(String name, ModuleVersionIdentifier ownerId) {
         def id = DefaultModuleComponentIdentifier.newId(ownerId)
-        def capabilities = ImmutableCapabilities.of(ImmutableCapability.defaultCapabilityForComponent(ownerId))
+        def capabilities = ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(ownerId))
         def ivyArtifactName = new DefaultIvyArtifactName(name, "jar", "jar")
         def artifact = new DefaultResolvableArtifact(ownerId, ivyArtifactName, new DefaultModuleComponentArtifactIdentifier(id, ivyArtifactName), null, null, null)
         def artifacts = ImmutableList.of(artifact)

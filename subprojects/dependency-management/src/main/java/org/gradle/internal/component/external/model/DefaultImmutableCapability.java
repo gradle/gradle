@@ -21,10 +21,10 @@ import org.gradle.api.capabilities.Capability;
 
 import javax.annotation.Nullable;
 
-public final class ImmutableCapability implements CapabilityInternal {
+public final class DefaultImmutableCapability implements CapabilityInternal {
 
-    public static ImmutableCapability defaultCapabilityForComponent(ModuleVersionIdentifier identifier) {
-        return new ImmutableCapability(identifier.getGroup(), identifier.getName(), identifier.getVersion());
+    public static DefaultImmutableCapability defaultCapabilityForComponent(ModuleVersionIdentifier identifier) {
+        return new DefaultImmutableCapability(identifier.getGroup(), identifier.getName(), identifier.getVersion());
     }
 
     private final String group;
@@ -33,7 +33,7 @@ public final class ImmutableCapability implements CapabilityInternal {
     private final int hashCode;
     private final String cachedId;
 
-    public ImmutableCapability(String group, String name, @Nullable String version) {
+    public DefaultImmutableCapability(String group, String name, @Nullable String version) {
         this.group = group;
         this.name = name;
         this.version = version;
