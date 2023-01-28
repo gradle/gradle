@@ -72,8 +72,7 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         ImmutableSet<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
         ImmutableSet<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
         // Presence of capabilities is bound to the definition of a capabilities extension to the project
-        ImmutableCapabilities capabilities =
-            ImmutableCapabilities.copyAsImmutable(Configurations.collectCapabilities(configuration, Sets.newHashSet(), Sets.newHashSet()));
+        ImmutableCapabilities capabilities = ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, Sets.newHashSet(), Sets.newHashSet()));
         return metaData.addConfiguration(configuration.getName(),
             configuration.getDescription(),
             extendsFrom,

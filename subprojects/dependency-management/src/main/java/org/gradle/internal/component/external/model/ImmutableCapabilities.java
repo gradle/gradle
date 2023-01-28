@@ -21,8 +21,16 @@ import org.gradle.api.capabilities.Capability;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
+/**
+ * A deeply immutable implementation of {@link CapabilitiesMetadata}.
+ *
+ * This type will ensure that all contents are immutable upon construction,
+ * in order to allow instances of this type to be safely reused whenever possible
+ * to avoid unnecessary memory allocations.
+ */
 public class ImmutableCapabilities implements CapabilitiesMetadata {
     public static final ImmutableCapabilities EMPTY = new ImmutableCapabilities(ImmutableList.<ImmutableCapability>of());
 
@@ -39,11 +47,7 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
         if (capabilities == null || capabilities.isEmpty()) {
             return EMPTY;
         }
-        if (capabilities.size() == 1) {
-            Capability single = capabilities.iterator().next();
-            return of(single);
-        }
-        return new ImmutableCapabilities(ImmutableList.copyOf(capabilities));
+        return new ImmutableCapabilities(capabilities);
     }
 
     public static ImmutableCapabilities of(@Nullable Capability capability) {
@@ -53,12 +57,11 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
         if (capability instanceof ShadowedCapability) {
             return new ShadowedSingleImmutableCapabilities(capability);
         }
-        return new ImmutableCapabilities(ImmutableList.of(capability));
+        return of(Collections.singleton(capability));
     }
 
-    public ImmutableCapabilities(ImmutableList<? extends Capability> capabilities) {
-        ImmutableList.Builder<CapabilityInternal> builder = ImmutableList.builder();
-
+    private ImmutableCapabilities(Collection<? extends Capability> capabilities) {
+        ImmutableList.Builder<CapabilityInternal> builder = new ImmutableList.Builder<>();
         for (Capability capability : capabilities) {
             if (capability instanceof ImmutableCapability) {
                 builder.add((ImmutableCapability) capability);
@@ -71,26 +74,7 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
                 builder.add(new ImmutableCapability(capability.getGroup(), capability.getName(), capability.getVersion()));
             }
         }
-
         this.capabilities = builder.build();
-    }
-
-    public static ImmutableCapabilities copyAsImmutable(Collection<? extends Capability> capabilities) {
-        if (capabilities.isEmpty()) {
-            return ImmutableCapabilities.EMPTY;
-        }
-
-        ImmutableList.Builder<CapabilityInternal> builder = new ImmutableList.Builder<>();
-        for (Capability descriptor : capabilities) {
-            if (descriptor instanceof ImmutableCapability) {
-                builder.add((ImmutableCapability) descriptor);
-            } else if (descriptor instanceof ShadowedCapability) {
-                builder.add((ShadowedCapability) descriptor);
-            } else {
-                builder.add(new ImmutableCapability(descriptor.getGroup(), descriptor.getName(), descriptor.getVersion()));
-            }
-        }
-        return ImmutableCapabilities.of(builder.build());
     }
 
     @Override
@@ -99,7 +83,6 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
     }
 
     private static class ShadowedSingleImmutableCapabilities extends ImmutableCapabilities implements ShadowedCapabilityOnly {
-
         public ShadowedSingleImmutableCapabilities(Capability single) {
             super(ImmutableList.of(single));
         }
