@@ -32,7 +32,7 @@ open class CompiledKotlinPluginsBlock(
 ) {
 
     fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
-        PluginDependenciesSpecScopeInternal(host.target, pluginDependencies).configuration()
+        PluginDependenciesSpecScopeInternal(host.objectFactory, pluginDependencies).configuration()
     }
 }
 
@@ -85,6 +85,6 @@ open class CompiledKotlinBuildscriptAndPluginsBlock(
     }
 
     override fun plugins(block: PluginDependenciesSpecScope.() -> Unit) {
-        PluginDependenciesSpecScopeInternal(host.target, pluginDependencies).block()
+        PluginDependenciesSpecScopeInternal(host.objectFactory, pluginDependencies).block()
     }
 }

@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.plugins.ExtensionsSchema
 import org.gradle.api.reflect.TypeOf
+import org.gradle.initialization.DependenciesAccessors.IN_PLUGINS_BLOCK_FACTORIES_SUFFIX
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.hash.HashCode
@@ -111,9 +112,19 @@ fun versionCatalogAccessorFrom(versionCatalogExtensionSchemas: List<ExtensionsSc
             it.name,
             it.publicType,
             ExtensionSpec(it.name, scriptHandlerScopeTypeSpec, TypeSpec(it.publicType.simpleName, it.publicType.concreteClass.internalName)),
-            ExtensionSpec(it.name, pluginDependenciesSpecScopeTypeSpec, TypeSpec(it.publicType.simpleName, it.publicType.concreteClass.internalName)),
+            ExtensionSpec(it.name, pluginDependenciesSpecScopeTypeSpec, TypeSpec(pluginsBlockFactorySourceNameFor(it.publicType), pluginsBlockFactoryInternalNameFor(it.publicType))),
         )
     }
+
+
+private
+fun pluginsBlockFactorySourceNameFor(publicType: TypeOf<*>): String =
+    "${publicType.simpleName}$IN_PLUGINS_BLOCK_FACTORIES_SUFFIX"
+
+
+private
+fun pluginsBlockFactoryInternalNameFor(publicType: TypeOf<*>): InternalName =
+    InternalName.from("${publicType.concreteClass.internalName.value}$IN_PLUGINS_BLOCK_FACTORIES_SUFFIX")
 
 
 internal
@@ -178,6 +189,7 @@ fun IO.buildVersionCatalogAccessorsFor(
                 versionCatalogAccessor.buildscriptExtension,
                 signature,
                 scriptHandlerScopeInternalInternalName,
+                scriptHandlerScopeInternalVersionCatalogExtensionMethodName,
                 scriptHandlerScopeInternalVersionCatalogExtensionMethodDesc,
             )
         }
@@ -186,7 +198,8 @@ fun IO.buildVersionCatalogAccessorsFor(
                 versionCatalogAccessor.pluginsExtension,
                 signature,
                 pluginDependenciesSpecScopeInternalInternalName,
-                pluginDependenciesSpecScopeInternalVersionCatalogExtensionMethodDesc,
+                pluginDependenciesSpecScopeInternalVersionCatalogForPluginsBlockMethodName,
+                pluginDependenciesSpecScopeInternalVersionCatalogForPluginsBlockMethodDesc,
             )
         }
     }
@@ -227,7 +240,7 @@ fun BufferedWriter.appendSourceCodeForVersionCatalogAccessors(
         appendReproducibleNewLine("import ${it.sourceName}")
     }
 
-    fun appendCatalogExtension(extSpec: ExtensionSpec, receiverInternalType: KClass<*>) {
+    fun appendCatalogExtension(extSpec: ExtensionSpec, receiverInternalType: KClass<*>, internalMethodName: String) {
         write("\n\n")
         appendReproducibleNewLine(
             format("""
@@ -235,14 +248,14 @@ fun BufferedWriter.appendSourceCodeForVersionCatalogAccessors(
                  * The `${extSpec.name}` version catalog.
                  */
                 val ${extSpec.receiverType.sourceName}.`${extSpec.name}`: ${extSpec.returnType.sourceName}
-                    get() = (this as ${receiverInternalType.simpleName}).versionCatalogExtension("${extSpec.name}") as ${extSpec.returnType.sourceName}
+                    get() = (this as ${receiverInternalType.simpleName}).$internalMethodName("${extSpec.name}") as ${extSpec.returnType.sourceName}
             """)
         )
     }
 
     versionCatalogs.forEach { catalog ->
-        appendCatalogExtension(catalog.buildscriptExtension, ScriptHandlerScopeInternal::class)
-        appendCatalogExtension(catalog.pluginsExtension, PluginDependenciesSpecScopeInternal::class)
+        appendCatalogExtension(catalog.buildscriptExtension, ScriptHandlerScopeInternal::class, scriptHandlerScopeInternalVersionCatalogExtensionMethodName)
+        appendCatalogExtension(catalog.pluginsExtension, PluginDependenciesSpecScopeInternal::class, pluginDependenciesSpecScopeInternalVersionCatalogForPluginsBlockMethodName)
     }
 }
 
@@ -252,13 +265,14 @@ fun ClassWriter.emitVersionCatalogAccessorMethodFor(
     extensionSpec: ExtensionSpec,
     signature: JvmMethodSignature,
     receiverInternalTypeInternalName: InternalName,
+    internalMethodName: String,
     receiverVersionCatalogExtensionMethodDesc: String,
 ) {
     publicStaticMethod(signature) {
         ALOAD(0)
         CHECKCAST(receiverInternalTypeInternalName)
         LDC(extensionSpec.name)
-        INVOKEVIRTUAL(receiverInternalTypeInternalName, "versionCatalogExtension", receiverVersionCatalogExtensionMethodDesc)
+        INVOKEVIRTUAL(receiverInternalTypeInternalName, internalMethodName, receiverVersionCatalogExtensionMethodDesc)
         CHECKCAST(extensionSpec.returnType.internalName)
         ARETURN()
     }
@@ -274,6 +288,10 @@ val scriptHandlerScopeInternalInternalName = ScriptHandlerScopeInternal::class.i
 
 
 private
+const val scriptHandlerScopeInternalVersionCatalogExtensionMethodName = "versionCatalogExtension"
+
+
+private
 val scriptHandlerScopeInternalVersionCatalogExtensionMethodDesc = "(Ljava/lang/String;)L${ExternalModuleDependencyFactory::class.internalName};"
 
 
@@ -286,4 +304,8 @@ val pluginDependenciesSpecScopeTypeSpec = TypeSpec("PluginDependenciesSpecScope"
 
 
 private
-val pluginDependenciesSpecScopeInternalVersionCatalogExtensionMethodDesc = "(Ljava/lang/String;)L${ExternalModuleDependencyFactory::class.internalName};"
+const val pluginDependenciesSpecScopeInternalVersionCatalogForPluginsBlockMethodName = "versionCatalogForPluginsBlock"
+
+
+private
+val pluginDependenciesSpecScopeInternalVersionCatalogForPluginsBlockMethodDesc = "(Ljava/lang/String;)L${ExternalModuleDependencyFactory::class.internalName};"

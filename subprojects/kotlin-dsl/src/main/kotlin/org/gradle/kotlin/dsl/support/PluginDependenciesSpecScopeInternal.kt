@@ -17,21 +17,38 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.internal.catalog.ExternalModuleDependencyFactory
-import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.model.ObjectFactory
+import org.gradle.initialization.DependenciesAccessors
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugin.use.PluginDependenciesSpec
+import javax.inject.Inject
 
 
 internal
 class PluginDependenciesSpecScopeInternal(
-    private val scriptTarget: ExtensionAware,
+    private val objects: ObjectFactory,
     plugins: PluginDependenciesSpec
 ) : PluginDependenciesSpecScope(plugins) {
+
+    private
+    val versionCatalogForPluginBlockFactories: Map<String, ExternalModuleDependencyFactory> by unsafeLazy {
+        objects
+            .newInstance<PluginDependenciesSpecScopeInternalServices>()
+            .dependenciesAccessors.createPluginsBlockFactories(objects)
+    }
 
     /**
      * Used by version catalog accessors in project scripts plugins {} block.
      */
     @Suppress("UNUSED")
-    fun versionCatalogExtension(name: String): ExternalModuleDependencyFactory =
-        scriptTarget.extensions[name] as ExternalModuleDependencyFactory
+    fun versionCatalogForPluginsBlock(name: String): ExternalModuleDependencyFactory =
+        versionCatalogForPluginBlockFactories.getValue(name)
+}
+
+
+internal
+interface PluginDependenciesSpecScopeInternalServices {
+
+    @get:Inject
+    val dependenciesAccessors: DependenciesAccessors
 }

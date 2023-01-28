@@ -157,6 +157,12 @@ Please let Gradle control the version of `kotlin-dsl` by removing any explicit `
 This will let the `kotlin-dsl` plugin decide which version of the Kotlin Gradle Plugin to use.
 If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0.
 
+[[kotlin_dsl_deprecated_catalogs_plugins_block]]
+==== Accessing `libraries` or `bundles` from dependency version catalogs in the `plugins {}` block of a Kotlin script
+
+Accessing `libraries` or `bundles` from dependency version catalogs in the `plugins {}` block of a Kotlin script is deprecated.
+Please only use `versions` or `plugins` from dependency version catalogs in the `plugins {}` block.
+
 [[validate_plugins_without_java_toolchain]]
 ==== Using `ValidatePlugins` task without a Java Toolchain
 
