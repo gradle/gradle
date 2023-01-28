@@ -30,6 +30,8 @@ import org.junit.Rule
  * integration tests in this package, but only what is very specific to the Kotlin DSL.
  * Because it requires the generated Gradle API it runs significantly slower than the other
  * tests so avoid adding tests here if they cannot be expressed with the Groovy DSL.
+ *
+ * These tests use Groovy settings file because the parent class sets up things in it already.
  */
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport {
@@ -45,19 +47,18 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
             .addPluginWithPrintlnTask(taskName, message, pluginId)
             .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
 
-        // We use the Groovy DSL for settings because that's not what we want to
-        // test and the setup would be more complicated with Kotlin
         settingsFile << """
-dependencyResolutionManagement {
-    versionCatalogs {
-        create("libs") {
-            plugin("$alias", "com.acme.greeter").version("1.5")
-        }
-        create("otherLibs") {
-            plugin("$alias", "com.acme.greeter").version("1.5")
-        }
-    }
-}"""
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create("libs") {
+                        plugin("$alias", "com.acme.greeter").version("1.5")
+                    }
+                    create("otherLibs") {
+                        plugin("$alias", "com.acme.greeter").version("1.5")
+                    }
+                }
+            }
+        """
         buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
@@ -87,16 +88,15 @@ dependencyResolutionManagement {
             .addPluginWithPrintlnTask(taskName, message, pluginId)
             .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
 
-        // We use the Groovy DSL for settings because that's not what we want to
-        // test and the setup would be more complicated with Kotlin
         file("settings.gradle") << """
-dependencyResolutionManagement {
-    versionCatalogs {
-        libs {
-            plugin('greeter', 'com.acme.greeter').version('1.4')
-        }
-    }
-}"""
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        plugin('greeter', 'com.acme.greeter').version('1.4')
+                    }
+                }
+            }
+        """
         buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
@@ -123,16 +123,15 @@ dependencyResolutionManagement {
             .addPluginWithPrintlnTask(taskName, message, pluginId)
             .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
 
-        // We use the Groovy DSL for settings because that's not what we want to
-        // test and the setup would be more complicated with Kotlin
         file("settings.gradle") << """
-dependencyResolutionManagement {
-    versionCatalogs {
-        libs {
-            version('greeter', '1.5')
-        }
-    }
-}"""
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version('greeter', '1.5')
+                    }
+                }
+            }
+        """
         buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
@@ -162,17 +161,16 @@ dependencyResolutionManagement {
             .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
             .allowAll()
 
-        // We use the Groovy DSL for settings because that's not what we want to
-        // test and the setup would be more complicated with Kotlin
         settingsFile << """
-dependencyResolutionManagement {
-    versionCatalogs {
-        libs {
-            plugin("greeter", "$firstLevelPluginId").version("$pluginVersion")
-            plugin("greeter-second", "$secondLevelPluginId").version("$pluginVersion")
-        }
-    }
-}"""
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        plugin("greeter", "$firstLevelPluginId").version("$pluginVersion")
+                        plugin("greeter-second", "$secondLevelPluginId").version("$pluginVersion")
+                    }
+                }
+            }
+        """
         buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
@@ -202,17 +200,16 @@ dependencyResolutionManagement {
             .publishAs("some", "artifact2", pluginVersion, pluginPortal, executer)
             .allowAll()
 
-        // We use the Groovy DSL for settings because that's not what we want to
-        // test and the setup would be more complicated with Kotlin
         file("settings.gradle") << """
-dependencyResolutionManagement {
-    versionCatalogs {
-        libs {
-            library('greeter', 'some', 'artifact').version('1.5')
-            library('greeter-second', 'some', 'artifact2').version('1.5')
-        }
-    }
-}"""
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        library('greeter', 'some', 'artifact').version('1.5')
+                        library('greeter-second', 'some', 'artifact2').version('1.5')
+                    }
+                }
+            }
+        """
         buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             buildscript {
