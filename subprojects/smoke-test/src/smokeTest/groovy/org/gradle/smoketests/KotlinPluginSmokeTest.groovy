@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
@@ -30,7 +29,6 @@ import static org.junit.Assume.assumeTrue
 
 class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin jvm (kotlin=#version, workers=#workers)'() {
         given:
         useSample("kotlin-example")
@@ -67,7 +65,6 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         ].combinations()
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin javascript (kotlin=#version, workers=#workers)'() {
 
         // kotlinjs has been removed in Kotlin 1.7 in favor of kotlin-mpp
@@ -100,7 +97,6 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         ].combinations()
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
         given:
         buildFile << """
@@ -146,7 +142,6 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
 
         assumeFalse(kotlinVersion.startsWith("1.3."))
