@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
+
 /**
  * Mirror test of {@link CatalogPluginsGroovyDSLIntegrationTest}.
  *
@@ -235,5 +236,52 @@ dependencyResolutionManagement {
         then:
         outputContains 'Hello from first plugin!'
         outputContains 'Hello from second plugin!'
+    }
+
+    def "#useCase from plugins block"() {
+
+        String taskName = 'greet'
+        String message = 'Hello from plugin!'
+        String pluginId = 'com.acme.greeter'
+        String pluginVersion = '1.5'
+        def plugin = new PluginBuilder(file("greeter"))
+            .addPluginWithPrintlnTask(taskName, message, pluginId)
+            .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
+
+        file("settings.gradle") << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("greeter", "$pluginVersion")
+                        plugin("greeter", "$pluginId").versionRef("greeter")
+                        library("greeter", "some", "artifact").versionRef("greeter")
+                        library("sub-greeter", "some", "artifact").versionRef("greeter")
+                        bundle("greeter", ["greeter"])
+                        bundle("sub-greeter", ["greeter"])
+                    }
+                }
+            }
+        """
+        buildFile.renameTo(file('fixture.gradle'))
+        buildKotlinFile << """
+            plugins {
+                $pluginRequest
+            }
+            apply(from="fixture.gradle")
+        """
+
+        when:
+        plugin.allowAll()
+        succeeds taskName
+
+        then:
+        outputContains message
+
+        where:
+        useCase               | pluginRequest
+        'using libraries'     | 'id("com.acme.greeter") version libs.greeter.get().version'
+        'using sub libraries' | 'id("com.acme.greeter") version libs.sub.greeter.get().version'
+        'using bundles'       | 'id("com.acme.greeter") version libs.bundles.greeter.get().first().version'
+        'using sub bundles'   | 'id("com.acme.greeter") version libs.bundles.sub.greeter.get().first().version'
     }
 }
