@@ -200,12 +200,3 @@ These members will be removed in Gradle 9.0.
 * `GUtil.toCamelCase(...)`
 * `GUtil.toLowerCase(...)`
 * `ConfigureUtil.configureByMap(...)`
-
-[[for_use_at_configuration_time_deprecation]]
-==== `Provider.forUseAtConfigurationTime()`
-
-`Provider.forUseAtConfigurationTime()` now report its deprecation.
-It has been a no-operation link:https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation[since Gradle 7.4].
-It will be removed in Gradle 9.0.
-
-Simply remove the call.
