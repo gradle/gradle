@@ -16,7 +16,6 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.testkit.runner.BuildResult
 
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
@@ -27,7 +26,6 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = AGP_NO_CC_ITERATION_MATCHER)
     def "can cache Santa Tracker Android application (agp=#agpVersion)"() {
 
         given:
