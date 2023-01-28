@@ -194,3 +194,5 @@ so you can also apply it to your project and it will fix the warning.
 ==== Deprecated members of the `org.gradle.util` package now report their deprecation
 
 These members will be removed in Gradle 9.0.
+
+* `VersionNumber`
