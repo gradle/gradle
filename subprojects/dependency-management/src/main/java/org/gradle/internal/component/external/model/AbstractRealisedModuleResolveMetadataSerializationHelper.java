@@ -189,9 +189,9 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         List<Capability> rawCapabilities = Lists.newArrayListWithCapacity(capabilitiesCount);
         for (int j = 0; j < capabilitiesCount; j++) {
             String appendix = decoder.readNullableString();
-            CapabilityInternal capability = new ImmutableCapability(decoder.readString(), decoder.readString(), decoder.readString());
+            CapabilityInternal capability = new DefaultImmutableCapability(decoder.readString(), decoder.readString(), decoder.readString());
             if (appendix != null) {
-                capability = new ImmutableShadowedCapability(capability, appendix);
+                capability = new ShadowedImmutableCapability(capability, appendix);
             }
             rawCapabilities.add(capability);
         }

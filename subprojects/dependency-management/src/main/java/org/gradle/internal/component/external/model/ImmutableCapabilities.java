@@ -35,7 +35,7 @@ import java.util.List;
  * subclassing should not break the immutability contract.
  */
 public class ImmutableCapabilities implements CapabilitiesMetadata {
-    public static final ImmutableCapabilities EMPTY = new ImmutableCapabilities(ImmutableList.<ImmutableCapability>of());
+    public static final ImmutableCapabilities EMPTY = new ImmutableCapabilities(ImmutableList.<DefaultImmutableCapability>of());
 
     private final ImmutableList<? extends Capability> capabilities;
 
@@ -70,15 +70,15 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
     private ImmutableCapabilities(Collection<? extends Capability> capabilities) {
         ImmutableList.Builder<CapabilityInternal> builder = new ImmutableList.Builder<>();
         for (Capability capability : capabilities) {
-            if (capability instanceof ImmutableCapability) {
-                builder.add((ImmutableCapability) capability);
-            } else if (capability instanceof ImmutableShadowedCapability) {
-                builder.add((ImmutableShadowedCapability) capability);
+            if (capability instanceof DefaultImmutableCapability) {
+                builder.add((DefaultImmutableCapability) capability);
+            } else if (capability instanceof ShadowedImmutableCapability) {
+                builder.add((ShadowedImmutableCapability) capability);
             } else if (capability instanceof ShadowedCapability) {
                 ShadowedCapability shadowedCapability = (ShadowedCapability) capability;
-                builder.add(new ImmutableShadowedCapability(shadowedCapability, shadowedCapability.getAppendix()));
+                builder.add(new ShadowedImmutableCapability(shadowedCapability, shadowedCapability.getAppendix()));
             } else {
-                builder.add(new ImmutableCapability(capability.getGroup(), capability.getName(), capability.getVersion()));
+                builder.add(new DefaultImmutableCapability(capability.getGroup(), capability.getName(), capability.getVersion()));
             }
         }
         this.capabilities = builder.build();

@@ -40,7 +40,7 @@ import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
-import org.gradle.internal.component.external.model.ImmutableCapability
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -298,7 +298,7 @@ class GradleModuleMetadataWriterTest extends Specification {
         d8.version >> "v1"
         d8.transitive >> true
         d8.attributes >> ImmutableAttributes.EMPTY
-        d8.requestedCapabilities >> [new ImmutableCapability("org", "test", "1.0")]
+        d8.requestedCapabilities >> [new DefaultImmutableCapability("org", "test", "1.0")]
 
         def v1 = Stub(UsageContext)
         v1.name >> "v1"

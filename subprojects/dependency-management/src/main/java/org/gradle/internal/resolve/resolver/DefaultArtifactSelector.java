@@ -29,8 +29,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveVariantState;
@@ -130,7 +130,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     private static ImmutableCapabilities withImplicitCapability(CapabilitiesMetadata capabilitiesMetadata, ModuleVersionIdentifier moduleVersionId) {
         // TODO: This doesn't seem right. We should know the capability of the variant before we get here instead of assuming that it's the same as the owner
         if (capabilitiesMetadata.getCapabilities().isEmpty()) {
-            return ImmutableCapabilities.of(ImmutableCapability.defaultCapabilityForComponent(moduleVersionId));
+            return ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(moduleVersionId));
         } else if (capabilitiesMetadata instanceof ImmutableCapabilities) {
             return (ImmutableCapabilities) capabilitiesMetadata;
         } else {
