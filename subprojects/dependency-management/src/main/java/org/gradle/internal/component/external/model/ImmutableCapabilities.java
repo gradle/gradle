@@ -30,6 +30,9 @@ import java.util.List;
  * This type will ensure that all contents are immutable upon construction,
  * in order to allow instances of this type to be safely reused whenever possible
  * to avoid unnecessary memory allocations.
+ *
+ * Note that while this class is not itself {@code final}, all fields are private, so
+ * subclassing should not break the immutability contract.
  */
 public class ImmutableCapabilities implements CapabilitiesMetadata {
     public static final ImmutableCapabilities EMPTY = new ImmutableCapabilities(ImmutableList.<ImmutableCapability>of());
@@ -86,7 +89,7 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
         return capabilities;
     }
 
-    private static class ShadowedSingleImmutableCapabilities extends ImmutableCapabilities implements ShadowedCapabilityOnly {
+    private final static class ShadowedSingleImmutableCapabilities extends ImmutableCapabilities implements ShadowedCapabilityOnly {
         public ShadowedSingleImmutableCapabilities(Capability single) {
             super(ImmutableList.of(single));
         }
