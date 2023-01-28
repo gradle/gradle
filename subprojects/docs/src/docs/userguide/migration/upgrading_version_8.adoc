@@ -196,3 +196,4 @@ so you can also apply it to your project and it will fix the warning.
 These members will be removed in Gradle 9.0.
 
 * `VersionNumber`
+* `WrapUtil.toDomainObjectSet(...)`
