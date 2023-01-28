@@ -35,9 +35,9 @@ import java.util.List;
  * subclassing should not break the immutability contract.
  */
 public class ImmutableCapabilities implements CapabilitiesMetadata {
-    public static final ImmutableCapabilities EMPTY = new ImmutableCapabilities(ImmutableList.<DefaultImmutableCapability>of());
+    public static final ImmutableCapabilities EMPTY = new ImmutableCapabilities(ImmutableList.<ImmutableCapability>of());
 
-    private final ImmutableList<? extends Capability> capabilities;
+    private final ImmutableList<ImmutableCapability> capabilities;
 
     public static ImmutableCapabilities of(CapabilitiesMetadata capabilities) {
         if (capabilities instanceof ImmutableCapabilities) {
@@ -68,12 +68,10 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
     }
 
     private ImmutableCapabilities(Collection<? extends Capability> capabilities) {
-        ImmutableList.Builder<CapabilityInternal> builder = new ImmutableList.Builder<>();
+        ImmutableList.Builder<ImmutableCapability> builder = new ImmutableList.Builder<>();
         for (Capability capability : capabilities) {
-            if (capability instanceof DefaultImmutableCapability) {
+            if (capability instanceof ImmutableCapability) {
                 builder.add((DefaultImmutableCapability) capability);
-            } else if (capability instanceof ShadowedImmutableCapability) {
-                builder.add((ShadowedImmutableCapability) capability);
             } else if (capability instanceof ShadowedCapability) {
                 ShadowedCapability shadowedCapability = (ShadowedCapability) capability;
                 builder.add(new ShadowedImmutableCapability(shadowedCapability, shadowedCapability.getAppendix()));
@@ -85,13 +83,18 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
     }
 
     @Override
-    public List<? extends Capability> getCapabilities() {
+    public List<ImmutableCapability> getCapabilities() {
         return capabilities;
     }
 
+    // TODO: delete this type
     private final static class ShadowedSingleImmutableCapabilities extends ImmutableCapabilities implements ShadowedCapabilityOnly {
         public ShadowedSingleImmutableCapabilities(Capability single) {
             super(ImmutableList.of(single));
         }
+    }
+
+    public boolean isShadowedCapabilityOnly() {
+        return this instanceof ShadowedCapabilityOnly;
     }
 }
