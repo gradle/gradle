@@ -197,3 +197,5 @@ These members will be removed in Gradle 9.0.
 
 * `VersionNumber`
 * `WrapUtil.toDomainObjectSet(...)`
+* `GUtil.toCamelCase(...)`
+* `GUtil.toLowerCase(...)`
