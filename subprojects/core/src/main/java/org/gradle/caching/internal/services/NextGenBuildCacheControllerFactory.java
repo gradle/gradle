@@ -23,7 +23,6 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.internal.NoOpBuildCacheService;
 import org.gradle.caching.internal.controller.BuildCacheController;
@@ -35,6 +34,7 @@ import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.H2BuildCacheService;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.annotation.Nullable;
@@ -44,6 +44,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
 
     public static final String NEXT_GEN_CACHE_SYSTEM_PROPERTY = "org.gradle.unsafe.cache.ng";
     private final Deleter deleter;
+    private final BuildInvocationScopeId buildInvocationScopeId;
 
     public static boolean isNextGenCachingEnabled() {
         return Boolean.getBoolean(NEXT_GEN_CACHE_SYSTEM_PROPERTY) == Boolean.TRUE;
@@ -55,7 +56,8 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         OriginMetadataFactory originMetadataFactory,
         FileSystemAccess fileSystemAccess,
         StringInterner stringInterner,
-        Deleter deleter
+        Deleter deleter,
+        BuildInvocationScopeId buildInvocationScopeId
     ) {
         super(
             startParameter,
@@ -64,6 +66,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
             fileSystemAccess,
             stringInterner);
         this.deleter = deleter;
+        this.buildInvocationScopeId = buildInvocationScopeId;
     }
 
     @Override
@@ -76,6 +79,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         BuildCacheService remote = resolveService(remoteDescribedService);
 
         return new NextGenBuildCacheController(
+            buildInvocationScopeId.getId().asString(),
             deleter,
             fileSystemAccess,
             new GZipNextGenBuildCacheAccess(
@@ -116,19 +120,6 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         @Override
         public void close() throws IOException {
             delegate.close();
-        }
-    }
-
-    private static class Describer implements BuildCacheServiceFactory.Describer {
-
-        @Override
-        public BuildCacheServiceFactory.Describer type(String type) {
-            return this;
-        }
-
-        @Override
-        public BuildCacheServiceFactory.Describer config(String name, String value) {
-            return this;
         }
     }
 }
