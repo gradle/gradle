@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class H2LocalCacheServiceTest extends Specification {
+class H2BuildCacheServiceTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -37,13 +37,13 @@ class H2LocalCacheServiceTest extends Specification {
         def dbDir = temporaryFolder.createDir("h2db")
 
         expect:
-        new H2LocalCacheService(dbDir.toPath())
+        new H2BuildCacheService(dbDir.toPath())
     }
 
     def "can write to h2"() {
         given:
         def dbDir = temporaryFolder.createDir("h2db")
-        def service = new H2LocalCacheService(dbDir.toPath())
+        def service = new H2BuildCacheService(dbDir.toPath())
 
         def tmpFile = temporaryFolder.createFile("test")
         tmpFile << "Hello world"
@@ -55,7 +55,7 @@ class H2LocalCacheServiceTest extends Specification {
     def "can write and read from h2"() {
         given:
         def dbDir = temporaryFolder.createDir("h2db")
-        def service = new H2LocalCacheService(dbDir.toPath())
+        def service = new H2BuildCacheService(dbDir.toPath())
 
         def tmpFile = temporaryFolder.createFile("test")
         tmpFile << "Hello world"

@@ -32,7 +32,7 @@ import org.gradle.caching.internal.controller.GZipNextGenBuildCacheAccess;
 import org.gradle.caching.internal.controller.NextGenBuildCacheController;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
-import org.gradle.caching.local.internal.H2LocalCacheService;
+import org.gradle.caching.local.internal.H2BuildCacheService;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -40,7 +40,7 @@ import org.gradle.internal.vfs.FileSystemAccess;
 import javax.annotation.Nullable;
 import java.io.IOException;
 
-public final class NextGenBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<H2LocalCacheService> {
+public final class NextGenBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<H2BuildCacheService> {
 
     public static final String NEXT_GEN_CACHE_SYSTEM_PROPERTY = "org.gradle.unsafe.cache.ng";
     private final Deleter deleter;
@@ -68,7 +68,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
 
     @Override
     protected BuildCacheController doCreateController(
-        @Nullable DescribedBuildCacheService<DirectoryBuildCache, H2LocalCacheService> localDescribedService,
+        @Nullable DescribedBuildCacheService<DirectoryBuildCache, H2BuildCacheService> localDescribedService,
         @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService
     ) {
 
