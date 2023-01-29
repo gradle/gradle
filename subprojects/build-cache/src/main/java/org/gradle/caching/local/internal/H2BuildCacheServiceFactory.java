@@ -21,6 +21,7 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.file.PathToFileResolver;
 
 import javax.inject.Inject;
@@ -32,14 +33,17 @@ public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<Dire
     private static final String H2_BUILD_CACHE_TYPE = "h2";
 
     private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
+    private final ParallelismConfiguration parallelismConfiguration;
     private final PathToFileResolver resolver;
 
     @Inject
     public H2BuildCacheServiceFactory(
             GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            ParallelismConfiguration parallelismConfiguration,
             PathToFileResolver resolver
     ) {
         this.cacheBuilderFactory = cacheBuilderFactory;
+        this.parallelismConfiguration = parallelismConfiguration;
         this.resolver = resolver;
     }
 
@@ -58,7 +62,7 @@ public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<Dire
         describer.type(H2_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath());
 
-        return new H2BuildCacheService(target.toPath());
+        return new H2BuildCacheService(target.toPath(), parallelismConfiguration.getMaxWorkerCount());
     }
 
     private static void checkDirectory(File directory) {

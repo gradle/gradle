@@ -28,23 +28,15 @@ class H2BuildCacheServiceTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
+    def dbDir = temporaryFolder.createDir("h2db")
+    def service = new H2BuildCacheService(dbDir.toPath(), 20)
+
     BuildCacheKey key = Mock(BuildCacheKey) {
         getHashCode() >> "1234abcd"
     }
 
-    def "h2 database is initialized"() {
-        given:
-        def dbDir = temporaryFolder.createDir("h2db")
-
-        expect:
-        new H2BuildCacheService(dbDir.toPath())
-    }
-
     def "can write to h2"() {
         given:
-        def dbDir = temporaryFolder.createDir("h2db")
-        def service = new H2BuildCacheService(dbDir.toPath())
-
         def tmpFile = temporaryFolder.createFile("test")
         tmpFile << "Hello world"
 
@@ -54,9 +46,6 @@ class H2BuildCacheServiceTest extends Specification {
 
     def "can write and read from h2"() {
         given:
-        def dbDir = temporaryFolder.createDir("h2db")
-        def service = new H2BuildCacheService(dbDir.toPath())
-
         def tmpFile = temporaryFolder.createFile("test")
         tmpFile << "Hello world"
 
