@@ -79,7 +79,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
 
     @Override
     public FileSystemLocationSnapshot read(String location) {
-        return readLocation(location);
+        return readSnapshotFromLocation(location, () -> snapshot(location, SnapshottingFilter.EMPTY));
     }
 
     @Override
@@ -160,10 +160,6 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
                     throw new UnsupportedOperationException();
             }
         });
-    }
-
-    private FileSystemLocationSnapshot readLocation(String location) {
-        return readSnapshotFromLocation(location, () -> snapshot(location, SnapshottingFilter.EMPTY));
     }
 
     private FileSystemLocationSnapshot readSnapshotFromLocation(
