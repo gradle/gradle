@@ -179,7 +179,8 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 BuildCacheEntryPacker packer,
                 OriginMetadataFactory originMetadataFactory,
                 StringInterner stringInterner,
-                Deleter deleter
+                Deleter deleter,
+                BuildInvocationScopeId buildInvocationScopeId
             ) {
                 if (NextGenBuildCacheControllerFactory.isNextGenCachingEnabled()) {
                     return new NextGenBuildCacheControllerFactory(
@@ -188,7 +189,8 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                         originMetadataFactory,
                         fileSystemAccess,
                         stringInterner,
-                        deleter
+                        deleter,
+                        buildInvocationScopeId
                     );
                 } else {
                     return new LegacyBuildCacheControllerFactory(

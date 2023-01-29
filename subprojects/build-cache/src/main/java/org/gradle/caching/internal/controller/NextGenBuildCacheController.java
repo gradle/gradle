@@ -66,30 +66,33 @@ import java.util.concurrent.atomic.AtomicReference;
 public class NextGenBuildCacheController implements BuildCacheController {
     private final NextGenBuildCacheAccess cacheAccess;
     private final FileSystemAccess fileSystemAccess;
+    private final String buildInvocationId;
     private final Deleter deleter;
     private final Gson gson;
 
     public NextGenBuildCacheController(
-            Deleter deleter,
-            FileSystemAccess fileSystemAccess,
-            NextGenBuildCacheAccess cacheAccess
+        String buildInvocationId,
+        Deleter deleter,
+        FileSystemAccess fileSystemAccess,
+        NextGenBuildCacheAccess cacheAccess
     ) {
+        this.buildInvocationId = buildInvocationId;
         this.deleter = deleter;
         this.fileSystemAccess = fileSystemAccess;
         this.cacheAccess = cacheAccess;
         this.gson = new GsonBuilder()
-                .registerTypeAdapter(Duration.class, new TypeAdapter<Duration>() {
-                    @Override
-                    public void write(JsonWriter out, Duration value) throws IOException {
-                        out.value(value.toMillis());
-                    }
+            .registerTypeAdapter(Duration.class, new TypeAdapter<Duration>() {
+                @Override
+                public void write(JsonWriter out, Duration value) throws IOException {
+                    out.value(value.toMillis());
+                }
 
-                    @Override
-                    public Duration read(JsonReader in) throws IOException {
-                        return Duration.ofMillis(in.nextLong());
-                    }
-                })
-                .create();
+                @Override
+                public Duration read(JsonReader in) throws IOException {
+                    return Duration.ofMillis(in.nextLong());
+                }
+            })
+            .create();
     }
 
     @Override
@@ -215,8 +218,8 @@ public class NextGenBuildCacheController implements BuildCacheController {
         });
 
         CacheManifest manifest = new CacheManifest(
-                // TODO Set build invocation ID properly
-                new OriginMetadata("", executionTime), propertyManifests.build());
+            new OriginMetadata(buildInvocationId, executionTime),
+            propertyManifests.build());
 
         entity.visitOutputTrees((propertyName, type, root) -> {
             List<ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
@@ -315,11 +318,11 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
     private static ListMultimap<BuildCacheKey, String> indexManifestFileEntries(List<ManifestEntry> manifestEntries) {
         return manifestEntries.stream()
-                .filter(entry -> entry.getType() == FileType.RegularFile)
-                .collect(ImmutableListMultimap.toImmutableListMultimap(
-                        manifestEntry -> new SimpleBuildCacheKey(manifestEntry.getContentHash()),
-                        ManifestEntry::getRelativePath)
-                );
+            .filter(entry -> entry.getType() == FileType.RegularFile)
+            .collect(ImmutableListMultimap.toImmutableListMultimap(
+                manifestEntry -> new SimpleBuildCacheKey(manifestEntry.getContentHash()),
+                ManifestEntry::getRelativePath)
+            );
     }
 
     private static class SimpleBuildCacheKey implements BuildCacheKey {
