@@ -34,11 +34,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class H2LocalCacheService implements BuildCacheService {
+public class H2BuildCacheService implements BuildCacheService {
 
     private final HikariDataSource dataSource;
 
-    public H2LocalCacheService(Path dbPath) {
+    public H2BuildCacheService(Path dbPath) {
         this.dataSource = createHikariDataSource(dbPath);
         Flyway flyway = Flyway.configure()
             .schemas("filestore")

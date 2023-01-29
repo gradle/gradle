@@ -58,7 +58,7 @@ public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<Dire
         describer.type(H2_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath());
 
-        return new H2LocalCacheService(target.toPath());
+        return new H2BuildCacheService(target.toPath());
     }
 
     private static void checkDirectory(File directory) {
