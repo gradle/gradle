@@ -36,6 +36,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.util.internal.IncubationLogger;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -74,6 +75,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         @Nullable DescribedBuildCacheService<DirectoryBuildCache, H2BuildCacheService> localDescribedService,
         @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService
     ) {
+        IncubationLogger.incubatingFeatureUsed("Next generation build cache");
 
         BuildCacheService local = resolveService(localDescribedService);
         BuildCacheService remote = resolveService(remoteDescribedService);
