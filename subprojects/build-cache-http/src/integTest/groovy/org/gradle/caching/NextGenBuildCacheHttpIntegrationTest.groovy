@@ -16,7 +16,8 @@
 
 package org.gradle.caching
 
-import com.google.common.collect.Lists
+
+import org.gradle.caching.internal.services.NextGenBuildCacheControllerFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.TestBuildCache
@@ -63,7 +64,7 @@ class NextGenBuildCacheHttpIntegrationTest extends AbstractIntegrationSpec imple
         skipped ":compileJava"
     }
 
-    private runWithCacheNG(String... task) {
-        withBuildCache().run Lists.asList("-Dorg.gradle.unsafe.cache.ng=true", task)
+    private runWithCacheNG(String... tasks) {
+        withBuildCache().run("-D${NextGenBuildCacheControllerFactory.NEXT_GEN_CACHE_SYSTEM_PROPERTY}=true", *tasks)
     }
 }
