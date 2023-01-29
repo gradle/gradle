@@ -33,13 +33,11 @@ import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.RelativePathSupplier;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.MissingFileSnapshot;
-import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
@@ -117,10 +115,10 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 List<ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
                 manifestEntries.forEach(entry -> {
                     switch (entry.getType()) {
-                        case DIRECTORY:
+                        case Directory:
                             new File(root, entry.getRelativePath()).mkdirs();
                             break;
-                        case MISSING:
+                        case Missing:
                             FileUtils.deleteQuietly(new File(root, entry.getRelativePath()));
                             break;
                     }
@@ -191,23 +189,10 @@ public class NextGenBuildCacheController implements BuildCacheController {
             rootSnapshot.accept(new RelativePathTracker(), new RelativePathTrackingFileSystemSnapshotHierarchyVisitor() {
                 @Override
                 public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
-                    CacheManifest.EntryType type = snapshot.accept(new FileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer<CacheManifest.EntryType>() {
-                        @Override
-                        public CacheManifest.EntryType visitRegularFile(RegularFileSnapshot fileSnapshot) {
-                            return CacheManifest.EntryType.FILE;
-                        }
-
-                        @Override
-                        public CacheManifest.EntryType visitDirectory(DirectorySnapshot directorySnapshot) {
-                            return CacheManifest.EntryType.DIRECTORY;
-                        }
-
-                        @Override
-                        public CacheManifest.EntryType visitMissing(MissingFileSnapshot missingSnapshot) {
-                            return CacheManifest.EntryType.MISSING;
-                        }
-                    });
-                    manifestEntries.add(new ManifestEntry(type, relativePath.toRelativePath(), snapshot.getHash().toString()));
+                    if (relativePath.isRoot()) {
+                        assertCorrectType(type, snapshot);
+                    }
+                    manifestEntries.add(new ManifestEntry(snapshot.getType(), relativePath.toRelativePath(), snapshot.getHash().toString()));
                     return SnapshotVisitResult.CONTINUE;
                 }
             });
@@ -259,6 +244,26 @@ public class NextGenBuildCacheController implements BuildCacheController {
         });
     }
 
+    private static void assertCorrectType(TreeType type, FileSystemLocationSnapshot snapshot) {
+        if (snapshot.getType() == FileType.Missing) {
+            return;
+        }
+        switch (type) {
+            case DIRECTORY:
+                if (snapshot.getType() != FileType.Directory) {
+                    throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", snapshot.getAbsolutePath()));
+                }
+                break;
+            case FILE:
+                if (snapshot.getType() != FileType.RegularFile) {
+                    throw new IllegalArgumentException(String.format("Expected '%s' to be a file", snapshot.getAbsolutePath()));
+                }
+                break;
+            default:
+                throw new AssertionError();
+        }
+    }
+
     @Override
     public void close() throws IOException {
     }
@@ -295,7 +300,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
     private static ListMultimap<BuildCacheKey, String> indexManifestFileEntries(List<ManifestEntry> manifestEntries) {
         return manifestEntries.stream()
-            .filter(entry -> entry.getType() == CacheManifest.EntryType.FILE)
+            .filter(entry -> entry.getType() == FileType.RegularFile)
             .collect(ImmutableListMultimap.toImmutableListMultimap(
                 manifestEntry -> new SimpleBuildCacheKey(manifestEntry.getContentHash()),
                 ManifestEntry::getRelativePath)

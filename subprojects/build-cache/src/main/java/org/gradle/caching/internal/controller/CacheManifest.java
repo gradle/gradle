@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.controller;
 
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.file.FileType;
 
 import java.util.List;
 import java.util.Map;
@@ -38,23 +39,19 @@ public class CacheManifest {
         return propertyManifests;
     }
 
-    public enum EntryType {
-        FILE, DIRECTORY, MISSING
-    }
-
     public static class ManifestEntry {
-        private final EntryType type;
+        private final FileType type;
         private final String relativePath;
         private final String contentHash;
         // TODO Add length
 
-        public ManifestEntry(EntryType type, String relativePath, String contentHash) {
+        public ManifestEntry(FileType type, String relativePath, String contentHash) {
             this.type = type;
             this.relativePath = relativePath;
             this.contentHash = contentHash;
         }
 
-        public EntryType getType() {
+        public FileType getType() {
             return type;
         }
 
