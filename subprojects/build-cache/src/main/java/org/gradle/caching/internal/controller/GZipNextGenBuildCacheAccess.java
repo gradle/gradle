@@ -19,6 +19,7 @@ package org.gradle.caching.internal.controller;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,7 +39,7 @@ public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     @Override
     public void load(Iterable<BuildCacheKey> keys, BiConsumer<BuildCacheKey, InputStream> processor) {
         delegate.load(keys, (buildCacheKey, inputStream) -> {
-            try (GZIPInputStream zipInput = new GZIPInputStream(inputStream);) {
+            try (GZIPInputStream zipInput = new GZIPInputStream(inputStream)) {
                 processor.accept(buildCacheKey, zipInput);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -50,17 +51,23 @@ public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     public void store(Iterable<BuildCacheKey> keys, Function<BuildCacheKey, BuildCacheEntryWriter> processor) {
         delegate.store(keys, buildCacheKey -> {
             BuildCacheEntryWriter delegateWriter = processor.apply(buildCacheKey);
+            // TODO Make this more performant for large files
+            ByteArrayOutputStream compressed = new ByteArrayOutputStream((int) (delegateWriter.getSize() * 1.2));
+            try (GZIPOutputStream zipOutput = new GZIPOutputStream(compressed)) {
+                delegateWriter.writeTo(zipOutput);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            byte[] compressedBytes = compressed.toByteArray();
             return new BuildCacheEntryWriter() {
                 @Override
                 public void writeTo(OutputStream output) throws IOException {
-                    try (GZIPOutputStream zipOutput = new GZIPOutputStream(output)) {
-                        delegateWriter.writeTo(zipOutput);
-                    }
+                    output.write(compressedBytes);
                 }
 
                 @Override
                 public long getSize() {
-                    return delegateWriter.getSize();
+                    return compressedBytes.length;
                 }
             };
         });
