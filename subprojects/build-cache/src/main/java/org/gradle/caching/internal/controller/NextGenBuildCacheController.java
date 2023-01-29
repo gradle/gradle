@@ -44,6 +44,7 @@ import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.util.internal.IncubationLogger;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -74,6 +75,8 @@ public class NextGenBuildCacheController implements BuildCacheController {
         this.deleter = deleter;
         this.fileSystemAccess = fileSystemAccess;
         this.cacheAccess = cacheAccess;
+
+        IncubationLogger.incubatingFeatureUsed("Next generation build cache");
     }
 
     @Override
