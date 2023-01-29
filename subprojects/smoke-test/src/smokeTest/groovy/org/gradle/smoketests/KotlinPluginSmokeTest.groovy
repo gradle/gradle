@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
@@ -51,7 +52,9 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         when:
         result = runner(workers, versionNumber, 'run')
             .deprecations(KotlinDeprecations) {
-                expectOrgGradleUtilWrapUtilDeprecation(version)
+                if (GradleContextualExecuter.isNotConfigCache()) {
+                    expectOrgGradleUtilWrapUtilDeprecation(version)
+                }
             }.build()
 
         then:
@@ -180,7 +183,9 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         when:
         result = runner(false, versionNumber, 'build')
             .deprecations(KotlinDeprecations) {
-                expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+                if (GradleContextualExecuter.isNotConfigCache()) {
+                    expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+                }
             }.build()
 
         then:
