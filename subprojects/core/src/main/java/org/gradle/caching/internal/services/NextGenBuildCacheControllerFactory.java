@@ -42,12 +42,12 @@ import java.io.IOException;
 public final class NextGenBuildCacheControllerFactory {
 
     public static BuildCacheController create(
-        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         BuildCacheConfigurationInternal buildCacheConfiguration,
-        PathToFileResolver resolver,
+        Deleter deleter,
         FileSystemAccess fileSystemAccess,
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         Instantiator instantiator,
-        Deleter deleter
+        PathToFileResolver resolver
     ) {
         // DirectoryBuildCache local = buildCacheConfiguration.getLocal();
         BuildCache remote = buildCacheConfiguration.getRemote();
@@ -67,12 +67,12 @@ public final class NextGenBuildCacheControllerFactory {
             : NoOpBuildCacheService.INSTANCE;
 
         return new NextGenBuildCacheController(
+            deleter,
+            fileSystemAccess,
             new DefaultNextGenBuildCacheAccess(
                 localService, remoteService
-            ),
-            fileSystemAccess,
-            deleter
-            );
+            )
+        );
     }
 
     private static BuildCacheService createBuildCacheService(

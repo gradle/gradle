@@ -191,12 +191,12 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 InstanceGenerator instantiator = instantiatorFactory.inject(serviceRegistry);
                 if (Boolean.getBoolean("org.gradle.unsafe.cache.ng")) {
                     return NextGenBuildCacheControllerFactory.create(
-                        serviceRegistry.get(GlobalScopedCacheBuilderFactory.class),
                         buildCacheConfiguration,
-                        serviceRegistry.get(PathToFileResolver.class),
+                        serviceRegistry.get(Deleter.class),
                         fileSystemAccess,
+                        serviceRegistry.get(GlobalScopedCacheBuilderFactory.class),
                         instantiator,
-                        serviceRegistry.get(Deleter.class)
+                        serviceRegistry.get(PathToFileResolver.class)
                     );
                 }
                 Path buildIdentityPath = gradle.getIdentityPath();

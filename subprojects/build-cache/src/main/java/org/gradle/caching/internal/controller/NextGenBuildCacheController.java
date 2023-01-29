@@ -64,11 +64,14 @@ public class NextGenBuildCacheController implements BuildCacheController {
     private final FileSystemAccess fileSystemAccess;
     private final Deleter deleter;
 
-
-    public NextGenBuildCacheController(NextGenBuildCacheAccess cacheAccess, FileSystemAccess fileSystemAccess, Deleter deleter) {
-        this.cacheAccess = cacheAccess;
-        this.fileSystemAccess = fileSystemAccess;
+    public NextGenBuildCacheController(
+        Deleter deleter,
+        FileSystemAccess fileSystemAccess,
+        NextGenBuildCacheAccess cacheAccess
+    ) {
         this.deleter = deleter;
+        this.fileSystemAccess = fileSystemAccess;
+        this.cacheAccess = cacheAccess;
     }
 
     @Override
@@ -142,6 +145,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
                 snaphsots.put(propertyName, snapshot);
             });
+            ImmutableSortedMap<String, FileSystemSnapshot> resultingSnapshots = snaphsots.build();
 
             result.set(new BuildCacheLoadResult() {
                 @Override
@@ -156,7 +160,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
                 @Override
                 public ImmutableSortedMap<String, FileSystemSnapshot> getResultingSnapshots() {
-                    return snaphsots.build();
+                    return resultingSnapshots;
                 }
             });
         });
