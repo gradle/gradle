@@ -99,6 +99,9 @@ public class NextGenBuildCacheController implements BuildCacheController {
             AtomicLong entryCount = new AtomicLong(0);
             ImmutableSortedMap.Builder<String, FileSystemSnapshot> snaphsots = ImmutableSortedMap.naturalOrder();
             cacheableEntity.visitOutputTrees((propertyName, type, root) -> {
+                // Invalidate VFS
+                fileSystemAccess.write(Collections.singleton(root.getAbsolutePath()), () -> {});
+
                 try {
                     cleanOutputDirectory(type, root);
                 } catch (Exception e) {
