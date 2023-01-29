@@ -24,6 +24,10 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import org.apache.commons.io.FileUtils;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
@@ -42,7 +46,6 @@ import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.vfs.FileSystemAccess;
-import org.gradle.util.internal.IncubationLogger;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -64,17 +67,29 @@ public class NextGenBuildCacheController implements BuildCacheController {
     private final NextGenBuildCacheAccess cacheAccess;
     private final FileSystemAccess fileSystemAccess;
     private final Deleter deleter;
+    private final Gson gson;
 
     public NextGenBuildCacheController(
-        Deleter deleter,
-        FileSystemAccess fileSystemAccess,
-        NextGenBuildCacheAccess cacheAccess
+            Deleter deleter,
+            FileSystemAccess fileSystemAccess,
+            NextGenBuildCacheAccess cacheAccess
     ) {
         this.deleter = deleter;
         this.fileSystemAccess = fileSystemAccess;
         this.cacheAccess = cacheAccess;
+        this.gson = new GsonBuilder()
+                .registerTypeAdapter(Duration.class, new TypeAdapter<Duration>() {
+                    @Override
+                    public void write(JsonWriter out, Duration value) throws IOException {
+                        out.value(value.toMillis());
+                    }
 
-        IncubationLogger.incubatingFeatureUsed("Next generation build cache");
+                    @Override
+                    public Duration read(JsonReader in) throws IOException {
+                        return Duration.ofMillis(in.nextLong());
+                    }
+                })
+                .create();
     }
 
     @Override
@@ -91,7 +106,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
     public Optional<BuildCacheLoadResult> load(BuildCacheKey manifestCacheKey, CacheableEntity cacheableEntity) {
         AtomicReference<BuildCacheLoadResult> result = new AtomicReference<>();
         cacheAccess.load(Collections.singleton(manifestCacheKey), (__, manifestStream) -> {
-            CacheManifest manifest = new Gson().fromJson(new InputStreamReader(manifestStream), CacheManifest.class);
+            CacheManifest manifest = gson.fromJson(new InputStreamReader(manifestStream), CacheManifest.class);
 
             // TODO Do all properties at once instead of doing separate bathches
             AtomicLong entryCount = new AtomicLong(0);
@@ -200,8 +215,8 @@ public class NextGenBuildCacheController implements BuildCacheController {
         });
 
         CacheManifest manifest = new CacheManifest(
-            // TODO Set build invocation ID properly
-            new OriginMetadata("", executionTime), propertyManifests.build());
+                // TODO Set build invocation ID properly
+                new OriginMetadata("", executionTime), propertyManifests.build());
 
         entity.visitOutputTrees((propertyName, type, root) -> {
             List<ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
@@ -227,7 +242,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
         });
 
         cacheAccess.store(Collections.singleton(manifestCacheKey), __ -> {
-            String manifestJson = new Gson().toJson(manifest);
+            String manifestJson = gson.toJson(manifest);
             byte[] bytes = manifestJson.getBytes(StandardCharsets.UTF_8);
 
             return new BuildCacheEntryWriter() {
@@ -300,11 +315,11 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
     private static ListMultimap<BuildCacheKey, String> indexManifestFileEntries(List<ManifestEntry> manifestEntries) {
         return manifestEntries.stream()
-            .filter(entry -> entry.getType() == FileType.RegularFile)
-            .collect(ImmutableListMultimap.toImmutableListMultimap(
-                manifestEntry -> new SimpleBuildCacheKey(manifestEntry.getContentHash()),
-                ManifestEntry::getRelativePath)
-            );
+                .filter(entry -> entry.getType() == FileType.RegularFile)
+                .collect(ImmutableListMultimap.toImmutableListMultimap(
+                        manifestEntry -> new SimpleBuildCacheKey(manifestEntry.getContentHash()),
+                        ManifestEntry::getRelativePath)
+                );
     }
 
     private static class SimpleBuildCacheKey implements BuildCacheKey {
