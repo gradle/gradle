@@ -39,7 +39,7 @@ public class CacheManifest {
     }
 
     public enum EntryType {
-        DIRECTORY, FILE
+        FILE, DIRECTORY, MISSING
     }
 
     public static class ManifestEntry {

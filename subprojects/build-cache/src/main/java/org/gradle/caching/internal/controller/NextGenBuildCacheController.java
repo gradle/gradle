@@ -35,8 +35,10 @@ import org.gradle.internal.RelativePathSupplier;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
@@ -99,7 +101,6 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-                List<ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
                 if (type == TreeType.FILE) {
                     root.getParentFile().mkdirs();
                 } else {
@@ -107,9 +108,15 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
 
                 // Ugly hack
+                List<ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
                 manifestEntries.forEach(entry -> {
-                    if (entry.getType() == CacheManifest.EntryType.DIRECTORY) {
-                        new File(root, entry.getRelativePath()).mkdirs();
+                    switch (entry.getType()) {
+                        case DIRECTORY:
+                            new File(root, entry.getRelativePath()).mkdirs();
+                            break;
+                        case MISSING:
+                            FileUtils.deleteQuietly(new File(root, entry.getRelativePath()));
+                            break;
                     }
                 });
 
@@ -178,7 +185,22 @@ public class NextGenBuildCacheController implements BuildCacheController {
             rootSnapshot.accept(new RelativePathTracker(), new RelativePathTrackingFileSystemSnapshotHierarchyVisitor() {
                 @Override
                 public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
-                    CacheManifest.EntryType type = (snapshot instanceof RegularFileSnapshot) ? CacheManifest.EntryType.FILE : CacheManifest.EntryType.DIRECTORY;
+                    CacheManifest.EntryType type = snapshot.accept(new FileSystemLocationSnapshot.FileSystemLocationSnapshotTransformer<CacheManifest.EntryType>() {
+                        @Override
+                        public CacheManifest.EntryType visitRegularFile(RegularFileSnapshot fileSnapshot) {
+                            return CacheManifest.EntryType.FILE;
+                        }
+
+                        @Override
+                        public CacheManifest.EntryType visitDirectory(DirectorySnapshot directorySnapshot) {
+                            return CacheManifest.EntryType.DIRECTORY;
+                        }
+
+                        @Override
+                        public CacheManifest.EntryType visitMissing(MissingFileSnapshot missingSnapshot) {
+                            return CacheManifest.EntryType.MISSING;
+                        }
+                    });
                     manifestEntries.add(new ManifestEntry(type, relativePath.toRelativePath(), snapshot.getHash().toString()));
                     return SnapshotVisitResult.CONTINUE;
                 }
