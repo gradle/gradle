@@ -22,5 +22,7 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.util.Path;
 
 public interface BuildCacheControllerFactory {
+    String REMOTE_CONTINUE_ON_ERROR_PROPERTY = "org.gradle.unsafe.build-cache.remote-continue-on-error";
+
     BuildCacheController createController(Path buildIdentityPath, BuildCacheConfigurationInternal buildCacheConfiguration, InstanceGenerator instanceGenerator);
 }
