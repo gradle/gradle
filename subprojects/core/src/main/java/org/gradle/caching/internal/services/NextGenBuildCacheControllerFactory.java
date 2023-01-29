@@ -16,7 +16,8 @@
 
 package org.gradle.caching.internal.services;
 
-import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
+import org.gradle.StartParameter;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -24,72 +25,71 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
-import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.internal.NoOpBuildCacheService;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.DefaultNextGenBuildCacheAccess;
 import org.gradle.caching.internal.controller.NextGenBuildCacheController;
+import org.gradle.caching.internal.origin.OriginMetadataFactory;
+import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.H2LocalCacheService;
-import org.gradle.internal.Cast;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.vfs.FileSystemAccess;
 
-import java.io.File;
+import javax.annotation.Nullable;
 import java.io.IOException;
 
-public final class NextGenBuildCacheControllerFactory {
+public final class NextGenBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<H2LocalCacheService> {
 
-    public static BuildCacheController create(
-        BuildCacheConfigurationInternal buildCacheConfiguration,
-        Deleter deleter,
+    private static final String NEXT_GEN_CACHE_SYSTEM_PROPERTY = "org.gradle.unsafe.cache.ng";
+    private final Deleter deleter;
+
+    public static boolean isNextGenCachingEnabled() {
+        return Boolean.getBoolean(NEXT_GEN_CACHE_SYSTEM_PROPERTY) == Boolean.TRUE;
+    }
+
+    public NextGenBuildCacheControllerFactory(
+        StartParameter startParameter,
+        BuildOperationExecutor buildOperationExecutor,
+        OriginMetadataFactory originMetadataFactory,
         FileSystemAccess fileSystemAccess,
-        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        Instantiator instantiator,
-        PathToFileResolver resolver
+        StringInterner stringInterner,
+        Deleter deleter
     ) {
-        // DirectoryBuildCache local = buildCacheConfiguration.getLocal();
-        BuildCache remote = buildCacheConfiguration.getRemote();
-        boolean remoteEnabled = remote != null && remote.isEnabled();
+        super(
+            startParameter,
+            buildOperationExecutor,
+            originMetadataFactory,
+            fileSystemAccess,
+            stringInterner);
+        this.deleter = deleter;
+    }
 
-        Object cacheDirectory = buildCacheConfiguration.getLocal().getDirectory();
-        File target;
-        if (cacheDirectory != null) {
-            target = resolver.resolve(cacheDirectory);
-        } else {
-            target = cacheBuilderFactory.baseDirForCrossVersionCache("build-cache-2");
-        }
-        BuildCacheService localService = new H2LocalCacheService(target.toPath());
+    @Override
+    protected BuildCacheController doCreateController(
+        @Nullable DescribedBuildCacheService<DirectoryBuildCache, H2LocalCacheService> localDescribedService,
+        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService) {
 
-        BuildCacheService remoteService = remoteEnabled
-            ? createBuildCacheService(remote, buildCacheConfiguration, instantiator)
-            : NoOpBuildCacheService.INSTANCE;
+        BuildCacheService local = resolveService(localDescribedService);
+        BuildCacheService remote = resolveService(remoteDescribedService);
 
         return new NextGenBuildCacheController(
             deleter,
             fileSystemAccess,
             new DefaultNextGenBuildCacheAccess(
-                localService, remoteService
+                local,
+                remote
             )
         );
     }
 
-    private static BuildCacheService createBuildCacheService(
-        BuildCache configuration,
-        BuildCacheConfigurationInternal buildCacheConfiguration,
-        Instantiator instantiator
-    ) {
-        Class<? extends BuildCacheServiceFactory<BuildCache>> castFactoryType = Cast.uncheckedNonnullCast(
-            buildCacheConfiguration.getBuildCacheServiceFactoryType(configuration.getClass())
-        );
-
-        BuildCacheServiceFactory<BuildCache> factory = instantiator.newInstance(castFactoryType);
-        Describer describer = new Describer();
-        BuildCacheService service = factory.createBuildCacheService(configuration, describer);
-        return configuration.isPush()
-            ? service
-            : new NoPushBuildCacheService(service);
+    private static BuildCacheService resolveService(@Nullable DescribedBuildCacheService<? extends BuildCache, ? extends BuildCacheService> describedService) {
+        if (describedService == null || !describedService.config.isEnabled()) {
+            return NoOpBuildCacheService.INSTANCE;
+        }
+        return describedService.config.isPush()
+            ? describedService.service
+            : new NoPushBuildCacheService(describedService.service);
     }
 
     private static class NoPushBuildCacheService implements BuildCacheService {

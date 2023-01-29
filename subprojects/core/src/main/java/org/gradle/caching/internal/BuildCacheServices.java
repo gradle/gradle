@@ -16,12 +16,11 @@
 
 package org.gradle.caching.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
+import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
@@ -36,17 +35,17 @@ import org.gradle.caching.internal.packaging.impl.GZipBuildCacheEntryPacker;
 import org.gradle.caching.internal.packaging.impl.TarBuildCacheEntryPacker;
 import org.gradle.caching.internal.packaging.impl.TarPackerFileSystemSupport;
 import org.gradle.caching.internal.services.BuildCacheControllerFactory;
+import org.gradle.caching.internal.services.LegacyBuildCacheControllerFactory;
 import org.gradle.caching.internal.services.NextGenBuildCacheControllerFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheFileStoreFactory;
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
+import org.gradle.caching.local.internal.H2BuildCacheServiceFactory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileException;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.StreamHasher;
-import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
@@ -61,7 +60,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.List;
@@ -101,7 +99,10 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
             }
 
             BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {
-                return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, DirectoryBuildCacheServiceFactory.class);
+                Class<? extends BuildCacheServiceFactory<?>> localCacheServiceFactory = NextGenBuildCacheControllerFactory.isNextGenCachingEnabled()
+                    ? H2BuildCacheServiceFactory.class
+                    : DirectoryBuildCacheServiceFactory.class;
+                return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, localCacheServiceFactory);
             }
 
         });
@@ -143,19 +144,14 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
 
             BuildCacheController createBuildCacheController(
                 ServiceRegistry serviceRegistry,
-                BuildCacheConfigurationInternal buildCacheConfiguration,
-                BuildOperationExecutor buildOperationExecutor,
                 InstantiatorFactory instantiatorFactory,
                 GradleInternal gradle,
+                BuildCacheConfigurationInternal buildCacheConfiguration,
                 RootBuildCacheControllerRef rootControllerRef,
-                TemporaryFileProvider temporaryFileProvider,
-                FileSystemAccess fileSystemAccess,
-                BuildCacheEntryPacker packer,
-                OriginMetadataFactory originMetadataFactory,
-                StringInterner stringInterner
+                BuildCacheControllerFactory buildCacheControllerFactory
             ) {
                 if (isRoot(gradle) || isGradleBuildTaskRoot(rootControllerRef)) {
-                    return doCreateBuildCacheController(serviceRegistry, buildCacheConfiguration, buildOperationExecutor, instantiatorFactory, gradle, temporaryFileProvider, fileSystemAccess, packer, originMetadataFactory, stringInterner);
+                    return buildCacheControllerFactory.createController(gradle.getIdentityPath(), buildCacheConfiguration, instantiatorFactory.inject(serviceRegistry));
                 } else {
                     // must be an included build or buildSrc
                     return rootControllerRef.getForNonRootBuild();
@@ -175,51 +171,36 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 return gradle.isRootBuild();
             }
 
-            private BuildCacheController doCreateBuildCacheController(
-                ServiceRegistry serviceRegistry,
-                BuildCacheConfigurationInternal buildCacheConfiguration,
+            BuildCacheControllerFactory createBuildCacheControllerFactory(
+                StartParameterInternal startParameter,
                 BuildOperationExecutor buildOperationExecutor,
-                InstantiatorFactory instantiatorFactory,
-                GradleInternal gradle,
                 TemporaryFileProvider temporaryFileProvider,
                 FileSystemAccess fileSystemAccess,
                 BuildCacheEntryPacker packer,
                 OriginMetadataFactory originMetadataFactory,
-                StringInterner stringInterner
+                StringInterner stringInterner,
+                Deleter deleter
             ) {
-                StartParameter startParameter = gradle.getStartParameter();
-                InstanceGenerator instantiator = instantiatorFactory.inject(serviceRegistry);
-                if (Boolean.getBoolean("org.gradle.unsafe.cache.ng")) {
-                    return NextGenBuildCacheControllerFactory.create(
-                        buildCacheConfiguration,
-                        serviceRegistry.get(Deleter.class),
+                if (NextGenBuildCacheControllerFactory.isNextGenCachingEnabled()) {
+                    return new NextGenBuildCacheControllerFactory(
+                        startParameter,
+                        buildOperationExecutor,
+                        originMetadataFactory,
                         fileSystemAccess,
-                        serviceRegistry.get(GlobalScopedCacheBuilderFactory.class),
-                        instantiator,
-                        serviceRegistry.get(PathToFileResolver.class)
+                        stringInterner,
+                        deleter
+                    );
+                } else {
+                    return new LegacyBuildCacheControllerFactory(
+                        startParameter,
+                        buildOperationExecutor,
+                        originMetadataFactory,
+                        fileSystemAccess,
+                        stringInterner,
+                        temporaryFileProvider,
+                        packer
                     );
                 }
-                Path buildIdentityPath = gradle.getIdentityPath();
-                BuildCacheControllerFactory.BuildCacheMode buildCacheMode = startParameter.isBuildCacheEnabled() ? BuildCacheControllerFactory.BuildCacheMode.ENABLED : BuildCacheControllerFactory.BuildCacheMode.DISABLED;
-                BuildCacheControllerFactory.RemoteAccessMode remoteAccessMode = startParameter.isOffline() ? BuildCacheControllerFactory.RemoteAccessMode.OFFLINE : BuildCacheControllerFactory.RemoteAccessMode.ONLINE;
-                boolean logStackTraces = startParameter.getShowStacktrace() != ShowStacktrace.INTERNAL_EXCEPTIONS;
-                boolean emitDebugLogging = startParameter.isBuildCacheDebugLogging();
-
-                return BuildCacheControllerFactory.create(
-                    buildOperationExecutor,
-                    buildIdentityPath,
-                    temporaryFileProvider,
-                    buildCacheConfiguration,
-                    buildCacheMode,
-                    remoteAccessMode,
-                    logStackTraces,
-                    emitDebugLogging,
-                    instantiator,
-                    fileSystemAccess,
-                    packer,
-                    originMetadataFactory,
-                    stringInterner
-                );
             }
         });
     }
