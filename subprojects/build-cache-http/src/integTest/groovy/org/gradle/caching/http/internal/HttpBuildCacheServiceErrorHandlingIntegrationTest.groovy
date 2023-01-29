@@ -17,6 +17,7 @@
 package org.gradle.caching.http.internal
 
 import org.eclipse.jetty.server.Response
+import org.gradle.caching.internal.services.BuildCacheControllerFactory
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -195,7 +196,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         settingsFile << withHttpBuildCacheServer()
 
         when:
-        withBuildCache().run("-D${LegacyBuildCacheControllerFactory.REMOTE_CONTINUE_ON_ERROR_PROPERTY}=true", "customTask", "customTask2")
+        withBuildCache().run("-D${BuildCacheControllerFactory.REMOTE_CONTINUE_ON_ERROR_PROPERTY}=true", "customTask", "customTask2")
 
         then:
         output =~ /Could not load entry .* from remote build cache: Loading entry from '.+' response status 500: Server Error/

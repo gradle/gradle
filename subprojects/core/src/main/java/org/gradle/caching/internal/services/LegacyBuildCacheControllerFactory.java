@@ -36,8 +36,6 @@ import javax.annotation.Nullable;
 
 public class LegacyBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<DirectoryBuildCacheService> {
 
-    public static final String REMOTE_CONTINUE_ON_ERROR_PROPERTY = "org.gradle.unsafe.build-cache.remote-continue-on-error";
-
     private final TemporaryFileProvider temporaryFileProvider;
     private final BuildCacheEntryPacker packer;
 
