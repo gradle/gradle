@@ -932,7 +932,28 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         compileKotlin()
         val generated = file("build/generated-sources/kotlin-dsl-plugins/kotlin").walkTopDown().filter { it.isFile }.map { it.name }
         assertThat(generated.toList(), equalTo(listOf("CorrectPlugin.kt")))
-    }}
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/17831")
+    fun `fails with a reasonable error message if init precompiled script has no plugin id`() {
+        withKotlinDslPlugin()
+        val init = withPrecompiledKotlinScript("init.gradle.kts", "")
+        buildAndFail(":compileKotlin").apply {
+            assertHasCause("Precompiled script '${normaliseFileSeparators(init.absolutePath)}' file name is invalid, please rename it to '<plugin-id>.init.gradle.kts'.")
+        }
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/17831")
+    fun `fails with a reasonable error message if settings precompiled script has no plugin id`() {
+        withKotlinDslPlugin()
+        val settings = withPrecompiledKotlinScript("settings.gradle.kts", "")
+        buildAndFail(":compileKotlin").apply {
+            assertHasCause("Precompiled script '${normaliseFileSeparators(settings.absolutePath)}' file name is invalid, please rename it to '<plugin-id>.settings.gradle.kts'.")
+        }
+    }
+}
 
 
 abstract class MyPlugin : Plugin<Project> {
