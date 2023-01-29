@@ -28,6 +28,7 @@ import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.internal.NoOpBuildCacheService;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.DefaultNextGenBuildCacheAccess;
+import org.gradle.caching.internal.controller.GZipNextGenBuildCacheAccess;
 import org.gradle.caching.internal.controller.NextGenBuildCacheController;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
@@ -68,7 +69,8 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
     @Override
     protected BuildCacheController doCreateController(
         @Nullable DescribedBuildCacheService<DirectoryBuildCache, H2LocalCacheService> localDescribedService,
-        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService) {
+        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService
+    ) {
 
         BuildCacheService local = resolveService(localDescribedService);
         BuildCacheService remote = resolveService(remoteDescribedService);
@@ -76,9 +78,11 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         return new NextGenBuildCacheController(
             deleter,
             fileSystemAccess,
-            new DefaultNextGenBuildCacheAccess(
-                local,
-                remote
+            new GZipNextGenBuildCacheAccess(
+                new DefaultNextGenBuildCacheAccess(
+                    local,
+                    remote
+                )
             )
         );
     }
