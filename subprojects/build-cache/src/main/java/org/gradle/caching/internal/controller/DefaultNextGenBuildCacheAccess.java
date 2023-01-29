@@ -35,6 +35,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     private final BuildCacheService remote;
 
     public DefaultNextGenBuildCacheAccess(BuildCacheService local, BuildCacheService remote) {
+        // TODO Do we need to close these?
         this.local = local;
         this.remote = remote;
     }
