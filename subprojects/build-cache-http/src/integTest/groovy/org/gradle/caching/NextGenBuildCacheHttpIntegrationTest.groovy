@@ -64,6 +64,6 @@ class NextGenBuildCacheHttpIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     private runWithCacheNG(String... task) {
-        run Lists.asList("-Dorg.gradle.unsafe.cache.ng=true", task)
+        withBuildCache().run Lists.asList("-Dorg.gradle.unsafe.cache.ng=true", task)
     }
 }
