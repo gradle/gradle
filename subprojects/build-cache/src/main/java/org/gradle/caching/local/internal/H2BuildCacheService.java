@@ -38,8 +38,8 @@ public class H2BuildCacheService implements BuildCacheService {
 
     private final HikariDataSource dataSource;
 
-    public H2BuildCacheService(Path dbPath) {
-        this.dataSource = createHikariDataSource(dbPath);
+    public H2BuildCacheService(Path dbPath, int maxPoolSize) {
+        this.dataSource = createHikariDataSource(dbPath, maxPoolSize);
         Flyway flyway = Flyway.configure()
             .schemas("filestore")
             .dataSource(dataSource)
@@ -50,7 +50,7 @@ public class H2BuildCacheService implements BuildCacheService {
         flyway.migrate();
     }
 
-    private static HikariDataSource createHikariDataSource(Path dbPath) {
+    private static HikariDataSource createHikariDataSource(Path dbPath, int maxPoolSize) {
         HikariConfig hikariConfig = new HikariConfig();
         // RETENTION_TIME=0 prevents uncontrolled DB growth with old pages retention
         String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0", dbPath.resolve("filestore"));
@@ -59,7 +59,7 @@ public class H2BuildCacheService implements BuildCacheService {
         hikariConfig.setPassword("");
         hikariConfig.setCatalog("filestore");
         hikariConfig.setPoolName("filestore-pool");
-        hikariConfig.setMaximumPoolSize(20);
+        hikariConfig.setMaximumPoolSize(maxPoolSize);
         hikariConfig.setConnectionInitSql("select 1;");
         return new HikariDataSource(hikariConfig);
     }
