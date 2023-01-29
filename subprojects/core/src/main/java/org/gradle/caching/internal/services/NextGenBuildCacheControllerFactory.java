@@ -42,7 +42,7 @@ import java.io.IOException;
 
 public final class NextGenBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<H2LocalCacheService> {
 
-    private static final String NEXT_GEN_CACHE_SYSTEM_PROPERTY = "org.gradle.unsafe.cache.ng";
+    public static final String NEXT_GEN_CACHE_SYSTEM_PROPERTY = "org.gradle.unsafe.cache.ng";
     private final Deleter deleter;
 
     public static boolean isNextGenCachingEnabled() {
