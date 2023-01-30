@@ -958,6 +958,11 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @Issue("https://github.com/gradle/gradle/issues/12955")
     fun `logs output from schema collection on errors only`() {
 
+        // TODO: the Kotlin compile tasks check for cacheability using Task.getProject
+        executer.beforeExecute {
+            it.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        }
+
         fun outputFrom(origin: String, logger: Boolean = true) = buildString {
             appendLine("""println("STDOUT from $origin")""")
             appendLine("""System.err.println("STDERR from $origin")""")
@@ -998,13 +1003,13 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             plugins {
                 ${outputFrom("plugins block", logger = false)}
                 id("applied-output")
-                TODO("BOOM") // Fail in the plugins block
+                TODO("some plugins block failure")
             }
         """)
         buildAndFail(":compileKotlin").apply {
             assertHasFailure("Execution failed for task ':generatePrecompiledScriptPluginAccessors'.") {
                 assertHasCause("Failed to collect plugin requests of 'src/main/kotlin/some.gradle.kts'")
-                assertHasCause("An operation is not implemented: BOOM")
+                assertHasCause("An operation is not implemented: some plugins block failure")
             }
             assertHasErrorOutput("STDOUT from plugins block")
             assertHasErrorOutput("STDERR from plugins block")
