@@ -24,6 +24,8 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.invocation.Gradle
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
@@ -48,6 +50,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.kotlin.dsl.accessors.AccessorFormats
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
@@ -346,7 +349,9 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     gradle.rootProject = rootProject
                     gradle.defaultProject = rootProject
                     rootProject.run {
-                        applyPlugins(plugins)
+                        gradle.withLogLevel(LogLevel.QUIET) {
+                            applyPlugins(plugins)
+                        }
                         serviceOf<ProjectSchemaProvider>().schemaFor(this)
                     }
                 }
@@ -486,4 +491,17 @@ fun ProjectInternal.applyPlugins(pluginRequests: PluginRequests) {
         pluginManager,
         classLoaderScope
     )
+}
+
+
+private
+fun <T> Gradle.withLogLevel(logLevel: LogLevel, block: () -> T): T {
+    val loggingManager = serviceOf<LoggingManagerInternal>()
+    val previousLevel = loggingManager.level
+    return try {
+        loggingManager.setLevelInternal(logLevel)
+        block()
+    } finally {
+        loggingManager.setLevelInternal(previousLevel)
+    }
 }
