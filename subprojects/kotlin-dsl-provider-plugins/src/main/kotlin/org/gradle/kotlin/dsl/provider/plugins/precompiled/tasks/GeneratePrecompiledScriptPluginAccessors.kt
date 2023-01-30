@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.StartParameter
-import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
@@ -61,6 +60,7 @@ import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptException
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
 import org.gradle.kotlin.dsl.support.KotlinScriptType
@@ -422,7 +422,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun reportProjectSchemaError(plugins: List<PrecompiledScriptPlugin>, error: Throwable) {
         @Suppress("DEPRECATION")
-        if (strict.get()) throw GradleException(failedToGenerateAccessorsFor(plugins), error)
+        if (strict.get()) throw PrecompiledScriptException(failedToGenerateAccessorsFor(plugins), error)
         else logger.warn(failedToGenerateAccessorsFor(plugins), error)
     }
 
