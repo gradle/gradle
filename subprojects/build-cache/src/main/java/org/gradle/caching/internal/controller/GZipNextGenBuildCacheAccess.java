@@ -72,4 +72,9 @@ public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             };
         });
     }
+
+    @Override
+    public void close() throws IOException {
+        delegate.close();
+    }
 }

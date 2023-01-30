@@ -284,6 +284,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
     @Override
     public void close() throws IOException {
+        cacheAccess.close();
     }
 
     // FIXME code duplicate
