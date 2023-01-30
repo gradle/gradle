@@ -17,8 +17,8 @@
 package org.gradle.caching.internal.controller;
 
 import com.google.common.collect.Streams;
-import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
+import org.apache.commons.io.IOUtils;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
@@ -32,6 +32,12 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
+
+    // TODO Move all thread-local buffers to a shared service
+    // TODO Make buffer size configurable
+    private static final int BUFFER_SIZE = 64 * 1024;
+    private static final ThreadLocal<byte[]> COPY_BUFFERS = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
+
     private final BuildCacheService local;
     private final BuildCacheService remote;
 
@@ -49,9 +55,9 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 return;
             }
             remote.load(key, input -> {
+                // TODO Make this work for large pieces of content, too
                 ByteArrayOutputStream temp = new ByteArrayOutputStream();
-                ByteStreams.copy(input, temp);
-                // TODO Make this more performant
+                IOUtils.copyLarge(input, temp, COPY_BUFFERS.get());
                 byte[] data = temp.toByteArray();
                 // Mirror data in local cache
                 local.store(key, new BuildCacheEntryWriter() {
