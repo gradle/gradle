@@ -23,9 +23,10 @@ import spock.lang.Specification
 
 class JavaInstallationRegistryTest extends Specification {
 
+    def tempFolder = createTempDir()
+
     def "registry keeps track of initial installations"() {
         when:
-        def tempFolder = createTempDir()
         createExecutable(tempFolder)
 
         def registry = newRegistry(tempFolder)
@@ -37,7 +38,6 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "registry filters non-unique locations"() {
         when:
-        def tempFolder = createTempDir()
         createExecutable(tempFolder)
 
         def registry = newRegistry(tempFolder, tempFolder)
@@ -48,7 +48,6 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "duplicates are detected using canonical form"() {
         given:
-        def tempFolder = createTempDir()
         createExecutable(tempFolder)
 
         def registry = newRegistry(tempFolder, new File(tempFolder, "/."))
@@ -62,7 +61,6 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "can be initialized with suppliers"() {
         given:
-        def tempFolder = createTempDir()
         createExecutable(tempFolder)
         def tmpDir2 = createTempDir()
         createExecutable(tmpDir2)
@@ -78,7 +76,6 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "list of installations is cached"() {
         given:
-        def tempFolder = createTempDir()
         createExecutable(tempFolder)
 
         def registry = newRegistry(tempFolder)
@@ -93,7 +90,6 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "normalize installations to account for macOS folder layout"() {
         given:
-        def tempFolder = createTempDir()
         def expectedHome = new File(tempFolder, "Contents/Home")
         createExecutable(expectedHome, OperatingSystem.MAC_OS)
 
@@ -108,7 +104,6 @@ class JavaInstallationRegistryTest extends Specification {
 
     def "normalize installations to account for standalone jre"() {
         given:
-        def tempFolder = createTempDir()
         def expectedHome = new File(tempFolder, "jre")
         createExecutable(expectedHome)
 
