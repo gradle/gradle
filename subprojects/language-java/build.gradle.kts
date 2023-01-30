@@ -75,7 +75,7 @@ tasks.withType<Test>().configureEach {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.release.set(null as? Int)
+    options.release = null
     sourceCompatibility = "8"
     targetCompatibility = "8"
 }
@@ -90,7 +90,7 @@ packageCycles {
     excludePatterns.add("org/gradle/external/javadoc/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true
 
 // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
 tasks.configCacheIntegTest {

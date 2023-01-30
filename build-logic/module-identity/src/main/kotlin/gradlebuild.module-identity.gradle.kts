@@ -85,14 +85,12 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
     moduleIdentity.buildTimestamp.convention(buildTimestamp)
     moduleIdentity.promotionBuild.convention(isPromotionBuild)
 
-    moduleIdentity.releasedVersions.set(
-        provider {
-            ReleasedVersionsDetails(
-                moduleIdentity.version.get().baseVersion,
-                releasedVersionsFile()
-            )
-        }
-    )
+    moduleIdentity.releasedVersions = provider {
+        ReleasedVersionsDetails(
+            moduleIdentity.version.get().baseVersion,
+            releasedVersionsFile()
+        )
+    }
 
     return versionNumber
 }
@@ -108,15 +106,11 @@ fun Project.trimmedContentsOfFile(path: String): String =
 fun Project.buildTimestamp(): Provider<String> =
     providers.of(BuildTimestampValueSource::class) {
         parameters {
-            buildTimestampFromBuildReceipt.set(buildTimestampFromBuildReceipt())
-            buildTimestampFromGradleProperty.set(buildTimestamp)
-            runningOnCi.set(buildRunningOnCi)
-            runningInstallTask.set(
-                provider { isRunningInstallTask() }
-            )
-            runningDocsTestTask.set(
-                provider { isRunningDocsTestTask() }
-            )
+            buildTimestampFromBuildReceipt = buildTimestampFromBuildReceipt()
+            buildTimestampFromGradleProperty = buildTimestamp
+            runningOnCi = buildRunningOnCi
+            runningInstallTask = provider { isRunningInstallTask() }
+            runningDocsTestTask = provider { isRunningDocsTestTask() }
         }
     }
 
@@ -124,14 +118,12 @@ fun Project.buildTimestamp(): Provider<String> =
 fun Project.buildTimestampFromBuildReceipt(): Provider<String> =
     providers.of(BuildTimestampFromBuildReceiptValueSource::class) {
         parameters {
-            ignoreIncomingBuildReceipt.set(project.ignoreIncomingBuildReceipt)
-            buildReceiptFileContents.set(
-                repoRoot()
-                    .dir("incoming-distributions")
-                    .file(BuildReceipt.buildReceiptFileName)
-                    .let(providers::fileContents)
-                    .asText
-            )
+            ignoreIncomingBuildReceipt = project.ignoreIncomingBuildReceipt
+            buildReceiptFileContents = repoRoot()
+                .dir("incoming-distributions")
+                .file(BuildReceipt.buildReceiptFileName)
+                .let(providers::fileContents)
+                .asText
         }
     }
 
