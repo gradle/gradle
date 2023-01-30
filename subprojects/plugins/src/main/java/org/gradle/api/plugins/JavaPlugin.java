@@ -300,7 +300,6 @@ public abstract class JavaPlugin implements Plugin<Project> {
     }
 
     private static void configureDiagnostics(Project project, JvmSoftwareComponentInternal component) {
-        // TODO: Deprecate this convention?
         project.getTasks().withType(DependencyInsightReportTask.class).configureEach(task -> {
             new DslObject(task).getConventionMapping().map("configuration", component::getCompileClasspathConfiguration);
         });

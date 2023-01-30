@@ -37,9 +37,9 @@ import org.gradle.api.tasks.compile.JavaCompile;
  * <p>
  * TODO: Before publicizing this component, we also need to consider how component extensibility works.
  * For example, for the java-library plugin we have the additional {@code api} and {@code compileOnlyApi}
- * scopes. Do we expect that plugin to write a new component interface and extend this in order to add the
- * proper getter methods? What about the concrete component class which implements that new interface? Does
- * it extend the default implementation class? Is there a way we can avoid Java inheritance?
+ * dependency configurations. Do we expect that plugin to write a new component interface and extend this in
+ * order to add the proper getter methods? What about the concrete component class which implements that new
+ * interface? Does it extend the default implementation class? Is there a way we can avoid Java inheritance?
  */
 public interface JvmSoftwareComponentInternal extends SoftwareComponent {
 
@@ -95,8 +95,8 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
     SourceSet getSourceSet();
 
     /**
-     * Gets the scope configuration for which to declare dependencies internal to the component.
-     * Dependencies declared on this scope are present during compilation and runtime, but are not
+     * Gets the dependency configuration for which to declare dependencies internal to the component.
+     * Dependencies declared on this configuration are present during compilation and runtime, but are not
      * exposed as part of the component's API variant.
      *
      * @return The {@code implementation} configuration.
@@ -104,8 +104,8 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
     Configuration getImplementationConfiguration();
 
     /**
-     * Gets the scope configuration for which to declare runtime-only dependencies.
-     * Dependencies declared on this scope are present only during runtime, are not
+     * Gets the dependency configuration for which to declare runtime-only dependencies.
+     * Dependencies declared on this configuration are present only during runtime, are not
      * present during compilation, and are not exposed as part of the component's API variant.
      *
      * @return The {@code runtimeOnly} configuration.
@@ -113,8 +113,8 @@ public interface JvmSoftwareComponentInternal extends SoftwareComponent {
     Configuration getRuntimeOnlyConfiguration();
 
     /**
-     * Gets the scope configuration for which to declare compile-only dependencies.
-     * Dependencies declared on this scope are present only during compilation, are not
+     * Gets the dependency configuration for which to declare compile-only dependencies.
+     * Dependencies declared on this configuration are present only during compilation, are not
      * present during runtime, and are not exposed as part of the component's API variant.
      *
      * @return The {@code compileOnly} configuration.
