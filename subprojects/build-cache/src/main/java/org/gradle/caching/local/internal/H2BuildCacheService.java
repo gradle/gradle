@@ -27,6 +27,7 @@ import org.gradle.caching.BuildCacheService;
 import org.gradle.internal.io.StreamByteBuffer;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.sql.Blob;
 import java.sql.Connection;
@@ -37,6 +38,7 @@ import java.sql.SQLException;
 public class H2BuildCacheService implements BuildCacheService {
 
     private final HikariDataSource dataSource;
+    private final BuildCacheEntryReader noOpReader;
 
     public H2BuildCacheService(Path dbPath, int maxPoolSize) {
         this.dataSource = createHikariDataSource(dbPath, maxPoolSize);
@@ -48,6 +50,7 @@ public class H2BuildCacheService implements BuildCacheService {
             .failOnMissingLocations(true)
             .load();
         flyway.migrate();
+        this.noOpReader = input -> {};
     }
 
     private static HikariDataSource createHikariDataSource(Path dbPath, int maxPoolSize) {
@@ -85,6 +88,9 @@ public class H2BuildCacheService implements BuildCacheService {
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+        if (load(key, noOpReader)) {
+            return;
+        }
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("insert into filestore.catalog(entry_key, entry_size, entry_content) values (?, ?, ?)")) {
                 StreamByteBuffer buffer = new StreamByteBuffer();
