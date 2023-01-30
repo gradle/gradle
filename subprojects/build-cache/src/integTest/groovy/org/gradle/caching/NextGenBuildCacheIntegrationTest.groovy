@@ -105,10 +105,12 @@ class NextGenBuildCacheIntegrationTest extends AbstractIntegrationSpec implement
         buildFile << """
             task customTask {
                 outputs.cacheIf { true }
-                outputs.files files("build/output1.txt", "build/output2.txt") withPropertyName("out")
+                def output1 = file("build/output1.txt")
+                def output2 = file("build/output2.txt")
+                outputs.files files(output1, output2) withPropertyName("out")
                 doLast {
-                    file("build/output1.txt") << "data"
-                    file("build/output2.txt") << "data"
+                    output1 << "data"
+                    output2 << "data"
                 }
             }
         """
