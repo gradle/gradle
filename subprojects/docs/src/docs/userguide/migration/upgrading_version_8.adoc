@@ -38,16 +38,17 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
 
-=== Warnings that are now errors
-
-=== Removed APIs
-
 === Potential breaking changes
 
 === Deprecations
 
 [[custom_configuration_roles]]
 ==== Custom configuration roles
+
+// TODO: There is currently no API for users to provide "custom roles" or even
+// any roles at all other than the existing role-mutating methods. We should revisit
+// this deprecation log and section when we introduce a public API for creating
+// locked-role configurations.
 
 Custom roles have been deprecated.
 Use a pre-defined role instead.
@@ -63,6 +64,34 @@ This includes calling any of the following `Configuration` methods:
 - `setCanBeResolved(boolean)`
 
 The ability to change the allowed usage of a configuration after creation will be removed in Gradle 9.0.
+
+[[java_extension_without_java_component]]
+==== Calling select methods on the `JavaPluginExtension` without the `java` component present
+
+Starting in Gradle 8.1, calling any of the following methods on `JavaPluginExtension` without
+the presence of the default `java` component is deprecated:
+
+- `withJavadocJar()`
+- `withSourcesJar()`
+- `consistentResolution(Action)`
+
+This `java` component is added by the `JavaPlugin`, which is applied by any of the Gradle JVM plugins including:
+
+- `java-library`
+- `application`
+- `groovy`
+- `scala`
+
+Starting in Gradle 9.0, calling any of the above listed methods without the presence of the default `java` component
+will become an error.
+
+[[war_plugin_configure_configurations]]
+==== `WarPlugin#configureConfiguration(ConfigurationContainer)`
+
+Starting in Gradle 8.1, calling `WarPlugin#configureConfiguration(ConfigurationContainer)` is deprecated. This method was
+intended for internal use and was never intended to be used as part of the public interface.
+
+Starting in Gradle 9.0, this method will be removed without replacement.
 
 [[gmm_modification_after_publication_populated]]
 ==== Modifying Gradle Module Metadata after a publication has been populated

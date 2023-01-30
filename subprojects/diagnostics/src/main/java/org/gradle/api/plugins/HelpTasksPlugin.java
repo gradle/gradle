@@ -20,11 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.internal.component.SoftwareComponentContainerInternal;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.internal.DiagnosableSoftwareComponent;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
@@ -181,13 +177,6 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
             task.getShowingAllVariants().convention(false);
-            SoftwareComponentContainerInternal components = (SoftwareComponentContainerInternal) task.getProject().getComponents();
-            new DslObject(task).getConventionMapping().map("configuration", () -> {
-                SoftwareComponent javaComponent = components.getMainComponent().getOrNull();
-                return javaComponent instanceof DiagnosableSoftwareComponent
-                    ? ((DiagnosableSoftwareComponent) javaComponent).getCompileClasspath()
-                    : null;
-            });
         }
     }
 
