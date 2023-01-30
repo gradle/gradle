@@ -34,7 +34,9 @@ import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginAware
 
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.internal.Factory
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
+import org.gradle.internal.deprecation.DeprecationLogger
 
 import org.gradle.kotlin.dsl.provider.fileCollectionOf
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
@@ -91,9 +93,10 @@ inline fun <reified T : Plugin<Project>> Project.apply() =
 inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit): Unit =
     @Suppress("deprecation")
     typeOf<T>().let { type ->
+        val convention = DeprecationLogger.whileDisabled(Factory { convention })!!
         convention.findByType(type)?.let(configuration)
-            ?: convention.findPlugin<T>()?.let(configuration)
-            ?: convention.configure(type, configuration)
+                ?: convention.findPlugin<T>()?.let(configuration)
+                ?: convention.configure(type, configuration)
     }
 
 
@@ -106,6 +109,7 @@ inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> U
 inline fun <reified T : Any> Project.the(): T =
     @Suppress("deprecation")
     typeOf<T>().let { type ->
+        val convention = DeprecationLogger.whileDisabled(Factory { convention })!!
         convention.findByType(type)
             ?: convention.findPlugin(T::class.java)
             ?: convention.getByType(type)
@@ -118,10 +122,13 @@ inline fun <reified T : Any> Project.the(): T =
  * Note, that the concept of conventions is deprecated and scheduled for
  * removal in Gradle 8.
  */
-fun <T : Any> Project.the(extensionType: KClass<T>): T =
-    @Suppress("deprecation") convention.findByType(extensionType.java)
-        ?: @Suppress("deprecation") convention.findPlugin(extensionType.java)
-        ?: @Suppress("deprecation") convention.getByType(extensionType.java)
+@Suppress("deprecation")
+fun <T : Any> Project.the(extensionType: KClass<T>): T {
+    val convention = DeprecationLogger.whileDisabled(Factory { convention })!!
+    return (convention.findByType(extensionType.java)
+        ?: convention.findPlugin(extensionType.java)
+        ?: convention.getByType(extensionType.java))
+}
 
 
 /**
