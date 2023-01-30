@@ -44,7 +44,7 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
         testProject = AndroidTestProject.findProjectFor(runner.testProject) as IncrementalAndroidTestProject
         AndroidTestProject.useLatestAgpVersion(runner)
         runner.args.add('-Dorg.gradle.parallel=true')
-        runner.args.addAll(["--no-build-cache", "--no-scan"])
+        runner.args.addAll(["--build-cache", "--no-scan", "-Dorg.gradle.unsafe.cache.ng=true"])
         runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheProblemsOption.PROPERTY_NAME}=warn")
         AndroidTestProject.useLatestKotlinVersion(runner)
         // AGP 7.3 requires Gradle 7.4
