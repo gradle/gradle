@@ -35,6 +35,7 @@ import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 import javax.inject.Inject;
@@ -78,7 +79,7 @@ public abstract class EarPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
         EarPluginConvention earPluginConvention = objectFactory.newInstance(org.gradle.plugins.ear.internal.DefaultEarPluginConvention.class);
-        project.getConvention().getPlugins().put("ear", earPluginConvention);
+        DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("ear", earPluginConvention));
         earPluginConvention.setLibDirName(DEFAULT_LIB_DIR_NAME);
         earPluginConvention.setAppDirName("src/main/application");
 
