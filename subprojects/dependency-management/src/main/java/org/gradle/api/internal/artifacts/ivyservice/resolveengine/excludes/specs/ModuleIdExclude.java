@@ -32,6 +32,15 @@ public interface ModuleIdExclude extends ExcludeSpec {
     }
 
     @Override
+    default ExcludeSpec intersect(ModuleSetExclude right, ExcludeFactory factory) {
+        if (right.getModules().contains(this.getModuleId().getName())) {
+            return this;
+        } else {
+            return factory.nothing();
+        }
+    }
+
+    @Override
     default ExcludeSpec intersect(ModuleIdSetExclude right, ExcludeFactory factory) {
         Set<ModuleIdentifier> rightModuleIds = right.getModuleIds();
         if (rightModuleIds.contains(this.getModuleId())) {
