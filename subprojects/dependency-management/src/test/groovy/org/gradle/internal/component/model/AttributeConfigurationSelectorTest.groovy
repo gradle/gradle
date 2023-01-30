@@ -24,11 +24,11 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.CompatibilityCheckDetails
-import org.gradle.api.capabilities.CapabilitiesMetadata
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
@@ -489,7 +489,7 @@ All of them match the consumer attributes:
         Stub(ModuleConfigurationMetadata) {
             getName() >> name
             getAttributes() >> attributes
-            getCapabilities() >> Mock(CapabilitiesMetadata) {
+            getCapabilities() >> Mock(CapabilitiesMetadataInternal) {
                 getCapabilities() >> ImmutableList.copyOf(capabilities)
             }
         }

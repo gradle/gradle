@@ -15,16 +15,22 @@
  */
 package org.gradle.internal.component.external.model;
 
+import org.gradle.api.internal.capabilities.CapabilityInternal;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
+import org.gradle.api.internal.capabilities.ShadowedCapability;
+
 /**
- * A capability that is shadowed by another capability, which is deeply immutable.
+ * A capability that is shadowed by another capability.
+ * <p>
+ * This class remains deeply immutable.
  */
-public final class ShadowedImmutableCapability implements ShadowedCapability, ImmutableCapability {
-    private final CapabilityInternal shadowed;
+public final class ShadowedImmutableCapability implements ShadowedCapability {
+    private final ImmutableCapability shadowed;
     private final String appendix;
 
     public ShadowedImmutableCapability(CapabilityInternal shadowed, String appendix) {
         if (shadowed instanceof ImmutableCapability) {
-            this.shadowed = shadowed;
+            this.shadowed = (ImmutableCapability) shadowed;
         } else {
             this.shadowed = new DefaultImmutableCapability(shadowed.getGroup(), shadowed.getName(), shadowed.getVersion());
         }
@@ -37,7 +43,7 @@ public final class ShadowedImmutableCapability implements ShadowedCapability, Im
     }
 
     @Override
-    public CapabilityInternal getShadowedCapability() {
+    public ImmutableCapability getShadowedCapability() {
         return shadowed;
     }
 
