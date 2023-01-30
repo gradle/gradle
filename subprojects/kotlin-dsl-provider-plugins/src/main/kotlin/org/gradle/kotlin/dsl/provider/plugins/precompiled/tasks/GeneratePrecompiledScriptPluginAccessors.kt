@@ -226,21 +226,32 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     }
 
     private
-    fun ClassLoader.scriptPluginPluginsFor(plugin: PrecompiledScriptPlugin): ScriptPluginPlugins? {
-
-        // The compiled script class won't be present for precompiled script plugins
-        // which don't include a `plugins` block
-        if (getResource(compiledScriptClassFile(plugin)) == null) {
-            return null
-        }
-
-        val pluginRequests = collectPluginRequestsOf(plugin)
-        validatePluginRequestsOf(plugin, pluginRequests)
-        return ScriptPluginPlugins(
-            plugin,
-            pluginRequests.map { it.id.id }
+    fun ClassLoader.scriptPluginPluginsFor(plugin: PrecompiledScriptPlugin): ScriptPluginPlugins? =
+        withCapturedOutputOnError(
+            {
+                if (getResource(compiledScriptClassFile(plugin)) == null) {
+                    // The compiled script class won't be present for precompiled script plugins
+                    // which don't include a `plugins` block
+                    null
+                } else {
+                    val pluginRequests = collectPluginRequestsOf(plugin)
+                    validatePluginRequestsOf(plugin, pluginRequests)
+                    ScriptPluginPlugins(
+                        plugin,
+                        pluginRequests.map { it.id.id }
+                    )
+                }
+            },
+            { (error, stdout, stderr) ->
+                throw PrecompiledScriptException(
+                    buildString {
+                        append("Failed to collect plugin requests of '${projectRelativePathOf(plugin)}'")
+                        appendStdoutStderr(stdout, stderr)
+                    },
+                    error
+                )
+            }
         )
-    }
 
     private
     fun validatePluginRequestsOf(plugin: PrecompiledScriptPlugin, requests: PluginRequests) {
