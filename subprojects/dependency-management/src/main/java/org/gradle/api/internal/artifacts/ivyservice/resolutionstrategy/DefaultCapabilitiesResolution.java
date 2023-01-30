@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.external.model.CapabilityInternal;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.internal.component.external.model.DefaultComponentVariantIdentifier;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.typeconversion.NotationParser;
