@@ -31,6 +31,10 @@ class H2BuildCacheServiceTest extends Specification {
     def dbDir = temporaryFolder.createDir("h2db")
     def service = new H2BuildCacheService(dbDir.toPath(), 20)
 
+    def cleanup() {
+        service.close()
+    }
+
     BuildCacheKey key = Mock(BuildCacheKey) {
         getHashCode() >> "1234abcd"
     }
