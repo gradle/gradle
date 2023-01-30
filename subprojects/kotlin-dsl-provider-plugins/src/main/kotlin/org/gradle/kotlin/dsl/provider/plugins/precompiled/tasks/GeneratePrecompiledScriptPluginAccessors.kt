@@ -72,7 +72,9 @@ import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.PrintStream
 import java.net.URLClassLoader
 import java.nio.file.Files
 import javax.inject.Inject
@@ -309,14 +311,17 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> =
 
         pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
-            try {
-                val schema = projectSchemaFor(pluginRequestsOf(scriptPlugins.first(), uniquePluginRequests)).get()
-                val hashed = HashedProjectSchema(schema)
-                scriptPlugins.map { hashed to it }
-            } catch (error: Throwable) {
-                reportProjectSchemaError(scriptPlugins, error)
-                emptyList()
-            }
+            withCapturedOutputOnError(
+                {
+                    val schema = projectSchemaFor(pluginRequestsOf(scriptPlugins.first(), uniquePluginRequests)).get()
+                    val hashed = HashedProjectSchema(schema)
+                    scriptPlugins.map { hashed to it }
+                },
+                { (error, stdout, stderr) ->
+                    reportProjectSchemaError(scriptPlugins, stdout, stderr, error)
+                    emptyList()
+                }
+            )
         }.groupBy(
             { (schema, _) -> schema },
             { (_, plugin) -> plugin }
@@ -420,19 +425,31 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         }
 
     private
-    fun reportProjectSchemaError(plugins: List<PrecompiledScriptPlugin>, error: Throwable) {
+    fun reportProjectSchemaError(plugins: List<PrecompiledScriptPlugin>, stdout: String, stderr: String, error: Throwable) {
         @Suppress("DEPRECATION")
-        if (strict.get()) throw PrecompiledScriptException(failedToGenerateAccessorsFor(plugins), error)
-        else logger.warn(failedToGenerateAccessorsFor(plugins), error)
+        if (strict.get()) throw PrecompiledScriptException(failedToGenerateAccessorsFor(plugins, stdout, stderr), error)
+        else logger.warn(failedToGenerateAccessorsFor(plugins, stdout, stderr), error)
     }
 
     private
-    fun failedToGenerateAccessorsFor(plugins: List<PrecompiledScriptPlugin>) =
-        plugins.joinToString(
-            prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
-            separator = "\n",
-            postfix = "\n"
-        ) { " - " + projectRelativePathOf(it) }
+    fun failedToGenerateAccessorsFor(plugins: List<PrecompiledScriptPlugin>, stdout: String, stderr: String): String =
+        buildString {
+            append(plugins.joinToString(
+                prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
+                separator = "\n",
+            ) { " - " + projectRelativePathOf(it) })
+            appendStdoutStderr(stdout, stderr)
+        }
+
+    private
+    fun StringBuilder.appendStdoutStderr(stdout: String, stderr: String) {
+        if (stdout.isNotBlank()) {
+            append("\nStandard output:\n${stdout.trim().prependIndent()}")
+        }
+        if (stderr.isNotBlank()) {
+            append("\nStandard error:\n${stderr.trim().prependIndent()}")
+        }
+    }
 
     private
     fun projectRelativePathOf(scriptPlugin: PrecompiledScriptPlugin) =
@@ -505,3 +522,30 @@ fun <T> Gradle.withLogLevel(logLevel: LogLevel, block: () -> T): T {
         loggingManager.setLevelInternal(previousLevel)
     }
 }
+
+
+private
+fun <T> withCapturedOutputOnError(block: () -> T, onError: (ErrorWithCapturedOutput) -> T): T {
+    val outCapture = ByteArrayOutputStream()
+    val errCapture = ByteArrayOutputStream()
+    return try {
+        val previousOut = System.out
+        val previousErr = System.err
+        try {
+            System.setOut(PrintStream(outCapture))
+            System.setErr(PrintStream(errCapture))
+            block()
+        } finally {
+            System.out.flush()
+            System.err.flush()
+            System.setOut(previousOut)
+            System.setErr(previousErr)
+        }
+    } catch (error: Throwable) {
+        onError(ErrorWithCapturedOutput(error, outCapture.toString(), errCapture.toString()))
+    }
+}
+
+
+private
+data class ErrorWithCapturedOutput(val error: Throwable, val stdout: String, val stderr: String)
