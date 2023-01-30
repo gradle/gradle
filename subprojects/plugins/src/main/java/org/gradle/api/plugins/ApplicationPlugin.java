@@ -42,6 +42,7 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
@@ -138,7 +139,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     private ApplicationPluginConvention addConvention(Project project) {
         ApplicationPluginConvention pluginConvention = project.getObjects().newInstance(DefaultApplicationPluginConvention.class, project);
         pluginConvention.setApplicationName(project.getName());
-        project.getConvention().getPlugins().put("application", pluginConvention);
+        DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("application", pluginConvention));
         return pluginConvention;
     }
 

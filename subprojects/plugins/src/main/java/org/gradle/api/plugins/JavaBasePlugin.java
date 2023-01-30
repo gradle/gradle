@@ -143,7 +143,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         DefaultToolchainSpec toolchainSpec = objectFactory.newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
         DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec, jvmPluginServices);
-        project.getConvention().getPlugins().put("java", objectFactory.newInstance(DefaultJavaPluginConvention.class, project, javaPluginExtension));
+        DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("java", objectFactory.newInstance(DefaultJavaPluginConvention.class, project, javaPluginExtension)));
         return javaPluginExtension;
     }
 

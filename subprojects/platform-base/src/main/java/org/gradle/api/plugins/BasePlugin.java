@@ -27,6 +27,7 @@ import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 /**
@@ -47,9 +48,12 @@ public abstract class BasePlugin implements Plugin<Project> {
 
         @SuppressWarnings("deprecation")
         BasePluginConvention convention = project.getObjects().newInstance(org.gradle.api.plugins.internal.DefaultBasePluginConvention.class, baseExtension);
-        @SuppressWarnings("deprecation")
-        Convention projectConvention = project.getConvention();
-        projectConvention.getPlugins().put("base", convention);
+
+        DeprecationLogger.whileDisabled(() -> {
+            @SuppressWarnings("deprecation")
+            Convention projectConvention = project.getConvention();
+            projectConvention.getPlugins().put("base", convention);
+        });
 
         configureExtension(project, baseExtension);
         configureBuildConfigurationRule(project);
