@@ -532,7 +532,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             // then:
             assertThat(
                 output.count("*version 1*"),
-                equalTo(2)
+                equalTo(1)
             )
         }
 
@@ -544,7 +544,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             // then:
             assertThat(
                 output.count("*version 2*"),
-                equalTo(2)
+                equalTo(1)
             )
         }
     }
