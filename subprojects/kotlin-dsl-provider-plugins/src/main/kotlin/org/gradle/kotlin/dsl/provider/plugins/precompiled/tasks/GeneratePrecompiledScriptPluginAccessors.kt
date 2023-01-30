@@ -72,6 +72,7 @@ import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
+import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
@@ -464,7 +465,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     private
     fun projectRelativePathOf(scriptPlugin: PrecompiledScriptPlugin) =
-        scriptPlugin.scriptFile.toRelativeString(projectLayout.projectDirectory.asFile)
+        normaliseFileSeparators(scriptPlugin.scriptFile.toRelativeString(projectLayout.projectDirectory.asFile))
 
     private
     fun IO.writeTypeSafeAccessorsFor(hashedSchema: HashedProjectSchema) {
