@@ -15,12 +15,25 @@
  */
 package org.gradle.internal.component.external.model;
 
-public class DefaultShadowedCapability implements ShadowedCapability {
+/**
+ * A capability that is shadowed by another capability, which is deeply immutable.
+ *
+ * Note that despite the name, this is <strong>NOT</strong> an extension of
+ * {@link ImmutableCapability}.  The class hierarchy needs to be adjusted to
+ * expose the relationships here.
+ */
+public final class ImmutableShadowedCapability implements ShadowedCapability {
     private final CapabilityInternal shadowed;
     private final String appendix;
 
-    public DefaultShadowedCapability(CapabilityInternal shadowed, String appendix) {
-        this.shadowed = shadowed;
+    public ImmutableShadowedCapability(CapabilityInternal shadowed, String appendix) {
+        if (shadowed instanceof ImmutableShadowedCapability) {
+            this.shadowed = shadowed;
+        } else if (shadowed instanceof ImmutableCapability) {
+            this.shadowed = shadowed;
+        } else {
+            this.shadowed = new ImmutableCapability(shadowed.getGroup(), shadowed.getName(), shadowed.getVersion());
+        }
         this.appendix = appendix;
     }
 
