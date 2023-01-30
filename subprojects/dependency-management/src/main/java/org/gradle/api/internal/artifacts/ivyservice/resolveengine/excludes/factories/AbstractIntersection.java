@@ -42,4 +42,19 @@ public abstract class AbstractIntersection<L extends ExcludeSpec, R extends Excl
     public ExcludeFactory getFactory() {
         return factory;
     }
+
+    public boolean applies(ExcludeSpec left, ExcludeSpec right) {
+        return (getLeftType().isInstance(left) && getRightType().isInstance(right))
+                || (getLeftType().isInstance(right) && getRightType().isInstance(left));
+    }
+
+    public ExcludeSpec intersect(ExcludeSpec left, ExcludeSpec right, ExcludeFactory factory) {
+        if (getLeftType().isInstance(left) && getRightType().isInstance(right)) {
+            return doIntersect(getLeftType().cast(left), getRightType().cast(right), factory);
+        } else {
+            return doIntersect(getLeftType().cast(right), getRightType().cast(left), factory);
+        }
+    }
+
+    abstract ExcludeSpec doIntersect(L left, R right, ExcludeFactory factory);
 }

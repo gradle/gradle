@@ -21,9 +21,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 public interface Intersection<L extends ExcludeSpec, R extends ExcludeSpec> {
     Class<L> getLeftType();
     Class<R> getRightType();
-    ExcludeSpec intersect(L left, R right, ExcludeFactory factory);
-
-    default boolean applies(ExcludeSpec left, ExcludeSpec right) {
-        return getLeftType().isInstance(left) && getRightType().isInstance(right);
-    }
+    boolean applies(ExcludeSpec left, ExcludeSpec right);
+    ExcludeSpec intersect(ExcludeSpec left, ExcludeSpec right, ExcludeFactory factory);
 }
