@@ -58,9 +58,7 @@ tasks.withType<JavaCompile>().configureEach {
     targetCompatibility = "8"
 }
 
-integTest{
-    usesJavadocCodeSnippets = true
-}
+integTest.usesJavadocCodeSnippets = true
 
 packageCycles {
     excludePatterns.add("org/gradle/model/internal/core/**")
