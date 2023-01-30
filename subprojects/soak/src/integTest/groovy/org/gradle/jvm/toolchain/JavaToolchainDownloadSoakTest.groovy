@@ -73,7 +73,6 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         assumeFalse("J9 JDKs are not available on aarch64 or JDK untar support for the archive is broken",
             System.getProperty("os.arch") == "aarch64")
 
-        settingsFile << FOOJAY_PLUGIN_SECTION
         buildFile << """
             java {
                 toolchain {
