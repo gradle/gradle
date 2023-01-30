@@ -30,16 +30,18 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultApplicationPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaApplication;
+import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.JavaExec;
-import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.application.CreateStartScripts;
+import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
+import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
@@ -71,16 +73,18 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaPlugin.class);
         project.getPluginManager().apply(DistributionPlugin.class);
 
+        JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
+
         ApplicationPluginConvention pluginConvention = addConvention(project);
         JavaApplication pluginExtension = addExtensions(project, pluginConvention);
-        addRunTask(project, pluginExtension, pluginConvention);
-        addCreateScriptsTask(project, pluginExtension, pluginConvention);
-        configureJavaCompileTask(tasks.named(JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaCompile.class), pluginExtension);
+        addRunTask(project, component, pluginExtension, pluginConvention);
+        addCreateScriptsTask(project, component, pluginExtension, pluginConvention);
+        configureJavaCompileTask(component.getMainCompileJavaTask(), pluginExtension);
         configureInstallTask(project.getProviders(), tasks.named(TASK_INSTALL_NAME, Sync.class), pluginConvention);
 
         DistributionContainer distributions = (DistributionContainer) project.getExtensions().getByName("distributions");
         Distribution mainDistribution = distributions.getByName(DistributionPlugin.MAIN_DISTRIBUTION_NAME);
-        configureDistribution(project, mainDistribution, pluginConvention);
+        configureDistribution(project, component, mainDistribution, pluginConvention);
     }
 
     private void configureJavaCompileTask(TaskProvider<JavaCompile> javaCompile, JavaApplication pluginExtension) {
@@ -142,16 +146,16 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         return project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class, pluginConvention);
     }
 
-    private void addRunTask(Project project, JavaApplication pluginExtension, ApplicationPluginConvention pluginConvention) {
+    private void addRunTask(Project project, JvmSoftwareComponentInternal component, JavaApplication pluginExtension, ApplicationPluginConvention pluginConvention) {
         project.getTasks().register(TASK_RUN_NAME, JavaExec.class, run -> {
             run.setDescription("Runs this project as a JVM application");
             run.setGroup(APPLICATION_GROUP);
 
             FileCollection runtimeClasspath = project.files().from((Callable<FileCollection>) () -> {
                 if (run.getMainModule().isPresent()) {
-                    return jarsOnlyRuntimeClasspath(project);
+                    return jarsOnlyRuntimeClasspath(component);
                 } else {
-                    return runtimeClasspath(project);
+                    return runtimeClasspath(component);
                 }
             });
             run.setClasspath(runtimeClasspath);
@@ -180,10 +184,10 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     }
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
-    private void addCreateScriptsTask(Project project, JavaApplication pluginExtension, ApplicationPluginConvention pluginConvention) {
+    private void addCreateScriptsTask(Project project, JvmSoftwareComponentInternal component, JavaApplication pluginExtension, ApplicationPluginConvention pluginConvention) {
         project.getTasks().register(TASK_START_SCRIPTS_NAME, CreateStartScripts.class, startScripts -> {
             startScripts.setDescription("Creates OS specific scripts to run the project as a JVM application.");
-            startScripts.setClasspath(jarsOnlyRuntimeClasspath(project));
+            startScripts.setClasspath(jarsOnlyRuntimeClasspath(component));
 
             startScripts.getMainModule().set(pluginExtension.getMainModule());
             startScripts.getMainClass().set(pluginExtension.getMainClass());
@@ -201,26 +205,25 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         });
     }
 
-    private FileCollection runtimeClasspath(Project project) {
-
-        return project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
+    private FileCollection runtimeClasspath(JvmSoftwareComponentInternal component) {
+        return component.getSourceSet().getRuntimeClasspath();
     }
 
-    private FileCollection jarsOnlyRuntimeClasspath(Project project) {
-        return project.getTasks().getAt(JavaPlugin.JAR_TASK_NAME).getOutputs().getFiles().plus(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+    private FileCollection jarsOnlyRuntimeClasspath(JvmSoftwareComponentInternal component) {
+        return component.getMainJarTask().get().getOutputs().getFiles().plus(component.getRuntimeClasspathConfiguration());
     }
 
-    private CopySpec configureDistribution(Project project, Distribution mainDistribution, ApplicationPluginConvention pluginConvention) {
+    private CopySpec configureDistribution(Project project, JvmSoftwareComponentInternal component, Distribution mainDistribution, ApplicationPluginConvention pluginConvention) {
         mainDistribution.getDistributionBaseName().convention(project.provider(pluginConvention::getApplicationName));
         CopySpec distSpec = mainDistribution.getContents();
 
-        TaskProvider<Task> jar = project.getTasks().named(JavaPlugin.JAR_TASK_NAME);
+        TaskProvider<Jar> jar = component.getMainJarTask();
         TaskProvider<Task> startScripts = project.getTasks().named(TASK_START_SCRIPTS_NAME);
 
         CopySpec libChildSpec = project.copySpec();
         libChildSpec.into("lib");
         libChildSpec.from(jar);
-        libChildSpec.from(project.getConfigurations().named(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        libChildSpec.from(component.getRuntimeClasspathConfiguration());
 
         CopySpec binChildSpec = project.copySpec();
 
