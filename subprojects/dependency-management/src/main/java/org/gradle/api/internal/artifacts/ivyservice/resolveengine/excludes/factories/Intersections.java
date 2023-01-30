@@ -63,6 +63,7 @@ class Intersections {
 
         intersections.add(new IntersectModuleIdWithModuleId(factory));
         intersections.add(new IntersectModuleIdWithModuleIdSet(factory));
+        intersections.add(new IntersectModuleIdWithModuleSet(factory));
 
         intersections.add(new IntersectModuleIdSetWithModuleIdSet(factory));
         intersections.add(new IntersectModuleIdSetWithModuleSet(factory));
@@ -392,6 +393,21 @@ class Intersections {
                 return left;
             }
             return factory.nothing();
+        }
+    }
+
+    private final class IntersectModuleIdWithModuleSet extends AbstractIntersection<ModuleIdExclude, ModuleSetExclude> {
+        protected IntersectModuleIdWithModuleSet(ExcludeFactory factory) {
+            super(ModuleIdExclude.class, ModuleSetExclude.class, factory);
+        }
+
+        @Override
+        public ExcludeSpec doIntersect(ModuleIdExclude left, ModuleSetExclude right, ExcludeFactory factory) {
+            if (right.getModules().contains(left.getModuleId().getName())) {
+                return left;
+            } else {
+                return factory.nothing();
+            }
         }
     }
 
