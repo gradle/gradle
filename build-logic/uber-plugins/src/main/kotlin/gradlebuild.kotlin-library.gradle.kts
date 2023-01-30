@@ -76,10 +76,10 @@ tasks {
 
 fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
     compilerOptions {
-        allWarningsAsErrors.set(true)
-        apiVersion.set(KotlinVersion.KOTLIN_1_8)
-        languageVersion.set(KotlinVersion.KOTLIN_1_8)
-        jvmTarget.set(JvmTarget.JVM_1_8)
+        allWarningsAsErrors = true
+        apiVersion = KotlinVersion.KOTLIN_1_8
+        languageVersion = KotlinVersion.KOTLIN_1_8
+        jvmTarget = JvmTarget.JVM_1_8
         freeCompilerArgs.addAll(
             "-Xjsr305=strict",
             "-java-parameters",

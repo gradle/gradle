@@ -67,7 +67,7 @@ packageCycles {
     excludePatterns.add("org/gradle/api/artifacts/maven/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true
 
 // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
 tasks.configCacheIntegTest {
