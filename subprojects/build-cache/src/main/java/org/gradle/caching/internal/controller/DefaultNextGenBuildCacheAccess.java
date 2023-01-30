@@ -18,6 +18,7 @@ package org.gradle.caching.internal.controller;
 
 import com.google.common.collect.Streams;
 import com.google.common.io.ByteStreams;
+import com.google.common.io.Closer;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
@@ -35,7 +36,6 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     private final BuildCacheService remote;
 
     public DefaultNextGenBuildCacheAccess(BuildCacheService local, BuildCacheService remote) {
-        // TODO Do we need to close these?
         this.local = local;
         this.remote = remote;
     }
@@ -78,5 +78,13 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             local.store(key, writer);
             remote.store(key, writer);
         });
+    }
+
+    @Override
+    public void close() throws IOException {
+        Closer closer = Closer.create();
+        closer.register(local);
+        closer.register(remote);
+        closer.close();
     }
 }
