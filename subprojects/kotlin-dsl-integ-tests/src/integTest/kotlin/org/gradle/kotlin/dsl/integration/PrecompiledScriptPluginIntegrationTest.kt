@@ -953,6 +953,87 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             assertHasCause("Precompiled script '${normaliseFileSeparators(settings.absolutePath)}' file name is invalid, please rename it to '<plugin-id>.settings.gradle.kts'.")
         }
     }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/12955")
+    fun `logs output from schema collection on errors only`() {
+
+        fun outputFrom(origin: String, logger: Boolean = true) = buildString {
+            appendLine("""println("STDOUT from $origin")""")
+            appendLine("""System.err.println("STDERR from $origin")""")
+            if (logger) {
+                appendLine("""logger.info("INFO log from $origin")""")
+                appendLine("""logger.lifecycle("LIFECYCLE log from $origin")""")
+                appendLine("""logger.warn("WARN log from $origin")""")
+                appendLine("""logger.error("ERROR log from $origin")""")
+            }
+        }
+
+        withDefaultSettingsIn("external-plugins")
+        withKotlinDslPluginIn("external-plugins").appendText("""group = "test"""")
+        withFile("external-plugins/src/main/kotlin/applied-output.gradle.kts", outputFrom("applied-output plugin"))
+        withFile("external-plugins/src/main/kotlin/applied-output-fails.gradle.kts", """
+            ${outputFrom("applied-output-fails plugin")}
+            TODO("applied-output-fails plugin application failure")
+        """)
+
+        withDefaultSettings().appendText("""includeBuild("external-plugins")""")
+        withKotlinDslPlugin().appendText("""dependencies { implementation("test:external-plugins") }""")
+        withPrecompiledKotlinScript("some.gradle.kts", """
+            plugins {
+                ${outputFrom("plugins block", logger = false)}
+                id("applied-output")
+            }
+        """)
+        build(":compileKotlin").apply {
+            assertNotOutput("STDOUT")
+            assertNotOutput("STDERR")
+            assertNotOutput("INFO")
+            assertNotOutput("LIFECYCLE")
+            assertNotOutput("WARN")
+            assertHasErrorOutput("ERROR")
+        }
+
+        withPrecompiledKotlinScript("some.gradle.kts", """
+            plugins {
+                ${outputFrom("plugins block", logger = false)}
+                id("applied-output")
+                TODO("BOOM") // Fail in the plugins block
+            }
+        """)
+        buildAndFail(":compileKotlin").apply {
+            assertHasFailure("Execution failed for task ':generatePrecompiledScriptPluginAccessors'.") {
+                assertHasCause("Failed to collect plugin requests of 'src/main/kotlin/some.gradle.kts'")
+                assertHasCause("An operation is not implemented: BOOM")
+            }
+            assertHasErrorOutput("STDOUT from plugins block")
+            assertHasErrorOutput("STDERR from plugins block")
+            assertNotOutput("STDOUT from applied plugin")
+            assertNotOutput("STDERR from applied plugin")
+        }
+
+        withPrecompiledKotlinScript("some.gradle.kts", """
+            plugins {
+                ${outputFrom("plugins block", logger = false)}
+                id("applied-output-fails")
+            }
+        """)
+        buildAndFail(":compileKotlin").apply {
+            assertHasFailure("Execution failed for task ':generatePrecompiledScriptPluginAccessors'.") {
+                assertHasCause("Failed to generate type-safe Gradle model accessors for the following precompiled script plugins")
+                assertHasCause("An operation is not implemented: applied-output-fails plugin application failure")
+            }
+            assertHasErrorOutput("src/main/kotlin/some.gradle.kts")
+            assertHasErrorOutput("STDOUT from applied-output-fails plugin")
+            assertHasErrorOutput("STDERR from applied-output-fails plugin")
+            assertNotOutput("STDOUT from plugins block")
+            assertNotOutput("STDERR from plugins block")
+            assertNotOutput("INFO")
+            assertNotOutput("LIFECYCLE")
+            assertNotOutput("WARN")
+            assertHasErrorOutput("ERROR")
+        }
+    }
 }
 
 
