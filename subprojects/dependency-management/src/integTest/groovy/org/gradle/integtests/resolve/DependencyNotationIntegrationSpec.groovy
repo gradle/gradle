@@ -85,10 +85,10 @@ task checkDeps {
         succeeds 'checkDeps'
     }
 
-    @IgnoreRest
     def "understands plugin dependency notations"() {
         when:
         buildScript( """
+import org.gradle.api.internal.artifacts.*
 import org.gradle.api.internal.artifacts.dependencies.*
 
 //buildscript
@@ -123,7 +123,7 @@ dependencies {
         transitive = false
     }
      conf plugin('org.jetbrains.kotlin.jvm', '1.8.0')
-     conf plugin('org.jetbrains.kotlin.multiplatform')
+     conf plugin('org.jetbrains.kotlin.plugin.scripting')
 }
 
 // test-suite dependencies
@@ -138,35 +138,50 @@ testing {
                     transitive = false
                 }
                 implementation.plugin('org.jetbrains.kotlin.jvm', '1.8.0')
-                implementation.plugin('org.jetbrains.kotlin.multiplatform')
+                implementation.plugin('org.jetbrains.kotlin.plugin.scripting')
             }
         }
+    }
+}
+
+// setup
+String js = 'org.jetbrains.kotlin.js';
+String jvm = 'org.jetbrains.kotlin.jvm';
+String scripting = 'org.jetbrains.kotlin.plugin.scripting';
+String parcelize = 'org.jetbrains.kotlin.plugin.parcelize';
+String version = '1.8.0';
+
+def checkPluginCoordinates(dependenciesSet, group) {
+    String name = group + '.gradle.plugin';
+    dependenciesSet.find { it instanceof ExternalDependency && it.group == group && it.name == name }
+}
+
+def checkPluginCoordinates(dependenciesSet, group, version, checkIsTransitive) {
+    String name = group + '.gradle.plugin';
+    def configuredDep =  dependenciesSet.find { it instanceof ExternalDependency && it.group == group && it.name == name && it.version == version }
+    if (checkIsTransitive) {
+        assert configuredDep.transitive == false;
     }
 }
 
 task checkDeps {
     doLast {
         // buildscript
-        buildscript.configurations.classpath.incoming.dependencies.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.js' && it.name == 'org.jetbrains.kotlin.js.gradle.plugin' && it.version == '1.8.0'  }
-        buildscript.configurations.classpath.incoming.dependencies.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.jvm' && it.name == 'org.jetbrains.kotlin.jvm.gradle.plugin' && it.version == '1.8.0' }
+        def buildscriptDeps = buildscript.configurations.classpath.incoming.dependencies
+        checkPluginCoordinates(buildscriptDeps, js, version, false)
+        checkPluginCoordinates(buildscriptDeps, jvm, version, false)
 
         // main dependency block
-        def deps = configurations.conf.incoming.dependencies
-
-        def configuredDep = deps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.js' && it.name == 'org.jetbrains.kotlin.js.gradle.plugin' }
-        assert configuredDep.version == '1.8.0'
-        assert configuredDep.transitive == false
-        assert deps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.jvm' && it.name == 'org.jetbrains.kotlin.jvm.gradle.plugin' && it.version == '1.8.0' }
-        assert deps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.multiplatform' && it.name == 'org.jetbrains.kotlin.multiplatform.gradle.plugin' }
+        def mainDeps = configurations.conf.incoming.dependencies
+        checkPluginCoordinates(mainDeps, js, version, true)
+        checkPluginCoordinates(mainDeps, jvm, version, false)
+        checkPluginCoordinates(mainDeps, scripting)
 
         // test-suite dependencies
         def testDeps = configurations.testImplementation.incoming.dependencies
-
-        def configuredTestDep = testDeps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.js' && it.name == 'org.jetbrains.kotlin.js.gradle.plugin'}
-        assert configuredTestDep.version == '1.8.0'
-        assert configuredTestDep.transitive == false
-        assert testDeps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.jvm' && it.name == 'org.jetbrains.kotlin.jvm.gradle.plugin' && it.version == '1.8.0' }
-        assert testDeps.find { it instanceof ExternalDependency && it.group == 'org.jetbrains.kotlin.multiplatform' && it.name == 'org.jetbrains.kotlin.multiplatform.gradle.plugin' }
+        checkPluginCoordinates(testDeps, js, version, true)
+        checkPluginCoordinates(testDeps, jvm, version, false)
+        checkPluginCoordinates(testDeps, scripting)
     }
 }
 """)
@@ -174,7 +189,6 @@ task checkDeps {
         succeeds 'checkDeps'
     }
 
-    @IgnoreRest
     def "understands plugin dependency notations in kotlin"() {
         when:
         buildKotlinFile <<  """
@@ -206,16 +220,15 @@ configurations {
 }
 
 dependencies {
-
-    add("conf", plugin("org.jetbrains.kotlin.multiplatform")) {
+    add("conf", plugin("org.jetbrains.kotlin.js")) {
         version {
             prefer("1.8.0")
         }
         isTransitive = false
     }
-    add("conf", plugin(id = "org.jetbrains.kotlin.multiplatform.pm20", version = "1.8.0"))
-    add("conf", plugin("org.jetbrains.kotlin.plugin.parcelize", "1.8.0"))
-    add("conf", plugin("org.jetbrains.kotlin.plugin.scripting"))
+    add("conf", plugin(id = "org.jetbrains.kotlin.jvm", version = "1.8.0"))
+    add("conf", plugin("org.jetbrains.kotlin.plugin.scripting", "1.8.0"))
+    add("conf", plugin("org.jetbrains.kotlin.plugin.parcelize"))
 }
 
 // test-suite dependencies
@@ -230,7 +243,7 @@ testing {
                     isTransitive = false
                 }
                 implementation.plugin("org.jetbrains.kotlin.jvm", "1.8.0")
-                implementation.plugin("org.jetbrains.kotlin.multiplatform")
+                implementation.plugin("org.jetbrains.kotlin.plugin.scripting")
             }
         }
     }
@@ -238,31 +251,44 @@ testing {
 
 tasks.register("checkDeps") {
     doLast {
+        // setup
+        val js = "org.jetbrains.kotlin.js"
+        val jvm = "org.jetbrains.kotlin.jvm"
+        val scripting = "org.jetbrains.kotlin.plugin.scripting"
+        val parcelize = "org.jetbrains.kotlin.plugin.parcelize"
+        val version = "1.8.0"
+
+        fun checkPluginCoordinates(dependenciesSet : DependencySet, group : String) {
+            val name = group.plus(".gradle.plugin")
+            dependenciesSet.single { it is ExternalDependency && it.group == group && it.name == name }
+        }
+
+        fun checkPluginCoordinates(dependenciesSet : DependencySet, group : String, version : String, checkIsTransitive : Boolean) {
+            val name = group.plus(".gradle.plugin")
+            val configuredDep =  dependenciesSet.single { it is ExternalDependency && it.group == group && it.name == name && it.version == version }
+            if (checkIsTransitive) {
+                configuredDep as ExternalDependency
+                require(configuredDep.isTransitive == false)
+            }
+        }
+
         // buildscript
-        buildscript.configurations.getByName("classpath").incoming.dependencies.find { it is ExternalDependency && it.group == "org.jetbrains.kotlin.js" && it.name == "org.jetbrains.kotlin.js.gradle.plugin" && it.version == "1.8.0" }
-        buildscript.configurations.getByName("classpath").incoming.dependencies.find { it is ExternalDependency && it.group == "org.jetbrains.kotlin.jvm" && it.name == "org.jetbrains.kotlin.jvm.gradle.plugin" && it.version == "1.8.0" }
+        val buildscriptDeps = buildscript.configurations.getByName("classpath").incoming.dependencies
+        checkPluginCoordinates(buildscriptDeps, js, version, false);
+        checkPluginCoordinates(buildscriptDeps, jvm, version, false);
 
         // main dependency block
-        val deps = configurations.get("conf").incoming.dependencies
-
-        val configuredDep = deps.single { it is ExternalDependency && it.group == "org.jetbrains.kotlin.multiplatform" && it.name == "org.jetbrains.kotlin.multiplatform.gradle.plugin" }
-        configuredDep as ExternalDependency
-        require(configuredDep.version == "1.8.0")
-        require(configuredDep.isTransitive == false)
-
-        deps.single { it is ExternalDependency && it.group == "org.jetbrains.kotlin.multiplatform.pm20" && it.name == "org.jetbrains.kotlin.multiplatform.pm20.gradle.plugin" && it.version == "1.8.0" }
-        deps.single { it is ExternalDependency && it.group == "org.jetbrains.kotlin.plugin.parcelize" && it.name == "org.jetbrains.kotlin.plugin.parcelize.gradle.plugin" && it.version == "1.8.0" }
-        deps.single { it is ExternalDependency && it.group == "org.jetbrains.kotlin.plugin.scripting" && it.name == "org.jetbrains.kotlin.plugin.scripting.gradle.plugin"  }
+        val mainDeps = configurations.get("conf").incoming.dependencies
+        checkPluginCoordinates(mainDeps, js, version, true);
+        checkPluginCoordinates(mainDeps, jvm, version, false);
+        checkPluginCoordinates(mainDeps, scripting, version, false);
+        checkPluginCoordinates(mainDeps, parcelize);
 
         // test-suite dependencies
         val testDeps = configurations.get("testImplementation").incoming.dependencies
-
-        val configuredTestDep = testDeps.single { it is ExternalDependency && it.group == "org.jetbrains.kotlin.js" && it.name == "org.jetbrains.kotlin.js.gradle.plugin" }
-        configuredTestDep as ExternalDependency
-        require(configuredTestDep.version == "1.8.0")
-        require(configuredTestDep.isTransitive == false)
-        testDeps.single { it is ExternalDependency && it.group == "org.jetbrains.kotlin.jvm" && it.name == "org.jetbrains.kotlin.jvm.gradle.plugin" && it.version == "1.8.0" }
-        testDeps.single { it is ExternalDependency && it.group == "org.jetbrains.kotlin.multiplatform" && it.name == "org.jetbrains.kotlin.multiplatform.gradle.plugin" }
+        checkPluginCoordinates(testDeps, js, version, true);
+        checkPluginCoordinates(testDeps, jvm, version, false);
+        checkPluginCoordinates(testDeps, scripting);
     }
 }
 """
