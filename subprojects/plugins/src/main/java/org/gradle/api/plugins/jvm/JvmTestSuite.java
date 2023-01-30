@@ -44,6 +44,8 @@ import org.gradle.testing.base.TestSuite;
  */
 @Incubating
 public interface JvmTestSuite extends TestSuite, Buildable {
+
+    // TODO: Rename to getSourceSet next time changes are made in this area.
     /**
      * Returns the container of {@link JvmTestSuiteTarget} objects part of this suite.
      *
@@ -51,7 +53,6 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      *
      * @return source set for this test suite.
      */
-    // TODO: Rename to getSourceSet next time changes are made in this area.
     SourceSet getSources();
 
     /**
