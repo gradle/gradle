@@ -43,7 +43,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     @Override
     public void load(Iterable<BuildCacheKey> keys, BiConsumer<BuildCacheKey, InputStream> processor) {
         // TODO Fan out to multiple threads
-        Streams.stream(keys).forEach(key -> {
+        Streams.stream(keys).parallel().forEach(key -> {
             boolean foundLocally = local.load(key, input -> processor.accept(key, input));
             if (foundLocally) {
                 return;
@@ -73,7 +73,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     @Override
     public void store(Iterable<BuildCacheKey> keys, Function<BuildCacheKey, BuildCacheEntryWriter> processor) {
         // TODO Fan out to multiple threads
-        Streams.stream(keys).forEach(key -> {
+        Streams.stream(keys).parallel().forEach(key -> {
             BuildCacheEntryWriter writer = processor.apply(key);
             local.store(key, writer);
             remote.store(key, writer);
