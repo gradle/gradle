@@ -22,7 +22,7 @@ import org.gradle.api.internal.capabilities.ImmutableCapability;
 
 import javax.annotation.Nullable;
 
-public final class DefaultImmutableCapability implements ImmutableCapability {
+public class DefaultImmutableCapability implements ImmutableCapability {
 
     public static DefaultImmutableCapability defaultCapabilityForComponent(ModuleVersionIdentifier identifier) {
         return new DefaultImmutableCapability(identifier.getGroup(), identifier.getName(), identifier.getVersion());
