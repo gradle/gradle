@@ -22,6 +22,7 @@ import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import org.gradle.internal.os.OperatingSystem
+// Using star import to workaround https://youtrack.jetbrains.com/issue/KTIJ-24390
 import org.gradle.kotlin.dsl.*
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.After

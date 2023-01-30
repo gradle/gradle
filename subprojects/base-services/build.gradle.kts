@@ -54,6 +54,4 @@ packageCycles {
     excludePatterns.add("org/gradle/util/GradleVersion**")
 }
 
-jmh {
-    includes = listOf("HashingAlgorithmsBenchmark")
-}
+jmh.includes = listOf("HashingAlgorithmsBenchmark")
