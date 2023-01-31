@@ -152,11 +152,11 @@ public class DependencyVerifierBuilder {
         keyServers.add(uri);
     }
 
-    private static class ComponentVerificationsBuilder {
+    protected static class ComponentVerificationsBuilder {
         private final ModuleComponentIdentifier component;
         private final Map<String, ArtifactVerificationBuilder> byArtifact = Maps.newHashMap();
 
-        private ComponentVerificationsBuilder(ModuleComponentIdentifier component) {
+        protected ComponentVerificationsBuilder(ModuleComponentIdentifier component) {
             this.component = component;
         }
 
@@ -197,7 +197,7 @@ public class DependencyVerifierBuilder {
         }
     }
 
-    private static class ArtifactVerificationBuilder {
+    protected static class ArtifactVerificationBuilder {
         private final Map<ChecksumKind, ChecksumBuilder> builder = Maps.newEnumMap(ChecksumKind.class);
         private final Set<String> pgpKeys = Sets.newLinkedHashSet();
         private final Set<IgnoredKey> ignoredPgpKeys = Sets.newLinkedHashSet();
