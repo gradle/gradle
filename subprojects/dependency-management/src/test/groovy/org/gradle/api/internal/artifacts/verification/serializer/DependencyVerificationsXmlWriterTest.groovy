@@ -170,7 +170,6 @@ on two lines -->
         builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m3", "1.4", "file.zip", false)
         builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m4", null, "other-file.zip", true)
         serialize()
-        println(contents)
 
         then:
         contents == """<?xml version="1.0" encoding="UTF-8"?>
