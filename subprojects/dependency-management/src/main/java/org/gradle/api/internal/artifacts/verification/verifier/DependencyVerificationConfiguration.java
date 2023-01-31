@@ -17,11 +17,14 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.verification.exceptions.InvalidGpgKeyIdsException;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -219,7 +222,12 @@ public class DependencyVerificationConfiguration {
 
         TrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
             super(group, name, version, fileName, regex, null);
-            this.keyId = keyId;
+
+            if (keyId.getBytes(StandardCharsets.US_ASCII).length < 40) {
+                throw new InvalidGpgKeyIdsException(Collections.singletonList(keyId));
+            } else {
+                this.keyId = keyId;
+            }
         }
 
         public String getKeyId() {

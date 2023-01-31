@@ -1698,7 +1698,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         succeeds ":compileJava"
     }
 
-    def "fails verification if trusted key is not a fingerprint"() {
+    def "fails verification if a per artifact trusted key is not a fingerprint"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
             verifySignatures()
@@ -1730,7 +1730,44 @@ This can indicate that a dependency has been compromised. Please carefully verif
         then:
         assertConfigCacheDiscarded()
         failureCauseContains("An error happened meanwhile verifying 'org:foo:1.0'")
-        failureCauseContains("The following trusted GPG IDs are not in 160-bit fingerprint format")
+        failureCauseContains("The following trusted GPG IDs are not in a minimum 160-bit fingerprint format")
+        failureCauseContains("'${longId}'")
+
+        where:
+        terse << [true, false]
+    }
+
+    def "fails verification if a globally trusted key is not a fingerprint"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addGloballyTrustedKey(validPublicKeyHexString, "org", "foo", "1.0", "foo-1.0-classified.jar", false)
+        }
+
+        // We need to manually replace the key in the XML, as 'createMetadataFile' will already fail if we use a non-fingerprint ID
+        def longId = validPublicKeyHexString.substring(validPublicKeyHexString.length() - 16)
+        file("gradle/verification-metadata.xml").replace(validPublicKeyHexString, longId)
+
+        given:
+        terseConsoleOutput(terse)
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        assertConfigCacheDiscarded()
+        failureCauseContains("The following trusted GPG IDs are not in a minimum 160-bit fingerprint format")
         failureCauseContains("'${longId}'")
 
         where:
