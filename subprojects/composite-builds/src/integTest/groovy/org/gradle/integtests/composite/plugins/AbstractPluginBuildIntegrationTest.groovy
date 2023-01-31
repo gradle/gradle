@@ -27,6 +27,10 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
         return new PluginBuildFixture(buildName, useKotlinDSL)
     }
 
+    PluginBuildFixture pluginBuild(String rootDir, String buildName, boolean useKotlinDSL = false) {
+        return new PluginBuildFixture(rootDir, buildName, useKotlinDSL)
+    }
+
     PluginAndLibraryBuildFixture pluginAndLibraryBuild(String buildName) {
         return new PluginAndLibraryBuildFixture(pluginBuild(buildName))
     }
@@ -47,6 +51,7 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
         }
 
         PluginBuildFixture(String rootDir, String buildName, boolean useKotlinDSL) {
+            def rootPath = rootDir == null ? '' : "$rootDir/"
             def fileExtension = useKotlinDSL ? '.gradle.kts' : '.gradle'
             def sourceDirectory = useKotlinDSL ? 'kotlin' : 'groovy'
             def pluginPluginId = useKotlinDSL
@@ -56,8 +61,8 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
             this.buildName = buildName
             this.settingsPluginId = "${buildName}.settings-plugin"
             this.projectPluginId = "${buildName}.project-plugin"
-            this.settingsFile = file("$rootDir/$buildName/settings${fileExtension}")
-            this.buildFile = file("$rootDir/$buildName/build${fileExtension}")
+            this.settingsFile = file("$rootPath$buildName/settings${fileExtension}")
+            this.buildFile = file("$rootPath$buildName/build${fileExtension}")
 
             settingsFile << """
                 rootProject.name = "$buildName"
@@ -70,11 +75,11 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
                     ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(useKotlinDSL ? GradleDsl.KOTLIN : GradleDsl.GROOVY)}
                 }
             """
-            settingsPluginFile = file("$rootDir/$buildName/src/main/$sourceDirectory/${settingsPluginId}.settings${fileExtension}")
+            settingsPluginFile = file("$rootPath$buildName/src/main/$sourceDirectory/${settingsPluginId}.settings${fileExtension}")
             settingsPluginFile << """
                 println("$settingsPluginId applied")
             """
-            projectPluginFile = file("$rootDir/$buildName/src/main/$sourceDirectory/${projectPluginId}${fileExtension}")
+            projectPluginFile = file("$rootPath$buildName/src/main/$sourceDirectory/${projectPluginId}${fileExtension}")
             projectPluginFile << """
                 println("$projectPluginId applied")
             """
