@@ -57,10 +57,10 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
             dependency('org', 'optionaldep', '1.0')
             noMoreDependencies()
         }
-        javaLibrary.parsedPom.scope('compile') {
+        javaLibrary.parsedPom.scope('runtime') {
             assertOptionalDependencies('org:optionaldep:1.0')
         }
-        javaLibrary.parsedPom.hasNoScope('runtime')
+        javaLibrary.parsedPom.hasNoScope('compile')
 
         and:
         resolveArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
@@ -119,17 +119,17 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
             noMoreDependencies()
         }
         javaLibrary.parsedModuleMetadata.variant("featureApiElements") {
+            assert files*.name == ["${name}-${version}.jar"]
             noMoreDependencies()
         }
         javaLibrary.parsedModuleMetadata.variant("featureRuntimeElements") {
-            assert files*.name == ["${name}-${version}.jar"]
             dependency('org', 'optionaldep', '1.0')
             noMoreDependencies()
         }
-        javaLibrary.parsedPom.scope('compile') {
+        javaLibrary.parsedPom.scope('runtime') {
             assertOptionalDependencies('org:optionaldep:1.0')
         }
-        javaLibrary.parsedPom.hasNoScope('runtime')
+        javaLibrary.parsedPom.hasNoScope('compile')
 
         and:
         resolveArtifacts(javaLibrary) { expectFiles "${name}-${version}.jar" }
