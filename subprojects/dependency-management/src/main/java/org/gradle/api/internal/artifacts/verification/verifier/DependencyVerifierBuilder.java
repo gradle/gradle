@@ -252,7 +252,7 @@ public class DependencyVerifierBuilder {
                 //
                 // By getting ASCII bytes (aka. strictly 1 byte per character, no variable-length magic)
                 // we can safely check if the fingerprint is of the correct length.
-                .filter(key -> key.getBytes(StandardCharsets.US_ASCII).length != 40)
+                .filter(key -> key.getBytes(StandardCharsets.US_ASCII).length < 40)
                 .collect(Collectors.toList());
 
             if (wrongPgpKeys.isEmpty()) {
