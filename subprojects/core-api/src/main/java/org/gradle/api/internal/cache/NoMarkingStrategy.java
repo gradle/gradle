@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.internal;
+package org.gradle.api.internal.cache;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.cache.MarkingStrategy;
 
-/**
- * Defines a software component which can be diagnosed via the constructs in the {@code :diagnostics} module.
- */
-public interface DiagnosableSoftwareComponent extends SoftwareComponent {
-    /**
-     * Get the compile classpath of the component.
-     */
-    Configuration getCompileClasspath();
+import java.io.File;
+import java.io.Serializable;
+
+public class NoMarkingStrategy implements MarkingStrategy, Serializable {
+    @Override
+    public void tryMarkCacheDirectory(File file) {
+    }
 }

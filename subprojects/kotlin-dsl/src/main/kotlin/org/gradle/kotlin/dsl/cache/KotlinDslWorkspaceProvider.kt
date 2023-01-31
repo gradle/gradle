@@ -28,6 +28,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import java.io.Closeable
 
 
+internal
 class KotlinDslWorkspaceProvider(
     cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
     fileAccessTimeJournal: FileAccessTimeJournal,

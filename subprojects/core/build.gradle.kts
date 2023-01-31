@@ -200,8 +200,8 @@ tasks.compileTestGroovy {
     groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
-testFilesCleanup.reportOnly.set(true)
+integTest.usesJavadocCodeSnippets = true
+testFilesCleanup.reportOnly = true
 
 // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
 tasks.configCacheIntegTest {

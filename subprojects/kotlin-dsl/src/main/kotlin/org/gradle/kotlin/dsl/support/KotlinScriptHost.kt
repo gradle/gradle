@@ -42,15 +42,16 @@ import org.gradle.util.internal.ConfigureUtil.configureByMap
 import java.io.File
 
 
-class KotlinScriptHost<out T : Any>(
+class KotlinScriptHost<out T : Any> internal constructor(
     val target: T,
     val scriptSource: ScriptSource,
-    val scriptHandler: ScriptHandler,
-    val targetScope: ClassLoaderScope,
-    val baseScope: ClassLoaderScope,
+    internal val scriptHandler: ScriptHandler,
+    internal val targetScope: ClassLoaderScope,
+    private val baseScope: ClassLoaderScope,
     private val serviceRegistry: ServiceRegistry
 ) {
 
+    internal
     val fileName = scriptSource.fileName!!
 
     internal

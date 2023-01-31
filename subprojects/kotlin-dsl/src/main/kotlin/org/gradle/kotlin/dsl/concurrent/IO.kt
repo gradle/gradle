@@ -72,6 +72,7 @@ interface AsyncIOScopeFactory {
 }
 
 
+internal
 fun <T> withAsynchronousIO(
     project: Project,
     action: IO.() -> T
