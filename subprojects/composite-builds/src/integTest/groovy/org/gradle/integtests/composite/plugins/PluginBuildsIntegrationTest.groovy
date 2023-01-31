@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite.plugins
 
+
 import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
 
 class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
@@ -625,41 +626,99 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         dsl << ['Groovy', 'Kotlin']
     }
 
-    def "test multiple included builds with same name"() {
-        given:
-        def libBuild1 = pluginBuild("plugin1", "lib")
+    def "multiple included plugin builds which each include a library build with the same name works with #dsl dsl"() {
+        given: "a plugin with a dependency on a library build named 'lib'"
+        file("plugin1/lib/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
 
-        def pluginBuild1 = pluginBuild("plugin1")
-        pluginBuild1.settingsFile << """
+        def pluginBuild1 = pluginBuild("plugin1", dsl == 'Kotlin')
+        pluginBuild1.settingsFile.text = """
+            include(":lib")
+        """
+        pluginBuild1.buildFile << """
+            dependencies {
+                implementation(project(":lib"))
+            }
+        """
+
+        and: "another plugin with a dependency on another library build with the same name"
+        file("plugin2/lib/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+
+        def pluginBuild2 = pluginBuild("plugin2", dsl == 'Kotlin')
+        pluginBuild2.settingsFile.text = """
+            include(":lib")
+        """
+        pluginBuild2.buildFile << """
+            dependencies {
+                implementation(project(":lib"))
+            }
+        """
+
+        and: "both plugins are included in the root build"
+        settingsFile.text = """
+            pluginManagement {
+                includeBuild("${pluginBuild1.buildName}")
+                includeBuild("${pluginBuild2.buildName}")
+            }
+        """
+        buildFile << """
+            plugins {
+                id("${pluginBuild1.projectPluginId}")
+                id("${pluginBuild2.projectPluginId}")
+            }
+        """
+
+        expect:
+        succeeds()
+
+        where:
+        dsl << ['Groovy', 'Kotlin']
+    }
+
+    def "multiple included plugin builds which each include a plugin build with the same name fails with #dsl dsl"() {
+        given: "a plugin that applies an included plugin build named 'lib'"
+        def libBuild1 = pluginBuild("plugin1", "lib", dsl == 'Kotlin')
+
+        def pluginBuild1 = pluginBuild("plugin1", dsl == 'Kotlin')
+        pluginBuild1.settingsFile.text = """
             pluginManagement {
                 includeBuild("${libBuild1.buildName}")
             }
         """
         pluginBuild1.buildFile << """
             plugins {
-                id("lib")
-            }
-        """
-        def libBuild2 = pluginBuild("plugin2", "lib")
-        def pluginBuild2 = pluginBuild("plugin2")
-        pluginBuild2.settingsFile << """
-            pluginManagement {
-                includeBuild("${libBuild2.buildName}")
-            }
-        """
-        pluginBuild2.buildFile << """
-            plugins {
-                id("lib")
+                id("${libBuild1.projectPluginId}")
             }
         """
 
-        settingsFile << """
+        and: "another plugin that applies another included plugin build with the same name"
+        def libBuild2 = pluginBuild("plugin2", "lib", dsl == 'Kotlin')
+        def pluginBuild2 = pluginBuild("plugin2", dsl == 'Kotlin')
+        pluginBuild2.settingsFile.text = """
+            pluginManagement {
+                includeBuild("${libBuild2.buildName}")
+        }
+        """
+        pluginBuild2.buildFile << """
+            plugins {
+                id("${libBuild2.projectPluginId}")
+            }
+        """
+
+        and: "both plugins are included in the root build"
+        settingsFile.text = """
             pluginManagement {
                 includeBuild("${pluginBuild1.buildName}")
                 includeBuild("${pluginBuild2.buildName}")
             }
         """
-
         buildFile << """
             plugins {
                 id("${pluginBuild1.projectPluginId}")
@@ -668,9 +727,12 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         """
 
         when:
-        succeeds()
+        fails()
 
         then:
-        assertProjectPluginApplied()
+        result.assertHasErrorOutput("Included build ${libBuild2.buildFile.parent} has build path :lib which is the same as included build ${libBuild1.buildFile.parent}")
+
+        where:
+        dsl << ['Groovy', 'Kotlin']
     }
 }
