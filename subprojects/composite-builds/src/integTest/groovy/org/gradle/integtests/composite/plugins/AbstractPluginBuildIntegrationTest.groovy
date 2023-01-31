@@ -43,6 +43,10 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
         final TestFile projectPluginFile
 
         PluginBuildFixture(String buildName, boolean useKotlinDSL) {
+            this(null, buildName, useKotlinDSL)
+        }
+
+        PluginBuildFixture(String rootDir, String buildName, boolean useKotlinDSL) {
             def fileExtension = useKotlinDSL ? '.gradle.kts' : '.gradle'
             def sourceDirectory = useKotlinDSL ? 'kotlin' : 'groovy'
             def pluginPluginId = useKotlinDSL
@@ -52,8 +56,8 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
             this.buildName = buildName
             this.settingsPluginId = "${buildName}.settings-plugin"
             this.projectPluginId = "${buildName}.project-plugin"
-            this.settingsFile = file("$buildName/settings${fileExtension}")
-            this.buildFile = file("$buildName/build${fileExtension}")
+            this.settingsFile = file("$rootDir/$buildName/settings${fileExtension}")
+            this.buildFile = file("$rootDir/$buildName/build${fileExtension}")
 
             settingsFile << """
                 rootProject.name = "$buildName"
@@ -66,11 +70,11 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
                     ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(useKotlinDSL ? GradleDsl.KOTLIN : GradleDsl.GROOVY)}
                 }
             """
-            settingsPluginFile = file("$buildName/src/main/$sourceDirectory/${settingsPluginId}.settings${fileExtension}")
+            settingsPluginFile = file("$rootDir/$buildName/src/main/$sourceDirectory/${settingsPluginId}.settings${fileExtension}")
             settingsPluginFile << """
                 println("$settingsPluginId applied")
             """
-            projectPluginFile = file("$buildName/src/main/$sourceDirectory/${projectPluginId}${fileExtension}")
+            projectPluginFile = file("$rootDir/$buildName/src/main/$sourceDirectory/${projectPluginId}${fileExtension}")
             projectPluginFile << """
                 println("$projectPluginId applied")
             """
