@@ -32,6 +32,7 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
+import org.gradle.caching.internal.DefaultBuildCacheKey;
 import org.gradle.caching.internal.controller.CacheManifest.ManifestEntry;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
@@ -90,6 +91,17 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 @Override
                 public Duration read(JsonReader in) throws IOException {
                     return Duration.ofMillis(in.nextLong());
+                }
+            })
+            .registerTypeAdapter(HashCode.class, new TypeAdapter<HashCode>() {
+                @Override
+                public void write(JsonWriter out, HashCode value) throws IOException {
+                    out.value(value.toString());
+                }
+
+                @Override
+                public HashCode read(JsonReader in) throws IOException {
+                    return HashCode.fromString(in.nextString());
                 }
             })
             .create();
@@ -210,7 +222,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                     if (relativePath.isRoot()) {
                         assertCorrectType(type, snapshot);
                     }
-                    manifestEntries.add(new ManifestEntry(snapshot.getType(), relativePath.toRelativePath(), snapshot.getHash().toString()));
+                    manifestEntries.add(new ManifestEntry(snapshot.getType(), relativePath.toRelativePath(), snapshot.getHash()));
                     return SnapshotVisitResult.CONTINUE;
                 }
             });
@@ -321,55 +333,8 @@ public class NextGenBuildCacheController implements BuildCacheController {
         return manifestEntries.stream()
             .filter(entry -> entry.getType() == FileType.RegularFile)
             .collect(ImmutableListMultimap.toImmutableListMultimap(
-                manifestEntry -> new SimpleBuildCacheKey(manifestEntry.getContentHash()),
+                manifestEntry -> new DefaultBuildCacheKey(manifestEntry.getContentHash()),
                 ManifestEntry::getRelativePath)
             );
-    }
-
-    private static class SimpleBuildCacheKey implements BuildCacheKey {
-        private final HashCode hashCode;
-
-        public SimpleBuildCacheKey(String hashCode) {
-            this.hashCode = HashCode.fromString(hashCode);
-        }
-
-        @Override
-        public String getDisplayName() {
-            return getHashCode();
-        }
-
-        @Override
-        public String getHashCode() {
-            return hashCode.toString();
-        }
-
-        @Override
-        public byte[] toByteArray() {
-            return hashCode.toByteArray();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            SimpleBuildCacheKey that = (SimpleBuildCacheKey) o;
-
-            return hashCode.equals(that.hashCode);
-        }
-
-        @Override
-        public int hashCode() {
-            return hashCode.hashCode();
-        }
-
-        @Override
-        public String toString() {
-            return hashCode.toString();
-        }
     }
 }
