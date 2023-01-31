@@ -28,6 +28,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.NestedBuildState;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.NestedBuildTree;
@@ -60,7 +61,8 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final Map<BuildIdentifier, BuildState> buildsByIdentifier = new HashMap<>();
     private final Map<BuildState, StandAloneNestedBuild> buildSrcBuildsByOwner = new HashMap<>();
     private final Map<File, IncludedBuildState> includedBuildsByRootDir = new LinkedHashMap<>();
-    private final Map<Path, File> includedBuildDirectoriesByPath = new LinkedHashMap<>();
+    private final Map<File, NestedBuildState> nestedBuildsByRootDir = new LinkedHashMap<>();
+    private final Map<Path, File> nestedBuildDirectoriesByPath = new LinkedHashMap<>();
     private final Deque<IncludedBuildState> pendingIncludedBuilds = new ArrayDeque<>();
 
     public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, ListenerManager listenerManager, BuildStateFactory buildStateFactory) {
@@ -168,10 +170,11 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
 
         BuildDefinition buildDefinition = buildStateFactory.buildDefinitionFor(buildSrcDir, owner);
-        Path identityPath = assignPathForBuildSrc(owner, buildDefinition.getName(), buildDefinition.getBuildRootDir());
+        Path identityPath = assignPath(owner, buildDefinition.getName(), buildDefinition.getBuildRootDir());
         BuildIdentifier buildIdentifier = idFor(buildDefinition.getName());
         StandAloneNestedBuild build = buildStateFactory.createNestedBuild(buildIdentifier, identityPath, buildDefinition, owner);
         buildSrcBuildsByOwner.put(owner, build);
+        nestedBuildsByRootDir.put(buildSrcDir, build);
         addBuild(build);
     }
 
@@ -224,6 +227,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
             includedBuild = includedBuildFactory.createBuild(buildIdentifier, idPath, buildDefinition, isImplicit, rootBuild);
             includedBuildsByRootDir.put(buildDir, includedBuild);
+            nestedBuildsByRootDir.put(buildDir, includedBuild);
             pendingIncludedBuilds.add(includedBuild);
             addBuild(includedBuild);
         } else {
@@ -248,7 +252,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     private Path assignPath(BuildState owner, String name, File dir) {
         // Get the closest ancestor build of the build directory which we are currently adding
-        Optional<Map.Entry<File, IncludedBuildState>> parentBuild = includedBuildsByRootDir.entrySet().stream()
+        Optional<Map.Entry<File, NestedBuildState>> parentBuild = nestedBuildsByRootDir.entrySet().stream()
             .filter(entry -> isPrefix(entry.getKey(), dir))
             .reduce((a, b) -> isPrefix(a.getKey(), b.getKey())
                 ? b
@@ -258,7 +262,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         Path requestedPath = parentBuild.map(
             entry -> entry.getValue().getIdentityPath().append(Path.path(name))
         ).orElseGet(() -> owner.getIdentityPath().append(Path.path(name)));
-        File existingForPath = includedBuildDirectoriesByPath.putIfAbsent(requestedPath, dir);
+        File existingForPath = nestedBuildDirectoriesByPath.putIfAbsent(requestedPath, dir);
         if (existingForPath != null) {
             throw new GradleException("Included build " + dir + " has build path " + requestedPath + " which is the same as included build " + existingForPath);
         }
@@ -268,22 +272,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     private static boolean isPrefix(File prefix, File toCheck) {
         return toCheck.toPath().toAbsolutePath().startsWith(prefix.toPath().toAbsolutePath());
-    }
-
-    /**
-     * Assign path for a buildSrc build.
-     *
-     * buildSrc is special, since it is registered before the owning build has been registered.
-     * Therefore, we can't detect the hierarchy by looking at the already registered builds.
-     */
-    private Path assignPathForBuildSrc(BuildState owner, String name, File dir) {
-        Path requestedPath = owner.getIdentityPath().append(Path.path(name));
-        File existingForPath = includedBuildDirectoriesByPath.putIfAbsent(requestedPath, dir);
-        if (existingForPath != null) {
-            throw new GradleException("Included build " + dir + " has build path " + requestedPath + " which is the same as included build " + existingForPath);
-        }
-
-        return requestedPath;
     }
 
     @Override

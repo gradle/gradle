@@ -91,12 +91,13 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
             }
             includingBuild {
                 nested
+                includeBuild '../includedBuild'
             }
         }
 
 
         def includingBuild = builds.find { it.rootProjectName == 'includingBuild' }
-        builds.each { build ->
+        (builds + new BuildTestFile(file('includingBuild/nested/buildSrc'), 'buildSrc')).each { build ->
             def buildSrc = build.createDir('buildSrc')
             buildSrc.createFile('settings.gradle')
             buildSrc.createFile('build.gradle')
@@ -105,7 +106,9 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
         when:
         succeeds(includingBuild, 'help')
         then:
-        assignedBuildPaths ==~ [':nested', ':nested:buildSrc', ':', ':buildSrc']
+        assignedBuildPaths ==~ [
+            ':includedBuild', ':includedBuild:buildSrc', ':includedBuild:nested', ':includedBuild:nested:buildSrc',
+            ':', ':buildSrc', ':nested', ':nested:buildSrc', ':nested:buildSrc:buildSrc']
     }
 
     private List<Object> getAssignedBuildPaths() {
