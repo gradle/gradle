@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.verification.exceptions;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
@@ -46,7 +47,12 @@ public class InvalidGpgKeyIdsException extends GradleException {
      * Idea for this method is that you can pass a higher-level {@link TreeFormatter} into here, and get a coherent, nice error message printed out - so the user will see a nice chain of causes.
      */
     public void formatMessage(TreeFormatter formatter) {
-        formatter.node("The following trusted GPG IDs are not in 160-bit fingerprint format (see: https://docs.gradle.org/current/userguide/dependency_verification.html#sec:understanding-signature-verification):");
+        final DocumentationRegistry documentationRegistry = new DocumentationRegistry();
+        final String documentLink = documentationRegistry.getDocumentationFor("dependency_verification", "sec:understanding-signature-verification");
+
+        formatter.node(
+            String.format("The following trusted GPG IDs are not in 160-bit fingerprint format (see: %s):", documentLink)
+        );
         formatter.startChildren();
         wrongKeys
             .stream()
