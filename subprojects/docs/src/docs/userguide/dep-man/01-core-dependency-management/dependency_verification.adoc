@@ -423,14 +423,14 @@ If this is the case, you can move the trusted key from the artifact level to the
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
       <trusted-keys>
-         <trusted-key id="379ce192d401ab61" group="com.github.javaparser"/>
+         <trusted-key id="8756c4f765c9ac3cb6b85d62379ce192d401ab61" group="com.github.javaparser"/>
       </trusted-keys>
    </configuration>
    <components/>
 </verification-metadata>
 ----
 
-The configuration above means that for any artifact belonging to the group `com.github.javaparser`, we trust it if it's signed with the `379ce192d401ab61`.
+The configuration above means that for any artifact belonging to the group `com.github.javaparser`, we trust it if it's signed with the `8756c4f765c9ac3cb6b85d62379ce192d401ab61` fingerprint.
 
 The `trusted-key` element works similarly to the <<sec:trusting-artifacts,trusted-artifact>> element:
 
@@ -520,14 +520,14 @@ You can generate the binary version using GPG, for example issuing the following
 
 [source,bash]
 ----
-$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 379ce192d401ab61
+$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 8756c4f765c9ac3cb6b85d62379ce192d401ab61
 
 gpg: keybox 'gradle/verification-keyring.gpg' created
 gpg: key 379CE192D401AB61: public key "Bintray (by JFrog) <****>" imported
 gpg: Total number processed: 1
 gpg:               imported: 1
 
-$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 6a0975f8b1127b83
+$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 6f538074ccebf35f28af9b066a0975f8b1127b83
 
 gpg: key 0729A0AFF8999A87: public key "Kotlin Release <****>" imported
 gpg: Total number processed: 1
@@ -541,7 +541,7 @@ In the example above, you could amend an existing KEYS file by issuing the follo
 
 [source,bash]
 ----
-$ gpg --no-default-keyring --keyring /tmp/keyring.gpg --recv-keys 379ce192d401ab61
+$ gpg --no-default-keyring --keyring /tmp/keyring.gpg --recv-keys 8756c4f765c9ac3cb6b85d62379ce192d401ab61
 
 gpg: keybox '/tmp/keyring.gpg' created
 gpg: key 379CE192D401AB61: public key "Bintray (by JFrog) <****>" imported
@@ -549,10 +549,10 @@ gpg: Total number processed: 1
 gpg:               imported: 1
 
 # First let's add a header so that we can recognize the added key
-$ gpg --keyring /tmp/keyring.gpg --list-sigs 379CE192D401AB61 > gradle/verification-keyring.keys
+$ gpg --keyring /tmp/keyring.gpg --list-sigs 8756c4f765c9ac3cb6b85d62379ce192d401ab61 > gradle/verification-keyring.keys
 
 # Then write its ASCII armored version
-$ gpg --keyring /tmp/keyring.gpg --export --armor 379CE192D401AB61 > gradle/verification-keyring.keys
+$ gpg --keyring /tmp/keyring.gpg --export --armor 8756c4f765c9ac3cb6b85d62379ce192d401ab61 > gradle/verification-keyring.keys
 ----
 
 Or, alternatively, you can _ask Gradle to export all keys it used for verification of this build to the keyring_ during bootstrapping:
