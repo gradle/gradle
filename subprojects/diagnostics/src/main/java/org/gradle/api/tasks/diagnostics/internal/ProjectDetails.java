@@ -21,65 +21,99 @@ import org.gradle.api.Project;
 import javax.annotation.Nullable;
 import java.util.Objects;
 
+/**
+ * Provides common projections for selected project properties.
+ */
 public interface ProjectDetails {
-
-    static ProjectDetails of(final Project project) {
-        final String displayName = project.getDisplayName();
-        final String description = project.getDescription();
-        final String name = project.getName();
-        final String path = project.getPath();
-        return new ProjectDetails() {
-            @Override
-            public String getDisplayName() {
-                return displayName;
-            }
-
-            @Override
-            public String getDescription() {
-                return description;
-            }
-
-            @Override
-            public String getName() {
-                return name;
-            }
-
-            @Override
-            public String getPath() {
-                return path;
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(displayName, name, path);
-            }
-
-            @Override
-            public boolean equals(Object obj) {
-                if (!(obj instanceof ProjectDetails)) {
-                    return false;
-                }
-                ProjectDetails that = (ProjectDetails) obj;
-                if (!this.getDisplayName().equals(that.getDisplayName())) {
-                    return false;
-                }
-                if (!this.getName().equals(that.getName())) {
-                    return false;
-                }
-                if (!this.getPath().equals(that.getPath())) {
-                    return false;
-                }
-                return true;
-            }
-        };
-    }
 
     String getDisplayName();
 
     @Nullable
     String getDescription();
 
-    String getName();
+    static ProjectDetails of(Project project) {
+        return withDisplayNameAndDescription(project);
+    }
 
-    String getPath();
+    static ProjectNameAndPath withNameAndPath(Project project) {
+        return new ProjectNameAndPath(project);
+    }
+
+    static ProjectDisplayNameAndDescription withDisplayNameAndDescription(Project project) {
+        return new ProjectDisplayNameAndDescription(project);
+    }
+
+    class ProjectDisplayNameAndDescription implements ProjectDetails {
+        private final String displayName;
+        private final String description;
+
+        private ProjectDisplayNameAndDescription(Project project) {
+            displayName = project.getDisplayName();
+            description = project.getDescription();
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        @Nullable
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(displayName, description);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof ProjectDisplayNameAndDescription)) {
+                return false;
+            }
+            ProjectDisplayNameAndDescription that = (ProjectDisplayNameAndDescription) obj;
+            return Objects.equals(displayName, that.displayName) && Objects.equals(description, that.description);
+        }
+    }
+    class ProjectNameAndPath extends ProjectDisplayNameAndDescription {
+        private final String name;
+        private final String path;
+
+        private ProjectNameAndPath(Project project) {
+            super(project);
+            this.name = project.getName();
+            this.path = project.getPath();
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, path, super.hashCode());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!super.equals(obj)) {
+                return false;
+            }
+            if (!(obj instanceof ProjectNameAndPath)) {
+                return false;
+            }
+            ProjectNameAndPath that = (ProjectNameAndPath) obj;
+            return Objects.equals(name, that.name) && Objects.equals(path, that.path);
+        }
+    }
 }
