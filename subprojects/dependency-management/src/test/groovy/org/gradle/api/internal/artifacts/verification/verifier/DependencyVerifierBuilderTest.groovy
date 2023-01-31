@@ -26,10 +26,6 @@ import spock.lang.Specification
 
 class DependencyVerifierBuilderTest extends Specification {
 
-    def testComponentIdentifier = DefaultModuleComponentIdentifier::newId(
-        DefaultModuleVersionIdentifier::newId("test.group", "test-module", "0.0.0")
-    )
-
     def "ComponentVerificationsBuilder should fail if trusted GPG key is not a fingerprint but a #name"() {
         given:
         def moduleComponentIdentifier = DefaultModuleComponentIdentifier::newId(
