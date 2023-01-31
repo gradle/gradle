@@ -111,6 +111,73 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
             ':', ':buildSrc', ':nested', ':nested:buildSrc', ':nested:buildSrc:buildSrc']
     }
 
+    def "uses the directory hierarchy to determine the build path when the builds are not nested"() {
+        def builds = nestedBuilds {
+            includedBuildA {
+                includeBuild '../includedBuildB/nested'
+            }
+            includedBuildB
+            nested
+            includingBuild {
+                includeBuild '../includedBuildB'
+                includeBuild '../includedBuildA'
+                includeBuild '../nested'
+            }
+        }
+        def includingBuild = builds.find { it.rootProjectName == 'includingBuild' }
+        def includedBuildBNested = createDir('includedBuildB/nested')
+        new BuildTestFixture(includedBuildBNested).multiProjectBuild('includedBuildB', ['project1', 'project2'])
+
+        when:
+        succeeds(includingBuild, 'help')
+        then:
+        assignedBuildPaths ==~ [':', ':includedBuildB', ':includedBuildA', ':nested', ':includedBuildB:nested']
+    }
+
+    def "does not resolve the path conflict when the parent build is included #laterDescription"() {
+        def builds = nestedBuilds {
+            includedBuildA {
+                includeBuild '../includedBuildB/nested'
+            }
+            includedBuildB
+
+        }
+
+        if (includeFromNestedBuild) {
+            builds.addAll(nestedBuilds {
+                nested {
+                    includeBuild '../includedBuildB'
+                }
+                includingBuild {
+                    includeBuild '../includedBuildA'
+                    includeBuild '../nested'
+                }
+            })
+        } else {
+            builds.addAll(nestedBuilds {
+                nested
+                includingBuild {
+                    includeBuild '../includedBuildA'
+                    includeBuild '../includedBuildB'
+                    includeBuild '../nested'
+                }
+            })
+        }
+        def includingBuild = builds.find { it.rootProjectName == 'includingBuild' }
+        def includedBuildBNested = createDir('includedBuildB/nested')
+        new BuildTestFixture(includedBuildBNested).multiProjectBuild('includedBuildB', ['project1', 'project2'])
+
+        when:
+        fails(includingBuild, 'help')
+        then:
+        failure.assertHasDescription("Included build ${file('nested')} has build path :nested which is the same as included build ${file('includedBuildB/nested')}")
+
+        where:
+        laterDescription             | includeFromNestedBuild
+        'later from nested build'    | true
+        'later from including build' | false
+    }
+
     private List<Object> getAssignedBuildPaths() {
         fixture.progress(BuildIdentifiedProgressDetails).findAll { it.details.buildPath }*.details*.buildPath
     }
@@ -127,7 +194,9 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
     }
 
     List<BuildTestFile> nestedBuilds(Closure configuration) {
-        def builds = new RootNestedBuildSpec(temporaryFolder).with(configuration).nestedBuilds
+        def rootSpec = new RootNestedBuildSpec(temporaryFolder)
+        rootSpec.with(configuration)
+        def builds = rootSpec.nestedBuilds
         configureBuildConfigurationOutput(builds)
         builds
     }
@@ -140,10 +209,12 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
             this.temporaryFolder = temporaryFolder
         }
 
+        def propertyMissing(String name) {
+            createBuild(name)
+        }
+
         def methodMissing(String name, def args) {
-            def build = new BuildTestFile(temporaryFolder.testDirectory.file(name), name)
-            new BuildTestFixture(build).multiProjectBuild(name, ["project1", "project2"])
-            nestedBuilds.add(build)
+            BuildTestFile build = createBuild(name)
 
             def nestedBuildSpec = new NestedBuildSpec(build, nestedBuilds)
             if (args.length == 1 && args[0] instanceof Closure) {
@@ -152,6 +223,13 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
                 throw new MissingMethodException(name, getClass(), args)
             }
             return nestedBuildSpec
+        }
+
+        private BuildTestFile createBuild(String name) {
+            def build = new BuildTestFile(temporaryFolder.testDirectory.file(name), name)
+            new BuildTestFixture(build).multiProjectBuild(name, ["project1", "project2"])
+            nestedBuilds.add(build)
+            build
         }
     }
 
@@ -182,14 +260,14 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
             }
         }
 
-        NestedBuildSpec createNestedBuild(String name, Closure configuration = {}) {
+        BuildTestFile createNestedBuild(String name, Closure configuration = {}) {
             includeBuild(name)
             def nestedBuild = new BuildTestFile(build.file(name), name)
             nestedBuilds.add(nestedBuild)
             new BuildTestFixture(nestedBuild).multiProjectBuild(name, ["project1", "project2"])
             def nestedBuildSpec = new NestedBuildSpec(nestedBuild, nestedBuilds)
             nestedBuildSpec.with(configuration)
-            return nestedBuildSpec
+            return nestedBuild
         }
     }
 }
