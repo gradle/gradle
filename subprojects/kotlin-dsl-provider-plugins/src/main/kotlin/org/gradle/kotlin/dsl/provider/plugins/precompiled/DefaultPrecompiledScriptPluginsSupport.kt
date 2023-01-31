@@ -33,6 +33,7 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.ClasspathNormalizer
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
@@ -139,7 +140,7 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
 
     override fun enableOn(target: PrecompiledScriptPluginsSupport.Target): Boolean = target.project.run {
 
-        val scriptPluginFiles = collectScriptPluginFiles()
+        val scriptPluginFiles = target.kotlinSourceDirectorySet.collectScriptPluginFiles()
         if (scriptPluginFiles.isEmpty()) {
             return false
         }
@@ -161,7 +162,7 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
     }
 
     override fun collectScriptPluginFilesOf(project: Project): List<File> =
-        project.collectScriptPluginFiles().toList()
+        project.gradlePlugin.pluginSourceSet.kotlin.collectScriptPluginFiles().toList()
 }
 
 
@@ -437,12 +438,18 @@ fun Project.exposeScriptsAsGradlePlugins(scriptPlugins: List<PrecompiledScriptPl
 
 
 private
-fun Project.collectScriptPluginFiles(): Set<File> =
-    gradlePlugin.pluginSourceSet.allSource.matching {
-        it.include("**/*.gradle.kts")
-    }.filter {
-        it.isFile
-    }.files
+fun SourceDirectorySet.collectScriptPluginFiles(): Set<File> =
+    matching { it.include("**/*.gradle.kts") }
+        .filter { it.isFile }
+        .files
+
+
+/**
+ * Uses the Groovy builder to access the `kotlin` source set because KGP types are not available here.
+ */
+private
+val SourceSet.kotlin: SourceDirectorySet
+    get() = withGroovyBuilder { getProperty("kotlin") } as SourceDirectorySet
 
 
 private
