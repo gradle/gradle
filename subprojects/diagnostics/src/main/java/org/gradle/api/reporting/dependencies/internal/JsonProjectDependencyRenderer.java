@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
-import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
+import org.gradle.api.tasks.diagnostics.internal.ProjectDetails.ProjectNameAndPath;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
@@ -109,7 +109,7 @@ import java.util.Set;
  *      }
  * </pre>
  */
-public class JsonProjectDependencyRenderer {
+class JsonProjectDependencyRenderer {
     public JsonProjectDependencyRenderer(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
@@ -122,14 +122,14 @@ public class JsonProjectDependencyRenderer {
      * @param project the project for which the report must be generated
      * @return the generated JSON, as a String
      */
-    public String render(ProjectDetails project, Iterable<ConfigurationDetails> configurations) {
+    public String render(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations) {
         JsonBuilder json = new JsonBuilder();
         renderProject(project, configurations, json);
         return json.toString();
     }
 
     // Historic note: this class still uses the Groovy JsonBuilder, as it was originally developed as a Groovy class.
-    private void renderProject(ProjectDetails project, Iterable<ConfigurationDetails> configurations, JsonBuilder json) {
+    private void renderProject(ProjectNameAndPath project, Iterable<ConfigurationDetails> configurations, JsonBuilder json) {
 
         Map<String, Object> overall = Maps.newLinkedHashMap();
         overall.put("gradleVersion", GradleVersion.current().toString());
