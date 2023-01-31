@@ -24,6 +24,7 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Namer;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
@@ -128,12 +129,13 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
             @Override
             public TypeOf<?> getPublicType() {
-                return TypeOf.typeOf(entry.getValue().getClass());
-                //TODO: this is not quite ok; we don't need the concrete type, like DefaultJvmTestSuite (implementation),
-                // but the type that was used to create the element, like JvmTestSuite (interface);
-                // to make that happen I think we need to add tracking of those types, because we don't have it
-                // -
-                // ALTERNATIVELY: stick to the concrete type but search parents for first public interface?
+                //TODO: This returns the wrong public type for domain objects
+                // created with the eager APIs or added directly to the container.
+                // This can leak internal types.
+                // We do not currently keep track of the type used when creating
+                // a domain object (via create) or the type of the container when
+                // a domain object is added directly (via add).
+                return new DslObject(entry.getValue()).getPublicType();
             }
         });
     }
