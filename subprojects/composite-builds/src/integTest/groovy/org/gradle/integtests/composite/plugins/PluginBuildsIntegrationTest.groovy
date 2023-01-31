@@ -624,4 +624,53 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         where:
         dsl << ['Groovy', 'Kotlin']
     }
+
+    def "test multiple included builds with same name"() {
+        given:
+        def libBuild1 = pluginBuild("plugin1", "lib")
+
+        def pluginBuild1 = pluginBuild("plugin1")
+        pluginBuild1.settingsFile << """
+            pluginManagement {
+                includeBuild("${libBuild1.buildName}")
+            }
+        """
+        pluginBuild1.buildFile << """
+            plugins {
+                id("lib")
+            }
+        """
+        def libBuild2 = pluginBuild("plugin2", "lib")
+        def pluginBuild2 = pluginBuild("plugin2")
+        pluginBuild2.settingsFile << """
+            pluginManagement {
+                includeBuild("${libBuild2.buildName}")
+            }
+        """
+        pluginBuild2.buildFile << """
+            plugins {
+                id("lib")
+            }
+        """
+
+        settingsFile << """
+            pluginManagement {
+                includeBuild("${pluginBuild1.buildName}")
+                includeBuild("${pluginBuild2.buildName}")
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id("${pluginBuild1.projectPluginId}")
+                id("${pluginBuild2.projectPluginId}")
+            }
+        """
+
+        when:
+        succeeds()
+
+        then:
+        assertProjectPluginApplied()
+    }
 }
