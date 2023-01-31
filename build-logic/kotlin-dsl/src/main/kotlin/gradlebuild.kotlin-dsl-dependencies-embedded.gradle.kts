@@ -30,9 +30,9 @@ val publishedKotlinDslPluginVersion = "4.0.2" // TODO:kotlin-dsl
 
 tasks {
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
-        outputDir.set(apiExtensionsOutputDir)
-        embeddedKotlinVersion.set(libs.kotlinVersion)
-        kotlinDslPluginsVersion.set(publishedKotlinDslPluginVersion)
+        outputDir = apiExtensionsOutputDir
+        embeddedKotlinVersion = libs.kotlinVersion
+        kotlinDslPluginsVersion = publishedKotlinDslPluginVersion
     }
 
     val apiExtensionsFileCollection = files(apiExtensionsOutputDir).builtBy(generateKotlinDependencyExtensions)
@@ -49,7 +49,7 @@ tasks {
 
 // -- Version manifest properties --------------------------------------
     val writeVersionsManifest by registering(WriteProperties::class) {
-        destinationFile.set(layout.buildDirectory.file("versionsManifest/gradle-kotlin-dsl-versions.properties"))
+        destinationFile = layout.buildDirectory.file("versionsManifest/gradle-kotlin-dsl-versions.properties")
         property("kotlin", libs.kotlinVersion)
     }
 

@@ -256,6 +256,13 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         return ImmutableAttributes.EMPTY;
     }
 
+    @Override
+    public void reevaluate() {
+        for (DefaultLocalConfigurationMetadata conf : allConfigurations.values()) {
+            conf.reevaluate();
+        }
+    }
+
     private class LocalVariantMetadata extends DefaultVariantMetadata {
         private final CalculatedValueContainer<ImmutableList<LocalComponentArtifactMetadata>, ?> artifacts;
 
@@ -296,7 +303,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
     }
 
-    private class DefaultLocalConfigurationMetadata implements LocalConfigurationMetadata, BuildableLocalConfigurationMetadata, LocalConfigurationGraphResolveMetadata {
+    public class DefaultLocalConfigurationMetadata implements LocalConfigurationMetadata, BuildableLocalConfigurationMetadata, LocalConfigurationGraphResolveMetadata {
         private final String name;
         private final String description;
         private final boolean transitive;
@@ -312,6 +319,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         private final CalculatedValueContainerFactory factory;
 
         private ConfigurationInternal backingConfiguration;
+        private boolean reevaluate = true;
         private LocalConfigurationMetadataBuilder configurationMetadataBuilder;
 
         private final List<LocalOriginDependencyMetadata> definedDependencies = Lists.newArrayList();
@@ -583,12 +591,30 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
 
         synchronized void realizeDependencies() {
-            if (backingConfiguration != null) {
+            if (reevaluate && backingConfiguration != null) {
                 backingConfiguration.runDependencyActions();
                 configurationMetadataBuilder.addDependenciesAndExcludes(this, backingConfiguration);
-                backingConfiguration = null;
             }
+            reevaluate = false;
         }
 
+        /**
+         * When the backing configuration could have been modified, we need to clear our retained cache/state,
+         * so that the next evaluation is clean.
+         */
+        synchronized void reevaluate() {
+            definedDependencies.clear();
+            definedFiles.clear();
+            definedExcludes.clear();
+            configurationDependencies = null;
+            configurationExcludes = null;
+            configurationFileDependencies = null;
+            reevaluate = true;
+        }
+
+        @Override
+        public boolean needsReevaluate() {
+            return reevaluate;
+        }
     }
 }

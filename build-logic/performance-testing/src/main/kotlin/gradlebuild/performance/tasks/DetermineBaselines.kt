@@ -21,6 +21,8 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+// Using star import to workaround https://youtrack.jetbrains.com/issue/KTIJ-24390
+import org.gradle.kotlin.dsl.*
 import org.gradle.work.DisableCachingByDefault
 import javax.inject.Inject
 
@@ -46,13 +48,13 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     @TaskAction
     fun determineForkPointCommitBaseline() {
         if (configuredBaselines.getOrElse("") == flakinessDetectionCommitBaseline) {
-            determinedBaselines.set(determineFlakinessDetectionBaseline())
+            determinedBaselines = determineFlakinessDetectionBaseline()
         } else if (configuredBaselines.getOrElse("").isNotEmpty()) {
-            determinedBaselines.set(configuredBaselines)
+            determinedBaselines = configuredBaselines
         } else if (!currentBranchIsMasterOrRelease()) {
-            determinedBaselines.set(forkPointCommitBaseline())
+            determinedBaselines = forkPointCommitBaseline()
         } else {
-            determinedBaselines.set(defaultBaselines)
+            determinedBaselines = defaultBaselines
         }
 
         println("Determined baseline is: ${determinedBaselines.get()}")

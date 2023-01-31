@@ -33,7 +33,6 @@ import org.junit.Assert.assertSame
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -46,7 +45,6 @@ import kotlin.script.dependencies.ScriptContents.Position
 import kotlin.script.dependencies.ScriptDependenciesResolver.ReportSeverity
 
 
-@Ignore("seems to be broken")
 class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Before

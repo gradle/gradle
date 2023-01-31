@@ -68,5 +68,5 @@ packageCycles {
     excludePatterns.add("org/gradle/plugins/ide/idea/model/internal/*")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
-testFilesCleanup.reportOnly.set(true)
+integTest.usesJavadocCodeSnippets = true
+testFilesCleanup.reportOnly = true

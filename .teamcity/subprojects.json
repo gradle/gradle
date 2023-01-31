@@ -472,7 +472,7 @@
     "dirName": "kotlin-dsl-tooling-builders",
     "name": "kotlin-dsl-tooling-builders",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": true
   },
   {

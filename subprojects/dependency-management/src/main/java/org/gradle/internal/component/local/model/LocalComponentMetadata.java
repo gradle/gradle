@@ -29,4 +29,18 @@ public interface LocalComponentMetadata extends ComponentResolveMetadata, Compon
     LocalConfigurationGraphResolveMetadata getConfiguration(String name);
 
     LocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts);
+
+    /**
+     * We currently allow a configuration that has been partially observed for resolution to be modified
+     * in a beforeResolve callback.
+     *
+     * To reduce the number of instances of root component metadata we create, we mark all configurations
+     * as dirty and in need of re-evaluation when we see certain types of modifications to a configuration.
+     *
+     * In the future, we could narrow the number of configurations that need to be re-evaluated, but it would
+     * be better to get rid of the behavior that allows configurations to be modified once they've been observed.
+     *
+     * @see org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder.MetadataHolder#tryCached(ComponentIdentifier)
+     */
+    void reevaluate();
 }
