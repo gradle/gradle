@@ -31,7 +31,7 @@ class CIConfigIntegrationTests {
     private val subprojectProvider = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
     private val model = CIBuildModel(
         projectId = "Gradle_Check",
-        branch = VersionedSettingsBranch("master", true),
+        branch = VersionedSettingsBranch("master"),
         buildScanTags = listOf("Check"),
         subprojects = subprojectProvider
     )
