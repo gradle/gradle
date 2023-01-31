@@ -25,6 +25,8 @@ import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
+import org.gradle.internal.Factory
+import org.gradle.internal.deprecation.DeprecationLogger
 
 import org.gradle.kotlin.dsl.support.mapOfNonNullValuesOf
 import org.gradle.kotlin.dsl.support.uncheckedCast
@@ -45,8 +47,8 @@ fun conventionPluginByName(convention: Convention, name: String): Any =
 
 @Suppress("deprecation")
 fun conventionOf(target: Any): Convention = when (target) {
-    is Project -> target.convention
-    is org.gradle.api.internal.HasConvention -> target.convention
+    is Project -> DeprecationLogger.whileDisabled(Factory { target.convention })!!
+    is org.gradle.api.internal.HasConvention -> DeprecationLogger.whileDisabled(Factory { target.convention })!!
     else -> throw IllegalStateException("Object `$target` doesn't support conventions!")
 }
 
