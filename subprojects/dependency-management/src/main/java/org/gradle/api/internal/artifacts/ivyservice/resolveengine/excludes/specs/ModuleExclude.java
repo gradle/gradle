@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
 
 import java.util.Set;
@@ -59,6 +60,11 @@ public interface ModuleExclude extends ExcludeSpec {
         String module = this.getModule();
         Set<ModuleIdentifier> common = right.getModuleIds().stream().filter(id -> id.getName().equals(module)).collect(toSet());
         return factory.fromModuleIds(common);
+    }
+
+    @Override
+    default ExcludeSpec intersect(GroupSetExclude other, ExcludeFactory factory) {
+        return factory.moduleIdSet(other.getGroups().stream().map(group -> DefaultModuleIdentifier.newId(group, this.getModule())).collect(toSet()));
     }
 
     @Override

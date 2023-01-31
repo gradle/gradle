@@ -38,7 +38,7 @@ public interface ModuleSetExclude extends ExcludeSpec {
 
     @Override
     default ExcludeSpec intersect(ModuleIdExclude other, ExcludeFactory factory) {
-        return other.intersect(this, factory);
+        return other.intersect(this, factory); // We implemented the equivalent reverse of this call, forward to that
     }
 
     @Override
@@ -53,6 +53,11 @@ public interface ModuleSetExclude extends ExcludeSpec {
 
     @Override
     default ExcludeSpec intersect(ModuleIdSetExclude other, ExcludeFactory factory) {
+        return other.intersect(this, factory); // We implemented the equivalent reverse of this call, forward to that
+    }
+
+    @Override
+    default ExcludeSpec intersect(GroupSetExclude other, ExcludeFactory factory) {
         return other.intersect(this, factory); // We implemented the equivalent reverse of this call, forward to that
     }
 
