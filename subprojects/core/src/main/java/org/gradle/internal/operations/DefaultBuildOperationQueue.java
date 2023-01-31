@@ -245,6 +245,11 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             int operationCount = 0;
             T operation = firstOperation;
             while (operation != null) {
+                if (queueState == QueueState.Cancelled) {
+                    // If an operation was pulled from the queue, but the queue was cancelled before this operation could start
+                    // (for instance, because this worker was waiting on a worker lease) discard it without running.
+                    return ++operationCount;
+                }
                 runOperation(operation);
                 operationCount++;
                 operation = getNextOperation();

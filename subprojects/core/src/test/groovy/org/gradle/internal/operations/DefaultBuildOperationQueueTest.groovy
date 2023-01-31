@@ -127,9 +127,9 @@ class DefaultBuildOperationQueueTest extends Specification {
         println "expecting ${expectedWorkerCount} concurrent work processors to be started..."
 
         when:
-        runs.times { operationQueue.add(new SynchronizedBuildOperation(operationAction, startedLatch, releaseLatch)) }
         def waitForCompletionThread = new Thread({
             workerRegistry.runAsWorkerThread {
+                runs.times { operationQueue.add(new SynchronizedBuildOperation(operationAction, startedLatch, releaseLatch)) }
                 operationQueue.waitForCompletion()
             }
         })
@@ -143,6 +143,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         waitForCompletionThread.join(30000)
 
         then:
+        !waitForCompletionThread.alive
         // The main thread sometimes processes items when there are more items than threads available, so
         // we may only submit workerCount - 1 work processors, but we should never submit more than workerCount
         ((expectedWorkerCount-1)..expectedWorkerCount) * executor.execute(_) >> { args -> delegateExecutor.execute(args[0]) }
@@ -226,9 +227,9 @@ class DefaultBuildOperationQueueTest extends Specification {
         lease.leaseFinish() // Release worker lease to allow operation to run, when there is max 1 worker thread
 
         when:
-        runs.times { operationQueue.add(new SynchronizedBuildOperation(operationAction, startedLatch, releaseLatch)) }
         def waitForCompletionThread = new Thread({
             workerRegistry.runAsWorkerThread {
+                runs.times { operationQueue.add(new SynchronizedBuildOperation(operationAction, startedLatch, releaseLatch)) }
                 operationQueue.waitForCompletion()
             }
         })
@@ -247,6 +248,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         waitForCompletionThread.join(30000)
 
         then:
+        !waitForCompletionThread.alive
         expectedInvocations * operationAction.run()
 
         where:
