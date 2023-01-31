@@ -560,8 +560,8 @@ class LoggingMessageCollector(
             }
 
             in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
-            CompilerMessageSeverity.STRONG_WARNING -> log.info { taggedMsg() }
-            CompilerMessageSeverity.WARNING -> log.info { taggedMsg() }
+            CompilerMessageSeverity.STRONG_WARNING -> log.warn { taggedMsg() }
+            CompilerMessageSeverity.WARNING -> log.warn { taggedMsg() }
             CompilerMessageSeverity.INFO -> log.info { msg() }
             else -> log.debug { taggedMsg() }
         }

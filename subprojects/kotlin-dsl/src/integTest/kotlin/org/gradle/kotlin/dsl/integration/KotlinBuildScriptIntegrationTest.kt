@@ -4,6 +4,7 @@ import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
@@ -342,5 +343,17 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                 """.trimIndent()
             )
         )
+    }
+
+    @Test
+    fun `script compilation warnings are output on the console`() {
+        val script = withBuildScript("""
+            @Deprecated("BECAUSE")
+            fun deprecatedFunction() {}
+            deprecatedFunction()
+        """)
+        build("help").apply {
+            assertOutputContains("w: ${normaliseFileSeparators(script.absolutePath)}:4:13: 'deprecatedFunction(): Unit' is deprecated. BECAUSE")
+        }
     }
 }
