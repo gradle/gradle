@@ -17,86 +17,17 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+
+import static org.hamcrest.CoreMatchers.containsString
 
 class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String RESULT_PREFIX = "Result: "
 
-    private static final String GROOVY_BUILD_FILE_TEMPLATE = """
-            enum MyEnum {
-                YES, NO
-            }
-
-            class MyObject {
-                private String value
-                public MyObject(String value) {
-                    this.value = value
-                }
-                public String toString() {
-                    return value
-                }
-            }
-
-            abstract class MyTask extends DefaultTask {
-                @Internal
-                {inputDeclaration}
-
-                @TaskAction
-                void run() {
-                    if (input instanceof DirectoryProperty) {
-                        println("$RESULT_PREFIX" + input.get().asFile.name)
-                    } else if (input instanceof File) {
-                       println("$RESULT_PREFIX" + input.name)
-                    } else if (input instanceof Provider) {
-                        println("$RESULT_PREFIX" + input.get())
-                    } else if (input instanceof FileCollection) {
-                        println("$RESULT_PREFIX" + input.files.collect { it.name })
-                    } else {
-                        println("$RESULT_PREFIX" + input)
-                    }
-                }
-            }
-
-            tasks.register("myTask", MyTask) {
-                input {operation} {inputValue}
-            }
-    """
-
-    private static final String KOTLIN_BUILD_FILE_TEMPLATE = """
-            enum class MyEnum {
-                YES, NO
-            }
-
-            class MyObject(val value: String) {
-                override fun toString(): String = value
-            }
-
-            abstract class MyTask: DefaultTask() {
-                @get:Internal
-                {inputDeclaration}
-
-                @TaskAction
-                fun run() {
-                    when (val anyInput = input as Any?) {
-                       is DirectoryProperty -> println("$RESULT_PREFIX" + anyInput.get().asFile.name)
-                       is File -> println("$RESULT_PREFIX" + anyInput.name)
-                       is Provider<*> -> println("$RESULT_PREFIX" + anyInput.get())
-                       is FileCollection -> println("$RESULT_PREFIX" + anyInput.files.map { it.name })
-                       else -> println("$RESULT_PREFIX" + anyInput)
-                    }
-                }
-            }
-
-            tasks.register<MyTask>("myTask") {
-                input {operation} {inputValue}
-            }
-    """
-
     def "test Groovy eager object types assignment for #description"() {
-        buildFile.text = GROOVY_BUILD_FILE_TEMPLATE
-            .replace("{inputDeclaration}", "$inputType input")
-            .replace("{inputValue}", inputValue)
-            .replace("{operation}", "=")
+        def inputDeclaration = "$inputType input"
+        groovyBuildFile(inputDeclaration, inputValue, "=")
 
         expect:
         runAndAssert("myTask", expectedResult)
@@ -115,10 +46,8 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Groovy lazy object types assignment for #description"() {
-        buildFile.text = GROOVY_BUILD_FILE_TEMPLATE
-            .replace("{inputDeclaration}", "abstract $inputType getInput()")
-            .replace("{inputValue}", inputValue)
-            .replace("{operation}", "=")
+        def inputDeclaration = "abstract $inputType getInput()"
+        groovyBuildFile(inputDeclaration, inputValue, "=")
 
         expect:
         runAndAssert("myTask", expectedResult)
@@ -138,10 +67,8 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
     def "test Kotlin eager object types assignment for #description"() {
         file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
-        buildKotlinFile.text = KOTLIN_BUILD_FILE_TEMPLATE
-            .replace("{inputDeclaration}", "var input: $inputType? = null")
-            .replace("{inputValue}", inputValue)
-            .replace("{operation}", "=")
+        def inputDeclaration = "var input: $inputType? = null"
+        kotlinBuildFile(inputDeclaration, inputValue, "=")
 
         expect:
         runAndAssert("myTask", expectedResult)
@@ -161,10 +88,8 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
     def "test Kotlin lazy object types assignment for #description"() {
         file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
-        buildKotlinFile.text = KOTLIN_BUILD_FILE_TEMPLATE
-            .replace("{inputDeclaration}", "abstract val input: $inputType")
-            .replace("{inputValue}", inputValue)
-            .replace("{operation}", "=")
+        def inputDeclaration = "abstract val input: $inputType"
+        kotlinBuildFile(inputDeclaration, inputValue, "=")
 
         expect:
         runAndAssert("myTask", expectedResult)
@@ -183,12 +108,9 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Groovy eager collection types assignment for #description"() {
-        given:
         def initValue = inputType.contains("Map<") ? "[:]" : "[]"
-        buildFile.text = GROOVY_BUILD_FILE_TEMPLATE
-            .replace("{inputDeclaration}", "$inputType input = $initValue")
-            .replace("{inputValue}", inputValue)
-            .replace("{operation}", operation)
+        def inputDeclaration = "$inputType input = $initValue"
+        groovyBuildFile(inputDeclaration, inputValue, operation)
 
         expect:
         runAndAssert("myTask", expectedResult)
@@ -217,11 +139,8 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Groovy lazy collection types assignment for #description"() {
-        given:
-        buildFile.text = GROOVY_BUILD_FILE_TEMPLATE
-            .replace("{inputDeclaration}", "abstract $inputType getInput()")
-            .replace("{inputValue}", inputValue)
-            .replace("{operation}", operation)
+        def inputDeclaration = "abstract $inputType getInput()"
+        groovyBuildFile(inputDeclaration, inputValue, operation)
 
         expect:
         runAndAssert("myTask", expectedResult)
@@ -252,10 +171,8 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     def "test Kotlin eager collection types assignment for #description"() {
         file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
         def initValue = inputType.contains("Map<") ? "mutableMapOf<String, MyObject>()" : "mutableListOf<MyObject>()"
-        buildKotlinFile.text = KOTLIN_BUILD_FILE_TEMPLATE
-            .replace("{inputDeclaration}", "var input: $inputType = $initValue")
-            .replace("{inputValue}", inputValue)
-            .replace("{operation}", operation)
+        def inputDeclaration = "var input: $inputType = $initValue"
+        kotlinBuildFile(inputDeclaration, inputValue, operation)
 
         expect:
         runAndAssert("myTask", expectedResult)
@@ -280,10 +197,8 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
     def "test Kotlin lazy collection types assignment for #description"() {
         file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
-        buildKotlinFile.text = KOTLIN_BUILD_FILE_TEMPLATE
-            .replace("{inputDeclaration}", "abstract val input: $inputType")
-            .replace("{inputValue}", inputValue)
-            .replace("{operation}", operation)
+        def inputDeclaration = "abstract val input: $inputType"
+        kotlinBuildFile(inputDeclaration, inputValue, operation)
 
         expect:
         runAndAssert("myTask", expectedResult)
@@ -307,10 +222,8 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Groovy eager FileCollection types assignment for #description"() {
-        buildFile.text = GROOVY_BUILD_FILE_TEMPLATE
-            .replace("{inputDeclaration}", "$inputType input = project.files() as $inputType")
-            .replace("{inputValue}", inputValue)
-            .replace("{operation}", operation)
+        def inputDeclaration = "$inputType input = project.files()"
+        groovyBuildFile(inputDeclaration, inputValue, operation)
 
         expect:
         runAndAssert("myTask", expectedResult)
@@ -330,10 +243,8 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "test Groovy lazy FileCollection types assignment for #description"() {
-        buildFile.text = GROOVY_BUILD_FILE_TEMPLATE
-            .replace("{inputDeclaration}", "abstract $inputType getInput()")
-            .replace("{inputValue}", inputValue)
-            .replace("{operation}", operation)
+        def inputDeclaration = "abstract $inputType getInput()"
+        groovyBuildFile(inputDeclaration, inputValue, operation)
 
         expect:
         runAndAssert("myTask", expectedResult)
@@ -356,10 +267,8 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
     def "test Kotlin eager FileCollection types assignment for #description"() {
         file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
-        buildKotlinFile.text = KOTLIN_BUILD_FILE_TEMPLATE
-            .replace("{inputDeclaration}", "var input: $inputType = project.files()")
-            .replace("{inputValue}", inputValue)
-            .replace("{operation}", operation)
+        def inputDeclaration = "var input: $inputType = project.files()"
+        kotlinBuildFile(inputDeclaration, inputValue, operation)
 
         expect:
         runAndAssert("myTask", expectedResult)
@@ -381,10 +290,8 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
     def "test Kotlin lazy FileCollection types assignment for #description"() {
         file("gradle.properties") << "\nsystemProp.org.gradle.unsafe.kotlin.assignment=true\n"
-        buildKotlinFile.text = KOTLIN_BUILD_FILE_TEMPLATE
-            .replace("{inputDeclaration}", "abstract val input: $inputType")
-            .replace("{inputValue}", inputValue)
-            .replace("{operation}", operation)
+        def inputDeclaration = "abstract val input: $inputType"
+        kotlinBuildFile(inputDeclaration, inputValue, operation)
 
         expect:
         runAndAssert("myTask", expectedResult)
@@ -404,13 +311,84 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | 'listOf(file("a.txt"))'            | unsupportedWithDescription("Val cannot be reassigned")
     }
 
+    private void groovyBuildFile(String inputDeclaration, String inputValue, String operation) {
+        buildFile.text = """
+            enum MyEnum {
+                YES, NO
+            }
+
+            class MyObject {
+                private String value
+                public MyObject(String value) {
+                    this.value = value
+                }
+                public String toString() {
+                    return value
+                }
+            }
+
+            abstract class MyTask extends DefaultTask {
+                @Internal
+                $inputDeclaration
+
+                @TaskAction
+                void run() {
+                    if (input instanceof DirectoryProperty) {
+                        println("$RESULT_PREFIX" + input.get().asFile.name)
+                    } else if (input instanceof File) {
+                       println("$RESULT_PREFIX" + input.name)
+                    } else if (input instanceof Provider) {
+                        println("$RESULT_PREFIX" + input.get())
+                    } else if (input instanceof FileCollection) {
+                        println("$RESULT_PREFIX" + input.files.collect { it.name })
+                    } else {
+                        println("$RESULT_PREFIX" + input)
+                    }
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                input $operation $inputValue
+            }
+        """
+    }
+
+    private void kotlinBuildFile(String inputDeclaration, String inputValue, String operation) {
+        buildKotlinFile.text = """
+            enum class MyEnum {
+                YES, NO
+            }
+
+            class MyObject(val value: String) {
+                override fun toString(): String = value
+            }
+
+            abstract class MyTask: DefaultTask() {
+                @get:Internal
+                $inputDeclaration
+
+                @TaskAction
+                fun run() {
+                    when (val anyInput = input as Any?) {
+                       is DirectoryProperty -> println("$RESULT_PREFIX" + anyInput.get().asFile.name)
+                       is File -> println("$RESULT_PREFIX" + anyInput.name)
+                       is Provider<*> -> println("$RESULT_PREFIX" + anyInput.get())
+                       is FileCollection -> println("$RESULT_PREFIX" + anyInput.files.map { it.name })
+                       else -> println("$RESULT_PREFIX" + anyInput)
+                    }
+                }
+            }
+
+            tasks.register<MyTask>("myTask") {
+                input $operation $inputValue
+            }
+        """
+    }
+
     private void runAndAssert(String task, Object expectedResult) {
-        if (expectedResult instanceof FailureWithCause) {
+        if (expectedResult instanceof Failure) {
             def failure = runAndFail(task)
-            failure.assertHasCause(expectedResult.failureCause)
-        } else if (expectedResult instanceof FailureWithDescription) {
-            def failure = runAndFail(task)
-            failure.assertThatDescription(containsNormalizedString(expectedResult.failureDescription))
+            expectedResult.assertHasExpectedFailure(failure)
         } else {
             run(task)
             outputContains(RESULT_PREFIX + expectedResult)
@@ -425,19 +403,33 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         return new FailureWithDescription(error)
     }
 
-    private static class FailureWithCause {
+    private static interface Failure {
+        void assertHasExpectedFailure(ExecutionFailure failure);
+    }
+
+    private static class FailureWithCause implements Failure {
         final String failureCause
 
         FailureWithCause(String failureCause) {
             this.failureCause = failureCause
         }
+
+        @Override
+        void assertHasExpectedFailure(ExecutionFailure failure) {
+            failure.assertHasCause(failureCause)
+        }
     }
 
-    private static class FailureWithDescription {
+    private static class FailureWithDescription implements Failure {
         final String failureDescription
 
         FailureWithDescription(String failureDescription) {
             this.failureDescription = failureDescription
+        }
+
+        @Override
+        void assertHasExpectedFailure(ExecutionFailure failure) {
+            failure.assertThatDescription(containsString(failureDescription));
         }
     }
 }
