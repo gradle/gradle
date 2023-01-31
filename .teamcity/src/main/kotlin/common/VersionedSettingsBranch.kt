@@ -4,15 +4,6 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
 
 data class VersionedSettingsBranch(val branchName: String) {
     /**
-     * Whether the <a href="https://www.jetbrains.com/help/teamcity/configuring-vcs-triggers.html">VCS trigger</a>
-     * should be enabled, i.e. when new commits are pushed to this branch, should a ReadyForNightly job
-     * be triggered automatically?
-     *
-     * Currently, we only enable VCS trigger for `master` and `release` branches.
-     */
-    val enableVcsTriggers: Boolean = mainBranches.contains(branchName.lowercase())
-
-    /**
      * 0~23.
      * To avoid nightly promotion jobs running at the same time,
      * we run each branch on different hours.
@@ -24,6 +15,15 @@ data class VersionedSettingsBranch(val branchName: String) {
      * releaseNx - (N-4):00
      */
     val nightlyPromotionTriggerHour: Int? = determineNightlyPromotionTriggerHour(branchName)
+
+    /**
+     * Whether the <a href="https://www.jetbrains.com/help/teamcity/configuring-vcs-triggers.html">VCS trigger</a>
+     * should be enabled, i.e. when new commits are pushed to this branch, should a ReadyForNightly job
+     * be triggered automatically?
+     *
+     * Currently, we only enable VCS trigger for `master`/`release`/`releaseNx` branches.
+     */
+    val enableVcsTriggers: Boolean = nightlyPromotionTriggerHour != null
 
     companion object {
         private
