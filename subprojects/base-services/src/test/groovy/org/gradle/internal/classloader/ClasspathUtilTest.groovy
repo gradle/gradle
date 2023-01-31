@@ -16,6 +16,7 @@
 package org.gradle.internal.classloader
 
 import org.gradle.internal.classpath.DefaultClassPath
+import spock.lang.Issue
 import spock.lang.Specification
 
 class ClasspathUtilTest extends Specification {
@@ -35,5 +36,28 @@ class ClasspathUtilTest extends Specification {
         then:
         !classpath.asURLs.any { it == JAR_URL || it == HTTP_URL }
         classpath.asURLs.any { it == FILE_URL }
+    }
+
+    def "getClasspathForResource for jar scheme with resource name"() {
+        given:
+        def jarUrlWithResourceName = new URL('jar:file:/home/duke/duke.jar!/Test.class')
+
+        when:
+        def file = ClasspathUtil.getClasspathForResource(jarUrlWithResourceName, "Test.class")
+
+        then:
+        "/home/duke/duke.jar" == file.getPath()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23625")
+    def "getClasspathForResource for jar scheme with prefix resource name"() {
+        given:
+        def jarUrlWithResourceName = new URL('jar:file:/home/duke/duke.jar!/META-INF/versions/9/Test.class')
+
+        when:
+        def file = ClasspathUtil.getClasspathForResource(jarUrlWithResourceName, "Test.class")
+
+        then:
+        "/home/duke/duke.jar" == file.getPath()
     }
 }
