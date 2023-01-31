@@ -60,6 +60,7 @@ class Intersections {
         intersections.add(new IntersectModuleWithModuleId(factory));
         intersections.add(new IntersectModuleWithModuleSet(factory));
         intersections.add(new IntersectModuleWithModuleIdSet(factory));
+        intersections.add(new IntersectModuleWithGroupSet(factory));
 
         intersections.add(new IntersectModuleIdWithModuleId(factory));
         intersections.add(new IntersectModuleIdWithModuleIdSet(factory));
@@ -69,6 +70,7 @@ class Intersections {
         intersections.add(new IntersectModuleIdSetWithModuleSet(factory));
 
         intersections.add(new IntersectModuleSetWithModuleSet(factory));
+        intersections.add(new IntersectModuleSetWithGroupSet(factory));
     }
 
     @SuppressWarnings("unchecked")
@@ -464,6 +466,28 @@ class Intersections {
                 return factory.module(modules.iterator().next());
             }
             return factory.moduleSet(modules);
+        }
+    }
+
+    private final class IntersectModuleSetWithGroupSet extends AbstractIntersection<ModuleSetExclude, GroupSetExclude> {
+        protected IntersectModuleSetWithGroupSet(ExcludeFactory factory) {
+            super(ModuleSetExclude.class, GroupSetExclude.class, factory);
+        }
+
+        @Override
+        public ExcludeSpec doIntersect(ModuleSetExclude left, GroupSetExclude right, ExcludeFactory factory) {
+            return factory.moduleIdSet(right.getGroups().stream().flatMap(group -> left.getModules().stream().map(module -> DefaultModuleIdentifier.newId(group, module))).collect(toSet()));
+        }
+    }
+
+    private final class IntersectModuleWithGroupSet extends AbstractIntersection<ModuleExclude, GroupSetExclude> {
+        protected IntersectModuleWithGroupSet(ExcludeFactory factory) {
+            super(ModuleExclude.class, GroupSetExclude.class, factory);
+        }
+
+        @Override
+        public ExcludeSpec doIntersect(ModuleExclude left, GroupSetExclude right, ExcludeFactory factory) {
+            return factory.moduleIdSet(right.getGroups().stream().map(group -> DefaultModuleIdentifier.newId(group, left.getModule())).collect(toSet()));
         }
     }
 }
