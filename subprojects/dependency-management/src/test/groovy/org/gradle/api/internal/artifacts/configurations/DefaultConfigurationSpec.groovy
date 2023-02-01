@@ -389,8 +389,8 @@ class DefaultConfigurationSpec extends Specification {
         def fileCollection = configuration.fileCollection(dependency1)
 
         then:
-        fileCollection.dependencySpec.isSatisfiedBy(dependency1)
-        !fileCollection.dependencySpec.isSatisfiedBy(dependency2)
+        fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency1)
+        !fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency2)
     }
 
     def fileCollectionWithSpec() {
@@ -401,7 +401,7 @@ class DefaultConfigurationSpec extends Specification {
         def fileCollection = configuration.fileCollection(spec)
 
         then:
-        fileCollection.dependencySpec == spec
+        fileCollection.resultProvider.dependencySpec == spec
     }
 
     def fileCollectionWithClosureSpec() {
@@ -412,8 +412,8 @@ class DefaultConfigurationSpec extends Specification {
         def fileCollection = configuration.fileCollection(closure)
 
         then:
-        fileCollection.dependencySpec.isSatisfiedBy(dependency("group1", "name", "version"))
-        !fileCollection.dependencySpec.isSatisfiedBy(dependency("group2", "name", "version"))
+        fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency("group1", "name", "version"))
+        !fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency("group2", "name", "version"))
     }
 
     def filesWithDependencies() {
