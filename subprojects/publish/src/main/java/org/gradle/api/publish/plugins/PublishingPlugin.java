@@ -102,6 +102,7 @@ public abstract class PublishingPlugin implements Plugin<Project> {
 
     private void bridgeToSoftwareModelIfNeeded(ProjectInternal project) {
         project.addRuleBasedPluginListener(new RuleBasedPluginListener() {
+            @SuppressWarnings("deprecation")
             @Override
             public void prepareForRuleBasedPlugins(Project project) {
                 project.getPluginManager().apply(PublishingPluginRules.class);

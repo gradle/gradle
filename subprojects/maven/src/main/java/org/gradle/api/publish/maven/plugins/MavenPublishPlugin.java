@@ -46,7 +46,6 @@ import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal;
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository;
 import org.gradle.api.publish.plugins.PublishingPlugin;
-import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -54,7 +53,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.inject.Inject;
-import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -123,7 +121,6 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
         }));
 
         mavenPublications.all(publication -> {
-            createGenerateMetadataTask(tasks, publication, mavenPublications, buildDirectory);
             createGeneratePomTask(tasks, publication, buildDirectory, project);
             createLocalInstallTask(tasks, publishLocalLifecycleTask, publication);
             createPublishTasksForEachMavenRepo(tasks, publishLifecycleTask, publication, repositories);
@@ -181,19 +178,6 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
             });
         });
         publication.setPomGenerator(generatorTask);
-    }
-
-    private void createGenerateMetadataTask(final TaskContainer tasks, final MavenPublicationInternal publication, final Set<? extends MavenPublicationInternal> publications, final DirectoryProperty buildDir) {
-        final String publicationName = publication.getName();
-        String descriptorTaskName = "generateMetadataFileFor" + capitalize(publicationName) + "Publication";
-        TaskProvider<GenerateModuleMetadata> generatorTask = tasks.register(descriptorTaskName, GenerateModuleMetadata.class, generateTask -> {
-            generateTask.setDescription("Generates the Gradle metadata file for publication '" + publicationName + "'.");
-            generateTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-            generateTask.getPublication().set(publication);
-            generateTask.getPublications().set(publications);
-            generateTask.getOutputFile().convention(buildDir.file("publications/" + publication.getName() + "/module.json"));
-        });
-        publication.setModuleDescriptorGenerator(generatorTask);
     }
 
     private class MavenPublicationFactory implements NamedDomainObjectFactory<MavenPublication> {

@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal.experiment;
-
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.publish.plugins.PublishingPlugin;
-
-public class JvmPublishingPlugin implements Plugin<Project> {
-    @Override
-    public void apply(Project project) {
-        project.getPluginManager().apply(PublishingPlugin.class);
+package org.gradle.api.publish.jvm;
 
 
-    }
+import org.gradle.api.Incubating;
+import org.gradle.api.publish.Publication;
+
+/**
+ * A publication containing JVM libraries.
+ *
+ * @since 8.1
+ */
+@Incubating
+public interface JvmPublication extends Publication {
 }

@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.internal.experiment;
+/**
+ * JVM-specific types for publishing, not specific to any particular repository type (Maven, Ivy).
+ */
+@NonNullApi
+package org.gradle.api.publish.jvm;
 
-public class DefaultJvmPublicationContainer {
-}
+import org.gradle.api.NonNullApi;

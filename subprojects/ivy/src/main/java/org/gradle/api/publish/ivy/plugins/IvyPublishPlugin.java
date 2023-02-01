@@ -49,6 +49,7 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.publish.ivy.internal.versionmapping.DefaultVersionMappingStrategy;
 import org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor;
 import org.gradle.api.publish.ivy.tasks.PublishToIvyRepository;
+import org.gradle.api.publish.jvm.JvmPublishingPlugin;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.specs.Spec;
@@ -90,7 +91,7 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        project.getPluginManager().apply(PublishingPlugin.class);
+        project.getPluginManager().apply(JvmPublishingPlugin.class);
 
         project.getExtensions().configure(PublishingExtension.class, extension -> {
             extension.getPublications().registerFactory(IvyPublication.class, new IvyPublicationFactory(dependencyMetaDataProvider,

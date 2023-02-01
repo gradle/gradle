@@ -651,6 +651,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "publish-jvm",
+    "name": "publish-jvm",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "reporting",
     "name": "reporting",
     "unitTests": true,
