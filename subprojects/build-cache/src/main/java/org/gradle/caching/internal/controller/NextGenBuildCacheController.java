@@ -57,7 +57,6 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -126,7 +125,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
     @Override
     public Optional<BuildCacheLoadResult> load(BuildCacheKey manifestCacheKey, CacheableEntity cacheableEntity) {
         AtomicReference<BuildCacheLoadResult> result = new AtomicReference<>();
-        cacheAccess.load(Collections.singleton(manifestCacheKey), (__, manifestStream) -> {
+        cacheAccess.load(Collections.singletonMap(manifestCacheKey, null), (manifestStream, __) -> {
             CacheManifest manifest = gson.fromJson(new InputStreamReader(manifestStream), CacheManifest.class);
 
             // TODO Do all properties at once instead of doing separate bathches
@@ -161,13 +160,11 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 ImmutableListMultimap<BuildCacheKey, File> files = filesBuilder.build();
 
                 // TODO Filter out entries that are already in the right place in the output directory
-                // TODO Handle missing entries
 
-                cacheAccess.load(files.keySet(), (key, input) -> {
+                cacheAccess.load(files.asMap(), (input, filesForHash) -> {
+                    entryCount.addAndGet(filesForHash.size());
+
                     try (Closer closer = Closer.create()) {
-                        Collection<File> filesForHash = files.get(key);
-                        entryCount.addAndGet(filesForHash.size());
-
                         OutputStream output = filesForHash.stream()
                             .map(file -> {
                                 try {

@@ -21,11 +21,9 @@ import org.gradle.caching.BuildCacheKey;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -37,10 +35,10 @@ public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     }
 
     @Override
-    public void load(Iterable<BuildCacheKey> keys, BiConsumer<BuildCacheKey, InputStream> processor) {
-        delegate.load(keys, (buildCacheKey, inputStream) -> {
+    public <T> void load(Map<BuildCacheKey, T> entries, LoadHandler<T> handler) {
+        delegate.load(entries, (inputStream, payload) -> {
             try (GZIPInputStream zipInput = new GZIPInputStream(inputStream)) {
-                processor.accept(buildCacheKey, zipInput);
+                handler.handle(zipInput, payload);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }

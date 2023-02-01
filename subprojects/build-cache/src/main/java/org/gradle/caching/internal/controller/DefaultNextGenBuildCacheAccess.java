@@ -16,7 +16,6 @@
 
 package org.gradle.caching.internal.controller;
 
-import com.google.common.collect.Streams;
 import com.google.common.io.Closer;
 import org.apache.commons.io.IOUtils;
 import org.gradle.caching.BuildCacheEntryWriter;
@@ -25,10 +24,8 @@ import org.gradle.caching.BuildCacheKey;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
@@ -46,10 +43,10 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     }
 
     @Override
-    public void load(Iterable<BuildCacheKey> keys, BiConsumer<BuildCacheKey, InputStream> processor) {
+    public <T> void load(Map<BuildCacheKey, T> entries, LoadHandler<T> handler) {
         // TODO Fan out to multiple threads
-        Streams.stream(keys).forEach(key -> {
-            boolean foundLocally = local.load(key, input -> processor.accept(key, input));
+        entries.forEach((key, payload) -> {
+            boolean foundLocally = local.load(key, input -> handler.handle(input, payload));
             if (foundLocally) {
                 return;
             }
@@ -70,7 +67,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                         return data.length;
                     }
                 });
-                processor.accept(key, new ByteArrayInputStream(data));
+                handler.handle(new ByteArrayInputStream(data), payload);
             });
         });
     }
