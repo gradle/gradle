@@ -6,6 +6,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.classEntriesFor
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -956,12 +957,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     @Issue("https://github.com/gradle/gradle/issues/12955")
+    @ToBeFixedForConfigurationCache(because = "KGP uses project at execution time")
     fun `logs output from schema collection on errors only`() {
-
-        // TODO: the Kotlin compile tasks check for cacheability using Task.getProject
-        executer.beforeExecute {
-            it.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
-        }
 
         fun outputFrom(origin: String, logger: Boolean = true) = buildString {
             appendLine("""println("STDOUT from $origin")""")
