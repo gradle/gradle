@@ -79,9 +79,19 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     public <T> void store(Map<BuildCacheKey, T> entries, StoreHandler<T> handler) {
         // TODO Fan out to multiple threads
         entries.forEach((key, payload) -> {
+            boolean storeLocal = local.shouldStore(key);
+            boolean storeRemote = remote.shouldStore(key);
+            if (!storeLocal && !storeRemote) {
+                return;
+            }
+
             BuildCacheEntryWriter writer = handler.handle(payload);
-            local.store(key, writer);
-            remote.store(key, writer);
+            if (storeLocal) {
+                local.store(key, writer);
+            }
+            if (storeRemote) {
+                remote.store(key, writer);
+            }
         });
     }
 
