@@ -17,8 +17,10 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 public interface TransformationIdentity extends NodeIdentity {
@@ -42,6 +44,9 @@ public interface TransformationIdentity extends NodeIdentity {
     Map<String, String> getFromAttributes();
 
     Map<String, String> getToAttributes();
+
+    @Nullable
+    ConfigurationIdentity getDependenciesConfigurationIdentity();
 
     long getTransformationNodeId();
 
