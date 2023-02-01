@@ -25,10 +25,9 @@ import org.gradle.api.internal.artifacts.VersionConstraintInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 
-class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalSpec {
+class ExternalModuleDependencyMetadataConverterTest extends AbstractDependencyDescriptorFactoryInternalSpec {
 
-    ExternalModuleIvyDependencyDescriptorFactory externalModuleDependencyDescriptorFactory =
-            new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverterStub)
+    ExternalModuleDependencyMetadataConverter converter = new ExternalModuleDependencyMetadataConverter(excludeRuleConverterStub)
     private final ComponentIdentifier componentId = new ComponentIdentifier() {
         @Override
         String getDisplayName() {
@@ -38,14 +37,14 @@ class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDependencyDe
 
     def canConvert() {
         expect:
-        !externalModuleDependencyDescriptorFactory.canConvert(Mock(ProjectDependency))
-        externalModuleDependencyDescriptorFactory.canConvert(Mock(ExternalModuleDependency))
+        !converter.canConvert(Mock(ProjectDependency))
+        converter.canConvert(Mock(ExternalModuleDependency))
     }
 
     def testAddWithNullGroupAndNullVersionShouldHaveEmptyStringModuleRevisionValues() {
         when:
         ModuleDependency dependency = new DefaultExternalModuleDependency(null, "gradle-core", null, TEST_DEP_CONF)
-        LocalOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(componentId, TEST_CONF, null, dependency)
+        LocalOriginDependencyMetadata dependencyMetaData = converter.createDependencyMetadata(componentId, TEST_CONF, null, dependency)
         ModuleComponentSelector selector = (ModuleComponentSelector) dependencyMetaData.getSelector()
 
         then:
@@ -61,7 +60,7 @@ class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDependencyDe
         DefaultExternalModuleDependency moduleDependency = new DefaultExternalModuleDependency("org.gradle", "gradle-core", "1.0", configuration)
         setUpDependency(moduleDependency, withArtifacts)
 
-        LocalOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(componentId, TEST_CONF, null, moduleDependency)
+        LocalOriginDependencyMetadata dependencyMetaData = converter.createDependencyMetadata(componentId, TEST_CONF, null, moduleDependency)
 
         then:
         moduleDependency.changing == dependencyMetaData.changing

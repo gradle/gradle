@@ -36,7 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderF
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
@@ -77,7 +77,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.dependencysubstitutio
 
 public class DefaultArtifactDependencyResolver implements ArtifactDependencyResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultArtifactDependencyResolver.class);
-    private final DependencyDescriptorFactory dependencyDescriptorFactory;
+    private final DependencyMetadataFactory dependencyMetadataFactory;
     private final List<ResolverProviderFactory> resolverFactories;
     private final ResolveIvyFactory ivyFactory;
     private final VersionComparator versionComparator;
@@ -97,7 +97,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         BuildOperationExecutor buildOperationExecutor,
         List<ResolverProviderFactory> resolverFactories,
         ResolveIvyFactory ivyFactory,
-        DependencyDescriptorFactory dependencyDescriptorFactory,
+        DependencyMetadataFactory dependencyMetadataFactory,
         VersionComparator versionComparator,
         ModuleExclusions moduleExclusions,
         ComponentSelectorConverter componentSelectorConverter,
@@ -112,7 +112,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     ) {
         this.resolverFactories = resolverFactories;
         this.ivyFactory = ivyFactory;
-        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
+        this.dependencyMetadataFactory = dependencyMetadataFactory;
         this.versionComparator = versionComparator;
         this.moduleExclusions = moduleExclusions;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -167,7 +167,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     ) {
 
         DependencyToComponentIdResolver componentIdResolver = componentSource.getComponentIdResolver();
-        ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(componentSource.getComponentResolver(), dependencyDescriptorFactory);
+        ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(componentSource.getComponentResolver(), dependencyMetadataFactory);
 
         ModuleConflictHandler conflictHandler = createModuleConflictHandler(resolutionStrategy, globalRules);
         DefaultCapabilitiesConflictHandler capabilitiesConflictHandler = createCapabilitiesConflictHandler(resolutionStrategy.getCapabilitiesResolutionRules());
