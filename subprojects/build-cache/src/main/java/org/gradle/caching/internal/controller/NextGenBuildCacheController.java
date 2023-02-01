@@ -20,8 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.io.Closer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -44,7 +42,6 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.io.IoFunction;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
@@ -143,41 +140,37 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
                 try {
                     cleanOutputDirectory(type, root);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                if (type == TreeType.FILE) {
-                    root.getParentFile().mkdirs();
-                } else {
-                    root.mkdirs();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
                 }
 
-                // Ugly hack
-                List<ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
-                manifestEntries.forEach(entry -> {
+                // Note that there can be multiple output files with the same content
+                ImmutableListMultimap.Builder<BuildCacheKey, File> filesBuilder = ImmutableListMultimap.builder();
+                manifest.getPropertyManifests().get(propertyName).forEach(entry -> {
+                    File file = new File(root, entry.getRelativePath());
                     switch (entry.getType()) {
                         case Directory:
-                            new File(root, entry.getRelativePath()).mkdirs();
+                            file.mkdirs();
+                            break;
+                        case RegularFile:
+                            filesBuilder.put(new DefaultBuildCacheKey(entry.getContentHash()), file);
                             break;
                         case Missing:
-                            FileUtils.deleteQuietly(new File(root, entry.getRelativePath()));
+                            FileUtils.deleteQuietly(file);
                             break;
                     }
                 });
-
-                // Note that there can be multiple output files with the same content
-                Multimap<BuildCacheKey, String> fileContentHashes = indexManifestFileEntries(manifestEntries);
+                ImmutableListMultimap<BuildCacheKey, File> files = filesBuilder.build();
 
                 // TODO Filter out entries that are already in the right place in the output directory
                 // TODO Handle missing entries
 
-                cacheAccess.load(fileContentHashes.keySet(), (contentHash, input) -> {
+                cacheAccess.load(files.keySet(), (key, input) -> {
                     try (Closer closer = Closer.create()) {
-                        Collection<String> relativePaths = fileContentHashes.get(contentHash);
-                        entryCount.addAndGet(relativePaths.size());
+                        Collection<File> filesForHash = files.get(key);
+                        entryCount.addAndGet(filesForHash.size());
 
-                        OutputStream output = relativePaths.stream()
-                            .map(relativePath -> new File(root, relativePath))
+                        OutputStream output = filesForHash.stream()
                             .map(file -> {
                                 try {
                                     return closer.register(new FileOutputStream(file));
@@ -248,14 +241,17 @@ public class NextGenBuildCacheController implements BuildCacheController {
             propertyManifests.build());
 
         entity.visitOutputTrees((propertyName, type, root) -> {
-            List<ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
-            ListMultimap<BuildCacheKey, String> manifestIndex = indexManifestFileEntries(manifestEntries);
+            Map<BuildCacheKey, File> manifestIndex = manifest.getPropertyManifests().get(propertyName).stream()
+                .filter(entry -> entry.getType() == FileType.RegularFile)
+                .collect(ImmutableMap.toImmutableMap(
+                    manifestEntry -> new DefaultBuildCacheKey(manifestEntry.getContentHash()),
+                    manifestEntry -> new File(root, manifestEntry.getRelativePath()),
+                    // When there are multiple identical files to store, it doesn't matter which one we read
+                    (a, b) -> a)
+                );
 
             cacheAccess.store(manifestIndex.keySet(), buildCacheKey -> {
-                // It doesn't matter which identical file we read
-                // TODO We can do this without a multimap actually
-                String relativePath = manifestIndex.get(buildCacheKey).get(0);
-                File file = new File(root, relativePath);
+                File file = manifestIndex.get(buildCacheKey);
                 return new BuildCacheEntryWriter() {
                     @Override
                     public void writeTo(OutputStream output) throws IOException {
@@ -343,12 +339,4 @@ public class NextGenBuildCacheController implements BuildCacheController {
         return true;
     }
 
-    private static ListMultimap<BuildCacheKey, String> indexManifestFileEntries(List<ManifestEntry> manifestEntries) {
-        return manifestEntries.stream()
-            .filter(entry -> entry.getType() == FileType.RegularFile)
-            .collect(ImmutableListMultimap.toImmutableListMultimap(
-                manifestEntry -> new DefaultBuildCacheKey(manifestEntry.getContentHash()),
-                ManifestEntry::getRelativePath)
-            );
-    }
 }
