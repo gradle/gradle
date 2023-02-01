@@ -88,7 +88,7 @@ sealed class ResidualProgram {
         object ApplyBasePlugins : Instruction()
 
         /**
-         * Causes the evaluation of the precompiled [script] against the script host.
+         * Causes the evaluation of the compiled [script] against the script host.
          */
         data class Eval(val script: ProgramSource) : Instruction()
 

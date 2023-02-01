@@ -31,7 +31,7 @@ val apiDeclarationPropertiesFile = generatedPropertiesFileFor("gradle-api-declar
 val apiDeclaration by tasks.registering(WriteProperties::class) {
     property("includes", PublicApi.includes.joinToString(":"))
     property("excludes", PublicApi.excludes.joinToString(":"))
-    destinationFile.set(apiDeclarationPropertiesFile)
+    destinationFile = apiDeclarationPropertiesFile
 }
 
 sourceSets.main {

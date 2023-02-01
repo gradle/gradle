@@ -82,6 +82,7 @@ public class JavaInstallationRegistry {
             .flatMap(Set::stream)
             .filter(this::installationExists)
             .map(this::canonicalize)
+            .filter(this::installationHasExecutable)
             .filter(distinctByKey(InstallationLocation::getLocation))
             .collect(Collectors.toSet());
     }
@@ -94,6 +95,14 @@ public class JavaInstallationRegistry {
         }
         if (!file.isDirectory()) {
             logger.warn("Path for java installation {} points to a file, not a directory", installationLocation.getDisplayName());
+            return false;
+        }
+        return true;
+    }
+
+    boolean installationHasExecutable(InstallationLocation installationLocation) {
+        if (!hasJavaExecutable(installationLocation.getLocation())) {
+            logger.warn("Path for java installation {} does not contain a java executable", installationLocation.getDisplayName());
             return false;
         }
         return true;

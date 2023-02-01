@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.internal;
+package org.gradle.internal.build.event.types;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.component.SoftwareComponent;
+import org.gradle.tooling.internal.protocol.events.InternalNotFoundFileDownloadResult;
+import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
 
 /**
- * Defines a software component which can be diagnosed via the constructs in the {@code :diagnostics} module.
+ * @since 8.1
  */
-public interface DiagnosableSoftwareComponent extends SoftwareComponent {
-    /**
-     * Get the compile classpath of the component.
-     */
-    Configuration getCompileClasspath();
+public class NotFoundFileDownloadSuccessResult extends AbstractOperationResult implements InternalSuccessResult, InternalNotFoundFileDownloadResult {
+    public NotFoundFileDownloadSuccessResult(long startTime, long endTime) {
+        super(startTime, endTime, "not found");
+    }
+
+    @Override
+    public long getBytesDownloaded() {
+        return 0;
+    }
 }

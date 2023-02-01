@@ -46,10 +46,8 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 abstract class AbstractSmokeTest extends Specification {
 
     protected static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
-    protected static final String AGP_NO_CC_ITERATION_MATCHER = ".*agp=4\\..*"
 
     protected static final KotlinGradlePluginVersions KOTLIN_VERSIONS = new KotlinGradlePluginVersions()
-    protected static final String KGP_NO_CC_ITERATION_MATCHER = ".*(kotlin=1\\.3\\.|kotlin=1\\.4\\.[01]).*"
 
     static class TestedVersions {
         /**
@@ -109,7 +107,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = [
-            [version: "3.0.9", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
+            [version: "3.1.1", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
             [version: "4.0.3", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
         ]
 
@@ -120,13 +118,13 @@ abstract class AbstractSmokeTest extends Specification {
         static gradleVersions = "0.42.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
-        static playframework = "0.12"
+        static playframework = "0.13"
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
         static errorProne = "2.0.2"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
-        static protobufPlugin = "0.8.19"
+        static protobufPlugin = "0.9.2"
 
         static protobufTools = "3.21.5"
 

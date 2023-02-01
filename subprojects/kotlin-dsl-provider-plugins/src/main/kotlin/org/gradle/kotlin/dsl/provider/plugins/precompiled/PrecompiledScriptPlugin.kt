@@ -16,6 +16,7 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled
 
 
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
@@ -27,6 +28,7 @@ import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 
 import org.gradle.util.internal.TextUtil.convertLineSeparatorsToUnix
+import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -69,6 +71,19 @@ data class PrecompiledScriptPlugin(internal val scriptFile: File) {
     private
     val fileNameWithoutScriptExtension by lazy {
         scriptFileName.removeSuffix(scriptExtension)
+            .also(::validateFileNameWithoutScriptExtension)
+    }
+
+    private
+    fun validateFileNameWithoutScriptExtension(fileNameWithoutScriptExtension: String) {
+        if (fileNameWithoutScriptExtension.isEmpty()) {
+            val scriptTypeMessage = when (scriptType) {
+                KotlinScriptType.INIT -> "<plugin-id>.init.gradle.kts"
+                KotlinScriptType.SETTINGS -> "<plugin-id>.settings.gradle.kts"
+                KotlinScriptType.PROJECT -> TODO("This should not happen, please report an issue.")
+            }
+            throw GradleException("Precompiled script '${normaliseFileSeparators(scriptFile.absolutePath)}' file name is invalid, please rename it to '$scriptTypeMessage'.")
+        }
     }
 
     val targetType by lazy {
@@ -131,6 +146,7 @@ fun packageNameOf(code: String): String? =
                 skipWhiteSpaceAndComments()
                 parseQualifiedName()
             }
+
             else -> null
         }
     }

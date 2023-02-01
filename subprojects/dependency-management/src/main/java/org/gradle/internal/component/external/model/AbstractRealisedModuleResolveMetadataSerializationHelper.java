@@ -191,7 +191,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
             String appendix = decoder.readNullableString();
             CapabilityInternal capability = new ImmutableCapability(decoder.readString(), decoder.readString(), decoder.readString());
             if (appendix != null) {
-                capability = new DefaultShadowedCapability(capability, appendix);
+                capability = new ImmutableShadowedCapability(capability, appendix);
             }
             rawCapabilities.add(capability);
         }
