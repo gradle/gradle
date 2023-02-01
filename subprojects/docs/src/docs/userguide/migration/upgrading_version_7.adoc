@@ -1115,11 +1115,11 @@ The <<configuration_cache#config_cache:requirements:external_processes,configura
 ==== AdoptOpenJDK toolchain download
 
 Following the move from AdoptOpenJDK to Adoptium, under the Eclipse foundation, it is no longer possible to download an AdoptOpenJDK build from their end point.
-Instead, an Eclipse Temurin or IBM build is returned.
+Instead, an Eclipse Temurin or IBM Semeru build is returned.
 
 Gradle 7.4+ will now emit a deprecation warning when the AdoptOpenJDK vendor is specified in the <<toolchains.adoc#sec:vendors,toolchain specification>> and it is used by auto provisioning.
 If you must use AdoptOpenJDK, you should turn off auto-download.
-If an Eclipse Temurin or IBM build works for you, specify `JvmVendorSpec.ADOPTIUM` or `JvmVendorSpec.IBM` as the vendor or leave the vendor unspecified.
+If an Eclipse Temurin or IBM Semeru build works for you, specify `JvmVendorSpec.ADOPTIUM` or `JvmVendorSpec.IBM` as the vendor or leave the vendor unspecified.
 
 [[empty_directories_file_tree]]
 ==== File trees and empty directory handling
