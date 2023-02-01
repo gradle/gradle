@@ -37,7 +37,6 @@ import org.gradle.caching.internal.DefaultBuildCacheKey;
 import org.gradle.caching.internal.controller.CacheManifest.ManifestEntry;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.RelativePathSupplier;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
@@ -45,7 +44,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
-import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.vfs.FileSystemAccess;
 
@@ -223,15 +221,12 @@ public class NextGenBuildCacheController implements BuildCacheController {
         entity.visitOutputTrees((propertyName, type, root) -> {
             ImmutableList.Builder<ManifestEntry> manifestEntries = ImmutableList.builder();
             FileSystemSnapshot rootSnapshot = snapshots.get(propertyName);
-            rootSnapshot.accept(new RelativePathTracker(), new RelativePathTrackingFileSystemSnapshotHierarchyVisitor() {
-                @Override
-                public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, RelativePathSupplier relativePath) {
-                    if (relativePath.isRoot()) {
-                        assertCorrectType(type, snapshot);
-                    }
-                    manifestEntries.add(new ManifestEntry(snapshot.getType(), relativePath.toRelativePath(), snapshot.getHash()));
-                    return SnapshotVisitResult.CONTINUE;
+            rootSnapshot.accept(new RelativePathTracker(), (snapshot, relativePath) -> {
+                if (relativePath.isRoot()) {
+                    assertCorrectType(type, snapshot);
                 }
+                manifestEntries.add(new ManifestEntry(snapshot.getType(), relativePath.toRelativePath(), snapshot.getHash()));
+                return SnapshotVisitResult.CONTINUE;
             });
             propertyManifests.put(propertyName, manifestEntries.build());
         });
