@@ -179,9 +179,9 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             writeVersionAccessors(entryPoints.versionsEntryPoint);
             writeBundleAccessors(entryPoints.bundlesEntryPoint, deprecated);
             writePluginAccessors(entryPoints.pluginsEntryPoint);
-            writeLibrarySubClasses(entryPoints.librariesEntryPoint);
+            writeLibrarySubClasses(entryPoints.librariesEntryPoint, deprecated);
             writeVersionSubClasses(entryPoints.versionsEntryPoint);
-            writeBundleSubClasses(entryPoints.bundlesEntryPoint);
+            writeBundleSubClasses(entryPoints.bundlesEntryPoint, deprecated);
             writePluginSubClasses(entryPoints.pluginsEntryPoint);
         });
         writeLn("}");
@@ -204,10 +204,10 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         addImport(Inject.class);
     }
 
-    private void writeLibrarySubClasses(ClassNode classNode) throws IOException {
+    private void writeLibrarySubClasses(ClassNode classNode, boolean deprecated) throws IOException {
         for (ClassNode child : classNode.getChildren()) {
-            writeLibraryAccessorClass(child);
-            writeLibrarySubClasses(child);
+            writeLibraryAccessorClass(child, deprecated);
+            writeLibrarySubClasses(child, deprecated);
         }
     }
 
@@ -218,10 +218,10 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         }
     }
 
-    private void writeBundleSubClasses(ClassNode classNode) throws IOException {
+    private void writeBundleSubClasses(ClassNode classNode, boolean deprecated) throws IOException {
         for (ClassNode child : classNode.getChildren()) {
-            writeBundleAccessorClass(child);
-            writeBundleSubClasses(child);
+            writeBundleAccessorClass(child, deprecated);
+            writeBundleSubClasses(child, deprecated);
         }
     }
 
@@ -232,7 +232,13 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         }
     }
 
-    private void writeBundleAccessorClass(ClassNode classNode) throws IOException {
+    private void writeBundleAccessorClass(ClassNode classNode, boolean deprecated) throws IOException {
+        if (deprecated) {
+            writeLn("/**");
+            writeDeprecationJavadocTag(true);
+            writeLn(" */");
+            writeDeprecationAnnotation(true);
+        }
         boolean isProvider = classNode.isAlsoProvider();
         String interfaces = isProvider ? " implements BundleNotationSupplier" : "";
         String bundleClassName = getClassName(classNode);
@@ -253,7 +259,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                     .map(config::getDependencyData)
                     .map(LibrariesSourceGenerator::coordinatesDescriptorFor)
                     .collect(Collectors.toList());
-                writeBundle(path, coordinates, bundle.getContext(), true);
+                writeBundle(path, coordinates, bundle.getContext(), true, deprecated);
             }
             for (String alias : aliases) {
                 String childName = leafNodeForAlias(alias);
@@ -263,11 +269,11 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                         .map(config::getDependencyData)
                         .map(LibrariesSourceGenerator::coordinatesDescriptorFor)
                         .collect(Collectors.toList());
-                    writeBundle(alias, coordinates, bundle.getContext(), false);
+                    writeBundle(alias, coordinates, bundle.getContext(), false, deprecated);
                 }
             }
             for (ClassNode child : classNode.getChildren()) {
-                writeSubAccessor(child, AccessorKind.bundle);
+                writeSubAccessor(child, AccessorKind.bundle, deprecated);
             }
         });
         writeLn("}");
@@ -397,7 +403,13 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         }
     }
 
-    private void writeLibraryAccessorClass(ClassNode classNode) throws IOException {
+    private void writeLibraryAccessorClass(ClassNode classNode, boolean deprecated) throws IOException {
+        if (deprecated) {
+            writeLn("/**");
+            writeDeprecationJavadocTag(true);
+            writeLn(" */");
+            writeDeprecationAnnotation(true);
+        }
         boolean isProvider = classNode.isAlsoProvider();
         String interfaces = isProvider ? " implements DependencyNotationSupplier" : "";
         writeLn("public static class " + getClassName(classNode) + " extends SubDependencyFactory" + interfaces + " {");
@@ -409,18 +421,18 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             if (isProvider) {
                 String path = classNode.getFullAlias();
                 DependencyModel model = config.getDependencyData(path);
-                writeDependencyAccessor(path, coordinatesDescriptorFor(model), model.getContext(), true);
+                writeDependencyAccessor(path, coordinatesDescriptorFor(model), model.getContext(), true, deprecated);
             }
             for (String alias : classNode.aliases) {
                 String childName = leafNodeForAlias(alias);
                 if (!classNode.hasChild(childName)) {
                     DependencyModel model = config.getDependencyData(alias);
                     String coordinates = coordinatesDescriptorFor(model);
-                    writeDependencyAccessor(alias, coordinates, model.getContext(), false);
+                    writeDependencyAccessor(alias, coordinates, model.getContext(), false, deprecated);
                 }
             }
             for (ClassNode child : classNode.getChildren()) {
-                writeSubAccessor(child, AccessorKind.library);
+                writeSubAccessor(child, AccessorKind.library, deprecated);
             }
         });
         writeLn("}");
@@ -517,10 +529,6 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         return dependencyData.getGroup() + ":" + dependencyData.getName();
     }
 
-    private void writeDependencyAccessor(String alias, String coordinates, @Nullable String context, boolean asProvider) throws IOException {
-        writeDependencyAccessor(alias, coordinates, context, asProvider, false);
-    }
-
     private void writeDependencyAccessor(String alias, String coordinates, @Nullable String context, boolean asProvider, boolean deprecated) throws IOException {
         String name = leafNodeForAlias(alias);
         writeLn("    /**");
@@ -561,10 +569,6 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn("    return " + kind.accessorVariableNameFor(className) + ";");
         writeLn("}");
         writeLn();
-    }
-
-    private void writeBundle(String alias, List<String> coordinates, @Nullable String context, boolean asProvider) throws IOException {
-        writeBundle(alias, coordinates, context, asProvider, false);
     }
 
     private void writeBundle(String alias, List<String> coordinates, @Nullable String context, boolean asProvider, boolean deprecated) throws IOException {
