@@ -31,7 +31,7 @@ import org.junit.Rule
  * Because it requires the generated Gradle API it runs significantly slower than the other
  * tests so avoid adding tests here if they cannot be expressed with the Groovy DSL.
  *
- * These tests use Groovy settings file because the parent class sets up things in it already.
+ * These tests use Groovy settings files because the parent class sets up things in it already.
  */
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport {
