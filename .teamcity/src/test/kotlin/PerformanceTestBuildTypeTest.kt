@@ -86,6 +86,7 @@ class PerformanceTestBuildTypeTest {
             "-PmaxParallelForks=%maxParallelForks%",
             "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
             "-s",
+            "%additional.gradle.parameters%",
             "--daemon",
             "",
             "\"-Dscan.tag.PerformanceTest\""
