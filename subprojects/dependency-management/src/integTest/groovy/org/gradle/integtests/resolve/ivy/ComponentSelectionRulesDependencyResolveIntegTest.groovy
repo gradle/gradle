@@ -27,7 +27,6 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         (GradleMetadataResolveRunner.useIvy() || mavenCompatible) && (!GradleMetadataResolveRunner.gradleMetadataPublished || gradleCompatible)
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses '#rule' rule to choose component for #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)
@@ -117,7 +116,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         chosenModule
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "uses '#rule' rule to reject all candidates for dynamic version #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible)
@@ -256,7 +255,7 @@ Required by:
 """)
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "uses '#rule' rule to reject candidate for static version #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)
@@ -373,6 +372,7 @@ Required by:
         selector << ["1.1", "1.+"]
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "can control selection of components by module rule #rule for #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)

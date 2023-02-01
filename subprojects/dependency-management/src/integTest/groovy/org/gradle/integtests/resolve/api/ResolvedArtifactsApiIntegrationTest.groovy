@@ -753,6 +753,7 @@ ${showFailuresTask(expression)}
         "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
+    @ToBeFixedForConfigurationCache(because = "error reporting is different when CC is enabled")
     def "reports failure to query file dependency when artifacts are queried"() {
         buildFile << """
 dependencies {
@@ -777,6 +778,7 @@ ${showFailuresTask(expression)}
         "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
+    @ToBeFixedForConfigurationCache(because = "error reporting is different when CC is enabled")
     def "reports multiple failures to resolve artifacts when artifacts are queried"() {
         settingsFile << "include 'a'"
         buildFile << """

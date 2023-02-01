@@ -346,6 +346,7 @@ task check {
         succeeds ":check"
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "copied configuration have unique names"() {
         buildFile << """
             configurations {

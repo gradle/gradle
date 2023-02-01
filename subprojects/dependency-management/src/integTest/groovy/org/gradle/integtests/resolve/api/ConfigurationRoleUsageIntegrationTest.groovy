@@ -20,9 +20,11 @@ package org.gradle.integtests.resolve.api
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
     // region Roleless (Implicit LEGACY Role) Configurations
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "default usage for roleless configuration is to allow anything"() {
         given:
         buildFile << """
@@ -219,6 +221,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
     // endregion Roleless (Implicit LEGACY Role) Configurations
 
     // region Role-Based Configurations
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "intended usage is allowed for role-based configuration #role"() {
         given:
         buildFile << """
@@ -509,7 +512,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             plugins {
                 id 'java-library'
             }
-        
+
             configurations {
                 $configuration {
                     canBeResolved = !canBeResolved
@@ -537,7 +540,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             plugins {
                 id 'java-library'
             }
-        
+
             configurations {
                 $configuration {
                     assert canBeConsumed
@@ -566,7 +569,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             plugins {
                 id 'java-library'
             }
-        
+
             configurations {
                 $configuration {
                     assert !canBeConsumed
@@ -686,7 +689,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 
             configurations.$confCreationCode
-    
+
             configurations.test {
                 assert $isSetMethod
                 $setMethod

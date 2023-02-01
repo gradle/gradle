@@ -448,7 +448,7 @@ Required by:
         run 'retrieve'
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "HTTP server interactions are different when CC is enabled")
     def "cached missing module is ignored when no module for dynamic version is available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -473,7 +473,10 @@ Required by:
         conf2 'group:projectA:1.+'
     }
 
-    task cache { doLast { configurations.conf1.files } }
+    task cache {
+        def conf1 = configurations.conf1
+        doLast { println conf1.files }
+    }
     task retrieve(type: Sync) {
         into 'libs'
         from configurations.conf2
@@ -541,14 +544,13 @@ Required by:
     }
 
     @IgnoreIf({ GradleContextualExecuter.isParallel() })
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "hit each remote repo only once per build and missing module"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
         def repo1Module = repo1.module("group", "projectA", "1.0")
-        def repo1Artifact = repo1Module.artifact
         def repo2 = mavenHttpRepo("repo2")
         def repo2Module = repo2.module("group", "projectA", "1.0")
-        def repo2Artifact = repo2Module.artifact
 
         settingsFile << "include 'subproject'"
         buildFile << """
@@ -574,7 +576,7 @@ Required by:
             task resolveConfig1 {
                 doLast {
                    configurations.config1.incoming.resolutionResult.allDependencies{
-                        it instanceof UnresolvedDependencyResult
+                        assert it instanceof UnresolvedDependencyResult
                    }
                }
             }
@@ -589,7 +591,7 @@ Required by:
                 task resolveConfig2 {
                     doLast {
                         configurations.config2.incoming.resolutionResult.allDependencies{
-                            it instanceof UnresolvedDependencyResult
+                            assert it instanceof UnresolvedDependencyResult
                         }
                     }
                 }

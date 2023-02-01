@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
@@ -29,6 +30,7 @@ class ScriptDependencyResolveIntegrationTest extends AbstractDependencyResolutio
 
 
     @LeaksFileHandles("Puts gradle user home in integration test dir")
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "root component identifier has the correct type when resolving a script classpath"() {
         given:
         def module = mavenRepo().module("org.gradle", "test", "1.45")
