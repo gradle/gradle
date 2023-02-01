@@ -24,9 +24,9 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
-import org.gradle.internal.io.StreamByteBuffer;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.sql.Blob;
 import java.sql.Connection;
@@ -101,12 +101,12 @@ public class H2BuildCacheService implements BuildCacheService {
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("insert into filestore.catalog(entry_key, entry_size, entry_content) values (?, ?, ?)")) {
-                StreamByteBuffer buffer = new StreamByteBuffer();
-                writer.writeTo(buffer.getOutputStream());
-                stmt.setString(1, key.getHashCode());
-                stmt.setLong(2, writer.getSize());
-                stmt.setBinaryStream(3, buffer.getInputStream());
-                stmt.executeUpdate();
+                try (InputStream input = writer.openStream()) {
+                    stmt.setString(1, key.getHashCode());
+                    stmt.setLong(2, writer.getSize());
+                    stmt.setBinaryStream(3, input);
+                    stmt.executeUpdate();
+                }
             }
         } catch (SQLException | IOException e) {
             throw new BuildCacheException("storing " + key, e);

@@ -16,11 +16,13 @@
 
 package org.gradle.caching.internal.controller;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.util.Map;
@@ -28,6 +30,11 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
+    // TODO Move all thread-local buffers to a shared service
+    // TODO Make buffer size configurable
+    private static final int BUFFER_SIZE = 64 * 1024;
+    private static final ThreadLocal<byte[]> COPY_BUFFERS = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
+
     private final NextGenBuildCacheAccess delegate;
 
     public GZipNextGenBuildCacheAccess(NextGenBuildCacheAccess delegate) {
@@ -50,22 +57,29 @@ public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         delegate.store(entries, payload -> {
             BuildCacheEntryWriter delegateWriter = handler.handle(payload);
             // TODO Make this more performant for large files
-            ByteArrayOutputStream compressed = new ByteArrayOutputStream((int) (delegateWriter.getSize() * 1.2));
+            UnsynchronizedByteArrayOutputStream compressed = new UnsynchronizedByteArrayOutputStream((int) (delegateWriter.getSize() * 1.2));
             try (GZIPOutputStream zipOutput = new GZIPOutputStream(compressed)) {
-                delegateWriter.writeTo(zipOutput);
+                try (InputStream delegateInput = delegateWriter.openStream()) {
+                    IOUtils.copyLarge(delegateInput, zipOutput, COPY_BUFFERS.get());
+                }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
-            byte[] compressedBytes = compressed.toByteArray();
+
             return new BuildCacheEntryWriter() {
                 @Override
+                public InputStream openStream() {
+                    return compressed.toInputStream();
+                }
+
+                @Override
                 public void writeTo(OutputStream output) throws IOException {
-                    output.write(compressedBytes);
+                    compressed.writeTo(output);
                 }
 
                 @Override
                 public long getSize() {
-                    return compressedBytes.length;
+                    return compressed.size();
                 }
             };
         });
