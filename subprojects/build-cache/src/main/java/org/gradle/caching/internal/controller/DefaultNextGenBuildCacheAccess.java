@@ -18,11 +18,10 @@ package org.gradle.caching.internal.controller;
 
 import com.google.common.io.Closer;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
@@ -52,22 +51,23 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             }
             remote.load(key, input -> {
                 // TODO Make this work for large pieces of content, too
-                ByteArrayOutputStream temp = new ByteArrayOutputStream();
-                IOUtils.copyLarge(input, temp, COPY_BUFFERS.get());
-                byte[] data = temp.toByteArray();
+                UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
+                byte[] buffer = COPY_BUFFERS.get();
+                IOUtils.copyLarge(input, data, buffer);
+
                 // Mirror data in local cache
                 local.store(key, new BuildCacheEntryWriter() {
                     @Override
                     public void writeTo(OutputStream output) throws IOException {
-                        output.write(data);
+                        IOUtils.copyLarge(data.toInputStream(), output, buffer);
                     }
 
                     @Override
                     public long getSize() {
-                        return data.length;
+                        return data.size();
                     }
                 });
-                handler.handle(new ByteArrayInputStream(data), payload);
+                handler.handle(data.toInputStream(), payload);
             });
         });
     }
