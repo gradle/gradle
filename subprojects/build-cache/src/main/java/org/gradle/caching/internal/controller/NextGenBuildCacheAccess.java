@@ -21,11 +21,15 @@ import org.gradle.caching.BuildCacheKey;
 
 import java.io.Closeable;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 public interface NextGenBuildCacheAccess extends Closeable {
     void load(Iterable<BuildCacheKey> keys, BiConsumer<BuildCacheKey, InputStream> processor);
 
-    void store(Iterable<BuildCacheKey> keys, Function<BuildCacheKey, BuildCacheEntryWriter> processor);
+    <T> void store(Map<BuildCacheKey, T> entries, StoreHandler<T> handler);
+
+    interface StoreHandler<T> {
+        BuildCacheEntryWriter handle(T payload);
+    }
 }

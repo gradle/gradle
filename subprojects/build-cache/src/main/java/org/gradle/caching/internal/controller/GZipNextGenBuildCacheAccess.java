@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -48,9 +48,9 @@ public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     }
 
     @Override
-    public void store(Iterable<BuildCacheKey> keys, Function<BuildCacheKey, BuildCacheEntryWriter> processor) {
-        delegate.store(keys, buildCacheKey -> {
-            BuildCacheEntryWriter delegateWriter = processor.apply(buildCacheKey);
+    public <T> void store(Map<BuildCacheKey, T> entries, StoreHandler<T> handler) {
+        delegate.store(entries, payload -> {
+            BuildCacheEntryWriter delegateWriter = handler.handle(payload);
             // TODO Make this more performant for large files
             ByteArrayOutputStream compressed = new ByteArrayOutputStream((int) (delegateWriter.getSize() * 1.2));
             try (GZIPOutputStream zipOutput = new GZIPOutputStream(compressed)) {
