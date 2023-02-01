@@ -23,12 +23,12 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 
 
 /**
- * Base class for `plugins` block evaluation.
+ * Base class for `plugins` block evaluation for any target.
  */
-open class CompiledKotlinPluginsBlock(val pluginDependencies: PluginDependenciesSpec) {
+open class CompiledKotlinPluginsBlock(private val pluginDependencies: PluginDependenciesSpec) {
 
-    inline fun plugins(configuration: PluginDependenciesSpec.() -> Unit) {
-        pluginDependencies.configuration()
+    fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
+        PluginDependenciesSpecScope(pluginDependencies).configuration()
     }
 }
 
@@ -51,7 +51,7 @@ open class CompiledKotlinSettingsPluginManagementBlock(
      * @see [Project.buildscript]
      */
     open fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        buildscript.configureWith(block)
+        ScriptHandlerScope(buildscript).block()
     }
 
     open fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
@@ -77,10 +77,10 @@ open class CompiledKotlinBuildscriptAndPluginsBlock(
      * @see [Project.buildscript]
      */
     override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        buildscript.configureWith(block)
+        ScriptHandlerScope(buildscript).block()
     }
 
-    override fun plugins(block: PluginDependenciesSpec.() -> Unit) {
-        pluginDependencies.block()
+    override fun plugins(block: PluginDependenciesSpecScope.() -> Unit) {
+        PluginDependenciesSpecScope(pluginDependencies).block()
     }
 }

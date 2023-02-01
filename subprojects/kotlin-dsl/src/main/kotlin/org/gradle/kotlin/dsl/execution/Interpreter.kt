@@ -61,7 +61,7 @@ import kotlin.script.experimental.api.KotlinType
  *
  * Because each program is specialized to a given script structure, a lot of work is
  * avoided. For example, a top-level script containing a `plugins` block but no body
- * can be compiled down to a specialized program that instantiates the precompiled
+ * can be compiled down to a specialized program that instantiates the compiled
  * `plugins` block class directly - without reflection - and does nothing else. The
  * same strategy can be used for a **script plugin** (a non top-level script) with a
  * body but no `buildscript` block since the classpath is completely determined at
@@ -72,6 +72,7 @@ import kotlin.script.experimental.api.KotlinType
  * @see ResidualProgram
  * @see ResidualProgramCompiler
  */
+internal
 class Interpreter(val host: Host) {
 
     interface Host {

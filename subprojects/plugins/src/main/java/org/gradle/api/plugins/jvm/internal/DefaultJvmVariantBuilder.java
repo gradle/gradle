@@ -24,6 +24,8 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
@@ -51,7 +53,7 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
     private final String name;
     private final JvmPluginServices jvmPluginServices;
     private final SourceSetContainer sourceSets;
-    private final ConfigurationContainer configurations;
+    private final RoleBasedConfigurationContainerInternal configurations;
     private final TaskContainer tasks;
     private final SoftwareComponentContainer components;
     private final ProjectInternal project;
@@ -82,7 +84,7 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
         this.name = name;
         this.jvmPluginServices = jvmPluginServices;
         this.sourceSets = sourceSets;
-        this.configurations = configurations;
+        this.configurations = (RoleBasedConfigurationContainerInternal) configurations;
         this.tasks = tasks;
         this.components = components;
         this.project = project;
@@ -218,38 +220,43 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
             configurations.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation, runtimeOnly);
         }
 
+        // TODO: #23495 Investigate the implications of using this class without
+        //       the java plugin applied, and thus no java component present.
+        //       In the long run, all of these variants and domain objects should be
+        //       owned by a component. If we do not add them to the default java component,
+        //       we should be adding them to a user-provided or new component instead.
         final AdhocComponentWithVariants component = findJavaComponent();
+
         JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
         configureJavaDocTask(name, sourceSet, tasks, javaPluginExtension);
         if (javadocJar) {
-            JvmPluginsHelper.configureDocumentationVariantWithArtifact(sourceSet.getJavadocElementsConfigurationName(),
-                    mainSourceSet ? null : name,
-                    JAVADOC,
-                    capabilities,
-                    sourceSet.getJavadocJarTaskName(),
-                    tasks.named(sourceSet.getJavadocTaskName()),
-                    component,
-                    configurations,
-                    tasks,
-                    project.getObjects(),
-                    project.getFileResolver(),
-                    project.getTaskDependencyFactory()
-                );
+            Configuration javadocVariant = JvmPluginsHelper.createDocumentationVariantWithArtifact(
+                sourceSet.getJavadocElementsConfigurationName(),
+                mainSourceSet ? null : name,
+                JAVADOC,
+                capabilities,
+                sourceSet.getJavadocJarTaskName(),
+                tasks.named(sourceSet.getJavadocTaskName()),
+                project
+            );
+
+            if (component != null) {
+                component.addVariantsFromConfiguration(javadocVariant, new JavaConfigurationVariantMapping("runtime", true));
+            }
         }
         if (sourcesJar) {
-            JvmPluginsHelper.configureDocumentationVariantWithArtifact(sourceSet.getSourcesElementsConfigurationName(),
-                    mainSourceSet ? null : name,
-                    SOURCES,
-                    capabilities,
-                    sourceSet.getSourcesJarTaskName(),
-                    sourceSet.getAllSource(),
-                    component,
-                    configurations,
-                    tasks,
-                    project.getObjects(),
-                    project.getFileResolver(),
-                    project.getTaskDependencyFactory()
-                );
+            Configuration sourcesVariant = JvmPluginsHelper.createDocumentationVariantWithArtifact(
+                sourceSet.getSourcesElementsConfigurationName(),
+                mainSourceSet ? null : name,
+                SOURCES,
+                capabilities,
+                sourceSet.getSourcesJarTaskName(),
+                sourceSet.getAllSource(),
+                project
+            );
+            if (component != null) {
+                component.addVariantsFromConfiguration(sourcesVariant, new JavaConfigurationVariantMapping("runtime", true));
+            }
         }
 
         if (published && component != null) {
@@ -261,11 +268,9 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
     }
 
     private Configuration bucket(String kind, String configName, String displayName) {
-        Configuration configuration = configurations.maybeCreate(configName);
+        Configuration configuration = configurations.maybeCreateWithRole(configName, ConfigurationRoles.INTENDED_BUCKET, false, false);
         configuration.setDescription(kind + " dependencies for " + displayName);
         configuration.setVisible(false);
-        configuration.setCanBeResolved(false);
-        configuration.setCanBeConsumed(false);
         return configuration;
     }
 

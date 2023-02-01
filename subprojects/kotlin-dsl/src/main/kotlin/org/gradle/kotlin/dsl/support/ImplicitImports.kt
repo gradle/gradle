@@ -22,7 +22,7 @@ import org.gradle.configuration.ImportsReader
 /**
  * Holds the list of imports implicitly added to every Kotlin build script.
  */
-class ImplicitImports(
+class ImplicitImports internal constructor(
     @Transient
     private val importsReader: ImportsReader
 ) {

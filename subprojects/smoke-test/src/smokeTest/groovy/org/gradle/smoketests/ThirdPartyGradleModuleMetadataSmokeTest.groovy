@@ -137,15 +137,21 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
             // https://youtrack.jetbrains.com/issue/KT-44266#focus=Comments-27-4639508.0-0
             runner.withJvmArguments(runner.jvmArguments + [
                 "-Dkotlin.daemon.jvm.options=" +
-                "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED," +
-                "--add-opens=java.base/java.util=ALL-UNNAMED"
+                    "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED," +
+                    "--add-opens=java.base/java.util=ALL-UNNAMED"
             ])
         }
         return runner
     }
 
+    private static SmokeTestGradleRunner expectingDeprecations(SmokeTestGradleRunner runner, String kotlinVersion, String agpVersion) {
+        return runner.deprecations(KotlinPluginSmokeTest.KotlinDeprecations) {
+            expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+        }
+    }
+
     private BuildResult publish(String kotlinVersion, String agpVersion) {
-        return setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner('publish'))
+        return setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(expectingDeprecations(runner('publish'), kotlinVersion, agpVersion))
             .withProjectDir(new File(testProjectDir, 'producer'))
             .forwardOutput()
             .build()
@@ -186,7 +192,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
         if (metadataFileName.startsWith('kotlin-multiplatform') && !OperatingSystem.current().isMacOsX()) {
             // MacOS lib cannot be built on other platforms, so kotlin plugin won't add `artifactType` there
-            moduleRoot.variants.findAll { it.attributes["org.jetbrains.kotlin.native.target"] == "macos_x64" }.each { it.attributes.remove("artifactType")}
+            moduleRoot.variants.findAll { it.attributes["org.jetbrains.kotlin.native.target"] == "macos_x64" }.each { it.attributes.remove("artifactType") }
         }
 
         moduleRoot

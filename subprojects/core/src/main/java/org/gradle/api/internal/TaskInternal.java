@@ -22,7 +22,7 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskRequiredServices;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
@@ -49,7 +49,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
     boolean hasTaskActions();
 
     @Internal
-    DescribingAndSpec<? super TaskInternal> getOnlyIf();
+    Spec<? super TaskInternal> getOnlyIf();
 
     /**
      * Return the reason for not to track state.

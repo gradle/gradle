@@ -20,6 +20,7 @@ import org.eclipse.jetty.http.HttpStatus
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.file.TestFile
@@ -38,12 +39,7 @@ import static org.gradle.util.Matchers.matchesRegexp
 
 class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
     private static final int HTTP_UNRECOVERABLE_ERROR = 415
-    private static final String BAD_CREDENTIALS = '''
-credentials {
-    username 'testuser'
-    password 'bad'
-}
-'''
+    private static final Credentials BAD_CREDENTIALS = new DefaultPasswordCredentials('testuser', 'bad')
     @Rule
     ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
     @Rule
@@ -140,11 +136,38 @@ credentials {
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
         org.gradle.api.credentials.PasswordCredentials credentials = new DefaultPasswordCredentials('testuser', 'password')
-        buildFile << publicationBuild(version, group, ivyHttpRepo.uri, "ivy", """
-            credentials {
-                username '${credentials.username}'
-                password '${credentials.password}'
-            }
+        configureRepositoryCredentials(credentials.username, credentials.password, "ivy")
+        buildFile << publicationBuild(version, group, ivyHttpRepo.uri)
+
+        and:
+        server.authenticationScheme = authScheme
+        expectPublishModuleWithCredentials(module, credentials)
+
+        when:
+        run 'publish'
+
+        then:
+        module.assertMetadataAndJarFilePublished()
+        module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
+
+        and:
+        progressLogging.uploadProgressLogged(module.ivy.uri)
+        progressLogging.uploadProgressLogged(module.moduleMetadata.uri)
+        progressLogging.uploadProgressLogged(module.jar.uri)
+
+        where:
+        authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
+    }
+
+    @UnsupportedWithConfigurationCache(because = "inline credentials")
+    def "can publish to authenticated repository using inline credentials and #authScheme auth"() {
+        given:
+        PasswordCredentials credentials = new DefaultPasswordCredentials('testuser', 'password')
+        buildFile << publicationBuild(version, group, ivyHttpRepo.uri, "ivy","""
+        credentials(PasswordCredentials) {
+            username = "${credentials.username}"
+            password = "${credentials.password}"
+        }
         """)
 
         and:
@@ -169,6 +192,11 @@ credentials {
 
     def "reports failure publishing with #credsName credentials to authenticated repository using #authScheme auth"() {
         given:
+        def credentialsBlock = ''
+        if (creds != null) {
+            configureRepositoryCredentials(creds.username, creds.password, "ivy")
+            credentialsBlock = "credentials(PasswordCredentials)"
+        }
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'ivy-publish'
@@ -177,7 +205,7 @@ credentials {
             publishing {
                 repositories {
                     ivy {
-                        $creds
+                        $credentialsBlock
                         url "${ivyHttpRepo.uri}"
                     }
                 }
@@ -203,9 +231,9 @@ credentials {
 
         where:
         authScheme        | credsName | creds
-        AuthScheme.BASIC  | 'empty'   | ''
-        AuthScheme.DIGEST | 'empty'   | ''
-        AuthScheme.NTLM   | 'empty'   | ''
+        AuthScheme.BASIC  | 'empty'   | null
+        AuthScheme.DIGEST | 'empty'   | null
+        AuthScheme.NTLM   | 'empty'   | null
         AuthScheme.BASIC  | 'bad'     | BAD_CREDENTIALS
         AuthScheme.DIGEST | 'bad'     | BAD_CREDENTIALS
         AuthScheme.NTLM   | 'bad'     | BAD_CREDENTIALS
@@ -292,6 +320,7 @@ credentials {
             it.length = 1024 * 1024 * 10 // 10 mb
         }
 
+        configureRepositoryCredentials("testuser", "password", "ivy")
         buildFile << """
             apply plugin: 'ivy-publish'
 
@@ -301,10 +330,7 @@ credentials {
             publishing {
                 repositories {
                     ivy {
-                        credentials {
-                            username 'testuser'
-                            password 'password'
-                        }
+                        credentials(PasswordCredentials)
                         url "${ivyHttpRepo.uri}"
                     }
                 }
@@ -540,12 +566,8 @@ credentials {
     @Issue("https://github.com/gradle/gradle/issues/14902")
     def "does not fail when publishing is set to always up to date"() {
         given:
-        buildFile << publicationBuild(version, group, ivyHttpRepo.uri, "ivy", """
-        credentials {
-            username 'foo'
-            password 'bar'
-        }
-        """)
+        configureRepositoryCredentials("foo", "bar", "ivy")
+        buildFile << publicationBuild(version, group, ivyHttpRepo.uri)
         server.authenticationScheme = AuthScheme.BASIC
         org.gradle.api.credentials.PasswordCredentials credentials = new DefaultPasswordCredentials('foo', 'bar')
         expectPublishModuleWithCredentials(module, credentials)
