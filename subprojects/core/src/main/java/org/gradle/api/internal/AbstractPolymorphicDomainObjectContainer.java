@@ -25,6 +25,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
@@ -38,8 +39,10 @@ import org.gradle.util.internal.ConfigureUtil;
 import javax.annotation.Nullable;
 import java.util.Map;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
+
 public abstract class AbstractPolymorphicDomainObjectContainer<T>
-        extends AbstractNamedDomainObjectContainer<T> implements PolymorphicDomainObjectContainerInternal<T> {
+    extends AbstractNamedDomainObjectContainer<T> implements PolymorphicDomainObjectContainerInternal<T> {
 
     private final ContainerElementsDynamicObject elementsDynamicObject = new ContainerElementsDynamicObject();
 
@@ -121,23 +124,40 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
     @Override
     public NamedDomainObjectCollectionSchema getCollectionSchema() {
-        return () -> Iterables.transform(getAsMap().entrySet(), (Function<Map.Entry<String, T>, NamedDomainObjectCollectionSchema.NamedDomainObjectSchema>) entry -> new NamedDomainObjectCollectionSchema.NamedDomainObjectSchema() {
-            @Override
-            public String getName() {
-                return entry.getKey();
-            }
+        return () -> Iterables.concat(
+            Iterables.transform(getAsMap().entrySet(), (Function<Map.Entry<String, T>, NamedDomainObjectCollectionSchema.NamedDomainObjectSchema>) entry -> new NamedDomainObjectCollectionSchema.NamedDomainObjectSchema() {
+                @Override
+                public String getName() {
+                    return entry.getKey();
+                }
 
-            @Override
-            public TypeOf<?> getPublicType() {
-                //TODO: This returns the wrong public type for domain objects
-                // created with the eager APIs or added directly to the container.
-                // This can leak internal types.
-                // We do not currently keep track of the type used when creating
-                // a domain object (via create) or the type of the container when
-                // a domain object is added directly (via add).
-                return new DslObject(entry.getValue()).getPublicType();
-            }
-        });
+                @Override
+                public TypeOf<?> getPublicType() {
+                    //TODO: This returns the wrong public type for domain objects
+                    // created with the eager APIs or added directly to the container.
+                    // This can leak internal types.
+                    // We do not currently keep track of the type used when creating
+                    // a domain object (via create) or the type of the container when
+                    // a domain object is added directly (via add).
+                    String name = entry.getKey();
+                    T value = entry.getValue();
+                    return new DslObject(value).getPublicType();
+                }
+            }),
+            Iterables.transform(index.getPendingAsMap().entrySet(), (Function<Map.Entry<String, ProviderInternal<? extends T>>, NamedDomainObjectCollectionSchema.NamedDomainObjectSchema>) entry -> new NamedDomainObjectCollectionSchema.NamedDomainObjectSchema() {
+                @Override
+                public String getName() {
+                    return entry.getKey();
+                }
+
+                @Override
+                public TypeOf<?> getPublicType() {
+                    String name = entry.getKey();
+                    Class<? extends T> type = entry.getValue().getType();
+                    return typeOf(type);
+                }
+            })
+        );
     }
 
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {
@@ -182,9 +202,9 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
         private boolean isConfigureMethod(String name, Object... arguments) {
             return (arguments.length == 1 && arguments[0] instanceof Closure
-                    || arguments.length == 1 && arguments[0] instanceof Class
-                    || arguments.length == 2 && arguments[0] instanceof Class && arguments[1] instanceof Closure)
-                    && hasProperty(name);
+                || arguments.length == 1 && arguments[0] instanceof Class
+                || arguments.length == 2 && arguments[0] instanceof Class && arguments[1] instanceof Closure)
+                && hasProperty(name);
         }
     }
 

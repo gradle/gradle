@@ -22,6 +22,8 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.PolymorphicDomainObjectContainer
+import org.gradle.api.reflect.HasPublicType
+import org.gradle.api.reflect.TypeOf
 import org.gradle.util.TestUtil
 
 class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDomainObjectContainerSpec<Person> {
@@ -82,6 +84,17 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
 
     interface AgeAwarePerson extends Person {
         int getAge()
+    }
+
+    static class Introvert extends DefaultPerson implements HasPublicType {
+        Introvert(String name) {
+            this.name = name;
+        }
+
+        @Override
+        TypeOf<?> getPublicType() {
+            return TypeOf.typeOf(Person.class)
+        }
     }
 
     static class DefaultAgeAwarePerson extends AbstractPerson implements AgeAwarePerson {
@@ -355,25 +368,29 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
         def expectedSchema = [
             mike: "DefaultPolymorphicDomainObjectContainerTest.Person",
             fred: "DefaultPolymorphicDomainObjectContainerTest.Person",
-            alice: "DefaultPolymorphicDomainObjectContainerTest.Person", // TODO: Should be AgeAwarePerson
-            kate: "DefaultPolymorphicDomainObjectContainerTest.Person",
-            bob: "DefaultPolymorphicDomainObjectContainerTest.Person",
-            mary: "DefaultPolymorphicDomainObjectContainerTest.Person", // TODO should be AgeAwarePerson
-            john: "DefaultPolymorphicDomainObjectContainerTest.Person",
-            janis: "DefaultPolymorphicDomainObjectContainerTest.Person", // TODO could be AgeAwarePerson
-            robert: "DefaultPolymorphicDomainObjectContainerTest.Person" // TODO could be DefaultCtorNamedPerson
+            alice: "DefaultPolymorphicDomainObjectContainerTest.AgeAwarePerson",
+            edward: "DefaultPolymorphicDomainObjectContainerTest.Introvert",
+            kate: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
+            bob: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
+            mary: "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson",
+            john: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
+            janis: "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson",
+            robert: "DefaultPolymorphicDomainObjectContainerTest.DefaultCtorNamedPerson",
+            kevin: "DefaultPolymorphicDomainObjectContainerTest.Person",
         ]
 
         when:
         container.register("mike")
         container.register("fred", Person)
         container.register("alice", AgeAwarePerson)
+        container.register("edward", Introvert)
         container.create("kate")
         container.create("bob", Person)
         container.create("mary", AgeAwarePerson)
         container.add(new DefaultPerson(name: "john"))
         container.add(new DefaultAgeAwarePerson(name: "janis"))
         container.add(new DefaultCtorNamedPerson("robert"))
+        container.add(new Introvert("kevin"))
 
         then:
         assertSchemaIs(expectedSchema)
@@ -383,6 +400,12 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
         container.getByName("fred")
         container.getByName("alice")
         then: "schema is the same"
+
+        expectedSchema.put("alice", "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson")
+        expectedSchema.put("fred", "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson")
+        expectedSchema.put("mike", "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson")
+        //TODO: different behaviour for realized & unrealized types... is this acceptable?
+
         assertSchemaIs(expectedSchema)
     }
 

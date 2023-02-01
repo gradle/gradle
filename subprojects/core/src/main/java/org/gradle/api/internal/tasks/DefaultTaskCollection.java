@@ -149,42 +149,32 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
             @Override
             public Iterable<? extends NamedDomainObjectSchema> getElements() {
                 return Iterables.concat(
-                    Iterables.transform(index.asMap().entrySet(), new Function<Map.Entry<String, T>, NamedDomainObjectSchema>() {
+                    Iterables.transform(index.asMap().entrySet(), (Function<Map.Entry<String, T>, NamedDomainObjectSchema>) e -> new NamedDomainObjectSchema() {
                         @Override
-                        public NamedDomainObjectSchema apply(final Map.Entry<String, T> e) {
-                            return new NamedDomainObjectSchema() {
-                                @Override
-                                public String getName() {
-                                    return e.getKey();
-                                }
+                        public String getName() {
+                            return e.getKey();
+                        }
 
-                                @Override
-                                public TypeOf<?> getPublicType() {
-                                    //TODO: This returns the wrong public type for domain objects
-                                    // created with the eager APIs or added directly to the container.
-                                    // This can leak internal types.
-                                    // We do not currently keep track of the type used when creating
-                                    // a domain object (via create) or the type of the container when
-                                    // a domain object is added directly (via add).
-                                    return new DslObject(e.getValue()).getPublicType();
-                                }
-                            };
+                        @Override
+                        public TypeOf<?> getPublicType() {
+                            //TODO: This returns the wrong public type for domain objects
+                            // created with the eager APIs or added directly to the container.
+                            // This can leak internal types.
+                            // We do not currently keep track of the type used when creating
+                            // a domain object (via create) or the type of the container when
+                            // a domain object is added directly (via add).
+                            return new DslObject(e.getValue()).getPublicType();
                         }
                     }),
-                    Iterables.transform(index.getPendingAsMap().entrySet(), new Function<Map.Entry<String, ProviderInternal<? extends T>>, NamedDomainObjectSchema>() {
+                    Iterables.transform(index.getPendingAsMap().entrySet(), (Function<Map.Entry<String, ProviderInternal<? extends T>>, NamedDomainObjectSchema>) e -> new NamedDomainObjectSchema() {
                         @Override
-                        public NamedDomainObjectSchema apply(final Map.Entry<String, ProviderInternal<? extends T>> e) {
-                            return new NamedDomainObjectSchema() {
-                                @Override
-                                public String getName() {
-                                    return e.getKey();
-                                }
+                        public String getName() {
+                            return e.getKey();
+                        }
 
-                                @Override
-                                public TypeOf<?> getPublicType() {
-                                    return typeOf(e.getValue().getType());
-                                }
-                            };
+                        @Override
+                        public TypeOf<?> getPublicType() {
+                            return typeOf(e.getValue().getType());
                         }
                     })
                 );
