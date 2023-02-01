@@ -111,7 +111,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     private static String getProjectName(File settingsDir) {
-        if(contains(File.listRoots(), settingsDir)) {
+        if (contains(File.listRoots(), settingsDir)) {
             String rootIndicator = settingsDir.toPath().getRoot().toString().replaceAll("[\\\\:\\/]*", "");
             // using "-" to separate the parts of the root project name to allow easier usage in the CLI, just in case.
             return "generated-" + rootIndicator  + (rootIndicator.isEmpty() ? "" : "-") +
