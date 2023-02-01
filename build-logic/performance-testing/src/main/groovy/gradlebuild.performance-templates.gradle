@@ -409,7 +409,7 @@ performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) 
 performanceTest.registerAndroidTestProject("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from main branch
-    ref = '1513dc23b6026c000f80b872b4346b1ba0f6dfa1'
+    ref = 'f3ae2c85a2d669b483e05e1996cea30d6828ea90'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }
