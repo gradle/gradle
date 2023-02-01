@@ -63,9 +63,7 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
     }
 
     @Inject
-    protected JavaToolchainService getToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    abstract protected JavaToolchainService getToolchainService();
 
     @Override
     protected Class<? extends Plugin> getBasePlugin() {
