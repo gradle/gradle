@@ -38,7 +38,7 @@ class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpe
         succeeds('copyLibs')
 
         then:
-        sample.dir.file("$dsl/build/libs/commons-2.0.0.jar").isFile()
+        sample.dir.file("$dsl/build/libs/gradle-tooling-api-6.0.jar").isFile()
 
         where:
         dsl << ['groovy']
