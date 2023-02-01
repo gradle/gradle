@@ -106,11 +106,6 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
     private static final NextGenBuildCacheHandler DISABLED_BUILD_CACHE_HANDLER = new NextGenBuildCacheHandler() {
 
         @Override
-        public boolean contains(BuildCacheKey key) {
-            return false;
-        }
-
-        @Override
         public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
             return false;
         }
@@ -134,11 +129,6 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
 
         public NoPushNextGenBuildCacheHandler(NextGenBuildCacheHandler delegate) {
             this.delegate = delegate;
-        }
-
-        @Override
-        public boolean contains(BuildCacheKey key) {
-            return delegate.contains(key);
         }
 
         @Override
@@ -169,18 +159,13 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         }
 
         @Override
-        public boolean contains(BuildCacheKey key) {
-            return load(key, __ -> {});
-        }
-
-        @Override
         public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
             return service.load(key, reader);
         }
 
         @Override
         public boolean shouldStore(BuildCacheKey key) {
-            return !contains(key);
+            return !load(key, __ -> {});
         }
 
         @Override
