@@ -22,13 +22,16 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.io.ByteStreams;
+import com.google.common.io.Closer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.NullOutputStream;
+import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
@@ -41,6 +44,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.io.IoFunction;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
@@ -49,6 +53,7 @@ import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -57,6 +62,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +71,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class NextGenBuildCacheController implements BuildCacheController {
+    // TODO Move all thread-local buffers to a shared service
+    // TODO Make buffer size configurable
+    private static final int BUFFER_SIZE = 64 * 1024;
+    private static final ThreadLocal<byte[]> COPY_BUFFERS = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
+
     private final NextGenBuildCacheAccess cacheAccess;
     private final FileSystemAccess fileSystemAccess;
     private final String buildInvocationId;
@@ -154,31 +165,34 @@ public class NextGenBuildCacheController implements BuildCacheController {
                     }
                 });
 
+                // Note that there can be multiple output files with the same content
                 Multimap<BuildCacheKey, String> fileContentHashes = indexManifestFileEntries(manifestEntries);
 
                 // TODO Filter out entries that are already in the right place in the output directory
                 // TODO Handle missing entries
 
                 cacheAccess.load(fileContentHashes.keySet(), (contentHash, input) -> {
-                    // TODO Do not load whole input into memory when it needs to be written to single file only
-                    byte[] data;
-                    try {
-                        data = ByteStreams.toByteArray(input);
-                    } catch (IOException e) {
-                        throw new UncheckedIOException("Could not read cache entry " + contentHash, e);
+                    try (Closer closer = Closer.create()) {
+                        Collection<String> relativePaths = fileContentHashes.get(contentHash);
+                        entryCount.addAndGet(relativePaths.size());
+
+                        OutputStream output = relativePaths.stream()
+                            .map(relativePath -> new File(root, relativePath))
+                            .map(file -> {
+                                try {
+                                    return closer.register(new FileOutputStream(file));
+                                } catch (FileNotFoundException e) {
+                                    throw new UncheckedIOException("Couldn't create " + file.getAbsolutePath(), e);
+                                }
+                            })
+                            .map(OutputStream.class::cast)
+                            .reduce(TeeOutputStream::new)
+                            .orElse(NullOutputStream.NULL_OUTPUT_STREAM);
+
+                        IOUtils.copyLarge(input, output, COPY_BUFFERS.get());
+                    } catch (IOException ex) {
+                        throw new UncheckedIOException(ex);
                     }
-                    fileContentHashes.get(contentHash).forEach(relativePath -> {
-                        File file = new File(root, relativePath);
-                        try {
-                            file.createNewFile();
-                            try (FileOutputStream output = new FileOutputStream(file)) {
-                                output.write(data);
-                            }
-                        } catch (IOException e) {
-                            throw new UncheckedIOException("Couldn't create " + file.getAbsolutePath(), e);
-                        }
-                        entryCount.incrementAndGet();
-                    });
                 });
 
                 // TODO Reuse the data in the manifest instead of re-reading just written files
