@@ -365,6 +365,12 @@ class HttpBuildCacheServiceTest extends Specification {
         }
 
         @Override
+        InputStream openStream() throws IOException {
+            ++writeCount
+            return new ByteArrayInputStream(content)
+        }
+
+        @Override
         void writeTo(OutputStream output) throws IOException {
             ++writeCount
             output << content

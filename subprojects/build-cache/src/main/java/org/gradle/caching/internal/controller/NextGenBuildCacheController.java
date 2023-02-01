@@ -28,6 +28,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.caching.BuildCacheEntryWriter;
@@ -48,14 +49,15 @@ import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -244,8 +246,15 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
             cacheAccess.store(manifestIndex, file -> new BuildCacheEntryWriter() {
                 @Override
+                public InputStream openStream() throws IOException {
+                    return new FileInputStream(file);
+                }
+
+                @Override
                 public void writeTo(OutputStream output) throws IOException {
-                    Files.copy(file.toPath(), output);
+                    try (InputStream input = openStream()) {
+                        IOUtils.copyLarge(input, output, COPY_BUFFERS.get());
+                    }
                 }
 
                 @Override
@@ -260,6 +269,11 @@ public class NextGenBuildCacheController implements BuildCacheController {
             byte[] bytes = manifestJson.getBytes(StandardCharsets.UTF_8);
 
             return new BuildCacheEntryWriter() {
+                @Override
+                public InputStream openStream() throws IOException {
+                    return new UnsynchronizedByteArrayInputStream(bytes);
+                }
+
                 @Override
                 public void writeTo(OutputStream output) throws IOException {
                     output.write(bytes);

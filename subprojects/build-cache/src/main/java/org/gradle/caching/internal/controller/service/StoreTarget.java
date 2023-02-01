@@ -21,7 +21,9 @@ import com.google.common.io.Files;
 import org.gradle.caching.BuildCacheEntryWriter;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 public class StoreTarget implements BuildCacheEntryWriter {
@@ -31,6 +33,11 @@ public class StoreTarget implements BuildCacheEntryWriter {
 
     public StoreTarget(File file) {
         this.file = file;
+    }
+
+    @Override
+    public InputStream openStream() throws IOException {
+        return new FileInputStream(file);
     }
 
     @Override

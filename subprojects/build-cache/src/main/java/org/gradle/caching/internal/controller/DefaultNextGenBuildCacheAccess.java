@@ -23,6 +23,7 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
@@ -58,8 +59,13 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 // Mirror data in local cache
                 local.store(key, new BuildCacheEntryWriter() {
                     @Override
+                    public InputStream openStream() {
+                        return data.toInputStream();
+                    }
+
+                    @Override
                     public void writeTo(OutputStream output) throws IOException {
-                        IOUtils.copyLarge(data.toInputStream(), output, buffer);
+                        data.writeTo(output);
                     }
 
                     @Override
