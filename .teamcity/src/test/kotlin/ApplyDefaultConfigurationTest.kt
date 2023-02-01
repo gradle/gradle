@@ -130,5 +130,5 @@ class ApplyDefaultConfigurationTest {
 
     private
     fun expectedRunnerParam(daemon: String = "--daemon", extraParameters: String = "") =
-        "-Dorg.gradle.workers.max=%maxParallelForks% -PmaxParallelForks=%maxParallelForks% -Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url% -s $daemon --continue $extraParameters -PteamCityBuildId=%teamcity.build.id% \"-Dscan.tag.Check\" \"-Dscan.tag.\""
+        "-Dorg.gradle.workers.max=%maxParallelForks% -PmaxParallelForks=%maxParallelForks% -Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url% -s %additional.gradle.parameters% $daemon --continue $extraParameters -PteamCityBuildId=%teamcity.build.id% \"-Dscan.tag.Check\" \"-Dscan.tag.\""
 }
