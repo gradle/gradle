@@ -17,17 +17,23 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
+import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.ResolvedFileCollectionVisitor;
-import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 @ServiceScope(Scopes.BuildSession.class)
@@ -47,21 +53,46 @@ public class ArtifactSetToFileCollectionFactory {
      * Over time, this should be merged with the FileCollection implementation in DefaultConfiguration
      */
     public FileCollectionInternal asFileCollection(ResolvedArtifactSet artifacts) {
-        return new AbstractFileCollection(taskDependencyFactory) {
-            @Override
-            public String getDisplayName() {
-                return "files";
-            }
-
-            @Override
-            protected void visitContents(FileCollectionStructureVisitor visitor) {
-                ResolvedFileCollectionVisitor collectingVisitor = new ResolvedFileCollectionVisitor(visitor);
-                ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(collectingVisitor);
-                if (!collectingVisitor.getFailures().isEmpty()) {
-                    throw UncheckedException.throwAsUncheckedException(collectingVisitor.getFailures().iterator().next());
+        // TODO - merge these file collections for all transforms so that non-scheduled transforms are executed in parallel
+        return new ResolutionBackedFileCollection(
+            new ResolutionResultProvider<SelectedArtifactSet>() {
+                @Override
+                public SelectedArtifactSet getTaskDependencyValue() {
+                    throw new IllegalStateException();
                 }
-            }
-        };
+
+                @Override
+                public SelectedArtifactSet getValue() {
+                    return new SelectedArtifactSet() {
+                        @Override
+                        public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
+                            ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(visitor);
+                        }
+
+                        @Override
+                        public void visitDependencies(TaskDependencyResolveContext context) {
+                            throw new IllegalStateException();
+                        }
+                    };
+                }
+            },
+            false,
+            new ResolutionHost() {
+                @Override
+                public DisplayName displayName(String type) {
+                    return Describables.of("unknown configuration");
+                }
+
+                @Override
+                public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
+                    if (failures.isEmpty()) {
+                        return Optional.empty();
+                    } else {
+                        return Optional.of(new DefaultLenientConfiguration.ArtifactResolveException(type, "??", displayName(type).getDisplayName(), failures));
+                    }
+                }
+            }, taskDependencyFactory
+        );
     }
 
     /**
