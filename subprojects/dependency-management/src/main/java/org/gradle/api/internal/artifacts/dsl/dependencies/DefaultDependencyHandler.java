@@ -226,7 +226,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
                     versionConstraint.strictly(constraint.getStrictVersion());
                     versionConstraint.reject(constraint.getRejectedVersions().toArray(new String[0]));
                 });
-                ConfigureUtil.configure(configureClosure, dependency);
+                doAddRegularDependency(configuration, dependency, configureClosure);
                 return null;
             }
         }
