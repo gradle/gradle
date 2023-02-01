@@ -113,19 +113,13 @@ public abstract class CodeNarc extends SourceTask implements VerificationTask, R
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    abstract protected ObjectFactory getObjectFactory();
 
     @Inject
-    protected JavaToolchainService getToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    abstract protected JavaToolchainService getToolchainService();
 
     @Inject
-    protected WorkerExecutor getWorkerExecutor() {
-        throw new UnsupportedOperationException();
-    }
+    abstract protected WorkerExecutor getWorkerExecutor();
 
     /**
      * JavaLauncher for toolchain support
