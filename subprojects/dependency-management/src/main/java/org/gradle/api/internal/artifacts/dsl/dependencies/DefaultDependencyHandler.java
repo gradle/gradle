@@ -31,7 +31,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
@@ -215,19 +214,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
                 }
                 return null;
             } else if (provider.getType() != null && PluginDependency.class.isAssignableFrom(provider.getType())) {
-                PluginDependency pluginDependency = Cast.uncheckedCast(provider.get());
-                String pluginNotation = plugin(pluginDependency.getPluginId());
-                ExternalModuleDependency dependency = Cast.uncheckedCast(create(pluginNotation));
-                dependency.version(versionConstraint -> {
-                    VersionConstraint constraint = pluginDependency.getVersion();
-                    versionConstraint.setBranch(constraint.getBranch());
-                    versionConstraint.require(constraint.getRequiredVersion());
-                    versionConstraint.prefer(constraint.getPreferredVersion());
-                    versionConstraint.strictly(constraint.getStrictVersion());
-                    versionConstraint.reject(constraint.getRejectedVersions().toArray(new String[0]));
-                });
-                doAddRegularDependency(configuration, dependency, configureClosure);
-                return null;
+                PluginDependencyMarkerCoordinates.setVersion(dependencyFactory, Cast.uncheckedCast(provider.get()));
             }
         }
         Provider<Dependency> lazyDependency = dependencyNotation.map(mapDependencyProvider(configuration, configureClosure));
