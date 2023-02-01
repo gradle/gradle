@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstrain
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import spock.lang.Specification
 
-class DefaultDependencyDescriptorFactoryTest extends Specification {
+class DefaultDependencyMetadataFactoryTest extends Specification {
     def configurationName = "conf"
     def projectDependency = Stub(ProjectDependency)
     def componentId = new ComponentIdentifier() {
@@ -35,36 +35,32 @@ class DefaultDependencyDescriptorFactoryTest extends Specification {
 
     def "delegates to internal factory"() {
         given:
-        def ivyDependencyDescriptorFactory1 = Mock(IvyDependencyDescriptorFactory)
-        def ivyDependencyDescriptorFactory2 = Mock(IvyDependencyDescriptorFactory)
+        def converter1 = Mock(DependencyMetadataConverter)
+        def converter2 = Mock(DependencyMetadataConverter)
         def result = Stub(LocalOriginDependencyMetadata)
 
         when:
-        def dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
-                ivyDependencyDescriptorFactory1, ivyDependencyDescriptorFactory2
-        )
-        def created = dependencyDescriptorFactory.createDependencyDescriptor(componentId, configurationName, null, projectDependency)
+        def dependencyDescriptorFactory = new DefaultDependencyMetadataFactory(converter1, converter2)
+        def created = dependencyDescriptorFactory.createDependencyMetadata(componentId, configurationName, null, projectDependency)
 
         then:
         created == result
 
         and:
-        1 * ivyDependencyDescriptorFactory1.canConvert(projectDependency) >> false
-        1 * ivyDependencyDescriptorFactory2.canConvert(projectDependency) >> true
-        1 * ivyDependencyDescriptorFactory2.createDependencyDescriptor(componentId, configurationName, null, projectDependency) >> result
+        1 * converter1.canConvert(projectDependency) >> false
+        1 * converter2.canConvert(projectDependency) >> true
+        1 * converter2.createDependencyMetadata(componentId, configurationName, null, projectDependency) >> result
     }
 
     def "fails where no internal factory can handle dependency type"() {
-        def ivyDependencyDescriptorFactory1 = Mock(IvyDependencyDescriptorFactory);
+        def converter = Mock(DependencyMetadataConverter);
 
         when:
-        ivyDependencyDescriptorFactory1.canConvert(projectDependency) >> false
+        converter.canConvert(projectDependency) >> false
 
         and:
-        def dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
-                ivyDependencyDescriptorFactory1
-        )
-        dependencyDescriptorFactory.createDependencyDescriptor(componentId, configurationName, null, projectDependency)
+        def dependencyDescriptorFactory = new DefaultDependencyMetadataFactory(converter)
+        dependencyDescriptorFactory.createDependencyMetadata(componentId, configurationName, null, projectDependency)
 
         then:
         thrown InvalidUserDataException
@@ -75,8 +71,8 @@ class DefaultDependencyDescriptorFactoryTest extends Specification {
         def dependencyConstraint = new DefaultDependencyConstraint("g", "m", "1")
 
         when:
-        def dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory()
-        def created = dependencyDescriptorFactory.createDependencyConstraintDescriptor(componentId, configurationName, null, dependencyConstraint)
+        def dependencyDescriptorFactory = new DefaultDependencyMetadataFactory()
+        def created = dependencyDescriptorFactory.createDependencyConstraintMetadata(componentId, configurationName, null, dependencyConstraint)
         def selector = created.selector as ModuleComponentSelector
 
         then:
