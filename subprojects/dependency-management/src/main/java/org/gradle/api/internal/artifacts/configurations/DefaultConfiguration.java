@@ -1563,6 +1563,35 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private ConfigurationIdentity getIdentity() {
+        String name = getName();
+        // TODO: can we get an NPE for project here?
+        String projectPath = domainObjectContext.getProjectPath().toString();
+        String buildPath = domainObjectContext.getBuildPath().toString();
+        String identityPath = getIdentityPath().toString();
+        return new ConfigurationIdentity() {
+            @Override
+            public String getBuildPath() {
+                return buildPath;
+            }
+
+            @Override
+            public String getProjectPath() {
+                return projectPath;
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public String toString() {
+                return "Configuration " + (buildPath.equals(":") ? identityPath : buildPath + identityPath);
+            }
+        };
+    }
+
     private static class ConfigurationDescription implements Describable {
         private final Path identityPath;
 
@@ -1577,6 +1606,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private class DefaultResolutionResultProvider implements ResolutionResultProvider<ResolutionResult> {
+
+        @Override
+        public ConfigurationIdentity getConfigurationIdentity() {
+            return DefaultConfiguration.this.getIdentity();
+        }
+
         @Override
         public ResolutionResult getTaskDependencyValue() {
             return getResultsForBuildDependencies().getResolutionResult();
@@ -1589,6 +1624,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private class SelectedArtifactsProvider implements ResolutionResultProvider<VisitedArtifactSet> {
+
+        @Override
+        public ConfigurationIdentity getConfigurationIdentity() {
+            return DefaultConfiguration.this.getIdentity();
+        }
+
         @Override
         public VisitedArtifactSet getTaskDependencyValue() {
             assertIsResolvable();
