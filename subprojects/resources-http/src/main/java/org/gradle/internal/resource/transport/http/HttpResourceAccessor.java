@@ -43,11 +43,7 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
         LOGGER.debug("Constructing external resource: {}", location);
 
         HttpClientResponse response = http.performGet(uri, revalidate);
-        if (response != null) {
-            return wrapResponse(location.getUri(), response);
-        }
-
-        return null;
+        return wrapResponse(location.getUri(), response);
     }
 
     /**
@@ -67,16 +63,16 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
         LOGGER.debug("Constructing external resource metadata: {}", location);
         HttpClientResponse response = http.performHead(uri, revalidate);
 
-        ExternalResourceMetaData result = null;
-        if (response != null) {
-            HttpResponseResource resource = new HttpResponseResource("HEAD", location.getUri(), response);
-            try {
-                result = resource.getMetaData();
-            } finally {
-                IoActions.closeQuietly(resource);
-            }
+        if (response == null || response.wasMissing()) {
+            return null;
         }
-        return result;
+
+        HttpResponseResource resource = new HttpResponseResource("HEAD", location.getUri(), response);
+        try {
+            return resource.getMetaData();
+        } finally {
+            IoActions.closeQuietly(resource);
+        }
     }
 
     private HttpResponseResource wrapResponse(URI uri, HttpClientResponse response) {
