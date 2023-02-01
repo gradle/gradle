@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.plugin.use.PluginDependency;
 
 /**
  * A {@code DependencyAdder} is used to add dependencies to a specific configuration.
@@ -212,8 +213,8 @@ public interface DependencyAdder {
     /**
      * Add a plugin dependency, provided by the provider.
      *
-     * @param pluginDependencyProvider the provider of the dependency
+     * @param provider the provider of the plugin dependency
      * @since 8.1
      */
-    <D extends Dependency> void plugin(Provider<D> pluginDependencyProvider);
+    <D extends PluginDependency> void plugin(Provider<D> provider);
 }
