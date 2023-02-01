@@ -16,11 +16,13 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -35,11 +37,11 @@ import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.initialization.LegacyTypesSupport;
-import org.gradle.internal.classloader.DefaultClassLoaderFactory;
+import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -80,7 +82,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         return ServiceRegistryBuilder.builder()
             .displayName("worker daemon services")
             .parent(parent)
-            .provider(new WorkerSharedGlobalScopeServices())
+            .provider(new WorkerSharedGlobalScopeServices(ClassPath.EMPTY))
             .provider(new WorkerDaemonServices())
             .provider(new WorkerSharedBuildSessionScopeServices())
             .build();
@@ -149,13 +151,12 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
             return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity());
         }
 
-        IsolatedAntBuilder createIsolatedAntBuilder() {
-            DefaultModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get());
-            return new DefaultIsolatedAntBuilder(
-                new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry)),
-                new DefaultClassLoaderFactory(),
-                moduleRegistry
-            );
+        ClassPathRegistry createClassPathRegistry(DefaultModuleRegistry moduleRegistry) {
+            return new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry));
+        }
+
+        IsolatedAntBuilder createIsolatedAntBuilder(ModuleRegistry moduleRegistry, ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
+            return new DefaultIsolatedAntBuilder(classPathRegistry, classLoaderFactory, moduleRegistry);
         }
     }
 
