@@ -16,6 +16,8 @@
 
 package org.gradle.caching;
 
+import org.gradle.api.Incubating;
+
 import java.io.Closeable;
 import java.io.IOException;
 
@@ -39,6 +41,19 @@ import java.io.IOException;
  * @since 3.5
  */
 public interface BuildCacheService extends Closeable {
+    /**
+     * Returns whether the given entry exists in the cache.
+     *
+     * @param key the cache key.
+     * @return {code true} if the entry exists in the cache.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    default boolean contains(BuildCacheKey key) {
+        return load(key, __ -> {});
+    }
+
     /**
      * Load the cached entry corresponding to the given cache key. The {@code reader} will be called if an entry is found in the cache.
      *

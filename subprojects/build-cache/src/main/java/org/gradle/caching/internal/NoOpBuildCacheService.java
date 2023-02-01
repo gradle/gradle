@@ -31,6 +31,11 @@ public class NoOpBuildCacheService implements BuildCacheService {
     }
 
     @Override
+    public boolean contains(BuildCacheKey key) {
+        return false;
+    }
+
+    @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         return false;
     }
