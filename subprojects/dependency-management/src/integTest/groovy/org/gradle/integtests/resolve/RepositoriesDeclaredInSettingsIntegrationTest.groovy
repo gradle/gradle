@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.util.GradleVersion
@@ -521,6 +522,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         }
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses dependency resolution API")
     def "mutation of settings repositories after settings have been evaluated is disallowed"() {
 
         buildFile << """

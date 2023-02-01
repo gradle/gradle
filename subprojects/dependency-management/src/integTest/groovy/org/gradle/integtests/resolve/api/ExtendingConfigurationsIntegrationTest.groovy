@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
 
@@ -23,6 +24,7 @@ import spock.lang.Issue
 class ExtendingConfigurationsIntegrationTest extends AbstractDependencyResolutionTest {
 
     @Issue("GRADLE-2873")
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "may replace configuration extension targets"() {
         mavenRepo.module("org", "foo").publish()
         mavenRepo.module("org", "bar").publish()

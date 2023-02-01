@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.Rule
@@ -328,6 +328,7 @@ project(':b') {
         succeeds("test")
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     void exposesMetaDataAboutResolvedArtifactsInAFixedOrder() {
         expect:
         def module = repo.module('org.gradle.test', 'lib', '1.0')

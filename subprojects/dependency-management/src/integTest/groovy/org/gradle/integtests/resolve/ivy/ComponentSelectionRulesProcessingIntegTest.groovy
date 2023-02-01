@@ -18,11 +18,13 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
 
 class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "rules are not fired when no candidate matches selector"() {
         buildFile << """
 
@@ -471,6 +473,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         checkDependencies()
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "can provide component selection rule as rule source"() {
         buildFile << """
 
