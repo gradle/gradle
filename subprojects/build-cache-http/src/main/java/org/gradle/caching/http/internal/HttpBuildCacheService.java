@@ -22,6 +22,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.AbstractHttpEntity;
@@ -73,6 +74,31 @@ public class HttpBuildCacheService implements BuildCacheService {
         this.useExpectContinue = useExpectContinue;
         this.root = withTrailingSlash(url);
         this.httpClientHelper = httpClientHelper;
+    }
+
+    @Override
+    public boolean contains(BuildCacheKey key) {
+        final URI uri = root.resolve("./" + key.getHashCode());
+        HttpHead httpHead = new HttpHead(uri);
+        requestCustomizer.customize(httpHead);
+
+        try (HttpClientResponse response = httpClientHelper.performHttpRequest(httpHead)) {
+            StatusLine statusLine = response.getStatusLine();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Response for HEAD {}: {}", safeUri(uri), statusLine);
+            }
+            int statusCode = statusLine.getStatusCode();
+            if (isHttpSuccess(statusCode)) {
+                return true;
+            } else if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                return false;
+            } else {
+                String defaultMessage = String.format("Checking entry from '%s' response status %d: %s", safeUri(uri), statusCode, statusLine.getReasonPhrase());
+                return throwHttpStatusCodeException(statusCode, defaultMessage);
+            }
+        } catch (IOException e) {
+            throw wrap(e);
+        }
     }
 
     @Override

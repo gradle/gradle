@@ -65,6 +65,20 @@ public class H2BuildCacheService implements BuildCacheService {
     }
 
     @Override
+    public boolean contains(BuildCacheKey key) {
+        try (Connection conn = dataSource.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement("select entry_key from filestore.catalog where entry_key = ?")) {
+                stmt.setString(1, key.getHashCode());
+                try (ResultSet rs = stmt.executeQuery()) {
+                    return rs.next();
+                }
+            }
+        } catch (SQLException e) {
+            throw new BuildCacheException("contains " + key, e);
+        }
+    }
+
+    @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("select entry_content from filestore.catalog where entry_key = ?")) {

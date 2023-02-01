@@ -165,7 +165,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
 
         @Override
         public boolean shouldStore(BuildCacheKey key) {
-            return !load(key, __ -> {});
+            return !service.contains(key);
         }
 
         @Override
