@@ -27,8 +27,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
@@ -76,10 +76,10 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     }
 
     @Override
-    public void store(Iterable<BuildCacheKey> keys, Function<BuildCacheKey, BuildCacheEntryWriter> processor) {
+    public <T> void store(Map<BuildCacheKey, T> entries, StoreHandler<T> handler) {
         // TODO Fan out to multiple threads
-        Streams.stream(keys).forEach(key -> {
-            BuildCacheEntryWriter writer = processor.apply(key);
+        entries.forEach((key, payload) -> {
+            BuildCacheEntryWriter writer = handler.handle(payload);
             local.store(key, writer);
             remote.store(key, writer);
         });

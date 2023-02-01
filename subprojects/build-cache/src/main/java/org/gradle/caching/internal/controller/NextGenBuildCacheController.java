@@ -245,23 +245,20 @@ public class NextGenBuildCacheController implements BuildCacheController {
                     (a, b) -> a)
                 );
 
-            cacheAccess.store(manifestIndex.keySet(), buildCacheKey -> {
-                File file = manifestIndex.get(buildCacheKey);
-                return new BuildCacheEntryWriter() {
-                    @Override
-                    public void writeTo(OutputStream output) throws IOException {
-                        Files.copy(file.toPath(), output);
-                    }
+            cacheAccess.store(manifestIndex, file -> new BuildCacheEntryWriter() {
+                @Override
+                public void writeTo(OutputStream output) throws IOException {
+                    Files.copy(file.toPath(), output);
+                }
 
-                    @Override
-                    public long getSize() {
-                        return file.length();
-                    }
-                };
+                @Override
+                public long getSize() {
+                    return file.length();
+                }
             });
         });
 
-        cacheAccess.store(Collections.singleton(manifestCacheKey), __ -> {
+        cacheAccess.store(Collections.singletonMap(manifestCacheKey, manifest), __ -> {
             String manifestJson = gson.toJson(manifest);
             byte[] bytes = manifestJson.getBytes(StandardCharsets.UTF_8);
 
