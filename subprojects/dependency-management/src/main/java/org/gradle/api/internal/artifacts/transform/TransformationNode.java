@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -128,6 +129,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         Class<?> transformType = transformationStep.getTransformer().getImplementationClass();
         Map<String, String> fromAttributes = convertToMap(transformationStep.getFromAttributes());
         Map<String, String> toAttributes = convertToMap(transformationStep.getToAttributes());
+        ConfigurationIdentity configurationIdentity = upstreamDependencies.getConfigurationIdentity();
         long transformationNodeId = getTransformationNodeId();
 
         return new TransformationIdentity() {
@@ -164,6 +166,11 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             @Override
             public Map<String, String> getToAttributes() {
                 return toAttributes;
+            }
+
+            @Override
+            public ConfigurationIdentity getDependenciesConfigurationIdentity() {
+                return configurationIdentity;
             }
 
             @Override
