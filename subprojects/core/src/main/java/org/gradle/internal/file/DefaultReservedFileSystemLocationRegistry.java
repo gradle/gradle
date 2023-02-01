@@ -16,7 +16,7 @@
 
 package org.gradle.internal.file;
 
-import org.gradle.internal.watch.registry.impl.Combiners;
+import org.gradle.internal.Combiners;
 
 import java.io.File;
 import java.util.List;

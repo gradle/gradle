@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.watch.registry.impl;
+package org.gradle.internal;
 
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
