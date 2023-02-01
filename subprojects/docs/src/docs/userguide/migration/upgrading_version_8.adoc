@@ -51,11 +51,52 @@ If you are running tasks from the command line in nested included builds, then y
 
 For example, if you have the following hierarchy:
 
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
 ----
-root
-  nested
-    nestedNested
+.
+├── settings.gradle.kts
+└── nested
+    ├── settings.gradle.kts
+    └── nestedNested
+        └── settings.gradle.kts
 ----
+.settings.gradle.kts
+[source,kotlin]
+----
+includeBuild("nested")
+----
+.nested/settings.gradle.kts
+[source,kotlin]
+----
+includeBuild("nestedNested")
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── settings.gradle
+└── nested
+    ├── settings.gradle
+    └── nestedNested
+        └── settings.gradle
+----
+.settings.gradle
+[source,groovy]
+----
+includeBuild("nested")
+----
+.nested/settings.gradle
+[source,groovy]
+----
+includeBuild("nestedNested")
+----
+=====
+====
 
 Before Gradle 8.1, you ran `gradle :nestedNested:compileJava`.
 In Gradle 8.1 the invocation changes to `gradle :nested:nestedNested:compileJava`.
