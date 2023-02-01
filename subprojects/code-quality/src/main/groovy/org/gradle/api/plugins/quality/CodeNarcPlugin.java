@@ -48,8 +48,8 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
     public static final String DEFAULT_CODENARC_VERSION = appropriateCodeNarcVersion();
-    private static final String STABLE_VERSION = "3.1.0";
-    private static final String STABLE_VERSION_WITH_GROOVY4_SUPPORT = "3.1.0-groovy-4.0";
+    public static final String STABLE_VERSION = "3.1.0";
+    public static final String STABLE_VERSION_WITH_GROOVY4_SUPPORT = "3.1.0-groovy-4.0";
     private CodeNarcExtension extension;
 
     @Override
