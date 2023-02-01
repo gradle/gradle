@@ -25,14 +25,13 @@ import groovy.lang.MetaClassRegistry;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.internal.provider.PropertyInternal;
+import org.gradle.api.internal.provider.support.LazyGroovySupport;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -427,9 +426,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type META_CLASS_REGISTRY_TYPE = getType(MetaClassRegistry.class);
         private static final Type OBJECT_ARRAY_TYPE = getType(Object[].class);
         private static final Type ACTION_TYPE = getType(Action.class);
-        private static final Type PROPERTY_INTERNAL_TYPE = getType(PropertyInternal.class);
+        private static final Type LAZY_GROOVY_SUPPORT_TYPE = getType(LazyGroovySupport.class);
         private static final Type FILE_COLLECTION_TYPE = getType(FileCollection.class);
-        private static final Type CONFIGURABLE_FILE_COLLECTION_TYPE = getType(ConfigurableFileCollection.class);
         private static final Type MANAGED_TYPE = getType(Managed.class);
         private static final Type EXTENSION_CONTAINER_TYPE = getType(ExtensionContainer.class);
         private static final Type DESCRIBABLE_TYPE = getType(Describable.class);
@@ -900,37 +898,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
 
             // GENERATE public void set<Name>(Object p) {
-            //    ((PropertyInternal)<getter>()).setFromAnyValue(p);
+            //    ((LazyGroovySupport)<getter>()).setFromAnyValue(p);
             // }
             addSetter(getSetterName(property.getName()), RETURN_VOID_FROM_OBJECT, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
                 _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
-                _CHECKCAST(PROPERTY_INTERNAL_TYPE);
+                _CHECKCAST(LAZY_GROOVY_SUPPORT_TYPE);
                 _ALOAD(1);
-                _INVOKEINTERFACE(PROPERTY_INTERNAL_TYPE, "setFromAnyValue", ClassBuilderImpl.RETURN_VOID_FROM_OBJECT);
-            }});
-        }
-
-        @Override
-        public void addConfigurableFileCollectionSetterOverloads(PropertyMetadata property, MethodMetadata getter) {
-            if (!mixInDsl) {
-                return;
-            }
-
-            // GENERATE public void set<Name>(FileCollection p) {
-            //    ((ConfigurableFileCollection)<getter>()).setFrom(new Object[] { p });
-            // }
-            addSetter(getSetterName(property.getName()), RETURN_VOID_FROM_FILE_COLLECTION, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                _ALOAD(0);
-                _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
-                _CHECKCAST(CONFIGURABLE_FILE_COLLECTION_TYPE);
-                _ICONST_1();
-                _ANEWARRAY(OBJECT_TYPE);
-                _DUP();
-                _ICONST_0();
-                _ALOAD(1);
-                _AASTORE();
-                _INVOKEINTERFACE(CONFIGURABLE_FILE_COLLECTION_TYPE, "setFrom", ClassBuilderImpl.RETURN_VOID_FROM_OBJECT_ARRAY);
+                _INVOKEINTERFACE(LAZY_GROOVY_SUPPORT_TYPE, "setFromAnyValue", ClassBuilderImpl.RETURN_VOID_FROM_OBJECT);
             }});
         }
 
@@ -1948,10 +1923,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void addPropertySetterOverloads(PropertyMetadata property, MethodMetadata getter) {
-        }
-
-        @Override
-        public void addConfigurableFileCollectionSetterOverloads(PropertyMetadata property, MethodMetadata getter) {
         }
 
         @Override

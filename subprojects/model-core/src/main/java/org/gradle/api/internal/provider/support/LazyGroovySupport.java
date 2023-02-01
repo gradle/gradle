@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider;
+package org.gradle.api.internal.provider.support;
 
-import org.gradle.api.internal.provider.support.LazyGroovySupport;
-import org.gradle.internal.state.ModelObject;
-import org.gradle.internal.state.OwnerAware;
+public interface LazyGroovySupport {
 
-public interface PropertyInternal<T> extends ProviderInternal<T>, HasConfigurableValueInternal, OwnerAware, LazyGroovySupport {
     /**
-     * Associates this property with the task that produces its value.
+     * Sets the value from some arbitrary object. Used from the Groovy DSL.
      */
-    void attachProducer(ModelObject owner);
+    void setFromAnyValue(Object object);
 }
