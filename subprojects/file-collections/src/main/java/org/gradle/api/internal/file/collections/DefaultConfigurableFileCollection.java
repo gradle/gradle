@@ -19,16 +19,20 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.provider.support.LazyGroovySupport;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -50,7 +54,7 @@ import java.util.function.Supplier;
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
  */
-public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, HasConfigurableValueInternal {
+public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, HasConfigurableValueInternal, LazyGroovySupport {
     public static final EmptyCollector EMPTY_COLLECTOR = new EmptyCollector();
 
     private enum State {
@@ -166,6 +170,22 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public Set<Object> getFrom() {
         return filesWrapper;
+    }
+
+    @Override
+    public void setFromAnyValue(Object object) {
+        // TODO: Move check in setFrom
+        // Don't allow a += b or a = (a + b), this is not support and results in stack overflow
+        if (object instanceof UnionFileCollection && ((UnionFileCollection) object).getSources().contains(this)) {
+            throw new UnsupportedOperationException("Operation for ConfigurableFileCollection of type a += b or a = (a + b) is not supported");
+        }
+        // Currently we support just FileCollection for Groovy assign
+        setFrom(Cast.castNullable(FileCollection.class, object));
+    }
+
+    @Override
+    public FileCollection plus(FileCollection collection) {
+        return new UnionFileCollection(taskDependencyFactory, this, (FileCollectionInternal) collection);
     }
 
     @Override
