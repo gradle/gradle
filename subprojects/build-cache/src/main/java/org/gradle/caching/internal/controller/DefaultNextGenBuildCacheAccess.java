@@ -21,7 +21,6 @@ import com.google.common.io.Closer;
 import org.apache.commons.io.IOUtils;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -38,10 +37,10 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     private static final int BUFFER_SIZE = 64 * 1024;
     private static final ThreadLocal<byte[]> COPY_BUFFERS = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
 
-    private final BuildCacheService local;
-    private final BuildCacheService remote;
+    private final NextGenBuildCacheHandler local;
+    private final NextGenBuildCacheHandler remote;
 
-    public DefaultNextGenBuildCacheAccess(BuildCacheService local, BuildCacheService remote) {
+    public DefaultNextGenBuildCacheAccess(NextGenBuildCacheHandler local, NextGenBuildCacheHandler remote) {
         this.local = local;
         this.remote = remote;
     }
