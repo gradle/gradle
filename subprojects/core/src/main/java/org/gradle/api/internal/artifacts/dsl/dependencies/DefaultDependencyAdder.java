@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-import org.gradle.internal.Cast;
 import org.gradle.plugin.use.PluginDependency;
 
 import javax.annotation.Nullable;
@@ -63,10 +62,6 @@ public class DefaultDependencyAdder implements DependencyAdder {
     private <D extends Dependency> void doAddLazy(Provider<D> dependency, @Nullable Action<? super D> config) {
         @SuppressWarnings("unchecked")
         Provider<D> provider = dependency.map((Object dep) -> {
-            if (dep instanceof PluginDependency) {
-                dep = PluginDependencyMarkerCoordinates.getExternalModuleDependency(dependencyFactory, Cast.uncheckedCast(dep));
-            }
-
             // Generic failure check (for Groovy which ignores this when dynamic)
             if (!(dep instanceof Dependency)) {
                 throw new InvalidUserCodeException(
@@ -192,12 +187,11 @@ public class DefaultDependencyAdder implements DependencyAdder {
 
     @Override
     public void plugin(String id) {
-        String pluginNotation = PluginDependencyMarkerCoordinates.pluginNotation(id);
-        doAddEager(dependencyFactory.create(pluginNotation), null);
+        plugin(id, (Action<? super ExternalModuleDependency>) null);
     }
 
     @Override
-    public void plugin(String id, Action<? super ExternalModuleDependency> configuration) {
+    public void plugin(String id, @Nullable Action<? super ExternalModuleDependency> configuration) {
         String pluginNotation = PluginDependencyMarkerCoordinates.pluginNotation(id);
         doAddEager(dependencyFactory.create(pluginNotation), configuration);
     }
@@ -208,7 +202,7 @@ public class DefaultDependencyAdder implements DependencyAdder {
     }
 
     @Override
-    public void plugin(String id, String version, Action<? super ExternalModuleDependency> configuration) {
+    public void plugin(String id, String version, @Nullable Action<? super ExternalModuleDependency> configuration) {
         String pluginNotation = PluginDependencyMarkerCoordinates.pluginNotation(id);
         doAddEager(dependencyFactory.create(pluginNotation + ":" + version), configuration);
     }
@@ -219,10 +213,10 @@ public class DefaultDependencyAdder implements DependencyAdder {
     }
 
     @Override
-    public <D extends PluginDependency> void plugin(Provider<D> provider, Action<? super ExternalModuleDependency> configuration) {
+    public <D extends PluginDependency> void plugin(Provider<D> provider, @Nullable Action<? super ExternalModuleDependency> configuration) {
         Provider<ExternalModuleDependency> pluginProvider = provider.map((PluginDependency dependency) ->
             PluginDependencyMarkerCoordinates.getExternalModuleDependency(dependencyFactory, dependency));
-        doAddEager(pluginProvider.get(), configuration);
+        doAddLazy(pluginProvider, configuration);
     }
 
     @Override

@@ -60,7 +60,6 @@ import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
-import org.gradle.plugin.use.PluginDependency;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -213,8 +212,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
                     doAddRegularDependency(configuration, dependency, configureClosure);
                 }
                 return null;
-            } else if (provider.getType() != null && PluginDependency.class.isAssignableFrom(provider.getType())) {
-                PluginDependencyMarkerCoordinates.setVersion(dependencyFactory, Cast.uncheckedCast(provider.get()));
             }
         }
         Provider<Dependency> lazyDependency = dependencyNotation.map(mapDependencyProvider(configuration, configureClosure));
