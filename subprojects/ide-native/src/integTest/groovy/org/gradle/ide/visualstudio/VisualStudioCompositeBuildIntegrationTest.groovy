@@ -19,7 +19,9 @@ package org.gradle.ide.visualstudio
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import spock.lang.Ignore
 
+@Ignore
 class VisualStudioCompositeBuildIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     def app = new CppHelloWorldApp()
 

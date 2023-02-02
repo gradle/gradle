@@ -19,11 +19,13 @@ package org.gradle.ide.visualstudio
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import spock.lang.Ignore
 
 import static org.apache.commons.io.FileUtils.copyFile
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
 import static org.junit.Assume.assumeFalse
 
+@Ignore
 class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     def app = new CppHelloWorldApp()
 

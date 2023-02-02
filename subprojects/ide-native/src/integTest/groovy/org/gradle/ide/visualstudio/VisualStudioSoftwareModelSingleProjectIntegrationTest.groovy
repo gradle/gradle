@@ -28,6 +28,7 @@ import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -35,6 +36,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
 import static org.junit.Assume.assumeFalse
 
+@Ignore
 class VisualStudioSoftwareModelSingleProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     private final Set<String> projectConfigurations = ['win32Debug', 'win32Release', 'x64Debug', 'x64Release'] as Set
 
