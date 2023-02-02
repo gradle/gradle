@@ -15,17 +15,18 @@
  */
 package org.gradle.api.reporting;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.reporting.internal.DefaultReportingSpecContainer;
+import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.service.ServiceRegistry;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * A project extension named "reporting" that provides basic reporting settings and utilities.
@@ -54,13 +55,13 @@ public abstract class ReportingExtension {
 
     private final ProjectInternal project;
     private final DirectoryProperty baseDirectory;
-    private final ExtensiblePolymorphicDomainObjectContainer<ReportSpec> reports;
+    private final ReportSpecContainer reports;
 
     @Inject
-    public ReportingExtension(Project project) {
+    public ReportingExtension(Project project, InstantiatorFactory instantiatorFactory, ServiceRegistry servicesToInject, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this.project = (ProjectInternal)project;
         this.baseDirectory = project.getObjects().directoryProperty();
-        this.reports = project.getObjects().polymorphicDomainObjectContainer(ReportSpec.class);
+        this.reports = project.getObjects().newInstance(DefaultReportingSpecContainer.class, instantiatorFactory, servicesToInject, collectionCallbackActionDecorator);
         baseDirectory.set(project.getLayout().getBuildDirectory().dir(DEFAULT_REPORTS_DIR_NAME));
     }
 
@@ -93,13 +94,10 @@ public abstract class ReportingExtension {
      * @param baseDir The base directory to use for all reports
      */
     public void setBaseDir(final Object baseDir) {
-        this.baseDirectory.set(project.provider(new Callable<Directory>() {
-            @Override
-            public Directory call() throws Exception {
-                DirectoryProperty result = project.getObjects().directoryProperty();
-                result.set(project.file(baseDir));
-                return result.get();
-            }
+        this.baseDirectory.set(project.provider(() -> {
+            DirectoryProperty result = project.getObjects().directoryProperty();
+            result.set(project.file(baseDir));
+            return result.get();
         }));
     }
 
@@ -141,7 +139,7 @@ public abstract class ReportingExtension {
      * @since 7.4
      */
     @Incubating
-    public ExtensiblePolymorphicDomainObjectContainer<ReportSpec> getReports() {
+    public ReportSpecContainer getReports() {
         return reports;
-    } //todo: potentially fix the same way as TestingExtension.getSuites()
+    }
 }
