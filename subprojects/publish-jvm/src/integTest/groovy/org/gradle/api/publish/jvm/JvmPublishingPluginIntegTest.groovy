@@ -17,12 +17,14 @@
 package org.gradle.api.publish.jvm
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.GradleModuleMetadata
+import org.gradle.test.fixtures.ivy.IvyFileModule
+import org.gradle.test.fixtures.ivy.IvyJavaModule
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenJavaModule
-import org.gradle.test.fixtures.maven.MavenModule
 
 class JvmPublishingPluginIntegTest extends AbstractIntegrationSpec {
-    def "maven publish plugin for reference"() {
+    def "maven publish plugin with minimal custom variant"() {
         given:
         settingsFile << "rootProject.name = 'publishTest'"
         buildFile << """
@@ -61,28 +63,96 @@ class JvmPublishingPluginIntegTest extends AbstractIntegrationSpec {
 
         when:
         succeeds "publishMyPubPublicationToMavenRepository", "--console=plain"
-        MavenModule mavenMetadata = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
-        MavenJavaModule gmmMetadata = javaLibrary(mavenMetadata)
+        MavenJavaModule mavenModule = moduleFor(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
+        GradleModuleMetadata gmmMetadata = mavenModule.parsedModuleMetadata
 
         then:
-        gmmMetadata.parsedModuleMetadata.variant("apiElements") {
+        gmmMetadata.variant("apiElements") {
             noMoreDependencies()
         }
-        gmmMetadata.parsedModuleMetadata.variant("runtimeElements") {
+        gmmMetadata.variant("runtimeElements") {
             noMoreDependencies()
         }
-        gmmMetadata.parsedModuleMetadata.variant("custom") {
+        gmmMetadata.variant("custom") {
             dependency('log4j:log4j:1.2.17').exists()
             noMoreDependencies()
         }
 
         and:
-        mavenMetadata.assertPublished()
-        mavenMetadata.parsedPom.scopes.size() == 1
-        mavenMetadata.parsedPom.scopes.runtime.assertDependsOn("log4j:log4j:1.2.17")
+        mavenModule.assertPublished(['apiElements', 'custom', 'runtimeElements'] as Set)
+        mavenModule.parsedPom.scopes.size() == 1
+        mavenModule.parsedPom.scopes.runtime.assertDependsOn("log4j:log4j:1.2.17")
     }
 
-    def "apply only the jvm-publish plugin"() {
+    def "ivy publish plugin with minimal custom variant"() {
+        given:
+        settingsFile << "rootProject.name = 'publishTest'"
+        buildFile << """
+            plugins {
+                id 'java-library'
+                id 'ivy-publish'
+            }
+
+            group = 'org.gradle.test'
+            version = '1.9'
+
+            configurations {
+                custom {
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
+                    }
+                }
+            }
+            dependencies {
+                custom 'log4j:log4j:1.2.17'
+            }
+            components.java.addVariantsFromConfiguration(configurations.custom) {
+                // TODO: I shouldn't neeed to provide an action here if I have nothing to do
+            }
+            publishing {
+                publications {
+                    myPub(IvyPublication) {
+                        from components.java
+                    }
+                }
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+            }
+            """
+
+        when:
+        succeeds "publishMyPubPublicationToIvyRepository", "--console=plain"
+        IvyJavaModule ivyModule = moduleFor(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
+        GradleModuleMetadata gmmMetadata = new GradleModuleMetadata(ivyModule.moduleMetadata.file)
+
+        then:
+        gmmMetadata.variant("apiElements") {
+            noMoreDependencies()
+        }
+        gmmMetadata.variant("runtimeElements") {
+            noMoreDependencies()
+        }
+        gmmMetadata.variant("custom") {
+            dependency('log4j:log4j:1.2.17').exists()
+            noMoreDependencies()
+        }
+
+        and:
+        ivyModule.assertPublished(['apiElements', 'custom', 'runtimeElements'] as Set)
+        with(ivyModule.parsedIvy) {
+            configurations.keySet() == ["default", "compile", "custom", "runtime"] as Set
+            configurations["default"].extend == ["runtime", "custom"] as Set
+            configurations["runtime"].extend == null
+
+            expectArtifact("publishTest").hasAttributes("jar", "jar", ["compile", "runtime"])
+        }
+        ivyModule.assertApiDependencies(/* none */)
+        ivyModule.assertRuntimeDependencies(/* none */)
+        assert ivyModule.parsedModuleMetadata.variant('custom').dependencies*.coords as Set == ['log4j:log4j:1.2.17'] as Set
+    }
+
+    def "can apply only the jvm-publish plugin"() {
         given:
         settingsFile << "rootProject.name = 'publishTest'"
         buildFile << """
@@ -93,28 +163,23 @@ class JvmPublishingPluginIntegTest extends AbstractIntegrationSpec {
 
             group = 'org.gradle.test'
             version = '1.9'
-
-            publishing {
-                publications {
-                    myPub(PublicationInternal) {
-                        from components.java
-                    }
-                }
-            }
         """
+
+        when:
+        succeeds 'tasks'
+
+        then:
+        outputContains "publish - Publishes all publications produced by this project."
 
         expect:
         succeeds "publish", "--console=plain"
-
-        // TODO: the types on these might need to be changed
-//        MavenJavaModule gmmMetadata = javaLibrary(mavenMetadata)
-//        MavenModule mavenMetadata = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
-//
-//        then:
-//        gmmMetadata.assertPublished()
     }
 
-    private static MavenJavaModule javaLibrary(MavenFileModule mavenFileModule, List<String> features = [MavenJavaModule.MAIN_FEATURE], boolean withDocumentation = false) {
+    private static MavenJavaModule moduleFor(MavenFileModule mavenFileModule, List<String> features = [MavenJavaModule.MAIN_FEATURE], boolean withDocumentation = false) {
         return new MavenJavaModule(mavenFileModule, features, withDocumentation)
+    }
+
+    private static IvyJavaModule moduleFor(IvyFileModule module) {
+        new IvyJavaModule(module)
     }
 }

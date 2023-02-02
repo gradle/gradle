@@ -51,7 +51,11 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
 
     @Override
     void assertPublished() {
-        assertPublished(null, "jar")
+        assertPublished(['apiElements', 'runtimeElements'] as Set)
+    }
+
+    void assertPublished(Set<String> expectedVariants) {
+        assertPublished(null, "jar", expectedVariants)
     }
 
     static String variantName(String featureName, String baseName) {
@@ -66,14 +70,16 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         feature == MAIN_FEATURE ? "" : "$feature-"
     }
 
-    void assertPublished(String pomPackaging, String artifactFileExtension) {
+    void assertPublished(String pomPackaging, String artifactFileExtension, Set<String> expectedVariantNames) {
         super.assertPublished()
         assertArtifactsPublished(artifactFileExtension)
 
         // Verify Gradle metadata particulars
         def expectedVariants = [] as TreeSet
         features.each { feature ->
-            expectedVariants.addAll([variantName(feature, 'apiElements'), variantName(feature, 'runtimeElements')])
+            expectedVariantNames.each { expectedVariantName ->
+                expectedVariants.add(variantName(feature, expectedVariantName))
+            }
             if (withDocumentation) {
                 expectedVariants.addAll([variantName(feature, 'javadocElements'), variantName(feature, 'sourcesElements')])
             }

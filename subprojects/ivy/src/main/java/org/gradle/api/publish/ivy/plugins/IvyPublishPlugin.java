@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.plugins;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
@@ -62,7 +63,6 @@ import org.gradle.model.Path;
 
 import javax.inject.Inject;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
@@ -116,7 +116,7 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         publications.all(publication -> {
             final String publicationName = publication.getName();
             createGenerateIvyDescriptorTask(tasks, publicationName, publication, buildDir);
-            createGenerateMetadataTask(tasks, publication, publications, buildDir, repositories);
+            disableGradleMetadataGenerationIfCustomLayout(tasks, repositories, publicationName);
             createPublishTaskForEachRepository(tasks, publication, publicationName, repositories);
         });
     }
@@ -158,23 +158,12 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         publication.setIvyDescriptorGenerator(generatorTask);
     }
 
-    private void createGenerateMetadataTask(final TaskContainer tasks, final IvyPublicationInternal publication, final Set<IvyPublicationInternal> publications, final DirectoryProperty buildDir, NamedDomainObjectList<IvyArtifactRepository> repositories) {
-        final String publicationName = publication.getName();
-        String descriptorTaskName = "generateMetadataFileFor" + capitalize(publicationName) + "Publication";
-        TaskProvider<GenerateModuleMetadata> generatorTask = tasks.register(descriptorTaskName, GenerateModuleMetadata.class, generateTask -> {
-            generateTask.setDescription("Generates the Gradle metadata file for publication '" + publicationName + "'.");
-            generateTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-            generateTask.getPublication().set(publication);
-            generateTask.getPublications().set(publications);
-            generateTask.getOutputFile().convention(buildDir.file("publications/" + publicationName + "/module.json"));
-            disableGradleMetadataGenerationIfCustomLayout(repositories, generateTask);
+    private static void disableGradleMetadataGenerationIfCustomLayout(final TaskContainer tasks, final NamedDomainObjectList<IvyArtifactRepository> repositories, final String publicationName) {
+        String generateTaskName = "generateMetadataFileFor" + StringUtils.capitalize(publicationName) + "Publication";
+        tasks.named(generateTaskName, GenerateModuleMetadata.class, generateTask -> {
+            Provider<Boolean> standard = new DefaultProvider<>(() -> repositories.stream().allMatch(IvyPublishPlugin::hasStandardPattern));
+            generateTask.onlyIf("The Ivy repositories follow the standard layout", Cast.uncheckedCast(new CheckStandardLayoutSpec(standard)));
         });
-        publication.setModuleDescriptorGenerator(generatorTask);
-    }
-
-    private static void disableGradleMetadataGenerationIfCustomLayout(NamedDomainObjectList<IvyArtifactRepository> repositories, GenerateModuleMetadata generateTask) {
-        Provider<Boolean> standard = new DefaultProvider<>(() -> repositories.stream().allMatch(IvyPublishPlugin::hasStandardPattern));
-        generateTask.onlyIf("The Ivy repositories follow the standard layout", Cast.uncheckedCast(new CheckStandardLayoutSpec(standard)));
     }
 
     private static class CheckStandardLayoutSpec implements Spec<GenerateModuleMetadata> {
