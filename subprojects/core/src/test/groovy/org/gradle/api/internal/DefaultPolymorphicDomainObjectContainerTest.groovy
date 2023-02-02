@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+//file:noinspection ConfigurationAvoidance
 package org.gradle.api.internal
 
 import com.google.common.collect.Sets
@@ -399,13 +400,11 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
         container.getByName("mike")
         container.getByName("fred")
         container.getByName("alice")
-        then: "schema is the same"
 
+        then:
         expectedSchema.put("alice", "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson")
         expectedSchema.put("fred", "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson")
         expectedSchema.put("mike", "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson")
-        //TODO: different behaviour for realized & unrealized types... is this acceptable?
-
         assertSchemaIs(expectedSchema)
     }
 

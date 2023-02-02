@@ -180,7 +180,7 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
                 );
             }
         };
-    }
+    } //todo: same code in abstract container
 
     public Action<? super T> whenObjectRemovedInternal(Action<? super T> action) {
         return super.whenObjectRemoved(action);

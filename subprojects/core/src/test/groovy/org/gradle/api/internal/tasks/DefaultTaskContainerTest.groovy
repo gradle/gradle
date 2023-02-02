@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+//file:noinspection ConfigurationAvoidance
+//file:noinspection GroovyAccessibility
 
 package org.gradle.api.internal.tasks
 
@@ -65,7 +67,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         getServices() >> Mock(ServiceRegistry)
         getTaskDependencyFactory() >> TestFiles.taskDependencyFactory()
         getObjects() >> Stub(ObjectFactory)
-    }
+    } as ProjectInternal
     private taskCount = 1
     private container = new DefaultTaskContainerFactory(
         DirectInstantiator.INSTANCE,
@@ -566,11 +568,10 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         def action = Mock(Action)
 
         given:
-        def provider = null
         container.configureEach(action)
 
         when:
-        provider = container.register("a")
+        def provider = container.register("a")
 
         then:
         provider.type == DefaultTask
@@ -1569,8 +1570,8 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
 
     def "will realize all register provider when querying the iterator"() {
         given:
-        def provider1 = container.register("a", type)
-        def provider2 = container.register("d", otherType)
+        container.register("a", type)
+        container.register("d", otherType)
 
         when:
         container.withType(type).iterator()
@@ -1582,7 +1583,6 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     def "removing register provider using iterator throws exception"() {
         1 * taskFactory.create(_ as TaskIdentity) >> a
         1 * taskFactory.create(_ as TaskIdentity) >> b
-        def action = Mock(Action)
 
         given:
         container.register("a", type)
@@ -1599,6 +1599,48 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
 
         and:
         container.size() == 2
+    }
+
+    def "can extract schema from container that mixes register, create and add"() {
+        given:
+        taskFactory.create(_ as TaskIdentity) >> { args ->
+            TaskIdentity identity = args[0] as TaskIdentity
+            if (identity.type == CustomTask.class) {
+                return task(identity.name, DefaultCustomTask)
+            } else if (identity.type == MyCustomTask.class) {
+                return task(identity.name, DefaultMyCustomTask)
+            } else {
+                return task(identity.name)
+            }
+        }
+
+        def expectedSchema = [
+            r1: "DefaultTask",
+            r2: "DefaultTaskContainerTest.CustomTask",
+            r3: "DefaultTaskContainerTest.MyCustomTask",
+        ]
+
+        when:
+        container.register("r1")
+        container.register("r2", CustomTask)
+        container.register("r3", MyCustomTask)
+        Map<String, String> actualSchema = container.collectionSchema.elements.collectEntries { schema -> [schema.name, schema.publicType.simpleName] }
+
+        then:
+        actualSchema.get("r1") == "DefaultTask"
+        actualSchema.get("r2") == "DefaultTaskContainerTest.CustomTask"
+        actualSchema.get("r3") == "DefaultTaskContainerTest.MyCustomTask"
+
+        when: "realizing pending elements"
+        container.getByName("r1")
+        container.getByName("r2")
+        container.getByName("r3")
+        actualSchema = container.collectionSchema.elements.collectEntries { schema -> [schema.name, schema.publicType.simpleName] }
+
+        then:
+        actualSchema.get("r1") ==~ /DefaultTask.SpockMock.*/
+        actualSchema.get("r2") ==~ /DefaultTaskContainerTest.DefaultCustomTask.SpockMock.*/
+        actualSchema.get("r3") ==~ /DefaultTaskContainerTest.DefaultMyCustomTask.SpockMock.*/
     }
 
     private ProjectInternal expectTaskLookupInOtherProject(final String projectPath, final String taskName, def task) {
@@ -1647,7 +1689,10 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
 
     interface CustomTask extends TaskInternal {}
 
+    static class DefaultCustomTask extends DefaultTask implements CustomTask {}
+
     interface MyCustomTask extends CustomTask {}
 
-    interface AnotherCustomTask extends TaskInternal {}
+    static class DefaultMyCustomTask extends DefaultTask implements MyCustomTask {}
+
 }
