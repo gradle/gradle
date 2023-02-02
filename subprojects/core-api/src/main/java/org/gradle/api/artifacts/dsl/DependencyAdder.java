@@ -217,4 +217,13 @@ public interface DependencyAdder {
      * @since 8.1
      */
     <D extends PluginDependency> void plugin(Provider<D> provider);
+
+    /**
+     * Add a plugin dependency, provided by the provider.
+     *
+     * @param provider the provider of the plugin dependency
+     * @param configuration the action to configure the dependency
+     * @since 8.1
+     */
+    <D  extends PluginDependency> void plugin(Provider<D> provider, Action<? super ExternalModuleDependency> configuration);
 }

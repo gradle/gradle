@@ -215,9 +215,14 @@ public class DefaultDependencyAdder implements DependencyAdder {
 
     @Override
     public <D extends PluginDependency> void plugin(Provider<D> provider) {
+        plugin(provider, null);
+    }
+
+    @Override
+    public <D extends PluginDependency> void plugin(Provider<D> provider, Action<? super ExternalModuleDependency> configuration) {
         Provider<ExternalModuleDependency> pluginProvider = provider.map((PluginDependency dependency) ->
-            finalizeDependency(PluginDependencyMarkerCoordinates.setVersion(dependencyFactory, dependency)));
-        doAddEager(pluginProvider.get(), null);
+            PluginDependencyMarkerCoordinates.getExternalModuleDependency(dependencyFactory, dependency));
+        doAddEager(pluginProvider.get(), configuration);
     }
 
     @Override
