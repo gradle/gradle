@@ -68,10 +68,10 @@ data class TargetTypedSchema(
 internal
 fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
 
-    val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val tasks = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-    val containerElements = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
+    val extensions = mutableSetOf<ProjectSchemaEntry<TypeOf<*>>>()
+    val conventions = mutableSetOf<ProjectSchemaEntry<TypeOf<*>>>()
+    val tasks = mutableSetOf<ProjectSchemaEntry<TypeOf<*>>>()
+    val containerElements = mutableSetOf<ProjectSchemaEntry<TypeOf<*>>>()
 
     fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
         if (target is ExtensionAware) {
@@ -104,7 +104,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
             // WARN eagerly realize all source sets
             sourceSetsOf(target)?.forEach { sourceSet ->
                 collectSchemaOf(sourceSet, typeOfSourceSet)
-            } // todo: we have duplicate containerElements for sourceSets; sourceSet extension + java.sourceSets? address the duplication problem in general
+            }
         }
         if (target is NamedDomainObjectContainer<*>) {
             accessibleContainerSchema(target.collectionSchema).forEach { schema ->
@@ -116,10 +116,10 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
     collectSchemaOf(target, targetType)
 
     return TargetTypedSchema(
-        extensions,
-        conventions,
-        tasks,
-        containerElements
+        extensions.toList(),
+        conventions.toList(),
+        tasks.toList(),
+        containerElements.toList()
     )
 }
 
