@@ -121,7 +121,7 @@ plugins {
 2. Plugin specification with version and/or the plugin application flag
 3. Kotlin plugin specification helper
 
-Note that using version catalog aliases for plugins or plugin specification type-safe accessors is not supported by the `plugins {}` block interpreter. This support will be added in a later version.
+Note that using version catalog aliases for plugins (e.g. `plugins { alias(libs.plugins.acme) }`) or plugin specification type-safe accessors (e.g. ``plugins { `acme-plugin` }``) is not supported by the `plugins {}` block interpreter. This support will be added in a later version.
 
 In unsupported cases, Gradle falls back to the Kotlin compiler, providing the same performance as previous Gradle releases.
 
