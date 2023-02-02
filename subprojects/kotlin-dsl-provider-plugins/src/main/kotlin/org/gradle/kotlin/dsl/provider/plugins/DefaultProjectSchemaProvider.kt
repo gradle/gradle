@@ -84,7 +84,7 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
                     .map { JavaPropertyReflectionUtil.findGetterMethod(extension::class.java, it) }
                     .filterNotNull()
                     .filter { NamedDomainObjectContainer::class.java.isAssignableFrom(it.returnType) && it.returnType.typeParameters.isEmpty() }
-                    .map { it.invoke(extension) to it.returnType } // todo: does the invoke cause eager realisation?
+                    .map { it.invoke(extension) to it.returnType }
                     .forEach { (container, containerType) ->
                         collectSchemaOf(container, TypeOf.typeOf(containerType))
                     }
