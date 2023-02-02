@@ -135,16 +135,17 @@ For information about breaking and non-breaking changes in this upgrade, visit t
 
 #### Enhanced script compilation to use the Gradle JVM as Kotlin JVM target
 
-If your team is using e.g., Java 11 to run Gradle, this allows you to use Java 11 libraries and language features in your build scripts.
-
 Previously, the compilation of `.gradle.kts` scripts always used Java 8 as the Kotlin JVM target. Starting with Gradle 8.0, it now uses the version of the JVM running the build.
+
+If your team is using e.g., Java 11 to run Gradle, this allows you to use Java 11 libraries and language features in your build scripts.
 
 Note that this doesn't apply to precompiled script plugins, see below.
 
 ##### Precompiled script plugins now use the configured Java Toolchain
 
 Previously, the compilation of [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) used the JVM target as configured on `kotlinDslPluginOptions.jvmTarget`.
-Starting with Gradle 8.0, it now uses the configured Java Toolchain, or Java 8 if none is configured.
+
+Starting with Gradle 8.0, it now uses the configured [Java Toolchain](userguide/toolchains.html), or Java 8 if none is configured.
 
 See the [`kotlin-dsl` plugin manual](userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin) for more information on how to configure the Java Toolchain for precompiled script plugins and the [migration guide](userguide/upgrading_version_7.html#kotlin_dsl_plugin_toolchains) for more information on changed behaviour.
 
@@ -162,7 +163,8 @@ For more details, see the [user manual](userguide/composite_builds.html#composit
 
 #### `buildSrc` can include other builds
 
-The `buildSrc` build can now include other builds by declaring them in `buildSrc/settings.gradle.kts` or `buildSrc/settings.gradle`.
+The `buildSrc` build can now include other builds by declaring them in `buildSrc/settings.gradle.kts` or `buildSrc/settings.gradle`.  This allows you to better orgaize your build logic while still using `buildSrc`. 
+
 You can use `pluginsManagement { includeBuild(someDir) }` or `includeBuild(someDir)` in this settings script to include other builds in `buildSrc`.
 
 For more details, see the [user manual](userguide/composite_builds.html)
@@ -186,12 +188,10 @@ The [configuration cache](userguide/configuration_cache.html) improves build tim
 
 #### Improved configuration cache for parallelism on the first run
 
-Configuration cache now enables more fine-grained parallelism than using the `--parallel` flag.
+Configuration cache now enables more fine-grained parallelism than using the [parallel execution](userguide/multi_project_configuration_and_execution.html#sec:parallel_execution).
 Starting in Gradle 8.0, tasks run in parallel from the first build when using the configuration cache.
-These tasks are isolated and can run in parallel. 
 
 When the [configuration cache](userguide/configuration_cache.html) is enabled and Gradle can locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the cache entry and runs them in isolation.
-Isolated tasks can run in parallel by default, subject to dependency constraints.
 
 When Gradle cannot locate a configuration cache entry to use, it runs the configuration phase to calculate the set of tasks to run and then stores these tasks in a new cache entry.
 Gradle then loads immediately the saved state and runs the build based on the loaded state.
@@ -296,7 +296,7 @@ You can still explicitly specify a CodeNarc version with the `toolVersion` prope
 
 #### PMD and CodeNarc tasks now execute in parallel by default
 
-The [PMD](userguide/pmd_plugin.html)  plugin performs quality checks on your project’s Java source files using a static code analyzer. It now uses the Gradle worker API and JVM toolchains. This tool now performs analysis via an external worker process, and therefore its tasks may now run in parallel within one project.
+The [PMD](userguide/pmd_plugin.html) plugin performs quality checks on your project’s Java source files using a static code analyzer. It now uses the Gradle [worker API](userguide/custom_tasks.html#worker_api) and [JVM toolchains](userguide/toolchains.html#header). This tool now performs analysis via an external worker process, and therefore its tasks may now run in parallel within one project.
 
 In Java projects, this tool will use the same version of Java required by the project. In other types of projects, it will use the same version of Java that is used by the Gradle daemon.
 
