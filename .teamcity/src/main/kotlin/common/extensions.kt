@@ -59,6 +59,9 @@ fun BuildSteps.gradleWrapper(init: GradleBuildStep.() -> Unit): GradleBuildStep 
 
 fun Requirements.requiresOs(os: Os) {
     contains("teamcity.agent.jvm.os.name", os.agentRequirement)
+    if (os == Os.MACOS) {
+        contains("teamcity.agent.jvm.os.arch", "x86_64")
+    }
 }
 
 fun Requirements.requiresNotEc2Agent() {
