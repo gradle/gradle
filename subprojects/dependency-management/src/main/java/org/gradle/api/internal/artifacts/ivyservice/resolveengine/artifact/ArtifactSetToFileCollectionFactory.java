@@ -52,7 +52,7 @@ public class ArtifactSetToFileCollectionFactory {
      * <p>This produces only a minimal implementation to use for artifact sets loaded from the configuration cache
      * Over time, this should be merged with the FileCollection implementation in DefaultConfiguration
      */
-    public FileCollectionInternal asFileCollection(String displayName, ResolvedArtifactSet artifacts) {
+    public FileCollectionInternal asFileCollection(String displayName, boolean lenient, ResolvedArtifactSet artifacts) {
         // TODO - merge these file collections for all transforms so that non-scheduled transforms are executed in parallel
         return new ResolutionBackedFileCollection(
             new ResolutionResultProvider<SelectedArtifactSet>() {
@@ -76,7 +76,7 @@ public class ArtifactSetToFileCollectionFactory {
                     };
                 }
             },
-            false,
+            lenient,
             new ResolutionHost() {
                 @Override
                 public String getDisplayName() {

@@ -47,6 +47,10 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
         return resolutionHost;
     }
 
+    public boolean isLenient() {
+        return lenient;
+    }
+
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         SelectedArtifactSet selected = resultProvider.getTaskDependencyValue();
