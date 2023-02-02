@@ -418,8 +418,6 @@ This behavior is now default.
 The property has been deprecated and its usage should be removed.
 You can find more information about this property <<upgrading_version_7.adoc#strict-kotlin-dsl-precompiled-scripts-accessors, below>>.
 
-==== Adding `jst.ejb` with the `eclipse wtp` plugin now removes the `jst.utility` facet
-
 ==== Init scripts are applied to `buildSrc` builds
 
 Init scripts specified using `--init-script` are now applied to `buildSrc` builds. In previous releases these were applied to included builds but not `buildSrc builds.
