@@ -5,7 +5,7 @@ repositories {
         url = uri("https://repo.spring.io/release")
     }
     maven {
-        url = uri("https://repo.gradle.org/gradle/libs-releases")
+        url = uri("https://repository.jboss.org/maven2")
     }
 }
 // end::multiple-repositories[]
@@ -13,7 +13,7 @@ repositories {
 val libs by configurations.creating
 
 dependencies {
-    libs("org.gradle:gradle-tooling-api:6.0")
+    libs("jboss:jboss-system:4.2.2.GA")
 }
 
 tasks.register<Copy>("copyLibs") {
