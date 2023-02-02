@@ -127,9 +127,6 @@ public class LocalFileDependencyBackedArtifactSet implements TransformedArtifact
             selectedArtifacts.add(selector.select(variant, this));
         }
         CompositeResolvedArtifactSet.of(selectedArtifacts.build()).visit(listener);
-        if (visitType == FileCollectionStructureVisitor.VisitType.Spec) {
-            listener.visitArtifacts(new CollectionSpec(fileCollection));
-        }
     }
 
     @Override
@@ -273,31 +270,6 @@ public class LocalFileDependencyBackedArtifactSet implements TransformedArtifact
                                                CalculatedValueContainerFactory calculatedValueContainerFactory) {
             super(delegate.getComponentId(), delegate, attributes, Collections.emptyList(), transformation, dependenciesResolver, calculatedValueContainerFactory);
             this.delegate = delegate;
-        }
-
-        public ComponentIdentifier getOwnerId() {
-            return delegate.getComponentId();
-        }
-
-        public File getFile() {
-            return delegate.getFile();
-        }
-    }
-
-    private static class CollectionSpec implements Artifacts {
-        private final FileCollectionInternal fileCollection;
-
-        public CollectionSpec(FileCollectionInternal fileCollection) {
-            this.fileCollection = fileCollection;
-        }
-
-        @Override
-        public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
-        }
-
-        @Override
-        public void visit(ArtifactVisitor visitor) {
-            visitor.visitSpec(fileCollection);
         }
     }
 }

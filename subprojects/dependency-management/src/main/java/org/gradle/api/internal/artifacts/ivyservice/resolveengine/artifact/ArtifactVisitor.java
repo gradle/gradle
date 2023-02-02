@@ -55,12 +55,6 @@ public interface ArtifactVisitor {
     void visitFailure(Throwable failure);
 
     /**
-     * Called for a set that may be backed by a file collection, when {@link #prepareForVisit(FileCollectionInternal.Source)} return {@link FileCollectionStructureVisitor.VisitType#Spec}.
-     */
-    default void visitSpec(FileCollectionInternal spec) {
-    }
-
-    /**
      * Called after a set of artifacts has been visited.
      */
     default void endVisitCollection(FileCollectionInternal.Source source) {

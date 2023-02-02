@@ -71,7 +71,7 @@ public class ArtifactSetToFileCollectionFactory {
 
                         @Override
                         public void visitDependencies(TaskDependencyResolveContext context) {
-                            throw new IllegalStateException();
+                            // No dependencies
                         }
                     };
                 }
