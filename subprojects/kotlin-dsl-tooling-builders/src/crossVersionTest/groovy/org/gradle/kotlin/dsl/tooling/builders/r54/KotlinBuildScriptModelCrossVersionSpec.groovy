@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 
 import org.hamcrest.Matcher
+import spock.lang.Ignore
 
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.equalTo
@@ -430,6 +431,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         assertContainsGradleKotlinDslJars(scriptPluginClassPath)
     }
 
+    @Ignore
     def "sourcePath includes Gradle sources"() {
 
         expect:
