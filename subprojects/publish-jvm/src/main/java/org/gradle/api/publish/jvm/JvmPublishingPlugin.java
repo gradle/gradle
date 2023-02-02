@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.PublishingExtension;
-import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.tasks.TaskContainer;
@@ -62,7 +61,7 @@ public abstract class JvmPublishingPlugin implements Plugin<Project> {
 
         project.getExtensions().configure(PublishingExtension.class, extension -> {
             @SuppressWarnings("rawtypes")
-            final NamedDomainObjectSet<PublicationInternal> publications = extension.getPublications().withType(PublicationInternal.class);
+            final NamedDomainObjectSet<JvmPublication> publications = extension.getPublications().withType(JvmPublication.class);
             final TaskContainer tasks = project.getTasks();
             final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
@@ -71,7 +70,7 @@ public abstract class JvmPublishingPlugin implements Plugin<Project> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private void createGenerateMetadataTask(final TaskContainer tasks, final PublicationInternal publication, final Set<PublicationInternal> publications, final DirectoryProperty buildDir) {
+    private void createGenerateMetadataTask(final TaskContainer tasks, final JvmPublication publication, final Set<JvmPublication> publications, final DirectoryProperty buildDir) {
         final String publicationName = publication.getName();
         String descriptorTaskName = "generateMetadataFileFor" + StringUtils.capitalize(publicationName) + "Publication";
         TaskProvider<GenerateModuleMetadata> generatorTask = tasks.register(descriptorTaskName, GenerateModuleMetadata.class, generateTask -> {

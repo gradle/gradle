@@ -18,8 +18,8 @@ package org.gradle.api.publish.maven;
 
 import org.gradle.api.Action;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.VersionMappingStrategy;
+import org.gradle.api.publish.jvm.JvmPublication;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -103,7 +103,7 @@ import org.gradle.internal.HasInternalProtocol;
  * @since 1.4
  */
 @HasInternalProtocol
-public interface MavenPublication extends Publication {
+public interface MavenPublication extends JvmPublication {
 
     /**
      * The POM that will be published.

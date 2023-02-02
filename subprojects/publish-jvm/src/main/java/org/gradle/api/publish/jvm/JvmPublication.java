@@ -18,7 +18,9 @@ package org.gradle.api.publish.jvm;
 
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
 import org.gradle.api.publish.Publication;
+import org.gradle.api.tasks.TaskProvider;
 
 /**
  * A publication containing JVM libraries.
@@ -27,4 +29,5 @@ import org.gradle.api.publish.Publication;
  */
 @Incubating
 public interface JvmPublication extends Publication {
+    void setModuleDescriptorGenerator(TaskProvider<? extends Task> moduleMetadataGenerator);
 }
