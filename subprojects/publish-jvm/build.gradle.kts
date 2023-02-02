@@ -38,4 +38,6 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.groovy)
     implementation(libs.inject)
+
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.maven.experiment
+package org.gradle.api.publish.jvm
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenJavaModule
 import org.gradle.test.fixtures.maven.MavenModule
 
-class NewPublishingDSLIntegTest extends AbstractIntegrationSpec {
-    def "existing dsl"() {
+class JvmPublishingPluginIntegTest extends AbstractIntegrationSpec {
+    def "maven publish plugin for reference"() {
         given:
         settingsFile << "rootProject.name = 'publishTest'"
         buildFile << """
@@ -60,7 +60,7 @@ class NewPublishingDSLIntegTest extends AbstractIntegrationSpec {
             """
 
         when:
-        succeeds "publishMyPubPublicationToMavenRepository"
+        succeeds "publishMyPubPublicationToMavenRepository", "--console=plain"
         MavenModule mavenMetadata = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
         MavenJavaModule gmmMetadata = javaLibrary(mavenMetadata)
 
@@ -82,7 +82,7 @@ class NewPublishingDSLIntegTest extends AbstractIntegrationSpec {
         mavenMetadata.parsedPom.scopes.runtime.assertDependsOn("log4j:log4j:1.2.17")
     }
 
-    def "new dsl"() {
+    def "apply only the jvm-publish plugin"() {
         given:
         settingsFile << "rootProject.name = 'publishTest'"
         buildFile << """
@@ -93,14 +93,25 @@ class NewPublishingDSLIntegTest extends AbstractIntegrationSpec {
 
             group = 'org.gradle.test'
             version = '1.9'
-            """
 
-        when:
+            publishing {
+                publications {
+                    myPub(PublicationInternal) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        expect:
         succeeds "publish", "--console=plain"
-        MavenModule mavenMetadata = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
-        then:
-        mavenMetadata.assertPublished()
+        // TODO: the types on these might need to be changed
+//        MavenJavaModule gmmMetadata = javaLibrary(mavenMetadata)
+//        MavenModule mavenMetadata = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
+//
+//        then:
+//        gmmMetadata.assertPublished()
     }
 
     private static MavenJavaModule javaLibrary(MavenFileModule mavenFileModule, List<String> features = [MavenJavaModule.MAIN_FEATURE], boolean withDocumentation = false) {

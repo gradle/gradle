@@ -654,7 +654,7 @@
     "dirName": "publish-jvm",
     "name": "publish-jvm",
     "unitTests": false,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

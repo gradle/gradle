@@ -35,6 +35,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.versionmapping.DefaultVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
+import org.gradle.api.publish.jvm.JvmPublishingPlugin;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.artifact.MavenArtifactNotationParserFactory;
@@ -89,7 +90,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        project.getPluginManager().apply(PublishingPlugin.class);
+        project.getPluginManager().apply(JvmPublishingPlugin.class);
 
         final TaskContainer tasks = project.getTasks();
         tasks.register(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME, publish -> {
