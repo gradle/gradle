@@ -252,6 +252,7 @@ configurations.compileClasspath.singleFile // equivalent to configurations.compi
 ```
 
 All of these extensions have been removed from the API, but the methods are still available for plugins compiled against older versions of Gradle.
+
 * NamedDomainObjectProvider<Configuration>.addToAntBuilder
 * NamedDomainObjectProvider<Configuration>.all
 * NamedDomainObjectProvider<Configuration>.allArtifacts
