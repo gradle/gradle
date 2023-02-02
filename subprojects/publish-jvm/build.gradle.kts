@@ -27,16 +27,19 @@ dependency for any projects publishing JVM libraries.
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":base-services-groovy"))
     implementation(project(":core"))
     implementation(project(":core-api"))
     implementation(project(":dependency-management"))
     implementation(project(":file-collections"))
     implementation(project(":functional"))
+    implementation(project(":logging"))
     implementation(project(":model-core"))
     implementation(project(":publish"))
 
     implementation(libs.commonsLang)
     implementation(libs.groovy)
+    implementation(libs.guava)
     implementation(libs.inject)
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))

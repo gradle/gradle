@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":testing-jvm"))
     implementation(project(":snapshots"))
     implementation(project(":publish"))
+    implementation(project(":publish-jvm"))
     implementation(project(":ivy"))
     implementation(project(":maven"))
     implementation(project(":execution")) {
