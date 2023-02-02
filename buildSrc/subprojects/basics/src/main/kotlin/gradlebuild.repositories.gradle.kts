@@ -23,6 +23,7 @@ repositories {
     google()
     jcenter() {
         content {
+            includeVersion("org.asciidoctor", "asciidoctorj-groovy-dsl", "1.0.0.Alpha3")
             includeVersion("org.samba.jcifs", "jcifs", "1.3.17")
             includeVersionByRegex("org\\.sonatype\\.pmaven", "pmaven.*", "0\\.8-20100325")
         }
