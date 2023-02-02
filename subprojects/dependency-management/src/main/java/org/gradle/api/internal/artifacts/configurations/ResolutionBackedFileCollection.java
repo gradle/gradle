@@ -69,7 +69,7 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
     @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
         ResolvedFileCollectionVisitor collectingVisitor = new ResolvedFileCollectionVisitor(visitor);
-        getSelectedArtifacts().visitArtifacts(collectingVisitor, lenient);
+        getSelectedArtifacts().visitFiles(collectingVisitor, lenient);
         if (!lenient) {
             resolutionHost.rethrowFailure("files", collectingVisitor.getFailures());
         }
