@@ -22,7 +22,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
+import org.gradle.api.internal.artifacts.verification.exceptions.ComponentVerificationException;
+import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
+import org.gradle.api.internal.artifacts.verification.exceptions.InvalidGpgKeyIdsException;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
@@ -34,6 +36,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -149,11 +152,11 @@ public class DependencyVerifierBuilder {
         keyServers.add(uri);
     }
 
-    private static class ComponentVerificationsBuilder {
+    protected static class ComponentVerificationsBuilder {
         private final ModuleComponentIdentifier component;
         private final Map<String, ArtifactVerificationBuilder> byArtifact = Maps.newHashMap();
 
-        private ComponentVerificationsBuilder(ModuleComponentIdentifier component) {
+        protected ComponentVerificationsBuilder(ModuleComponentIdentifier component) {
             this.component = component;
         }
 
@@ -169,7 +172,7 @@ public class DependencyVerifierBuilder {
             byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addIgnoredKey(key);
         }
 
-        private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<String, ArtifactVerificationBuilder> entry) {
+        private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<String, ArtifactVerificationBuilder> entry) throws InvalidGpgKeyIdsException {
             String key = entry.getKey();
             ArtifactVerificationBuilder value = entry.getValue();
             return new ImmutableArtifactVerificationMetadata(
@@ -180,17 +183,21 @@ public class DependencyVerifierBuilder {
         }
 
         ComponentVerificationMetadata build() {
-            return new ImmutableComponentVerificationMetadata(component,
-                byArtifact.entrySet()
-                    .stream()
-                    .map(ComponentVerificationsBuilder::toArtifactVerification)
-                    .sorted(Comparator.comparing(ArtifactVerificationMetadata::getArtifactName))
-                    .collect(Collectors.toList())
-            );
+            try {
+                return new ImmutableComponentVerificationMetadata(component,
+                    byArtifact.entrySet()
+                        .stream()
+                        .map(ComponentVerificationsBuilder::toArtifactVerification)
+                        .sorted(Comparator.comparing(ArtifactVerificationMetadata::getArtifactName))
+                        .collect(Collectors.toList())
+                );
+            } catch (InvalidGpgKeyIdsException ex) {
+                throw new ComponentVerificationException(component, ex::formatMessage);
+            }
         }
     }
 
-    private static class ArtifactVerificationBuilder {
+    protected static class ArtifactVerificationBuilder {
         private final Map<ChecksumKind, ChecksumBuilder> builder = Maps.newEnumMap(ChecksumKind.class);
         private final Set<String> pgpKeys = Sets.newLinkedHashSet();
         private final Set<IgnoredKey> ignoredPgpKeys = Sets.newLinkedHashSet();
@@ -222,8 +229,37 @@ public class DependencyVerifierBuilder {
             ignoredPgpKeys.add(key);
         }
 
-        public Set<String> buildTrustedPgpKeys() {
-            return pgpKeys;
+        /**
+         * Builds the list of trusted GPG keys.
+         * <p>
+         * This method will verify if all the trusted keys are in 160-bit fingerprint format.
+         * We do not accept either short or long formats, as they can be vulnerable to collision attacks.
+         *
+         * <p>
+         * Note: the fingerprints' formatting is not verified (i.e. if it's true base32 or not) at this stage.
+         * It will happen when these fingerprints will be converted to {@link org.gradle.security.internal.Fingerprint}.
+         *
+         * @return a set of trusted GPG keys
+         * @throws InvalidGpgKeyIdsException if keys not fitting the requirements were found
+         */
+        public Set<String> buildTrustedPgpKeys() throws InvalidGpgKeyIdsException {
+            final List<String> wrongPgpKeys = pgpKeys
+                .stream()
+                // The key is 160 bits long, encoded in base32 (case-insensitive characters).
+                //
+                // Base32 gives us 4 bits per character, so the whole fingerprint will be:
+                // (160 bits) / (4 bits / character) = 40 characters
+                //
+                // By getting ASCII bytes (aka. strictly 1 byte per character, no variable-length magic)
+                // we can safely check if the fingerprint is of the correct length.
+                .filter(key -> key.getBytes(StandardCharsets.US_ASCII).length < 40)
+                .collect(Collectors.toList());
+
+            if (wrongPgpKeys.isEmpty()) {
+                return pgpKeys;
+            } else {
+                throw new InvalidGpgKeyIdsException(wrongPgpKeys);
+            }
         }
 
         public Set<IgnoredKey> buildIgnoredPgpKeys() {
