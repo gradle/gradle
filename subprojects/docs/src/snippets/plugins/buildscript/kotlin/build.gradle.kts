@@ -4,9 +4,10 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5")
+        classpath(id("com.jfrog.bintray", "1.8.5")) // <1>
+        classpath(libs.plugins.jmh) // <2>
     }
 }
 
-apply(plugin = "com.jfrog.bintray")
+apply(plugin = "com.jfrog.bintray") // <1>
 // end::buildscript_block[]

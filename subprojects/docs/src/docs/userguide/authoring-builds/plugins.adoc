@@ -328,11 +328,15 @@ Furthermore, it is not necessary to append `.class` to identify a class literal 
 ==== Applying plugins with the buildscript block
 
 Binary plugins that have been published as external jar files can be added to a project by adding the plugin to the build script classpath and then applying the plugin. External jars can be added to the build script classpath using the `buildscript {}` block as described in <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies,External dependencies for the build script>>.
+Similarly, plugins declared in a version catalog can be added to the build script classpath.
 
 .Applying a plugin with the buildscript block
 ====
 include::sample[dir="snippets/plugins/buildscript/kotlin", files="build.gradle.kts[tags=buildscript_block]"]
 include::sample[dir="snippets/plugins/buildscript/groovy", files="build.gradle[tags=buildscript_block]"]
+====
+<1> Adding a plugin and applying it.
+<2> Adding the plugin `jmh` as declared in the `libs` version catalog, see the section on link:{javadocPath}/org/gradle/dep-man/03-controlling-transitive-dependencies/platforms.html#sec:plugins[plugins].
 ====
 
 [[sec:script_plugins]]
