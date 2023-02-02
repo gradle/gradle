@@ -39,11 +39,9 @@ dependencies {
 
     userGuideTask 'xalan:xalan:2.7.1'
     userGuideTask 'xerces:xercesImpl:2.11.0'
-    userGuideTask 'xhtmlrenderer:xhtmlrenderer:R8rc1'
-    userGuideTask 'itext:itext:2.0.8'
-    userGuideTask 'xslthl:xslthl:2.0.1'
+    userGuideTask 'net.sf.xslthl:xslthl:2.0.1'
 
-    userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
+    userGuideStyleSheets 'net.sf.docbook:docbook-xsl:1.75.2:resources@zip'
 
     jquery "jquery:jquery.min:3.5.1@js"
     jquery "com.drewwilson.code:jquery.tipTip:1.3:minified@js"
