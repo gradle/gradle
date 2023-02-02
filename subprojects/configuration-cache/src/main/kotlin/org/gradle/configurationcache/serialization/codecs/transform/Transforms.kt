@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.BoundTransformationStep
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
@@ -91,6 +92,11 @@ fun unpackTransformationStep(transformation: TransformationStep, upstreamDepende
 
 
 class FixedUpstreamDependencies(private val dependencies: ArtifactTransformDependencies) : TransformUpstreamDependencies {
+
+    override fun getConfigurationIdentity(): ConfigurationIdentity? {
+        TODO("Not yet implemented")
+    }
+
     override fun visitDependencies(context: TaskDependencyResolveContext) {
         throw IllegalStateException("Should not be called")
     }
