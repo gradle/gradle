@@ -724,12 +724,6 @@ In case no toolchains are explicitly configured, the toolchain corresponding to 
 
 Similarly, tasks from the Groovy and Scala plugins also rely on toolchains to determine on which JVM they are executed.
 
-==== Scala compile options `getAdditionalParameters()` returns immutable list
-
-The list of additional parameters for Scala compilation retrieved from the `ScalaCompileOptions` or `BaseScalaCompileOptions` is now immutable.
-
-Previously, the mutability of the list depended on the last assigned value.
-
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
