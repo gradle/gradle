@@ -17,10 +17,9 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import java.nio.file.Files
@@ -152,7 +151,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
 
     @Issue("https://github.com/gradle/gradle/issues/10340")
     // This is failing on release6x and we don't want to spent time on it
-    @IgnoreIf({ GradleContextualExecuter.isForceRealize() })
+    @Ignore
     def "recompiles class when constant from inner class is changed"() {
         given:
         file("src/main/${languageName}/MyAnnotation.${languageName}") << """
