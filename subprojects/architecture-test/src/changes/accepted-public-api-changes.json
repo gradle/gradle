@@ -1788,6 +1788,14 @@
             ]
         },
         {
+            "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
+            "member": "Method org.gradle.language.scala.tasks.BaseScalaCompileOptions.setAdditionalParameters(java.util.List)",
+            "acceptation": "corresponding getter always returns a non-null value",
+            "changes": [
+                "Parameter 0 from null accepting to non-null accepting breaking change"
+            ]
+        },
+        {
             "type": "org.gradle.language.swift.plugins.SwiftApplicationPlugin",
             "member": "Class org.gradle.language.swift.plugins.SwiftApplicationPlugin",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
