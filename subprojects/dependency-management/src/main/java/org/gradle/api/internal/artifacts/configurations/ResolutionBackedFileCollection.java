@@ -43,6 +43,10 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
         this.resolutionHost = resolutionHost;
     }
 
+    public ResolutionHost getResolutionHost() {
+        return resolutionHost;
+    }
+
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         SelectedArtifactSet selected = resultProvider.getTaskDependencyValue();

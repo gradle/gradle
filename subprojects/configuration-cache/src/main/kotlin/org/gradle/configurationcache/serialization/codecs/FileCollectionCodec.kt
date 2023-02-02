@@ -18,6 +18,7 @@ package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
@@ -81,7 +82,7 @@ class FileCollectionCodec(
                     is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
                     is ProviderBackedFileCollectionSpec -> element.provider
                     is FileTree -> element
-                    is ResolvedArtifactSet -> artifactSetConverter.asFileCollection(element)
+                    is ResolvedArtifactSetSpec -> artifactSetConverter.asFileCollection(element.displayName, element.artifacts)
                     is BeanSpec -> element.bean
                     else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                 }
@@ -104,7 +105,13 @@ class ProviderBackedFileCollectionSpec(val provider: ProviderInternal<*>)
 
 
 private
-class CollectingVisitor : FileCollectionStructureVisitor {
+class ResolvedArtifactSetSpec(val displayName: String, val artifacts: ResolvedArtifactSet)
+
+
+private
+class CollectingVisitor(
+    private val resolutionHostDisplayName: String? = null
+) : FileCollectionStructureVisitor {
     val elements: MutableSet<Any> = mutableSetOf()
     override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean =
         when (fileCollection) {
@@ -142,6 +149,18 @@ class CollectingVisitor : FileCollectionStructureVisitor {
                 false
             }
 
+            is ResolutionBackedFileCollection -> {
+                if (resolutionHostDisplayName == null) {
+                    val displayName = fileCollection.resolutionHost.displayName
+                    val nestedVisitor = CollectingVisitor(displayName)
+                    fileCollection.visitStructure(nestedVisitor)
+                    elements.addAll(nestedVisitor.elements)
+                    false
+                } else {
+                    true
+                }
+            }
+
             else -> {
                 true
             }
@@ -162,15 +181,15 @@ class CollectingVisitor : FileCollectionStructureVisitor {
     override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) {
         when (source) {
             is TransformedProjectArtifactSet -> {
-                elements.add(source)
+                elements.add(ResolvedArtifactSetSpec(resolutionHostDisplayName!!, source))
             }
 
             is LocalFileDependencyBackedArtifactSet -> {
-                elements.add(source)
+                elements.add(ResolvedArtifactSetSpec(resolutionHostDisplayName!!, source))
             }
 
             is TransformedExternalArtifactSet -> {
-                elements.add(source)
+                elements.add(ResolvedArtifactSetSpec(resolutionHostDisplayName!!, source))
             }
 
             else -> {

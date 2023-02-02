@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.Optional;
 
 public interface ResolutionHost {
+    String getDisplayName();
+
     DisplayName displayName(String type);
 
     default void rethrowFailure(String type, Collection<Throwable> failures) {
