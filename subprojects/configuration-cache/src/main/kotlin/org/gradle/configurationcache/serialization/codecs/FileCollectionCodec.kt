@@ -20,7 +20,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.transform.TransformedArtifactSet
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
@@ -80,7 +79,7 @@ class FileCollectionCodec(
                     is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
                     is ProviderBackedFileCollectionSpec -> element.provider
                     is FileTree -> element
-                    is ResolvedArtifactSetSpec -> artifactSetConverter.asFileCollection(element.displayName, element.lenient, element.artifacts)
+                    is ResolutionBackedFileCollectionSpec -> artifactSetConverter.asFileCollection(element.displayName, element.lenient, element.elements)
                     is BeanSpec -> element.bean
                     else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                 }
@@ -103,7 +102,7 @@ class ProviderBackedFileCollectionSpec(val provider: ProviderInternal<*>)
 
 
 private
-class ResolvedArtifactSetSpec(val displayName: String, val lenient: Boolean, val artifacts: ResolvedArtifactSet)
+class ResolutionBackedFileCollectionSpec(val displayName: String, val lenient: Boolean, val elements: List<Any>)
 
 
 private
@@ -167,7 +166,7 @@ class CollectingVisitor : AbstractVisitor() {
                 val lenient = fileCollection.isLenient
                 val nestedVisitor = ResolutionContentsCollectingVisitor(displayName, lenient)
                 fileCollection.visitStructure(nestedVisitor)
-                elements.addAll(nestedVisitor.elements)
+                nestedVisitor.addElements(elements)
                 false
             }
 
@@ -195,6 +194,7 @@ class ResolutionContentsCollectingVisitor(
     private val resolutionHostDisplayName: String,
     private val lenient: Boolean
 ) : AbstractVisitor() {
+    var containsTransforms = false
     val elements: MutableSet<Any> = mutableSetOf()
 
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType =
@@ -211,9 +211,19 @@ class ResolutionContentsCollectingVisitor(
 
     override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) {
         if (source is TransformedArtifactSet) {
-            elements.add(ResolvedArtifactSetSpec(resolutionHostDisplayName, lenient, source))
+            containsTransforms = true
+            elements.add(source)
         } else {
             elements.addAll(contents)
+        }
+    }
+
+    fun addElements(target: MutableSet<Any>) {
+        if (containsTransforms) {
+            target.add(ResolutionBackedFileCollectionSpec(resolutionHostDisplayName, lenient, elements.toList()))
+        } else {
+            // Contains a fixed set of files - can throw away this instance
+            target.addAll(elements)
         }
     }
 }
