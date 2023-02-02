@@ -21,18 +21,19 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.plugin.use.PluginDependency;
 
-public class PluginDependencyMarkerCoordinates {
+class PluginDependencyMarkerCoordinates {
     private PluginDependencyMarkerCoordinates() {}
 
-    static ExternalModuleDependency setVersion(DependencyFactory dependencyFactory, PluginDependency pluginDependency) {
+    static ExternalModuleDependency getExternalModuleDependency(DependencyFactory dependencyFactory, PluginDependency pluginDependency) {
         String pluginNotation = pluginNotation(pluginDependency.getPluginId());
         ExternalModuleDependency externalModuleDependency = dependencyFactory.create(pluginNotation);
         externalModuleDependency.version(versionConstraint -> {
             VersionConstraint constraint = pluginDependency.getVersion();
             versionConstraint.setBranch(constraint.getBranch());
             versionConstraint.require(constraint.getRequiredVersion());
+            if (!constraint.getStrictVersion().isEmpty())  // required version must not be set to an empty string
+                versionConstraint.strictly(constraint.getStrictVersion());
             versionConstraint.prefer(constraint.getPreferredVersion());
-            versionConstraint.strictly(constraint.getStrictVersion());
             versionConstraint.reject(constraint.getRejectedVersions().toArray(new String[0]));
         });
         return externalModuleDependency;
@@ -40,5 +41,9 @@ public class PluginDependencyMarkerCoordinates {
 
     static String pluginNotation(String id) {
         return id + ":" + id + ".gradle.plugin";
+    }
+
+    static String pluginNotation(String id, String version) {
+        return pluginNotation(id) + ":" + version;
     }
 }

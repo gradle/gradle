@@ -64,7 +64,7 @@ public class DefaultDependencyAdder implements DependencyAdder {
         @SuppressWarnings("unchecked")
         Provider<D> provider = dependency.map((Object dep) -> {
             if (dep instanceof PluginDependency) {
-                dep = PluginDependencyMarkerCoordinates.setVersion(dependencyFactory, Cast.uncheckedCast(dep));
+                dep = PluginDependencyMarkerCoordinates.getExternalModuleDependency(dependencyFactory, Cast.uncheckedCast(dep));
             }
 
             // Generic failure check (for Groovy which ignores this when dynamic)

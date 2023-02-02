@@ -335,12 +335,12 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
     @Override
     public String plugin(String id) {
-        return id + ":" + id + ".gradle.plugin";
+        return PluginDependencyMarkerCoordinates.pluginNotation(id);
     }
 
     @Override
     public String plugin(String id, String version) {
-        return plugin(id) + ":" + version;
+        return PluginDependencyMarkerCoordinates.pluginNotation(id, version);
     }
 
     @Override
