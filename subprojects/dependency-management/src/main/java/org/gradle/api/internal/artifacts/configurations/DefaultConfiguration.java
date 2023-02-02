@@ -564,7 +564,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
-        intrinsicFiles.visitContents(visitor);
+        intrinsicFiles.visitStructure(visitor);
     }
 
     @Override
@@ -2436,6 +2436,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private class DefaultResolutionHost implements ResolutionHost {
+        @Override
+        public String getDisplayName() {
+            return DefaultConfiguration.this.getDisplayName();
+        }
+
         @Override
         public DisplayName displayName(String type) {
             return Describables.of(DefaultConfiguration.this, type);

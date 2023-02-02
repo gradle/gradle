@@ -43,7 +43,7 @@ public interface ArtifactVisitor {
     void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, List<? extends Capability> capabilities, ResolvableArtifact artifact);
 
     /**
-     * Should the file for each artifacts be made available prior to calling {@link #visitArtifact(DisplayName, AttributeContainer, List, ResolvableArtifact)}?
+     * Should the file for each artifact be made available prior to calling {@link #visitArtifact(DisplayName, AttributeContainer, List, ResolvableArtifact)}?
      *
      * Returns true here allows the collection to preemptively resolve the files in parallel.
      */

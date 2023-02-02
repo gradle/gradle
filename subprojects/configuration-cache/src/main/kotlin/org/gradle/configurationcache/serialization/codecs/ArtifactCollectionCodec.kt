@@ -67,7 +67,7 @@ class ArtifactCollectionCodec(
             elements.map { element ->
                 when (element) {
                     is FixedFileArtifactSpec -> element.file
-                    is ResolvedArtifactSet -> artifactSetConverter.asFileCollection(element)
+                    is ResolvedArtifactSet -> artifactSetConverter.asFileCollection("unknown configuration", element)
                     else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
                 }
             }
