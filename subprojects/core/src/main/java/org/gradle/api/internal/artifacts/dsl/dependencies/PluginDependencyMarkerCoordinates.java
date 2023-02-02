@@ -31,8 +31,9 @@ class PluginDependencyMarkerCoordinates {
             VersionConstraint constraint = pluginDependency.getVersion();
             versionConstraint.setBranch(constraint.getBranch());
             versionConstraint.require(constraint.getRequiredVersion());
-            if (!constraint.getStrictVersion().isEmpty())  // required version must not be set to an empty string
+            if (!constraint.getStrictVersion().isEmpty()) { // required version must not be set to empty string
                 versionConstraint.strictly(constraint.getStrictVersion());
+            }
             versionConstraint.prefer(constraint.getPreferredVersion());
             versionConstraint.reject(constraint.getRejectedVersions().toArray(new String[0]));
         });
