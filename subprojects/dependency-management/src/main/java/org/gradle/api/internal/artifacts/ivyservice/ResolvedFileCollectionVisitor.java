@@ -32,11 +32,6 @@ public class ResolvedFileCollectionVisitor extends ResolvedFilesCollectingVisito
     }
 
     @Override
-    public void visitSpec(FileCollectionInternal spec) {
-        spec.visitStructure(visitor);
-    }
-
-    @Override
     public void endVisitCollection(FileCollectionInternal.Source source) {
         visitor.visitCollection(source, getFiles());
         getFiles().clear();
