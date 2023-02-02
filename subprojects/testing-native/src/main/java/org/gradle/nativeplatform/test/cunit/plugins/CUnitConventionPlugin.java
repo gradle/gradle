@@ -25,7 +25,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec;
 import org.gradle.nativeplatform.test.internal.NativeTestSuites;
-import org.gradle.testing.base.TestSuiteContainer;
+import org.gradle.testing.base.TestSuiteSpecContainer;
 
 /**
  * A plugin that applies the {@link CUnitPlugin} and adds conventions on top of it.
@@ -42,7 +42,7 @@ public abstract class CUnitConventionPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
 
         @Defaults
-        public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components) {
+        public void createCUnitTestSuitePerComponent(TestSuiteSpecContainer testSuites, ModelMap<NativeComponentSpec> components) {
             NativeTestSuites.createConventionalTestSuites(testSuites, components, CUnitTestSuiteSpec.class);
         }
     }

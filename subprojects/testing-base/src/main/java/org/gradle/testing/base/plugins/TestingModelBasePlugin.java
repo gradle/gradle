@@ -34,7 +34,7 @@ import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.testing.base.TestSuiteBinarySpec;
-import org.gradle.testing.base.TestSuiteContainer;
+import org.gradle.testing.base.TestSuiteSpecContainer;
 import org.gradle.testing.base.TestSuiteSpec;
 import org.gradle.testing.base.TestSuiteTaskCollection;
 import org.gradle.testing.base.internal.BaseTestSuiteSpec;
@@ -42,7 +42,7 @@ import org.gradle.testing.base.internal.BaseTestSuiteSpec;
 /**
  * Base plugin for testing.
  *
- * - Adds a {@link org.gradle.testing.base.TestSuiteContainer} named {@code testSuites} to the model.
+ * - Adds a {@link TestSuiteSpecContainer} named {@code testSuites} to the model.
  * - Copies test binaries from {@code testSuites} into {@code binaries}.
  */
 @Incubating
@@ -59,11 +59,11 @@ public abstract class TestingModelBasePlugin implements Plugin<Project> {
         }
 
         @Model
-        void testSuites(TestSuiteContainer testSuites) {
+        void testSuites(TestSuiteSpecContainer testSuites) {
         }
 
         @Mutate
-        void copyTestBinariesToGlobalContainer(BinaryContainer binaries, TestSuiteContainer testSuites) {
+        void copyTestBinariesToGlobalContainer(BinaryContainer binaries, TestSuiteSpecContainer testSuites) {
             for (TestSuiteSpec testSuite : testSuites.values()) {
                 for (BinarySpecInternal binary : testSuite.getBinaries().withType(BinarySpecInternal.class).values()) {
                     binaries.put(binary.getProjectScopedName(), binary);

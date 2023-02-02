@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 
 package org.gradle.testing.base;
 
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
-import org.gradle.model.ModelMap;
 
 /**
- * A container of {@link TestSuiteSpec} instances.
+ * A {@code TestSuiteContainer} manages a set of {@link TestSuite} objects.
+ *
+ * @since 8.1
  */
 @Incubating
-public interface TestSuiteContainer extends ModelMap<TestSuiteSpec> {
+public interface TestSuiteContainer extends ExtensiblePolymorphicDomainObjectContainer<TestSuite> {
 }

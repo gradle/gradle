@@ -22,31 +22,31 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.testing.base.TestSuite;
-import org.gradle.testing.base.TestSuiteContainerX;
+import org.gradle.testing.base.TestSuiteContainer;
 import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
 
 public abstract class DefaultTestingExtension implements TestingExtension {
-    private final TestSuiteContainerX suites;
+    private final TestSuiteContainer suites;
 
     @Inject
     public DefaultTestingExtension(ObjectFactory objectFactory, InstantiatorFactory instantiatorFactory, ServiceRegistry servicesToInject, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        this.suites = objectFactory.newInstance(DefaultTestSuiteContainerX.class, instantiatorFactory, servicesToInject, collectionCallbackActionDecorator);
+        this.suites = objectFactory.newInstance(DefaultTestSuiteContainer.class, instantiatorFactory, servicesToInject, collectionCallbackActionDecorator);
     }
 
     @Inject
     public abstract ObjectFactory getObjectFactory();
 
     @Override
-    public TestSuiteContainerX getSuites() {
+    public TestSuiteContainer getSuites() {
         return suites;
     }
 
-    public static class DefaultTestSuiteContainerX extends DefaultPolymorphicDomainObjectContainer<TestSuite> implements TestSuiteContainerX {
+    public static class DefaultTestSuiteContainer extends DefaultPolymorphicDomainObjectContainer<TestSuite> implements TestSuiteContainer {
 
         @Inject
-        public DefaultTestSuiteContainerX(InstantiatorFactory instantiatorFactory, ServiceRegistry servicesToInject, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        public DefaultTestSuiteContainer(InstantiatorFactory instantiatorFactory, ServiceRegistry servicesToInject, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
             super(TestSuite.class, instantiatorFactory.decorateLenient(), instantiatorFactory.decorateLenient(servicesToInject), collectionCallbackActionDecorator);
         }
     }
