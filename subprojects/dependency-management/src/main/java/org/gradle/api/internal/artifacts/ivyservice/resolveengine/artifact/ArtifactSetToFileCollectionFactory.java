@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
@@ -23,16 +24,22 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -52,52 +59,8 @@ public class ArtifactSetToFileCollectionFactory {
      * <p>This produces only a minimal implementation to use for artifact sets loaded from the configuration cache
      * Over time, this should be merged with the FileCollection implementation in DefaultConfiguration
      */
-    public FileCollectionInternal asFileCollection(String displayName, boolean lenient, ResolvedArtifactSet artifacts) {
-        // TODO - merge these file collections for all transforms so that non-scheduled transforms are executed in parallel
-        return new ResolutionBackedFileCollection(
-            new ResolutionResultProvider<SelectedArtifactSet>() {
-                @Override
-                public SelectedArtifactSet getTaskDependencyValue() {
-                    throw new IllegalStateException();
-                }
-
-                @Override
-                public SelectedArtifactSet getValue() {
-                    return new SelectedArtifactSet() {
-                        @Override
-                        public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
-                            ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(visitor);
-                        }
-
-                        @Override
-                        public void visitDependencies(TaskDependencyResolveContext context) {
-                            // No dependencies
-                        }
-                    };
-                }
-            },
-            lenient,
-            new ResolutionHost() {
-                @Override
-                public String getDisplayName() {
-                    return displayName;
-                }
-
-                @Override
-                public DisplayName displayName(String type) {
-                    return Describables.of(getDisplayName(), type);
-                }
-
-                @Override
-                public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
-                    if (failures.isEmpty()) {
-                        return Optional.empty();
-                    } else {
-                        return Optional.of(new DefaultLenientConfiguration.ArtifactResolveException(type, type, getDisplayName(), failures));
-                    }
-                }
-            }, taskDependencyFactory
-        );
+    public FileCollectionInternal asFileCollection(String displayName, boolean lenient, List<?> elements) {
+        return new ResolutionBackedFileCollection(new PartialSelectedArtifactProvider(elements), lenient, new NameBackedResolutionHost(displayName), taskDependencyFactory);
     }
 
     /**
@@ -112,5 +75,128 @@ public class ArtifactSetToFileCollectionFactory {
             throw UncheckedException.throwAsUncheckedException(collectingVisitor.getFailures().iterator().next());
         }
         return collectingVisitor.getArtifacts();
+    }
+
+    private static class NameBackedResolutionHost implements ResolutionHost {
+        private final String displayName;
+
+        public NameBackedResolutionHost(String displayName) {
+            this.displayName = displayName;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        @Override
+        public DisplayName displayName(String type) {
+            return Describables.of(getDisplayName(), type);
+        }
+
+        @Override
+        public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
+            if (failures.isEmpty()) {
+                return Optional.empty();
+            } else {
+                return Optional.of(new DefaultLenientConfiguration.ArtifactResolveException(type, type, getDisplayName(), failures));
+            }
+        }
+    }
+
+    private static class FileBackedArtifactSet implements ResolvedArtifactSet {
+        private final File file;
+
+        public FileBackedArtifactSet(File file) {
+            this.file = file;
+        }
+
+        @Override
+        public void visit(Visitor visitor) {
+            visitor.visitArtifacts(new Artifacts() {
+                @Override
+                public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+                    // Nothing to do
+                }
+
+                @Override
+                public void visit(ArtifactVisitor visitor) {
+                    if (visitor.prepareForVisit(FileCollectionInternal.OTHER) == FileCollectionStructureVisitor.VisitType.Visit) {
+                        ((ArtifactVisitorToResolvedFileVisitorAdapter) visitor).visitFile(file);
+                        visitor.endVisitCollection(FileCollectionInternal.OTHER);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void visitTransformSources(TransformSourceVisitor visitor) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    // "partial" in the sense that some artifacts are only available as a File, and have no metadata
+    private static class PartialSelectedArtifactSet implements SelectedArtifactSet {
+        private final List<?> elements;
+        private final BuildOperationExecutor buildOperationExecutor;
+
+        public PartialSelectedArtifactSet(List<?> elements, BuildOperationExecutor buildOperationExecutor) {
+            this.elements = elements;
+            this.buildOperationExecutor = buildOperationExecutor;
+        }
+
+        @Override
+        public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
+            // Should not be used, and cannot be provided as the artifact metadata may have been discarded.
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void visitFiles(ResolvedFileVisitor visitor, boolean continueOnSelectionFailure) {
+            List<ResolvedArtifactSet> artifactSets = new ArrayList<>();
+            for (Object element : elements) {
+                if (element instanceof ResolvedArtifactSet) {
+                    artifactSets.add((ResolvedArtifactSet) element);
+                } else {
+                    File file = (File) element;
+                    artifactSets.add(new FileBackedArtifactSet(file));
+                }
+            }
+            ParallelResolveArtifactSet.wrap(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor).visit(new ArtifactVisitorToResolvedFileVisitorAdapter(visitor));
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            // No dependencies
+        }
+    }
+
+    // "partial" in the sense that some artifacts are only available as a File, and have no metadata
+    private class PartialSelectedArtifactProvider implements ResolutionResultProvider<SelectedArtifactSet> {
+        private final List<?> elements;
+
+        public PartialSelectedArtifactProvider(List<?> elements) {
+            this.elements = elements;
+        }
+
+        @Override
+        public SelectedArtifactSet getTaskDependencyValue() {
+            return getValue();
+        }
+
+        @Override
+        public SelectedArtifactSet getValue() {
+            return new PartialSelectedArtifactSet(elements, buildOperationExecutor);
+        }
     }
 }

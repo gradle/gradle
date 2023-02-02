@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
 
+import java.io.File;
 import java.util.List;
 
 public class ArtifactVisitorToResolvedFileVisitorAdapter implements ArtifactVisitor {
@@ -34,6 +35,10 @@ public class ArtifactVisitorToResolvedFileVisitorAdapter implements ArtifactVisi
     @Override
     public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
         return visitor.prepareForVisit(source);
+    }
+
+    public void visitFile(File file) {
+        visitor.visitFile(file);
     }
 
     @Override
