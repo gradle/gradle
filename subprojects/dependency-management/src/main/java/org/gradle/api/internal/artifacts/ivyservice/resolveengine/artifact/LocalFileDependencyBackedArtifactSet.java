@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
 import org.gradle.api.internal.artifacts.transform.AbstractTransformedArtifactSet;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.artifacts.transform.Transformation;
+import org.gradle.api.internal.artifacts.transform.TransformedArtifactSet;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.VariantDefinition;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
@@ -53,7 +54,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet, LocalDependencyFiles, VariantSelector.Factory {
+public class LocalFileDependencyBackedArtifactSet implements TransformedArtifactSet, LocalDependencyFiles, VariantSelector.Factory {
     private static final DisplayName LOCAL_FILE = Describables.of("local file");
 
     private final LocalFileDependencyMetadata dependencyMetadata;
