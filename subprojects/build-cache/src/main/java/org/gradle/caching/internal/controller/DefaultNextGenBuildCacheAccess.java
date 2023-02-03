@@ -27,7 +27,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -39,6 +42,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     // TODO Make buffer size configurable
     private static final int BUFFER_SIZE = 64 * 1024;
     private static final ThreadLocal<byte[]> COPY_BUFFERS = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
+    private static final CompletableFuture<?>[] EMPTY_COMPLETABLE_FUTURE_ARRAY = new CompletableFuture<?>[0];
 
     private final NextGenBuildCacheHandler local;
     private final NextGenBuildCacheHandler remote;
@@ -54,38 +58,16 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
     @Override
     public <T> void load(Map<BuildCacheKey, T> entries, LoadHandler<T> handler) {
-        // TODO Fan out to multiple threads
+        List<CompletableFuture<Void>> remoteDownloads = new ArrayList<>();
         entries.forEach((key, payload) -> {
             boolean foundLocally = local.load(key, input -> handler.handle(input, payload));
-            if (foundLocally) {
-                return;
+            if (!foundLocally) {
+                remoteDownloads.add(CompletableFuture.runAsync(new RemoteDownload<>(key, payload, handler), remoteProcessor));
             }
-            remote.load(key, input -> {
-                // TODO Make this work for large pieces of content, too
-                UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
-                byte[] buffer = COPY_BUFFERS.get();
-                IOUtils.copyLarge(input, data, buffer);
-
-                // Mirror data in local cache
-                local.store(key, new BuildCacheEntryWriter() {
-                    @Override
-                    public InputStream openStream() {
-                        return data.toInputStream();
-                    }
-
-                    @Override
-                    public void writeTo(OutputStream output) throws IOException {
-                        data.writeTo(output);
-                    }
-
-                    @Override
-                    public long getSize() {
-                        return data.size();
-                    }
-                });
-                handler.handle(data.toInputStream(), payload);
-            });
         });
+        // TODO Add error handling
+        CompletableFuture.allOf(remoteDownloads.toArray(EMPTY_COMPLETABLE_FUTURE_ARRAY))
+            .join();
     }
 
     @Override
@@ -117,6 +99,49 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         closer.register(local);
         closer.register(remote);
         closer.close();
+    }
+
+    private class RemoteDownload<T> implements Runnable {
+        private final BuildCacheKey key;
+        private final T payload;
+        private final LoadHandler<T> handler;
+
+        public RemoteDownload(BuildCacheKey key, T payload, LoadHandler<T> handler) {
+            this.key = key;
+            this.payload = payload;
+            this.handler = handler;
+        }
+
+        @Override
+        public void run() {
+            LOGGER.warn("Loading {} from remote", key);
+            remote.load(key, input -> {
+                LOGGER.warn("Found {} in remote", key);
+                // TODO Make this work for large pieces of content, too
+                UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
+                byte[] buffer = COPY_BUFFERS.get();
+                IOUtils.copyLarge(input, data, buffer);
+
+                // Mirror data in local cache
+                local.store(key, new BuildCacheEntryWriter() {
+                    @Override
+                    public InputStream openStream() {
+                        return data.toInputStream();
+                    }
+
+                    @Override
+                    public void writeTo(OutputStream output) throws IOException {
+                        data.writeTo(output);
+                    }
+
+                    @Override
+                    public long getSize() {
+                        return data.size();
+                    }
+                });
+                handler.handle(data.toInputStream(), payload);
+            });
+        }
     }
 
     private class RemoteUpload implements Runnable {
