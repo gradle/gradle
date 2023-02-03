@@ -29,8 +29,11 @@ import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -244,6 +247,11 @@ public abstract class EclipseClasspath {
     public void setDefaultOutputDir(File defaultOutputDir) {
         this.defaultOutputDir = defaultOutputDir;
     }
+    
+    @Input
+    @Optional
+    @Option(option = "baseSourceOutputDir", description = "The base directory for source output directories.")
+    public abstract Property<File> getBaseSourceOutputDir();
 
     /**
      * Whether to download and associate source Jars with the dependency Jars. Defaults to true.

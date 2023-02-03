@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.eclipse.internal;
 
 public class EclipsePluginConstants {
 
-    public static final String DEFAULT_PROJECT_OUTPUT_PATH = "bin/default";
+    public static final String DEFAULT_PROJECT_OUTPUT_PATH = "bin";
     public static final String TEST_SOURCES_ATTRIBUTE_KEY = "test";
     public static final String TEST_SOURCES_ATTRIBUTE_VALUE = "true";
     public static final String MODULE_ATTRIBUTE_KEY = "module";
