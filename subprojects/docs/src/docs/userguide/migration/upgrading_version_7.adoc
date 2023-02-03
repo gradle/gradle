@@ -553,10 +553,10 @@ includeBuild("nestedNested")
 =====
 ====
 
-Before Gradle 8.1, you ran `gradle :nestedNested:compileJava`.
-In Gradle 8.1 the invocation changes to `gradle :nested:nestedNested:compileJava`.
+Before Gradle 8.0, you ran `gradle :nestedNested:compileJava`.
+In Gradle 8.0 the invocation changes to `gradle :nested:nestedNested:compileJava`.
 
-==== Adding `jst.ejb` with the `eclipse wtp' plugin now removes the `jst.utility` facet
+==== Adding `jst.ejb` with the `eclipse wtp` plugin now removes the `jst.utility` facet
 
 The `eclipse wtp` plugin adds the `jst.utility` facet to java projects.
 Now, adding the `jst.ejb` facet implicitly removes the `jst.utility` facet:
@@ -926,7 +926,7 @@ They will be removed in a future version of Gradle.
 
 ==== Replacement methods in `org.gradle.api.tasks.testing.TestReport`
 
-The `getDestinationDir()`, `setDestinationDir(File)`, and `getTestResultsDirs()` and `setTestResultsDirs(Iterable)` methods have been deprecated.
+The `getDestinationDir()`, `setDestinationDir(File)`, and `getTestResultDirs()` and `setTestResultDirs(Iterable)` methods have been deprecated.
 Replace usages with the now stable `getDestinationDirectory()` and `getTestResults()` methods and their associated setters.
 These deprecated elements will be removed in a future version of Gradle.
 
