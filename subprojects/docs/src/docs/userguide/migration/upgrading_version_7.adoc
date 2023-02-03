@@ -15,8 +15,8 @@
 [[upgrading_version_7]]
 = Upgrading your build from Gradle 7.x to 8.0
 
-This chapter provides the information you need to migrate your Gradle 7.x builds to the latest Gradle release.
-For migrating from Gradle 4.x, 5.x, or 6.x, see the <<upgrading_version_6.adoc#upgrading_version_6, older migration guide>> first.
+This chapter provides the information you need to migrate your Gradle 7.x builds to Gradle 8.0.
+For migrating from Gradle 6.x or earlier, complete the  <<upgrading_version_6.adoc#upgrading_version_6, older migration guide>> first.
 
 We recommend the following steps for all users:
 
@@ -553,8 +553,8 @@ includeBuild("nestedNested")
 =====
 ====
 
-Before Gradle 8.1, you ran `gradle :nestedNested:compileJava`.
-In Gradle 8.1 the invocation changes to `gradle :nested:nestedNested:compileJava`.
+Before Gradle 8.0, you ran `gradle :nestedNested:compileJava`.
+In Gradle 8.0 the invocation changes to `gradle :nested:nestedNested:compileJava`.
 
 ==== Adding `jst.ejb` with the `eclipse wtp` plugin now removes the `jst.utility` facet
 
