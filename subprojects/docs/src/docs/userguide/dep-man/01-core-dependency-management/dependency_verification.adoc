@@ -115,7 +115,6 @@ Therefore, it's recommended to always use the same parameters once you started b
 
 The dependency verification file can be generated with the following CLI instructions:
 
-
 ----
 gradle --write-verification-metadata sha256 help
 ----
@@ -173,7 +172,6 @@ By default, bootstrapping is incremental, which means that if you run it multipl
 There are situations where you would just want to _see_ what the generated verification metadata file would look like without actually changing the existing one or overwriting it.
 
 For this purpose, you can just add `--dry-run`:
-
 
 ----
 gradle --write-verification-metadata sha256 help --dry-run
@@ -272,7 +270,6 @@ Changing the `origin` gives users a sense of how trustworthy your build it.
 Interestingly, using `pdfbox` will require _much more_ than those 2 artifacts, because it will also bring in transitive dependencies.
 If the dependency verification file only included the checksums for the main artifacts you used, the build would fail with an error like this one:
 
-
 ----
 Execution failed for task ':compileJava'.
 > Dependency verification failed for configuration ':compileClasspath':
@@ -301,7 +298,8 @@ For example, the following configuration would check both the `md5` and `sha1` c
 
 There are multiple reasons why you'd like to do so:
 
-1. an official site doesn't publish _secure_ checksums (SHA-256, SHA-512) but publishes multiple insecure ones (MD5, SHA1). While it's easy to fake a MD5 checksum and hard but possible to fake a SHA1 checksum, it's harder to fake both of them for the same artifact.
+1. an official site doesn't publish _secure_ checksums (SHA-256, SHA-512) but publishes multiple insecure ones (MD5, SHA1).
+While it's easy to fake a MD5 checksum and hard but possible to fake a SHA1 checksum, it's harder to fake both of them for the same artifact.
 2. you might want to add generated checksums to the list above
 3. when _updating_ dependency verification file with more secure checksums, you don't want to accidentally erase checksums
 
@@ -384,10 +382,14 @@ In practice, it means you need to list the keys that you trust for each artifact
 </component>
 ----
 
-[TIP]
+[WARNING]
 ====
-Gradle supports both full fingerprint ids or long (64-bit) key ids in `pgp`, `trusted-key` and `ignore-key` elements.
-For maximum security, you should use full fingerprints as it's possible to have collisions for long key ids.
+For the `pgp` and `trusted-key` elements, Gradle _requires_ full fingerprint IDs (e.g. `b801e2f8ef035068ec1139cc29579f18fa8fd93b` instead of a long ID `29579f18fa8fd93b`) .
+This minimizes the chance of a https://en.wikipedia.org/wiki/Collision_attack[collision attack].
+
+At the time, https://www.rfc-editor.org/rfc/rfc4880#section-12.2[V4 key fingerprints] are of 160-bit (40 characters) length. We accept longer keys to be future-proof in case a longer key fingerprint is introduced.
+
+In `ignore-key` elements, either fingerprints or long (64-bit) IDs can be used. A shorter ID can only result in a bigger range of exclusion, therefore, it's safe to use.
 ====
 
 This effectively means that you trust `com.github.javaparser:javaparser-core:3.6.11` if it's signed with the key `8756c4f765c9ac3cb6b85d62379ce192d401ab61`.
@@ -421,14 +423,14 @@ If this is the case, you can move the trusted key from the artifact level to the
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
       <trusted-keys>
-         <trusted-key id="379ce192d401ab61" group="com.github.javaparser"/>
+         <trusted-key id="8756c4f765c9ac3cb6b85d62379ce192d401ab61" group="com.github.javaparser"/>
       </trusted-keys>
    </configuration>
    <components/>
 </verification-metadata>
 ----
 
-The configuration above means that for any artifact belonging to the group `com.github.javaparser`, we trust it if it's signed with the `379ce192d401ab61`.
+The configuration above means that for any artifact belonging to the group `com.github.javaparser`, we trust it if it's signed with the `8756c4f765c9ac3cb6b85d62379ce192d401ab61` fingerprint.
 
 The `trusted-key` element works similarly to the <<sec:trusting-artifacts,trusted-artifact>> element:
 
@@ -518,14 +520,14 @@ You can generate the binary version using GPG, for example issuing the following
 
 [source,bash]
 ----
-$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 379ce192d401ab61
+$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 8756c4f765c9ac3cb6b85d62379ce192d401ab61
 
 gpg: keybox 'gradle/verification-keyring.gpg' created
 gpg: key 379CE192D401AB61: public key "Bintray (by JFrog) <****>" imported
 gpg: Total number processed: 1
 gpg:               imported: 1
 
-$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 6a0975f8b1127b83
+$ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 6f538074ccebf35f28af9b066a0975f8b1127b83
 
 gpg: key 0729A0AFF8999A87: public key "Kotlin Release <****>" imported
 gpg: Total number processed: 1
@@ -539,7 +541,7 @@ In the example above, you could amend an existing KEYS file by issuing the follo
 
 [source,bash]
 ----
-$ gpg --no-default-keyring --keyring /tmp/keyring.gpg --recv-keys 379ce192d401ab61
+$ gpg --no-default-keyring --keyring /tmp/keyring.gpg --recv-keys 8756c4f765c9ac3cb6b85d62379ce192d401ab61
 
 gpg: keybox '/tmp/keyring.gpg' created
 gpg: key 379CE192D401AB61: public key "Bintray (by JFrog) <****>" imported
@@ -547,10 +549,10 @@ gpg: Total number processed: 1
 gpg:               imported: 1
 
 # First let's add a header so that we can recognize the added key
-$ gpg --keyring /tmp/keyring.gpg --list-sigs 379CE192D401AB61 > gradle/verification-keyring.keys
+$ gpg --keyring /tmp/keyring.gpg --list-sigs 8756c4f765c9ac3cb6b85d62379ce192d401ab61 > gradle/verification-keyring.keys
 
 # Then write its ASCII armored version
-$ gpg --keyring /tmp/keyring.gpg --export --armor 379CE192D401AB61 > gradle/verification-keyring.keys
+$ gpg --keyring /tmp/keyring.gpg --export --armor 8756c4f765c9ac3cb6b85d62379ce192d401ab61 > gradle/verification-keyring.keys
 ----
 
 Or, alternatively, you can _ask Gradle to export all keys it used for verification of this build to the keyring_ during bootstrapping:
@@ -656,14 +658,14 @@ This is the case for example if you use <<sec:checksum-verification,checksum ver
 
 Gradle will tell you what metadata is missing:
 
-
 ----
 Execution failed for task ':compileJava'.
 > Dependency verification failed for configuration ':compileClasspath':
     - On artifact commons-logging-1.2.jar (commons-logging:commons-logging:1.2) in repository 'MavenRepo': checksum is missing from verification metadata.
 ----
 
-- the missing module group is `commons-logging`, it's artifact name is `commons-logging` and its version is `1.2`. The corresponding artifact is `commons-logging-1.2.jar` so you need to add the following entry to the verification file:
+- the missing module group is `commons-logging`, it's artifact name is `commons-logging` and its version is `1.2`.
+The corresponding artifact is `commons-logging-1.2.jar` so you need to add the following entry to the verification file:
 
 [source,xml]
 ----
@@ -680,7 +682,6 @@ Alternatively, you can ask Gradle to generate the missing information by using t
 
 A more problematic issue is when the actual checksum verification fails:
 
-
 ----
 Execution failed for task ':compileJava'.
 > Dependency verification failed for configuration ':compileClasspath':
@@ -693,7 +694,8 @@ Such a failure indicates that a **dependency may have been compromised**.
 At this stage, you **must** perform manual verification and check what happens.
 Several things can happen:
 
-* a dependency was tampered in the local dependency cache of Gradle. This is usually harmless: erase the file from the cache and Gradle would redownload the dependency.
+* a dependency was tampered in the local dependency cache of Gradle.
+This is usually harmless: erase the file from the cache and Gradle would redownload the dependency.
 * a dependency is available in multiple sources with slightly different binaries (additional whitespace, ...)
 ** please inform the maintainers of the library that they have such an issue
 ** you can use <<#sec:trusting-several-checksums,`also-trust`>> to accept the additional checksums
@@ -706,7 +708,6 @@ Note that a variation of a compromised library is often _name squatting_, when a
 ==== Untrusted signatures
 
 If you have signature verification enabled, Gradle will perform verification of the signatures but will not trust them automatically:
-
 
 ----
 > Dependency verification failed for configuration ':compileClasspath':
@@ -792,7 +793,7 @@ $ curl https://my-company-mirror.com/repo/com/google/j2objc/j2objc-annotations/1
 Then we can use the key information provided in the error message to import the key locally:
 
 ----
-$ gpg --recv-keys 29579f18fa8fd93b
+$ gpg --recv-keys B801E2F8EF035068EC1139CC29579F18FA8FD93B
 ----
 
 And perform verification:
@@ -879,13 +880,11 @@ The verification errors will be displayed during the build without causing a bui
 
 All those modes can be activated on the CLI using the `--dependency-verification` flag, for example:
 
-
 ----
 ./gradlew --dependency-verification lenient build
 ----
 
 Alternatively, you can set the `org.gradle.dependency.verification` system property, either on the CLI:
-
 
 ----
 ./gradlew -Dorg.gradle.dependency.verification=lenient build
@@ -1009,7 +1008,6 @@ We need to move the existing file because both the bootstrapping mode and the dr
 Gradle caches missing keys for 24 hours, meaning it will not attempt to re-download the missing keys for 24 hours after failing.
 
 If you want to retry immediately, you can run with the `--refresh-keys` CLI flag:
-
 
 ----
 ./gradlew build --refresh-keys

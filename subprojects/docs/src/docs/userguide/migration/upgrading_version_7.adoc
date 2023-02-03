@@ -242,6 +242,63 @@ Use the `version(Action)` method to configure strict versions instead.
 The deprecated `build-scan` plugin application method has been removed from the Kotlin DSL.
 Use the `gradle-enterprise` method instead.
 
+==== Configuration extension methods removed from Kotlin DSL
+
+The Kotlin DSL added specialized extension methods for `NamedDomainObjectProvider<Configuration>` that are available when looking up a configuration by name.
+These extensions allowed builds to access some properties of a `Configuration` when using an instance of `NamedDomainObjectProvider<Configuration>` directly:
+```
+configurations.compileClasspath.files // equivalent to configurations.compileClasspath.get().files
+configurations.compileClasspath.singleFile // equivalent to configurations.compileClasspath.get().singleFile
+```
+
+All of these extensions have been removed from the API, but the methods are still available for plugins compiled against older versions of Gradle.
+
+* NamedDomainObjectProvider<Configuration>.addToAntBuilder
+* NamedDomainObjectProvider<Configuration>.all
+* NamedDomainObjectProvider<Configuration>.allArtifacts
+* NamedDomainObjectProvider<Configuration>.allDependencies
+* NamedDomainObjectProvider<Configuration>.allDependencyConstraints
+* NamedDomainObjectProvider<Configuration>.artifacts
+* NamedDomainObjectProvider<Configuration>.asFileTree
+* NamedDomainObjectProvider<Configuration>.asPath
+* NamedDomainObjectProvider<Configuration>.attributes
+* NamedDomainObjectProvider<Configuration>.buildDependencies
+* NamedDomainObjectProvider<Configuration>.contains
+* NamedDomainObjectProvider<Configuration>.copy
+* NamedDomainObjectProvider<Configuration>.copyRecursive
+* NamedDomainObjectProvider<Configuration>.defaultDependencies
+* NamedDomainObjectProvider<Configuration>.dependencies
+* NamedDomainObjectProvider<Configuration>.dependencyConstraints
+* NamedDomainObjectProvider<Configuration>.description
+* NamedDomainObjectProvider<Configuration>.exclude
+* NamedDomainObjectProvider<Configuration>.excludeRules
+* NamedDomainObjectProvider<Configuration>.extendsFrom
+* NamedDomainObjectProvider<Configuration>.fileCollection
+* NamedDomainObjectProvider<Configuration>.files
+* NamedDomainObjectProvider<Configuration>.filter
+* NamedDomainObjectProvider<Configuration>.getTaskDependencyFromProjectDependency
+* NamedDomainObjectProvider<Configuration>.hierarchy
+* NamedDomainObjectProvider<Configuration>.incoming
+* NamedDomainObjectProvider<Configuration>.isCanBeConsumed
+* NamedDomainObjectProvider<Configuration>.isCanBeResolved
+* NamedDomainObjectProvider<Configuration>.isEmpty
+* NamedDomainObjectProvider<Configuration>.isTransitive
+* NamedDomainObjectProvider<Configuration>.isVisible
+* NamedDomainObjectProvider<Configuration>.minus
+* NamedDomainObjectProvider<Configuration>.outgoing
+* NamedDomainObjectProvider<Configuration>.plus
+* NamedDomainObjectProvider<Configuration>.resolutionStrategy
+* NamedDomainObjectProvider<Configuration>.resolve
+* NamedDomainObjectProvider<Configuration>.resolvedConfiguration
+* NamedDomainObjectProvider<Configuration>.setDescription
+* NamedDomainObjectProvider<Configuration>.setExtendsFrom
+* NamedDomainObjectProvider<Configuration>.setTransitive
+* NamedDomainObjectProvider<Configuration>.singleFile
+* NamedDomainObjectProvider<Configuration>.state
+* NamedDomainObjectProvider<Configuration>.withDependencies
+
+You should prefer to directly reference the methods from `Configuration`.
+
 === Potential breaking changes
 
 ==== `JavaForkOptions` `getJvmArgs()` and `getAllJvmArgs()` return immutable lists
@@ -442,6 +499,63 @@ the tasks for `buildSrc` completed and before any requested tasks started.
 
 This behavior is now consistent for `buildSrc` and included builds.
 
+==== Changes to paths of included builds
+
+In order to handle conflicts between nested included build names better, Gradle now uses the directory hierarchy of included builds to assign the build path.
+If you are running tasks from the command line in nested included builds, then you may need to adjust your invocation.
+
+For example, if you have the following hierarchy:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── settings.gradle.kts
+└── nested
+    ├── settings.gradle.kts
+    └── nestedNested
+        └── settings.gradle.kts
+----
+.settings.gradle.kts
+[source,kotlin]
+----
+includeBuild("nested")
+----
+.nested/settings.gradle.kts
+[source,kotlin]
+----
+includeBuild("nestedNested")
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── settings.gradle
+└── nested
+    ├── settings.gradle
+    └── nestedNested
+        └── settings.gradle
+----
+.settings.gradle
+[source,groovy]
+----
+includeBuild("nested")
+----
+.nested/settings.gradle
+[source,groovy]
+----
+includeBuild("nestedNested")
+----
+=====
+====
+
+Before Gradle 8.1, you ran `gradle :nestedNested:compileJava`.
+In Gradle 8.1 the invocation changes to `gradle :nested:nestedNested:compileJava`.
+
 ==== Adding `jst.ejb` with the `eclipse wtp` plugin now removes the `jst.utility` facet
 
 The `eclipse wtp` plugin adds the `jst.utility` facet to java projects.
@@ -501,9 +615,10 @@ Gradle changes the compression library used for creating archives from an Ant ba
 As a consequence archives created from the same content, are unlikely to end up identical byte-by-byte to their older versions, created with the old library.
 
 [[kotlin_1_8.0]]
-==== Upgrade to Kotlin 1.8.0
+==== Upgrade to Kotlin 1.8.10
 
-The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.8.0[Kotlin 1.8.0].
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.10[Kotlin 1.8.10].
+Also see link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.0[Kotlin 1.8.0] release notes.
 For more information, see the release notes for Kotlin
 
 * https://github.com/JetBrains/kotlin/releases/tag/v1.7.20[1.7.20]
@@ -582,12 +697,6 @@ If `JavaBasePlugin` is applied, the convention value for tool properties on the 
 In case no toolchains are explicitly configured, the toolchain corresponding to the JVM running Gradle is used.
 
 Similarly, tasks from the Groovy and Scala plugins also rely on toolchains to determine on which JVM they are executed.
-
-==== Scala compile options `getAdditionalParameters()` returns immutable list
-
-The list of additional parameters for Scala compilation retrieved from the `ScalaCompileOptions` or `BaseScalaCompileOptions` is now immutable.
-
-Previously, the mutability of the list depended on the last assigned value.
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier

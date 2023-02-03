@@ -167,7 +167,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.22", "1.8.0")
+        static kotlinPlugins = Versions.of("1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.22", "1.8.10")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp
