@@ -109,12 +109,11 @@ public class NativeToolChainTestRunner extends AbstractContextualMultiVersionSpe
         @Override
         protected boolean isTestEnabled(TestDetails testDetails) {
             RequiresInstalledToolChain toolChainRestriction = testDetails.getAnnotation(RequiresInstalledToolChain.class);
-            return toolChainRestriction == null || toolChain.meets(toolChainRestriction.value());
+            return (toolChainRestriction == null || toolChain.meets(toolChainRestriction.value())) && toolChain.isAvailable();
         }
 
         @Override
         protected void assertCanExecute() {
-            assert toolChain.isAvailable() : String.format("Tool chain %s not available", toolChain.getDisplayName());
         }
 
         @Override

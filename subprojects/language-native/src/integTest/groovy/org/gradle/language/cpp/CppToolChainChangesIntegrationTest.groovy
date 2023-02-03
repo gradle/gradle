@@ -21,9 +21,8 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.junit.Assume
 import spock.lang.Unroll
-import org.gradle.util.Requires
-import org.opentest4j.TestAbortedException
 
 class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -128,12 +127,8 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
         def availableToolChains = AvailableToolChains.toolChains.findAll {
             it.available && !(it instanceof AvailableToolChains.InstalledSwiftc)
         }
-        println("AvailableToolChains: $availableToolChains")
         int numberOfToolChains = availableToolChains.size()
-        if (numberOfToolChains < 2) {
-            // Don't use JUnit 4 Assume: https://github.com/spockframework/spock/issues/1185
-            throw new TestAbortedException('2 or more tool chains are required for this test')
-        }
+        Assume.assumeTrue('2 or more tool chains are required for this test', numberOfToolChains >= 2)
         List<List<InstalledToolChain>> result = (0..<(numberOfToolChains - 1)).collectMany { first ->
             ((first + 1)..<numberOfToolChains).collect { second ->
                 [availableToolChains[first], availableToolChains[second]]

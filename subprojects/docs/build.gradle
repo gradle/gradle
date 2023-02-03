@@ -39,8 +39,6 @@ dependencies {
 
     userGuideTask 'xalan:xalan:2.7.1'
     userGuideTask 'xerces:xercesImpl:2.11.0'
-    userGuideTask 'xhtmlrenderer:xhtmlrenderer:R8rc1'
-    userGuideTask 'itext:itext:2.0.8'
     userGuideTask 'xslthl:xslthl:2.0.1'
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'

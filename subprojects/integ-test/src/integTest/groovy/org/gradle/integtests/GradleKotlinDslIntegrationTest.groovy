@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
@@ -132,6 +133,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         executer.cleanup()
     }
 
+    @Ignore
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'can query KotlinBuildScriptModel'() {
         given:

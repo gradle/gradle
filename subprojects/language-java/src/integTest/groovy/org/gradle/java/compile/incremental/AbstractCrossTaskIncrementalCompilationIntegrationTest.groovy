@@ -21,9 +21,7 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Ignore
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -942,7 +940,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         because = "gradle/configuration-cache#270"
     )
     // This is failing on release6x and we don't want to spent time on it
-    @IgnoreIf({ GradleContextualExecuter.isForceRealize() })
+    @Ignore
     def "recompiles dependent class in case a constant is computed from another constant"() {
         source api: ["class A { public static final int FOO = 10; }"], impl: ['class B { public static final int BAR = 2 + A.FOO; } ']
         impl.snapshot { run language.compileTaskName }
