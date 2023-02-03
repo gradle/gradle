@@ -23,6 +23,7 @@ import org.gradle.api.capabilities.Capability
 import org.gradle.api.component.Artifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
@@ -53,12 +54,14 @@ class ArtifactCollectionCodec(
     override suspend fun WriteContext.encode(value: ArtifactCollectionInternal) {
         val visitor = CollectingArtifactVisitor()
         value.visitArtifacts(visitor)
+        writeString(value.resolutionHost.displayName)
         writeBoolean(value.isLenient)
         writeCollection(visitor.elements)
         writeCollection(visitor.failures)
     }
 
     override suspend fun ReadContext.decode(): ArtifactCollectionInternal {
+        val displayName = readString()
         val lenient = readBoolean()
         val elements = readList().uncheckedCast<List<Any>>()
 
@@ -67,13 +70,13 @@ class ArtifactCollectionCodec(
             elements.map { element ->
                 when (element) {
                     is FixedFileArtifactSpec -> element.file
-                    is ResolvedArtifactSet -> artifactSetConverter.asFileCollection("unknown configuration", lenient, listOf(element))
+                    is ResolvedArtifactSet -> artifactSetConverter.asFileCollection(displayName, lenient, listOf(element))
                     else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
                 }
             }
         )
         val failures = readList().uncheckedCast<List<Throwable>>()
-        return FixedArtifactCollection(files, lenient, elements, failures, artifactSetConverter)
+        return FixedArtifactCollection(artifactSetConverter.resolutionHost(displayName), files, lenient, elements, failures, artifactSetConverter)
     }
 }
 
@@ -131,6 +134,7 @@ class CollectingArtifactVisitor : ArtifactVisitor {
 
 private
 class FixedArtifactCollection(
+    private val host: ResolutionHost,
     private val artifactFiles: FileCollection,
     private val lenient: Boolean,
     private val elements: List<Any>,
@@ -140,6 +144,10 @@ class FixedArtifactCollection(
 
     private
     var artifactResults: MutableSet<ResolvedArtifactResult>? = null
+
+    override fun getResolutionHost(): ResolutionHost {
+        return host
+    }
 
     override fun isLenient(): Boolean {
         return lenient

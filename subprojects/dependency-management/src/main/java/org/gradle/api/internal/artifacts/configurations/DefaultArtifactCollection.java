@@ -55,6 +55,11 @@ class DefaultArtifactCollection implements ArtifactCollectionInternal {
     }
 
     @Override
+    public ResolutionHost getResolutionHost() {
+        return fileCollection.getResolutionHost();
+    }
+
+    @Override
     public boolean isLenient() {
         return lenient;
     }
