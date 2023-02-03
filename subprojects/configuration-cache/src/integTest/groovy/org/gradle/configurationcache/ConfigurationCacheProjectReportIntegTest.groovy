@@ -26,7 +26,6 @@ class ConfigurationCacheProjectReportIntegTest extends AbstractConfigurationCach
 
     def "configuration cache for Project Report plugin task '#task' on empty project"() {
         given:
-        settingsFile.createFile()
         configurationCacheRun(task, *options)
         def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
             .replaceAll(/Calculating task graph as no configuration cache is available for tasks: ${task}.*\n/, '')
