@@ -53,6 +53,10 @@ public class ArtifactSetToFileCollectionFactory {
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
+    public ResolutionHost resolutionHost(String displayName) {
+        return new NameBackedResolutionHost(displayName);
+    }
+
     /**
      * Presents the contents of the given artifacts as a partial {@link FileCollectionInternal} implementation.
      *
