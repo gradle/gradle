@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,28 +17,18 @@
 package org.gradle.testing.base.internal;
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestSuiteContainer;
-import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
 
-public abstract class DefaultTestingExtension implements TestingExtension {
-    private final TestSuiteContainer suites;
+public class DefaultTestSuiteContainer extends DefaultPolymorphicDomainObjectContainer<TestSuite> implements TestSuiteContainer {
 
     @Inject
-    public DefaultTestingExtension(ObjectFactory objectFactory, InstantiatorFactory instantiatorFactory, ServiceRegistry servicesToInject, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        this.suites = objectFactory.newInstance(DefaultTestSuiteContainer.class, instantiatorFactory, servicesToInject, collectionCallbackActionDecorator);
+    public DefaultTestSuiteContainer(InstantiatorFactory instantiatorFactory, ServiceRegistry servicesToInject, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(TestSuite.class, instantiatorFactory.decorateLenient(), instantiatorFactory.decorateLenient(servicesToInject), collectionCallbackActionDecorator);
     }
-
-    @Inject
-    public abstract ObjectFactory getObjectFactory();
-
-    @Override
-    public TestSuiteContainer getSuites() {
-        return suites;
-    }
-
 }
