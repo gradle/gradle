@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.tooling.r44
+package org.gradle.plugins.ide.tooling.r81
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -23,7 +23,7 @@ import org.gradle.tooling.model.eclipse.EclipseOutputLocation
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 @ToolingApiVersion('>=4.4')
-@TargetGradleVersion(">=4.4 <8.1")
+@TargetGradleVersion(">=8.1")
 class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -36,7 +36,7 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
         EclipseOutputLocation output = project.getOutputLocation()
 
         then:
-        output.path == 'bin/default'
+        output.path == 'bin'
     }
 
     def "Java project has default output location"() {
@@ -48,6 +48,6 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
         EclipseOutputLocation output = project.getOutputLocation()
 
         then:
-        output.path == 'bin/default'
+        output.path == 'bin'
     }
 }

@@ -16,8 +16,8 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.junit.Rule
 
 class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpec {
@@ -158,41 +158,6 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
         EclipseClasspathFixture classpath = classpath('.')
         classpath.sourceDir('src/main/java').assertOutputLocation(null)
         classpath.sourceDir('src/main/resources').assertOutputLocation('out/res')
-    }
-
-    @ToBeFixedForConfigurationCache
-    def "Overlapping default and source folder output paths are deduplicated"() {
-        setup:
-        buildFile << """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
-
-            sourceSets {
-                "default" {
-                    java {
-                        srcDirs 'src/default/java'
-                    }
-                }
-
-                default_ {
-                    java {
-                        srcDirs 'src/default_/java'
-                    }
-                }
-            }
-        """
-        file('src/default/java').mkdirs()
-        file('src/default_/java').mkdirs()
-
-
-        when:
-        run 'eclipse'
-
-        then:
-        EclipseClasspathFixture classpath = classpath('.')
-        classpath.output == 'bin/default'
-        classpath.sourceDir('src/default/java').assertOutputLocation('bin/default_')
-        classpath.sourceDir('src/default_/java').assertOutputLocation('bin/default__')
     }
 
     @ToBeFixedForConfigurationCache
