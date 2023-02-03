@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="output" path="bin/default"/>
+	<classpathentry output="bin/main" kind="src" path="src/main/java">
+		<attributes>
+			<attribute name="gradle_scope" value="main"/>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry output="bin/main" kind="src" path="src/main/resources">
+		<attributes>
+			<attribute name="gradle_scope" value="main"/>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry output="bin/test" kind="src" path="src/test/java">
+		<attributes>
+			<attribute name="gradle_scope" value="test"/>
+			<attribute name="gradle_used_by_scope" value="test"/>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7/"/>
+	<classpathentry kind="src" path="/api">
+		<attributes>
+			<attribute name="without_test_code" value="true"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/joda-time/joda-time/2.5/@SHA1@/joda-time-2.5-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/joda-time/joda-time/2.5/@SHA1@/joda-time-2.5.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/joda-time/joda-time/2.5/@SHA1@/joda-time-2.5-javadoc.jar!/"/>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/commons-collections/commons-collections/3.2.2/@SHA1@/commons-collections-3.2.2-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/commons-collections/commons-collections/3.2.2/@SHA1@/commons-collections-3.2.2.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/commons-collections/commons-collections/3.2.2/@SHA1@/commons-collections-3.2.2-javadoc.jar!/"/>
+			<attribute name="gradle_used_by_scope" value="main,test"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/junit/junit/4.13/@SHA1@/junit-4.13-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/junit/junit/4.13/@SHA1@/junit-4.13.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/junit/junit/4.13/@SHA1@/junit-4.13-javadoc.jar!/"/>
+			<attribute name="gradle_used_by_scope" value="test"/>
+			<attribute name="test" value="true"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/org.hamcrest/hamcrest-core/1.3/@SHA1@/hamcrest-core-1.3-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/org.hamcrest/hamcrest-core/1.3/@SHA1@/hamcrest-core-1.3.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/org.hamcrest/hamcrest-core/1.3/@SHA1@/hamcrest-core-1.3-javadoc.jar!/"/>
+			<attribute name="gradle_used_by_scope" value="test"/>
+			<attribute name="test" value="true"/>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+		</attributes>
+	</classpathentry>
+</classpath>

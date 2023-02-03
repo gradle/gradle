@@ -1,0 +1,3 @@
+class Library {
+    void function() {}
+}

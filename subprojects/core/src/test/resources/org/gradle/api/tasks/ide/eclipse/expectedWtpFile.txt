@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project-modules id="moduleCoreId" project-version="1.5.0">
+  <wb-module deploy-name="name">
+    <property name="context-root" value="name"/>
+    <wb-resource deploy-path="WEB-INF/lib" source-path="conf1"/>
+    <wb-resource deploy-path="WEB-INF/lib" source-path="conf2/child"/>
+    <property name="java-output-path" value="bin"/>
+    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib//lib/a.jar">
+      <dependency-type>uses</dependency-type>
+    </dependent-module>
+    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib//lib/b.jar">
+      <dependency-type>uses</dependency-type>
+    </dependent-module>
+    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/test/test">
+      <dependency-type>uses</dependency-type>
+    </dependent-module>
+  </wb-module>
+</project-modules>

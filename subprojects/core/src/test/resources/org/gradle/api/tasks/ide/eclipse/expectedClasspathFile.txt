@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<classpath>
+  <classpathentry kind="src" path="src/main/java"/>
+  <classpathentry kind="src" path="src/main/resources"/>
+  <classpathentry kind="output" path="bin"/>
+  <classpathentry kind="src" path="src/test/java" output="testbin"/>
+  <classpathentry kind="src" path="src/test/resources" output="testbin"/>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+  <classpathentry kind="src" path="/test" combineaccessrules="false"/>
+  <classpathentry kind="lib" path="lib/a.jar"/>
+  <classpathentry kind="lib" path="lib/b.jar"/>
+</classpath>

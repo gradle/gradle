@@ -1,0 +1,37 @@
+// tag::extraProperties[]
+plugins {
+    id 'java-library'
+}
+
+ext {
+    springVersion = "3.1.0.RELEASE"
+    emailNotification = "build@master.org"
+}
+
+sourceSets.all { ext.purpose = null }
+
+sourceSets {
+    main {
+        purpose = "production"
+    }
+    test {
+        purpose = "test"
+    }
+    plugin {
+        purpose = "production"
+    }
+}
+
+tasks.register('printProperties') {
+    def springVersion = springVersion
+    def emailNotification = emailNotification
+    def productionSourceSets = provider {
+        sourceSets.matching { it.purpose == "production" }.collect { it.name }
+    }
+    doLast {
+        println springVersion
+        println emailNotification
+        productionSourceSets.get().each { println it }
+    }
+}
+// end::extraProperties[]

@@ -1,0 +1,9 @@
+plugins {
+    id("java")
+}
+// tag::project-dependencies[]
+dependencies {
+    implementation(projects.utils)
+    implementation(projects.api)
+}
+// end::project-dependencies[]

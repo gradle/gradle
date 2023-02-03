@@ -1,0 +1,24 @@
+plugins {
+    id 'myproject.java-conventions'
+    id 'application'
+}
+
+dependencies {
+    implementation project(':list')
+    implementation project(':utilities')
+}
+
+application {
+    mainClass = 'org.gradle.sample.app.Main'
+}
+
+// tag::customExec[]
+task('runOn17', type: JavaExec) {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = application.mainClass
+}
+// end::customExec[]

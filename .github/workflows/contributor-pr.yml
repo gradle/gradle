@@ -1,0 +1,125 @@
+name: Contributor CI Build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+concurrency:
+  # On master/release, we don't want any jobs cancelled so the sha is used to name the group
+  # On PR branches, we cancel the job if new commits are pushed
+  group: ${{ (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/release' ) && format('contributor-pr-base-{0}', github.sha) || format('contributor-pr-{0}', github.ref) }}
+  cancel-in-progress: true
+
+
+env:
+  # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
+  GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+  # Enable debug for the `gradle-build-action` cache operations
+  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: "Compile All"
+    runs-on: ubuntu-20.04
+    steps:
+      - name: git clone
+        uses: actions/checkout@v3
+      - id: setup-matrix
+        run: echo "::set-output name=matrix::$(jq -c -f .github/workflows/extract-unit-test-split.jq .teamcity/subprojects.json)"
+      - name: setup java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+      - id: determine-sys-prop-args
+        uses: actions/github-script@v6
+        with:
+          script: |
+            if (context.payload.pull_request && context.payload.pull_request.head.repo.fork) {
+                core.setOutput('sys-prop-args', '-DagreePublicBuildScanTermOfService=yes -DcacheNode=us')
+            } else {
+                core.setOutput('sys-prop-args', '-DcacheNode=us')
+            }
+      - name: assemble
+        id: gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+          arguments: |
+              compileAll
+              --no-configuration-cache
+              -DdisableLocalCache=true
+              ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build-receipt.properties
+          path: subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
+    outputs:
+      matrix: ${{ steps.setup-matrix.outputs.matrix }}
+      sys-prop-args: ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
+
+  sanity-check:
+    name: "Sanity Check on Linux"
+    runs-on: ubuntu-20.04
+    needs: build
+    steps:
+      - name: git clone
+        uses: actions/checkout@v3
+      - name: setup java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+      - uses: actions/download-artifact@v3
+        with:
+          name: build-receipt.properties
+          path: incoming-distributions/build-receipt.properties
+      - name: ./gradlew sanityCheck
+        id: gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+          arguments: |
+              sanityCheck
+              --no-configuration-cache
+              -DdisableLocalCache=true
+              ${{ needs.build.outputs.sys-prop-args }}
+
+  unit-test:
+    name: "${{ matrix.bucket.name }} (Unit Test)"
+    runs-on: ubuntu-20.04
+    needs: build
+    strategy:
+      matrix:
+        bucket: ${{ fromJson(needs.build.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: git clone
+        uses: actions/checkout@v3
+      - name: setup java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+      - uses: actions/download-artifact@v3
+        with:
+          name: build-receipt.properties
+          path: incoming-distributions/build-receipt.properties
+      - name: ./gradlew test
+        id: gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+          arguments: |
+              ${{ matrix.bucket.tasks }}
+              --no-configuration-cache
+              -DdisableLocalCache=true
+              -PflakyTests=exclude
+              ${{ needs.build.outputs.sys-prop-args }}

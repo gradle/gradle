@@ -1,0 +1,73 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>eclipse</literal> and <literal>java</literal> plugins</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>name</td>
+                <td><literal><replaceable>${project.name}</replaceable> (sometimes prefixed with parts of <replaceable>${project.path}</replaceable> to guarantee uniqueness)</literal></td>
+            </tr>
+            <tr>
+                <td>comment</td>
+                <td><literal>project.description</literal></td>
+            </tr>
+            <tr>
+                <td>referencedProjects</td>
+                <td>[]</td>
+            </tr>
+            <tr>
+                <td>natures</td>
+                <td>Java nature, plus Groovy, Scala and Web natures as appropriate.</td>
+            </tr>
+            <tr>
+                <td>buildCommands</td>
+                <td>Java builder, plus Scala and Web builders as appropriate.</td>
+            </tr>
+            <tr>
+                <td>linkedResources</td>
+                <td>[]</td>
+            </tr>
+            <tr>
+                <td>file</td>
+                <td/>
+            </tr>
+            <tr>
+                <td>resourceFilters</td>
+                <td>[]</td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>natures</td>
+            </tr>
+            <tr>
+                <td>referencedProjects</td>
+            </tr>
+            <tr>
+                <td>buildCommand</td>
+            </tr>
+            <tr>
+                <td>linkedResource</td>
+            </tr>
+            <tr>
+                <td>file</td>
+            </tr>
+            <tr>
+                <td>resourceFilter</td>
+            </tr>
+        </table>
+    </section>
+</section>

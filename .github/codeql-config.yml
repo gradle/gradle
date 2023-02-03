@@ -1,0 +1,5 @@
+ame: "Gradle CodeQL Configuration"
+
+paths-ignore:
+  - "**/build/"
+  - out/

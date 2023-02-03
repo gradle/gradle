@@ -1,0 +1,60 @@
+// tag::apply-plugin[]
+plugins {
+    id 'c'
+}
+// end::apply-plugin[]
+
+// tag::libraries[]
+model {
+    components {
+        hello(NativeLibrarySpec)
+    }
+}
+// end::libraries[]
+
+// tag::executables[]
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+               c.lib library: "hello"
+            }
+        }
+    }
+}
+// end::executables[]
+
+// tag::compiler-args[]
+model {
+    binaries {
+        all {
+            // Define toolchain-specific compiler and linker options
+            if (toolChain in Gcc) {
+                cCompiler.args "-O2"
+                linker.args "-Xlinker", "-S"
+            }
+            if (toolChain in VisualCpp) {
+                cCompiler.args "/Zi"
+                linker.args "/DEBUG"
+            }
+        }
+    }
+}
+// end::compiler-args[]
+
+// tag::all-shared-libraries[]
+// For any shared library binaries built with Visual C++,
+// define the DLL_EXPORT macro
+model {
+    binaries {
+        withType(SharedLibraryBinarySpec) {
+            if (toolChain in VisualCpp) {
+                cCompiler.args "/Zi"
+                cCompiler.define "DLL_EXPORT"
+            }
+        }
+    }
+}
+// end::all-shared-libraries[]
+
+

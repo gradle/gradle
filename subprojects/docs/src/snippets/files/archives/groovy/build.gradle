@@ -1,0 +1,54 @@
+// tag::zip[]
+// tag::tar[]
+plugins {
+    id 'java'
+}
+
+// end::tar[]
+// end::zip[]
+
+// tag::unpack-archive-example[]
+tasks.register('unpackFiles', Copy) {
+    from zipTree("src/resources/thirdPartyResources.zip")
+    into layout.buildDirectory.dir("resources")
+}
+// end::unpack-archive-example[]
+
+// tag::unpack-archive-subset-example[]
+tasks.register('unpackLibsDirectory', Copy) {
+    from(zipTree("src/resources/thirdPartyResources.zip")) {
+        include "libs/**"  // <1>
+        eachFile { fcd ->
+            fcd.relativePath = new RelativePath(true, fcd.relativePath.segments.drop(1))  // <2>
+        }
+        includeEmptyDirs = false  // <3>
+    }
+    into layout.buildDirectory.dir("resources")
+}
+// end::unpack-archive-subset-example[]
+
+// tag::zip[]
+tasks.register('zip', Zip) {
+    from 'src/dist'
+    into('libs') {
+        from configurations.runtimeClasspath
+    }
+}
+// end::zip[]
+
+// tag::tar[]
+tasks.register('tar', Tar) {
+    from 'src/dist'
+    into('libs') {
+        from configurations.runtimeClasspath
+    }
+}
+// end::tar[]
+
+// tag::reproducible[]
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+// end::reproducible[]
+

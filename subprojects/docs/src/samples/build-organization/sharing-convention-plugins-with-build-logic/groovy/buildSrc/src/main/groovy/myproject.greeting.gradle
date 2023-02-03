@@ -1,0 +1,3 @@
+tasks.register("greet", com.example.GreetingTask) {
+    greeting = "Hello from 'myproject.greeting' plugin"
+}

@@ -1,0 +1,48 @@
+<!--
+  ~ Copyright 2010 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<ruleset xmlns="http://codenarc.org/ruleset/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
+         xsi:noNamespaceSchemaLocation="http://codenarc.org/ruleset-schema.xsd">
+    <!--<ruleset-ref path='rulesets/basic.xml'>-->
+        <!--<exclude name='ExplicitHashSetInstantiation'/>-->
+        <!--<exclude name='ExplicitCallToAndMethod'/>-->
+        <!--<exclude name='ExplicitCallToOrMethod'/>-->
+    <!--</ruleset-ref>-->
+    <ruleset-ref path='rulesets/braces.xml'/>
+    <ruleset-ref path='rulesets/imports.xml'>
+        <exclude name="ImportFromSunPackages"/>
+        <exclude name="MisorderedStaticImports"/>
+        <exclude name="NoWildcardImports"/>
+    </ruleset-ref>
+    <ruleset-ref path='rulesets/naming.xml'>
+        <rule-config name='ClassName'>
+            <property name='regex' value='^[A-Z][\$a-zA-Z0-9]*$'/>
+        </rule-config>
+        <rule-config name='FieldName'>
+            <property name='finalRegex' value='^[a-z][a-zA-Z0-9]*$'/>
+            <property name='staticFinalRegex' value='^logger$|^[A-Z][A-Z_0-9]*$|^serialVersionUID$'/>
+        </rule-config>
+        <rule-config name='MethodName'>
+            <property name='regex' value='^[a-z][\$_a-zA-Z0-9]*$|^.*\s.*$'/>
+        </rule-config>
+        <rule-config name='VariableName'>
+            <property name='finalRegex' value='^[a-z][a-zA-Z0-9]*$'/>
+        </rule-config>
+        <exclude name="ConfusingMethodName"/>
+        <exclude name="FactoryMethodName"/>
+        <exclude name="ClassNameSameAsSuperclass"/>
+    </ruleset-ref>
+</ruleset>

@@ -1,0 +1,36 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ's Gradle import] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how to create a multi-project containing https://www.oracle.com/corporate/features/understanding-java-9-modules.html[Java Modules].
+Java Modules are a feature of Java itself, available since Java 9, that allows for better encapsulation.
+
+In Gradle, each _source set_ containing Java sources can be turned into a module by adding a `module-info.java` file.
+Typically, in a project with Java Modules like this one, the _main_ source set of a subproject represents a module.
+
+```
+src
+└── main
+    └── java
+        └── module-info.java
+```
+
+In the `module-info.java` file you define dependencies to other modules using keywords like `requires` or `requires transitive`.
+These correspond to the `implementation` and `api` dependencies defined in the Gradle build file.
+In addition, a module `exports` packages that should be visible to consumers.
+Other packages are not visible outside of the module.
+
+```
+module org.gradle.sample.utilities {
+    requires transitive org.gradle.sample.list;
+    exports org.gradle.sample.utilities;
+}
+```
+
+Unit (whitebox) tests that need to access the internals of a module can be written in the traditional way by **not** adding a `module-info.java` to the test source set.
+In test execution, the modules are then treated as standard Java libraries with the encapsulation deactivated.
+
+Blackbox (e.g. integration) tests, which should also follow the encapsulation rules during test execution, can be written by turning the corresponding test sources set itself into a module by adding a `module-info.java`.
+This is shown in link:sample_java_modules_multi_project_with_integration_tests.html[this extended sample].
+
+For more information, see link:{userManualPath}/java_library_plugin.html#sec:java_library_modular[Java Module support in the Java Library Plugin],
+link:{userManualPath}/application_plugin.html#sec:application_modular[Java Module support in the Application Plugin] and
+link:{userManualPath}/java_testing.html#sec:java_testing_modular[testing Java Modules].

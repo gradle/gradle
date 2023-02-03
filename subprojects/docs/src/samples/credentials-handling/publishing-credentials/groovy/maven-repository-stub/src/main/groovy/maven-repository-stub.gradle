@@ -1,0 +1,10 @@
+tasks.withType(PublishToMavenRepository).configureEach {
+    notCompatibleWithConfigurationCache("Configures repository at execution time")
+    doFirst {
+        def address = com.example.MavenRepositoryStub.start()
+        getRepository().setUrl(address)
+    }
+    doLast {
+        com.example.MavenRepositoryStub.stop()
+    }
+}

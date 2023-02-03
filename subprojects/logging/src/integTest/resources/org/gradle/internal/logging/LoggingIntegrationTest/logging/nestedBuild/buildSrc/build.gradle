@@ -1,0 +1,2 @@
+println 'nestedBuild buildSrc quiet'
+logger.info 'nestedBuild buildSrc info'

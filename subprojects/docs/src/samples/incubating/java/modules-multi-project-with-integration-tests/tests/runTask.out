@@ -1,0 +1,18 @@
+> Task :buildSrc:jar UP-TO-DATE
+> Task :list:compileJava UP-TO-DATE
+> Task :list:processResources NO-SOURCE
+> Task :list:classes UP-TO-DATE
+> Task :list:jar UP-TO-DATE
+> Task :utilities:compileJava UP-TO-DATE
+> Task :utilities:processResources NO-SOURCE
+> Task :utilities:classes UP-TO-DATE
+> Task :utilities:jar UP-TO-DATE
+> Task :application:compileJava UP-TO-DATE
+> Task :application:processResources NO-SOURCE
+> Task :application:classes UP-TO-DATE
+> Task :application:jar UP-TO-DATE
+
+> Task :application:run
+Hello, World!
+
+BUILD SUCCESSFUL in 0s

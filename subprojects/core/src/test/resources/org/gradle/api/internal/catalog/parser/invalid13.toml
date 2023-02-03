@@ -1,0 +1,8 @@
+[libraries]
+groovy = { group = "org.codehaus.groovy", name = "groovy", version = "2.5.6" }
+groovy-json = { group = "org.codehaus.groovy", name = "groovy-json", version = "2.5.6" }
+groovy-templates = { group = "org.codehaus.groovy", name = "groovy-templates", version = "2.5.6" }
+
+[bundles]
+groovy = "groovy"
+

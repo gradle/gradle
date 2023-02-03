@@ -1,0 +1,6 @@
+apply plugin: 'groovy'
+
+dependencies {
+    runtimeOnly 'commons-collections:commons-collections:3.2.2@jar'
+    testImplementation 'junit:junit:4.7'
+}

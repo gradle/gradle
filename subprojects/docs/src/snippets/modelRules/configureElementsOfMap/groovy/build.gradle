@@ -1,0 +1,49 @@
+@Managed
+interface Person {
+    String getFirstName()
+    void setFirstName(String n)
+
+    String getLastName()
+    void setLastName(String n)
+}
+
+class PersonRules extends RuleSource {
+    @Model
+    void people(ModelMap<Person> people) {
+    }
+}
+
+apply plugin: PersonRules
+
+// tag::create-and-configure[]
+model {
+    people {
+        john(Person) {
+            println "creating $it"
+            firstName = "John"
+            lastName = "Smith"
+        }
+        all {
+            println "configuring $it"
+        }
+        barry(Person) {
+            println "creating $it"
+            firstName = "Barry"
+            lastName = "Barry"
+        }
+    }
+}
+// end::create-and-configure[]
+
+model {
+    tasks {
+        listPeople(Task) {
+            doLast {
+                def p = $.people
+                p.each {
+                    println "Hello $it.firstName $it.lastName!"
+                }
+            }
+        }
+    }
+}

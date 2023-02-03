@@ -1,0 +1,12 @@
+rootProject.name = 'developer-ci-setup'
+
+// tag::developer-ci-setup[]
+boolean isCiServer = System.getenv().containsKey("CI")
+
+buildCache {
+    remote(HttpBuildCache) {
+        url = 'https://example.com:8123/cache/'
+        push = isCiServer
+    }
+}
+// end::developer-ci-setup[]

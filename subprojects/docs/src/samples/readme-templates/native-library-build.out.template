@@ -1,0 +1,13 @@
+> Task :${subprojectName.raw}:compileDebug${language.raw}
+> Task :${subprojectName.raw}:linkDebug
+> Task :${subprojectName.raw}:assemble
+> Task :${subprojectName.raw}:compileTest${language.raw}
+> Task :${subprojectName.raw}:linkTest
+> Task :${subprojectName.raw}:installTest
+> Task :${subprojectName.raw}:${nativeTestTaskPrefix.raw}Test
+> Task :${subprojectName.raw}:test
+> Task :${subprojectName.raw}:check
+> Task :${subprojectName.raw}:build
+
+BUILD SUCCESSFUL in 0s
+6 actionable tasks: 6 executed

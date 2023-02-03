@@ -1,0 +1,7 @@
+plugins {
+    id("org.gradle.sample.download")
+}
+
+download {
+    resource.uri = uri('https://gradle.org')
+}

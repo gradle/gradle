@@ -1,0 +1,26 @@
+> Task :shared:compileJava
+> Task :shared:processResources
+> Task :shared:classes
+> Task :shared:jar
+> Task :api:compileJava
+> Task :api:processResources
+> Task :api:classes
+> Task :api:jar
+> Task :api:assemble
+> Task :api:compileTestJava
+> Task :api:processTestResources
+> Task :api:testClasses
+> Task :api:test
+> Task :api:check
+> Task :api:build
+> Task :shared:assemble
+> Task :shared:compileTestJava
+> Task :shared:processTestResources
+> Task :shared:testClasses
+> Task :shared:test
+> Task :shared:check
+> Task :shared:build
+> Task :shared:buildNeeded
+> Task :api:buildNeeded
+
+BUILD SUCCESSFUL in 0s

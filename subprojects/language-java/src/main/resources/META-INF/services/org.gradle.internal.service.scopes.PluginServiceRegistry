@@ -1,0 +1,2 @@
+org.gradle.language.java.internal.JavaToolChainServiceRegistry
+org.gradle.language.java.internal.JavaLanguagePluginServiceRegistry

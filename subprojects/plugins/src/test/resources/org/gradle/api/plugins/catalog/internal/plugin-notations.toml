@@ -1,0 +1,16 @@
+[plugins]
+simple = "org.example:1.0"
+with-id = { id = "org.example", version = "1.1"}
+with-ref = { id = "org.example", version.ref = "ref"}
+with-rich1 = { id = "org.example", version = { prefer = "1.0" } }
+with-rich2 = { id = "org.example", version.prefer = "1.0" }
+with-rich3 = { id = "org.example", version.require = "1.0" }
+with-rich4 = { id = "org.example", version.strictly = "1.0" }
+with-rich5 = { id = "org.example", version = { rejectAll = true } }
+with-rich6 = { id = "org.example", version = { require = "1.0", reject = ["1.1", "1.2"] } }
+
+indirect.id = "org.example"
+indirect.version = "1.5"
+
+[versions]
+ref = "1.6"

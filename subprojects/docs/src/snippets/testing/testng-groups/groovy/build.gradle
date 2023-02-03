@@ -1,0 +1,20 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.testng:testng:6.3.1'
+}
+
+// tag::test-config[]
+test {
+    useTestNG {
+        excludeGroups 'integrationTests'
+        includeGroups 'unitTests'
+    }
+}
+// end::test-config[]

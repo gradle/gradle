@@ -1,0 +1,24 @@
+// tag::multiple-repositories[]
+repositories {
+    mavenCentral()
+    maven {
+        url "https://repo.spring.io/release"
+    }
+    maven {
+        url "https://repository.jboss.org/maven2"
+    }
+}
+// end::multiple-repositories[]
+
+configurations {
+    libs
+}
+
+dependencies {
+    libs 'jboss:jboss-system:4.2.2.GA'
+}
+
+tasks.register('copyLibs', Copy) {
+    from configurations.libs
+    into layout.buildDirectory.dir('libs')
+}

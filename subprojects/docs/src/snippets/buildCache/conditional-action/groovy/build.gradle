@@ -1,0 +1,23 @@
+plugins {
+    id('java-library')
+}
+
+// tag::conditionalAction[]
+if (System.getenv().containsKey("CI")) {
+    tasks.withType(Test).configureEach {
+        doFirst {
+            println "Running test on CI"
+        }
+    }
+}
+// end::conditionalAction[]
+
+// tag::unconditionalAction[]
+tasks.withType(Test).configureEach {
+    doFirst {
+        if (System.getenv().containsKey("CI")) {
+            println "Running test on CI"
+        }
+    }
+}
+// end::unconditionalAction[]

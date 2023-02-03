@@ -1,0 +1,1739 @@
+/*! normalize.css v7.0.0 | MIT License | github.com/necolas/normalize.css */html{line-height:1.15;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}article,aside,footer,header,nav,section{display:block}h1{font-size:2em;margin:.67em 0}figcaption,figure,main{display:block}figure{margin:1em 40px}hr{box-sizing:content-box;height:0;overflow:visible}pre{font-family:monospace,monospace;font-size:1em}a{background-color:transparent;-webkit-text-decoration-skip:objects}abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}b,strong{font-weight:inherit}b,strong{font-weight:bolder}code,kbd,samp{font-family:monospace,monospace;font-size:1em}dfn{font-style:italic}mark{background-color:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}audio,video{display:inline-block}audio:not([controls]){display:none;height:0}img{border-style:none}svg:not(:root){overflow:hidden}button,input,optgroup,select,textarea{font-family:sans-serif;font-size:100%;line-height:1.15;margin:0}button,input{overflow:visible}button,select{text-transform:none}[type=reset],[type=submit],button,html [type=button]{-webkit-appearance:button}[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner,button::-moz-focus-inner{border-style:none;padding:0}[type=button]:-moz-focusring,[type=reset]:-moz-focusring,[type=submit]:-moz-focusring,button:-moz-focusring{outline:1px dotted ButtonText}fieldset{padding:.35em .75em .625em}legend{box-sizing:border-box;color:inherit;display:table;max-width:100%;padding:0;white-space:normal}progress{display:inline-block;vertical-align:baseline}textarea{overflow:auto}[type=checkbox],[type=radio]{box-sizing:border-box;padding:0}[type=number]::-webkit-inner-spin-button,[type=number]::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}[type=search]::-webkit-search-cancel-button,[type=search]::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}details,menu{display:block}summary{display:list-item}canvas{display:inline-block}template{display:none}[hidden]{display:none}
+
+/* Lato (bold, regular) */
+@font-face {
+    font-display: swap;
+    font-family: Lato;
+    font-weight: 500;
+    font-style: normal;
+    src: url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff2") format("woff2"),
+         url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff") format("woff");
+}
+
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-family: "Lato", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+body {
+    color: #02303A;
+    background-color: #fff;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: #1DA2BD;
+    text-decoration: none;
+}
+
+a:hover, a:focus {
+    text-decoration: underline;
+}
+
+a strong {
+    color: inherit;
+}
+
+img {
+    max-width: 100%;
+}
+
+table {
+    width: 100%;
+    font-size: 85%;
+    border: 1px solid #e5e5e5;
+    border-collapse: collapse;
+}
+
+.table-contents {
+    overflow-x: auto;
+    padding-left: 0.6rem;
+    margin-bottom: 1rem;
+}
+
+td,
+th {
+    padding: .25rem .5rem;
+    border: 1px solid #e5e5e5;
+}
+
+th {
+    text-align: left;
+}
+
+.content tbody tr:nth-child(odd) td,
+.content tbody tr:nth-child(odd) th {
+    background-color: #f9f9f9;
+}
+
+/* typography */
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    color: #02303A;
+    text-rendering: optimizeLegibility;
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+h2 {
+    margin-top: 2.5rem;
+    font-size: 1.5rem;
+}
+
+h3 {
+    margin-top: 1.5rem;
+    font-size: 1.125rem;
+}
+
+h4, h5, h6 {
+    margin-top: 1rem;
+    font-size: 1.0625rem;
+}
+
+p {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+}
+
+dt {
+    font-weight: 700;
+}
+
+dd {
+    margin-bottom: 0.5rem;
+    margin-left: 1.5em;
+}
+
+dd p {
+    margin-top: 0;
+}
+
+hr {
+    position: relative;
+    border: 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #fff;
+    margin: 0;
+}
+
+ul, ol, dl {
+    list-style-position: outside;
+    line-height: 1.6;
+    margin: 0 0 1.25rem 1.5em;
+    padding: 0;
+}
+
+ul {
+    list-style-type: disc;
+}
+
+ol {
+    list-style-type: decimal;
+}
+
+dl dt {
+    font-weight: normal;
+}
+
+tfoot {
+    font-style: italic;
+}
+
+caption {
+    background: #eee;
+}
+
+abbr, acronym {
+    font-size: 85%;
+    font-weight: bold;
+    color: #555;
+    text-transform: uppercase;
+}
+
+abbr[title], acronym[title] {
+    cursor: help;
+    border-bottom: 1px dotted #e5e5e5;
+}
+
+b, strong, dfn {
+    font-weight: 700;
+}
+
+em, dfn {
+    font-style: italic;
+}
+
+sup, sub {
+    line-height: 0;
+}
+
+address {
+    margin: 0 0 1.5em;
+    font-style: italic;
+}
+
+del {
+    color: #666;
+}
+
+blockquote {
+    padding: .5rem 1rem;
+    margin: .8rem 0;
+    color: #7a7a7a;
+    border-left: .25rem solid #e5e5e5;
+}
+
+blockquote p:first-child {
+    margin-top: 0;
+}
+
+blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+@media (min-width: 30em) {
+    blockquote {
+        padding-right: 5rem;
+        padding-left: 1.25rem;
+    }
+}
+
+/* layout */
+.container, .appendix, .book, .chapter, .footer {
+    background-color: white;
+    border-radius: 5px;
+    padding: 1.5rem;
+}
+
+.container, .appendix, .footer {
+    max-width: 45rem;
+}
+
+.container {
+    margin: 2rem auto;
+}
+
+.content, .text-container {
+    width: 60rem;
+}
+
+.content-container {
+    min-height: calc(100vh - 60px);
+}
+
+.content, .sidebar {
+    display: inline-block;
+}
+
+.sidebar {
+    float: right;
+    width: 12.5rem;
+}
+
+@media screen and (max-width: 45em) {
+    .container, .footer {
+        max-width: 100%;
+    }
+    .content {
+        display: block;
+        width: auto;
+    }
+    .sidebar {
+        display: none;
+    }
+    .container,
+    .main-content > .appendix,
+    .main-content > .book,
+    .main-content > .chapter {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+}
+
+/* code */
+code { color: rgba(0, 0, 0, 0.9); }
+
+code, pre {
+    background-color: #f7f7f8;
+    border-radius: 4px;
+    font-family: "Droid Sans Mono", "DejaVu Sans Mono", monospace;
+    font-size: 1em;
+    font-style: normal;
+}
+
+.example-contents > p > code {
+    line-height: 1.0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+*:not(pre) > code {
+    font-size: 0.9375em;
+    letter-spacing: 0;
+    padding: 0.1em 0.5ex;
+    text-rendering: optimizeSpeed;
+    word-spacing: -0.15em;
+    word-wrap: break-word;
+}
+
+pre {
+    line-height: 1.45;
+    margin-top: 0;
+    margin-bottom: 1.5em;
+    padding: 1rem;
+}
+
+pre code {
+    background-color: transparent;
+    color: inherit;
+    line-height: 1.45;
+    font-size: 100%;
+    padding: 0;
+}
+
+a code {
+    color: #1BA8CB;
+}
+
+pre.code, pre.programlisting, pre.screen, pre.tt {
+    background-color: #f7f7f8;
+    border-radius: 4px;
+    font-size: 1em;
+    line-height: 1.45;
+    margin-bottom: 1.25em;
+    overflow-x: auto;
+    padding: 1rem;
+}
+
+tbody tr:nth-child(even) td, tbody tr.even td {
+    background: #F7F7F7;
+}
+
+li em, p em {
+    padding: 0 1px;
+}
+
+code em, tt em {
+    text-decoration: none;
+}
+
+/* util classes */
+.left {
+    float: left !important;
+}
+
+p .left {
+    margin: 1.5em 1.5em 1.5em 0;
+    padding: 0;
+}
+
+.right {
+    float: right !important;
+}
+
+p .right {
+    margin: 1.5em 0 1.5em 1.5em;
+    padding: 0;
+}
+
+.small {
+    font-size: .8em;
+    margin-bottom: 1.875em;
+    line-height: 1.875em;
+}
+
+.large {
+    font-size: 1.2em;
+    line-height: 2.5em;
+    margin-bottom: 1.25em;
+}
+
+.hide {
+    display: none;
+}
+
+.quiet {
+    color: #666;
+}
+
+.loud {
+    color: #000;
+}
+
+.lead {
+    font-size: 1.25rem;
+    font-weight: 300;
+}
+
+.highlight {
+    background: #ff0;
+}
+
+.added {
+    background: #060;
+    color: #fff;
+}
+
+.removed {
+    background: #900;
+    color: #fff;
+}
+
+.first {
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.last {
+    margin-right: 0;
+    padding-right: 0;
+}
+
+.top {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.bottom {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.citetitle {
+    font-style: normal;
+}
+
+table th.border-right {
+    border-right: solid #d0d0d0 1px;
+}
+
+table th.no-border-bottom {
+    border-bottom: none;
+}
+
+h3.releaseinfo {
+    color: #999;
+    font-weight: normal;
+    margin-top: -0.5em;
+}
+
+/* Site header specific styles */
+.hamburger {
+    background-color: transparent;
+    background-image: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: auto;
+    padding: 11px 10px;
+}
+
+.hamburger:focus {
+    outline: 0;
+}
+
+.hamburger__bar {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background-color: black;
+    border-radius: 1px;
+}
+
+.hamburger__bar + .hamburger__bar {
+    margin-top: 4px;
+}
+
+.site-header {
+    background-color: white;
+}
+
+/* Override javadoc styles */
+.site-header div {
+    font-family: 'Lato', Arial, sans-serif;
+}
+
+.site-header__navigation-header a {
+    align-self: center;
+    border-bottom: 0 none;
+    height: 36px;
+}
+
+.site-header .site-header-version {
+    align-self: center;
+    color: #1da2bd;
+    font-size: 20px;
+    padding-left: 1px;
+    margin-top: 22px;
+}
+
+.site-header__navigation {
+    display: flex;
+    flex-direction: column;
+}
+
+.site-header__navigation-header {
+    display: flex;
+    flex: 0 0 auto;
+    margin-left: 12px;
+}
+
+.site-header__navigation-collapsible {
+    flex: 1 1 auto;
+    height: 210px;
+    overflow: visible;
+    transition: height 0.3s ease;
+}
+
+.site-header__navigation-items {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    max-height: 210px; /* This matches the collapsible height above */
+    margin: 0 20px;
+    padding-top: 12px;
+    padding-left: 0;
+    list-style-type: none;
+}
+
+.site-header__navigation-item {
+    flex: 0 1 auto;
+    font-size: 16px;
+    width: 250px;
+}
+
+.site-header__navigation-item .site-header__navigation-link {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    width: 100%;
+    padding: 5px;
+    line-height: 20px;
+    border: 0 none;
+    color: #02303A;
+    text-decoration: none;
+    transition: none;
+    -o-transition: none;
+    -moz-transition: none;
+    -webkit-transition: none;
+}
+
+.site-header__navigation-item .site-header__navigation-link:hover {
+    color: #1DA2BD;
+}
+
+.site-header__navigation-item .site-header__navigation-link.active {
+    font-weight: 500;
+}
+
+/* Navigation submenu styles */
+.site-header__navigation-submenu-section {
+    position: relative;
+}
+
+.site-header__navigation-submenu-section .site-header__down-arrow {
+    width: 8px;
+    height: 8px;
+    margin-left: 2px;
+    margin-top: 0;
+}
+
+.site-header__navigation-submenu-section .site-header__navigation-link:hover path {
+    fill: none;
+}
+
+.site-header__navigation-submenu-section .site-header__navigation-submenu .site-header__navigation-submenu-item-link:hover {
+    color: #1DA2BD;
+}
+
+.site-header__navigation-submenu-section .site-header__navigation-submenu {
+    display: none;
+    width: 170px;
+    background-color: white;
+    top: 40px;
+    left: 7px; /* NOTE: This must match the padding of .site-header__navigation-link */
+    padding: 3px 10px 6px 10px;
+    z-index: 100;
+}
+
+.site-header__navigation-submenu-section .site-header__navigation-submenu .site-header__navigation-submenu-item-link {
+    width: 100%;
+    color: #02303A;
+    white-space: nowrap;
+    display: inline-block;
+    padding-top: 3px;
+    border: 0 none;
+    transition: none;
+    -o-transition: none;
+    -moz-transition: none;
+    -webkit-transition: none;
+}
+
+.site-header__navigation-submenu-section .site-header__navigation-submenu .site-header__navigation-submenu-item-link .site-header__navigation-submenu-item-link-text {
+    display: inline-block;
+    font-size: 16px;
+}
+
+.site-header__navigation-submenu-section.open .site-header__navigation-submenu {
+    display: block;
+}
+
+/* Top navigation mobile styles */
+@media (max-width: 1023px) {
+    .site-header__navigation-collapsible--collapse {
+        height: 0;
+        overflow-y: hidden;
+    }
+
+    .site-header__navigation-submenu-section .site-header__navigation-submenu {
+        padding: 0 1rem 0.5rem 1.5rem;
+        display: block;
+        top: 30px !important;
+        left: 0 !important;
+    }
+
+    .site-header__navigation-item,
+    .site-header__navigation-submenu-section .site-header__navigation-submenu .site-header__navigation-submenu-item-link .site-header__navigation-submenu-item-link-text {
+        font-size: 18px;
+    }
+
+    .site-header {
+        padding: 5px 12px;
+    }
+
+    .site-header-version {
+        display: none;
+    }
+
+    .site-footer__navigation {
+        flex-direction: column;
+    }
+
+    .site-footer__links {
+        flex-wrap: wrap;
+    }
+
+    .site-footer__link-group {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Top navigation desktop styles */
+@media (min-width: 1024px) {
+    .site-header {
+        -webkit-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
+        -moz-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
+        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
+        z-index: 1;
+    }
+
+    /*
+      Pushes the section headings to just below the top nav bar when a user
+      navigates directly to section anchors.
+     */
+    #content h2[id], #content h3[id], #content h4[id] {
+        padding-top: 60px;
+    }
+
+    #content h2[id] {
+        /* Little extra room above h2s */
+        margin-top: -1em;
+    }
+
+    #content h3[id], #content h4[id] {
+        margin-top: -60px;
+    }
+
+    .site-header__navigation {
+        flex-direction: row;
+    }
+
+    .site-header__navigation-button {
+        display: none;
+    }
+
+    .site-header__navigation-items {
+        flex-direction: row;
+        align-items: center;
+        float: right;
+        width: auto;
+        padding-top: 0;
+    }
+
+    .site-header__navigation-item {
+        width: auto;
+    }
+
+    .site-header__navigation-item .site-header__navigation-link {
+        padding: 15px 18px;
+    }
+
+    .site-header__navigation-item:last-of-type .site-header__navigation-link {
+        padding-right: 0;
+    }
+
+    .site-header__navigation-link--button {
+        padding: 6px 12px;
+    }
+
+    .site-header__navigation-collapsible {
+        height: auto;
+    }
+
+    .site-header__navigation-submenu-section .site-header__navigation-submenu {
+        position: absolute;
+        border: 1px solid #9a9a9a;
+        border-radius: 3px;
+    }
+
+    .site-header__navigation-submenu-section:hover .site-header__navigation-submenu {
+        display: block;
+    }
+
+    /*
+      Pushes the section headings to just below the top nav bar when a user
+      navigates directly to section anchors. It doesn't work if you try
+      to apply the padding and margin to the `h` elements directly.
+     */
+    .chapter a[name],
+    .chapter .anchor {
+        padding-top: 60px;
+        margin-top: -60px;
+        text-decoration: none;
+        border: none;
+        display: inline-block;
+    }
+}
+
+/* Docs Navigation */
+.docs-navigation .search-container {
+    display: none;
+    margin-bottom: 1rem;
+}
+
+.docs-navigation .search-input {
+    height: 30px;
+    line-height: 30px;
+    box-sizing: border-box;
+    border: 1px solid #e3e3e3;
+    border-radius: 3px;
+    color: #666;
+    outline: none;
+    margin-right: 10px;
+    transition: border-color 0.2s ease;
+    background: white url('data:image/svg+xml;utf8,<svg height="20px" version="1.1" viewBox="0 0 32 32" width="20px" xmlns="http://www.w3.org/2000/svg"><g fill="#cccccc" fill-rule="evenodd" stroke="none" stroke-width="1"><path d="M19.4271164,21.4271164 C18.0372495,22.4174803 16.3366522,23 14.5,23 C9.80557939,23 6,19.1944206 6,14.5 C6,9.80557939 9.80557939,6 14.5,6 C19.1944206,6 23,9.80557939 23,14.5 C23,16.3366522 22.4174803,18.0372495 21.4271164,19.4271164 L27.0119176,25.0119176 C27.5621186,25.5621186 27.5575313,26.4424687 27.0117185,26.9882815 L26.9882815,27.0117185 C26.4438648,27.5561352 25.5576204,27.5576204 25.0119176,27.0119176 L19.4271164,21.4271164 L19.4271164,21.4271164 Z M14.5,21 C18.0898511,21 21,18.0898511 21,14.5 C21,10.9101489 18.0898511,8 14.5,8 C10.9101489,8 8,10.9101489 8,14.5 C8,18.0898511 10.9101489,21 14.5,21 L14.5,21 Z"/></g></svg>') no-repeat 8px 5px;
+    background-size: 20px;
+    vertical-align: middle !important;
+    width: 100%;
+    padding-left: 10px;
+}
+
+.docs-navigation .search-input:focus {
+    border-color: #1BA8CB;
+}
+
+.docs-navigation .search-input::placeholder {
+    color: #ccc;
+}
+
+/* Docsearch overrides */
+.docs-navigation .algolia-autocomplete {
+    display: block !important;
+    flex: 1;
+}
+
+.docs-navigation .algolia-autocomplete .ds-dropdown-menu {
+    width: 100px;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: .75rem 0 !important;
+    background-color: #fff !important;
+    background-clip: padding-box;
+    border: 1px solid #e3e3e3 !important;
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .175) !important;
+    position: fixed !important;
+    top: 103px;
+    left: 25px;
+}
+
+.docs-navigation .algolia-autocomplete .ds-dropdown-menu [class^="ds-dataset-"] {
+    padding: 0 !important;
+    overflow: visible !important;
+    background-color: transparent !important;
+    border: 0 !important;
+    position: inherit !important;
+    top: 112px;
+    left: 25px;
+}
+
+.docs-navigation .algolia-autocomplete .ds-dropdown-menu .ds-suggestions {
+    margin-top: 0 !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion {
+    padding: 0 15px !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--category-header {
+    font-weight: 800 !important;
+    color: #1BA8CB !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--wrapper {}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--subcategory-column {}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--content {
+    padding: 0 !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--title {
+    display: block !important;
+    color: #02303A;
+    padding: .25rem 1rem !important;
+    margin-bottom: 0 !important;
+    font-weight: 500 !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--text {
+    padding: 0 1rem .5rem !important;
+    margin-top: -.25rem !important;
+    font-size: 0.9em !important;
+    font-weight: 400 !important;
+    line-height: 1.25 !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-footer {
+    float: none !important;
+    width: auto !important;
+    height: auto !important;
+    padding: .75rem 1rem 0;
+    font-size: .875rem !important;
+    line-height: 1 !important;
+    color: #767676 !important;
+    border-top: 1px solid #e3e3e3 !important;
+    text-align: right;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-footer a {
+    font-size: .875rem;
+    text-decoration: underline;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-footer--logo {
+    display: inline !important;
+    overflow: visible !important;
+    color: inherit !important;
+    text-indent: 0 !important;
+    background: none !important;
+}
+
+.docs-navigation .algolia-autocomplete .algolia-docsearch-suggestion--highlight {
+    background-color: rgba(143, 187, 237, .1) !important;
+}
+
+.docs-navigation .algolia-autocomplete .ds-suggestion .ds-cursor .algolia-docsearch-suggestion--content {
+    background-color: rgba(208, 189, 236, .15) !important;
+}
+
+/* Side Navigation styles */
+/* Docs Navigation */
+.docs-navigation {
+    display: none;
+    padding-left: 5px;
+    padding: 20px 20px 20px 26px;
+    background: #f8f8f7;
+    border-right: 1px solid #e7e7e9;
+    overflow: auto;
+}
+
+.docs-navigation a {
+    color: #02303A;
+    display: block;
+    font-size: .80rem;
+    position: relative;
+}
+
+.docs-navigation a:focus {
+    outline: none;
+}
+
+.docs-navigation a:hover {
+    color: #35c1e4;
+    text-decoration: none;
+}
+
+.docs-navigation a code {
+    color: #02303A;
+    overflow-wrap: break-word;
+    padding: 0;
+    word-break: break-all;
+}
+
+.docs-navigation a.active {
+    text-decoration: underline;
+    outline: 0;
+    border: none;
+    outline-style: none;
+    -moz-outline-style: none;
+}
+
+.docs-navigation a.active:hover {
+    color: #35c1e4;
+    text-decoration: underline;
+}
+
+.docs-navigation .reference-links {
+    font-size: 1.0rem;
+}
+
+.docs-navigation ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.docs-navigation li > ul > li a {
+    font-size: 14px;
+    color: #7d7d7d;
+}
+
+.docs-navigation ul:last-of-type {
+    margin-bottom: 0;
+}
+
+.docs-navigation li {
+    margin-top: 0.3334em;
+    line-height: 1.3334;
+}
+.docs-navigation li:last-of-type {
+    margin-bottom: 0;
+}
+
+.docs-navigation .nav-dropdown:before {
+    content: '\2023';
+    font-size: 28px;
+    position: absolute;
+    margin-left: -14px;
+    margin-top: -8px;
+}
+
+.docs-navigation .nav-dropdown.expanded:before {
+    transform: rotate(90deg);
+}
+
+.docs-navigation > ul ul,
+.docs-navigation > ul ul ul {
+    display: none;
+    height: 0;
+    margin-left: 1rem;
+}
+
+.docs-navigation > ul ul:target,
+.docs-navigation > ul ul:target ul,
+.docs-navigation > ul .nav-dropdown.expanded ~ ul {
+    display: block;
+    height: auto;
+}
+
+.docs-navigation h3 {
+    font-size: .95rem;
+    font-weight: 600;
+    line-height: 1.5;
+    margin: 1.5em 0 0;
+}
+
+@media screen and (min-width: 45rem) {
+    .main-content {
+        display: flex;
+        justify-content: center;
+    }
+}
+
+/* User guide navigation appears for desktops */
+@media screen and (min-width: 64rem) {
+    .docs-navigation {
+        display: block;
+        flex: 0 0 auto;
+        width: 13.75rem;
+    }
+
+    .main-content > .appendix,
+    .main-content > .book,
+    .main-content > .chapter {
+        flex: 0 0 auto;
+        margin: 0 auto;
+    }
+}
+
+/* Table of Contents */
+.toc p {
+    font-size: 1em;
+}
+.toc dl dt,
+.toc a {
+    line-height: 1.0;
+}
+.toc dl dt {
+    padding-bottom: 0.625rem;
+}
+.toc a {
+    color: #1DA2BD;
+}
+.toc p {
+    font-size: 1.5em;
+    margin-bottom: 0.5em;
+}
+.toc dl, .list-of-examples dl {
+    margin-left: 0;
+}
+
+.navheader, .navfooter, .navbar {
+    display: none;
+}
+
+/* Userguide Meta */
+.chapter-meta {
+    float: right;
+    text-align: right;
+}
+
+.chapter-meta .edit-link {
+    color: #999;
+    font-size: 0.9em;
+    padding-right: 3px;
+}
+
+.chapter-meta .edit-link svg {
+    margin-right: 1px;
+}
+
+/* Clever use of RTL to fill in all stars to left of hover position */
+.rating {
+    direction: rtl;
+}
+.rating > .star {
+    cursor: pointer;
+    padding: 3px;
+}
+.rating > .star:hover > svg > g,
+.rating > .star:hover ~ .star > svg > g,
+.rating > .star.selected > svg > g,
+.rating > .star.selected ~ .star > svg > g {
+    fill: #999;
+}
+
+/* Footer styles */
+.site-footer {
+}
+
+.site-footer__navigation {
+    display: flex;
+    padding: 30px 12px;
+    max-width: 62.5rem;
+    margin: 0 auto;
+    padding-left: 5rem
+}
+
+.site-footer__links {
+    display: flex;
+    flex: 1 1 auto;
+}
+
+.site-footer__links .site-footer__links-list {
+    list-style-type: none;
+    margin: 0;
+}
+
+.site-footer__links .site-footer__links-list a {
+    color: #ddd;
+}
+
+.site-footer__link-group {
+    flex: 1 1 auto;
+    flex-basis: 175px;
+}
+
+.site-footer__link-group header {
+    color: #fff;
+}
+
+.site-footer__subscribe-newsletter .newsletter-form__header h5 {
+    color: #fff;
+    margin-top: 0;
+}
+
+.site-footer__subscribe-newsletter p {
+    font-size: 0.875rem;
+    margin: 2px 0 0 2px;
+    opacity: 0.7;
+}
+.site-footer__subscribe-newsletter .disclaimer {
+    color: #ddd;
+    font-size: 0.75rem;
+    opacity: 0.55;
+}
+.site-footer__subscribe-newsletter .newsletter-form {
+    padding-top: 6px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.site-footer__subscribe-newsletter .email,
+.site-footer__subscribe-newsletter .submit {
+    height: 40px;
+}
+
+.site-footer__subscribe-newsletter .email {
+    line-height: 40px;
+    width: 250px;
+    color: #1DA2BD;
+    font-size: 16px;
+    padding-left: 20px;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-style: none;
+}
+
+.site-footer__subscribe-newsletter .submit {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    width: 100px;
+    background-color: #1BA8CB;
+    color: white;
+    font-weight: 500;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border-style: none;
+    cursor: pointer;
+    transition: all .3s ease;
+}
+
+/* Secondary footer (below) */
+.site-footer-secondary {
+    background-color: white;
+    border-top: 1px solid #e7e7e9;
+    width: 100%;
+    z-index: 1;
+}
+
+.site-footer-secondary__contents {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 75rem;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+}
+
+/*
+ * 1. Value is the largest computed width among 'site-footer__copy' and 'site-footer__links'.
+ */
+.site-footer__copy,
+.site-footer__secondary-links {
+    flex-grow: 0;
+    flex-basis: 280px;
+    /* 1. */
+}
+
+/*
+ * 1. 'flex-shrink: 1' is applied to the element with the smallest computed width among
+ *    'site-footer__copy' and 'site-footer__links'.
+ */
+.site-footer__copy {
+    flex-shrink: 1;
+    /* 1. */
+}
+
+.site-footer__logo {
+    flex: 0 0 auto;
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+.site-footer__logo svg {
+    width: 35px;
+    height: 35px;
+}
+
+/*
+ * 1. 'flex-shrink: 0' is applied to the element with the largest computed width among
+ *    'site-footer__copy' and 'site-footer__links'.
+ */
+.site-footer__secondary-links {
+    flex-shrink: 0;
+    /* 1 */
+    text-align: right;
+    white-space: nowrap;
+}
+
+.site-footer-secondary a {
+    color: #999;
+}
+
+.site-footer-secondary__links a:not(:last-child) {
+    padding-right: 10px;
+}
+
+.site-footer-secondary__links a:not(:first-child) {
+    padding-left: 10px;
+}
+
+@media all and (max-width: 29.99rem) {
+    .site-footer__navigation {
+        margin: 0.5rem auto;
+    }
+
+    .site-footer__rights,
+    .site-footer-secondary__links {
+        display: none;
+    }
+
+    .site-footer__link-group {
+        margin-bottom: 1rem;
+    }
+
+    .site-footer__logo {
+        order: 1;
+        text-align: left;
+    }
+
+    .site-footer__copy {
+        order: 2;
+        text-align: right;
+    }
+}
+
+/* Avoid the footer taking up much of the screen on short displays */
+@media all and (max-height: 56.25rem) {
+    .site-footer__navigation {
+        margin: 1rem auto 1rem auto;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+}
+
+@media screen and (min-width: 84.375rem) {
+    .ui-logos .ui-logo {
+        box-shadow: 0 6px 15px 1px rgba(0, 0, 0, 0.56);
+    }
+}
+
+/* User Manual Home */
+.technology-logos,
+.ui-logos {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.technology-logo,
+.ui-logo {
+    flex: 0 1 auto;
+}
+
+.ui-logo {
+    width: 224px;
+    height: 135px;
+    margin: 12px;
+}
+
+.segmentedlist {
+    margin-top: 1.6em;
+    margin-bottom: 1.6em;
+}
+
+.segmentedlist table, .table table {
+    border: solid #d0d0d0 1px;
+    border-collapse: collapse;
+    margin-left: -10px;
+    margin-right: -10px;
+}
+
+.segmentedlist th {
+    padding: 0.3em 0.8em;
+    color: #505050;
+}
+
+.segmentedlist td {
+    padding: 0.3em 0.8em;
+}
+
+.segmentedlist dt,
+.variablelist dt {
+    font-weight: bold;
+}
+
+.variablelist dt a {
+    font-weight: normal;
+}
+
+.itemizedlist li p,
+.example pre,
+.figure pre {
+    margin-top: 0;
+    margin-bottom: 0.625rem;
+}
+
+.example, .figure, .table {
+    margin-top: 0;
+    margin-bottom: 1.8em;
+}
+
+.example .title, .figure .title, .table .title {
+    margin-top: 0;
+    margin-bottom: 0.6rem;
+}
+
+.example-contents > p {
+    margin: 0;
+}
+
+.example-break, .figure-break {
+    display: none;
+}
+
+.exampleLocation .emphasis em {
+    font-style: normal;
+    font-weight: bold;
+}
+
+.appendix h1 {
+    margin-bottom: 1.0em;
+}
+
+.footnote sup {
+    vertical-align: baseline;
+    font-size: 100%;
+}
+
+.note p:first-child, .tip p:first-child {
+    margin-top: 0;
+}
+
+.note > :last-child, .tip > :last-child, .examplelocation > :last-child {
+    margin-bottom: 0;
+}
+
+.note, .tip, .exampleLocation {
+    border-left: 1px solid #ddddd8;
+    color: rgba(0,0,0,0.6);
+    margin: 0 0 1.5em 1.25em;
+    padding-left: 1.125em;
+    padding-right: 1.25em;
+}
+
+.note p:first-child:before {
+    content: "Note: ";
+    font-weight: bold;
+}
+
+.tip p:first-child:before {
+    content: "Tip: ";
+    font-weight: bold;
+}
+
+.note .title, .tip .title {
+    margin-left: 0px;
+}
+
+.tip h1, .note h1
+.tip h2, .note h2,
+.tip h3, .note h3,
+.tip h4, .note h4,
+.tip h5, .note h5,
+.tip h6, .note h6 {
+    margin-top: 0;
+}
+
+.literal, .filename {
+    white-space: nowrap;
+}
+
+.caution {
+    font-size: 15px;
+    color: #AF5252;
+    background-color: pink;
+    font-style: italic;
+    border-radius: 3px;
+    display: inline-block;
+    padding: 0 5px;
+    margin-bottom: 8px;
+}
+
+.caution :last-child {
+    margin-bottom: 0;
+}
+
+table .caution {
+    font-size: 13px;
+    margin-right: 6px;
+    margin-top: 2px;
+    margin-bottom: 0px;
+    display: inline;
+    text-transform: lowercase;
+}
+
+.signature {
+    background-color: #f5f5f5;
+    border: solid #e7e7e7 1px;
+    color: #666666;
+    width: auto;
+    margin-right: -0.8em;
+    margin-left: -0.8em;
+    padding: 0.3em 0.8em;
+    font-weight: normal;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    font-family: "Ubuntu Mono", courier, monospace;
+    text-shadow: none;
+}
+
+.signature .literal {
+    color: #04598D;
+    padding-left: 0.1em;
+}
+
+.sr-only {
+    border: 0;
+    clip: rect(0, 0, 0, 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+
+/*
+ * Code highlighting
+ */
+.hl-string { color: #008000; }
+.hl-value { color: #660E7A; }
+.hl-number { color: #0000FF; }
+.hl-keyword { color: #000080; }
+.hl-word { font-style: italic; font-weight: bold; color: #D2691E; }
+.hl-comment, .hl-doccomment { font-style: italic; color: #808080; }
+.hl-annotation { color: #808000; }
+.hl-directive { color: #555; }
+
+/*
+ * Single page html
+ */
+.book .chapter {
+    margin-top: 4em;
+}
+
+.toc .chapter {
+    padding-top: 0;
+}
+
+div.example code.filename {
+    font-weight: bold;
+}
+
+/* Clickable links on section headers */
+.section .title > a.section-anchor {
+    display: inline-block;
+    text-decoration: none !important;
+    margin-left: -1ch;
+    opacity: 0;
+    padding-right: 0.4ch;
+}
+
+.section .title > a.section-anchor:before {
+    content: "\00A7";
+    display: inline-block;
+    font-size: 0.8em;
+    vertical-align: bottom;
+}
+
+.section .title:hover > a {
+    opacity: 1;
+}
+
+.section .title:hover > a.section-anchor,
+.section .title a.section-anchor:hover {
+    border: inherit;
+    opacity: 1;
+}
+
+
+.docs-navigation {
+    width: 18rem;
+    padding: 20px 20px 20px 26px;
+    background: #f8f8f7;
+    border-right: 1px solid #e7e7e9;
+    overflow: auto;
+}
+
+.layout {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100vh;
+}
+
+.main-content {
+    overflow: auto;
+    display: flex;
+}
+
+.content {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.content .chapter,
+.content .book {
+    padding: 2rem 2.4rem;
+}
+
+.toc a:active {
+    font-weight: 500;
+}
+
+.site-header  {
+    margin-bottom: 1rem;
+}
+
+.site-header__navigation-submenu-item {
+    padding: 2px 0;
+}
+
+.site-footer {
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px 0 40px 0;
+}
+
+#header {
+    margin-left: 0;
+}
+
+#header > h1:first-child {
+    margin-bottom: 40px;
+}
+
+@media screen and (min-width: 64rem) {
+    #header {
+        margin-bottom: 20px;
+    }
+
+    .site-header  {
+        margin-bottom: 0;
+        z-index: 2;
+    }
+
+    .site-header__navigation-header {
+        margin-top: -7px;
+    }
+
+    .site-header__navigation-submenu-section:after {
+        content: '\2023';
+        font-size: 28px;
+        position: absolute;
+        transform: rotate(90deg);
+        margin-right: 10px;
+        top: 5px;
+        right: -7px;
+    }
+
+    .site-footer__navigation {
+        flex-wrap: wrap;
+    }
+
+    .site-footer__link-group {
+        flex: 1 1 auto;
+    }
+
+    .site-footer__links {
+        margin-bottom: 1rem;
+    }
+}
+
+@media screen and (min-width: 75rem) {
+    .content .chapter,
+    .content .book {
+        box-sizing: content-box;
+    }
+
+    #content {
+        padding-right: 260px;
+        margin: 0;
+    }
+
+    .appendix .toc,
+    .book .home .toc,
+    .chapter .toc {
+        position: fixed;
+        margin: 0 auto;
+        padding-bottom: 0;
+        right: 0;
+        top: 65px;
+        width: 260px;
+        z-index: 1;
+        overflow: auto;
+        border-radius: 0 0 5px 0;
+        max-height: calc(100% - 123px);
+        margin-right: 15px;
+    }
+
+    .appendix .toctitle,
+    .book .home .toctitle,
+    .chapter .toctitle {
+        margin-top: 1.3em;
+    }
+
+    .appendix .toc > dl,
+    .book .home .toc > dl,
+    .chapter .toc > dl {
+        /* margin-left have to increase if you change border thickness of active toc item */
+        margin-left: 1px;
+        border-left: 1px solid #666;
+        margin-bottom: 0;
+        padding-right: 10px;
+        padding-bottom: 0.5rem;
+        background-color: #fff;
+    }
+
+    .appendix .toc > dl > dt,
+    .appendix .toc > dl > dt:last-of-type
+    .book .home .toc > dl > dt,
+    .book .home .toc > dl > dt:last-of-type
+    .chapter .toc > dl > dt,
+    .chapter .toc > dl > dt:last-of-type {
+        padding: 0.5rem 0;
+        margin: 0;
+    }
+
+    .appendix .toc a,
+    .book .home .toc a,
+    .chapter .toc a {
+        padding-left: 10px;
+        font-weight: 400;
+        color: #02303A;
+        font-size: .95rem;
+        display: inline-block;
+    }
+
+    .appendix .toc a.active,
+    .book .home .toc a.active,
+    .chapter .toc a.active {
+        font-weight: 500;
+        border-left: 3px solid #01303a;
+        margin-left: -2px;
+        padding-left: 9px;
+    }
+
+    .site-footer__navigation {
+        flex-wrap: wrap;
+        margin-left: auto;
+        padding-left: 3rem;
+    }
+
+    .site-footer__link-group {
+        flex: 0.15 1 auto;
+    }
+
+    .site-footer__subscribe-newsletter {
+        /* A fix so subscribe disclaimer does not go under long ToC */
+        max-width: calc(100% - 17rem);
+    }
+}
+
+@media screen and (min-width: 80rem) {
+    .site-footer__subscribe-newsletter {
+        max-height: none;
+    }
+}
+
+@media screen and (min-width: 100rem) {
+    .content .chapter,
+    .content .book {
+        max-width: 60.5rem;
+    }
+
+    #header {
+        margin: 0 auto;
+    }
+
+    #content {
+        padding-right: 0;
+        margin: 0 auto;
+    }
+
+    .appendix .toc,
+    .book .home .toc,
+    .chapter .toc {
+        right: initial;
+        margin-left: 62.5rem;
+    }
+
+    .site-footer__navigation {
+        padding-left: 0;
+    }
+
+    .site-footer__link-group {
+        flex: 0.2 1 auto;
+    }
+}
+
+@media screen and (min-width: 112rem) {
+    .content .chapter,
+    .content .book {
+        max-width: 62.5rem;
+        margin: 0 auto;
+        position: relative;
+        padding-right: 3.5rem;
+        left: -130px;
+    }
+
+    .appendix .toc,
+    .book .home .toc,
+    .chapter .toc {
+        right: initial;
+        margin-left: 64.5rem;
+    }
+
+    .site-footer__link-group {
+        flex: 0.2 1 auto;
+    }
+}
+
+
+@supports (-moz-appearance:meterbar) and (background-blend-mode:difference,normal) {
+    /* Firefox only */
+    .site-header__navigation-submenu-section:after {
+        top: 2px;
+        right: -4px;
+    }
+}

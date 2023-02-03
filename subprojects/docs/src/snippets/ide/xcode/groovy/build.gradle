@@ -1,0 +1,5 @@
+// tag::apply-plugin[]
+plugins {
+    id 'xcode'
+}
+// end::apply-plugin[]

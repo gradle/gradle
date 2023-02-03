@@ -1,0 +1,8 @@
+beforeSettings { settings ->
+    settings.caches {
+        releasedWrappers.removeUnusedEntriesAfterDays = 45
+        snapshotWrappers.removeUnusedEntriesAfterDays = 10
+        downloadedResources.removeUnusedEntriesAfterDays = 45
+        createdResources.removeUnusedEntriesAfterDays = 10
+    }
+}

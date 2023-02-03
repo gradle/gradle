@@ -1,0 +1,14 @@
+<!DOCTYPE HTML>
+<html xmlns:th='https://www.thymeleaf.org'>
+<head>
+  <title>My Product Configurator</title>
+  <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
+</head>
+<body>
+  <form action='#' th:action='@{/admin}' th:object='${versionRange}' method='post'>
+    <p>From Version: <input type='text' th:field='*{fromVersion}'/></p>
+    <p>To Version:   <input type='text' th:field='*{toVersion}'/></p>
+    <p><input type='submit' value='Submit'/></p>
+  </form>
+</body>
+</html>

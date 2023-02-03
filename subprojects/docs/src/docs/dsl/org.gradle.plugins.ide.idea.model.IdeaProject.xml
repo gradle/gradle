@@ -1,0 +1,72 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>idea</literal> plugin</td>
+                    <td>Default with <literal>idea</literal> and <literal>java</literal> plugin</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>modules</td>
+                <td><literal>project.allprojects.idea.module</literal></td>
+                <td/>
+            </tr>
+            <tr>
+                <td>vcs</td>
+                <td/>
+                <td/>
+            </tr>
+            <tr>
+                <td>jdkName</td>
+                <td>Java version used to run Gradle, for example <literal>'1.6'</literal></td>
+                <td>Java version used to run Gradle, for example <literal>'1.6'</literal></td>
+            </tr>
+            <tr>
+                <td>languageLevel</td>
+                <td><literal>JavaVersion.JAVA_1_6</literal></td>
+                <td><literal>project.sourceCompatibility</literal></td>
+            </tr>
+            <tr>
+                <td>targetBytecodeVersion</td>
+                <td><literal>JavaVersion.JAVA_1_6</literal></td>
+                <td>Highest <literal>project.targetCompatibility</literal> value of all java subprojects or <literal>JavaVersion.JAVA_1_6</literal> if no java project found.</td>
+            </tr>
+            <tr>
+                <td>wildcards</td>
+                <td><literal>['!?*.java', '!?*.groovy']</literal></td>
+                <td/>
+            </tr>
+            <tr>
+                <td>ipr</td>
+                <td/>
+                <td/>
+            </tr>
+            <tr>
+                <td>outputFile</td>
+                <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.ipr</literal></td>
+                <td/>
+            </tr>
+            <tr>
+                <td>projectLibraries</td>
+                <td><literal>[]</literal> (<literal>[scala-library]</literal> with <literal>scala-base</literal> plugin)</td>
+                <td><literal>[]</literal> (<literal>[scala-library]</literal> with <literal>scala-base</literal> plugin)</td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>ipr</td>
+            </tr>
+        </table>
+    </section>
+</section>

@@ -1,0 +1,10 @@
+tasks.register('hello') {
+    doLast {
+        println 'hello'
+    }
+}
+
+tasks.register('copy', Copy) {
+    from(file('srcDir'))
+    into(buildDir)
+}

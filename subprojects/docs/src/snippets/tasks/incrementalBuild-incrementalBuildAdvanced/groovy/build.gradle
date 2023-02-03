@@ -1,0 +1,99 @@
+import org.example.*
+
+// tag::failed-inferred-task-dep[]
+plugins {
+// end::failed-inferred-task-dep[]
+    id 'base'
+// tag::failed-inferred-task-dep[]
+    id 'java-library'
+}
+// end::failed-inferred-task-dep[]
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation group: 'commons-collections', name: 'commons-collections', version: '3.2.2'
+    testImplementation group: 'junit', name: 'junit', version: '4.+'
+}
+
+// tag::custom-task-class[]
+tasks.register('processTemplates', ProcessTemplates) {
+    templateEngine = TemplateEngineType.FREEMARKER
+    templateData.name = 'test'
+    templateData.variables = [year: '2012']
+    outputDir = file(layout.buildDirectory.dir('genOutput'))
+
+    sources fileTree('src/templates')
+}
+// end::custom-task-class[]
+
+// tag::task-arg-method[]
+def copyTemplates = tasks.register('copyTemplates', Copy) {
+    into file(layout.buildDirectory.dir('tmp'))
+    from 'src/templates'
+}
+
+tasks.register('processTemplates2', ProcessTemplates) {
+    // ...
+// end::task-arg-method[]
+    templateEngine = TemplateEngineType.FREEMARKER
+    templateData.name = 'test'
+    templateData.variables = [year: '2012']
+    outputDir = file(layout.buildDirectory.dir('genOutput'))
+// tag::task-arg-method[]
+    sources copyTemplates
+}
+// end::task-arg-method[]
+
+// tag::failed-inferred-task-dep[]
+
+tasks.register('badInstrumentClasses', Instrument) {
+    classFiles.from fileTree(tasks.named('compileJava').flatMap { it.destinationDirectory }) {}
+    destinationDir = file(layout.buildDirectory.dir('instrumented'))
+}
+// end::failed-inferred-task-dep[]
+
+// tag::inferred-task-dep[]
+tasks.register('instrumentClasses', Instrument) {
+    classFiles.from tasks.named('compileJava').map { it.outputs.files }
+    destinationDir = file(layout.buildDirectory.dir('instrumented'))
+}
+// end::inferred-task-dep[]
+
+// tag::inferred-task-dep-with-files[]
+tasks.register('instrumentClasses2', Instrument) {
+    classFiles.from layout.files(tasks.named('compileJava'))
+    destinationDir = file(layout.buildDirectory.dir('instrumented'))
+}
+// end::inferred-task-dep-with-files[]
+
+// tag::inferred-task-dep-with-builtby[]
+tasks.register('instrumentClassesBuiltBy', Instrument) {
+    classFiles.from fileTree(tasks.named('compileJava').flatMap { it.destinationDirectory }) {
+        builtBy tasks.named('compileJava')
+    }
+    destinationDir = file(layout.buildDirectory.dir('instrumented'))
+}
+// end::inferred-task-dep-with-builtby[]
+
+// tag::disable-up-to-date-checks[]
+tasks.register('alwaysInstrumentClasses', Instrument) {
+    classFiles.from layout.files(tasks.named('compileJava'))
+    destinationDir = file(layout.buildDirectory.dir('instrumented'))
+    doNotTrackState("Instrumentation needs to re-run every time")
+}
+// end::disable-up-to-date-checks[]
+
+// tag::git-clone[]
+tasks.register("cloneGradleProfiler", GitClone) {
+    destinationDir = layout.buildDirectory.dir("gradle-profiler") // <3>
+    remoteUri = "https://github.com/gradle/gradle-profiler.git"
+    commitId = "d6c18a21ca6c45fd8a9db321de4478948bdf801b"
+}
+// end::git-clone[]
+
+tasks.named('build') {
+    dependsOn 'processTemplates', 'processTemplates2'
+}

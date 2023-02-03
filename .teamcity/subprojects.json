@@ -1,0 +1,849 @@
+[
+  {
+    "dirName": "antlr",
+    "name": "antlr",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "api-metadata",
+    "name": "api-metadata",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "architecture-test",
+    "name": "architecture-test",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "base-annotations",
+    "name": "base-annotations",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "base-services",
+    "name": "base-services",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "base-services-groovy",
+    "name": "base-services-groovy",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "bootstrap",
+    "name": "bootstrap",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "build-cache",
+    "name": "build-cache",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "build-cache-base",
+    "name": "build-cache-base",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "build-cache-http",
+    "name": "build-cache-http",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "build-cache-packaging",
+    "name": "build-cache-packaging",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "build-events",
+    "name": "build-events",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "build-init",
+    "name": "build-init",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "build-operations",
+    "name": "build-operations",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "build-option",
+    "name": "build-option",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "build-profile",
+    "name": "build-profile",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "build-scan-performance",
+    "name": "build-scan-performance",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "cli",
+    "name": "cli",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "code-quality",
+    "name": "code-quality",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "composite-builds",
+    "name": "composite-builds",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "configuration-cache",
+    "name": "configuration-cache",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
+    "dirName": "core",
+    "name": "core",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
+    "dirName": "core-api",
+    "name": "core-api",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "core-platform",
+    "name": "core-platform",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "dependency-management",
+    "name": "dependency-management",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
+    "dirName": "diagnostics",
+    "name": "diagnostics",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-basics",
+    "name": "distributions-basics",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-core",
+    "name": "distributions-core",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-dependencies",
+    "name": "distributions-dependencies",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-full",
+    "name": "distributions-full",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-integ-tests",
+    "name": "distributions-integ-tests",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-jvm",
+    "name": "distributions-jvm",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-native",
+    "name": "distributions-native",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "distributions-publishing",
+    "name": "distributions-publishing",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "docs",
+    "name": "docs",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "docs-asciidoctor-extensions",
+    "name": "docs-asciidoctor-extensions",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "docs-asciidoctor-extensions-base",
+    "name": "docs-asciidoctor-extensions-base",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "ear",
+    "name": "ear",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "enterprise",
+    "name": "enterprise",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "enterprise-logging",
+    "name": "enterprise-logging",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "enterprise-operations",
+    "name": "enterprise-operations",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "enterprise-workers",
+    "name": "enterprise-workers",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "execution",
+    "name": "execution",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "file-collections",
+    "name": "file-collections",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "file-temp",
+    "name": "file-temp",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "file-watching",
+    "name": "file-watching",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "files",
+    "name": "files",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "functional",
+    "name": "functional",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "hashing",
+    "name": "hashing",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "ide",
+    "name": "ide",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
+    "dirName": "ide-native",
+    "name": "ide-native",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "installation-beacon",
+    "name": "installation-beacon",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "instrumentation-agent",
+    "name": "instrumentation-agent",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "integ-test",
+    "name": "integ-test",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
+    "dirName": "internal-architecture-testing",
+    "name": "internal-architecture-testing",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "internal-build-reports",
+    "name": "internal-build-reports",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "internal-integ-testing",
+    "name": "internal-integ-testing",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "internal-performance-testing",
+    "name": "internal-performance-testing",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "internal-testing",
+    "name": "internal-testing",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "ivy",
+    "name": "ivy",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
+    "dirName": "jacoco",
+    "name": "jacoco",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "java-compiler-plugin",
+    "name": "java-compiler-plugin",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "jvm-services",
+    "name": "jvm-services",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "kotlin-dsl",
+    "name": "kotlin-dsl",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "kotlin-dsl-integ-tests",
+    "name": "kotlin-dsl-integ-tests",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
+    "dirName": "kotlin-dsl-plugins",
+    "name": "kotlin-dsl-plugins",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "kotlin-dsl-provider-plugins",
+    "name": "kotlin-dsl-provider-plugins",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "kotlin-dsl-tooling-builders",
+    "name": "kotlin-dsl-tooling-builders",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": true
+  },
+  {
+    "dirName": "kotlin-dsl-tooling-models",
+    "name": "kotlin-dsl-tooling-models",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "language-groovy",
+    "name": "language-groovy",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "language-java",
+    "name": "language-java",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
+    "dirName": "language-jvm",
+    "name": "language-jvm",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "language-native",
+    "name": "language-native",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "launcher",
+    "name": "launcher",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "logging",
+    "name": "logging",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "logging-api",
+    "name": "logging-api",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "maven",
+    "name": "maven",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
+    "dirName": "messaging",
+    "name": "messaging",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "model-core",
+    "name": "model-core",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "model-groovy",
+    "name": "model-groovy",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "native",
+    "name": "native",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "normalization-java",
+    "name": "normalization-java",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "performance",
+    "name": "performance",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "persistent-cache",
+    "name": "persistent-cache",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "platform-base",
+    "name": "platform-base",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "platform-jvm",
+    "name": "platform-jvm",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "platform-native",
+    "name": "platform-native",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "plugin-development",
+    "name": "plugin-development",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
+    "dirName": "plugin-use",
+    "name": "plugin-use",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "plugins",
+    "name": "plugins",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "problems",
+    "name": "problems",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "process-services",
+    "name": "process-services",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "publish",
+    "name": "publish",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "reporting",
+    "name": "reporting",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "resources",
+    "name": "resources",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "resources-gcs",
+    "name": "resources-gcs",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "resources-http",
+    "name": "resources-http",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "resources-s3",
+    "name": "resources-s3",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "resources-sftp",
+    "name": "resources-sftp",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "samples",
+    "name": "samples",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "scala",
+    "name": "scala",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "security",
+    "name": "security",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "signing",
+    "name": "signing",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "smoke-test",
+    "name": "smoke-test",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "snapshots",
+    "name": "snapshots",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "soak",
+    "name": "soak",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "test-kit",
+    "name": "test-kit",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "testing-base",
+    "name": "testing-base",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "testing-junit-platform",
+    "name": "testing-junit-platform",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "testing-jvm",
+    "name": "testing-jvm",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "testing-jvm-infrastructure",
+    "name": "testing-jvm-infrastructure",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "testing-native",
+    "name": "testing-native",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "tooling-api",
+    "name": "tooling-api",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
+    "dirName": "tooling-api-builders",
+    "name": "tooling-api-builders",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "tooling-native",
+    "name": "tooling-native",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": true
+  },
+  {
+    "dirName": "version-control",
+    "name": "version-control",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "worker-processes",
+    "name": "worker-processes",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "worker-services",
+    "name": "worker-services",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "workers",
+    "name": "workers",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "wrapper",
+    "name": "wrapper",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
+    "dirName": "wrapper-shared",
+    "name": "wrapper-shared",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  }
+]

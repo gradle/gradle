@@ -1,0 +1,24 @@
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    scm
+}
+
+dependencies {
+    scm 'org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r'
+    scm 'commons-codec:commons-codec:1.7'
+}
+
+// tag::iteration-task[]
+tasks.register('iterateDeclaredDependencies') {
+    doLast {
+        DependencySet dependencySet = configurations.scm.dependencies
+
+        dependencySet.each {
+            logger.quiet "$it.group:$it.name:$it.version"
+        }
+    }
+}
+// end::iteration-task[]

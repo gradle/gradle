@@ -1,0 +1,31 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>eclipse</literal> and <literal>war</literal> plugins</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>facet</td>
+                <td><literal>project.eclipse.wtp.facet</literal></td>
+            </tr>
+            <tr>
+                <td>outputFile</td>
+                <td><filename><replaceable>${project.projectDir}</replaceable>/.settings/org.eclipse.wst.common.project.facet.core.xml</filename></td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+        </table>
+    </section>
+</section>

@@ -1,0 +1,1 @@
+rootProject.name = "ant-import-build-sample"

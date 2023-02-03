@@ -1,0 +1,21 @@
+plugins {
+    id("java-library")
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::config-logic[]
+dependencies {
+    implementation 'log4j:log4j:1.2.17'
+}
+
+tasks.register('printArtifactNames') {
+    FileCollection compileClasspath = configurations.compileClasspath
+    doLast {
+        def libraryNames = compileClasspath.collect { it.name }
+        logger.quiet libraryNames
+    }
+}
+// end::config-logic[]

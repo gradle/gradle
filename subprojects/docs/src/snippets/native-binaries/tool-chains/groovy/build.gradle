@@ -1,0 +1,63 @@
+plugins {
+    id 'cpp'
+}
+
+// tag::toolChains[]
+model {
+    toolChains {
+        visualCpp(VisualCpp) {
+            // Specify the installDir if Visual Studio cannot be located
+            // installDir "C:/Apps/Microsoft Visual Studio 10.0"
+        }
+        gcc(Gcc) {
+            // Uncomment to use a GCC install that is not in the PATH
+            // path "/usr/bin/gcc"
+        }
+        clang(Clang)
+    }
+}
+// end::toolChains[]
+
+
+// tag::withArguments[]
+model {
+    toolChains {
+        visualCpp(VisualCpp) {
+            eachPlatform {
+                cppCompiler.withArguments { args ->
+                    args << "-DFRENCH"
+                }
+            }
+        }
+        clang(Clang) {
+            eachPlatform {
+                cCompiler.withArguments { args ->
+                    Collections.replaceAll(args, "CUSTOM", "-DFRENCH")
+                }
+                linker.withArguments { args ->
+                    args.remove "CUSTOM"
+                }
+                staticLibArchiver.withArguments { args ->
+                    args.remove "CUSTOM"
+                }
+            }
+        }
+    }
+}
+// end::withArguments[]
+
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
+
+// tag::buildable[]
+model {
+    tasks {
+        buildAllExecutables(Task) {
+            dependsOn $.binaries.findAll { it.buildable }
+        }
+    }
+}
+// end::buildable[]

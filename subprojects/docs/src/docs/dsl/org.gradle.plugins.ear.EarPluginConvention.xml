@@ -1,0 +1,48 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>ear</literal> plugin</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>appDirName</td>
+                <td><literal>'src/main/application'</literal></td>
+            </tr>
+            <tr>
+                <td>libDirName</td>
+                <td><literal>'lib'</literal></td>
+            </tr>
+            <tr>
+                <td>deploymentDescriptor</td>
+                <td>A deployment descriptor initialized with sensible defaults</td>
+            </tr>
+            <tr>
+                <td>generateDeploymentDescriptor</td>
+                <td><literal>true</literal></td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>deploymentDescriptor</td>
+            </tr>
+            <tr>
+                <td>appDirName</td>
+            </tr>
+            <tr>
+                <td>libDirName</td>
+            </tr>
+        </table>
+    </section>
+</section>

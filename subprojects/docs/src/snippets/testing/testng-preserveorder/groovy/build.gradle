@@ -1,0 +1,23 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.testng:testng:6.9.4'
+}
+
+// tag::test-config[]
+test {
+    useTestNG {
+        preserveOrder true
+    }
+}
+// end::test-config[]
+
+test {
+    testLogging.showStandardStreams = true
+}

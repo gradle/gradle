@@ -1,0 +1,2 @@
+> Invocation of 'Task.project' by task ':someTaskType' at execution time is unsupported.
+> Invocation of 'Task.project' by task ':someTask' at execution time is unsupported.

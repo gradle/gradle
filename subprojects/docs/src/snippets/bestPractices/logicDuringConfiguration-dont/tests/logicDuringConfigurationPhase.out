@@ -1,0 +1,4 @@
+* What went wrong:
+A problem occurred configuring root project 'logic-during-configuration-dont'.
+> Could not create task ':printArtifactNames'.
+   > You shouldn't resolve configurations during configuration phase!

@@ -1,0 +1,34 @@
+// tag::complete-plugin-publishing[]
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+    id 'ivy-publish'
+}
+
+group 'com.example'
+version '1.0.0'
+
+gradlePlugin {
+    plugins {
+        hello {
+            id = 'com.example.hello'
+            implementationClass = 'com.example.hello.HelloPlugin'
+        }
+        goodbye {
+            id = 'com.example.goodbye'
+            implementationClass = 'com.example.goodbye.GoodbyePlugin'
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            url layout.buildDirectory.dir("maven-repo")
+        }
+        ivy {
+            url layout.buildDirectory.dir("ivy-repo")
+        }
+    }
+}
+// end::complete-plugin-publishing[]

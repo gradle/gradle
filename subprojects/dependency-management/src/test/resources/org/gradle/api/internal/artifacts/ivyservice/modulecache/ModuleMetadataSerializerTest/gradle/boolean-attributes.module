@@ -1,0 +1,10 @@
+{
+    "formatVersion": "1.0",
+    "builtBy": { "gradle": { "version": "123", "buildId": "abc" } },
+    "variants": [
+        {
+            "name": "api",
+            "attributes": { "usage": "compile", "debuggable": true, "testable": false }
+        }
+    ]
+}

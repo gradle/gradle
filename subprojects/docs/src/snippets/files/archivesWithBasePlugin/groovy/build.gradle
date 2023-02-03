@@ -1,0 +1,18 @@
+// tag::create-archive-with-base-plugin-example[]
+plugins {
+    id 'base'
+}
+
+version = "1.0.0"
+
+tasks.register('packageDistribution', Zip) {
+    from(layout.buildDirectory.dir("toArchive")) {
+        exclude "**/*.pdf"
+    }
+
+    from(layout.buildDirectory.dir("toArchive")) {
+        include "**/*.pdf"
+        into "docs"
+    }
+}
+// end::create-archive-with-base-plugin-example[]

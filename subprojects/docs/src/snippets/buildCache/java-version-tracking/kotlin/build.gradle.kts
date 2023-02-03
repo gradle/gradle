@@ -1,0 +1,17 @@
+plugins {
+    id("java-library")
+}
+
+// tag::trackVendor[]
+tasks.withType<AbstractCompile>().configureEach {
+    inputs.property("java.vendor") {
+        System.getProperty("java.vendor")
+    }
+}
+
+tasks.withType<Test>().configureEach {
+    inputs.property("java.vendor") {
+        System.getProperty("java.vendor")
+    }
+}
+// end::trackVendor[]

@@ -1,0 +1,3 @@
+rootProject.name = 'ear-with-war'
+
+include 'war'
