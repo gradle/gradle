@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import com.google.common.collect.Sets;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedFileVisitor;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.internal.DisplayName;
 
 import java.io.File;
-import java.util.Set;
+import java.util.List;
 
-public class ResolvedFileCollectionVisitor implements ResolvedFileVisitor {
-    private final FileCollectionStructureVisitor visitor;
-    private final Set<File> files = Sets.newLinkedHashSet();
-    private final Set<Throwable> failures = Sets.newLinkedHashSet();
+public class ArtifactVisitorToResolvedFileVisitorAdapter implements ArtifactVisitor {
+    private final ResolvedFileVisitor visitor;
 
-    public ResolvedFileCollectionVisitor(FileCollectionStructureVisitor visitor) {
+    public ArtifactVisitorToResolvedFileVisitorAdapter(ResolvedFileVisitor visitor) {
         this.visitor = visitor;
-    }
-
-    public Set<Throwable> getFailures() {
-        return failures;
     }
 
     @Override
@@ -42,19 +37,27 @@ public class ResolvedFileCollectionVisitor implements ResolvedFileVisitor {
         return visitor.prepareForVisit(source);
     }
 
-    @Override
     public void visitFile(File file) {
-        files.add(file);
+        visitor.visitFile(file);
+    }
+
+    @Override
+    public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, List<? extends Capability> capabilities, ResolvableArtifact artifact) {
+        visitor.visitFile(artifact.getFile());
     }
 
     @Override
     public void visitFailure(Throwable failure) {
-        failures.add(failure);
+        visitor.visitFailure(failure);
     }
 
     @Override
     public void endVisitCollection(FileCollectionInternal.Source source) {
-        visitor.visitCollection(source, files);
-        files.clear();
+        visitor.endVisitCollection(source);
+    }
+
+    @Override
+    public boolean requireArtifactFiles() {
+        return true;
     }
 }

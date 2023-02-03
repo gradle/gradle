@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.internal.DisplayName;
 
-import java.util.List;
+import java.io.File;
 
-/**
- * A visitor over the contents of a {@link ResolvedArtifactSet}. A {@link ResolvedArtifactSet} may contain zero or more sets of files, each set containing zero or more artifacts.
- */
-public interface ArtifactVisitor {
+public interface ResolvedFileVisitor {
     /**
      * Called prior to scheduling resolution of a set of artifacts. Should be called in result order.
      */
@@ -36,18 +30,11 @@ public interface ArtifactVisitor {
     }
 
     /**
-     * Visits an artifact. Artifacts are resolved but not necessarily available unless {@link #requireArtifactFiles()} returns true.
+     * Visits an artifact file.
      *
      * <p>Note that a given artifact may be visited multiple times. The implementation is required to filter out duplicates.</p>
      */
-    void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, List<? extends Capability> capabilities, ResolvableArtifact artifact);
-
-    /**
-     * Should the file for each artifact be made available prior to calling {@link #visitArtifact(DisplayName, AttributeContainer, List, ResolvableArtifact)}?
-     *
-     * Returns true here allows the collection to preemptively resolve the files in parallel.
-     */
-    boolean requireArtifactFiles();
+    void visitFile(File file);
 
     /**
      * Called when some problem occurs visiting some element of the set. Visiting may continue.
