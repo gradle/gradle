@@ -24,9 +24,13 @@ import org.gradle.caching.BuildCacheKey;
 import java.io.Closeable;
 
 public interface NextGenBuildCacheHandler extends Closeable {
-    boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException;
+    boolean canLoad();
 
-    boolean shouldStore(BuildCacheKey key);
+    boolean canStore();
+
+    boolean contains(BuildCacheKey key);
+
+    boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException;
 
     void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException;
 
