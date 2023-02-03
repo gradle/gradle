@@ -86,7 +86,9 @@ public class H2BuildCacheService implements BuildCacheService {
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
                         Blob content = rs.getBlob(1);
-                        reader.readFrom(content.getBinaryStream());
+                        try (InputStream binaryStream = content.getBinaryStream()) {
+                            reader.readFrom(binaryStream);
+                        }
                         return true;
                     }
                     return false;
