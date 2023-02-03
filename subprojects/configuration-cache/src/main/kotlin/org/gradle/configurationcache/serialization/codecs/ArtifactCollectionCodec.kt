@@ -25,12 +25,10 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult
-import org.gradle.api.internal.artifacts.transform.TransformedExternalArtifactSet
-import org.gradle.api.internal.artifacts.transform.TransformedProjectArtifactSet
+import org.gradle.api.internal.artifacts.transform.TransformedArtifactSet
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
@@ -55,11 +53,13 @@ class ArtifactCollectionCodec(
     override suspend fun WriteContext.encode(value: ArtifactCollectionInternal) {
         val visitor = CollectingArtifactVisitor()
         value.visitArtifacts(visitor)
+        writeBoolean(value.isLenient)
         writeCollection(visitor.elements)
         writeCollection(visitor.failures)
     }
 
     override suspend fun ReadContext.decode(): ArtifactCollectionInternal {
+        val lenient = readBoolean()
         val elements = readList().uncheckedCast<List<Any>>()
 
         @Suppress("implicit_cast_to_any")
@@ -67,13 +67,13 @@ class ArtifactCollectionCodec(
             elements.map { element ->
                 when (element) {
                     is FixedFileArtifactSpec -> element.file
-                    is ResolvedArtifactSet -> artifactSetConverter.asFileCollection("unknown configuration", false, listOf(element))
+                    is ResolvedArtifactSet -> artifactSetConverter.asFileCollection("unknown configuration", lenient, listOf(element))
                     else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
                 }
             }
         )
         val failures = readList().uncheckedCast<List<Throwable>>()
-        return FixedArtifactCollection(files, elements, failures, artifactSetConverter)
+        return FixedArtifactCollection(files, lenient, elements, failures, artifactSetConverter)
     }
 }
 
@@ -92,15 +92,14 @@ private
 class CollectingArtifactVisitor : ArtifactVisitor {
     val elements = mutableListOf<Any>()
     val failures = mutableListOf<Throwable>()
-    private
     val artifacts = mutableSetOf<ResolvableArtifact>()
 
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
-        return if (source is TransformedProjectArtifactSet || source is LocalFileDependencyBackedArtifactSet || source is TransformedExternalArtifactSet) {
+        return if (source is TransformedArtifactSet) {
             // Represents artifact transform outputs. Visit the source rather than the files
             // Transforms may have inputs or parameters that are task outputs or other changing files
             // When this is not the case, we should run the transform now and write the result.
-            // However, currently it is not easy to determine whether or not this is the case so assume that all transforms
+            // However, currently it is not easy to determine whether this is the case so assume that all transforms
             // have changing inputs
             FileCollectionStructureVisitor.VisitType.NoContents
         } else {
@@ -123,11 +122,7 @@ class CollectingArtifactVisitor : ArtifactVisitor {
     }
 
     override fun endVisitCollection(source: FileCollectionInternal.Source) {
-        if (source is TransformedProjectArtifactSet) {
-            elements.add(source)
-        } else if (source is LocalFileDependencyBackedArtifactSet) {
-            elements.add(source)
-        } else if (source is TransformedExternalArtifactSet) {
+        if (source is TransformedArtifactSet) {
             elements.add(source)
         }
     }
@@ -137,6 +132,7 @@ class CollectingArtifactVisitor : ArtifactVisitor {
 private
 class FixedArtifactCollection(
     private val artifactFiles: FileCollection,
+    private val lenient: Boolean,
     private val elements: List<Any>,
     private val failures: List<Throwable>,
     private val artifactSetConverter: ArtifactSetToFileCollectionFactory
@@ -144,6 +140,10 @@ class FixedArtifactCollection(
 
     private
     var artifactResults: MutableSet<ResolvedArtifactResult>? = null
+
+    override fun isLenient(): Boolean {
+        return lenient
+    }
 
     override fun getFailures() =
         failures
@@ -180,9 +180,11 @@ class FixedArtifactCollection(
                         )
                     )
                 }
+
                 is ResolvedArtifactSet -> {
-                    result.addAll(artifactSetConverter.asResolvedArtifacts(element))
+                    result.addAll(artifactSetConverter.asResolvedArtifacts(element, lenient))
                 }
+
                 else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
             }
         }
