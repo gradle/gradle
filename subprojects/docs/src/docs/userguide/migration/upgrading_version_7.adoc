@@ -643,9 +643,10 @@ Gradle changes the compression library used for creating archives from an Ant ba
 As a consequence archives created from the same content, are unlikely to end up identical byte-by-byte to their older versions, created with the old library.
 
 [[kotlin_1_8.0]]
-==== Upgrade to Kotlin 1.8.0
+==== Upgrade to Kotlin 1.8.10
 
-The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.8.0[Kotlin 1.8.0].
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.10[Kotlin 1.8.10].
+Also see link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.0[Kotlin 1.8.0] release notes.
 For more information, see the release notes for Kotlin
 
 * https://github.com/JetBrains/kotlin/releases/tag/v1.7.20[1.7.20]
