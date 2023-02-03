@@ -229,3 +229,10 @@ These members will be removed in Gradle 9.0.
 * `GUtil.toCamelCase(...)`
 * `GUtil.toLowerCase(...)`
 * `ConfigureUtil.configureByMap(...)`
+
+[[ibm_semeru_should_not_be_used]]
+==== Deprecated JVM vendor IBM Semeru
+
+The enum constant `JvmVendorSpec.IBM_SEMERU` is now deprecated and will be removed in Gradle 9.0.
+
+Please replace it by its equivalent `JvmVendorSpec.IBM` to avoid warnings and potential errors in the next major version release.
