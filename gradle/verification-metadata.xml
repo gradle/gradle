@@ -1285,9 +1285,14 @@
             <pgp value="9e93db1192cee3d3b581aabb37e9d58ea4598641"/>
          </artifact>
       </component>
+      <component group="org.jetbrains" name="annotations" version="13.0">
+         <artifact name="annotations-13.0.jar">
+            <pgp value="2e3a1affe42b5f53af19f780bcf4173966770193"/>
+         </artifact>
+      </component>
       <component group="org.jetbrains" name="annotations" version="24.0.0">
          <artifact name="annotations-24.0.0.jar">
-            <pgp value="69b8b443c437fdeefa8d20c18d257b94836a92b9"/>
+            <pgp value="33fd4bfd33554634053d73c0c2148900bcd3c2af"/>
          </artifact>
       </component>
       <component group="org.jetbrains.kotlin" name="kotlin-scripting-compiler-impl-embeddable" version="1.6.21">
