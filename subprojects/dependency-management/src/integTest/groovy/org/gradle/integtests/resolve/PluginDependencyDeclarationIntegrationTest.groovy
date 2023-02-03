@@ -29,6 +29,99 @@ class PluginDependencyDeclarationIntegrationTest extends AbstractIntegrationSpec
 
     def "understands plugin dependency notations from version catalog"() {
         when:
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        plugin('js', "$JS").version {
+                            strictly "$STRICT_VERSION"
+                            prefer "$VERSION"
+                        }
+                        plugin('jvm', "$JVM").version("$VERSION")
+                        plugin('scripting', "$SCRIPTING").version("$VERSION")
+                    }
+                }
+            }
+        """
+
+        buildScript("""
+import org.gradle.api.internal.artifacts.dependencies.*
+
+// buildscript
+buildscript {
+    ${mavenCentralRepository()}
+    dependencies {
+        classpath(libs.plugins.js)
+        classpath(libs.plugins.jvm)
+    }
+}
+
+plugins {
+    id 'java'
+    id 'jvm-test-suite'
+}
+
+// main dependency block
+configurations {
+    conf
+}
+
+dependencies {
+    conf(libs.plugins.js)
+    conf(libs.plugins.jvm)
+    conf(libs.plugins.scripting)
+}
+
+// test-suite dependencies
+testing {
+    suites {
+        test {
+            dependencies {
+                implementation.plugin(libs.plugins.js)
+                implementation.plugin(libs.plugins.jvm)
+                implementation.plugin(libs.plugins.scripting)
+            }
+        }
+    }
+}
+
+def checkPluginCoordinates(dependenciesSet, group, version) {
+    String name = group + '.gradle.plugin';
+    dependenciesSet.find { it instanceof ExternalDependency && it.group == group && it.name == name && it.version == version}
+}
+
+def checkPluginCoordinates(dependenciesSet, group, preferredVersion, strictVersion) {
+    String name = group + '.gradle.plugin'
+    dependenciesSet.find { it instanceof ExternalDependency && it.group == group && it.name == name && it.versionConstraint.preferredVersion == preferredVersion && it.versionConstraint.strictVersion == strictVersion }
+}
+
+task checkDeps {
+    doLast {
+        // buildscript
+        def buildscriptDeps = buildscript.configurations.classpath.incoming.dependencies
+        checkPluginCoordinates(buildscriptDeps, "$JS", "$VERSION", "$STRICT_VERSION")
+        checkPluginCoordinates(buildscriptDeps, "$JVM", "$VERSION")
+
+        // main dependency block
+        def mainDeps = configurations.conf.incoming.dependencies
+        checkPluginCoordinates(mainDeps, "$JS", "$VERSION", "$STRICT_VERSION")
+        checkPluginCoordinates(mainDeps, "$JVM", "$VERSION")
+        checkPluginCoordinates(mainDeps, "$SCRIPTING", "$VERSION")
+
+        // test-suite dependencies
+        def testDeps = configurations.testImplementation.incoming.dependencies
+        checkPluginCoordinates(testDeps, "$JS", "$VERSION", "$STRICT_VERSION")
+        checkPluginCoordinates(testDeps, "$JVM", "$VERSION")
+        checkPluginCoordinates(testDeps, "$SCRIPTING", "$VERSION")
+    }
+}
+""")
+        then:
+        succeeds 'checkDeps'
+    }
+
+    def "understands plugin dependency notations from version catalog in kotlin"() {
+        when:
 
         settingsKotlinFile << """
             dependencyResolutionManagement {
@@ -106,15 +199,13 @@ class PluginDependencyDeclarationIntegrationTest extends AbstractIntegrationSpec
                     checkPluginCoordinates(buildscriptDeps, "$JVM", "$VERSION")
 
                     // main dependency block
-                    val deps = configurations.get("conf").incoming.dependencies
-                    deps.forEach(::print)
-                    checkPluginCoordinates(deps, "$JS", "$VERSION", "$STRICT_VERSION")
-                    checkPluginCoordinates(deps, "$JVM", "$VERSION")
-                    checkPluginCoordinates(deps, "$SCRIPTING", "$VERSION")
+                    val mainDeps = configurations.get("conf").incoming.dependencies
+                    checkPluginCoordinates(mainDeps, "$JS", "$VERSION", "$STRICT_VERSION")
+                    checkPluginCoordinates(mainDeps, "$JVM", "$VERSION")
+                    checkPluginCoordinates(mainDeps, "$SCRIPTING", "$VERSION")
 
                     // test-suite dependencies
                     val testDeps = configurations.get("testImplementation").incoming.dependencies
-                    testDeps.forEach(::print)
                     checkPluginCoordinates(testDeps, "$JS", "$VERSION", "$STRICT_VERSION")
                     checkPluginCoordinates(testDeps, "$JVM", "$VERSION")
                     checkPluginCoordinates(testDeps, "$SCRIPTING", "$VERSION")

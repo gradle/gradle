@@ -133,12 +133,12 @@ buildscript {
         ${mavenCentralRepository(GradleDsl.KOTLIN)}
     }
     dependencies {
-        add("classpath", plugin("$JS")) {
+        "classpath"(plugin("$JS")) {
             version {
                 prefer("$VERSION")
             }
         }
-        add("classpath", plugin("$JVM", "$VERSION"))
+        "classpath"(plugin("$JVM", "$VERSION"))
     }
 }
 
@@ -153,15 +153,15 @@ configurations {
 }
 
 dependencies {
-    add("conf", plugin("$JS")) {
+    "conf"(plugin("$JS")) {
         version {
             prefer("$VERSION")
         }
         isTransitive = false
     }
-    add("conf", plugin(id = "$JVM", version = "$VERSION"))
-    add("conf", plugin("$SCRIPTING", "$VERSION"))
-    add("conf", plugin("$PARCELIZE"))
+    "conf"(plugin(id = "$JVM", version = "$VERSION"))
+    "conf"(plugin("$SCRIPTING", "$VERSION"))
+    "conf"(plugin("$PARCELIZE"))
 }
 
 // test-suite dependencies
