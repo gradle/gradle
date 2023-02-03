@@ -7,6 +7,8 @@ description = "The collector project for the 'native' portion of the Gradle dist
 dependencies {
     coreRuntimeOnly(platform(project(":core-platform")))
 
+    agentsRuntimeOnly(project(":instrumentation-agent"))
+
     pluginsRuntimeOnly(platform(project(":distributions-jvm"))) {
         because("the project dependency 'toolingNative -> ide' currently links this to the JVM ecosystem")
     }

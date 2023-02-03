@@ -195,7 +195,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         buildFile << """
             subprojects {
                 task badTask {
-                    outputs.file { project.layout.buildDirectory.file("${forbiddenPath}") } withPropertyName "output"
+                    def projectLayout = project.layout
+                    outputs.file { projectLayout.buildDirectory.file("${forbiddenPath}") } withPropertyName "output"
                     doLast { }
                 }
             }
@@ -1633,9 +1634,19 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
+
+        then:
+        gcFile.assertExists()
+
+        when:
         writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
 
         and:
+        executer.beforeExecute {
+            if (!GradleContextualExecuter.embedded) {
+                executer.withArgument("-D$REUSE_USER_HOME_SERVICES=true")
+            }
+        }
         // start as new process so journal is not restored from in-memory cache
         executer.withTasks("help").start().waitForFinish()
 
@@ -1644,7 +1655,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         outputDir2.assertExists()
     }
 
-    def "does not cleans up cache when retention is configured greater than the default"() {
+    def "does not clean up cache when retention is configured greater than the default"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
         ["lib1", "lib2"].each { name ->

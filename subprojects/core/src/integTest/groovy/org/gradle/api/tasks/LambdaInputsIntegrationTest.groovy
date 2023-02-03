@@ -18,10 +18,13 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Assume
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture {
@@ -82,7 +85,12 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         ValidationProblemId.UNKNOWN_IMPLEMENTATION
     )
     @Issue("https://github.com/gradle/gradle/issues/5510")
+    @Ignore("All lambdas are becoming serializable")
+    // TODO remove this test if the change making all lambdas serializable is not reverted
     def "task with nested property defined by non-serializable Java lambda fails the build"() {
+        // With configuration cache, all lambdas are forced to be serializable, so there won't be anything to report.
+        Assume.assumeTrue(GradleContextualExecuter.isNotConfigCache())
+
         setupTaskClassWithConsumerProperty()
         file("buildSrc/src/main/java/Lambdas.java") <<
             javaClass("Lambdas", nonSerializableLambdaWritingFile("ACTION", "original"))

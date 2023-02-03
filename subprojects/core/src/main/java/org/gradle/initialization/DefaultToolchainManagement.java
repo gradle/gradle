@@ -16,7 +16,19 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.toolchain.management.ToolchainManagement;
+import org.gradle.api.internal.plugins.ExtensionContainerInternal;
+import org.gradle.internal.FinalizableValue;
+import org.gradle.internal.management.ToolchainManagementInternal;
 
-public abstract class DefaultToolchainManagement implements ToolchainManagement {
+public abstract class DefaultToolchainManagement implements ToolchainManagementInternal {
+
+    @Override
+    public void preventFromFurtherMutation() {
+        ExtensionContainerInternal extensions = (ExtensionContainerInternal) getExtensions();
+        extensions.getAsMap().values().stream()
+                .filter(ext -> ext instanceof FinalizableValue)
+                .map(ext -> (FinalizableValue) ext)
+                .forEach(FinalizableValue::preventFromFurtherMutation);
+    }
+
 }

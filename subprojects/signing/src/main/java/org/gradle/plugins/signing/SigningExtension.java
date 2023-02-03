@@ -396,12 +396,14 @@ public abstract class SigningExtension {
         });
         final Map<Signature, T> artifacts = new HashMap<>();
         signTask.getSignatures().all(signature -> {
-            final T artifact = publicationToSign.addDerivedArtifact(
+            @Nullable final T artifact = publicationToSign.addDerivedArtifact(
                 Cast.uncheckedNonnullCast(signature.getSource()),
                 new DefaultDerivedArtifactFile(signature, signTask)
             );
-            artifact.builtBy(signTask);
-            artifacts.put(signature, artifact);
+            if (artifact != null) {
+                artifact.builtBy(signTask);
+                artifacts.put(signature, artifact);
+            }
         });
         signTask.getSignatures().whenObjectRemoved(signature -> {
             final T artifact = artifacts.remove(signature);
@@ -545,9 +547,8 @@ public abstract class SigningExtension {
 
         @Override
         public boolean shouldBePublished() {
-            return signTask.isEnabled() &&
-                signTask.getOnlyIf().isSatisfiedBy(signTask) &&
-                create().exists();
+            return signTask.isEnabled()
+                && signTask.getOnlyIf().isSatisfiedBy(signTask);
         }
     }
 }

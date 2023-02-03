@@ -46,4 +46,4 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-native"))
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true

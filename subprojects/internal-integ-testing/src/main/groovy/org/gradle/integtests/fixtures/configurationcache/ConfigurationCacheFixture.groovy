@@ -115,7 +115,7 @@ class ConfigurationCacheFixture {
         assertHasStoreReason(details)
         configurationCacheBuildOperations.assertStateStored(false)
 
-        def message = "Configuration cache entry ${details.storeAction}."
+        def message = "Configuration cache entry ${details.storeAction}"
         boolean isFailure = spec.result instanceof ExecutionFailure
         if (isFailure) {
             spec.outputContains(message)

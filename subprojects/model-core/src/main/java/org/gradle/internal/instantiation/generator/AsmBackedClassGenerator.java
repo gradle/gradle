@@ -22,7 +22,6 @@ import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
@@ -1150,7 +1149,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                 String buildServiceName = getBuildServiceName(property);
                 if (buildServiceName != null) {
-                    // property is a service reference declaring a name
+                    // property is a service reference
                     _DUP();
                     setBuildServiceConvention(buildServiceName);
                 }
@@ -1179,7 +1178,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
 
             // Caller should place property value on the top of the stack
-            protected void setBuildServiceConvention(String serviceName) {
+            protected void setBuildServiceConvention(@Nullable String serviceName) {
                 // GENERATE BuildServiceProvider.setBuildServiceAsConvention(defaultProperty, getServices(), "<serviceName>")
                 _CHECKCAST(DEFAULT_PROPERTY_TYPE);
                 putServiceRegistryOnStack();
@@ -1770,7 +1769,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     private static String getBuildServiceName(PropertyMetadata property) {
         ServiceReference annotation = property.findAnnotation(ServiceReference.class);
         if (annotation != null) {
-            return StringUtils.trimToNull(annotation.value());
+            return annotation.value();
         }
         return null;
     }

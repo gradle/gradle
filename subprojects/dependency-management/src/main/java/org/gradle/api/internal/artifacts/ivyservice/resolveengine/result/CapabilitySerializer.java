@@ -24,6 +24,9 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
+/**
+ * A thread-safe and reusable serializer for {@link Capability}.
+ */
 public class CapabilitySerializer implements Serializer<Capability> {
 
     @Override

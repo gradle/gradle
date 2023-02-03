@@ -101,8 +101,8 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
                 root project(path: ':sub', configuration: '$configuration')
             }
             task resolve {
+                inputs.files(configurations.root)
                 doLast {
-                    configurations.root.files
                 }
             }
         """
@@ -152,8 +152,9 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             plugins { id '$plugin' }
             task resolve {
+                def conf = configurations.${configuration}
                 doLast {
-                    configurations.${configuration}.files
+                    conf.files
                 }
             }
         """
@@ -219,7 +220,8 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
                extendsFrom(configurations.$configuration)
             }
             tasks.register('resolvePath') {
-              doLast { println(configurations.path.collect { it.name }) }
+              def path = configurations.path
+              doLast { println(path.collect { it.name }) }
             }
         """
 

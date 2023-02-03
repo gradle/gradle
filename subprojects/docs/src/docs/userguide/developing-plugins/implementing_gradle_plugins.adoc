@@ -58,7 +58,7 @@ include::sample[dir="snippets/developingPlugins/customTask/groovy",files="build.
 Gradle uses declared inputs and outputs to determine if a task is up-to-date and needs to perform any work.
 If none of the inputs or outputs have changed, Gradle can skip that task.
 Gradle calls this mechanism incremental build support.
-The advantage of <<more_about_tasks.adoc#sec:up_to_date_checks,incremental build support>> is that it can significantly improve the performance of a build.
+The advantage of <<incremental_build.adoc#incremental_build,incremental build support>> is that it can significantly improve the performance of a build.
 
 It’s very common for Gradle plugins to introduce custom task types.
 As a plugin author that means that you’ll have to annotate all properties of a task with input or output annotations.

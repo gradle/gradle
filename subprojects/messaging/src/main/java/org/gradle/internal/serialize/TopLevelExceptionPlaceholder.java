@@ -16,7 +16,7 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.api.Transformer;
+import org.gradle.internal.InternalTransformer;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,7 +24,7 @@ import java.util.HashSet;
 
 public class TopLevelExceptionPlaceholder extends ExceptionPlaceholder {
     private static final long serialVersionUID = 1L;
-    public TopLevelExceptionPlaceholder(Throwable throwable, Transformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator) throws IOException {
+    public TopLevelExceptionPlaceholder(Throwable throwable, InternalTransformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator) throws IOException {
         super(throwable, objectOutputStreamCreator, new HashSet<Throwable>(10));
     }
 }

@@ -59,6 +59,7 @@ public class OrdinalNodeAccess {
 
     private void maybeSchedule(Consumer<Node> ordinalNodeConsumer, OrdinalNode node) {
         if (requiredNodes.add(node)) {
+            node.require();
             for (Node successor : node.getDependencySuccessors()) {
                 if (successor instanceof OrdinalNode) {
                     maybeSchedule(ordinalNodeConsumer, (OrdinalNode) successor);

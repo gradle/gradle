@@ -95,7 +95,7 @@ class InternalBuildOperationEventsIntegrationTest extends AbstractIntegrationSpe
         run("a")
 
         then:
-        output.count("EVENT:") == 14
+        output.count("EVENT:") == 6
         outputContains("EVENT: task ':a'")
 
         when:

@@ -245,6 +245,20 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "docs-asciidoctor-extensions",
+    "name": "docs-asciidoctor-extensions",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "docs-asciidoctor-extensions-base",
+    "name": "docs-asciidoctor-extensions-base",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "ear",
     "name": "ear",
     "unitTests": true,
@@ -350,18 +364,18 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "instrumentation-agent",
+    "name": "instrumentation-agent",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "integ-test",
     "name": "integ-test",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
-  },
-  {
-    "dirName": "internal-android-performance-testing",
-    "name": "internal-android-performance-testing",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
   },
   {
     "dirName": "internal-architecture-testing",
@@ -458,7 +472,7 @@
     "dirName": "kotlin-dsl-tooling-builders",
     "name": "kotlin-dsl-tooling-builders",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": true
   },
   {

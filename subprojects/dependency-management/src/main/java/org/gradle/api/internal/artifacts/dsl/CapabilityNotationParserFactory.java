@@ -25,14 +25,15 @@ import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class CapabilityNotationParserFactory implements Factory<NotationParser<Object, Capability>> {
-    private final static NotationParser<Object, Capability> STRICT_CONVERTER = createSingletonConverter(true);
-    private final static NotationParser<Object, Capability> LENIENT_CONVERTER = createSingletonConverter(false);
+    private final static CapabilityNotationParser STRICT_CONVERTER = createSingletonConverter(true);
+    private final static CapabilityNotationParser LENIENT_CONVERTER = createSingletonConverter(false);
 
     private final boolean versionIsRequired;
 
@@ -40,16 +41,27 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
         this.versionIsRequired = versionIsRequired;
     }
 
-    private static NotationParser<Object, Capability> createSingletonConverter(boolean strict) {
-        return NotationParserBuilder.toType(Capability.class)
+    private static CapabilityNotationParser createSingletonConverter(boolean strict) {
+        NotationParser<Object, Capability> parser = NotationParserBuilder.toType(Capability.class)
             .converter(new StringNotationParser(strict))
             .converter(strict ? new StrictCapabilityMapNotationParser() : new LenientCapabilityMapNotationParser())
             .toComposite();
+        return new CapabilityNotationParser() {
+            @Override
+            public Capability parseNotation(Object notation) throws TypeConversionException {
+                return parser.parseNotation(notation);
+            }
+
+            @Override
+            public void describe(DiagnosticsVisitor visitor) {
+                parser.describe(visitor);
+            }
+        };
     }
 
     @Nonnull
     @Override
-    public NotationParser<Object, Capability> create() {
+    public CapabilityNotationParser create() {
         // Currently the converter is stateless, doesn't need any external context, so for performance we return a singleton
         return versionIsRequired ? STRICT_CONVERTER : LENIENT_CONVERTER;
     }

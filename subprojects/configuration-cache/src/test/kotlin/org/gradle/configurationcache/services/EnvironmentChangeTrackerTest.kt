@@ -17,14 +17,16 @@
 package org.gradle.configurationcache.services
 
 import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
+import org.gradle.configurationcache.problems.DefaultProblemFactory
 import org.junit.Test
 
 
 class EnvironmentChangeTrackerTest {
+    private
+    val tracker = EnvironmentChangeTracker(DefaultProblemFactory(DefaultUserCodeApplicationContext(), { _, _ -> null }))
+
     @Test
     fun `can load state after capturing`() {
-        val tracker = EnvironmentChangeTracker(DefaultUserCodeApplicationContext())
-
         tracker.systemPropertyRemoved("some.property")
         tracker.getCachedState()
 
@@ -33,8 +35,6 @@ class EnvironmentChangeTrackerTest {
 
     @Test(expected = IllegalStateException::class)
     fun `updating state after loading throws`() {
-        val tracker = EnvironmentChangeTracker(DefaultUserCodeApplicationContext())
-
         tracker.loadFrom(emptyEnvironmentState())
 
         tracker.systemPropertyRemoved("some.property")
@@ -42,8 +42,6 @@ class EnvironmentChangeTrackerTest {
 
     @Test(expected = IllegalStateException::class)
     fun `loading twice throws`() {
-        val tracker = EnvironmentChangeTracker(DefaultUserCodeApplicationContext())
-
         tracker.loadFrom(emptyEnvironmentState())
         tracker.loadFrom(emptyEnvironmentState())
     }

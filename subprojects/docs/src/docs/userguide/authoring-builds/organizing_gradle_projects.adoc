@@ -222,7 +222,7 @@ The `gradle.properties` helps with keeping properties separate from the build sc
 It's a good location for placing <<build_environment.adoc#sec:gradle_configuration_properties,properties that control the build environment>>.
 
 A typical project setup places the `gradle.properties` file in the root directory of the build.
-Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you want to it apply to all builds on your machine.
+Alternatively, the file can also live in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory if you want it to apply to all builds on your machine.
 
 ====
 [.multi-language-sample]
@@ -255,7 +255,7 @@ Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you
 
 == Avoid overlapping task outputs
 
-Tasks should define inputs and outputs to get the performance benefits of <<more_about_tasks.adoc#sec:up_to_date_checks,incremental build functionality>>.
+Tasks should define inputs and outputs to get the performance benefits of <<incremental_build.adoc#incremental_build,incremental build functionality>>.
 When declaring the outputs of a task, make sure that the directory for writing outputs is unique among all the tasks in your project.
 
 Intermingling or overwriting output files produced by different tasks compromises up-to-date checking causing slower builds.

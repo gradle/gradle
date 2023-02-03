@@ -330,21 +330,11 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         """
 
         when:
-        configurationCacheFails WARN_PROBLEMS_CLI_OPT, "broken"
-
-        then:
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems("Task `:broken` of type `SomeTask`: $problem")
-            withProblemsWithStackTraceCount(1)
-        }
-
-        when:
         configurationCacheFails "broken"
 
         then:
-        configurationCache.assertStateLoaded()
-        failure.assertTasksExecuted(":broken")
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        configurationCache.assertStateStoreFailed()
+        failure.assertHasDescription("Configuration cache state could not be cached: field `value` of task `:broken` of type `SomeTask`: error writing value of type 'org.gradle.api.internal.provider.DefaultProvider'")
         failure.assertHasCause("broken!")
 
         where:

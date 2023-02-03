@@ -74,12 +74,14 @@ public class DefaultMultiCauseException extends GradleException implements Multi
     }
 
     private ThreadLocal<Boolean> threadLocal() {
-        return new ThreadLocal<Boolean>() {
-            @Override
-            protected Boolean initialValue() {
-                return false;
-            }
-        };
+        return new HideStacktrace();
+    }
+
+    private static class HideStacktrace extends ThreadLocal<Boolean> {
+        @Override
+        protected Boolean initialValue() {
+            return false;
+        }
     }
 
     @Override

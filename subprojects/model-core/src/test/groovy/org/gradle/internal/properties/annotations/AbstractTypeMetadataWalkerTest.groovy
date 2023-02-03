@@ -17,6 +17,7 @@
 package org.gradle.internal.properties.annotations
 
 import com.google.common.reflect.TypeToken
+import groovy.transform.EqualsAndHashCode
 import org.gradle.api.Named
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -29,6 +30,8 @@ import spock.lang.Specification
 
 import java.util.function.Function
 import java.util.function.Supplier
+
+import static com.google.common.base.Preconditions.checkNotNull
 
 class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnotationHandlingSupport {
 
@@ -52,32 +55,25 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(myTask, visitor)
 
         then:
-        visitor.all == ["null::$myTask", "inputProperty::null"] as List<String>
+        visitor.roots == ["null::$myTask"] as List<String>
+        visitor.nested == ["nested::null", "nestedList::null", "nestedListOfLists::null", "nestedMap::null", "nestedNamedList::null", "nestedProperty::null"] as List<String>
+        visitor.leaves == ["inputProperty::null"] as List<String>
     }
 
-    def "type walker should visit all nested nodes and properties"() {
+    def "type walker should visit all nested nodes"() {
         when:
         def visitor = new TestStaticMetadataVisitor()
         TypeMetadataWalker.typeWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyTask), visitor)
 
         then:
         visitor.roots == ["null::MyTask"]
-        visitor.nested == [
+        visitor.nested ==~ [
             "nested::NestedType",
             "nestedList.*::NestedType",
             "nestedListOfLists.*.*::NestedType",
             "nestedMap.<key>::NestedType",
             "nestedNamedList.<name>::NamedType",
             "nestedProperty::NestedType"
-        ]
-        visitor.leaves == [
-            "inputProperty::org.gradle.api.provider.Property<java.lang.String>",
-            "nested.inputProperty::org.gradle.api.provider.Property<java.lang.String>",
-            "nestedList.*.inputProperty::org.gradle.api.provider.Property<java.lang.String>",
-            "nestedListOfLists.*.*.inputProperty::org.gradle.api.provider.Property<java.lang.String>",
-            "nestedMap.<key>.inputProperty::org.gradle.api.provider.Property<java.lang.String>",
-            "nestedNamedList.<name>.inputProperty::org.gradle.api.provider.Property<java.lang.String>",
-            "nestedProperty.inputProperty::org.gradle.api.provider.Property<java.lang.String>"
         ]
     }
 
@@ -136,11 +132,11 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         then:
         visitor.allQualifiedNames == [
             null,
-            "nested", "nested.secondNested", "nested.secondNested.thirdNested", "nested.secondNested.thirdNested.input",
-            "nestedList.*", "nestedList.*.secondNested", "nestedList.*.secondNested.thirdNested", "nestedList.*.secondNested.thirdNested.input",
-            "nestedListOfLists.*.*", "nestedListOfLists.*.*.secondNested", "nestedListOfLists.*.*.secondNested.thirdNested", "nestedListOfLists.*.*.secondNested.thirdNested.input",
-            "nestedMap.<key>", "nestedMap.<key>.secondNested", "nestedMap.<key>.secondNested.thirdNested", "nestedMap.<key>.secondNested.thirdNested.input",
-            "nestedProperty", "nestedProperty.secondNested", "nestedProperty.secondNested.thirdNested", "nestedProperty.secondNested.thirdNested.input",
+            "nested", "nested.secondNested", "nested.secondNested.thirdNested",
+            "nestedList.*", "nestedList.*.secondNested", "nestedList.*.secondNested.thirdNested",
+            "nestedListOfLists.*.*", "nestedListOfLists.*.*.secondNested", "nestedListOfLists.*.*.secondNested.thirdNested",
+            "nestedMap.<key>", "nestedMap.<key>.secondNested", "nestedMap.<key>.secondNested.thirdNested",
+            "nestedProperty", "nestedProperty.secondNested", "nestedProperty.secondNested.thirdNested",
         ]
     }
 
@@ -245,33 +241,120 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         "iterable provider value" | ["hello", TestUtil.providerFactory().provider { null }]                 | IllegalStateException | "Null value is not allowed for the nested collection property 'nested.\$1'"
     }
 
-    def "instance walker should allow visiting missing nested values for #propertyType"() {
+    def "instance walker should allow visiting null nested values"() {
         given:
-        def propertyValue = value
         def instance = new Object() {
             @TestNested
-            Object getNested() {
-                return propertyValue
+            NestedType getNested() {
+                return null
+            }
+            @TestNested
+            Object getNestedObject() {
+                return null
+            }
+            @TestNested
+            List<?> getNestedList() {
+                return null
+            }
+            @TestNested
+            Map<?, ?> getNestedMap() {
+                return null
+            }
+            @TestNested
+            Provider<Provider<Provider<NestedType>>> getNestedProvider() {
+                return null
+            }
+            @TestNested
+            Provider<Provider<Provider<?>>> getNestedGenericProvider() {
+                return null
             }
         }
-        def missing = []
-        def visitor = new TestInstanceMetadataVisitor() {
-            @Override
-            void visitMissingNested(String qualifiedName, PropertyMetadata propertyMetadata) {
-                missing.add(qualifiedName)
-            }
-        }
+        def visitor = new TestInstanceMetadataVisitor()
 
         when:
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
 
         then:
-        missing == ["nested"]
+        visitor.getNested("nested") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(NestedType.class)), "nested", "null")
+        visitor.getNested("nestedObject") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(Object.class)), "nestedObject", "null")
+        visitor.getNested("nestedList") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(List.class)), "nestedList", "null")
+        visitor.getNested("nestedMap") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(Map.class)), "nestedMap", "null")
+        visitor.getNested("nestedProvider") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(NestedType.class)), "nestedProvider", "null")
+        visitor.getNested("nestedGenericProvider") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(Object.class)), "nestedGenericProvider", "null")
+    }
 
-        where:
-        propertyType          | value
-        "plain Java property" | null
-        "Provider property"   | TestUtil.providerFactory().provider { null }
+    def "instance walker should allow visiting null nested values for providers with null values"() {
+        given:
+        def instance = new Object() {
+            @TestNested
+            Provider<NestedType> getNested() {
+                return TestUtil.providerFactory().provider { null } as Provider<NestedType>
+            }
+            @TestNested
+            Object getNestedObject() {
+                return TestUtil.providerFactory().provider { null }
+            }
+            @TestNested
+            Provider<Provider<Provider<NestedType>>> getNestedProvider() {
+                return TestUtil.providerFactory().provider { TestUtil.providerFactory().provider { null } } as Provider<Provider<Provider<NestedType>>>
+            }
+            @TestNested
+            Provider<Provider<?>> getNestedGenericProvider() {
+                return TestUtil.providerFactory().provider { null } as Provider<Provider<?>>
+            }
+        }
+        def visitor = new TestInstanceMetadataVisitor()
+
+        when:
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
+
+        then:
+        visitor.getNested("nested") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(NestedType.class)), "nested", "null")
+        visitor.getNested("nestedObject") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(Object.class)), "nestedObject", "null")
+        visitor.getNested("nestedProvider") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(NestedType.class)), "nestedProvider", "null")
+        visitor.getNested("nestedGenericProvider") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(Object.class)), "nestedGenericProvider", "null")
+    }
+
+    def "instance walker should allow visiting null nested Provider values"() {
+        given:
+        def instance = new Object() {
+            @TestNested
+            NestedType getNested() {
+                return null
+            }
+            @TestNested
+            Object getNestedObject() {
+                return null
+            }
+            @TestNested
+            List<?> getNestedList() {
+                return null
+            }
+            @TestNested
+            Map<?, ?> getNestedMap() {
+                return null
+            }
+            @TestNested
+            Provider<Provider<Provider<NestedType>>> getNestedProvider() {
+                return null
+            }
+            @TestNested
+            Provider<Provider<Provider<?>>> getNestedGenericProvider() {
+                return null
+            }
+        }
+        def visitor = new TestInstanceMetadataVisitor()
+
+        when:
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
+
+        then:
+        visitor.getNested("nested") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(NestedType.class)), "nested", "null")
+        visitor.getNested("nestedObject") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(Object.class)), "nestedObject", "null")
+        visitor.getNested("nestedList") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(List.class)), "nestedList", "null")
+        visitor.getNested("nestedMap") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(Map.class)), "nestedMap", "null")
+        visitor.getNested("nestedProvider") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(NestedType.class)), "nestedProvider", "null")
+        visitor.getNested("nestedGenericProvider") == new CollectedNode(checkNotNull(typeMetadataStore.getTypeMetadata(Object.class)), "nestedGenericProvider", "null")
     }
 
     static String normalizeToString(String toString) {
@@ -279,44 +362,69 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
     }
 
     static class TestStaticMetadataVisitor extends TestNodeMetadataVisitor<TypeToken<?>> implements TypeMetadataWalker.StaticMetadataVisitor {
+        @Override
+        protected String valueToString(TypeToken<?> value) {
+            return value.toString()
+        }
     }
 
     static class TestInstanceMetadataVisitor extends TestNodeMetadataVisitor<Object> implements TypeMetadataWalker.InstanceMetadataVisitor {
-        @Override
-        void visitMissingNested(String qualifiedName, PropertyMetadata propertyMetadata) {
-        }
+        private final List<CollectedNode> leaves = []
 
         @Override
         void visitNestedUnpackingError(String qualifiedName, Exception e) {
+            throw e
+        }
+
+        @Override
+        protected String valueToString(Object value) {
+            if (value instanceof Property<?>) {
+                return "Property[" + value.get() + "]"
+            } else if (value instanceof Provider<?>) {
+                return "Provider[" + value.get() + "]"
+            } else {
+                return Objects.toString(value)
+            }
+        }
+
+
+        @Override
+        void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata) {
+            def value = valueToString(propertyMetadata.getPropertyValue(parent))
+            def node = new CollectedNode(null, qualifiedName, value)
+            addNode(node)
+            leaves.add(node)
+        }
+
+        List<String> getLeaves() {
+            return leaves.collect { it.toString() }
         }
     }
 
     static abstract class TestNodeMetadataVisitor<T> implements TypeMetadataWalker.TypeMetadataVisitor<T> {
-        private List<CollectedNode> all = []
-        private List<CollectedNode> roots = []
-        private List<CollectedNode> nested = []
-        private List<CollectedNode> leaves = []
+        private final List<CollectedNode> all = []
+        private final List<CollectedNode> roots = []
+        private final List<CollectedNode> nested = []
+
+        protected void addNode(CollectedNode node) {
+            all.add(node)
+        }
 
         @Override
         void visitRoot(TypeMetadata typeMetadata, T value) {
-            def node = new CollectedNode(null, value)
-            all.add(node)
+            def node = new CollectedNode(typeMetadata, null, String.valueOf(value))
+            addNode(node)
             roots.add(node)
         }
 
         @Override
         void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, T value) {
-            def node = new CollectedNode(qualifiedName, value)
-            all.add(node)
+            def node = new CollectedNode(typeMetadata, qualifiedName, String.valueOf(value))
+            addNode(node)
             nested.add(node)
         }
 
-        @Override
-        void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<T> value) {
-            def node = new CollectedNode(qualifiedName, value.get())
-            all.add(node)
-            leaves.add(node)
-        }
+        abstract protected String valueToString(T value)
 
         List<String> getAll() {
             return all.collect { it.toString() }
@@ -330,8 +438,8 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
             return nested.collect { it.toString() }
         }
 
-        List<String> getLeaves() {
-            return leaves.collect { it.toString() }
+        CollectedNode getNested(String name) {
+            return nested.find { it.qualifiedName == name }
         }
 
         List<String> getAllQualifiedNames() {
@@ -435,28 +543,21 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         CycleFirstNode input
     }
 
+    @EqualsAndHashCode
     static class CollectedNode {
+        TypeMetadata typeMetadata
         String qualifiedName
-        Object value
+        String toString
 
-        CollectedNode(String qualifiedName, Object value) {
+        CollectedNode(TypeMetadata typeMetadata, String qualifiedName, String toString = null) {
+            this.typeMetadata = typeMetadata
             this.qualifiedName = qualifiedName
-            this.value = value
+            this.toString = toString
         }
 
         @Override
         String toString() {
-            return normalizeToString("$qualifiedName::${valueToString()}")
-        }
-
-        private String valueToString() {
-            if (value instanceof Property<?>) {
-                return "Property[" + value.get() + "]"
-            } else if (value instanceof Provider<?>) {
-                return "Provider[" + value.get() + "]"
-            } else {
-                return Objects.toString(value)
-            }
+            return normalizeToString(toString == null ? qualifiedName : "$qualifiedName::$toString")
         }
     }
 }

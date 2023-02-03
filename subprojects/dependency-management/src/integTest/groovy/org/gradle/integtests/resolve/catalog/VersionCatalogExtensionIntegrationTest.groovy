@@ -1920,14 +1920,47 @@ Second: 1.1"""
         verifyContains(failure.error, reservedAlias {
             inCatalog("libs")
             alias(reserved)
-            reservedAliases "extensions", "class", "convention"
+            reservedAliases "extensions", "convention"
         })
 
         where:
         reserved << [
             "extensions",
-            "class",
             "convention"
+        ]
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    @Issue("https://github.com/gradle/gradle/issues/23106")
+    def "disallows aliases which contain a name that clashes with Java methods"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        library("$reserved", "org:lib1:1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        executer.withStacktraceEnabled()
+        fails "help"
+
+        then:
+        verifyContains(failure.error, reservedAlias {
+            inCatalog("libs")
+            shouldNotContain(reserved)
+            reservedNames "class"
+        })
+
+        where:
+        reserved << [
+            "class",
+            "my-class",
+            "my-class-lib"
         ]
     }
 
@@ -2264,5 +2297,117 @@ Second: 1.1"""
         "versions.myVersion" | "1.0"
         "plugins.myPlugin"   | "org.gradle.test:1.0"
         "bundles.myBundle"   | "[org.gradle.test:lib:3.0.5]"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23096")
+    def 'all properties of version catalog dependencies are copied when the dependency is copied'() {
+        given:
+        buildFile << """
+            configurations {
+                implementation
+                destination1
+                destination2
+            }
+
+            dependencies {
+                implementation(libs.test1) {
+                    because("reason1")
+
+                    exclude(group: "test-group", module: "test-module")
+                    artifact {
+                        name = "test-name"
+                        classifier = "test-classifier"
+                        extension = "test-ext"
+                        type = "test-type"
+                        url = "test-url"
+                    }
+                    transitive = true
+                    endorseStrictVersions()
+
+                    version {
+                        branch = "branch"
+                        strictly("123")
+                        prefer("789")
+                        reject("aaa")
+                    }
+
+                    changing = true
+                }
+                implementation(libs.test2) {
+                    transitive = false
+                    targetConfiguration = "abc"
+                    doNotEndorseStrictVersions()
+
+                    version {
+                        require("456")
+                    }
+
+                    changing = false
+                }
+                implementation(libs.test3) {
+                    attributes {
+                        attribute(Attribute.of('foo', String), 'bar')
+                    }
+                    capabilities {
+                        requireCapability("org:test-cap:1.1")
+                    }
+                }
+            }
+
+            def verifyDep(original, copied) {
+                // Dependency
+                assert original.group == copied.group
+                assert original.name == copied.name
+                assert original.version == copied.version
+                assert original.reason == copied.reason
+
+                // ModuleDependency
+                assert original.excludeRules == copied.excludeRules
+                assert original.artifacts == copied.artifacts
+                assert original.transitive == copied.transitive
+                assert original.targetConfiguration == copied.targetConfiguration
+                assert original.attributes == copied.attributes
+                assert original.requestedCapabilities == copied.requestedCapabilities
+                assert original.endorsingStrictVersions == copied.endorsingStrictVersions
+
+                // ExternalDependency + ExternalModuleDependency
+                assert original.changing == copied.changing
+                assert original.versionConstraint == copied.versionConstraint
+            }
+
+            def getOriginal(dep) {
+                configurations.implementation.dependencies.find { it.name == dep.name }
+            }
+
+            task copyAndVerifyDependencies {
+                configurations.implementation.dependencies.each {
+                    project.dependencies.add("destination1", it)
+                    configurations.destination2.dependencies.add(it)
+                }
+
+                doLast {
+                    configurations.destination1.dependencies.each {
+                        verifyDep(getOriginal(it), it)
+                    }
+
+                    configurations.destination2.dependencies.each {
+                        verifyDep(getOriginal(it), it)
+                    }
+
+                    configurations.implementation.copy().dependencies.each {
+                        verifyDep(getOriginal(it), it)
+                    }
+                }
+            }
+        """
+
+        file("gradle/libs.versions.toml") << """[libraries]
+test1 = { module = 'org:test1', version = '1.0' }
+test2 = { module = 'org:test2', version = '1.0' }
+test3 = { module = 'org:test3', version = '1.0' }
+"""
+
+        expect:
+        succeeds "copyAndVerifyDependencies"
     }
 }

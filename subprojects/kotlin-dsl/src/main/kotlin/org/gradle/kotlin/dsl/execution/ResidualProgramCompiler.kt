@@ -197,7 +197,7 @@ class ResidualProgramCompiler(
         is Instruction.ApplyPluginRequests -> emitApplyPluginRequests(instruction.requests, instruction.source)
         is Instruction.ApplyPluginRequestsOf -> {
             when (val program = instruction.program) {
-                is Program.Plugins -> emitPrecompiledPluginsBlock(program)
+                is Program.Plugins -> emitCompiledPluginsBlock(program)
                 is Program.PluginManagement -> emitStage1Sequence(program)
                 is Program.Stage1Sequence -> emitStage1Sequence(program.pluginManagement, program.buildscript, program.plugins)
                 else -> throw IllegalStateException("Expecting a residual program with plugins, got `$program'")
@@ -216,8 +216,8 @@ class ResidualProgramCompiler(
     private
     fun MethodVisitor.emitEval(source: ProgramSource) {
         val scriptDefinition = stage1ScriptDefinition
-        val precompiledScriptClass = compileStage1(source, scriptDefinition)
-        emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass, scriptDefinition)
+        val compiledScriptClass = compileStage1(source, scriptDefinition)
+        emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptDefinition)
     }
 
     private
@@ -239,7 +239,7 @@ class ResidualProgramCompiler(
         val scriptDefinition = buildscriptWithPluginsScriptDefinition
         val plugins = stage1Seq.filterIsInstance<Program.Plugins>().singleOrNull()
         val firstElement = stage1Seq.first()
-        val precompiledBuildscriptWithPluginsBlock =
+        val compiledBuildscriptWithPluginsBlock =
             compileStage1(
                 firstElement.fragment.source.map {
                     it.preserve(stage1Seq.map { stage1 -> stage1.fragment.range })
@@ -249,18 +249,18 @@ class ResidualProgramCompiler(
             )
 
         val implicitReceiverType = implicitReceiverOf(scriptDefinition)!!
-        precompiledScriptClassInstantiation(precompiledBuildscriptWithPluginsBlock) {
+        compiledScriptClassInstantiation(compiledBuildscriptWithPluginsBlock) {
 
             emitPluginRequestCollectorInstantiation()
 
-            NEW(precompiledBuildscriptWithPluginsBlock)
+            NEW(compiledBuildscriptWithPluginsBlock)
             ALOAD(Vars.ScriptHost)
             // ${plugins}(temp.createSpec(lineNumber))
             emitPluginRequestCollectorCreateSpecFor(plugins)
             loadTargetOf(implicitReceiverType)
             emitLoadExtensions()
             INVOKESPECIAL(
-                precompiledBuildscriptWithPluginsBlock,
+                compiledBuildscriptWithPluginsBlock,
                 "<init>",
                 "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/plugin/use/PluginDependenciesSpec;L${implicitReceiverType.internalName};$injectedPropertiesDescriptors)V"
             )
@@ -358,7 +358,7 @@ class ResidualProgramCompiler(
     fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
 
         val scriptDef = stage2ScriptDefinition
-        val precompiledScriptClass = compileScript(
+        val compiledScriptClass = compileScript(
             scriptFile,
             originalPath,
             scriptDef,
@@ -369,8 +369,8 @@ class ResidualProgramCompiler(
 
             overrideExecute {
 
-                emitInstantiationOfPrecompiledScriptClass(
-                    precompiledScriptClass,
+                emitInstantiationOfCompiledScriptClass(
+                    compiledScriptClass,
                     scriptDef
                 )
             }
@@ -378,23 +378,23 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitPrecompiledPluginsBlock(program: Program.Plugins) {
+    fun MethodVisitor.emitCompiledPluginsBlock(program: Program.Plugins) {
 
-        val precompiledPluginsBlock = compilePlugins(program)
+        val compiledPluginsBlock = compilePlugins(program)
 
-        precompiledScriptClassInstantiation(precompiledPluginsBlock) {
+        compiledScriptClassInstantiation(compiledPluginsBlock) {
 
             /*
              * val collector = PluginRequestCollector(kotlinScriptHost.scriptSource)
              */
             emitPluginRequestCollectorInstantiation()
 
-            // ${precompiledPluginsBlock}(collector.createSpec(lineNumber))
-            NEW(precompiledPluginsBlock)
+            // ${compiledPluginsBlock}(collector.createSpec(lineNumber))
+            NEW(compiledPluginsBlock)
             emitPluginRequestCollectorCreateSpecFor(program)
             emitLoadExtensions()
             INVOKESPECIAL(
-                precompiledPluginsBlock,
+                compiledPluginsBlock,
                 "<init>",
                 "(Lorg/gradle/plugin/use/PluginDependenciesSpec;$injectedPropertiesDescriptors)V"
             )
@@ -498,10 +498,9 @@ class ResidualProgramCompiler(
             ALOAD(0)
             ALOAD(Vars.ScriptHost)
             ALOAD(3)
-            ALOAD(4)
             GETSTATIC(programKind)
             GETSTATIC(programTarget)
-            ALOAD(5)
+            ALOAD(4)
             invokeHost(
                 ExecutableProgram.Host::compileSecondStageOf.name,
                 compileSecondStageOfDescriptor
@@ -543,8 +542,7 @@ class ResidualProgramCompiler(
         Type.getType(CompiledScript::class.java),
         Type.getType(ExecutableProgram.Host::class.java),
         Type.getType(KotlinScriptHost::class.java),
-        Type.getType(String::class.java),
-        Type.getType(HashCode::class.java),
+        Type.getType(ProgramId::class.java),
         Type.getType(ClassPath::class.java)
     )
 
@@ -553,8 +551,7 @@ class ResidualProgramCompiler(
         Type.getType(CompiledScript::class.java),
         stagedProgram,
         Type.getType(KotlinScriptHost::class.java),
-        Type.getType(String::class.java),
-        Type.getType(HashCode::class.java),
+        Type.getType(ProgramId::class.java),
         Type.getType(ProgramKind::class.java),
         Type.getType(ProgramTarget::class.java),
         Type.getType(ClassPath::class.java)
@@ -605,16 +602,16 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitInstantiationOfPrecompiledScriptClass(
-        precompiledScriptClass: InternalName,
+    fun MethodVisitor.emitInstantiationOfCompiledScriptClass(
+        compiledScriptClass: InternalName,
         scriptDefinition: ScriptDefinition
     ) {
 
         val implicitReceiverType = implicitReceiverOf(scriptDefinition)
-        precompiledScriptClassInstantiation(precompiledScriptClass) {
+        compiledScriptClassInstantiation(compiledScriptClass) {
 
-            // ${precompiledScriptClass}(scriptHost)
-            NEW(precompiledScriptClass)
+            // ${compiledScriptClass}(scriptHost)
+            NEW(compiledScriptClass)
             val constructorSignature =
                 if (implicitReceiverType != null) {
                     ALOAD(Vars.ScriptHost)
@@ -626,7 +623,7 @@ class ResidualProgramCompiler(
                     emitLoadExtensions()
                     "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;$injectedPropertiesDescriptors)V"
                 }
-            INVOKESPECIAL(precompiledScriptClass, "<init>", constructorSignature)
+            INVOKESPECIAL(compiledScriptClass, "<init>", constructorSignature)
         }
     }
 
@@ -638,7 +635,7 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.precompiledScriptClassInstantiation(precompiledScriptClass: InternalName, instantiation: MethodVisitor.() -> Unit) {
+    fun MethodVisitor.compiledScriptClassInstantiation(compiledScriptClass: InternalName, instantiation: MethodVisitor.() -> Unit) {
 
         TRY_CATCH<Throwable>(
             tryBlock = {
@@ -647,18 +644,18 @@ class ResidualProgramCompiler(
             },
             catchBlock = {
 
-                emitOnScriptException(precompiledScriptClass)
+                emitOnScriptException(compiledScriptClass)
             }
         )
     }
 
     private
-    fun MethodVisitor.emitOnScriptException(precompiledScriptClass: InternalName) {
+    fun MethodVisitor.emitOnScriptException(compiledScriptClass: InternalName) {
         // Exception is on the stack
         ASTORE(4)
         ALOAD(Vars.ProgramHost)
         ALOAD(4)
-        LDC(Type.getType("L$precompiledScriptClass;"))
+        LDC(Type.getType("L$compiledScriptClass;"))
         ALOAD(Vars.ScriptHost)
         invokeHost(
             "handleScriptException",

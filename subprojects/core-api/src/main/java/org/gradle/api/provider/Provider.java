@@ -122,7 +122,7 @@ public interface Provider<T> {
      * @param transformer The transformer to apply to values. May return {@code null}, in which case the provider will have no value.
      * @since 4.3
      */
-    <S> Provider<S> map(Transformer<? extends S, ? super T> transformer);
+    <S> Provider<S> map(Transformer<? extends @org.jetbrains.annotations.Nullable S, ? super T> transformer);
 
     /**
      * Returns a new {@link Provider} from the value of this provider transformed using the given function.
@@ -179,7 +179,7 @@ public interface Provider<T> {
      * provider will have no value.
      * @since 5.0
      */
-    <S> Provider<S> flatMap(Transformer<? extends Provider<? extends S>, ? super T> transformer);
+    <S> Provider<S> flatMap(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends S>, ? super T> transformer);
 
     /**
      * Returns {@code true} if there is a value present, otherwise {@code false}.
@@ -231,5 +231,5 @@ public interface Provider<T> {
      * @return a combined provider
      * @since 6.6
      */
-    <U, R> Provider<R> zip(Provider<U> right, BiFunction<? super T, ? super U, ? extends R> combiner);
+    <U, R> Provider<R> zip(Provider<U> right, BiFunction<? super T, ? super U, ? extends @org.jetbrains.annotations.Nullable R> combiner);
 }

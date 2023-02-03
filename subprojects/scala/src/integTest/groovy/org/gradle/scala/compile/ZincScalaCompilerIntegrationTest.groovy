@@ -73,11 +73,7 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
 
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/22964")
     def "compiles Scala code incrementally"() {
-        // TODO: remove the assumption when the linked issue fixed for Scala 3
-        Assume.assumeTrue(versionNumber.major == 2)
-
         file("src/main/scala/Person.scala") << """class Person(val name: String = "foo", val age: Int = 1)"""
         file("src/main/scala/House.scala") << """class House(val owner: Person = new Person())"""
         file("src/main/scala/Other.scala") << """class Other"""
@@ -144,11 +140,7 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         other.lastModified() == old(other.lastModified())
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/22964")
     def "compiles Scala incrementally across project boundaries"() {
-        // TODO: remove the assumption when the linked issue fixed for Scala 3
-        Assume.assumeTrue(versionNumber.major == 2)
-
         file("settings.gradle") << """include 'a', 'b'"""
         // overwrite the build file from setup
         file("build.gradle").text = """

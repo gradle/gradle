@@ -28,16 +28,19 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.ClasspathNormalizer
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.internal.classpath.Instrumented.fileCollectionObserved
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
+import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
@@ -55,6 +58,7 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSch
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.resolverEnvironmentStringFor
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.strictModeSystemPropertyName
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
@@ -131,12 +135,12 @@ import javax.inject.Inject
 class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
 
     companion object {
-        val PRECOMPILED_SCRIPT_MANUAL = Documentation.userManual("custom_plugins", "sec:precompiled_plugins")
+        val PRECOMPILED_SCRIPT_MANUAL: Documentation = Documentation.userManual("custom_plugins", "sec:precompiled_plugins")
     }
 
     override fun enableOn(target: PrecompiledScriptPluginsSupport.Target): Boolean = target.project.run {
 
-        val scriptPluginFiles = collectScriptPluginFiles()
+        val scriptPluginFiles = target.kotlinSourceDirectorySet.collectScriptPluginFiles()
         if (scriptPluginFiles.isEmpty()) {
             return false
         }
@@ -158,7 +162,7 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
     }
 
     override fun collectScriptPluginFilesOf(project: Project): List<File> =
-        project.collectScriptPluginFiles().toList()
+        project.gradlePlugin.pluginSourceSet.kotlin.collectScriptPluginFiles().toList()
 }
 
 
@@ -199,7 +203,8 @@ fun Project.enableScriptCompilationOf(
 
         val compilePluginsBlocks by registering(CompilePrecompiledScriptPluginPlugins::class) {
 
-            jvmTarget.set(jvmTargetProvider)
+            javaLauncher.set(javaToolchainService.launcherFor(java.toolchain))
+            @Suppress("DEPRECATION") jvmTarget.set(jvmTargetProvider)
 
             dependsOn(extractPrecompiledScriptPluginPlugins)
             sourceDir(extractedPluginsBlocks)
@@ -245,14 +250,15 @@ fun Project.enableScriptCompilationOf(
                 .ignoreEmptyDirectories()
                 .withPropertyName("accessorsMetadata")
             inputs.property("kotlinDslScriptTemplates", scriptTemplates)
-
-            configureScriptResolverEnvironmentOnDoFirst(
-                objects,
-                serviceOf(),
-                compileClasspath,
-                accessorsMetadata
-            )
         }
+
+        configureKotlinCompilerArguments(
+            objects,
+            serviceOf(),
+            serviceOf(),
+            compileClasspath,
+            generatePrecompiledScriptPluginAccessors.flatMap { it.metadataOutputDir }
+        )
 
         if (inClassPathMode()) {
 
@@ -261,9 +267,7 @@ fun Project.enableScriptCompilationOf(
                 metadataDir.set(accessorsMetadata)
                 classPathFiles.from(compileClasspath)
                 onConfigure { resolverEnvironment ->
-                    objects.withInstance<TaskContainerScope> {
-                        configureScriptResolverEnvironment(resolverEnvironment)
-                    }
+                    configureKotlinCompilerArguments(objects, resolverEnvironment)
                 }
             }
 
@@ -287,49 +291,97 @@ val strictModeSystemPropertyNameMapper: Transformer<Boolean, String> = Transform
 
 
 private
-fun Task.configureScriptResolverEnvironmentOnDoFirst(
+fun configureKotlinCompilerArguments(
     objects: ObjectFactory,
     implicitImports: ImplicitImports,
+    classpathFingerprinter: ClasspathFingerprinter,
     compileClasspath: FileCollection,
     accessorsMetadata: Provider<Directory>
 ) {
-    doFirst {
-        objects.withInstance<ResolverEnvironmentScope> {
-            configureScriptResolverEnvironment(
-                resolverEnvironmentStringFor(
-                    implicitImports,
-                    classpathFingerprinter,
-                    compileClasspath,
-                    accessorsMetadata.get().asFile
-                )
-            )
+    configureKotlinCompilerArguments(
+        objects,
+        resolverEnvironmentStringFor(
+            implicitImports,
+            classpathFingerprinter,
+            compileClasspath,
+            accessorsMetadata
+        )
+    )
+}
+
+
+private
+fun configureKotlinCompilerArguments(
+    objects: ObjectFactory,
+    resolverEnvironment: Provider<String>
+) {
+    objects.withInstance<TaskContainerScope> {
+        taskContainer.compileKotlin {
+            if (hasLazyKotlinCompilerOptions) {
+                configureKotlinCompilerArgumentsLazily(resolverEnvironment)
+            } else {
+                doFirst {
+                    configureKotlinCompilerArgumentsEagerly(resolverEnvironment)
+                }
+            }
         }
     }
 }
+
+
+private
+val Task.hasLazyKotlinCompilerOptions: Boolean
+    get() = withGroovyBuilder { hasProperty("compilerOptions") }
+
+
+private
+fun Task.configureKotlinCompilerArgumentsLazily(resolverEnvironment: Provider<String>) {
+    withGroovyBuilder {
+        getProperty("compilerOptions").withGroovyBuilder {
+            @Suppress("unchecked_cast")
+            val freeCompilerArgs = getProperty("freeCompilerArgs") as ListProperty<String>
+            freeCompilerArgs.addAll(scriptTemplatesArgs)
+            freeCompilerArgs.add(resolverEnvironment.mappedToScriptResolverEnvironmentArg)
+        }
+    }
+}
+
+
+private
+fun Task.configureKotlinCompilerArgumentsEagerly(resolverEnvironment: Provider<String>) {
+    DeprecationLogger.deprecateBehaviour("Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0.")
+        .withAdvice(
+            "Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. " +
+                "Or use version $expectedKotlinDslPluginsVersion which is the expected version for this Gradle release. " +
+                "If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0."
+        )
+        .willBecomeAnErrorInGradle9()
+        .withUpgradeGuideSection(8, "kotlin_dsl_with_kgp_lt_1_8_0")
+        .nagUser()
+    withGroovyBuilder {
+        getProperty("kotlinOptions").withGroovyBuilder {
+            @Suppress("unchecked_cast")
+            val freeCompilerArgs: List<String> = getProperty("freeCompilerArgs") as List<String>
+            setProperty("freeCompilerArgs", freeCompilerArgs + scriptTemplatesArgs + resolverEnvironment.mappedToScriptResolverEnvironmentArg.get())
+        }
+    }
+}
+
+
+private
+val scriptTemplatesArgs
+    get() = listOf("-script-templates", scriptTemplates)
+
+
+private
+val Provider<String>.mappedToScriptResolverEnvironmentArg
+    // Propagate implicit imports and other settings
+    get() = map { "-Xscript-resolver-environment=$it" }
 
 
 private
 inline fun <reified T> ObjectFactory.withInstance(block: T.() -> Unit) {
     with(newInstance(), block)
-}
-
-
-private
-fun TaskContainerScope.configureScriptResolverEnvironment(resolverEnvironment: String) {
-    taskContainer.compileKotlin {
-        val scriptCompilerArgs = listOf(
-            "-script-templates", scriptTemplates,
-            // Propagate implicit imports and other settings
-            "-Xscript-resolver-environment=$resolverEnvironment"
-        )
-        withGroovyBuilder {
-            getProperty("kotlinOptions").withGroovyBuilder {
-                @Suppress("unchecked_cast")
-                val freeCompilerArgs: List<String> = getProperty("freeCompilerArgs") as List<String>
-                setProperty("freeCompilerArgs", freeCompilerArgs + scriptCompilerArgs)
-            }
-        }
-    }
 }
 
 
@@ -341,17 +393,13 @@ fun TaskContainer.compileKotlin(action: Task.() -> Unit) {
 }
 
 
+/**
+ * For access to the task container at execution time, for configuration cache support.
+ */
 private
 interface TaskContainerScope {
     @get:Inject
     val taskContainer: TaskContainer
-}
-
-
-private
-interface ResolverEnvironmentScope : TaskContainerScope {
-    @get:Inject
-    val classpathFingerprinter: ClasspathFingerprinter
 }
 
 
@@ -390,15 +438,18 @@ fun Project.exposeScriptsAsGradlePlugins(scriptPlugins: List<PrecompiledScriptPl
 
 
 private
-fun Project.collectScriptPluginFiles(): Set<File> =
-    gradlePlugin.pluginSourceSet.allSource.matching {
-        it.include("**/*.gradle.kts")
-    }.filter {
-        it.isFile
-    }.also {
-        // Declare build configuration input
-        fileCollectionObserved(it, "Kotlin DSL")
-    }.files
+fun SourceDirectorySet.collectScriptPluginFiles(): Set<File> =
+    matching { it.include("**/*.gradle.kts") }
+        .filter { it.isFile }
+        .files
+
+
+/**
+ * Uses the Groovy builder to access the `kotlin` source set because KGP types are not available here.
+ */
+private
+val SourceSet.kotlin: SourceDirectorySet
+    get() = withGroovyBuilder { getProperty("kotlin") } as SourceDirectorySet
 
 
 private
@@ -479,3 +530,13 @@ fun Project.buildDir(path: String) = layout.buildDirectory.dir(path)
 private
 val Project.sourceSets
     get() = project.the<SourceSetContainer>()
+
+
+private
+val Project.javaToolchainService
+    get() = serviceOf<JavaToolchainService>()
+
+
+private
+val Project.java
+    get() = the<JavaPluginExtension>()

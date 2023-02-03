@@ -81,5 +81,5 @@ public interface ProjectStateRegistry {
     /**
      * Discards all projects for the given build.
      */
-    void resetState(BuildState build);
+    void discardProjectsFor(BuildState build);
 }

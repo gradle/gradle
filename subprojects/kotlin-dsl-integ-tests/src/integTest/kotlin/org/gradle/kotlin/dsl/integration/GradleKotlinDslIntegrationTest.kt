@@ -239,6 +239,13 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             """
         )
 
+        executer.expectDocumentedDeprecationWarning(
+            "The org.gradle.util.WrapUtil type has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
+        )
+
         assertThat(
             build("print-kotlin-version").output,
             containsString("$expectedKotlinCompilerVersionString[compileKotlin=true, compileTestKotlin=true]")
@@ -643,18 +650,10 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     """
                     |  Line 01: println(foo)
                     |                   ^ Unresolved reference: foo
-                    """.trimMargin()
-                ),
-
-                containsString(
-                    """
+                    |
                     |  Line 06: println("foo").bar.bazar
                     |                          ^ Unresolved reference: bar
-                    """.trimMargin()
-                ),
-
-                containsString(
-                    """
+                    |
                     |  Line 10: println(cathedral)
                     |                   ^ Unresolved reference: cathedral
                     """.trimMargin()

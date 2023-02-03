@@ -308,7 +308,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         output.contains "init y"
     }
 
-    @ToBeFixedForConfigurationCache(because = "test relies on static state")
     def "reuse classloader when settings script changed"() {
         addIsCachedCheck()
 

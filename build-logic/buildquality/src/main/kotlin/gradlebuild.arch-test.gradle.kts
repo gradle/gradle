@@ -63,7 +63,7 @@ testing {
                         systemProperty("package.cycle.exclude.patterns", packageCyclesExtension.excludePatterns.get().joinToString(","))
                         configure<PredictiveTestSelectionExtension> {
                             // PTS doesn't work well with architecture tests which scan all classes
-                            enabled.set(false)
+                            enabled = false
                         }
                     }
                 }

@@ -119,7 +119,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         run "adHocTask"
 
         then:
-        result.assertTasksNotSkipped(":buildSrc:compileJava", ":buildSrc:jar", ":buildSrc:classes", ":buildSrc:assemble", ":buildSrc:build", ":adHocTask")
+        result.assertTasksNotSkipped(":buildSrc:compileJava", ":buildSrc:jar", ":buildSrc:classes", ":adHocTask")
         result.assertHasPostBuildOutput("3 actionable tasks: 3 executed")
 
         when:

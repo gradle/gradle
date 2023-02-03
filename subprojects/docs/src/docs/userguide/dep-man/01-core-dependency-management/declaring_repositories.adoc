@@ -207,8 +207,8 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 
 Gradle uses the same logic as Maven to identify the location of your local Maven cache.
 If a local repository location is defined in a `settings.xml`, this location will be used.
-The `settings.xml` in `__USER_HOME__/.m2` takes precedence over the `settings.xml` in `__M2_HOME__/conf`.
-If no `settings.xml` is available, Gradle uses the default location `__USER_HOME__/.m2/repository`.
+The `settings.xml` in `<home directory of the current user>/.m2` takes precedence over the `settings.xml` in `__M2_HOME__/conf`.
+If no `settings.xml` is available, Gradle uses the default location `<home directory of the current user>/.m2/repository`.
 
 [[sec:case-for-maven-local]]
 == The case for mavenLocal()

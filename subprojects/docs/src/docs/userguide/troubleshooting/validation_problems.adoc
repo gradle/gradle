@@ -388,4 +388,4 @@ To fix this, look at the error message which indicates the list of possible solu
 
 Please find below the list of unsupported value type and links to respective sections of the user manual:
 
-`ResolvedArtifactResult`:: <<more_about_tasks#sec:task_input_using_dependency_resolution_results, Using dependency resolution results as task inputs>>
+`ResolvedArtifactResult`:: <<incremental_build#sec:task_input_using_dependency_resolution_results, Using dependency resolution results as task inputs>>

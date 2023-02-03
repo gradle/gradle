@@ -78,89 +78,92 @@ class ProgressEvents implements ProgressListener {
      * Asserts that the events form zero or more well-formed trees of operations.
      */
     void assertHasZeroOrMoreTrees() {
-        if (dirty) {
-            Set<OperationDescriptor> seen = []
-            Map<OperationDescriptor, StartEvent> running = [:]
-            for (ProgressEvent event : events) {
-                assert event.displayName == event.toString()
-                assert event.descriptor.displayName
-                assert event.descriptor.displayName == event.descriptor.toString()
-                assert event.descriptor.name
+        if (!dirty) {
+            return;
+        }
 
-                if (event instanceof StartEvent) {
-                    def descriptor = event.descriptor
-                    assert seen.add(descriptor)
-                    assert !running.containsKey(descriptor)
-                    running[descriptor] = event
+        Set<OperationDescriptor> seen = []
+        Map<OperationDescriptor, StartEvent> running = [:]
+        for (ProgressEvent event : events) {
+            assert event.displayName == event.toString()
+            assert event.descriptor.displayName
+            assert event.descriptor.displayName == event.descriptor.toString()
+            assert event.descriptor.name
 
-                    // Display name should be mostly unique
-                    if (uniqueBuildOperation(descriptor)) {
-                        if (descriptor.displayName.contains('/maven-metadata.xml')
-                            || descriptor.displayName.startsWith('Apply plugin ')
-                            || descriptor.displayName.startsWith('Configure project ')
-                            || descriptor.displayName.startsWith('Cross-configure project ')
-                            || descriptor.displayName.startsWith('Resolve files of')
-                            || descriptor.displayName.startsWith('Executing ')
-                            || descriptor.displayName.startsWith('Execute container callback action')
-                            || descriptor.displayName.startsWith('Resolving ')
-                        ) {
-                            // Ignore this for now
-                        } else {
-                            def duplicateName = operations.find({
-                                !it.failed && // ignore previous operations with the same display name that failed, eg for retry of downloads
-                                    it.descriptor.displayName == descriptor.displayName &&
-                                    it.parent?.descriptor == descriptor.parent
-                            })
-                            if (duplicateName != null) {
-                                // Same display name and same parent
-                                throw new AssertionFailedError("Found duplicate operation '${duplicateName}' in events:\n${describeList(events)}")
-                            }
+            if (event instanceof StartEvent) {
+                def descriptor = event.descriptor
+                assert seen.add(descriptor)
+                assert !running.containsKey(descriptor)
+                running[descriptor] = event
+
+                // Display name should be mostly unique
+                if (uniqueBuildOperation(descriptor)) {
+                    if (descriptor.displayName.contains('/maven-metadata.xml')
+                        || descriptor.displayName.startsWith('Apply plugin ')
+                        || descriptor.displayName.startsWith('Configure project ')
+                        || descriptor.displayName.startsWith('Cross-configure project ')
+                        || descriptor.displayName.startsWith('Resolve files of')
+                        || descriptor.displayName.startsWith('Identifying ')
+                        || descriptor.displayName.startsWith('Executing ')
+                        || descriptor.displayName.startsWith('Execute container callback action')
+                        || descriptor.displayName.startsWith('Resolving ')
+                    ) {
+                        // Ignore this for now
+                    } else {
+                        def duplicateName = operations.find({
+                            !it.failed && // ignore previous operations with the same display name that failed, eg for retry of downloads
+                                it.descriptor.displayName == descriptor.displayName &&
+                                it.parent?.descriptor == descriptor.parent
+                        })
+                        if (duplicateName != null) {
+                            // Same display name and same parent
+                            throw new AssertionFailedError("Found duplicate operation '${duplicateName}' in events:\n${describeList(events)}")
                         }
                     }
-
-                    // parent should also be running
-                    assert descriptor.parent == null || running.containsKey(descriptor.parent)
-                    def parent = descriptor.parent == null ? null : operations.find { it.descriptor == descriptor.parent }
-
-                    Operation operation = newOperation(event, parent, descriptor)
-                    operations.add(operation)
-
-                    assert descriptor.displayName == descriptor.toString()
-                    assert event.displayName == "${descriptor.displayName} started" as String
-                } else if (event instanceof FinishEvent) {
-                    def descriptor = event.descriptor
-                    def startEvent = running.remove(descriptor)
-                    assert startEvent != null
-
-                    // parent should still be running
-                    assert descriptor.parent == null || running.containsKey(descriptor.parent)
-
-                    def storedOperation = operations.find { it.descriptor == descriptor }
-                    storedOperation.finishEvent = event
-                    storedOperation.result = event.result
-
-                    assert event.displayName.matches("\\Q${descriptor.displayName}\\E [\\w-]+")
-
-                    // don't check event timestamp order on Windows OS
-                    // timekeeping in CI environment on Windows is currently problematic
-                    if (!IS_WINDOWS_OS) {
-                        assert startEvent.eventTime <= event.eventTime
-                    }
-
-                    assert event.result.startTime == startEvent.eventTime
-                    assert event.result.endTime == event.eventTime
-                } else {
-                    def descriptor = event.descriptor
-                    // operation should still be running
-                    assert running.containsKey(descriptor)
-                    def operation = operations.find { it.descriptor == event.descriptor }
-                    otherEvent(event, operation)
                 }
-            }
-            assert running.size() == 0: "Not all operations completed: ${running.values()}, events: ${events}"
 
-            dirty = false
+                // parent should also be running
+                assert descriptor.parent == null || running.containsKey(descriptor.parent)
+                def parent = descriptor.parent == null ? null : operations.find { it.descriptor == descriptor.parent }
+
+                Operation operation = newOperation(event, parent, descriptor)
+                operations.add(operation)
+
+                assert descriptor.displayName == descriptor.toString()
+                assert event.displayName == "${descriptor.displayName} started" as String
+            } else if (event instanceof FinishEvent) {
+                def descriptor = event.descriptor
+                def startEvent = running.remove(descriptor)
+                assert startEvent != null
+
+                // parent should still be running
+                assert descriptor.parent == null || running.containsKey(descriptor.parent)
+
+                def storedOperation = operations.find { it.descriptor == descriptor }
+                storedOperation.finishEvent = event
+                storedOperation.result = event.result
+
+                assert event.displayName.matches("\\Q${descriptor.displayName}\\E[ \\w-]+")
+
+                // don't check event timestamp order on Windows OS
+                // timekeeping in CI environment on Windows is currently problematic
+                if (!IS_WINDOWS_OS) {
+                    assert startEvent.eventTime <= event.eventTime
+                }
+
+                assert event.result.startTime == startEvent.eventTime
+                assert event.result.endTime == event.eventTime
+            } else {
+                def descriptor = event.descriptor
+                // operation should still be running
+                assert running.containsKey(descriptor)
+                def operation = operations.find { it.descriptor == event.descriptor }
+                otherEvent(event, operation)
+            }
         }
+        assert running.size() == 0: "Not all operations completed: ${running.values()}, events: ${events}"
+
+        dirty = false
     }
 
     protected Operation newOperation(StartEvent startEvent, Operation parent, OperationDescriptor descriptor) {

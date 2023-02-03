@@ -72,4 +72,28 @@ class Person {
         }
     }
 
+    def "can assign #value to additional parameters"() {
+        file("src/main/scala/ScalaHall.scala") << "class ScalaHall(name: String)"
+
+        buildFile << """
+            tasks.withType(ScalaCompile) {
+              scalaCompileOptions.additionalParameters = $expression
+            }
+        """
+
+        when:
+        run ":compileScala"
+
+        then:
+        executedAndNotSkipped(":compileScala")
+        outputDoesNotContain("[Warn]")
+        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
+
+        where:
+        value            | expression
+        "null"           | "null"
+        "mutable list"   | "[]"
+        "immutable list" | "[].asImmutable()"
+    }
+
 }

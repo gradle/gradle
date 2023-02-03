@@ -18,7 +18,6 @@ buildscript {
     dependencies {
         classpath("com.android.tools.build:gradle:$androidPluginVersion")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-        classpath("org.jetbrains.kotlin:kotlin-android-extensions:$kotlinVersion")
     }
     repositories {
         mavenCentral()

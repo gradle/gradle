@@ -27,9 +27,29 @@ import java.util.Collection;
  */
 @ServiceScope(Scopes.Build.class)
 public interface BuildIncluder {
-    IncludedBuildState includeBuild(IncludedBuildSpec includedBuildSpec);
+    /**
+     * Registers an included build of the current build. An included build may provide plugins and libraries to this build and all other builds in the tree.
+     */
+    CompositeBuildParticipantBuildState includeBuild(IncludedBuildSpec includedBuildSpec);
 
+    /**
+     * Registers an included plugin build of the current build. An included plugin build may provide plugins to this build only. In contrast to {@link #includeBuild(IncludedBuildSpec)},
+     * this method does not make any libraries visible to this build, nor does it make anything visible to other builds in the tree.
+     */
     void registerPluginBuild(IncludedBuildSpec includedBuildSpec);
 
-    Collection<IncludedBuildState> includeRegisteredPluginBuilds();
+    /**
+     * Returns the set of plugin builds for this build. These are registered using {@link #registerPluginBuild(IncludedBuildSpec)}.
+     */
+    Collection<IncludedBuildState> getRegisteredPluginBuilds();
+
+    /**
+     * Returns the set of included builds that are visible to this build for plugin resolution.
+     */
+    Collection<IncludedBuildState> getIncludedBuildsForPluginResolution();
+
+    /**
+     * Prepares an included build so that the plugins it provides can be resolved.
+     */
+    void prepareForPluginResolution(IncludedBuildState build);
 }

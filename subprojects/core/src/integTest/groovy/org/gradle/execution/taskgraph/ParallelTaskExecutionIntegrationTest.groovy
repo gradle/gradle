@@ -280,9 +280,10 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
                 }
 
                 task undeclared {
+                    def runtimeClasspath = configurations.runtimeClasspath
                     doLast {
                         ${blockingServer.callFromBuild("before-resolve")}
-                        configurations.runtimeClasspath.files.each { }
+                        runtimeClasspath.files.each { }
                         ${blockingServer.callFromBuild("after-resolve")}
                     }
                 }

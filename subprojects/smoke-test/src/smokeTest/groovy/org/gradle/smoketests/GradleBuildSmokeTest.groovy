@@ -21,15 +21,21 @@ import org.gradle.testkit.runner.TaskOutcome
 class GradleBuildSmokeTest extends AbstractGradleceptionSmokeTest {
 
     def "can build Gradle distribution"() {
-        when:
-        result = runner(':distributions-full:binDistributionZip', ':distributions-full:binInstallation', '--stacktrace')
+        def runner = runner(':distributions-full:binDistributionZip', ':distributions-full:binInstallation', '--stacktrace')
 //            .expectDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. " +
 //                "This is scheduled to be removed in Gradle 8.0. " +
 //                "Please use the destinationDirectory property instead. " +
 //                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring",
 //                "https://youtrack.jetbrains.com/issue/KT-46019")
             .ignoreDeprecationWarnings("https://github.com/gradle/gradle-private/issues/3405")
-            .build()
+
+        runner.withJvmArguments(runner.jvmArguments + [
+            // TODO: the version of KGP we use still accesses Task.project from a cacheIf predicate
+            "-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true",
+        ])
+
+        when:
+        result = runner.build()
 
         then:
         result.task(":distributions-full:binDistributionZip").outcome == TaskOutcome.SUCCESS

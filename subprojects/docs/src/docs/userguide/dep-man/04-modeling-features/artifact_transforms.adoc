@@ -95,6 +95,7 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/gro
 <2> All JAR files are not minified
 <3> Request `minified=true` on all resolvable configurations
 <4> Add the dependencies which will be transformed
+<5> Add task that requires the transformed artifacts
 
 You can now see what happens when we run the `resolveRuntimeClasspath` task which resolves the `runtimeClasspath` configuration.
 Observe that Gradle transforms the project dependency before the `resolveRuntimeClasspath` task starts.
@@ -155,7 +156,7 @@ In order to pass those parameters to the transform action, you need to define a 
 The type needs to implement the marker interface link:{javadocPath}/org/gradle/api/artifacts/transform/TransformParameters.html[TransformParameters].
 The parameters must be represented using <<custom_gradle_types.adoc#managed_properties,managed properties>> and the parameters type must be a <<custom_gradle_types.adoc#managed_types,managed type>>.
 You can use an interface or abstract class declaring the getters and Gradle will generate the implementation.
-All getters need to have proper input annotations, see the table in the section on <<more_about_tasks.adoc#table:incremental_build_annotations,incremental build>>.
+All getters need to have proper input annotations, see <<incremental_build.adoc#table:incremental_build_annotations,incremental build annotations>> table.
 
 You can find out more about implementing artifact transform parameters in <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>>.
 

@@ -31,7 +31,6 @@ import org.gradle.api.internal.file.FilteredFileCollection
 import org.gradle.api.internal.file.SubtractingFileCollection
 import org.gradle.api.internal.file.collections.FailingFileCollection
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
-import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.internal.file.collections.ProviderBackedFileCollection
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.specs.Spec
@@ -42,6 +41,8 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
+import org.gradle.configurationcache.serialization.readList
+import org.gradle.configurationcache.serialization.writeCollection
 import java.io.File
 
 
@@ -60,7 +61,7 @@ class FileCollectionCodec(
     suspend fun WriteContext.encodeContents(value: FileCollectionInternal) {
         val visitor = CollectingVisitor()
         value.visitStructure(visitor)
-        write(visitor.elements)
+        writeCollection(visitor.elements)
     }
 
     override suspend fun ReadContext.decode(): FileCollectionInternal {
@@ -72,25 +73,20 @@ class FileCollectionCodec(
     }
 
     suspend fun ReadContext.decodeContents(): FileCollectionInternal {
-        val contents = read()
-        return if (contents is Collection<*>) {
-            fileCollectionFactory.resolving(
-                contents.map { element ->
-                    when (element) {
-                        is File -> element
-                        is SubtractingFileCollectionSpec -> element.left.minus(element.right)
-                        is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
-                        is ProviderBackedFileCollectionSpec -> element.provider
-                        is FileTree -> element
-                        is ResolvedArtifactSet -> artifactSetConverter.asFileCollection(element)
-                        is BeanSpec -> element.bean
-                        else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
-                    }
+        return fileCollectionFactory.resolving(
+            readList().map { element ->
+                when (element) {
+                    is File -> element
+                    is SubtractingFileCollectionSpec -> element.left.minus(element.right)
+                    is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
+                    is ProviderBackedFileCollectionSpec -> element.provider
+                    is FileTree -> element
+                    is ResolvedArtifactSet -> artifactSetConverter.asFileCollection(element)
+                    is BeanSpec -> element.bean
+                    else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                 }
-            )
-        } else {
-            fileCollectionFactory.create(ErrorFileSet(contents as BrokenValue))
-        }
+            }
+        )
     }
 }
 
@@ -156,7 +152,7 @@ class CollectingVisitor : FileCollectionStructureVisitor {
             // Represents artifact transform outputs. Visit the source rather than the files
             // Transforms may have inputs or parameters that are task outputs or other changing files
             // When this is not the case, we should run the transform now and write the result.
-            // However, currently it is not easy to determine whether or not this is the case so assume that all transforms
+            // However, currently it is not easy to determine whether this is the case so assume that all transforms
             // have changing inputs
             FileCollectionStructureVisitor.VisitType.NoContents
         } else {
@@ -194,15 +190,4 @@ class CollectingVisitor : FileCollectionStructureVisitor {
         throw UnsupportedOperationException(
             "Unexpected file tree '$fileTree' of type '${fileTree.javaClass}' found while serializing a file collection."
         )
-}
-
-
-private
-class ErrorFileSet(private val error: BrokenValue) : MinimalFileSet {
-
-    override fun getDisplayName() =
-        "error-file-collection"
-
-    override fun getFiles() =
-        error.rethrow()
 }

@@ -11,6 +11,7 @@ dependencies {
     testImplementation(project(":base-services"))
     testImplementation(project(":core-api"))
     testImplementation(project(":native"))
+    testImplementation(libs.commonsCompress)
 
     integTestImplementation(project(":dependency-management"))
 

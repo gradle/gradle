@@ -16,6 +16,14 @@
 
 rootProject.name = "build-logic-settings"
 
+pluginManagement {
+    includeBuild("../build-logic-commons")
+}
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
+}
+
 dependencyResolutionManagement {
     repositories {
         gradlePluginPortal()

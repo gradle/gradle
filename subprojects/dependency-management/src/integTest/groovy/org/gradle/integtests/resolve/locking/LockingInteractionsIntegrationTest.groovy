@@ -477,8 +477,9 @@ dependencies {
 }
 
 task resolve {
+    def lockedConf = configurations.lockedConf
     doLast {
-        println configurations.lockedConf.files
+        println lockedConf.files
     }
 }
 """
