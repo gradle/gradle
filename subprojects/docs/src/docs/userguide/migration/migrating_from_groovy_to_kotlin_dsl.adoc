@@ -479,10 +479,10 @@ Utilizing the <<organizing_gradle_projects.adoc#sec:build_sources,_buildSrc_ pro
 
 Depending on your build structure you might be interested in the following user manual chapters:
 
-* The <<writing_build_scripts#writing_build_scripts>> chapter demonstrates the use of `apply(from = "")` to modularize build scripts.
-* The <<multi_project_builds#multi_project_builds>> chapter demonstrates various multi-project build structures.
-* The <<custom_plugins#custom_plugins>> and <<kotlin_dsl#kotlin_dsl>> chapters demonstrate how to develop custom Gradle plugins.
-* The <<composite_builds#composite_builds>> chapter demonstrates how to use Composite Builds.
+* The <<writing_build_scripts#writing_build_scripts,Writing Build Scripts>> chapter demonstrates the use of `apply(from = "")` to modularize build scripts.
+* The <<multi_project_builds#multi_project_builds,Multi-project Builds>> chapter demonstrates various multi-project build structures.
+* The <<custom_plugins#custom_plugins,Developing Custom Gradle Plugins>> and <<kotlin_dsl#kotlin_dsl,Gradle Kotlin DSL Primer>> chapters demonstrate how to develop custom Gradle plugins.
+* The <<composite_builds#composite_builds,Composing builds>> chapter demonstrates how to use Composite Builds.
 
 
 [[interop]]
