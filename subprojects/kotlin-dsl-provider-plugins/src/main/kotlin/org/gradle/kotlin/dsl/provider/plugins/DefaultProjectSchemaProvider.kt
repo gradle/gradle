@@ -79,15 +79,9 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
                 extensions.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
                 val extension = target.extensions.getByName(schema.name)
                 collectSchemaOf(extension, schema.publicType)
-                JavaPropertyReflectionUtil.propertyNames(extension)
-                    .asSequence()
-                    .map { JavaPropertyReflectionUtil.findGetterMethod(extension::class.java, it) }
-                    .filterNotNull()
-                    .filter { NamedDomainObjectContainer::class.java.isAssignableFrom(it.returnType) && it.returnType.typeParameters.isEmpty() }
-                    .map { it.invoke(extension) to it.returnType }
-                    .forEach { (container, containerType) ->
-                        collectSchemaOf(container, TypeOf.typeOf(containerType))
-                    }
+                namedDomainObjectContainerPropertiesOf(extension).forEach { (container, containerType) ->
+                    collectSchemaOf(container, TypeOf.typeOf(containerType))
+                }
             }
         }
         if (target is Project) {
@@ -122,6 +116,15 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
         containerElements.toList()
     )
 }
+
+
+private
+fun namedDomainObjectContainerPropertiesOf(extension: Any) = JavaPropertyReflectionUtil.propertyNames(extension)
+    .asSequence()
+    .map { JavaPropertyReflectionUtil.findGetterMethod(extension::class.java, it) }
+    .filterNotNull()
+    .filter { NamedDomainObjectContainer::class.java.isAssignableFrom(it.returnType) && it.returnType.typeParameters.isEmpty() }
+    .map { it.invoke(extension) to it.returnType }
 
 
 private
