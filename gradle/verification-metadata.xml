@@ -1290,6 +1290,11 @@
             <pgp value="2e3a1affe42b5f53af19f780bcf4173966770193"/>
          </artifact>
       </component>
+      <component group="org.jetbrains" name="annotations" version="24.0.0">
+         <artifact name="annotations-24.0.0.jar">
+            <pgp value="33fd4bfd33554634053d73c0c2148900bcd3c2af"/>
+         </artifact>
+      </component>
       <component group="org.jetbrains.kotlin" name="kotlin-scripting-compiler-impl-embeddable" version="1.6.21">
          <artifact name="kotlin-scripting-compiler-impl-embeddable-1.6.21.jar">
             <sha256 value="e4044b8de01e84633923706f43cda80d37d8bbef8ce9a866f9d95962ddd20480" reason="Artifact is not signed"/>
