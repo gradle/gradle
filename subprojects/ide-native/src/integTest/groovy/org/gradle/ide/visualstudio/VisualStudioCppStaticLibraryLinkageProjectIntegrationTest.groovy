@@ -19,9 +19,7 @@ package org.gradle.ide.visualstudio
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
-import spock.lang.Ignore
 
-@Ignore
 class VisualStudioCppStaticLibraryLinkageProjectIntegrationTest extends AbstractVisualStudioProjectIntegrationTest {
     @Override
     String getBuildFile(VariantContext variantContext) {

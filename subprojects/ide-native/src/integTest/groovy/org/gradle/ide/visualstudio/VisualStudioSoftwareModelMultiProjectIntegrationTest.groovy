@@ -26,10 +26,8 @@ import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWor
 import org.gradle.plugins.ide.internal.IdePlugin
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
-@Ignore
 class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     private final Set<String> projectConfigurations = ['debug', 'release'] as Set
 
