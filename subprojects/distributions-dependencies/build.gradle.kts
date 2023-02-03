@@ -108,7 +108,7 @@ dependencies {
         api(libs.jcifs)                 { version { strictly("1.3.17") }}
         api(libs.jclToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.jcommander)            { version { strictly("1.78") }}
-        api(libs.jetbrainsAnnotations)  { version { strictly("20.1.0") }}
+        api(libs.jetbrainsAnnotations)  { version { strictly("24.0.0") }}
         api(libs.jgit)                  { version { strictly("5.7.0.202003110725-r"); because("Upgrade has breaking API changes") }}
         api(libs.joda)                  { version { strictly("2.10.4") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
