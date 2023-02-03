@@ -86,7 +86,7 @@ Acts as a placeholder and matches any implementation from any vendor (e.g. hotsp
 `J9`::
 Matches only virtual machine implementations using the OpenJ9/IBM J9 runtime engine.
 
-For example, to use an https://www.eclipse.org/openj9/[IBM Semeru] JVM, distributed via https://adoptopenjdk.net/[AdoptOpenJDK],
+For example, to use an https://www.eclipse.org/openj9/[IBM] JVM, distributed via https://adoptopenjdk.net/[AdoptOpenJDK],
 you can specify the filter as shown in the example below.
 
 ====
