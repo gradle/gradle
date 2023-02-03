@@ -32,12 +32,12 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Supplier;
 
-class DefaultArtifactCollection implements ArtifactCollectionInternal {
+public class DefaultArtifactCollection implements ArtifactCollectionInternal {
     private final ResolutionBackedFileCollection fileCollection;
     private final boolean lenient;
     private final CalculatedValueContainer<ArtifactSetResult, ?> result;
 
-    DefaultArtifactCollection(ResolutionBackedFileCollection files, boolean lenient, ResolutionHost resolutionHost, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public DefaultArtifactCollection(ResolutionBackedFileCollection files, boolean lenient, ResolutionHost resolutionHost, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.fileCollection = files;
         this.lenient = lenient;
         this.result = calculatedValueContainerFactory.create(resolutionHost.displayName("files"), (Supplier<ArtifactSetResult>) () -> {

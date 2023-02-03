@@ -17,24 +17,17 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
-import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.capabilities.Capability
-import org.gradle.api.component.Artifact
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal
-import org.gradle.api.internal.artifacts.configurations.ResolutionHost
+import org.gradle.api.internal.artifacts.configurations.DefaultArtifactCollection
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
-import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult
 import org.gradle.api.internal.artifacts.transform.TransformedArtifactSet
-import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
-import org.gradle.api.internal.provider.Providers
-import org.gradle.api.provider.Provider
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
@@ -42,12 +35,13 @@ import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.DisplayName
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import java.io.File
 
 
 internal
 class ArtifactCollectionCodec(
-    private val fileCollectionFactory: FileCollectionFactory,
+    private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
     private val artifactSetConverter: ArtifactSetToFileCollectionFactory
 ) : Codec<ArtifactCollectionInternal> {
 
@@ -57,7 +51,6 @@ class ArtifactCollectionCodec(
         writeString(value.resolutionHost.displayName)
         writeBoolean(value.isLenient)
         writeCollection(visitor.elements)
-        writeCollection(visitor.failures)
     }
 
     override suspend fun ReadContext.decode(): ArtifactCollectionInternal {
@@ -65,18 +58,17 @@ class ArtifactCollectionCodec(
         val lenient = readBoolean()
         val elements = readList().uncheckedCast<List<Any>>()
 
-        @Suppress("implicit_cast_to_any")
-        val files = fileCollectionFactory.resolving(
+        val files = artifactSetConverter.asFileCollection(displayName, lenient,
             elements.map { element ->
                 when (element) {
-                    is FixedFileArtifactSpec -> element.file
-                    is ResolvedArtifactSet -> artifactSetConverter.asFileCollection(displayName, lenient, listOf(element))
+                    is Throwable -> artifactSetConverter.asResolvedArtifactSet(element)
+                    is FixedFileArtifactSpec -> artifactSetConverter.asResolvedArtifactSet(element.id, element.variantAttributes, element.capabilities, element.variantDisplayName, element.file)
+                    is ResolvedArtifactSet -> element
                     else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
                 }
             }
         )
-        val failures = readList().uncheckedCast<List<Throwable>>()
-        return FixedArtifactCollection(artifactSetConverter.resolutionHost(displayName), files, lenient, elements, failures, artifactSetConverter)
+        return DefaultArtifactCollection(files, lenient, artifactSetConverter.resolutionHost(displayName), calculatedValueContainerFactory)
     }
 }
 
@@ -94,7 +86,6 @@ data class FixedFileArtifactSpec(
 private
 class CollectingArtifactVisitor : ArtifactVisitor {
     val elements = mutableListOf<Any>()
-    val failures = mutableListOf<Throwable>()
     val artifacts = mutableSetOf<ResolvableArtifact>()
 
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
@@ -115,7 +106,7 @@ class CollectingArtifactVisitor : ArtifactVisitor {
     }
 
     override fun visitFailure(failure: Throwable) {
-        failures.add(failure)
+        elements.add(failure)
     }
 
     override fun visitArtifact(variantName: DisplayName, variantAttributes: AttributeContainer, capabilities: List<Capability>, artifact: ResolvableArtifact) {
@@ -128,78 +119,5 @@ class CollectingArtifactVisitor : ArtifactVisitor {
         if (source is TransformedArtifactSet) {
             elements.add(source)
         }
-    }
-}
-
-
-private
-class FixedArtifactCollection(
-    private val host: ResolutionHost,
-    private val artifactFiles: FileCollection,
-    private val lenient: Boolean,
-    private val elements: List<Any>,
-    private val failures: List<Throwable>,
-    private val artifactSetConverter: ArtifactSetToFileCollectionFactory
-) : ArtifactCollectionInternal {
-
-    private
-    var artifactResults: MutableSet<ResolvedArtifactResult>? = null
-
-    override fun getResolutionHost(): ResolutionHost {
-        return host
-    }
-
-    override fun isLenient(): Boolean {
-        return lenient
-    }
-
-    override fun getFailures() =
-        failures
-
-    override fun iterator(): MutableIterator<ResolvedArtifactResult> =
-        artifacts.iterator()
-
-    override fun getArtifactFiles() =
-        artifactFiles
-
-    @Synchronized
-    override fun getArtifacts(): MutableSet<ResolvedArtifactResult> =
-        artifactResults ?: resolve().also {
-            artifactResults = it
-        }
-
-    override fun getResolvedArtifacts(): Provider<Set<ResolvedArtifactResult>> =
-        Providers.of(artifacts)
-
-    private
-    fun resolve(): MutableSet<ResolvedArtifactResult> {
-        val result = mutableSetOf<ResolvedArtifactResult>()
-        for (element in elements) {
-            when (element) {
-                is FixedFileArtifactSpec -> {
-                    result.add(
-                        DefaultResolvedArtifactResult(
-                            element.id,
-                            element.variantAttributes,
-                            element.capabilities,
-                            element.variantDisplayName,
-                            Artifact::class.java,
-                            element.file
-                        )
-                    )
-                }
-
-                is ResolvedArtifactSet -> {
-                    result.addAll(artifactSetConverter.asResolvedArtifacts(element, lenient))
-                }
-
-                else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
-            }
-        }
-        return result
-    }
-
-    override fun visitArtifacts(visitor: ArtifactVisitor) {
-        throw UnsupportedOperationException()
     }
 }

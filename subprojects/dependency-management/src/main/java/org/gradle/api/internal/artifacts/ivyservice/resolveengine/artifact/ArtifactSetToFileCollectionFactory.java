@@ -17,7 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
@@ -30,6 +34,9 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -63,8 +70,94 @@ public class ArtifactSetToFileCollectionFactory {
      * <p>This produces only a minimal implementation to use for artifact sets loaded from the configuration cache
      * Over time, this should be merged with the FileCollection implementation in DefaultConfiguration
      */
-    public FileCollectionInternal asFileCollection(String displayName, boolean lenient, List<?> elements) {
+    public ResolutionBackedFileCollection asFileCollection(String displayName, boolean lenient, List<?> elements) {
         return new ResolutionBackedFileCollection(new PartialSelectedArtifactProvider(elements), lenient, new NameBackedResolutionHost(displayName), taskDependencyFactory);
+    }
+
+    public ResolvedArtifactSet asResolvedArtifactSet(Throwable failure) {
+        return new BrokenResolvedArtifactSet(failure);
+    }
+
+    public ResolvedArtifactSet asResolvedArtifactSet(
+        ComponentArtifactIdentifier id,
+        AttributeContainer variantAttributes,
+        List<? extends Capability> capabilities,
+        DisplayName variantDisplayName,
+        File file
+    ) {
+        return new ResolvedArtifactSet() {
+            @Override
+            public void visit(Visitor visitor) {
+                visitor.visitArtifacts(new Artifacts() {
+                    @Override
+                    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+                        // Nothing to do
+                    }
+
+                    @Override
+                    public void visit(ArtifactVisitor visitor) {
+                        if (visitor.prepareForVisit(FileCollectionInternal.OTHER) == FileCollectionStructureVisitor.VisitType.Visit) {
+                            visitor.visitArtifact(variantDisplayName, variantAttributes, capabilities, new ResolvableArtifact() {
+                                @Override
+                                public ComponentArtifactIdentifier getId() {
+                                    return id;
+                                }
+
+                                @Override
+                                public boolean isResolveSynchronously() {
+                                    return true;
+                                }
+
+                                @Override
+                                public IvyArtifactName getArtifactName() {
+                                    return DefaultIvyArtifactName.forFile(file, null);
+                                }
+
+                                @Override
+                                public File getFile() {
+                                    return file;
+                                }
+
+                                @Override
+                                public CalculatedValue<File> getFileSource() {
+                                    throw new UnsupportedOperationException();
+                                }
+
+                                @Override
+                                public ResolvableArtifact transformedTo(File file) {
+                                    throw new UnsupportedOperationException();
+                                }
+
+                                @Override
+                                public ResolvedArtifact toPublicView() {
+                                    throw new UnsupportedOperationException();
+                                }
+
+                                @Override
+                                public void visitDependencies(TaskDependencyResolveContext context) {
+                                }
+                            });
+                            visitor.endVisitCollection(FileCollectionInternal.OTHER);
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void visitTransformSources(TransformSourceVisitor visitor) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     /**
@@ -161,8 +254,16 @@ public class ArtifactSetToFileCollectionFactory {
 
         @Override
         public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
-            // Should not be used, and cannot be provided as the artifact metadata may have been discarded.
-            throw new UnsupportedOperationException();
+            List<ResolvedArtifactSet> artifactSets = new ArrayList<>();
+            for (Object element : elements) {
+                if (element instanceof ResolvedArtifactSet) {
+                    artifactSets.add((ResolvedArtifactSet) element);
+                } else {
+                    // Should not be used, and cannot be provided as the artifact metadata may have been discarded.
+                    throw new UnsupportedOperationException();
+                }
+            }
+            ParallelResolveArtifactSet.wrap(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor).visit(visitor);
         }
 
         @Override
