@@ -387,9 +387,7 @@ public abstract class EclipseClasspath {
 
     public FileReferenceFactory getFileReferenceFactory() {
         FileReferenceFactory referenceFactory = new FileReferenceFactory();
-        for (Map.Entry<String, File> entry : pathVariables.entrySet()) {
-            referenceFactory.addPathVariable(entry.getKey(), entry.getValue());
-        }
+        pathVariables.forEach((key, value) -> referenceFactory.addPathVariable(key, value));
         return referenceFactory;
     }
 
