@@ -29,7 +29,7 @@ trait WithReportDeprecations {
 
     void expectReportDestinationPropertyDeprecation(String agpVersion) {
         runner.expectDeprecationWarningIf(
-            VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("8.0"),
+            VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("7.4.1"),
             REPORT_DESTINATION_DEPRECATION,
             "https://github.com/gradle/gradle/issues/21533"
         )
