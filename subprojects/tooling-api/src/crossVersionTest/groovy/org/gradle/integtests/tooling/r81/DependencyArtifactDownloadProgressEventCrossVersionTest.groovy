@@ -72,7 +72,7 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         [projectFModuleMissing, projectF2]
     }
 
-    @ToolingApiVersion("<8.1 >=7.0")
+    @ToolingApiVersion("<8.1 >=7.3")
     @TargetGradleVersion(">=8.1")
     def "generates"() {
         def (MavenHttpModule projectFModuleMissing, MavenHttpModule projectF2) = prepareTest()
