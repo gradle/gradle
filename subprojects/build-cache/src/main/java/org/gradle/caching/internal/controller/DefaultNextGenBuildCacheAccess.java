@@ -60,8 +60,8 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     public <T> void load(Map<BuildCacheKey, T> entries, LoadHandler<T> handler) {
         List<CompletableFuture<Void>> remoteDownloads = new ArrayList<>();
         entries.forEach((key, payload) -> {
-            boolean foundLocally = local.load(key, input -> handler.handle(input, payload));
-            if (!foundLocally) {
+            boolean foundLocally = local.canLoad() && local.load(key, input -> handler.handle(input, payload));
+            if (!foundLocally && remote.canLoad()) {
                 remoteDownloads.add(CompletableFuture.runAsync(new RemoteDownload<>(key, payload, handler), remoteProcessor));
             }
         });
@@ -73,11 +73,17 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     @Override
     public <T> void store(Map<BuildCacheKey, T> entries, StoreHandler<T> handler) {
         entries.forEach((key, payload) -> {
-            if (local.shouldStore(key)) {
+            if (!local.canStore()) {
+                // TODO Handle the case when local store is disabled
+                return;
+            }
+            if (!local.contains(key)) {
                 local.store(key, handler.handle(payload));
             }
             // TODO Add error handling
-            remoteProcessor.submit(new RemoteUpload(key));
+            if (remote.canStore()) {
+                remoteProcessor.submit(new RemoteUpload(key));
+            }
         });
     }
 
@@ -123,23 +129,28 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 IOUtils.copyLarge(input, data, buffer);
 
                 // Mirror data in local cache
-                local.store(key, new BuildCacheEntryWriter() {
-                    @Override
-                    public InputStream openStream() {
-                        return data.toInputStream();
-                    }
+                // TODO Do we need to support local push = false?
+                if (local.canStore()) {
+                    local.store(key, new BuildCacheEntryWriter() {
+                        @Override
+                        public InputStream openStream() {
+                            return data.toInputStream();
+                        }
 
-                    @Override
-                    public void writeTo(OutputStream output) throws IOException {
-                        data.writeTo(output);
-                    }
+                        @Override
+                        public void writeTo(OutputStream output) throws IOException {
+                            data.writeTo(output);
+                        }
 
-                    @Override
-                    public long getSize() {
-                        return data.size();
-                    }
-                });
-                handler.handle(data.toInputStream(), payload);
+                        @Override
+                        public long getSize() {
+                            return data.size();
+                        }
+                    });
+                    handler.handle(data.toInputStream(), payload);
+                } else {
+                    handler.handle(input, payload);
+                }
             });
         }
     }
@@ -153,7 +164,8 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
         @Override
         public void run() {
-            if (!remote.shouldStore(key)) {
+            // TODO Check contains only above a threshold
+            if (remote.contains(key)) {
                 LOGGER.warn("Not storing {} in remote", key);
                 return;
             }

@@ -94,24 +94,29 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
     }
 
     private static NextGenBuildCacheHandler resolveService(@Nullable DescribedBuildCacheService<? extends BuildCache, ? extends BuildCacheService> describedService) {
-        if (describedService == null || !describedService.config.isEnabled()) {
-            return DISABLED_BUILD_CACHE_HANDLER;
-        }
-        NextGenBuildCacheHandler handle = new DefaultNextGenBuildCacheHandler(describedService.service);
-        return describedService.config.isPush()
-            ? handle
-            : new NoPushNextGenBuildCacheHandler(handle);
+        return describedService != null && describedService.config.isEnabled()
+            ? new DefaultNextGenBuildCacheHandler(describedService.service, describedService.config.isPush())
+            : DISABLED_BUILD_CACHE_HANDLER;
     }
 
     private static final NextGenBuildCacheHandler DISABLED_BUILD_CACHE_HANDLER = new NextGenBuildCacheHandler() {
-
         @Override
-        public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+        public boolean canLoad() {
             return false;
         }
 
         @Override
-        public boolean shouldStore(BuildCacheKey key) {
+        public boolean canStore() {
+            return false;
+        }
+
+        @Override
+        public boolean contains(BuildCacheKey key) {
+            return false;
+        }
+
+        @Override
+        public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
             return false;
         }
 
@@ -124,38 +129,28 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         }
     };
 
-    private static class NoPushNextGenBuildCacheHandler implements NextGenBuildCacheHandler {
-        private final NextGenBuildCacheHandler delegate;
-
-        public NoPushNextGenBuildCacheHandler(NextGenBuildCacheHandler delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-            return delegate.load(key, reader);
-        }
-
-        @Override
-        public boolean shouldStore(BuildCacheKey key) {
-            return false;
-        }
-
-        @Override
-        public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-        }
-
-        @Override
-        public void close() throws IOException {
-            delegate.close();
-        }
-    }
-
     private static class DefaultNextGenBuildCacheHandler implements NextGenBuildCacheHandler {
         private final BuildCacheService service;
+        private final boolean pushEnabled;
 
-        public DefaultNextGenBuildCacheHandler(BuildCacheService service) {
+        public DefaultNextGenBuildCacheHandler(BuildCacheService service, boolean pushEnabled) {
             this.service = service;
+            this.pushEnabled = pushEnabled;
+        }
+
+        @Override
+        public boolean canLoad() {
+            return true;
+        }
+
+        @Override
+        public boolean canStore() {
+            return pushEnabled;
+        }
+
+        @Override
+        public boolean contains(BuildCacheKey key) {
+            return service.contains(key);
         }
 
         @Override
@@ -164,13 +159,10 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         }
 
         @Override
-        public boolean shouldStore(BuildCacheKey key) {
-            return !service.contains(key);
-        }
-
-        @Override
         public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-            service.store(key, writer);
+            if (pushEnabled) {
+                service.store(key, writer);
+            }
         }
 
         @Override
