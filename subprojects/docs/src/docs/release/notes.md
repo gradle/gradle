@@ -82,7 +82,7 @@ TODO - File system repositories are fully supported including dynamic versions i
 
 The dependency on a Gradle plugin can now be declared using either the plugin id or the plugin coordinates from a version catalog. 
 
-More details can be found in the [Applying plugins with the buildscript block](userguide/plugins.html#sec:applying_plugins_buildscript) section.
+More details can be found in the [Plugins](userguide/platforms.html#sec:plugins) section and in the section on [Gradle Plugin Dependencies](userguide/declaring-dependencies.html#sec:gradle-plugin-dependencies).
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

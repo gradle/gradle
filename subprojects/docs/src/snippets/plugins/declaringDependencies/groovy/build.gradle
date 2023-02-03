@@ -1,0 +1,22 @@
+// tag::declaring_dependencies_block[]
+plugins {
+    id 'java'
+    id 'jvm-test-suite'
+}
+
+dependencies { // <1>
+    implementation plugin('com.example.hello', '1.0.0')
+    implementation plugin('com.example.goodbye')
+}
+
+testing {
+    suites {
+        test {
+            dependencies { // <2>
+                implementation.plugin('com.example.hello', '1.0.0')
+                implementation.plugin('com.example.goodbye')
+            }
+        }
+    }
+}
+// end::declaring_dependencies_block[]
