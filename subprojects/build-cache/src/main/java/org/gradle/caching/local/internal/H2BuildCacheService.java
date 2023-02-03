@@ -33,16 +33,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.concurrent.Semaphore;
 
 public class H2BuildCacheService implements BuildCacheService {
 
     private final HikariDataSource dataSource;
-    private final Semaphore semaphore;
 
     public H2BuildCacheService(Path dbPath, int maxPoolSize) {
         this.dataSource = createHikariDataSource(dbPath, maxPoolSize);
-        this.semaphore = new Semaphore(maxPoolSize);
         Flyway flyway = Flyway.configure()
             .schemas("filestore")
             .dataSource(dataSource)
@@ -69,67 +66,52 @@ public class H2BuildCacheService implements BuildCacheService {
 
     @Override
     public boolean contains(BuildCacheKey key) {
-        try {
-            semaphore.acquire();
-            try (Connection conn = dataSource.getConnection()) {
-                try (PreparedStatement stmt = conn.prepareStatement("select entry_key from filestore.catalog where entry_key = ?")) {
-                    stmt.setString(1, key.getHashCode());
-                    try (ResultSet rs = stmt.executeQuery()) {
-                        return rs.next();
-                    }
+        try (Connection conn = dataSource.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement("select entry_key from filestore.catalog where entry_key = ?")) {
+                stmt.setString(1, key.getHashCode());
+                try (ResultSet rs = stmt.executeQuery()) {
+                    return rs.next();
                 }
             }
-        } catch (SQLException | InterruptedException e) {
+        } catch (SQLException e) {
             throw new BuildCacheException("contains " + key, e);
-        } finally {
-            semaphore.release();
         }
     }
 
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-        try {
-            semaphore.acquire();
-            try (Connection conn = dataSource.getConnection()) {
-                try (PreparedStatement stmt = conn.prepareStatement("select entry_content from filestore.catalog where entry_key = ?")) {
-                    stmt.setString(1, key.getHashCode());
-                    try (ResultSet rs = stmt.executeQuery()) {
-                        if (rs.next()) {
-                            Blob content = rs.getBlob(1);
-                            try (InputStream binaryStream = content.getBinaryStream()) {
-                                reader.readFrom(binaryStream);
-                            }
-                            return true;
+        try (Connection conn = dataSource.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement("select entry_content from filestore.catalog where entry_key = ?")) {
+                stmt.setString(1, key.getHashCode());
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        Blob content = rs.getBlob(1);
+                        try (InputStream binaryStream = content.getBinaryStream()) {
+                            reader.readFrom(binaryStream);
                         }
-                        return false;
+                        return true;
                     }
+                    return false;
                 }
             }
-        } catch (SQLException | IOException | InterruptedException e) {
-            throw new BuildCacheException("load " + key, e);
-        } finally {
-            semaphore.release();
+        } catch (SQLException | IOException e) {
+            throw new BuildCacheException("loading " + key, e);
         }
     }
 
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
-        try {
-            semaphore.acquire();
-            try (Connection conn = dataSource.getConnection()) {
-                try (PreparedStatement stmt = conn.prepareStatement("insert into filestore.catalog(entry_key, entry_size, entry_content) values (?, ?, ?)")) {
-                    try (InputStream input = writer.openStream()) {
-                        stmt.setString(1, key.getHashCode());
-                        stmt.setLong(2, writer.getSize());
-                        stmt.setBinaryStream(3, input);
-                        stmt.executeUpdate();
-                    }
+        try (Connection conn = dataSource.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement("insert into filestore.catalog(entry_key, entry_size, entry_content) values (?, ?, ?)")) {
+                try (InputStream input = writer.openStream()) {
+                    stmt.setString(1, key.getHashCode());
+                    stmt.setLong(2, writer.getSize());
+                    stmt.setBinaryStream(3, input);
+                    stmt.executeUpdate();
                 }
             }
-        } catch (SQLException | IOException | InterruptedException e) {
-            throw new BuildCacheException("store " + key, e);
-        } finally {
-            semaphore.release();
+        } catch (SQLException | IOException e) {
+            throw new BuildCacheException("storing " + key, e);
         }
     }
 
