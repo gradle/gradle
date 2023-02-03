@@ -176,7 +176,8 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning "Requesting JVM vendor IBM_SEMERU. " +
+        executer.withArgument("--no-configuration-cache")
+            .expectDocumentedDeprecationWarning "Requesting JVM vendor IBM_SEMERU. " +
             "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#ibm_semeru_should_not_be_used"
 
