@@ -629,6 +629,30 @@ service: closed with value 12
         result.assertNotOutput("service:")
     }
 
+    def "service is not instantiated if not used"() {
+        serviceImplementation()
+        customTaskUsingServiceViaProperty("@${ServiceReference.name}")
+        buildFile """
+            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+            }
+
+            task unused(type: Consumer) {
+                shouldCount.set(false)
+                doLast {
+                    println("Service not used")
+                }
+            }
+        """
+
+        when:
+        run("unused")
+
+        then:
+        output.count("service:") == 0
+        output.count("Service not used") == 1
+    }
+
     def "can use service from task doFirst() or doLast() action"() {
         serviceImplementation()
         buildFile << """
@@ -1465,10 +1489,14 @@ Hello, subproject1
             abstract class Consumer extends DefaultTask {
                 ${annotationSnippet}
                 abstract Property<CountingService> getCounter()
+                @$Internal.name
+                final Property<Boolean> shouldCount = project.objects.property(Boolean).convention(true)
 
                 @TaskAction
                 def go() {
-                    counter.get().increment()
+                    if (shouldCount.get()) {
+                        counter.get().increment()
+                    }
                 }
             }
         """
