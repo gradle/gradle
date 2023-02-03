@@ -68,10 +68,10 @@ public class ArtifactSetToFileCollectionFactory {
      *
      * <p>Over time, this should be merged with the ArtifactCollection implementation in DefaultConfiguration
      */
-    public Set<ResolvedArtifactResult> asResolvedArtifacts(ResolvedArtifactSet artifacts) {
+    public Set<ResolvedArtifactResult> asResolvedArtifacts(ResolvedArtifactSet artifacts, boolean lenient) {
         ResolvedArtifactCollectingVisitor collectingVisitor = new ResolvedArtifactCollectingVisitor();
         ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(collectingVisitor);
-        if (!collectingVisitor.getFailures().isEmpty()) {
+        if (!lenient && !collectingVisitor.getFailures().isEmpty()) {
             throw UncheckedException.throwAsUncheckedException(collectingVisitor.getFailures().iterator().next());
         }
         return collectingVisitor.getArtifacts();

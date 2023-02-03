@@ -2375,6 +2375,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
+        public boolean isLenient() {
+            return lenient;
+        }
+
+        @Override
         public FileCollection getArtifactFiles() {
             return fileCollection;
         }
