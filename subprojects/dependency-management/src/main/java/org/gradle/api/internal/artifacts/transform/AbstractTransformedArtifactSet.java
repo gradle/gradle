@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * Transformed artifact set that performs the transformation itself when visited.
  */
-public abstract class AbstractTransformedArtifactSet implements ResolvedArtifactSet, FileCollectionInternal.Source {
+public abstract class AbstractTransformedArtifactSet implements TransformedArtifactSet, FileCollectionInternal.Source {
     private final CalculatedValueContainer<ImmutableList<ResolvedArtifactSet.Artifacts>, CalculateArtifacts> result;
 
     public AbstractTransformedArtifactSet(
