@@ -137,6 +137,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 // Invalidate VFS
                 fileSystemAccess.write(Collections.singleton(root.getAbsolutePath()), () -> {});
 
+                // TODO Apply diff to outputs instead of clearing them here and loading everything
                 try {
                     cleanOutputDirectory(type, root);
                 } catch (IOException e) {
