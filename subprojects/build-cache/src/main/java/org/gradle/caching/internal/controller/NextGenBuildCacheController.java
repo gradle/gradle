@@ -126,92 +126,93 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
     @Override
     public Optional<BuildCacheLoadResult> load(BuildCacheKey manifestCacheKey, CacheableEntity cacheableEntity) {
-        AtomicReference<BuildCacheLoadResult> result = new AtomicReference<>();
-        cacheAccess.load(Collections.singletonMap(manifestCacheKey, null), (manifestStream, __) -> {
-            CacheManifest manifest = gson.fromJson(new InputStreamReader(manifestStream), CacheManifest.class);
+        // TODO Make load() return T
+        AtomicReference<CacheManifest> manifestRef = new AtomicReference<>();
+        cacheAccess.load(Collections.singletonMap(manifestCacheKey, null), (manifestStream, __) ->
+            manifestRef.set(gson.fromJson(new InputStreamReader(manifestStream), CacheManifest.class)));
+        CacheManifest manifest = manifestRef.get();
+        if (manifest == null) {
+            return Optional.empty();
+        }
 
-            // TODO Do all properties at once instead of doing separate bathches
-            AtomicLong entryCount = new AtomicLong(0);
-            ImmutableSortedMap.Builder<String, FileSystemSnapshot> snaphsots = ImmutableSortedMap.naturalOrder();
-            cacheableEntity.visitOutputTrees((propertyName, type, root) -> {
-                // Invalidate VFS
-                fileSystemAccess.write(Collections.singleton(root.getAbsolutePath()), () -> {});
+        AtomicLong loadedEntryCount = new AtomicLong(0);
+        ImmutableSortedMap.Builder<String, FileSystemSnapshot> snapshots = ImmutableSortedMap.naturalOrder();
 
-                // TODO Apply diff to outputs instead of clearing them here and loading everything
-                try {
-                    cleanOutputDirectory(type, root);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+        cacheableEntity.visitOutputTrees((propertyName, type, root) -> {
+            // Invalidate VFS
+            fileSystemAccess.write(Collections.singleton(root.getAbsolutePath()), () -> {});
 
-                // Note that there can be multiple output files with the same content
-                ImmutableListMultimap.Builder<BuildCacheKey, File> filesBuilder = ImmutableListMultimap.builder();
-                manifest.getPropertyManifests().get(propertyName).forEach(entry -> {
-                    File file = new File(root, entry.getRelativePath());
-                    switch (entry.getType()) {
-                        case Directory:
-                            file.mkdirs();
-                            break;
-                        case RegularFile:
-                            filesBuilder.put(new DefaultBuildCacheKey(entry.getContentHash()), file);
-                            break;
-                        case Missing:
-                            FileUtils.deleteQuietly(file);
-                            break;
-                    }
-                });
-                ImmutableListMultimap<BuildCacheKey, File> files = filesBuilder.build();
+            // TODO Apply diff to outputs instead of clearing them here and loading everything
+            try {
+                cleanOutputDirectory(type, root);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
 
-                // TODO Filter out entries that are already in the right place in the output directory
-
-                cacheAccess.load(files.asMap(), (input, filesForHash) -> {
-                    entryCount.addAndGet(filesForHash.size());
-
-                    try (Closer closer = Closer.create()) {
-                        OutputStream output = filesForHash.stream()
-                            .map(file -> {
-                                try {
-                                    return closer.register(new FileOutputStream(file));
-                                } catch (FileNotFoundException e) {
-                                    throw new UncheckedIOException("Couldn't create " + file.getAbsolutePath(), e);
-                                }
-                            })
-                            .map(OutputStream.class::cast)
-                            .reduce(TeeOutputStream::new)
-                            .orElse(NullOutputStream.NULL_OUTPUT_STREAM);
-
-                        IOUtils.copyLarge(input, output, COPY_BUFFERS.get());
-                    } catch (IOException ex) {
-                        throw new UncheckedIOException(ex);
-                    }
-                });
-
-                // TODO Reuse the data in the manifest instead of re-reading just written files
-                FileSystemLocationSnapshot snapshot = fileSystemAccess.read(root.getAbsolutePath());
-
-                snaphsots.put(propertyName, snapshot);
-            });
-            ImmutableSortedMap<String, FileSystemSnapshot> resultingSnapshots = snaphsots.build();
-
-            result.set(new BuildCacheLoadResult() {
-                @Override
-                public long getArtifactEntryCount() {
-                    return entryCount.get();
-                }
-
-                @Override
-                public OriginMetadata getOriginMetadata() {
-                    return manifest.getOriginMetadata();
-                }
-
-                @Override
-                public ImmutableSortedMap<String, FileSystemSnapshot> getResultingSnapshots() {
-                    return resultingSnapshots;
+            // Note that there can be multiple output files with the same content
+            ImmutableListMultimap.Builder<BuildCacheKey, File> filesBuilder = ImmutableListMultimap.builder();
+            manifest.getPropertyManifests().get(propertyName).forEach(entry -> {
+                File file = new File(root, entry.getRelativePath());
+                switch (entry.getType()) {
+                    case Directory:
+                        // TODO Handle this
+                        //noinspection ResultOfMethodCallIgnored
+                        file.mkdirs();
+                        break;
+                    case RegularFile:
+                        filesBuilder.put(new DefaultBuildCacheKey(entry.getContentHash()), file);
+                        break;
+                    case Missing:
+                        FileUtils.deleteQuietly(file);
+                        break;
                 }
             });
+
+            // TODO Filter out entries that are already in the right place in the output directory
+            cacheAccess.load(filesBuilder.build().asMap(), (input, filesForHash) -> {
+                loadedEntryCount.addAndGet(filesForHash.size());
+
+                try (Closer closer = Closer.create()) {
+                    OutputStream output = filesForHash.stream()
+                        .map(file -> {
+                            try {
+                                return closer.register(new FileOutputStream(file));
+                            } catch (FileNotFoundException e) {
+                                throw new UncheckedIOException("Couldn't create " + file.getAbsolutePath(), e);
+                            }
+                        })
+                        .map(OutputStream.class::cast)
+                        .reduce(TeeOutputStream::new)
+                        .orElse(NullOutputStream.NULL_OUTPUT_STREAM);
+
+                    IOUtils.copyLarge(input, output, COPY_BUFFERS.get());
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(ex);
+                }
+            });
+
+            // TODO Reuse the data in the manifest instead of re-reading just written files
+            FileSystemLocationSnapshot snapshot = fileSystemAccess.read(root.getAbsolutePath());
+            snapshots.put(propertyName, snapshot);
         });
 
-        return Optional.ofNullable(result.get());
+        ImmutableSortedMap<String, FileSystemSnapshot> resultingSnapshots = snapshots.build();
+        return Optional.of(new BuildCacheLoadResult() {
+            @Override
+            public long getArtifactEntryCount() {
+                return loadedEntryCount.get();
+            }
+
+            @Override
+            public OriginMetadata getOriginMetadata() {
+                return manifest.getOriginMetadata();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, FileSystemSnapshot> getResultingSnapshots() {
+                return resultingSnapshots;
+            }
+        });
     }
 
     @Override
@@ -271,7 +272,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
             return new BuildCacheEntryWriter() {
                 @Override
-                public InputStream openStream() throws IOException {
+                public InputStream openStream() {
                     return new UnsynchronizedByteArrayInputStream(bytes);
                 }
 
