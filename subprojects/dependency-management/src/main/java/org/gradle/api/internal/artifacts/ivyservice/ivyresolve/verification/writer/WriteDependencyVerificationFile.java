@@ -34,7 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.Arti
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DefaultKeyServers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.utils.PGPUtils;
-import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
+import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;

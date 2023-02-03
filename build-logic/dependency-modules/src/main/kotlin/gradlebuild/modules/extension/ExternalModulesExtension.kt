@@ -22,7 +22,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
     val groovyVersion = if (isBundleGroovy4) "4.0.7" else "3.0.13"
     val configurationCacheReportVersion = "1.2"
-    val kotlinVersion = "1.8.0"
+    val kotlinVersion = "1.8.10"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
