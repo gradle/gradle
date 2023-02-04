@@ -32,6 +32,7 @@ import org.gradle.caching.internal.controller.NextGenBuildCacheHandler;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.H2BuildCacheService;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -46,6 +47,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
     public static final String NEXT_GEN_CACHE_SYSTEM_PROPERTY = "org.gradle.unsafe.cache.ng";
     private final Deleter deleter;
     private final BuildInvocationScopeId buildInvocationScopeId;
+    private final ExecutorFactory executorFactory;
 
     public static boolean isNextGenCachingEnabled() {
         return Boolean.getBoolean(NEXT_GEN_CACHE_SYSTEM_PROPERTY) == Boolean.TRUE;
@@ -58,7 +60,8 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         FileSystemAccess fileSystemAccess,
         StringInterner stringInterner,
         Deleter deleter,
-        BuildInvocationScopeId buildInvocationScopeId
+        BuildInvocationScopeId buildInvocationScopeId,
+        ExecutorFactory executorFactory
     ) {
         super(
             startParameter,
@@ -68,6 +71,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
             stringInterner);
         this.deleter = deleter;
         this.buildInvocationScopeId = buildInvocationScopeId;
+        this.executorFactory = executorFactory;
     }
 
     @Override
@@ -87,7 +91,8 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
             new GZipNextGenBuildCacheAccess(
                 new DefaultNextGenBuildCacheAccess(
                     local,
-                    remote
+                    remote,
+                    executorFactory
                 )
             )
         );

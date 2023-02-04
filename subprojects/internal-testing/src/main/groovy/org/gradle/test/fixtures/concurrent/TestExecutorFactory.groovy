@@ -20,6 +20,8 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.ManagedScheduledExecutor
 import org.gradle.internal.concurrent.ManagedExecutor
 
+import java.util.concurrent.TimeUnit
+
 class TestExecutorFactory implements ExecutorFactory {
     private final TestExecutor executor
 
@@ -33,6 +35,12 @@ class TestExecutorFactory implements ExecutorFactory {
 
     ManagedExecutor create(String displayName, int fixedSize) {
         // Ignores size of thread pool
+        return new TestManagedExecutor(executor)
+    }
+
+    @Override
+    ManagedExecutor create(String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit) {
+        // Ignores size of thread pool and pool keep alive time
         return new TestManagedExecutor(executor)
     }
 
