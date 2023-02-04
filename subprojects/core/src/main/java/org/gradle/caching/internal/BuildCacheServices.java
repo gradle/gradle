@@ -42,6 +42,7 @@ import org.gradle.caching.local.internal.DirectoryBuildCacheFileStoreFactory;
 import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
 import org.gradle.caching.local.internal.H2BuildCacheServiceFactory;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.hash.ChecksumService;
@@ -180,7 +181,8 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 OriginMetadataFactory originMetadataFactory,
                 StringInterner stringInterner,
                 Deleter deleter,
-                BuildInvocationScopeId buildInvocationScopeId
+                BuildInvocationScopeId buildInvocationScopeId,
+                ExecutorFactory executorFactory
             ) {
                 if (NextGenBuildCacheControllerFactory.isNextGenCachingEnabled()) {
                     return new NextGenBuildCacheControllerFactory(
@@ -190,7 +192,8 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                         fileSystemAccess,
                         stringInterner,
                         deleter,
-                        buildInvocationScopeId
+                        buildInvocationScopeId,
+                        executorFactory
                     );
                 } else {
                     return new LegacyBuildCacheControllerFactory(
