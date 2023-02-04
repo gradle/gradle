@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
@@ -134,7 +135,8 @@ public class WtpComponentFactory {
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
             if (!projectId.equals(currentProjectId)) {
                 String targetProjectPath = projectDependencyBuilder.determineTargetProjectName(projectId);
-                projectEntries.add(new WbDependentModule(deployPath, "module:/resource/" + targetProjectPath + "/" + targetProjectPath));
+                PublishArtifactLocalArtifactMetadata identifier = (PublishArtifactLocalArtifactMetadata) artifact.getId();
+                projectEntries.add(new WbDependentModule(identifier.getName().toString(), deployPath, "module:/resource/" + targetProjectPath + "/" + targetProjectPath));
             }
         }
 
@@ -179,7 +181,7 @@ public class WtpComponentFactory {
         private WbDependentModule createWbDependentModuleEntry(File file, FileReferenceFactory fileReferenceFactory, String deployPath) {
             FileReference ref = fileReferenceFactory.fromFile(file);
             String handleSnippet = ref.isRelativeToPathVariable() ? "var/" + ref.getPath() : "lib/" + ref.getPath();
-            return new WbDependentModule(deployPath, "module:/classpath/" + handleSnippet);
+            return new WbDependentModule(ref.getFile().getName(), deployPath, "module:/classpath/" + handleSnippet);
         }
     }
 

@@ -16,11 +16,12 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.internal.build.CompositeBuildParticipantBuildState
-import org.gradle.internal.build.IncludedBuildState
+import org.gradle.internal.build.BuildState
+import org.gradle.util.Path
 import java.io.File
 
 
@@ -28,13 +29,18 @@ interface ConfigurationCacheBuild {
 
     val gradle: GradleInternal
 
-    val state: CompositeBuildParticipantBuildState
+    val state: BuildState
 
-    fun createProject(path: String, dir: File, buildDir: File)
+    fun registerRootProject(rootProjectName: String, projectDir: File, buildDir: File)
+
+    fun registerProject(projectPath: Path, dir: File, buildDir: File)
 
     fun getProject(path: String): ProjectInternal
 
-    fun registerProjects()
+    // Creates all registered projects for this build
+    fun createProjects()
 
-    fun addIncludedBuild(buildDefinition: BuildDefinition): IncludedBuildState
+    fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, buildPath: Path): ConfigurationCacheBuild
+
+    fun getBuildSrcOf(ownerId: BuildIdentifier): ConfigurationCacheBuild
 }

@@ -29,7 +29,7 @@ class PublishNightlySnapshotFromQuickFeedbackStepPromote(branch: VersionedSettin
     init {
         id("Promotion_SnapshotFromQuickFeedbackStepPromote")
         name = "Nightly Snapshot (from QuickFeedback) - Promote"
-        description = "Promotes a previously built distribution on this agent on '${branch.branchName}' from Quick Feedback as a new nightly snapshot"
+        description = "Promotes a previously built distribution on this agent on '${branch.branchName}' from Quick Feedback as a new nightly snapshot. This build checks out gradle-promote, so don't be misled by the 'master' branch."
 
         steps {
             buildStep(

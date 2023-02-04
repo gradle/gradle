@@ -66,6 +66,7 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
     object EnvironmentProperties {
         const val kotlinDslImplicitImports = "kotlinDslImplicitImports"
+        const val projectRoot = "projectRoot"
     }
 
     override fun resolve(

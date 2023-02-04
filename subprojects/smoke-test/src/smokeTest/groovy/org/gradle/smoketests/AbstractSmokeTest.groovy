@@ -21,7 +21,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheQuietOption
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.BuildOperationTreeFixture
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
@@ -47,10 +46,8 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 abstract class AbstractSmokeTest extends Specification {
 
     protected static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
-    protected static final String AGP_NO_CC_ITERATION_MATCHER = ".*agp=4\\..*"
 
     protected static final KotlinGradlePluginVersions KOTLIN_VERSIONS = new KotlinGradlePluginVersions()
-    protected static final String KGP_NO_CC_ITERATION_MATCHER = ".*(kotlin=1\\.3\\.|kotlin=1\\.4\\.[01]).*"
 
     static class TestedVersions {
         /**
@@ -58,25 +55,23 @@ abstract class AbstractSmokeTest extends Specification {
          * @see BuildScanPluginSmokeTest
          */
 
-        // https://plugins.gradle.org/plugin/nebula.dependency-recommender
-        static nebulaDependencyRecommender = "11.0.0"
+        // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-recommender
+        static nebulaDependencyRecommender = "12.0.0"
 
-        // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "17.1.0"
+        // https://plugins.gradle.org/plugin/com.netflix.nebula.plugin-plugin
+        static nebulaPluginPlugin = "20.0.0"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "17.7.0"
+        static nebulaLint = "17.7.1"
 
         // https://plugins.gradle.org/plugin/org.jetbrains.gradle.plugin.idea-ext
         static ideaExt = "1.1.6"
 
-        // https://plugins.gradle.org/plugin/nebula.dependency-lock
-        // TODO: Re-add "8.8.x", "9.4.x" and "10.1.x" if fixed:
-        //   https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/215
-        static nebulaDependencyLock = Versions.of("12.6.1")
+        // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-lock
+        static nebulaDependencyLock = Versions.of("13.1.0")
 
-        // https://plugins.gradle.org/plugin/nebula.resolution-rules
-        static nebulaResolutionRules = "9.0.0"
+        // https://plugins.gradle.org/plugin/com.netflix.nebula.resolution-rules
+        static nebulaResolutionRules = "10.0.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
         static shadow = Versions.of("7.0.0", "7.1.2")
@@ -112,7 +107,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = [
-            [version: "3.0.9", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
+            [version: "3.1.1", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
             [version: "4.0.3", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
         ]
 
@@ -123,18 +118,18 @@ abstract class AbstractSmokeTest extends Specification {
         static gradleVersions = "0.42.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
-        static playframework = "0.12"
+        static playframework = "0.13"
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
         static errorProne = "2.0.2"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
-        static protobufPlugin = "0.8.19"
+        static protobufPlugin = "0.9.2"
 
         static protobufTools = "3.21.5"
 
         // https://plugins.gradle.org/plugin/org.gradle.test-retry
-        static testRetryPlugin = "1.4.1"
+        static testRetryPlugin = "1.5.0"
 
         // https://plugins.gradle.org/plugin/com.jfrog.artifactory
         static artifactoryPlugin = "4.29.0"
@@ -172,7 +167,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.20")
+        static kotlinPlugins = Versions.of("1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.22", "1.8.10")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp
@@ -278,7 +273,6 @@ abstract class AbstractSmokeTest extends Specification {
             parameters += [
                 "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
                 "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=$maxProblems".toString(),
-                "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true".toString(),
                 "-D${BuildOperationTrace.SYSPROP}=${buildOperationTracePath()}".toString()
             ]
             if (maxProblems > 0) {

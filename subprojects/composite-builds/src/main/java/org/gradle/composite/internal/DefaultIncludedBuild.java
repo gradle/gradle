@@ -68,6 +68,11 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     @Override
+    public BuildDefinition getBuildDefinition() {
+        return buildDefinition;
+    }
+
+    @Override
     public File getRootDirectory() {
         return buildDefinition.getBuildRootDir();
     }

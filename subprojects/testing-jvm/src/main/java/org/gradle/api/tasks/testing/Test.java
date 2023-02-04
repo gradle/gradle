@@ -71,6 +71,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
@@ -672,8 +673,15 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         if (!javaVersion.isJava6Compatible()) {
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
-        if (!javaVersion.isJava8Compatible() && testFramework.get() instanceof JUnitPlatformTestFramework) {
-            throw new UnsupportedJavaRuntimeException("Running tests with JUnit platform requires a Java 8+ toolchain.");
+        if (!javaVersion.isJava8Compatible()) {
+            if (testFramework.get() instanceof JUnitPlatformTestFramework) {
+                throw new UnsupportedJavaRuntimeException("Running tests with JUnit platform requires a Java 8+ toolchain.");
+            } else {
+                DeprecationLogger.deprecate("Running tests on Java versions earlier than 8")
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(8, "minimum_test_jvm_version")
+                    .nagUser();
+            }
         }
 
         if (getDebug()) {
@@ -951,6 +959,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     /**
      * Specifies that JUnit4 should be used to discover and execute the tests.
      * <p>
+     *
      * @see #useJUnit(org.gradle.api.Action) Configure JUnit4 specific options.
      */
     public void useJUnit() {
@@ -1017,6 +1026,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     /**
      * Specifies that TestNG should be used to discover and execute the tests.
      * <p>
+     *
      * @see #useTestNG(org.gradle.api.Action) Configure TestNG specific options.
      */
     public void useTestNG() {
@@ -1127,13 +1137,42 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * By default, Gradle automatically uses a separate JVM when executing tests, so changing this property is usually not necessary.
      * </p>
      *
-     * @param forkEvery The maximum number of test classes. Use null or 0 to specify no maximum.
+     * @param forkEvery The maximum number of test classes. Use 0 to specify no maximum.
+     * @since 8.1
      */
-    public void setForkEvery(@Nullable Long forkEvery) {
-        if (forkEvery != null && forkEvery < 0) {
+    public void setForkEvery(long forkEvery) {
+        if (forkEvery < 0) {
             throw new IllegalArgumentException("Cannot set forkEvery to a value less than 0.");
         }
-        this.forkEvery = forkEvery == null ? 0 : forkEvery;
+        this.forkEvery = forkEvery;
+    }
+
+    /**
+     * Sets the maximum number of test classes to execute in a forked test process.
+     * <p>
+     * By default, Gradle automatically uses a separate JVM when executing tests, so changing this property is usually not necessary.
+     * </p>
+     *
+     * @param forkEvery The maximum number of test classes. Use null or 0 to specify no maximum.
+     * @deprecated Use {@link #setForkEvery(long)} instead.
+     */
+    @Deprecated
+    public void setForkEvery(@Nullable Long forkEvery) {
+        if (forkEvery == null) {
+            DeprecationLogger.deprecateBehaviour("Setting Test.forkEvery to null.")
+                .withAdvice("Set Test.forkEvery to 0 instead.")
+                .willBecomeAnErrorInGradle9()
+                .withDslReference(Test.class, "forkEvery")
+                .nagUser();
+            setForkEvery(0);
+        } else {
+            DeprecationLogger.deprecateMethod(Test.class, "setForkEvery(Long)")
+                .replaceWith("Test.setForkEvery(long)")
+                .willBeRemovedInGradle9()
+                .withDslReference(Test.class, "forkEvery")
+                .nagUser();
+            setForkEvery(forkEvery.longValue());
+        }
     }
 
     /**

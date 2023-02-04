@@ -128,9 +128,9 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
                 @TaskAction
                 void run() {
-                    println "this.reference = " + badReference
-                    println "bean.reference = " + bean.badReference
-                    println "beanWithSameType.reference = " + beanWithSameType.badReference
+                    println "this.reference = " + badReference?.toString()
+                    println "bean.reference = " + bean.badReference?.toString()
+                    println "beanWithSameType.reference = " + beanWithSameType.badReference?.toString()
                 }
             }
 
@@ -145,12 +145,18 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(3)
+            withTotalProblemsCount(6)
             withUniqueProblems(
+                "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: cannot serialize object of type '$concreteTypeName', a subtype of '${baseType.name}', as these are not supported with the configuration cache."
             )
             withProblemsWithStackTraceCount(0)
         }
+
+        and:
+        outputContains("this.reference = null")
+        outputContains("bean.reference = null")
+        outputContains("beanWithSameType.reference = null")
 
         when:
         configurationCacheRunLenient "broken"
@@ -265,15 +271,22 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(3)
+            withTotalProblemsCount(9)
             withUniqueProblems(
-                "Task `:broken` of type `SomeTask`: cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache."
+                "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
+                "Task `:broken` of type `SomeTask`: cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache.",
+                "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
             )
             withProblemsWithStackTraceCount(0)
         }
 
         when:
         configurationCacheRunLenient "broken"
+
+        and:
+        outputContains("this.reference = null")
+        outputContains("bean.reference = null")
+        outputContains("beanWithSameType.reference = null")
 
         then:
         problems.assertResultHasProblems(result) {

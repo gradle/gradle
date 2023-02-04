@@ -19,9 +19,11 @@ package org.gradle.nativeplatform.test.plugins
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class NativeTestingBasePluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

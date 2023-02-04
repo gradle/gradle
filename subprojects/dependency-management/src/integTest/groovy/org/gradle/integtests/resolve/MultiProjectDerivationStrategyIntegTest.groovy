@@ -67,7 +67,7 @@ class MultiProjectDerivationStrategyIntegTest extends AbstractPolyglotIntegratio
         resolveB.prepare()
 
         when:
-        run 'checkDeps'
+        run 'a:checkDeps'
 
         then:
         resolveA.expectGraph {
@@ -77,6 +77,11 @@ class MultiProjectDerivationStrategyIntegTest extends AbstractPolyglotIntegratio
                 }
             }
         }
+
+        when:
+        run ':b:checkDeps'
+
+        then:
         resolveB.expectGraph {
             root(":b", "org:b:1.0") {
                 module("org:foo:1.1") {

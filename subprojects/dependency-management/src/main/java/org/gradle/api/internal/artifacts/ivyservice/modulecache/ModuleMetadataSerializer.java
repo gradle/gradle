@@ -43,7 +43,7 @@ import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.CapabilityInternal;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.DefaultShadowedCapability;
+import org.gradle.internal.component.external.model.ImmutableShadowedCapability;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -515,7 +515,7 @@ public class ModuleMetadataSerializer {
                 String appendix = decoder.readNullableString();
                 CapabilityInternal capability = new ImmutableCapability(decoder.readString(), decoder.readString(), decoder.readString());
                 if (appendix != null) {
-                    capability = new DefaultShadowedCapability(capability, appendix);
+                    capability = new ImmutableShadowedCapability(capability, appendix);
                 }
                 variant.addCapability(capability);
             }

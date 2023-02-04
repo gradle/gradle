@@ -139,7 +139,6 @@ class StaticVersionsReadOnlyCacheDependencyResolutionTest extends AbstractReadOn
         noExceptionThrown()
     }
 
-
     @Override
     List<MavenHttpModule> getModulesInReadOnlyCache(MavenHttpRepository repo) {
         [

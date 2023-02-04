@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
@@ -44,14 +43,12 @@ import java.io.File;
 public class PublishArtifactNotationParserFactory implements Factory<NotationParser<Object, ConfigurablePublishArtifact>> {
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider metaDataProvider;
-    private final TaskResolver taskResolver;
     private final FileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
 
-    public PublishArtifactNotationParserFactory(Instantiator instantiator, DependencyMetaDataProvider metaDataProvider, TaskResolver taskResolver, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
+    public PublishArtifactNotationParserFactory(Instantiator instantiator, DependencyMetaDataProvider metaDataProvider, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
         this.instantiator = instantiator;
         this.metaDataProvider = metaDataProvider;
-        this.taskResolver = taskResolver;
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
     }

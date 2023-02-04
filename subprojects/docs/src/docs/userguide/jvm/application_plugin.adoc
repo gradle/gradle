@@ -29,16 +29,16 @@ To use the application plugin, include the following in your build script:
 
 .Using the application plugin
 ====
-include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=use-plugin]"]
 include::sample[dir="snippets/java/application/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 The only mandatory configuration for the plugin is the specification of the main class (i.e. entry point) of the application.
 
 .Configure the application main class
 ====
-include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=mainClass-conf]"]
 include::sample[dir="snippets/java/application/kotlin",files="build.gradle.kts[tags=mainClass-conf]"]
+include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=mainClass-conf]"]
 ====
 
 You can run the application by executing the `run` task (type: link:{javadocPath}/org/gradle/api/tasks/JavaExec.html[JavaExec]). This will compile the main source set, and launch a new JVM with its classes (along with all runtime dependencies) as the classpath and using the specified main class. You can launch the application in debug mode with `gradle run --debug-jvm` (see link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#setDebug-boolean-[JavaExec.setDebug(boolean)]).
@@ -49,16 +49,16 @@ If your application requires a specific set of JVM settings or system properties
 
 .Configure default JVM settings
 ====
-include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=application-defaultjvmargs]"]
 include::sample[dir="snippets/java/application/kotlin",files="build.gradle.kts[tags=application-defaultjvmargs]"]
+include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=application-defaultjvmargs]"]
 ====
 
 If your application's start scripts should be in a different directory than `bin`, you can configure the `executableDir` property.
 
 .Configure custom directory for start scripts
 ====
-include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=executableDir-conf]"]
 include::sample[dir="snippets/java/application/kotlin",files="build.gradle.kts[tags=executableDir-conf]"]
+include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=executableDir-conf]"]
 ====
 
 [[sec:application_modular]]
@@ -75,8 +75,8 @@ Second, you need to tell Gradle the name of the module you want to run in additi
 
 .Configure the modular application's main module
 ====
-include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=mainModule-conf]"]
 include::sample[dir="snippets/java/application/kotlin",files="build.gradle.kts[tags=mainModule-conf]"]
+include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=mainModule-conf]"]
 ====
 
 That's all.
@@ -112,11 +112,11 @@ Static files to be added to the distribution can be simply added to `src/dist`. 
 
 .Include output from other tasks in the application distribution
 ====
-include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=distribution-spec]"]
 include::sample[dir="snippets/java/application/kotlin",files="build.gradle.kts[tags=distribution-spec]"]
+include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=distribution-spec]"]
 ====
 
-By specifying that the distribution should include the task's output files (see <<more_about_tasks.adoc#sec:task_inputs_outputs, more about tasks>>), Gradle knows that the task that produces the files must be invoked before the distribution can be assembled and will take care of this for you.
+By specifying that the distribution should include the task's output files (see <<incremental_build.adoc#sec:task_inputs_outputs, incremental builds>>), Gradle knows that the task that produces the files must be invoked before the distribution can be assembled and will take care of this for you.
 
 You can run `gradle installDist` to create an image of the application in `build/install/__projectName__`. You can run `gradle distZip` to create a ZIP containing the distribution, `gradle distTar` to create an application TAR or `gradle assemble` to build both.
 
@@ -168,8 +168,8 @@ The Application Plugin adds an extension to the project, which you can use to co
 You can configure the extension via the `application {}` block shown earlier, for example using the following in your build script:
 
 ====
-include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=executableDir-conf]"]
 include::sample[dir="snippets/java/application/kotlin",files="build.gradle.kts[tags=executableDir-conf]"]
+include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=executableDir-conf]"]
 ====
 
 [[sec:application_licensing]]
@@ -185,6 +185,6 @@ This plugin also adds some convention properties to the project, which you can u
 Unlike the extension properties, these properties appear as top-level project properties in the build script. For example, to change the application name you can just add the following to your build script:
 
 ====
-include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=applicationName-conf]"]
 include::sample[dir="snippets/java/application/kotlin",files="build.gradle.kts[tags=applicationName-conf]"]
+include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=applicationName-conf]"]
 ====

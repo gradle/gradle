@@ -25,16 +25,16 @@ To use the Java library distribution plugin, include the following in your build
 
 .Using the Java library distribution plugin
 ====
-include::sample[dir="snippets/java/javaLibraryDistribution/groovy",files="build.gradle[tags=use-plugin]"]
 include::sample[dir="snippets/java/javaLibraryDistribution/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/java/javaLibraryDistribution/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 To define the name for the distribution you have to set the `baseName` property as shown below:
 
 .Configure the distribution name
 ====
-include::sample[dir="snippets/java/javaLibraryDistribution/groovy",files="build.gradle[tags=name-conf]"]
 include::sample[dir="snippets/java/javaLibraryDistribution/kotlin",files="build.gradle.kts[tags=name-conf]"]
+include::sample[dir="snippets/java/javaLibraryDistribution/groovy",files="build.gradle[tags=name-conf]"]
 ====
 
 The plugin builds a distribution for your library. The distribution will package up the runtime dependencies of the library. All files stored in `src/main/dist` will be added to the root of the archive distribution. You can run “`gradle distZip`” to create a ZIP file containing the distribution.
@@ -57,6 +57,6 @@ All of the files from the `src/dist` directory are copied. To include any static
 
 .Include files in the distribution
 ====
-include::sample[dir="snippets/java/javaLibraryDistribution/groovy",files="build.gradle[tags=custom-distribution]"]
 include::sample[dir="snippets/java/javaLibraryDistribution/kotlin",files="build.gradle.kts[tags=custom-distribution]"]
+include::sample[dir="snippets/java/javaLibraryDistribution/groovy",files="build.gradle[tags=custom-distribution]"]
 ====

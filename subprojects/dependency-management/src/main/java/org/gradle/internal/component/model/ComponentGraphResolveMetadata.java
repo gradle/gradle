@@ -60,18 +60,6 @@ public interface ComponentGraphResolveMetadata {
     @Nullable
     ConfigurationGraphResolveMetadata getConfiguration(String name);
 
-    /**
-     * Returns the synthetic dependencies for the root configuration with the supplied name.
-     * Synthetic dependencies are dependencies which are an internal implementation detail of Gradle,
-     * used for example in dependency locking or consistent resolution. They are not "real" dependencies
-     * in the sense that they are not added by users, and they are not always used during resolution
-     * based on which phase of execution we are (task dependencies, execution, ...)
-     *
-     * @param configuration the name of the configuration for which to get the synthetic dependencies
-     * @return the synthetic dependencies of the requested configuration
-     */
-    List<? extends DependencyMetadata> getSyntheticDependencies(String configuration);
-
     List<? extends VirtualComponentIdentifier> getPlatformOwners();
 
     @Nullable

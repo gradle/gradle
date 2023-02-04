@@ -37,6 +37,7 @@ import org.objectweb.asm.ClassVisitor
 import java.util.Optional
 
 
+internal
 class KotlinApiClassExtractor : ApiClassExtractor(
     emptySet(),
     { classWriter -> KotlinApiMemberWriter(MethodStubbingApiMemberAdapter(classWriter)) }
@@ -79,6 +80,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
                 is KotlinClassMetadata.Unknown -> {
                     throw CompileAvoidanceException("Unknown Kotlin metadata with kind: ${kotlinMetadata.header.kind} on class ${classMember.name} - this can happen if this class is compiled with a later Kotlin version than the Kotlin compiler used by Gradle")
                 }
+                null -> Unit
             }
         }
 
@@ -162,6 +164,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor) : ApiMemberWriter(ap
 }
 
 
+internal
 class CompileAvoidanceException(message: String) : GradleException(message) {
 
     companion object Factory {

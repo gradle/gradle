@@ -54,7 +54,7 @@ fun beginClass(
     interfaces: List<InternalName>? = null
 ): ClassWriter = ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES).apply {
     visit(
-        Opcodes.V1_8,
+        GradleJvmVersion.minimalAsmClassVersion,
         modifiers,
         name.value,
         null,
@@ -149,6 +149,12 @@ fun MethodVisitor.loadByteArray(byteArray: ByteArray) {
 
 
 internal
+fun MethodVisitor.ICONST_0() {
+    visitInsn(Opcodes.ICONST_0)
+}
+
+
+internal
 fun MethodVisitor.NEW(type: InternalName) {
     visitTypeInsn(Opcodes.NEW, type)
 }
@@ -221,6 +227,12 @@ fun MethodVisitor.DUP() {
 
 
 internal
+fun MethodVisitor.POP() {
+    visitInsn(Opcodes.POP)
+}
+
+
+internal
 fun MethodVisitor.ARETURN() {
     visitInsn(Opcodes.ARETURN)
 }
@@ -284,7 +296,7 @@ fun MethodVisitor.TRY_CATCH(
 
 internal
 fun <T : Enum<T>> MethodVisitor.GETSTATIC(field: T) {
-    val owner = field.declaringClass.internalName
+    val owner = field.declaringJavaClass.internalName
     GETSTATIC(owner, field.name, "L$owner;")
 }
 
@@ -345,9 +357,9 @@ fun MethodVisitor.kotlinDeprecation(message: String) {
 /**
  * A JVM internal type name (as in `java/lang/Object` instead of `java.lang.Object`).
  */
-@Suppress("experimental_feature_warning")
+@JvmInline
 internal
-inline class InternalName(val value: String) {
+value class InternalName(val value: String) {
 
     companion object {
         fun from(sourceName: String) = InternalName(sourceName.replace('.', '/'))

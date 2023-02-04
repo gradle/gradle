@@ -119,7 +119,7 @@ packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true
 
 tasks.clean {
     val testFiles = layout.buildDirectory.dir("tmp/test files")
@@ -130,4 +130,9 @@ tasks.clean {
             include("**/read-only-cache/**")
         }.visit { this.file.setWritable(true) }
     }
+}
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.tooling.r214
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.util.GradleVersion
 
 @TargetGradleVersion(">=2.14")
 class ToolingApEclipseModelNaturesAndBuildCommandsCrossVersionSpec extends ToolingApiSpecification {
@@ -38,15 +39,20 @@ class ToolingApEclipseModelNaturesAndBuildCommandsCrossVersionSpec extends Tooli
         def natures = rootProject.projectNatures.collect{ it.id }
 
         then:
-        natures == expectedNatures
+        if (plugins.contains('ear') && targetVersion < GradleVersion.version("8.0") ) {
+            assert natures == WTP_NATURES
+        } else {
+            assert natures == JAVA_NATURES + WTP_NATURES
+        }
 
         where:
-        plugins                 | expectedNatures
-        ['java', 'eclipse-wtp'] | JAVA_NATURES + WTP_NATURES
-        ['war']                 | JAVA_NATURES + WTP_NATURES
-        ['war', 'eclipse-wtp']  | JAVA_NATURES + WTP_NATURES
-        ['ear']                 | WTP_NATURES
-        ['ear', 'eclipse-wtp']  | WTP_NATURES
+        plugins << [
+            ['java', 'eclipse-wtp'],
+            ['war'],
+            ['war', 'eclipse-wtp'],
+            ['ear'],
+            ['ear', 'eclipse-wtp']
+        ]
     }
 
     def "Eclipse wtp build commands are added to web projects"() {

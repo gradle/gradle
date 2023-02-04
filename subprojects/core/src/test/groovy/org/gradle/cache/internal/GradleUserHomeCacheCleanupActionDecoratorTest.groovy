@@ -20,6 +20,7 @@ import org.gradle.cache.CleanableStore
 import org.gradle.cache.CleanupAction
 import org.gradle.cache.CleanupProgressMonitor
 import org.gradle.initialization.GradleUserHomeDirProvider
+import org.gradle.internal.cache.MonitoredCleanupAction
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification

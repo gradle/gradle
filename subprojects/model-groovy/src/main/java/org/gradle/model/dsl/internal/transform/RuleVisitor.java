@@ -17,8 +17,26 @@
 package org.gradle.model.dsl.internal.transform;
 
 import com.google.common.base.Joiner;
-import org.codehaus.groovy.ast.*;
-import org.codehaus.groovy.ast.expr.*;
+import org.codehaus.groovy.ast.ASTNode;
+import org.codehaus.groovy.ast.ClassHelper;
+import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.ast.FieldNode;
+import org.codehaus.groovy.ast.MethodNode;
+import org.codehaus.groovy.ast.Parameter;
+import org.codehaus.groovy.ast.VariableScope;
+import org.codehaus.groovy.ast.expr.ArgumentListExpression;
+import org.codehaus.groovy.ast.expr.BinaryExpression;
+import org.codehaus.groovy.ast.expr.ClosureExpression;
+import org.codehaus.groovy.ast.expr.ConstantExpression;
+import org.codehaus.groovy.ast.expr.ConstructorCallExpression;
+import org.codehaus.groovy.ast.expr.DeclarationExpression;
+import org.codehaus.groovy.ast.expr.ElvisOperatorExpression;
+import org.codehaus.groovy.ast.expr.Expression;
+import org.codehaus.groovy.ast.expr.FieldExpression;
+import org.codehaus.groovy.ast.expr.MethodCallExpression;
+import org.codehaus.groovy.ast.expr.PropertyExpression;
+import org.codehaus.groovy.ast.expr.StaticMethodCallExpression;
+import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.ReturnStatement;
@@ -27,7 +45,6 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.codehaus.groovy.syntax.Token;
 import org.codehaus.groovy.syntax.Types;
-import org.gradle.api.Transformer;
 import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.ExpressionReplacingVisitorSupport;
 import org.gradle.internal.SystemProperties;
@@ -331,12 +348,7 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             List<Expression> otherArgs = hasTrailingClosure ? arguments.getExpressions().subList(0, arguments.getExpressions().size() - 1) : arguments.getExpressions();
             if (!otherArgs.isEmpty() || !hasTrailingClosure) {
                 builder.append("(");
-                builder.append(Joiner.on(", ").join(CollectionUtils.collect(otherArgs, new Transformer<Object, Expression>() {
-                    @Override
-                    public Object transform(Expression expression) {
-                        return expression.getText();
-                    }
-                })));
+                builder.append(Joiner.on(", ").join(CollectionUtils.collect(otherArgs, ASTNode::getText)));
                 builder.append(")");
             }
             if (hasTrailingClosure) {

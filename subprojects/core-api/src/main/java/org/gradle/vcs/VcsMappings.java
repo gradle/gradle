@@ -22,7 +22,7 @@ import org.gradle.api.Action;
  * Allows VCS mapping rules to be specified for a build. A VCS mapping rule is responsible for calculating the VCS information for a particular dependency.
  *
  * In settings.gradle:
- * <pre class='autoTestedSettings'>
+ * <pre class='autoTestedSettingsWithoutCC'>
  * sourceControl {
  *   vcsMappings {
  *     withModule("org.gradle:gradle") {

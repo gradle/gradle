@@ -143,7 +143,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
             val components =
                 configurations
-                    .compileClasspath
+                    .compileClasspath.get()
                     .incoming
                     .artifactView { lenient(true) }
                     .artifacts

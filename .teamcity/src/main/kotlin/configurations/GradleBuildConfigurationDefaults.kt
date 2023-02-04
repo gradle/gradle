@@ -86,10 +86,17 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
     }
 }
 
-fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: String, os: Os = Os.LINUX, extraParameters: String = "", daemon: Boolean = true) {
+fun BaseGradleBuildType.gradleRunnerStep(
+    model: CIBuildModel,
+    gradleTasks: String,
+    os: Os = Os.LINUX,
+    extraParameters: String = "",
+    daemon: Boolean = true,
+    maxParallelForks: String = "%maxParallelForks%"
+) {
     val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
     val parameters = (
-        buildToolGradleParameters(daemon) +
+        buildToolGradleParameters(daemon, maxParallelForks = maxParallelForks) +
             listOf(extraParameters) +
             buildScanTags.map { buildScanTag(it) } +
             functionalTestParameters(os)
@@ -138,6 +145,7 @@ fun applyTestDefaults(
     arch: Arch = Arch.AMD64,
     extraParameters: String = "",
     timeout: Int = 90,
+    maxParallelForks: String = "%maxParallelForks%",
     extraSteps: BuildSteps.() -> Unit = {}, // the steps after runner steps
     daemon: Boolean = true,
     preSteps: BuildSteps.() -> Unit = {} // the steps before runner steps
@@ -150,7 +158,7 @@ fun applyTestDefaults(
 
     buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", os, arch)
 
-    buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
+    buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon, maxParallelForks = maxParallelForks)
 
     buildType.killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", os, arch)
 

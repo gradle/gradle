@@ -20,9 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.component.BuildableJavaComponent;
-import org.gradle.api.internal.component.ComponentRegistry;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask;
@@ -180,11 +177,6 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
             task.getShowingAllVariants().convention(false);
-            ComponentRegistry componentRegistry = ((ProjectInternal) task.getProject()).getServices().get(ComponentRegistry.class);
-            new DslObject(task).getConventionMapping().map("configuration", () -> {
-                BuildableJavaComponent javaProject = componentRegistry.getMainComponent();
-                return javaProject == null ? null : javaProject.getCompileDependencies();
-            });
         }
     }
 

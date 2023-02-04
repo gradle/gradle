@@ -20,6 +20,7 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.TaskOutcome
 
@@ -38,6 +39,15 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
     def setup() {
         AndroidHome.assertIsSet()
+    }
+
+    @Override
+    SmokeTestGradleRunner runner(String... tasks) {
+        def runner = super.runner(tasks)
+        // TODO: AGP's ShaderCompile uses Task.project after the configuration barrier to compute inputs
+        return runner.withJvmArguments(runner.jvmArguments + [
+            "-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true"
+        ])
     }
 
     @UnsupportedWithConfigurationCache
@@ -65,7 +75,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ].combinations()
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = AGP_NO_CC_ITERATION_MATCHER)
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"() {
 
         given:
@@ -83,6 +92,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ))
 
         when: 'first build'
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         def result = runner.deprecations(AndroidDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             expectReportDestinationPropertyDeprecation(agpVersion)
@@ -100,6 +110,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         assertConfigurationCacheStateStored()
 
         when: 'up-to-date build'
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner.deprecations(AndroidDeprecations) {
             if (!GradleContextualExecuter.isConfigCache()) {
                 expectReportDestinationPropertyDeprecation(agpVersion)
@@ -117,6 +128,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'abi change on library'
         abiChange.run()
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner.deprecations(AndroidDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             if (!GradleContextualExecuter.isConfigCache()) {
@@ -135,6 +147,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'clean re-build'
         useAgpVersion(agpVersion, this.runner('clean')).build()
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner.deprecations(AndroidDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             if (!GradleContextualExecuter.isConfigCache()) {

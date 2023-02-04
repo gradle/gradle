@@ -22,7 +22,9 @@ import gradlebuild.basics.testSplitExcludeTestClasses
 import gradlebuild.basics.testSplitIncludeTestClasses
 import gradlebuild.basics.testSplitOnlyTestGradleVersion
 import gradlebuild.basics.testing.TestType
+import gradlebuild.capitalize
 import gradlebuild.integrationtests.extension.IntegrationTestExtension
+import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.integrationtests.tasks.IntegrationTest
 import gradlebuild.modules.extension.ExternalModulesExtension
 import gradlebuild.testing.services.BuildBucketProvider
@@ -107,7 +109,7 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     val prefix = testType.prefix
     val defaultExecuter = "embedded"
 
-    // For all of the other executers, add an executer specific task
+    // For all the other executers, add an executer specific task
     testType.executers.forEach { executer ->
         val taskName = "$executer${prefix.capitalize()}Test"
         val testTask = createTestTask(taskName, executer, sourceSet, testType) {}
@@ -126,10 +128,10 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
 
 
 fun Project.getBucketProvider() = gradle.sharedServices.registerIfAbsent("buildBucketProvider", BuildBucketProvider::class) {
-    parameters.includeTestClasses.set(project.testSplitIncludeTestClasses)
-    parameters.excludeTestClasses.set(project.testSplitExcludeTestClasses)
-    parameters.onlyTestGradleVersion.set(project.testSplitOnlyTestGradleVersion)
-    parameters.repoRoot.set(repoRoot())
+    parameters.includeTestClasses = project.testSplitIncludeTestClasses
+    parameters.excludeTestClasses = project.testSplitExcludeTestClasses
+    parameters.onlyTestGradleVersion = project.testSplitOnlyTestGradleVersion
+    parameters.repoRoot = repoRoot()
 }
 
 
@@ -171,6 +173,17 @@ fun IntegrationTest.addDebugProperties() {
     // TODO Move magic property out
     if (project.hasProperty("org.gradle.integtest.launcher.debug")) {
         systemProperties["org.gradle.integtest.launcher.debug"] = "true"
+    }
+}
+
+
+fun DistributionTest.setSystemPropertiesOfTestJVM(defaultVersions: String) {
+    // use -PtestVersions=all or -PtestVersions=1.2,1.3…
+    val integTestVersionsSysProp = "org.gradle.integtest.versions"
+    if (project.hasProperty("testVersions")) {
+        systemProperties[integTestVersionsSysProp] = project.property("testVersions")
+    } else {
+        systemProperties[integTestVersionsSysProp] = defaultVersions
     }
 }
 

@@ -712,7 +712,9 @@ The plugin achieves this by doing the following:
 
  * Applies the link:https://kotlinlang.org/docs/reference/using-gradle.html#targeting-the-jvm[Kotlin Plugin], which adds support for compiling Kotlin source files.
  * Adds the `kotlin-stdlib-jdk8`, `kotlin-reflect` and `gradleKotlinDsl()` dependencies to the `compileOnly` and `testImplementation` configurations, which allows you to make use of those Kotlin libraries and the Gradle API in your Kotlin code.
- * Configures the Kotlin compiler with the same settings that are used for Kotlin DSL scripts, ensuring consistency between your build logic and those scripts.
+ * Configures the Kotlin compiler with the same settings that are used for Kotlin DSL scripts, ensuring consistency between your build logic and those scripts:
+ ** adds <<kotlin_dsl#sec:kotlin_compiler_arguments, Kotlin compiler arguments>>,
+ ** registers the link:https://kotlinlang.org/docs/sam-with-receiver-plugin.html[SAM-with-receiver Kotlin compiler plugin].
  * Enables support for <<custom_plugins#sec:precompiled_plugins,precompiled script plugins>>.
 
 [CAUTION]
@@ -726,6 +728,16 @@ This is the basic configuration you need to use the plugin:
 .Applying the Kotlin DSL Plugin to a `buildSrc` project
 ====
 include::sample[dir="snippets/kotlinDsl/kotlinDslPlugin/kotlin",files="buildSrc/build.gradle.kts[tags=apply]"]
+====
+
+The Kotlin DSL Plugin leverages <<toolchains#toolchains,Java Toolchains>>.
+By default the code will target Java 8.
+You can change that by defining a Java toolchain to be used by the project:
+
+.Changing the JVM target using toolchains
+====
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin/",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=toolchain]"]
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=toolchain]"]
 ====
 
 [[sec:kotlin]]
@@ -754,8 +766,19 @@ The biggest issue is the compatibility between the external `kotlin-gradle-plugi
 
 These are the Kotlin compiler arguments used for compiling Kotlin DSL scripts and Kotlin sources and scripts in a project that has the `kotlin-dsl` plugin applied:
 
-`-jvm-target=1.8`::
-Sets the target version of the generated JVM bytecode to `1.8`.
+`-java-parameters`::
+Generate metadata for Java >= 1.8 reflection on method parameters.
+See link:https://kotlinlang.org/docs/compiler-reference.html#kotlin-jvm-compiler-options[Kotlin/JVM compiler options] in the Kotlin documentation for more information.
+
+`-Xjvm-default=all`::
+Makes all non-abstract members of Kotlin interfaces default for the Java classes implementing them.
+This is to provide a better interoperability with Java and Groovy for plugins written in Kotlin.
+See link:https://kotlinlang.org/docs/java-to-kotlin-interop.html#default-methods-in-interfaces[Default methods in interfaces] in the Kotlin documentation for more information.
+
+`-Xsam-conversions=class`::
+Sets up the implementation strategy for SAM (single abstract method) conversion to always generate anonymous classes, instead of using the `invokedynamic` JVM instruction.
+This is to provide a better support for configuration cache and incremental build.
+See link:https://youtrack.jetbrains.com/issue/KT-44912[KT-44912] in the Kotlin issue tracker for more information.
 
 `-Xjsr305=strict`::
 Sets up Kotlin's Java interoperability to strictly follow JSR-305 annotations for increased null safety.
@@ -899,24 +922,10 @@ Another option when dealing with problematic plugins that assume a Groovy DSL bu
 ====
 [.multi-language-sample]
 =====
-.build.gradle.kts
-[source, kotlin]
-----
-plugins {
-    id("dynamic-groovy-plugin") version "1.0"               <1>
-}
-apply(from = "dynamic-groovy-plugin-configuration.gradle")  <2>
-----
-=====
-====
-
-====
-[.multi-language-sample]
-=====
 .dynamic-groovy-plugin-configuration.gradle
 [source, groovy]
 ----
-native {                                                    <3>
+native {                                                    <1>
     dynamic {
         groovy as Usual
     }
@@ -924,9 +933,23 @@ native {                                                    <3>
 ----
 =====
 ====
-<1> The Kotlin build script requests and applies the plugin
-<2> The Kotlin build script applies the Groovy script
-<3> The Groovy script uses dynamic Groovy to configure plugin
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+plugins {
+    id("dynamic-groovy-plugin") version "1.0"               <2>
+}
+apply(from = "dynamic-groovy-plugin-configuration.gradle")  <3>
+----
+=====
+====
+<1> The Groovy script uses dynamic Groovy to configure plugin
+<2> The Kotlin build script requests and applies the plugin
+<3> The Kotlin build script applies the Groovy script
 
 [[kotdsl:limitations]]
 == Limitations

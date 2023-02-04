@@ -84,8 +84,8 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
 
     private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
         ResolvedArtifactSet sourceArtifacts;
-        if (variantDefinition.getSourceVariant() != null) {
-            sourceArtifacts = transformedProjectArtifacts(componentIdentifier, sourceVariant, variantDefinition.getSourceVariant(), dependenciesResolverFactory);
+        if (variantDefinition.getPrevious() != null) {
+            sourceArtifacts = transformedProjectArtifacts(componentIdentifier, sourceVariant, variantDefinition.getPrevious(), dependenciesResolverFactory);
         } else {
             sourceArtifacts = sourceVariant.getArtifacts();
         }

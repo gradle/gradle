@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,7 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry {
+public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry, HoldsProjectState {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOutputCleanupRegistry.class);
 
     private final Object lock = new Object();
@@ -92,5 +93,11 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
             throw new GradleException("Build outputs have not been resolved yet");
         }
         return resolvedPaths;
+    }
+
+    @Override
+    public void discardAll() {
+        resolvedPaths = null;
+        outputs.clear();
     }
 }

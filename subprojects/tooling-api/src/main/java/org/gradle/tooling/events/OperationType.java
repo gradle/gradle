@@ -135,7 +135,6 @@ public enum OperationType {
      *
      * @since 7.3
      */
-    @Incubating
     FILE_DOWNLOAD,
 
 

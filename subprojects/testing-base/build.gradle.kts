@@ -62,4 +62,4 @@ packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true

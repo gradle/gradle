@@ -72,7 +72,9 @@ checkstyle {
     toolVersion = "8.12"
     config = configFile("checkstyle.xml")
     val projectDirectory = layout.projectDirectory
-    configDirectory.set(rules.elements.map { projectDirectory.dir(it.single().asFile.absolutePath).dir("checkstyle") })
+    configDirectory = rules.elements.map {
+        projectDirectory.dir(it.single().asFile.absolutePath).dir("checkstyle")
+    }
 }
 
 plugins.withType<GroovyBasePlugin> {
@@ -81,7 +83,7 @@ plugins.withType<GroovyBasePlugin> {
             config = configFile("checkstyle-groovy.xml")
             source(allGroovy)
             classpath = compileClasspath
-            reports.xml.outputLocation.set(checkstyle.reportsDir.resolve("${this@all.name}-groovy.xml"))
+            reports.xml.outputLocation = checkstyle.reportsDir.resolve("${this@all.name}-groovy.xml")
         }
     }
 }
@@ -98,7 +100,7 @@ tasks.withType<CodeNarc>().configureEach {
 }
 
 val SourceSet.allGroovy: SourceDirectorySet
-    get() = withConvention(GroovySourceSet::class) { allGroovy }
+    get() = the<GroovySourceDirectorySet>()
 
 abstract class CodeNarcRule @Inject constructor(
     private val groovyVersion: String

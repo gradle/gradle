@@ -952,6 +952,35 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         continueOnFailure << [true, false]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/22853")
+    def "builds graph for finalizer whose dependency was executed in a previous plan"() {
+        given:
+        Task dep = task("dep")
+        Task finalizer1 = task("f1", dependsOn: [dep])
+        Task finalizer2 = task("f2", dependsOn: [dep])
+        Task finalizer3 = task("f3", dependsOn: [dep])
+        Task a = task("a", finalizedBy: [finalizer1])
+        Task b = task("b", finalizedBy: [finalizer2])
+        Task c = task("c", finalizedBy: [finalizer3])
+        addToGraphAndPopulate([a])
+        executes(a, dep, finalizer1)
+
+        when:
+        executionPlan = newExecutionPlan()
+        addToGraphAndPopulate([b])
+
+        then:
+        executes(b, finalizer2)
+
+        when:
+        // Need to run 3 times to trigger the issue
+        executionPlan = newExecutionPlan()
+        addToGraphAndPopulate([c])
+
+        then:
+        executes(c, finalizer3)
+    }
+
     def "required nodes added to the graph are executed in dependency order"() {
         given:
         def node1 = requiredNode()

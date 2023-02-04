@@ -71,6 +71,7 @@ import org.gradle.kotlin.dsl.support.bytecode.publicMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.writeFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
+import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -87,7 +88,7 @@ import javax.inject.Inject
  *
  * The accessors provide content-assist for plugin ids and quick navigation to the plugin source code.
  */
-class PluginAccessorClassPathGenerator @Inject constructor(
+class PluginAccessorClassPathGenerator @Inject internal constructor(
     private val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     private val fileCollectionFactory: FileCollectionFactory,
     private val executionEngine: ExecutionEngine,
@@ -114,6 +115,7 @@ class PluginAccessorClassPathGenerator @Inject constructor(
 }
 
 
+internal
 class GeneratePluginAccessors(
     private val rootProject: Project,
     private val buildSrcClassLoaderScope: ClassLoaderScope,
@@ -280,6 +282,7 @@ fun ClassWriter.emitAccessorMethodFor(accessor: PluginAccessor, signature: JvmMe
                 INVOKESPECIAL(returnType.internalName, "<init>", groupTypeConstructorSignature)
                 ARETURN()
             }
+
             is PluginAccessor.ForPlugin -> {
                 GETPLUGINS(receiverType)
                 LDC(accessor.id)
@@ -343,6 +346,7 @@ fun BufferedWriter.appendSourceCodeForPluginAccessors(
                     )
                 )
             }
+
             is PluginAccessor.ForGroup -> {
                 val groupType = extension.returnType.sourceName
                 appendReproducibleNewLine(
@@ -459,6 +463,7 @@ fun pluginAccessorsFor(pluginTrees: Map<String, PluginTree>, extendedType: TypeS
                 )
                 yieldAll(pluginAccessorsFor(pluginTree.plugins, groupTypeSpec))
             }
+
             is PluginTree.PluginSpec -> {
                 yield(
                     PluginAccessor.ForPlugin(
@@ -516,7 +521,7 @@ fun pluginSpecsFrom(pluginDescriptorsClassPath: ClassPath): Sequence<PluginTree.
 
 private
 fun pluginGroupTypeName(path: List<String>) =
-    path.joinToString(separator = "") { it.capitalize() } + "PluginGroup"
+    path.joinToString(separator = "") { it.uppercaseFirstChar() } + "PluginGroup"
 
 
 private

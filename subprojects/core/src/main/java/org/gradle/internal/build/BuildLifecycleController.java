@@ -124,7 +124,7 @@ public interface BuildLifecycleController {
     /**
      * Restarts the lifecycle of this build.
      */
-    void resetState();
+    void resetLifecycle();
 
     interface WorkGraphBuilder {
         /**

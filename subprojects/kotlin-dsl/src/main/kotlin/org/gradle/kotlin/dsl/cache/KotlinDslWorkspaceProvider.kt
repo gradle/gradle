@@ -18,9 +18,9 @@ package org.gradle.kotlin.dsl.cache
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.cache.internal.CleanupActionDecorator
-import org.gradle.api.cache.CacheConfigurations
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
-import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider
 import org.gradle.internal.file.FileAccessTimeJournal
@@ -28,20 +28,21 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import java.io.Closeable
 
 
+internal
 class KotlinDslWorkspaceProvider(
-    cacheRepository: GlobalScopedCache,
+    cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
     fileAccessTimeJournal: FileAccessTimeJournal,
     inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
     stringInterner: StringInterner,
     classLoaderHasher: ClassLoaderHierarchyHasher,
     cleanupActionDecorator: CleanupActionDecorator,
-    cacheConfigurations: CacheConfigurations
+    cacheConfigurations: CacheConfigurationsInternal
 ) : Closeable {
 
     private
     val kotlinDslWorkspace = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
-        cacheRepository
-            .cache("kotlin-dsl")
+        cacheBuilderFactory
+            .createCacheBuilder("kotlin-dsl")
             .withDisplayName("kotlin-dsl"),
         fileAccessTimeJournal,
         inMemoryCacheDecoratorFactory,
