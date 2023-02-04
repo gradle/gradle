@@ -49,6 +49,8 @@ abstract class AbstractSmokeTest extends Specification {
 
     protected static final KotlinGradlePluginVersions KOTLIN_VERSIONS = new KotlinGradlePluginVersions()
 
+    protected static final String KGP_NO_CC_ITERATION_MATCHER = ".*(kotlin=1\\.6\\.|kotlin=1\\.7\\.).*"
+
     static class TestedVersions {
         /**
          * May also need to update

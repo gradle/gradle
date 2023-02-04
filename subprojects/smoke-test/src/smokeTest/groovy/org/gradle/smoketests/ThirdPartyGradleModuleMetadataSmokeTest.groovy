@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import groovy.json.JsonSlurper
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.Requires
@@ -45,6 +46,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
      * Everything is done in one test to save execution time.
      * Running the producer build takes ~2min.
      */
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin >= 1.8 is required")
     def 'produces expected metadata and can be consumed'() {
         given:
         BuildResult result
