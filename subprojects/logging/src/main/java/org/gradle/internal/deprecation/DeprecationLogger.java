@@ -276,8 +276,21 @@ public class DeprecationLogger {
         }
     }
 
+    public static <E extends Exception> void whileDisabledThrowing(ThrowingRunnable<E> runnable) {
+        ENABLED.set(false);
+        try {
+            toUncheckedThrowingRunnable(runnable).run();
+        } finally {
+            ENABLED.set(true);
+        }
+    }
+
     public interface ThrowingFactory<T, E extends Exception> {
         T create() throws E;
+    }
+
+    public interface ThrowingRunnable<E extends Exception> {
+        void run() throws E;
     }
 
     /**
@@ -293,6 +306,23 @@ public class DeprecationLogger {
                 @SuppressWarnings("unchecked")
                 ThrowingFactory<T, RuntimeException> factory = (ThrowingFactory<T, RuntimeException>) throwingFactory;
                 return factory.create();
+            }
+        };
+    }
+
+    /**
+     * Turns a {@link ThrowingRunnable} into a {@link Runnable}.
+     *
+     * @see #toUncheckedThrowingFactory(ThrowingFactory)
+     */
+    private static <E extends Exception> Runnable toUncheckedThrowingRunnable(final ThrowingRunnable<E> throwingRunnable) {
+        return new Runnable() {
+            @Nullable
+            @Override
+            public void run() {
+                @SuppressWarnings("unchecked")
+                ThrowingRunnable<RuntimeException> runnable = (ThrowingRunnable<RuntimeException>) throwingRunnable;
+                runnable.run();
             }
         };
     }
