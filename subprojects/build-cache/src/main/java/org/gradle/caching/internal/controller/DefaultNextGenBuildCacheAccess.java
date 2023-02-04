@@ -73,7 +73,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     public <T> void store(Map<BuildCacheKey, T> entries, StoreHandler<T> handler) {
         entries.forEach((key, payload) -> {
             if (!local.canStore()) {
-                // TODO Handle the case when local store is disabled
+                // TODO Handle the case when local store is disabled but the remote is not?
                 return;
             }
             if (!local.contains(key)) {
