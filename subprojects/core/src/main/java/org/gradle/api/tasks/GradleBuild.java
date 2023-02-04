@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
@@ -103,7 +104,10 @@ public abstract class GradleBuild extends ConventionTask {
     @InputFile
     @Deprecated
     public File getBuildFile() {
-        return getStartParameter().getBuildFile();
+        logBuildFileDeprecation();
+        return DeprecationLogger.whileDisabled(() ->
+            getStartParameter().getBuildFile()
+        );
     }
 
     /**
@@ -128,7 +132,20 @@ public abstract class GradleBuild extends ConventionTask {
      */
     @Deprecated
     public void setBuildFile(@Nullable Object file) {
-        getStartParameter().setBuildFile(getProject().file(file));
+        logBuildFileDeprecation();
+        DeprecationLogger.whileDisabled(() ->
+            getStartParameter().setBuildFile(getProject().file(file))
+        );
+    }
+
+    private void logBuildFileDeprecation() {
+        DeprecationLogger.deprecateProperty(GradleBuild.class, "buildFile")
+            .withContext("Setting custom build file to select the root of the nested build has been deprecated.")
+            .withAdvice("Please use 'dir' to specify the root of the nested build instead.")
+            .replaceWith("dir")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "TODO")
+            .nagUser();
     }
 
     /**
