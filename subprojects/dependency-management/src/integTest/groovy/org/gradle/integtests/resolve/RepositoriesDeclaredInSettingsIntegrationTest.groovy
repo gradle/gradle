@@ -25,6 +25,7 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.IgnoreIf
 import spock.lang.Issue
+
 // Restrict the number of combinations because that's not really what we want to test
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
