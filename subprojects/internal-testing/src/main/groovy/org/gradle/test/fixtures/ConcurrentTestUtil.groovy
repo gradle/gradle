@@ -114,6 +114,11 @@ class ConcurrentTestUtil extends ExternalResource {
                 return new ManagedExecutorStub(ConcurrentTestUtil.this)
             }
 
+            ManagedExecutor create(String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit) {
+                // Ignores size of thread pool and pool keep alive time
+                return new ManagedExecutorStub(ConcurrentTestUtil.this)
+            }
+
             ManagedScheduledExecutor createScheduled(String displayName, int fixedSize) {
                 throw new UnsupportedOperationException()
             }

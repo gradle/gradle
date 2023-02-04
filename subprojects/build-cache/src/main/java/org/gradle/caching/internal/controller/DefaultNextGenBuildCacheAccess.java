@@ -21,6 +21,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
@@ -46,14 +46,12 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
     private final NextGenBuildCacheHandler local;
     private final NextGenBuildCacheHandler remote;
+    private final ManagedExecutor remoteProcessor;
 
-    private final ThreadPoolExecutor remoteProcessor;
-
-    public DefaultNextGenBuildCacheAccess(NextGenBuildCacheHandler local, NextGenBuildCacheHandler remote) {
+    public DefaultNextGenBuildCacheAccess(NextGenBuildCacheHandler local, NextGenBuildCacheHandler remote, ExecutorFactory executorFactory) {
         this.local = local;
         this.remote = remote;
-        // TODO Configure this properly
-        this.remoteProcessor = new ThreadPoolExecutor(16, 256, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+        remoteProcessor = executorFactory.create("Build cache access", 16, 256, 10, TimeUnit.SECONDS);
     }
 
     @Override
@@ -91,14 +89,9 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     public void close() throws IOException {
         Closer closer = Closer.create();
         closer.register(() -> {
-            LOGGER.debug("Shutting down remote cache processor with {} active jobs and {} queue length", remoteProcessor.getActiveCount(), remoteProcessor.getQueue().size());
-            // TODO Handle this better
-            remoteProcessor.shutdown();
             try {
-                if (!remoteProcessor.awaitTermination(5, TimeUnit.MINUTES)) {
-                    throw new RuntimeException("Couldn't finish uploading all remote entries");
-                }
-            } catch (InterruptedException e) {
+                remoteProcessor.stop(5, TimeUnit.MINUTES);
+            } catch (RuntimeException e) {
                 throw new RuntimeException("Couldn't finish uploading all remote entries", e);
             }
         });
