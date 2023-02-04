@@ -236,3 +236,21 @@ These members will be removed in Gradle 9.0.
 The enum constant `JvmVendorSpec.IBM_SEMERU` is now deprecated and will be removed in Gradle 9.0.
 
 Please replace it by its equivalent `JvmVendorSpec.IBM` to avoid warnings and potential errors in the next major version release.
+
+[[configuring_custom_build_layout]]
+==== Setting custom build layout on `StartParameter` and `GradleBuild`
+
+Following the <<upgrading_version_7.adoc#configuring_custom_build_layout, related previous deprecation>> of the behaviour in Gradle 7.1, it is now also deprecated to use related link:{javadocPath}/org/gradle/StartParameter.html[StartParameter] and link:{javadocPath}/org/gradle/api/tasks/GradleBuild.html[GradleBuild] properties.
+These properties will be removed in Gradle 9.0.
+
+Setting custom build file using link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:buildFile[buildFile] property in link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task has been deprecated.
+
+Please use the link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:dir[dir] property instead to specify the root of the nested build.
+Alternatively, consider using one of the recommended alternatives for link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task as suggested in <<authoring_maintainable_build_scripts#sec:avoiding_use_of_gradlebuild, Avoid using the GradleBuild task type>> section.
+
+Setting custom build layout using link:{javadocPath}/org/gradle/StartParameter.html[StartParameter] methods link:{javadocPath}/org/gradle/StartParameter.html#setBuildFile-java.io.File-[setBuildFile(File)] and link:{javadocPath}/org/gradle/StartParameter.html#setSettingsFile-java.io.File-[setSettingsFile(File)] as well as the counterpart getters link:{javadocPath}/org/gradle/StartParameter.html#getBuildFile--[getBuildFile()] and link:{javadocPath}/org/gradle/StartParameter.html#getSettingsFile--[getSettingsFile()] have been deprecated.
+
+Please use standard locations for settings and build files:
+
+* settings file in the root of the build
+* build file in the root of each subproject

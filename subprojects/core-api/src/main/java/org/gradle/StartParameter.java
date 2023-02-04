@@ -500,7 +500,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             .withContext("Setting custom build file to select the default project has been deprecated.")
             .withAdvice("Please use 'projectDir' to specify the directory of the default project instead.")
             .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "TODO")
+            .withUpgradeGuideSection(8, "configuring_custom_build_layout")
             .nagUser();
     }
 
