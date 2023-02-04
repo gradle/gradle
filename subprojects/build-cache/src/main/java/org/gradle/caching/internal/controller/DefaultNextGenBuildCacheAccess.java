@@ -22,7 +22,7 @@ import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.concurrent.ManagedThreadPoolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,12 +46,13 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
     private final NextGenBuildCacheHandler local;
     private final NextGenBuildCacheHandler remote;
-    private final ManagedExecutor remoteProcessor;
+    private final ManagedThreadPoolExecutor remoteProcessor;
 
     public DefaultNextGenBuildCacheAccess(NextGenBuildCacheHandler local, NextGenBuildCacheHandler remote, ExecutorFactory executorFactory) {
         this.local = local;
         this.remote = remote;
-        remoteProcessor = executorFactory.create("Build cache access", 16, 256, 10, TimeUnit.SECONDS);
+        // TODO Configure this properly
+        this.remoteProcessor = executorFactory.createThreadPool("Build cache access", 16, 256, 10, TimeUnit.SECONDS);
     }
 
     @Override
@@ -89,6 +90,9 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     public void close() throws IOException {
         Closer closer = Closer.create();
         closer.register(() -> {
+            if (!remoteProcessor.getQueue().isEmpty() || remoteProcessor.getActiveCount() > 0) {
+                LOGGER.warn("Waiting for remote cache uploads to finish");
+            }
             try {
                 remoteProcessor.stop(5, TimeUnit.MINUTES);
             } catch (RuntimeException e) {

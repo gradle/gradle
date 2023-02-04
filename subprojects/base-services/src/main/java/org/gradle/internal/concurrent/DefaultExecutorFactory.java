@@ -69,11 +69,21 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
     }
 
     @Override
-    public ManagedExecutor create(String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit) {
-        ExecutorService executorService = createExecutor(corePoolSize, maximumPoolSize, keepAliveTime, timeUnit, newThreadFactory(displayName));
-        TrackedManagedExecutor executor = new TrackedManagedExecutor(executorService, new ExecutorPolicy.CatchAndRecordFailures());
+    public ManagedThreadPoolExecutor createThreadPool(String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit) {
+        ThreadPoolExecutor executorService = createThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, timeUnit, newThreadFactory(displayName));
+        TrackedThreadPoolManagedExecutor executor = new TrackedThreadPoolManagedExecutor(executorService, new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
         return executor;
+    }
+
+    private static ThreadPoolExecutor createThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit, ThreadFactory threadFactory) {
+        return new ThreadPoolExecutor(
+            corePoolSize,
+            maximumPoolSize,
+            keepAliveTime,
+            timeUnit,
+            new LinkedBlockingQueue<Runnable>(),
+            threadFactory);
     }
 
     protected ExecutorService createExecutor(String displayName, int fixedSize) {
@@ -85,16 +95,6 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         ManagedScheduledExecutor executor = new TrackedScheduledManagedExecutor(createScheduledExecutor(displayName, fixedSize), new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
         return executor;
-    }
-
-    private static ExecutorService createExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit, ThreadFactory threadFactory) {
-        return new ThreadPoolExecutor(
-            corePoolSize,
-            maximumPoolSize,
-            keepAliveTime,
-            timeUnit,
-            new LinkedBlockingQueue<Runnable>(),
-            threadFactory);
     }
 
     private ScheduledExecutorService createScheduledExecutor(String displayName, int fixedSize) {
@@ -123,6 +123,21 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
     private class TrackedScheduledManagedExecutor extends ManagedScheduledExecutorImpl {
         TrackedScheduledManagedExecutor(ScheduledExecutorService executor, ExecutorPolicy executorPolicy) {
             super(executor, executorPolicy);
+        }
+
+        @Override
+        public void stop(int timeoutValue, TimeUnit timeoutUnits) throws IllegalStateException {
+            try {
+                super.stop(timeoutValue, timeoutUnits);
+            } finally {
+                executors.remove(this);
+            }
+        }
+    }
+
+    private class TrackedThreadPoolManagedExecutor extends ManagedThreadPoolExecutorImpl {
+        public TrackedThreadPoolManagedExecutor(ThreadPoolExecutor delegate, ExecutorPolicy executorPolicy) {
+            super(delegate, executorPolicy);
         }
 
         @Override

@@ -54,7 +54,7 @@ public interface ExecutorFactory {
      * @param timeUnit the time unit for the {@code keepAliveTime} argument
      * @return The executor.
      */
-    ManagedExecutor create(String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit);
+    ManagedThreadPoolExecutor createThreadPool(String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit);
 
     /**
      * Creates a scheduled executor which can run tasks periodically. It is the caller's responsibility to stop the executor.
