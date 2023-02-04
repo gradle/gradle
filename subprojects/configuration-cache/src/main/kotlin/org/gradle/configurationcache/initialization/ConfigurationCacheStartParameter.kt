@@ -21,9 +21,11 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
+import org.gradle.internal.Factory
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
@@ -72,7 +74,7 @@ class ConfigurationCacheStartParameter(
 
     @Suppress("DEPRECATION")
     val settingsFile: File?
-        get() = startParameter.settingsFile
+        get() = DeprecationLogger.whileDisabled(Factory { startParameter.settingsFile })
 
     val rootDirectory: File
         get() = buildLayout.rootDirectory
