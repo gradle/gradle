@@ -256,6 +256,18 @@ The same concept applies to task types.
 include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionWarPlugin.java[]
 ----
 
+[[sec:depending_on_plugins]]
+== Depending on plugins
+
+A plugin sometimes requires the use of other plugins.
+Depending on where those other plugins come from you might need to declare dependencies.
+
+When your plugin reacts to the application of a core Gradle plugin or of a plugin whose implementation resides in the same Gradle project, you don't need to declare any dependency because it respectively comes from the Gradle distribution or is directly available.
+
+When your plugin reacts to the application of a plugin whose implementation resides in another project of the same Gradle build, you need to declare a <<declaring_dependencies.adoc#sub:project_dependencies, project dependency>>.
+
+When your plugin reacts to the application of a plugin whose implementation resides in another Gradle <<composite_builds.adoc#composite_build_intro, included build>> or comes from a remote repository such as the link:https://plugins.gradle.org/[Gradle Plugin Portal], you need to declare a <<declaring_dependencies.adoc#sec:gradle-plugin-dependencies, plugin dependency>>.
+
 == Providing default dependencies for plugins
 
 The implementation of a plugin sometimes requires the use of an external dependency.
