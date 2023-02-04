@@ -107,7 +107,7 @@ public class JvmOptions {
             .build();
     }
 
-    private String realizedValueOf(Object o) {
+    private static String realizedValueOf(Object o) {
         if (o == null) {
             return null;
         }
