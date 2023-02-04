@@ -144,7 +144,7 @@ public abstract class GradleBuild extends ConventionTask {
             .withAdvice("Please use 'dir' to specify the root of the nested build instead.")
             .replaceWith("dir")
             .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "TODO")
+            .withUpgradeGuideSection(8, "configuring_custom_build_layout")
             .nagUser();
     }
 
