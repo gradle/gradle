@@ -23,7 +23,6 @@ import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -82,7 +81,6 @@ public class BuildLayoutParametersBuildOptions extends BuildOptionSet<BuildLayou
 
         @Override
         public void applyTo(String value, BuildLayoutParameters settings, Origin origin) {
-            logSettingsBuildFileOptionDeprecation("settings");
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setSettingsFile(resolver.transform(value));
         }
@@ -96,17 +94,9 @@ public class BuildLayoutParametersBuildOptions extends BuildOptionSet<BuildLayou
 
         @Override
         public void applyTo(String value, BuildLayoutParameters settings, Origin origin) {
-            logSettingsBuildFileOptionDeprecation("build");
             Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
             settings.setBuildFile(resolver.transform(value));
         }
     }
 
-    private static void logSettingsBuildFileOptionDeprecation(String script) {
-        DeprecationLogger.deprecateBuildInvocationFeature("Specifying the " + script + " file.")
-            .withAdvice("Please use '-p' or '--project-dir' to specify the the start directory for Gradle instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "TODO")
-            .nagUser();
-    }
 }
