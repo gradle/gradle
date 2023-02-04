@@ -21,9 +21,11 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
@@ -66,6 +68,14 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         return executor;
     }
 
+    @Override
+    public ManagedExecutor create(String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit) {
+        ExecutorService executorService = createExecutor(corePoolSize, maximumPoolSize, keepAliveTime, timeUnit, newThreadFactory(displayName));
+        TrackedManagedExecutor executor = new TrackedManagedExecutor(executorService, new ExecutorPolicy.CatchAndRecordFailures());
+        executors.add(executor);
+        return executor;
+    }
+
     protected ExecutorService createExecutor(String displayName, int fixedSize) {
         return Executors.newFixedThreadPool(fixedSize, newThreadFactory(displayName));
     }
@@ -75,6 +85,16 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         ManagedScheduledExecutor executor = new TrackedScheduledManagedExecutor(createScheduledExecutor(displayName, fixedSize), new ExecutorPolicy.CatchAndRecordFailures());
         executors.add(executor);
         return executor;
+    }
+
+    private static ExecutorService createExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit, ThreadFactory threadFactory) {
+        return new ThreadPoolExecutor(
+            corePoolSize,
+            maximumPoolSize,
+            keepAliveTime,
+            timeUnit,
+            new LinkedBlockingQueue<Runnable>(),
+            threadFactory);
     }
 
     private ScheduledExecutorService createScheduledExecutor(String displayName, int fixedSize) {
