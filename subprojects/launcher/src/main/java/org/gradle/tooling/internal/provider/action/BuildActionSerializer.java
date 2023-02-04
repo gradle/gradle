@@ -203,10 +203,13 @@ public class BuildActionSerializer {
             // Layout
             DeprecationLogger.whileDisabledThrowing(() -> {
                 startParameter.setBuildFile(nullableFileSerializer.read(decoder));
-                startParameter.setSettingsFile(nullableFileSerializer.read(decoder));
                 return null;
             });
             startParameter.setProjectDir(nullableFileSerializer.read(decoder));
+            DeprecationLogger.whileDisabledThrowing(() -> {
+                startParameter.setSettingsFile(nullableFileSerializer.read(decoder));
+                return null;
+            });
             startParameter.setCurrentDir(FILE_SERIALIZER.read(decoder));
             startParameter.setGradleUserHomeDir(FILE_SERIALIZER.read(decoder));
             startParameter.setGradleHomeDir(nullableFileSerializer.read(decoder));
