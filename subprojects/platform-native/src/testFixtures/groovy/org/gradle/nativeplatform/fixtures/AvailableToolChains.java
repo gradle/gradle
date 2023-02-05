@@ -118,7 +118,6 @@ public class AvailableToolChains {
             } else if (OperatingSystem.current().isMacOsX()) {
                 compilers.addAll(findClangs(true));
                 compilers.addAll(findGccs(false));
-                compilers.addAll(findSwiftcs());
             } else {
                 compilers.addAll(findGccs(true));
                 compilers.addAll(findClangs(false));

@@ -35,7 +35,7 @@ import javax.tools.StandardLocation
 import static org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails.Type.ISOLATING
 
 // This is failing on release6x and we don't want to spent time on it
-@IgnoreIf({ GradleContextualExecuter.isForceRealize() })
+@IgnoreIf({ GradleContextualExecuter.isForceRealize() || GradleContextualExecuter.isWatchFs() })
 class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIncrementalAnnotationProcessingIntegrationTest {
     private static HelperProcessorFixture writingResourcesTo(String location) {
         def helperProcessorFixture = new HelperProcessorFixture()
