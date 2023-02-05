@@ -161,7 +161,7 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     XCODE({
         // Simplistic approach at detecting Xcode by assuming macOS imply Xcode is present
-        MAC_OS_X.fulfilled
+        false
     }),
     MSBUILD({
         // Simplistic approach at detecting MSBuild by assuming Windows imply MSBuild is present
