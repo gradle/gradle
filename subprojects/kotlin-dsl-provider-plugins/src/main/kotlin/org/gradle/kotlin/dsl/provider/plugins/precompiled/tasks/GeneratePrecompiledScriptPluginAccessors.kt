@@ -520,23 +520,68 @@ fun ProjectInternal.applyPlugins(pluginRequests: PluginRequests) {
 
 private
 fun <T> withCapturedOutputOnError(block: () -> T, onError: (ErrorWithCapturedOutput) -> T): T {
-    val outCapture = ByteArrayOutputStream()
-    val errCapture = ByteArrayOutputStream()
+    val outCapture = ThreadLocalCapturePrintStream(System.out)
+    val errCapture = ThreadLocalCapturePrintStream(System.err)
     return try {
         val previousOut = System.out
         val previousErr = System.err
         try {
-            System.setOut(PrintStream(outCapture))
-            System.setErr(PrintStream(errCapture))
+            System.setOut(outCapture)
+            System.setErr(errCapture)
             block()
         } finally {
             System.out.flush()
-            System.err.flush()
             System.setOut(previousOut)
+            outCapture.stop()
+            System.err.flush()
             System.setErr(previousErr)
+            errCapture.stop()
         }
     } catch (error: Throwable) {
-        onError(ErrorWithCapturedOutput(error, outCapture.toString(), errCapture.toString()))
+        onError(ErrorWithCapturedOutput(error, outCapture.captureOutput.toString(), errCapture.captureOutput.toString()))
+    }
+}
+
+
+/**
+ * Captures output for the current thread, forward output to the original stream for other threads.
+ */
+private
+class ThreadLocalCapturePrintStream(originalOutput: PrintStream) : PrintStream(originalOutput) {
+
+    val captureOutput = ByteArrayOutputStream()
+
+    private
+    var isCapturing: ThreadLocal<Boolean>? = ThreadLocal.withInitial { false }
+
+    init {
+        isCapturing!!.set(true)
+    }
+
+    override fun write(b: ByteArray) {
+        if (isCapturing!!.get()) captureOutput.write(b)
+        else super.write(b)
+    }
+
+    override fun write(buf: ByteArray, off: Int, len: Int) {
+        if (isCapturing!!.get()) captureOutput.write(buf, off, len)
+        else super.write(buf, off, len)
+    }
+
+    override fun write(b: Int) {
+        if (isCapturing!!.get()) captureOutput.write(b)
+        else super.write(b)
+    }
+
+    override fun flush() {
+        captureOutput.flush()
+        super.flush()
+    }
+
+    fun stop() {
+        isCapturing!!.remove()
+        // Give a chance for other threads' weak references to the local to be GCed if any
+        isCapturing = null
     }
 }
 
