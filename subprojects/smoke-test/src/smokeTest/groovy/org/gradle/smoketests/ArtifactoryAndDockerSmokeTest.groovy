@@ -19,7 +19,6 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
-import spock.lang.Ignore
 
 import static org.gradle.util.TestPrecondition.HAS_DOCKER
 
@@ -27,7 +26,6 @@ import static org.gradle.util.TestPrecondition.HAS_DOCKER
 class ArtifactoryAndDockerSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @ToBeFixedForConfigurationCache(because = "both docker and artifactory plugins are incompatible")
-    @Ignore("https://github.com/gradle/gradle-private/issues/3709")
     def 'artifactory with docker and plugin upload'() {
         when:
         buildFile << """
