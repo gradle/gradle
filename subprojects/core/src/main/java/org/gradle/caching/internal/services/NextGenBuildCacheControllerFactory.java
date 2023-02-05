@@ -33,6 +33,7 @@ import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.H2BuildCacheService;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -48,6 +49,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
     private final Deleter deleter;
     private final BuildInvocationScopeId buildInvocationScopeId;
     private final ExecutorFactory executorFactory;
+    private final BufferProvider bufferProvider;
 
     public static boolean isNextGenCachingEnabled() {
         return Boolean.getBoolean(NEXT_GEN_CACHE_SYSTEM_PROPERTY) == Boolean.TRUE;
@@ -61,7 +63,8 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         StringInterner stringInterner,
         Deleter deleter,
         BuildInvocationScopeId buildInvocationScopeId,
-        ExecutorFactory executorFactory
+        ExecutorFactory executorFactory,
+        BufferProvider bufferProvider
     ) {
         super(
             startParameter,
@@ -72,6 +75,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         this.deleter = deleter;
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.executorFactory = executorFactory;
+        this.bufferProvider = bufferProvider;
     }
 
     @Override
@@ -88,12 +92,15 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
             buildInvocationScopeId.getId().asString(),
             deleter,
             fileSystemAccess,
+            bufferProvider,
             new GZipNextGenBuildCacheAccess(
                 new DefaultNextGenBuildCacheAccess(
                     local,
                     remote,
+                    bufferProvider,
                     executorFactory
-                )
+                ),
+                bufferProvider
             )
         );
     }

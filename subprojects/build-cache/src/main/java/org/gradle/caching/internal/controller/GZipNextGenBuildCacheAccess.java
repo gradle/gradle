@@ -20,6 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.internal.file.BufferProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,15 +31,12 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
-    // TODO Move all thread-local buffers to a shared service
-    // TODO Make buffer size configurable
-    private static final int BUFFER_SIZE = 64 * 1024;
-    private static final ThreadLocal<byte[]> COPY_BUFFERS = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
-
     private final NextGenBuildCacheAccess delegate;
+    private final BufferProvider bufferProvider;
 
-    public GZipNextGenBuildCacheAccess(NextGenBuildCacheAccess delegate) {
+    public GZipNextGenBuildCacheAccess(NextGenBuildCacheAccess delegate, BufferProvider bufferProvider) {
         this.delegate = delegate;
+        this.bufferProvider = bufferProvider;
     }
 
     @Override
@@ -60,7 +58,7 @@ public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             UnsynchronizedByteArrayOutputStream compressed = new UnsynchronizedByteArrayOutputStream((int) (delegateWriter.getSize() * 1.2));
             try (GZIPOutputStream zipOutput = new GZIPOutputStream(compressed)) {
                 try (InputStream delegateInput = delegateWriter.openStream()) {
-                    IOUtils.copyLarge(delegateInput, zipOutput, COPY_BUFFERS.get());
+                    IOUtils.copyLarge(delegateInput, zipOutput, bufferProvider.getBuffer());
                 }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);

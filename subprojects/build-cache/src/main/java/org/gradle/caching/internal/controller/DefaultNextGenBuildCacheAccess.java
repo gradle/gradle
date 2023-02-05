@@ -23,6 +23,7 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedThreadPoolExecutor;
+import org.gradle.internal.file.BufferProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,19 +39,21 @@ import java.util.concurrent.TimeUnit;
 public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultNextGenBuildCacheAccess.class);
 
-    // TODO Move all thread-local buffers to a shared service
-    // TODO Make buffer size configurable
-    private static final int BUFFER_SIZE = 64 * 1024;
-    private static final ThreadLocal<byte[]> COPY_BUFFERS = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
     private static final CompletableFuture<?>[] EMPTY_COMPLETABLE_FUTURE_ARRAY = new CompletableFuture<?>[0];
 
     private final NextGenBuildCacheHandler local;
     private final NextGenBuildCacheHandler remote;
+    private final BufferProvider bufferProvider;
     private final ManagedThreadPoolExecutor remoteProcessor;
 
-    public DefaultNextGenBuildCacheAccess(NextGenBuildCacheHandler local, NextGenBuildCacheHandler remote, ExecutorFactory executorFactory) {
+    public DefaultNextGenBuildCacheAccess(
+        NextGenBuildCacheHandler local,
+        NextGenBuildCacheHandler remote,
+        BufferProvider bufferProvider,
+        ExecutorFactory executorFactory) {
         this.local = local;
         this.remote = remote;
+        this.bufferProvider = bufferProvider;
         // TODO Configure this properly
         this.remoteProcessor = executorFactory.createThreadPool("Build cache access", 16, 256, 10, TimeUnit.SECONDS);
     }
@@ -122,7 +125,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 LOGGER.warn("Found {} in remote", key);
                 // TODO Make this work for large pieces of content, too
                 UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
-                byte[] buffer = COPY_BUFFERS.get();
+                byte[] buffer = bufferProvider.getBuffer();
                 IOUtils.copyLarge(input, data, buffer);
 
                 // Mirror data in local cache
@@ -171,7 +174,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             boolean stored = local.load(key, input -> {
                 // TODO Pass size here so we don't need to copy data to memory first
                 UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
-                IOUtils.copyLarge(input, data, COPY_BUFFERS.get());
+                IOUtils.copyLarge(input, data, bufferProvider.getBuffer());
                 remote.store(key, new BuildCacheEntryWriter() {
                     @Override
                     public InputStream openStream() {
