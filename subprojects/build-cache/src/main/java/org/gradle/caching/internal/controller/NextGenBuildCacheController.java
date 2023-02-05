@@ -45,6 +45,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
+import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.vfs.FileSystemAccess;
 
@@ -65,6 +66,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 public class NextGenBuildCacheController implements BuildCacheController {
     // TODO Move all thread-local buffers to a shared service
@@ -226,7 +228,11 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 if (relativePath.isRoot()) {
                     assertCorrectType(type, snapshot);
                 }
-                manifestEntries.add(new ManifestEntry(snapshot.getType(), relativePath.toRelativePath(), snapshot.getHash()));
+                manifestEntries.add(new ManifestEntry(
+                    snapshot.getType(),
+                    relativePath.toRelativePath(),
+                    snapshot.getHash(),
+                    SnapshotUtil.getLength(snapshot)));
                 return SnapshotVisitResult.CONTINUE;
             });
             propertyManifests.put(propertyName, manifestEntries.build());
@@ -237,19 +243,19 @@ public class NextGenBuildCacheController implements BuildCacheController {
             propertyManifests.build());
 
         entity.visitOutputTrees((propertyName, type, root) -> {
-            Map<BuildCacheKey, File> manifestIndex = manifest.getPropertyManifests().get(propertyName).stream()
+            Map<BuildCacheKey, ManifestEntry> manifestIndex = manifest.getPropertyManifests().get(propertyName).stream()
                 .filter(entry -> entry.getType() == FileType.RegularFile)
                 .collect(ImmutableMap.toImmutableMap(
                     manifestEntry -> new DefaultBuildCacheKey(manifestEntry.getContentHash()),
-                    manifestEntry -> new File(root, manifestEntry.getRelativePath()),
+                    Function.identity(),
                     // When there are multiple identical files to store, it doesn't matter which one we read
                     (a, b) -> a)
                 );
 
-            cacheAccess.store(manifestIndex, file -> new BuildCacheEntryWriter() {
+            cacheAccess.store(manifestIndex, manifestEntry -> new BuildCacheEntryWriter() {
                 @Override
                 public InputStream openStream() throws IOException {
-                    return new FileInputStream(file);
+                    return new FileInputStream(new File(root, manifestEntry.getRelativePath()));
                 }
 
                 @Override
@@ -261,7 +267,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
                 @Override
                 public long getSize() {
-                    return file.length();
+                    return manifestEntry.getLength();
                 }
             });
         });

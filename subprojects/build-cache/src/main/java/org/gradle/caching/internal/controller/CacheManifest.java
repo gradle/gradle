@@ -44,12 +44,13 @@ public class CacheManifest {
         private final FileType type;
         private final String relativePath;
         private final HashCode contentHash;
-        // TODO Add length
+        private final long length;
 
-        public ManifestEntry(FileType type, String relativePath, HashCode contentHash) {
+        public ManifestEntry(FileType type, String relativePath, HashCode contentHash, long length) {
             this.type = type;
             this.relativePath = relativePath;
             this.contentHash = contentHash;
+            this.length = length;
         }
 
         public FileType getType() {
@@ -62,6 +63,10 @@ public class CacheManifest {
 
         public HashCode getContentHash() {
             return contentHash;
+        }
+
+        public long getLength() {
+            return length;
         }
     }
 }
