@@ -11,6 +11,7 @@ import org.gradle.kotlin.dsl.fixtures.classEntriesFor
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import org.gradle.util.internal.ToBeImplemented
@@ -1035,6 +1036,88 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             assertHasErrorOutput("ERROR")
         }
     }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/12955")
+    @ToBeFixedForConfigurationCache(because = "KGP uses project at execution time")
+    fun `captures output of schema collection but not of concurrent tasks`() {
+
+        val repeatOutput = 50
+        val server = BlockingHttpServer()
+
+        try {
+            server.start()
+
+            withDefaultSettingsIn("external-plugins")
+            withKotlinDslPluginIn("external-plugins").appendText("""group = "test"""")
+            withFile("external-plugins/src/main/kotlin/applied-output.gradle.kts", """
+                println("STDOUT from applied-output plugin")
+                System.err.println("STDERR from applied-output plugin")
+                logger.warn("WARN from applied-output plugin")
+            """)
+            withDefaultSettings().appendText("""includeBuild("external-plugins")""")
+            withKotlinDslPlugin().prependText("import java.net.URL").appendText("""
+                dependencies { implementation("test:external-plugins") }
+
+                abstract class ConcurrentWork : WorkAction<WorkParameters.None> {
+                    private val logger: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger("SOME")
+                    override fun execute() {
+                        URL("${server.uri("blockStart")}").readText()
+                        repeat($repeatOutput) {
+                            Thread.sleep(25)
+                            println("STDOUT from concurrent task ${'$'}it")
+                            System.err.println("STDERR from concurrent task ${'$'}it")
+                            logger.warn("WARN from concurrent task ${'$'}it")
+                        }
+                        URL("${server.uri("blockStop")}").readText()
+                    }
+                }
+
+                abstract class ConcurrentTask : DefaultTask() {
+                    @get:Inject abstract val workers: WorkerExecutor
+                    @TaskAction fun action() {
+                        workers.noIsolation().submit(ConcurrentWork::class) {}
+                    }
+                }
+
+                tasks {
+                    val concurrentTask by registering(ConcurrentTask::class)
+                    val generatePrecompiledScriptPluginAccessors by existing {
+                        shouldRunAfter(concurrentTask)
+                        doFirst {
+                            URL("${server.uri("unblockStart")}").readText()
+                        }
+                        doLast {
+                            URL("${server.uri("unblockStop")}").readText()
+                        }
+                    }
+                }
+            """)
+            withPrecompiledKotlinScript("some.gradle.kts", """plugins { id("applied-output") }""")
+
+            server.expectConcurrent("blockStart", "unblockStart")
+            server.expectConcurrent("blockStop", "unblockStop")
+
+            build(":concurrentTask", ":compileKotlin").apply {
+                assertThat(output.lineSequence().filter { it.startsWith("STDOUT from concurrent task") }.count(), equalTo(repeatOutput))
+                assertThat(error.lineSequence().filter { it.startsWith("STDERR from concurrent task") }.count(), equalTo(repeatOutput))
+                assertThat(output.lineSequence().filter { it.startsWith("WARN from concurrent task") }.count(), equalTo(repeatOutput))
+                assertNotOutput("STDOUT from applied-output plugin")
+                assertNotOutput("STDERR from applied-output plugin")
+                // TODO logging is not captured yet
+                assertOutputContains("WARN from applied-output plugin")
+            }
+        } finally {
+            server.stop()
+        }
+    }
+}
+
+
+private
+fun File.prependText(text: String): File {
+    writeText(text + "\n\n" + readText())
+    return this
 }
 
 
