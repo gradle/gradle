@@ -38,6 +38,7 @@ import org.gradle.caching.internal.DefaultBuildCacheKey;
 import org.gradle.caching.internal.controller.CacheManifest.ManifestEntry;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
@@ -69,11 +70,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 public class NextGenBuildCacheController implements BuildCacheController {
-    // TODO Move all thread-local buffers to a shared service
-    // TODO Make buffer size configurable
-    private static final int BUFFER_SIZE = 64 * 1024;
-    private static final ThreadLocal<byte[]> COPY_BUFFERS = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
-
+    private final BufferProvider bufferProvider;
     private final NextGenBuildCacheAccess cacheAccess;
     private final FileSystemAccess fileSystemAccess;
     private final String buildInvocationId;
@@ -84,11 +81,13 @@ public class NextGenBuildCacheController implements BuildCacheController {
         String buildInvocationId,
         Deleter deleter,
         FileSystemAccess fileSystemAccess,
+        BufferProvider bufferProvider,
         NextGenBuildCacheAccess cacheAccess
     ) {
         this.buildInvocationId = buildInvocationId;
         this.deleter = deleter;
         this.fileSystemAccess = fileSystemAccess;
+        this.bufferProvider = bufferProvider;
         this.cacheAccess = cacheAccess;
         this.gson = new GsonBuilder()
             .registerTypeAdapter(Duration.class, new TypeAdapter<Duration>() {
@@ -187,7 +186,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                         .reduce(TeeOutputStream::new)
                         .orElse(NullOutputStream.NULL_OUTPUT_STREAM);
 
-                    IOUtils.copyLarge(input, output, COPY_BUFFERS.get());
+                    IOUtils.copyLarge(input, output, bufferProvider.getBuffer());
                 } catch (IOException ex) {
                     throw new UncheckedIOException(ex);
                 }
@@ -261,7 +260,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 @Override
                 public void writeTo(OutputStream output) throws IOException {
                     try (InputStream input = openStream()) {
-                        IOUtils.copyLarge(input, output, COPY_BUFFERS.get());
+                        IOUtils.copyLarge(input, output, bufferProvider.getBuffer());
                     }
                 }
 

@@ -43,8 +43,10 @@ import org.gradle.caching.local.internal.DirectoryBuildCacheServiceFactory;
 import org.gradle.caching.local.internal.H2BuildCacheServiceFactory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileException;
+import org.gradle.internal.file.ThreadLocalBufferProvider;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -69,6 +71,15 @@ import java.util.List;
  * Build scoped services for build cache usage.
  */
 public final class BuildCacheServices extends AbstractPluginServiceRegistry {
+    @Override
+    public void registerGlobalServices(ServiceRegistration registration) {
+        registration.addProvider(new Object() {
+            BufferProvider createBufferProvider() {
+                // TODO Make buffer size configurable
+                return new ThreadLocalBufferProvider(64 * 1024);
+            }
+        });
+    }
 
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
@@ -123,10 +134,11 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 TarPackerFileSystemSupport fileSystemSupport,
                 FileSystem fileSystem,
                 StreamHasher fileHasher,
-                StringInterner stringInterner
+                StringInterner stringInterner,
+                BufferProvider bufferProvider
             ) {
                 return new GZipBuildCacheEntryPacker(
-                    new TarBuildCacheEntryPacker(fileSystemSupport, new FilePermissionsAccessAdapter(fileSystem), fileHasher, stringInterner));
+                    new TarBuildCacheEntryPacker(fileSystemSupport, new FilePermissionsAccessAdapter(fileSystem), fileHasher, stringInterner, bufferProvider));
             }
 
             OriginMetadataFactory createOriginMetadataFactory(
@@ -182,7 +194,8 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 StringInterner stringInterner,
                 Deleter deleter,
                 BuildInvocationScopeId buildInvocationScopeId,
-                ExecutorFactory executorFactory
+                ExecutorFactory executorFactory,
+                BufferProvider bufferProvider
             ) {
                 if (NextGenBuildCacheControllerFactory.isNextGenCachingEnabled()) {
                     return new NextGenBuildCacheControllerFactory(
@@ -193,7 +206,8 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                         stringInterner,
                         deleter,
                         buildInvocationScopeId,
-                        executorFactory
+                        executorFactory,
+                        bufferProvider
                     );
                 } else {
                     return new LegacyBuildCacheControllerFactory(
