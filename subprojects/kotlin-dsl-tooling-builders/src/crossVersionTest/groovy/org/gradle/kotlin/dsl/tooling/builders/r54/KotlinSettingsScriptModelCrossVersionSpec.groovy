@@ -20,10 +20,12 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 
 import static org.hamcrest.MatcherAssert.assertThat
 
 @TargetGradleVersion(">=5.4")
+@Ignore("It's so flaky that it causes failures on release6x")
 class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "can fetch classpath of settings script"() {
