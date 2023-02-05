@@ -16,8 +16,7 @@
 
 package org.gradle.internal.concurrent;
 
-import org.jetbrains.annotations.NotNull;
-
+import javax.annotation.Nonnull;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
@@ -30,7 +29,7 @@ public class ManagedThreadPoolExecutorImpl extends AbstractManagedExecutor<Threa
     }
 
     @Override
-    public void setThreadFactory(@NotNull ThreadFactory threadFactory) {
+    public void setThreadFactory(@Nonnull ThreadFactory threadFactory) {
         delegate.setThreadFactory(threadFactory);
     }
 
@@ -40,7 +39,7 @@ public class ManagedThreadPoolExecutorImpl extends AbstractManagedExecutor<Threa
     }
 
     @Override
-    public void setRejectedExecutionHandler(@NotNull RejectedExecutionHandler handler) {
+    public void setRejectedExecutionHandler(@Nonnull RejectedExecutionHandler handler) {
         delegate.setRejectedExecutionHandler(handler);
     }
 
