@@ -86,7 +86,7 @@ if (providers.systemProperty("create4").getOrNull() != null) {
     dependencyResolutionManagement {
         versionCatalogs {
             create("libs") {
-                plugin("versions", "com.github.ben-manes.versions").version("0.44.0")
+                plugin("versions", "com.github.ben-manes.versions").version("0.45.0")
             }
         }
     }
