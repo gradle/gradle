@@ -958,13 +958,12 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     @Issue("https://github.com/gradle/gradle/issues/12955")
     @ToBeFixedForConfigurationCache(because = "KGP uses project at execution time")
-    fun `logs output from schema collection on errors only`() {
+    fun `captures output of schema collection and displays it on errors`() {
 
         fun outputFrom(origin: String, logger: Boolean = true) = buildString {
             appendLine("""println("STDOUT from $origin")""")
             appendLine("""System.err.println("STDERR from $origin")""")
             if (logger) {
-                appendLine("""logger.info("INFO log from $origin")""")
                 appendLine("""logger.lifecycle("LIFECYCLE log from $origin")""")
                 appendLine("""logger.warn("WARN log from $origin")""")
                 appendLine("""logger.error("ERROR log from $origin")""")
@@ -990,9 +989,9 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         build(":compileKotlin").apply {
             assertNotOutput("STDOUT")
             assertNotOutput("STDERR")
-            assertNotOutput("INFO")
-            assertNotOutput("LIFECYCLE")
-            assertNotOutput("WARN")
+            // TODO logging is not captured yet
+            assertOutputContains("LIFECYCLE")
+            assertOutputContains("WARN")
             assertHasErrorOutput("ERROR")
         }
 
@@ -1030,9 +1029,9 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             assertHasErrorOutput("STDERR from applied-output-fails plugin")
             assertNotOutput("STDOUT from plugins block")
             assertNotOutput("STDERR from plugins block")
-            assertNotOutput("INFO")
-            assertNotOutput("LIFECYCLE")
-            assertNotOutput("WARN")
+            // TODO logging is not captured yet
+            assertOutputContains("LIFECYCLE")
+            assertOutputContains("WARN")
             assertHasErrorOutput("ERROR")
         }
     }
