@@ -36,9 +36,10 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
 
     @Override
     public Collection<TransformationNode> create(
-        AttributeContainer sourceAttributes,
         ResolvedArtifactSet artifactSet,
+        ComponentVariantIdentifier targetComponentVariant,
         TransformationStep transformationStep,
+        AttributeContainer sourceAttributes,
         TransformUpstreamDependenciesResolver dependenciesResolver
     ) {
         final ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
@@ -46,14 +47,14 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
             @Override
             public void visitArtifact(ResolvableArtifact artifact) {
                 TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformationStep);
-                TransformationNode transformationNode = TransformationNode.initial(sourceAttributes, transformationStep, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+                TransformationNode transformationNode = TransformationNode.initial(targetComponentVariant, sourceAttributes, transformationStep, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
                 builder.add(transformationNode);
             }
 
             @Override
             public void visitTransform(TransformationNode source) {
                 TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformationStep);
-                TransformationNode transformationNode = TransformationNode.chained(sourceAttributes, transformationStep, source, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+                TransformationNode transformationNode = TransformationNode.chained(targetComponentVariant, sourceAttributes, transformationStep, source, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
                 builder.add(transformationNode);
             }
         });

@@ -21,12 +21,16 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 
 import java.util.Collection;
 
+/**
+ * Creates a transformation node per artifact in the given artifact set.
+ */
 public interface TransformationNodeFactory {
 
     Collection<TransformationNode> create(
-        AttributeContainer sourceAttributes,
         ResolvedArtifactSet artifactSet,
+        ComponentVariantIdentifier targetComponentVariant,
         TransformationStep transformationStep,
+        AttributeContainer sourceAttributes,
         TransformUpstreamDependenciesResolver dependenciesResolver
     );
 
