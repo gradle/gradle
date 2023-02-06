@@ -16,18 +16,24 @@
 
 package org.gradle.performance.regression.buildcache
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
+import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
+import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.JavaTestProject
+import org.gradle.performance.results.BaselineVersion
+import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.keystore.TestKeyStore
 
+import java.util.function.Consumer
+
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
-
+import static org.gradle.performance.results.PerformanceTestResult.hasRegressionChecks
 /**
  * This test tests Next generation build cache vs production build cache. The version we test will always use next generation build cache
  * and baseline will use production build cache.
@@ -35,83 +41,85 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor(
     @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
 )
-class NextGenerationBuildCacheVsProductionBuildCacheTaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
+class NextGenerationBuildCacheVsProductionBuildCacheTaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingCrossBuildTest {
+
+    private static final String NG_BUILD_CACHE_DISPLAY_NAME = "Next generation build cache"
+    private static final String PRODUCTION_BUILD_CACHE_DISPLAY_NAME = "Production build cache"
 
     def setup() {
-        runner.warmUpRuns = 11
-        runner.runs = 21
-        runner.testedVersionAdditionalGradleOpts.add("-Dorg.gradle.unsafe.cache.ng=true")
-        runner.minimumBaseVersion = "3.5"
+        runner.testGroup = "Build cache NG"
     }
 
     def "clean assemble with remote http cache"() {
-        setupTestProject(runner)
-        protocol = "http"
+        setupTestProject(runner) { GradleBuildExperimentSpec.GradleBuilder builder ->
+            builder.warmUpCount = 2
+            builder.invocationCount = 8
+            builder.invocation.useDaemon = false
+            builder.addBuildMutator { cleanLocalCache() }
+        }
         pushToRemote = true
-        runner.useDaemon = false
-        runner.warmUpRuns = 2
-        runner.runs = 8
-        runner.addBuildMutator { cleanLocalCache() }
+        protocol = "http"
 
         when:
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        assertNotRegressed(result)
     }
 
     def "clean assemble with remote https cache"() {
-        setupTestProject(runner)
-        protocol = "https"
-        pushToRemote = true
-        runner.useDaemon = false
-        runner.warmUpRuns = 2
-        runner.runs = 8
-        runner.addBuildMutator { cleanLocalCache() }
-
         def keyStore = TestKeyStore.init(temporaryFolder.file('ssl-keystore'))
         keyStore.enableSslWithServerCert(buildCacheServer)
-
-        runner.gradleOpts.addAll(keyStore.serverAndClientCertArgs)
+        setupTestProject(runner) { GradleBuildExperimentSpec.GradleBuilder builder ->
+            builder.warmUpCount = 2
+            builder.invocationCount = 8
+            builder.invocation.useDaemon = false
+            builder.addBuildMutator { cleanLocalCache() }
+            builder.invocation.args.addAll(keyStore.serverAndClientCertArgs)
+        }
+        protocol = "https"
+        pushToRemote = true
 
         when:
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        assertNotRegressed(result)
     }
 
     def "clean assemble with empty local cache"() {
         given:
-        setupTestProject(runner)
-        runner.warmUpRuns = 2
-        runner.runs = 8
+        setupTestProject(runner) { GradleBuildExperimentSpec.GradleBuilder builder ->
+            builder.warmUpCount = 2
+            builder.invocationCount = 8
+            builder.invocation.useDaemon = false
+            builder.addBuildMutator { cleanLocalCache() }
+        }
         pushToRemote = false
-        runner.useDaemon = false
-        runner.addBuildMutator { cleanLocalCache() }
 
         when:
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        assertNotRegressed(result)
     }
 
     def "clean assemble with empty remote http cache"() {
         given:
-        setupTestProject(runner)
-        runner.warmUpRuns = 2
-        runner.runs = 8
+        setupTestProject(runner) { GradleBuildExperimentSpec.GradleBuilder builder ->
+            builder.warmUpCount = 2
+            builder.invocationCount = 8
+            builder.invocation.useDaemon = false
+            builder.addBuildMutator { cleanLocalCache() }
+            builder.addBuildMutator { cleanRemoteCache() }
+        }
         pushToRemote = true
-        runner.useDaemon = false
-        runner.addBuildMutator { cleanLocalCache() }
-        runner.addBuildMutator { cleanRemoteCache() }
 
         when:
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        assertNotRegressed(result)
     }
 
     @RunFor(
@@ -119,15 +127,16 @@ class NextGenerationBuildCacheVsProductionBuildCacheTaskOutputCachingJavaPerform
     )
     def "clean assemble with local cache"() {
         given:
-        setupTestProject(runner)
-        runner.args += "--parallel"
+        setupTestProject(runner) { GradleBuildExperimentSpec.GradleBuilder builder ->
+            builder.invocation.args += "--parallel"
+        }
         pushToRemote = false
 
         when:
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        assertNotRegressed(result)
     }
 
     @RunFor([
@@ -137,17 +146,18 @@ class NextGenerationBuildCacheVsProductionBuildCacheTaskOutputCachingJavaPerform
     ])
     def "clean assemble for abi change with local cache"() {
         given:
-        setupTestProject(runner)
         def testProject = JavaTestProject.projectFor(runner.testProject)
-        runner.addBuildMutator { new ApplyAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])) }
-        runner.args += "--parallel"
+        setupTestProject(runner) { GradleBuildExperimentSpec.GradleBuilder builder ->
+            builder.addBuildMutator { new ApplyAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])) }
+            builder.invocation.args += "--parallel"
+        }
         pushToRemote = false
 
         when:
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        assertNotRegressed(result)
     }
 
     @RunFor([
@@ -157,21 +167,57 @@ class NextGenerationBuildCacheVsProductionBuildCacheTaskOutputCachingJavaPerform
     ])
     def "clean assemble for non-abi change with local cache"() {
         given:
-        setupTestProject(runner)
         def testProject = JavaTestProject.projectFor(runner.testProject)
-        runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])) }
-        runner.args += "--parallel"
+        setupTestProject(runner) { GradleBuildExperimentSpec.GradleBuilder builder ->
+            builder.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])) }
+            builder.invocation.args += "--parallel"
+        }
         pushToRemote = false
 
         when:
         def result = runner.run()
 
         then:
-        result.assertCurrentVersionHasNotRegressed()
+        assertNotRegressed(result)
     }
 
-    static def setupTestProject(CrossVersionPerformanceTestRunner runner) {
-        runner.tasksToRun = ["assemble"]
-        runner.cleanTasks = ["clean"]
+    static def assertNotRegressed(CrossBuildPerformanceResults result) {
+        def nextGeneration = result.buildResult(NG_BUILD_CACHE_DISPLAY_NAME)
+        def production = result.buildResult(PRODUCTION_BUILD_CACHE_DISPLAY_NAME)
+
+        def productionResults = new BaselineVersion("Production")
+        productionResults.results.addAll(production)
+        def stats = productionResults.getSpeedStatsAgainst("Next-Generation", nextGeneration)
+        println(stats)
+        boolean isProductionFaster = productionResults.significantlyFasterThan(nextGeneration)
+        if (isProductionFaster && hasRegressionChecks()) {
+            throw new AssertionError(stats as Object)
+        }
+        return result
+    }
+
+    static def setupTestProject(CrossBuildPerformanceTestRunner runner, Consumer<GradleBuildExperimentSpec.GradleBuilder> configure) {
+        Consumer<GradleBuildExperimentSpec.GradleBuilder> defaultConfiguration = { GradleBuildExperimentSpec.GradleBuilder builder ->
+            builder.invocation {
+                tasksToRun("assemble")
+                cleanTasks("clean")
+                args("-D${StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY}=true")
+            }
+            builder.warmUpCount = 11
+            builder.invocationCount = 21
+        }
+        runner.buildSpec { GradleBuildExperimentSpec.GradleBuilder builder ->
+            builder.displayName(NG_BUILD_CACHE_DISPLAY_NAME)
+            builder.invocation {
+                args("-Dorg.gradle.unsafe.cache.ng=true")
+            }
+            defaultConfiguration.accept(builder)
+            configure.accept(builder)
+        }
+        runner.baseline { GradleBuildExperimentSpec.GradleBuilder builder ->
+            builder.displayName(PRODUCTION_BUILD_CACHE_DISPLAY_NAME)
+            defaultConfiguration.accept(builder)
+            configure.accept(builder)
+        }
     }
 }
