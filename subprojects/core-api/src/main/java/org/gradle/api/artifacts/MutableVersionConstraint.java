@@ -15,6 +15,7 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
@@ -113,5 +114,6 @@ public interface MutableVersionConstraint extends VersionConstraint {
      *
      * @since 8.1
      */
+    @Incubating
     void copyFrom(VersionConstraint constraint);
 }
