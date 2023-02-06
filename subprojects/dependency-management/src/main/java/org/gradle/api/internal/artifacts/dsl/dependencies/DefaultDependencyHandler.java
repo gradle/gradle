@@ -49,6 +49,7 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
+import org.gradle.api.internal.dependencies.PluginDependencyMarkerCoordinates;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -332,7 +333,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
     @Override
     public String plugin(String id) {
-        return PluginDependencyMarkerCoordinates.pluginNotation(id);
+        return PluginDependencyMarkerCoordinates.pluginNotation(id, null);
     }
 
     @Override

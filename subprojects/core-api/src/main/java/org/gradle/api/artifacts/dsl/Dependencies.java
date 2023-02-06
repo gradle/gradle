@@ -20,8 +20,10 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.dependencies.PluginDependencyMarkerCoordinates;
 import org.gradle.api.model.ObjectFactory;
-
+import org.gradle.api.provider.Provider;
+import org.gradle.plugin.use.PluginDependency;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
@@ -106,6 +108,41 @@ public interface Dependencies {
      */
     default ExternalModuleDependency module(@Nullable String group, String name, @Nullable String version) {
         return getDependencyFactory().create(group, name, version);
+    }
+
+    /**
+     * Creates an {@link ExternalModuleDependency} from an id.
+     *
+     * @param id the id
+     * @return the new dependency
+     * @since 8.1
+     */
+    default ExternalModuleDependency plugin(String id) {
+        return getDependencyFactory().create(id, null);
+    }
+
+    /**
+     * Creates an {@link ExternalModuleDependency} from an id and a version string.
+     *
+     * @param id the id
+     * @param version the version
+     * @return the new dependency
+     * @since 8.1
+     */
+    default ExternalModuleDependency plugin(String id, String version) {
+        return getDependencyFactory().create(id, version);
+    }
+
+    /**
+     * Converts the type of the provider from {@link PluginDependency} to {@link ExternalModuleDependency}.
+     *
+     * @param provider the provider
+     * @return the new provider of type ExternalModuleDependency
+     * @since 8.1
+     */
+    default Provider<? extends ExternalModuleDependency> plugin(Provider<? extends PluginDependency> provider) {
+        return provider.map((PluginDependency dependency) ->
+            PluginDependencyMarkerCoordinates.getExternalModuleDependency(getDependencyFactory(), dependency));
     }
 
     /**

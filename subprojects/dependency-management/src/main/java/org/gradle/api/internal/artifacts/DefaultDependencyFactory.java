@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.dependencies.PluginDependencyMarkerCoordinates;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -135,6 +136,14 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     @Override
     public ExternalModuleDependency create(CharSequence dependencyNotation) {
         ExternalModuleDependency dependency = dependencyNotationParser.getStringNotationParser().parseNotation(dependencyNotation.toString());
+        injectServices(dependency);
+        return dependency;
+    }
+
+    @Override
+    public ExternalModuleDependency create(String id, @Nullable String version) {
+        String pluginNotation = PluginDependencyMarkerCoordinates.pluginNotation(id, version);
+        ExternalModuleDependency dependency = dependencyNotationParser.getStringNotationParser().parseNotation(pluginNotation);
         injectServices(dependency);
         return dependency;
     }

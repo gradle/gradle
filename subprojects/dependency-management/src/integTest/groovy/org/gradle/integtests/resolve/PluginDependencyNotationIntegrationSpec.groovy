@@ -36,12 +36,12 @@ import org.gradle.api.internal.artifacts.dependencies.*
 buildscript {
     ${mavenCentralRepository()}
     dependencies {
-        classpath(plugin("$JS")) {
+        classpath (plugin("$JS")) {
             version {
                 prefer "$VERSION"
             }
         }
-        classpath(plugin("$JVM", "$VERSION"))
+        classpath (plugin("$JVM", "$VERSION"))
     }
 }
 
@@ -56,7 +56,7 @@ configurations {
 }
 
 dependencies {
-    conf(plugin("$JS")) {
+    conf (plugin("$JS")) {
         version {
             prefer "$VERSION"
         }
@@ -71,14 +71,14 @@ testing {
     suites {
         test {
             dependencies {
-                implementation.plugin("$JS") {
+                implementation (plugin("$JS")) {
                     version {
                         prefer "$VERSION"
                     }
                     transitive = false
                 }
-                implementation.plugin("$JVM", "$VERSION")
-                implementation.plugin("$SCRIPTING")
+                implementation plugin("$JVM", "$VERSION")
+                implementation plugin("$SCRIPTING")
             }
         }
     }
@@ -169,14 +169,14 @@ testing {
     suites {
         val test by getting(JvmTestSuite::class) {
             dependencies {
-                implementation.plugin("$JS") {
+                implementation(plugin("$JS")) {
                     version {
                         prefer("$VERSION")
                     }
                     isTransitive = false
                 }
-                implementation.plugin("$JVM", "$VERSION")
-                implementation.plugin("$SCRIPTING")
+                implementation(plugin("$JVM", "$VERSION"))
+                implementation(plugin("$SCRIPTING"))
             }
         }
     }

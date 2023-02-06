@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-import org.gradle.plugin.use.PluginDependency;
 
 /**
  * A {@code DependencyAdder} is used to add dependencies to a specific configuration.
@@ -173,57 +172,4 @@ public interface DependencyAdder {
      * @param configuration an action to configure each dependency in the bundle
      */
     <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
-
-    /**
-     * Add a plugin dependency, specified by id.
-     *
-     * @param id the id of the dependency
-     * @since 8.1
-     */
-    void plugin(String id);
-
-    /**
-     * Add a plugin dependency, specified by id.
-     *
-     * @param id the id of the dependency
-     * @param configuration the action to configure the dependency
-     * @since 8.1
-     */
-    void plugin(String id, Action<? super ExternalModuleDependency> configuration);
-
-    /**
-     * Add a plugin dependency, specified by id and version.
-     *
-     * @param id the id of the dependency
-     * @param version the version of the dependency
-     * @since 8.1
-     */
-    void plugin(String id, String version);
-
-    /**
-     * Add a plugin dependency, specified by id and version.
-     *
-     * @param id the id of the dependency
-     * @param version the version of the dependency
-     * @param configuration the action to configure the dependency
-     * @since 8.1
-     */
-    void plugin(String id, String version, Action<? super ExternalModuleDependency> configuration);
-
-    /**
-     * Add a plugin dependency, provided by the provider.
-     *
-     * @param provider the provider of the plugin dependency
-     * @since 8.1
-     */
-    <D extends PluginDependency> void plugin(Provider<D> provider);
-
-    /**
-     * Add a plugin dependency, provided by the provider.
-     *
-     * @param provider the provider of the plugin dependency
-     * @param configuration the action to configure the dependency
-     * @since 8.1
-     */
-    <D  extends PluginDependency> void plugin(Provider<D> provider, Action<? super ExternalModuleDependency> configuration);
 }

@@ -77,9 +77,9 @@ testing {
     suites {
         test {
             dependencies {
-                implementation.plugin(libs.plugins.js)
-                implementation.plugin(libs.plugins.jvm)
-                implementation.plugin(libs.plugins.scripting)
+                implementation(plugin(libs.plugins.js))
+                implementation(plugin(libs.plugins.jvm))
+                implementation(plugin(libs.plugins.scripting))
             }
         }
     }
@@ -173,9 +173,9 @@ task checkDeps {
                 suites {
                     val test by getting(JvmTestSuite::class) {
                         dependencies {
-                            implementation.plugin(libs.plugins.js)
-                            implementation.plugin(libs.plugins.jvm)
-                            implementation.plugin(libs.plugins.scripting)
+                            implementation(plugin(libs.plugins.js))
+                            implementation(plugin(libs.plugins.jvm))
+                            implementation(plugin(libs.plugins.scripting))
                         }
                     }
                 }

@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-import org.gradle.plugin.use.PluginDependency;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -183,40 +182,6 @@ public class DefaultDependencyAdder implements DependencyAdder {
     @Override
     public <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration) {
         doAddBundleLazy(bundle.asProvider(), configuration);
-    }
-
-    @Override
-    public void plugin(String id) {
-        plugin(id, (Action<? super ExternalModuleDependency>) null);
-    }
-
-    @Override
-    public void plugin(String id, @Nullable Action<? super ExternalModuleDependency> configuration) {
-        String pluginNotation = PluginDependencyMarkerCoordinates.pluginNotation(id);
-        doAddEager(dependencyFactory.create(pluginNotation), configuration);
-    }
-
-    @Override
-    public void plugin(String id, String version) {
-        plugin(id, version, null);
-    }
-
-    @Override
-    public void plugin(String id, String version, @Nullable Action<? super ExternalModuleDependency> configuration) {
-        String pluginNotation = PluginDependencyMarkerCoordinates.pluginNotation(id);
-        doAddEager(dependencyFactory.create(pluginNotation + ":" + version), configuration);
-    }
-
-    @Override
-    public <D extends PluginDependency> void plugin(Provider<D> provider) {
-        plugin(provider, null);
-    }
-
-    @Override
-    public <D extends PluginDependency> void plugin(Provider<D> provider, @Nullable Action<? super ExternalModuleDependency> configuration) {
-        Provider<ExternalModuleDependency> pluginProvider = provider.map((PluginDependency dependency) ->
-            PluginDependencyMarkerCoordinates.getExternalModuleDependency(dependencyFactory, dependency));
-        doAddLazy(pluginProvider, configuration);
     }
 
     @Override
