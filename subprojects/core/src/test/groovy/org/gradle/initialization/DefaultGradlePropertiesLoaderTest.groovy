@@ -16,6 +16,7 @@
 package org.gradle.initialization
 
 import org.gradle.api.Project
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -32,9 +33,13 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
 
     private final StartParameterInternal startParameter = Mock(StartParameterInternal)
     private final Environment environment = Mock(Environment)
+    private final EnvironmentChangeTracker environmentChangeTracker = Mock(EnvironmentChangeTracker)
+    private final GradleInternal gradleInternal = Mock(GradleInternal)
     private final DefaultGradlePropertiesLoader gradlePropertiesLoader = new DefaultGradlePropertiesLoader(
         startParameter,
-        environment
+        environment,
+        environmentChangeTracker,
+        gradleInternal
     )
 
     private File gradleUserHomeDir
