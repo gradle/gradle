@@ -17,7 +17,6 @@
 package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
@@ -27,7 +26,6 @@ import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraryAndOptionalFeat
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.SwiftCompilerDetectingApp
 import spock.lang.Ignore
-import spock.lang.IgnoreIf
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest implements SwiftTaskNames {
@@ -103,7 +101,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
     @ToBeFixedForConfigurationCache
     // This is failing on release6x and we don't want to spent time on it
-    @IgnoreIf({ GradleContextualExecuter.isForceRealize() })
+    @Ignore
     def "recompiles when an upstream dependency changes in non-ABI compatible way"() {
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()
