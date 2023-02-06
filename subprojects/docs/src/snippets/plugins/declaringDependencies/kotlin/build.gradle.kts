@@ -13,8 +13,8 @@ testing {
     suites {
         val test by getting(JvmTestSuite::class) {
             dependencies { // <2>
-                implementation.plugin("com.example.hello", "1.0.0")
-                implementation.plugin("com.example.goodbye")
+                implementation(plugin("com.example.hello", "1.0.0"))
+                implementation(plugin("com.example.goodbye"))
             }
         }
     }
