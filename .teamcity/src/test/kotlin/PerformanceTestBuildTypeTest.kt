@@ -39,7 +39,7 @@ class PerformanceTestBuildTypeTest {
     private
     val buildModel = CIBuildModel(
         projectId = "Gradle_Check",
-        branch = VersionedSettingsBranch("master", true),
+        branch = VersionedSettingsBranch("master"),
         buildScanTags = listOf("Check"),
         subprojects = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
     )
