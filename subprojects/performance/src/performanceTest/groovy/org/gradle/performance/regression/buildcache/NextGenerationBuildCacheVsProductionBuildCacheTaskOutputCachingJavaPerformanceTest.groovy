@@ -46,7 +46,10 @@ class NextGenerationBuildCacheVsProductionBuildCacheTaskOutputCachingJavaPerform
     private static final String NG_BUILD_CACHE_DISPLAY_NAME = "Next generation build cache"
     private static final String PRODUCTION_BUILD_CACHE_DISPLAY_NAME = "Production build cache"
 
+    boolean callClean
+
     def setup() {
+        callClean = true
         runner.testGroup = "Build cache NG"
     }
 
@@ -181,26 +184,35 @@ class NextGenerationBuildCacheVsProductionBuildCacheTaskOutputCachingJavaPerform
         assertNotRegressed(result)
     }
 
-    static def assertNotRegressed(CrossBuildPerformanceResults result) {
-        def nextGeneration = result.buildResult(NG_BUILD_CACHE_DISPLAY_NAME)
-        def production = result.buildResult(PRODUCTION_BUILD_CACHE_DISPLAY_NAME)
-
-        def productionResults = new BaselineVersion("Production")
-        productionResults.results.addAll(production)
-        def stats = productionResults.getSpeedStatsAgainst("Next-Generation", nextGeneration)
-        println(stats)
-        boolean isProductionFaster = productionResults.significantlyFasterThan(nextGeneration)
-        if (isProductionFaster && hasRegressionChecks()) {
-            throw new AssertionError(stats as Object)
+    @RunFor([
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject"],
+            comment = "We only test the multi-project here since for the monolithic project we would have no cache hits. This would mean we actually would test incremental compilation."
+        )
+    ])
+    def "no-clean assemble for non-abi change with local cache"() {
+        given:
+        callClean = false
+        def testProject = JavaTestProject.projectFor(runner.testProject)
+        setupTestProject(runner) { GradleBuildExperimentSpec.GradleBuilder builder ->
+            builder.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])) }
+            builder.invocation.args += "--parallel"
         }
-        return result
+        pushToRemote = false
+
+        when:
+        def result = runner.run()
+
+        then:
+        assertNotRegressed(result)
     }
 
-    static def setupTestProject(CrossBuildPerformanceTestRunner runner, Consumer<GradleBuildExperimentSpec.GradleBuilder> configure) {
+    def setupTestProject(CrossBuildPerformanceTestRunner runner, Consumer<GradleBuildExperimentSpec.GradleBuilder> configure) {
         Consumer<GradleBuildExperimentSpec.GradleBuilder> defaultConfiguration = { GradleBuildExperimentSpec.GradleBuilder builder ->
             builder.invocation {
                 tasksToRun("assemble")
-                cleanTasks("clean")
+                if (callClean) {
+                    cleanTasks("clean")
+                }
                 args("-D${StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY}=true")
             }
             builder.warmUpCount = 11
@@ -219,5 +231,20 @@ class NextGenerationBuildCacheVsProductionBuildCacheTaskOutputCachingJavaPerform
             defaultConfiguration.accept(builder)
             configure.accept(builder)
         }
+    }
+
+    static def assertNotRegressed(CrossBuildPerformanceResults result) {
+        def nextGeneration = result.buildResult(NG_BUILD_CACHE_DISPLAY_NAME)
+        def production = result.buildResult(PRODUCTION_BUILD_CACHE_DISPLAY_NAME)
+
+        def productionResults = new BaselineVersion("Production")
+        productionResults.results.addAll(production)
+        def stats = productionResults.getSpeedStatsAgainst("Next-Generation", nextGeneration)
+        println(stats)
+        boolean isProductionFaster = productionResults.significantlyFasterThan(nextGeneration)
+        if (isProductionFaster && hasRegressionChecks()) {
+            throw new AssertionError(stats as Object)
+        }
+        return result
     }
 }
