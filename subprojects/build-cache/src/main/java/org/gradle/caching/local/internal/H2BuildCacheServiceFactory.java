@@ -28,7 +28,7 @@ import javax.inject.Inject;
 import java.io.File;
 
 public class H2BuildCacheServiceFactory implements BuildCacheServiceFactory<DirectoryBuildCache> {
-    private static final String BUILD_CACHE_VERSION = "2";
+    private static final String BUILD_CACHE_VERSION = "2.1";
     private static final String BUILD_CACHE_KEY = "build-cache-" + BUILD_CACHE_VERSION;
     private static final String H2_BUILD_CACHE_TYPE = "h2";
 
