@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 
+import java.util.Map;
+
 public class ExecuteScheduledTransformationStepBuildOperationDetails implements ExecuteScheduledTransformationStepBuildOperationType.Details, CustomOperationTraceSerialization {
 
     private final TransformationNode transformationNode;
@@ -41,6 +43,26 @@ public class ExecuteScheduledTransformationStepBuildOperationDetails implements 
     }
 
     @Override
+    public Map<String, String> getSourceAttributes() {
+        return AttributesToMapConverter.convertToMap(transformationNode.getSourceAttributes());
+    }
+
+    @Override
+    public Map<String, String> getFromAttributes() {
+        return AttributesToMapConverter.convertToMap(transformationNode.getTransformationStep().getFromAttributes());
+    }
+
+    @Override
+    public Map<String, String> getToAttributes() {
+        return AttributesToMapConverter.convertToMap(transformationNode.getTransformationStep().getToAttributes());
+    }
+
+    @Override
+    public Class<?> getTransformType() {
+        return transformationNode.getTransformationStep().getTransformer().getImplementationClass();
+    }
+
+    @Override
     public String getTransformerName() {
         return transformerName;
     }
@@ -53,7 +75,11 @@ public class ExecuteScheduledTransformationStepBuildOperationDetails implements 
     @Override
     public Object getCustomOperationTraceSerializableModel() {
         ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-        builder.put("transformationIdentity", transformationNode.getNodeIdentity());
+        builder.put("transformationIdentity", getTransformationIdentity());
+        builder.put("sourceAttributes", getSourceAttributes());
+        builder.put("fromAttributes", getFromAttributes());
+        builder.put("toAttributes", getToAttributes());
+        builder.put("transformType", getTransformType());
         builder.put("transformerName", transformerName);
         builder.put("subjectName", subjectName);
         return builder.build();
