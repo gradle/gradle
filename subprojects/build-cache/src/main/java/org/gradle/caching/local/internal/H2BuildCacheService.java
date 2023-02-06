@@ -23,6 +23,7 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
+import org.h2.Driver;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,6 +47,7 @@ public class H2BuildCacheService implements BuildCacheService {
         // RETENTION_TIME=0 prevents uncontrolled DB growth with old pages retention
         String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0;INIT=runscript from 'classpath:/db/migration/V001__init_schema.sql'", dbPath.resolve("filestore"));
         hikariConfig.setJdbcUrl(h2JdbcUrl);
+        hikariConfig.setDriverClassName(Driver.class.getName());
         hikariConfig.setUsername("sa");
         hikariConfig.setPassword("");
         hikariConfig.setCatalog("filestore");
