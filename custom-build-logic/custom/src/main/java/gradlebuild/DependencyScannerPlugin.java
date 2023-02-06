@@ -16,37 +16,21 @@
 
 package gradlebuild;
 
-import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.JvmEcosystemPlugin;
-import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.Exec;
 import org.gradle.api.tasks.TaskProvider;
 
 import java.util.Collections;
 import java.util.stream.Collectors;
 
-public abstract class DependencyScannerPlugin implements Plugin<Project> {
-
-    Attribute<Boolean> analyzed = Attribute.of("dependency-analyzed", Boolean.class);
+public abstract class DependencyScannerPlugin extends AbstractScannerPlugin {
 
     @Override
     public void apply(Project project) {
-
-        project.getPlugins().apply(JvmEcosystemPlugin.class);
-
-        // Configure artifact transform
-        project.getDependencies().getAttributesSchema().attribute(analyzed);
-        project.getDependencies().registerTransform(AnalyzingArtifactTransform.class, spec -> {
-            spec.getFrom().attribute(analyzed, false);
-            spec.getTo().attribute(analyzed, true);
-        });
+        super.apply(project);
 
         // Configuration to declare analysis dependencies on.
         Configuration dependencyScanner = project.getConfigurations().create("dependencyScanner");
@@ -73,18 +57,7 @@ public abstract class DependencyScannerPlugin implements Plugin<Project> {
         dependencyAnalysisClasspath.setVisible(false);
         dependencyAnalysisClasspath.extendsFrom(dependencyScanner);
 
-        // When we resolve this configuration, fetch the analysis for each dependency instead of the
-        // dependency themselves.
-        dependencyAnalysisClasspath.getAttributes().attribute(analyzed, true);
-
-        // Resolve for runtime, since we don't have a compileElements to resolve for compile time instead.
-        // Most importantly, we need the implementation/api deps. RuntimeOnly/compileOnly/compileOnlyApi are the least of our worries right now.
-        ((ProjectInternal) project).getServices().get(JvmPluginServices.class).configureAsRuntimeClasspath(dependencyAnalysisClasspath);
-
-        // TODO: Do we need to add this on classes too?
-        project.getDependencies().getArtifactTypes().getByName(ArtifactTypeDefinition.JAR_TYPE).getAttributes()
-            .attribute(analyzed, false);
-
+        configureAsAnalysisClasspath(dependencyAnalysisClasspath);
 
         TaskProvider<RawJsonWriterTask> rawJson = project.getTasks().register("classAnalysisJson", RawJsonWriterTask.class, task -> {
             ArtifactCollection artifacts = dependencyAnalysisClasspath.getIncoming().getArtifacts();

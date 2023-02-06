@@ -103,6 +103,8 @@ public abstract class AnalyzingArtifactTransform implements TransformAction<Tran
     public ClassAnalysis analyzeClassFile(InputStream classData) {
         try {
             // TODO: Not sure we want to scan the same way. This scanner is too lenient.
+            // TODO: We don't get enough data from this analyzer.
+            // It would be nice to track which methods are called on referenced classes.
             return new DefaultClassDependenciesAnalyzer(interner).getClassAnalysis(classData);
         } catch (IOException e) {
             throw new GradleException("Error scanning inputs", e);
@@ -161,6 +163,11 @@ public abstract class AnalyzingArtifactTransform implements TransformAction<Tran
             @Override
             public DependencyAnalysis read(Decoder decoder) throws Exception {
                 int num = decoder.readInt();
+
+                if (num == 0x504B0304) {
+                    // This is a Zip File.
+                    throw new RuntimeException("Classes not analyzed by artifact transform.");
+                }
 
                 List<ClassAnalysis> classes = new ArrayList<>(num);
                 for (int i = 0; i < num; i++) {

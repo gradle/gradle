@@ -18,11 +18,19 @@ plugins {
     id("java-gradle-plugin")
 }
 
+dependencies {
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.1")
+}
+
 gradlePlugin {
     plugins {
         create("simplePlugin") {
             id = "gradlebuild.dependency-scanner"
             implementationClass = "gradlebuild.DependencyScannerPlugin"
+        }
+        create("pluginScannerPlugin") {
+            id = "gradlebuild.plugin-scanner"
+            implementationClass = "gradlebuild.plugins.PluginScannerPlugin"
         }
     }
 }

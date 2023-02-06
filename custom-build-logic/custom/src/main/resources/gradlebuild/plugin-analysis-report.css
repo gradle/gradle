@@ -1,0 +1,45 @@
+body {
+    margin: 0px;
+    padding: 1em;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0px;
+    margin: 0px;
+}
+
+details ul {
+    margin-left: 1em;
+}
+
+summary {
+    cursor: pointer;
+    padding: 5px;
+    padding-left: 15px;
+    border-radius: 15px;
+    border-bottom: 1px solid gray;
+}
+
+details {
+    background-color: rgb(255, 254, 232);
+    border-radius: 15px;
+    border: 1px solid gray;
+    margin: -1px;
+}
+
+li.gradle-api-class > details > summary {
+    background-color: rgb(180, 234, 255);
+}
+
+li.gradle-internal-class > details > summary {
+    background-color: rgb(255, 155, 155);
+}
+
+li.gradle-api-class li.plugin-component > details > summary {
+    background-color: rgb(184, 255, 197);
+}
+
+li.gradle-internal-class li.plugin-component > details > summary {
+    background-color: rgb(232, 215, 255);
+}

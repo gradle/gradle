@@ -17,6 +17,7 @@
 plugins {
     id("gradlebuild.repositories")
     id("gradlebuild.dependency-scanner")
+    id("gradlebuild.plugin-scanner")
 }
 
 dependencies {
