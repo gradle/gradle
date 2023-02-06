@@ -33,7 +33,7 @@ import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
-import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
 import org.gradle.internal.agents.AgentControl
 import org.gradle.internal.buildtree.BuildModelParameters
@@ -79,7 +79,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val report: ConfigurationCacheReport,
     private val problemFactory: ProblemFactory,
     private val taskExecutionTracker: TaskExecutionTracker,
-    private val environmentChangeTracker: EnvironmentChangeTracker,
+    private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
     private val scriptFileResolverListeners: ScriptFileResolverListeners,
     private val remoteScriptUpToDateChecker: RemoteScriptUpToDateChecker
