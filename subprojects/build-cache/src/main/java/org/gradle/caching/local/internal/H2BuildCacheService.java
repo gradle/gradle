@@ -18,7 +18,6 @@ package org.gradle.caching.local.internal;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.flywaydb.core.Flyway;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -40,20 +39,12 @@ public class H2BuildCacheService implements BuildCacheService {
 
     public H2BuildCacheService(Path dbPath, int maxPoolSize) {
         this.dataSource = createHikariDataSource(dbPath, maxPoolSize);
-        Flyway flyway = Flyway.configure()
-            .schemas("filestore")
-            .dataSource(dataSource)
-            .validateOnMigrate(true)
-            .cleanDisabled(true)
-            .failOnMissingLocations(true)
-            .load();
-        flyway.migrate();
     }
 
     private static HikariDataSource createHikariDataSource(Path dbPath, int maxPoolSize) {
         HikariConfig hikariConfig = new HikariConfig();
         // RETENTION_TIME=0 prevents uncontrolled DB growth with old pages retention
-        String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0", dbPath.resolve("filestore"));
+        String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0;INIT=runscript from 'classpath:/db/migration/V001__init_schema.sql'", dbPath.resolve("filestore"));
         hikariConfig.setJdbcUrl(h2JdbcUrl);
         hikariConfig.setUsername("sa");
         hikariConfig.setPassword("");

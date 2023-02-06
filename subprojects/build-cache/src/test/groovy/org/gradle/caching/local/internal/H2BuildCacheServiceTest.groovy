@@ -63,4 +63,21 @@ class H2BuildCacheServiceTest extends Specification {
             }
         })
     }
+
+    def "can write to h2 service and stop the service and read from h2 with a new service"() {
+        given:
+        def tmpFile = temporaryFolder.createFile("test")
+        tmpFile << "Hello world"
+
+        service.store(key, new StoreTarget(tmpFile))
+        service.close()
+
+        expect:
+        new H2BuildCacheService(dbDir.toPath(), 20).load(key, new BuildCacheEntryReader() {
+            @Override
+            void readFrom(InputStream input) throws IOException {
+                assert input.text == "Hello world"
+            }
+        })
+    }
 }
