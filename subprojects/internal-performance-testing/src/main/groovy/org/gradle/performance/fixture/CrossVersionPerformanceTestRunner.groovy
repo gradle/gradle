@@ -76,7 +76,6 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     List<String> cleanTasks = []
     List<String> args = []
     List<String> gradleOpts = []
-    List<String> testedVersionAdditionalGradleOpts = []
     List<String> previousTestIds = []
 
     List<String> targetVersions = []
@@ -116,7 +115,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             tasks: tasksToRun.collect { it.toString() },
             cleanTasks: cleanTasks.collect { it.toString() },
             args: args.collect { it.toString() },
-            gradleOpts: resolveGradleOpts(testedVersionAdditionalGradleOpts),
+            gradleOpts: resolveGradleOpts(),
             daemon: useDaemon,
             jvm: Jvm.current().toString(),
             host: InetAddress.getLocalHost().getHostName(),
@@ -132,10 +131,10 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         def baselineVersions = toBaselineVersions(releases, targetVersions, minimumBaseVersion).collect { results.baseline(it) }
         try {
             int runIndex = 0
-            runVersion(testId, current, perVersionWorkingDirectory(runIndex++), testedVersionAdditionalGradleOpts, results.current)
+            runVersion(testId, current, perVersionWorkingDirectory(runIndex++), results.current)
 
             baselineVersions.each { baselineVersion ->
-                runVersion(testId, buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(runIndex++), [], baselineVersion.results)
+                runVersion(testId, buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(runIndex++), baselineVersion.results)
             }
         } catch (Exception e) {
             // Print the exception here, so it is reported even when the reporting fails
@@ -188,9 +187,9 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return minimumBaseVersion == null || GradleVersion.version(targetVersion).baseVersion >= GradleVersion.version(minimumBaseVersion)
     }
 
-    private void runVersion(String displayName, GradleDistribution dist, File workingDir, List<String> versionAdditionalGradleOpts, MeasuredOperationList results) {
+    private void runVersion(String displayName, GradleDistribution dist, File workingDir, MeasuredOperationList results) {
         File studioSandboxDirAsFile = perVersionStudioSandboxDirectory(workingDir)
-        def gradleOptsInUse = resolveGradleOpts(versionAdditionalGradleOpts)
+        def gradleOptsInUse = resolveGradleOpts()
         def builder = GradleBuildExperimentSpec.builder()
             .projectName(testProject)
             .displayName(displayName)
@@ -220,8 +219,8 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         experimentRunner.run(testId, spec, results)
     }
 
-    private List<String> resolveGradleOpts(List<String> versionAdditionalGradleOpts) {
-        PerformanceTestJvmOptions.normalizeJvmOptions(this.gradleOpts + versionAdditionalGradleOpts)
+    private List<String> resolveGradleOpts() {
+        PerformanceTestJvmOptions.normalizeJvmOptions(this.gradleOpts)
     }
 
     def <T extends LongRunningOperation> ToolingApiAction<T> toolingApi(String displayName, Function<ProjectConnection, T> initialAction) {

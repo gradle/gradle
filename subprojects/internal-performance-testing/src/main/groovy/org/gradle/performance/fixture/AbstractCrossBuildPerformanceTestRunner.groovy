@@ -45,7 +45,6 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
     String testId
     String testGroup
     String testProject
-    List<String> args = []
     List<BuildExperimentSpec> specs = []
     boolean measureGarbageCollection = true
 
