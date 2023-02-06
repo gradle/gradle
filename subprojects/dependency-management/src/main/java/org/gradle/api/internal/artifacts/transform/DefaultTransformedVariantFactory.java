@@ -94,7 +94,8 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
             sourceAttributes = sourceVariant.getAttributes();
             sourceArtifacts = sourceVariant.getArtifacts();
         }
-        return new TransformedProjectArtifactSet(componentIdentifier, sourceAttributes, sourceArtifacts, variantDefinition, sourceVariant.getCapabilities().getCapabilities(), dependenciesResolverFactory, transformationNodeFactory);
+        ComponentVariantIdentifier targetComponentVariant = new ComponentVariantIdentifier(componentIdentifier, variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities().getCapabilities());
+        return new TransformedProjectArtifactSet(targetComponentVariant, sourceArtifacts, sourceAttributes, variantDefinition, dependenciesResolverFactory, transformationNodeFactory);
     }
 
     private interface Factory {

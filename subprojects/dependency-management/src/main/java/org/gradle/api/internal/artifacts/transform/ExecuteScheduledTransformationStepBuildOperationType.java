@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import java.util.Map;
+
 /**
  * @since 5.1
  */
@@ -28,6 +30,14 @@ public class ExecuteScheduledTransformationStepBuildOperationType implements Bui
     public interface Details {
 
         TransformationIdentity getTransformationIdentity();
+
+        Map<String, String> getSourceAttributes();
+
+        Map<String, String> getFromAttributes();
+
+        Map<String, String> getToAttributes();
+
+        Class<?> getTransformType();
 
         /**
          * Returns the display name of the transformer.
