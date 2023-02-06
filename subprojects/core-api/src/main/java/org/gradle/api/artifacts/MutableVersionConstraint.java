@@ -108,4 +108,10 @@ public interface MutableVersionConstraint extends VersionConstraint {
      */
     void rejectAll();
 
+    /**
+     * Copies the values from the passed version constraint to this version constraint.
+     *
+     * @since 8.1
+     */
+    void copyFrom(VersionConstraint constraint);
 }

@@ -131,6 +131,17 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
        return rejectedVersions;
     }
 
+    @Override
+    public void copyFrom(VersionConstraint constraint) {
+        this.setBranch(constraint.getBranch());
+        this.require(constraint.getRequiredVersion());
+        if (!constraint.getStrictVersion().isEmpty()) { // required version must not be set to empty string
+                this.strictly(constraint.getStrictVersion());
+            }
+        this.prefer(constraint.getPreferredVersion());
+        this.reject(constraint.getRejectedVersions().toArray(new String[0]));
+    }
+
     public String getVersion() {
         return requiredVersion.isEmpty() ? preferredVersion : requiredVersion;
     }
