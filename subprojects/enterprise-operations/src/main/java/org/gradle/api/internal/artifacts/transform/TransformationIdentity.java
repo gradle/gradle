@@ -16,35 +16,34 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ComponentVariantIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 
 public interface TransformationIdentity extends NodeIdentity {
 
     /**
-     * Path of an included build.
+     * Path of an included build of the consumer project.
      */
     String getBuildPath();
 
     /**
-     * Project path within the build.
+     * Consumer project path within the build.
      */
     String getProjectPath();
 
-    ComponentIdentifier getComponentId();
+    /**
+     * Component variant produced by this transformation.
+     */
+    ComponentVariantIdentifier getTargetVariant();
 
-    Map<String, String> getSourceAttributes();
+    String getArtifactName();
 
-    Class<?> getTransformType();
-
-    Map<String, String> getFromAttributes();
-
-    Map<String, String> getToAttributes();
-
+    /**
+     * Configuration that contains transitive dependencies of the input artifact.
+     */
     @Nullable
     ConfigurationIdentity getDependenciesConfigurationIdentity();
 
