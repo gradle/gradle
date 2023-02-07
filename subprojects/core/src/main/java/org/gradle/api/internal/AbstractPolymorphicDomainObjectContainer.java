@@ -19,10 +19,10 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectCollectionSchema;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -38,8 +38,6 @@ import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import java.util.Map;
-
-import static org.gradle.api.reflect.TypeOf.typeOf;
 
 public abstract class AbstractPolymorphicDomainObjectContainer<T>
     extends AbstractNamedDomainObjectContainer<T> implements PolymorphicDomainObjectContainerInternal<T> {
@@ -133,15 +131,8 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
                 @Override
                 public TypeOf<?> getPublicType() {
-                    //TODO: This returns the wrong public type for domain objects
-                    // created with the eager APIs or added directly to the container.
-                    // This can leak internal types.
-                    // We do not currently keep track of the type used when creating
-                    // a domain object (via create) or the type of the container when
-                    // a domain object is added directly (via add).
-                    String name = entry.getKey();
                     T value = entry.getValue();
-                    return new DslObject(value).getPublicType();
+                    return DslObject.getPublicTypeFromClass(value.getClass(), getType());
                 }
             }),
             Iterables.transform(index.getPendingAsMap().entrySet(), (Function<Map.Entry<String, ProviderInternal<? extends T>>, NamedDomainObjectCollectionSchema.NamedDomainObjectSchema>) entry -> new NamedDomainObjectCollectionSchema.NamedDomainObjectSchema() {
@@ -152,9 +143,8 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
                 @Override
                 public TypeOf<?> getPublicType() {
-                    String name = entry.getKey();
                     Class<? extends T> type = entry.getValue().getType();
-                    return typeOf(type);
+                    return DslObject.getPublicTypeFromClass(type, getType());
                 }
             })
         );

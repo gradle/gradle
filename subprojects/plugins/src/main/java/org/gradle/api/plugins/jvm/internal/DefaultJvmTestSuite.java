@@ -25,9 +25,9 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
@@ -40,8 +40,7 @@ import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.reflect.HasPublicType;
-import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.reflect.PublicType;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
@@ -53,7 +52,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public abstract class DefaultJvmTestSuite implements JvmTestSuite, HasPublicType {
+@PublicType(JvmTestSuite.class)
+public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     /**
      * Dependency information and default versions for supported testing frameworks.
      * When updating these versions, be sure to update the default versions noted in `JvmTestSuite` javadoc
@@ -368,10 +368,5 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite, HasPublicType
         return taskDependencyFactory.visitingDependencies(context -> {
             getTargets().forEach(context::add);
         });
-    }
-
-    @Override
-    public TypeOf<?> getPublicType() {
-        return TypeOf.typeOf(JvmTestSuite.class);
     }
 }

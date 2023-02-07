@@ -26,6 +26,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.reflect.PublicTypeAnnotationDetector;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
@@ -90,14 +91,36 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
     }
 
     public TypeOf<Object> getPublicType() {
+        return getPublicType(GeneratedSubclasses.unpackType(object));
+    }
+
+    public TypeOf<Object> getPublicType(Class<?> defaultPublicType) {
+        @SuppressWarnings("unchecked")
+        TypeOf<Object> publicType = (TypeOf<Object>) PublicTypeAnnotationDetector.detect(object);
+        if (publicType != null) {
+            return publicType;
+        }
         if (object instanceof HasPublicType) {
             return uncheckedCast(((HasPublicType) object).getPublicType());
         }
-        return TypeOf.<Object>typeOf(GeneratedSubclasses.unpackType(object));
+        return TypeOf.<Object>typeOf(defaultPublicType);
     }
 
     public Class<?> getImplementationType() {
         return GeneratedSubclasses.unpackType(object);
+    }
+
+    public static TypeOf<Object> getPublicTypeFromClass(Class<?> type) {
+        return getPublicTypeFromClass(type, GeneratedSubclasses.unpack(type));
+    }
+
+    public static TypeOf<Object> getPublicTypeFromClass(Class<?> type, Class<?> defaultPublicType) {
+        @SuppressWarnings("unchecked")
+        TypeOf<Object> publicType = (TypeOf<Object>) PublicTypeAnnotationDetector.detect(type);
+        if (publicType != null) {
+            return publicType;
+        }
+        return TypeOf.<Object>typeOf(defaultPublicType);
     }
 
     private static <T> T toType(Object delegate, Class<T> type) {

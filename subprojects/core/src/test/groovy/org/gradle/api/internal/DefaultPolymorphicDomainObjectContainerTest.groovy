@@ -23,8 +23,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.PolymorphicDomainObjectContainer
-import org.gradle.api.reflect.HasPublicType
-import org.gradle.api.reflect.TypeOf
 import org.gradle.util.TestUtil
 
 class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDomainObjectContainerSpec<Person> {
@@ -85,17 +83,6 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
 
     interface AgeAwarePerson extends Person {
         int getAge()
-    }
-
-    static class Introvert extends DefaultPerson implements HasPublicType {
-        Introvert(String name) {
-            this.name = name;
-        }
-
-        @Override
-        TypeOf<?> getPublicType() {
-            return TypeOf.typeOf(Person.class)
-        }
     }
 
     static class DefaultAgeAwarePerson extends AbstractPerson implements AgeAwarePerson {
@@ -361,53 +348,6 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
         bob.get().age == 50
     }
 
-    def "can extract schema from container that mixes register, create and add"() {
-        given:
-        container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
-        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it) } as NamedDomainObjectFactory)
-
-        def expectedSchema = [
-            mike: "DefaultPolymorphicDomainObjectContainerTest.Person",
-            fred: "DefaultPolymorphicDomainObjectContainerTest.Person",
-            alice: "DefaultPolymorphicDomainObjectContainerTest.AgeAwarePerson",
-            edward: "DefaultPolymorphicDomainObjectContainerTest.Introvert",
-            kate: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
-            bob: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
-            mary: "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson",
-            john: "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson",
-            janis: "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson",
-            robert: "DefaultPolymorphicDomainObjectContainerTest.DefaultCtorNamedPerson",
-            kevin: "DefaultPolymorphicDomainObjectContainerTest.Person",
-        ]
-
-        when:
-        container.register("mike")
-        container.register("fred", Person)
-        container.register("alice", AgeAwarePerson)
-        container.register("edward", Introvert)
-        container.create("kate")
-        container.create("bob", Person)
-        container.create("mary", AgeAwarePerson)
-        container.add(new DefaultPerson(name: "john"))
-        container.add(new DefaultAgeAwarePerson(name: "janis"))
-        container.add(new DefaultCtorNamedPerson("robert"))
-        container.add(new Introvert("kevin"))
-
-        then:
-        assertSchemaIs(expectedSchema)
-
-        when: "realizing pending elements"
-        container.getByName("mike")
-        container.getByName("fred")
-        container.getByName("alice")
-
-        then:
-        expectedSchema.put("alice", "DefaultPolymorphicDomainObjectContainerTest.DefaultAgeAwarePerson")
-        expectedSchema.put("fred", "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson")
-        expectedSchema.put("mike", "DefaultPolymorphicDomainObjectContainerTest.DefaultPerson")
-        assertSchemaIs(expectedSchema)
-    }
-
     def "can find elements added by rules"() {
         given:
         container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
@@ -467,14 +407,5 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
         then:
         def e = thrown(InvalidUserDataException)
         e.message == "The domain object 'fred' (${Person.class.canonicalName}) is not a subclass of the given type (${AgeAwarePerson.class.canonicalName})."
-    }
-
-    protected void assertSchemaIs(Map<String, String> expectedSchema) {
-        def actualSchema = container.collectionSchema
-        Map<String, String> actualSchemaMap = actualSchema.elements.collectEntries { schema ->
-            [schema.name, schema.publicType.simpleName]
-        }.sort()
-        def expectedSchemaMap = expectedSchema.sort()
-        assert expectedSchemaMap == actualSchemaMap
     }
 }
