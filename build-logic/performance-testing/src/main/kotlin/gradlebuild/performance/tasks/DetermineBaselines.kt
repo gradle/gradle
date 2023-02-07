@@ -49,6 +49,8 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
             determinedBaselines.set(determineFlakinessDetectionBaseline())
         } else if (configuredBaselines.getOrElse("").isNotEmpty()) {
             determinedBaselines.set(configuredBaselines)
+        } else if (!currentBranchIsMasterOrRelease()) {
+            determinedBaselines.set(forkPointCommitBaseline())
         } else {
             determinedBaselines.set(defaultBaselines)
         }
