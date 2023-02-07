@@ -48,7 +48,7 @@ class PerformanceTestBuildTypeTest {
     private
     val buildModel = CIBuildModel(
         projectId = "Gradle_Check",
-        branch = VersionedSettingsBranch("master", true),
+        branch = VersionedSettingsBranch("master"),
         buildScanTags = listOf("Check"),
         subprojects = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
     )
@@ -89,8 +89,8 @@ class PerformanceTestBuildTypeTest {
 
         val expectedRunnerParams = listOf(
             "-PperformanceBaselines=%performance.baselines%",
-            "-PtestJavaVersion=8",
-            "-PtestJavaVendor=oracle",
+            "-PtestJavaVersion=11",
+            "-PtestJavaVendor=openjdk",
             "-PautoDownloadAndroidStudio=true",
             "-PrunAndroidStudioInHeadlessMode=true",
             "-Porg.gradle.java.installations.auto-download=false",
