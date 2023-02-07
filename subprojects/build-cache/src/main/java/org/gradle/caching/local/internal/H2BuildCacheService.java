@@ -33,6 +33,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 
 public class H2BuildCacheService implements BuildCacheService {
 
@@ -103,6 +104,8 @@ public class H2BuildCacheService implements BuildCacheService {
                     stmt.executeUpdate();
                 }
             }
+        } catch (SQLIntegrityConstraintViolationException e) {
+            // Ignore
         } catch (SQLException | IOException e) {
             throw new BuildCacheException("storing " + key, e);
         }
