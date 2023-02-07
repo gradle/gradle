@@ -71,7 +71,8 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
                     });
                     // Sort the array in place by type, then member
                     // Note that Firefox is fine with a sort function returning any positive or negative number, but Chrome 
-                    // requires 1 or -1 specifically and ignores higher or lower values
+                    // requires 1 or -1 specifically and ignores higher or lower values.  This sort ought to remain consistent
+                    // with the sort used by AbstractAcceptedApiChangesMaintenanceTask.
                     result.acceptedApiChanges.sort((a, b) => { 
                         if ((a.type +'#' + a.member) > (b.type + '#' + b.member)) {
                             return 1; 
