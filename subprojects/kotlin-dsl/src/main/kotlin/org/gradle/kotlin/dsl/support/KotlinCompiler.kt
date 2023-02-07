@@ -90,14 +90,12 @@ import java.io.OutputStream
 import java.io.PrintStream
 
 import kotlin.reflect.KClass
-import kotlin.script.experimental.api.KotlinType
 
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.defaultImports
 import kotlin.script.experimental.api.hostConfiguration
 import kotlin.script.experimental.api.implicitReceivers
-import kotlin.script.experimental.api.providedProperties
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.host.configurationDependencies
 import kotlin.script.experimental.host.getScriptingClass
@@ -129,7 +127,6 @@ fun scriptDefinitionFromTemplate(
     template: KClass<out Any>,
     implicitImports: List<String>,
     implicitReceiver: KClass<*>? = null,
-    injectedProperties: Map<String, KotlinType> = mapOf(),
     classPath: List<File> = listOf()
 ): ScriptDefinition {
     val hostConfiguration = ScriptingHostConfiguration {
@@ -145,7 +142,6 @@ fun scriptDefinitionFromTemplate(
             implicitReceiver?.let {
                 implicitReceivers(it)
             }
-            providedProperties(injectedProperties)
         },
         evaluationConfiguration = null
     )
