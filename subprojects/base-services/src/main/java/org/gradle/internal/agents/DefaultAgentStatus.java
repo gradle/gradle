@@ -17,6 +17,11 @@
 package org.gradle.internal.agents;
 
 public class DefaultAgentStatus implements AgentStatus {
+
+    public static AgentStatus of(boolean enabled) {
+        return enabled ? new DefaultAgentStatus() : new DisabledAgentStatus();
+    }
+
     @Override
     public boolean isAgentInstrumentationEnabled() {
         return AgentControl.isInstrumentationAgentApplied();

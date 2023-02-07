@@ -29,7 +29,6 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.agents.DefaultAgentStatus;
-import org.gradle.internal.agents.DisabledAgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -143,7 +142,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
             .displayName("Global services")
             .parent(loggingServices)
             .parent(NativeServices.getInstance())
-            .provider(new GlobalScopeServices(startParameter.isContinuous(), daemonParameters.shouldApplyInstrumentationAgent() ? new DefaultAgentStatus() : new DisabledAgentStatus()))
+            .provider(new GlobalScopeServices(startParameter.isContinuous(), DefaultAgentStatus.of(daemonParameters.shouldApplyInstrumentationAgent())))
             .build();
 
         // Force the user home services to be stopped first, the dependencies between the user home services and the global services are not preserved currently
@@ -174,7 +173,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         if (usingDaemon) {
             builder.parent(basicServices);
         } else {
-            builder.provider(new GlobalScopeServices(false, new DisabledAgentStatus()));
+            builder.provider(new GlobalScopeServices(false));
         }
         return builder.provider(new DaemonClientGlobalServices()).build();
     }

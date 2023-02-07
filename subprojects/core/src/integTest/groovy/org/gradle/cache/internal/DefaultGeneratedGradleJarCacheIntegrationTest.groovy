@@ -19,7 +19,6 @@ package org.gradle.cache.internal
 import org.gradle.api.Action
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
-import org.gradle.internal.agents.DisabledAgentStatus
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -53,7 +52,7 @@ class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
     def services = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
             .parent(NativeServicesTestFixture.getInstance())
             .provider(LoggingServiceRegistry.NO_OP)
-            .provider(new GlobalScopeServices(false, new DisabledAgentStatus()))
+            .provider(new GlobalScopeServices(false))
             .build()
 
     def factory = services.get(CacheFactory.class)
