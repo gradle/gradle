@@ -23,7 +23,7 @@ import org.gradle.tooling.model.eclipse.EclipseOutputLocation
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 @ToolingApiVersion('>=4.4')
-@TargetGradleVersion(">=4.4 <8.1")
+@TargetGradleVersion(">=4.4")
 class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {

@@ -57,7 +57,8 @@ public class SourceFoldersCreator {
         List<SourceFolder> sourceFolders = configureProjectRelativeFolders(classpath.getSourceSets(),
             classpath.getTestSourceSets().getOrElse(emptySet()),
             input-> classpath.getProject().relativePath(input),
-            classpath.getDefaultOutputDir(), classpath.getBaseSourceOutputDir().getOrElse(new File("bin")));
+            classpath.getDefaultOutputDir(),
+            classpath.getBaseSourceOutputDir().map(dir -> classpath.getProject().relativePath(dir)).getOrElse("bin"));
 
         return collectRegularAndExternalSourceFolders(sourceFolders,
             (sourceFoldersLeft, sourceFoldersRight) -> ImmutableList.<SourceFolder>builder()
@@ -89,7 +90,7 @@ public class SourceFoldersCreator {
     }
 
     private List<SourceFolder> configureProjectRelativeFolders(Iterable<SourceSet> sourceSets, Collection<SourceSet> testSourceSets,
-                                                               Function<File, String> provideRelativePath, File defaultOutputDir, File baseSourceOutputDir) {
+                                                               Function<File, String> provideRelativePath, File defaultOutputDir, String baseSourceOutputDir) {
         String defaultOutputPath = PathUtil.normalizePath(provideRelativePath.apply(defaultOutputDir));
         ImmutableList.Builder<SourceFolder> entries = ImmutableList.<SourceFolder>builder();
         List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
@@ -212,7 +213,7 @@ public class SourceFoldersCreator {
         }
     }
 
-    private Map<SourceSet, String> collectSourceSetOutputPaths(Iterable<SourceSet> sourceSets, String defaultOutputPath, File baseSourceOutputDir) {
+    private Map<SourceSet, String> collectSourceSetOutputPaths(Iterable<SourceSet> sourceSets, String defaultOutputPath, String baseSourceOutputDir) {
         Set<String> existingPaths = Sets.newHashSet(defaultOutputPath);
         Map<SourceSet, String> result = Maps.newHashMap();
         for (SourceSet sourceSet : sourceSets) {
@@ -224,8 +225,8 @@ public class SourceFoldersCreator {
         return result;
     }
 
-    private String collectSourceSetOutputPath(String sourceSetName, Set<String> existingPaths, String suffix, File baseSourceOutputDir) {
-        String path = baseSourceOutputDir.getPath() + "/" + sourceSetName + suffix;
+    private String collectSourceSetOutputPath(String sourceSetName, Set<String> existingPaths, String suffix, String baseSourceOutputDir) {
+        String path = baseSourceOutputDir + "/" + sourceSetName + suffix;
         return existingPaths.contains(path) ? collectSourceSetOutputPath(sourceSetName, existingPaths, suffix + "_", baseSourceOutputDir) : path;
     }
 
