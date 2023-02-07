@@ -33,7 +33,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
 
 public class H2BuildCacheService implements BuildCacheService {
 
@@ -46,7 +45,8 @@ public class H2BuildCacheService implements BuildCacheService {
     private static HikariDataSource createHikariDataSource(Path dbPath, int maxPoolSize) {
         HikariConfig hikariConfig = new HikariConfig();
         // RETENTION_TIME=0 prevents uncontrolled DB growth with old pages retention
-        String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0;INIT=runscript from 'classpath:/db/migration/V001__init_schema.sql'", dbPath.resolve("filestore"));
+        // We use MODE=MySQL so we can use INSERT IGNORE
+        String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0;MODE=MySQL;INIT=runscript from 'classpath:/h2/schemas/org.gradle.caching.local.internal.H2BuildCacheService.sql'", dbPath.resolve("filestore"));
         hikariConfig.setJdbcUrl(h2JdbcUrl);
         hikariConfig.setDriverClassName(Driver.class.getName());
         hikariConfig.setUsername("sa");
@@ -96,7 +96,7 @@ public class H2BuildCacheService implements BuildCacheService {
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
         try (Connection conn = dataSource.getConnection()) {
-            try (PreparedStatement stmt = conn.prepareStatement("insert into filestore.catalog(entry_key, entry_size, entry_content) values (?, ?, ?)")) {
+            try (PreparedStatement stmt = conn.prepareStatement("insert ignore into filestore.catalog(entry_key, entry_size, entry_content) values (?, ?, ?)")) {
                 try (InputStream input = writer.openStream()) {
                     stmt.setString(1, key.getHashCode());
                     stmt.setLong(2, writer.getSize());
@@ -104,8 +104,6 @@ public class H2BuildCacheService implements BuildCacheService {
                     stmt.executeUpdate();
                 }
             }
-        } catch (SQLIntegrityConstraintViolationException e) {
-            // Ignore
         } catch (SQLException | IOException e) {
             throw new BuildCacheException("storing " + key, e);
         }

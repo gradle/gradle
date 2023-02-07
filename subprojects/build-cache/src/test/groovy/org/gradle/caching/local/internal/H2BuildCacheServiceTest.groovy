@@ -64,7 +64,7 @@ class H2BuildCacheServiceTest extends Specification {
         })
     }
 
-    def "can write to h2 service and stop the service and read from h2 with a new service"() {
+    def "can write to h2 and stop the service and read from h2 with a new service"() {
         given:
         def tmpFile = temporaryFolder.createFile("test")
         tmpFile << "Hello world"
@@ -74,6 +74,26 @@ class H2BuildCacheServiceTest extends Specification {
 
         expect:
         new H2BuildCacheService(dbDir.toPath(), 20).load(key, new BuildCacheEntryReader() {
+            @Override
+            void readFrom(InputStream input) throws IOException {
+                assert input.text == "Hello world"
+            }
+        })
+    }
+
+    def "doesn't write to h2 if the entry with the same key already exists"() {
+        given:
+        def firstFile = temporaryFolder.createFile("first")
+        firstFile << "Hello world"
+        def secondFile = temporaryFolder.createFile("second")
+        secondFile << "Hello Bob"
+
+        when:
+        service.store(key, new StoreTarget(firstFile))
+        service.store(key, new StoreTarget(secondFile))
+
+        then:
+        service.load(key, new BuildCacheEntryReader() {
             @Override
             void readFrom(InputStream input) throws IOException {
                 assert input.text == "Hello world"
