@@ -199,10 +199,12 @@ When Gradle cannot locate a configuration cache entry to use, it runs the config
 Gradle then loads immediately the saved state and runs the build based on the loaded state.
 There are some additional advantages to this new behavior:
 
-* Any problems that happen during deserialization will be reported in the cache miss build, making it easier to spot such problems.
-* Tasks have access to the same state in cache miss and cache hit builds.
-* Gradle can release all memory used by the configuration state before task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks could access it.
-* This reduces the peak memory usage for a given set of tasks.
+<div class="text-list">
+    • Any problems that happen during deserialization will be reported in the cache miss build, making it easier to spot such problems.<br>
+    • Tasks have access to the same state in cache miss and cache hit builds.<br>
+    • Gradle can release all memory used by the configuration state before task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks could access it.<br>
+    • This reduces the peak memory usage for a given set of tasks.<br>
+</div>
 
 This consistent behavior for cache miss and cache hit builds can help people migrating to use the configuration cache, as more problems can now be discovered on the first (cache miss) build.
 
@@ -264,8 +266,10 @@ For more details, see the [user manual](userguide/command_line_interface.html#se
 
 The following nodes with dependency verification metadata file `verification-metadata.xml` now support a `reason` attribute:
 
-* the `trust` xml node under `trusted-artifacts`
-* the `md5`, `sha1`, `sha256` and `sha512` nodes under `component`
+<div class="text-list">
+    • the `trust` xml node under `trusted-artifacts`<br>
+    • the `md5`, `sha1`, `sha256` and `sha512` nodes under `component`<br>
+</div>
 
 A reason is helpful to provide more details on why an artifact is trusted or why a selected checksum verification is required for an artifact directly in the `verification-metadata.xml`.
 
