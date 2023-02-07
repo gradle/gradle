@@ -191,16 +191,18 @@ The [configuration cache](userguide/configuration_cache.html) improves build tim
 Configuration cache now enables more fine-grained parallelism than using the [parallel execution](userguide/multi_project_configuration_and_execution.html#sec:parallel_execution).
 Starting in Gradle 8.0, tasks run in parallel from the first build when using the configuration cache.
 
+#### Improved configuration cache can run all tasks in parallel since they have been isolated 
+
 When the [configuration cache](userguide/configuration_cache.html) is enabled and Gradle can locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the cache entry and runs them in isolation.
 
 When Gradle cannot locate a configuration cache entry to use, it runs the configuration phase to calculate the set of tasks to run and then stores these tasks in a new cache entry.
 Gradle then loads immediately the saved state and runs the build based on the loaded state.
 There are some additional advantages to this new behavior:
 
-- Any problems that happen during deserialization will be reported in the cache miss build, making it easier to spot such problems.
-- Tasks have access to the same state in cache miss and cache hit builds.
-- Gradle can release all memory used by the configuration state before task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks could access it.
-- This reduces the peak memory usage for a given set of tasks.
+* Any problems that happen during deserialization will be reported in the cache miss build, making it easier to spot such problems.
+* Tasks have access to the same state in cache miss and cache hit builds.
+* Gradle can release all memory used by the configuration state before task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks could access it.
+* This reduces the peak memory usage for a given set of tasks.
 
 This consistent behavior for cache miss and cache hit builds can help people migrating to use the configuration cache, as more problems can now be discovered on the first (cache miss) build.
 
@@ -262,8 +264,8 @@ For more details, see the [user manual](userguide/command_line_interface.html#se
 
 The following nodes with dependency verification metadata file `verification-metadata.xml` now support a `reason` attribute:
 
-- the `trust` xml node under `trusted-artifacts`
-- the `md5`, `sha1`, `sha256` and `sha512` nodes under `component`
+* the `trust` xml node under `trusted-artifacts`
+* the `md5`, `sha1`, `sha256` and `sha512` nodes under `component`
 
 A reason is helpful to provide more details on why an artifact is trusted or why a selected checksum verification is required for an artifact directly in the `verification-metadata.xml`.
 
