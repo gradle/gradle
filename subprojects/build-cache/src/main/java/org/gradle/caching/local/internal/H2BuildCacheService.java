@@ -46,7 +46,7 @@ public class H2BuildCacheService implements BuildCacheService {
         HikariConfig hikariConfig = new HikariConfig();
         // RETENTION_TIME=0 prevents uncontrolled DB growth with old pages retention
         // We use MODE=MySQL so we can use INSERT IGNORE
-        String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0;MODE=MySQL;INIT=runscript from 'classpath:/db/migration/V001__init_schema.sql'", dbPath.resolve("filestore"));
+        String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0;MODE=MySQL;INIT=runscript from 'classpath:/h2/schemas/org.gradle.caching.local.internal.H2BuildCacheService.sql'", dbPath.resolve("filestore"));
         hikariConfig.setJdbcUrl(h2JdbcUrl);
         hikariConfig.setDriverClassName(Driver.class.getName());
         hikariConfig.setUsername("sa");
