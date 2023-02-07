@@ -16,6 +16,7 @@
 
 package org.gradle.caching.local.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.gradle.caching.BuildCacheEntryReader;
@@ -23,6 +24,8 @@ import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
+import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Time;
 import org.h2.Driver;
 
 import java.io.IOException;
@@ -37,9 +40,16 @@ import java.sql.SQLException;
 public class H2BuildCacheService implements BuildCacheService {
 
     private final HikariDataSource dataSource;
+    private final Clock clock;
 
     public H2BuildCacheService(Path dbPath, int maxPoolSize) {
+        this(dbPath, maxPoolSize, Time.clock());
+    }
+
+    @VisibleForTesting
+    H2BuildCacheService(Path dbPath, int maxPoolSize, Clock clock) {
         this.dataSource = createHikariDataSource(dbPath, maxPoolSize);
+        this.clock = clock;
     }
 
     private static HikariDataSource createHikariDataSource(Path dbPath, int maxPoolSize) {
@@ -83,6 +93,7 @@ public class H2BuildCacheService implements BuildCacheService {
                         try (InputStream binaryStream = content.getBinaryStream()) {
                             reader.readFrom(binaryStream);
                         }
+                        updateLastAccess(conn, key);
                         return true;
                     }
                     return false;
@@ -93,20 +104,36 @@ public class H2BuildCacheService implements BuildCacheService {
         }
     }
 
+    private void updateLastAccess(Connection conn, BuildCacheKey key) throws BuildCacheException {
+        try (PreparedStatement stmt = conn.prepareStatement("update filestore.catalog set entry_last_access = ? where entry_key = ?")) {
+            stmt.setLong(1, clock.getCurrentTime());
+            stmt.setString(2, key.getHashCode());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new BuildCacheException("loading " + key, e);
+        }
+    }
+
     @Override
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
         try (Connection conn = dataSource.getConnection()) {
-            try (PreparedStatement stmt = conn.prepareStatement("insert ignore into filestore.catalog(entry_key, entry_size, entry_content) values (?, ?, ?)")) {
+            try (PreparedStatement stmt = conn.prepareStatement("insert ignore into filestore.catalog(entry_key, entry_size, entry_content, entry_last_access) values (?, ?, ?, ?)")) {
                 try (InputStream input = writer.openStream()) {
                     stmt.setString(1, key.getHashCode());
                     stmt.setLong(2, writer.getSize());
                     stmt.setBinaryStream(3, input);
+                    stmt.setLong(4, clock.getCurrentTime());
                     stmt.executeUpdate();
                 }
             }
         } catch (SQLException | IOException e) {
             throw new BuildCacheException("storing " + key, e);
         }
+    }
+
+    @VisibleForTesting
+    HikariDataSource getDataSource() {
+        return dataSource;
     }
 
     @Override

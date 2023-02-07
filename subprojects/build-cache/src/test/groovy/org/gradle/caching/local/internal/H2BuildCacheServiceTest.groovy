@@ -16,12 +16,18 @@
 
 package org.gradle.caching.local.internal
 
+import com.zaxxer.hikari.HikariDataSource
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.controller.service.StoreTarget
+import org.gradle.internal.time.MockClock
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+
+import java.sql.Connection
+import java.sql.PreparedStatement
+import java.sql.ResultSet
 
 class H2BuildCacheServiceTest extends Specification {
 
@@ -99,5 +105,44 @@ class H2BuildCacheServiceTest extends Specification {
                 assert input.text == "Hello world"
             }
         })
+    }
+
+    def "updates last access timestamp on read"() {
+        given:
+        def tmpFile = temporaryFolder.createFile("test")
+        tmpFile << "Hello world"
+        def mockClock = new MockClock(0)
+        def service = new H2BuildCacheService(dbDir.toPath(), 20, mockClock)
+        def dataSource = service.dataSource
+
+        when:
+        service.store(key, new StoreTarget(tmpFile))
+        def afterStoreTimestamp = readTimestamp(dataSource, key)
+        service.load(key, new BuildCacheEntryReader() {
+            @Override
+            void readFrom(InputStream input) throws IOException {
+                assert input.text == "Hello world"
+            }
+        })
+        def afterLoadTimestamp = readTimestamp(dataSource, key)
+
+        then:
+        afterStoreTimestamp == 10
+        afterLoadTimestamp == 20
+    }
+
+    private long readTimestamp(HikariDataSource dataSource, BuildCacheKey key) {
+        try (Connection conn = dataSource.getConnection()) {
+            try (PreparedStatement stmt = conn.prepareStatement("select entry_last_access from filestore.catalog where entry_key = ?")) {
+                stmt.setString(1, key.getHashCode());
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getLong(1);
+                    } else {
+                        return -1
+                    }
+                }
+            }
+        }
     }
 }
