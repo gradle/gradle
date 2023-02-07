@@ -40,11 +40,6 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
-==== Eclipse Plugin
-
-* The Eclipse Plugin default output folder is now `bin` instead of `bin/default`.
-Previously the default output folder didn't configure the output folder for the different source sets, now it does.
-
 === Deprecations
 
 [[custom_configuration_roles]]
