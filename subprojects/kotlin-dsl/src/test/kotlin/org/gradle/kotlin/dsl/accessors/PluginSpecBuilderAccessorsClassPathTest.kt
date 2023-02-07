@@ -50,7 +50,7 @@ import java.io.File
 import java.util.zip.ZipException
 
 
-class PluginAccessorsClassPathTest : TestWithClassPath() {
+class PluginSpecBuilderAccessorsClassPathTest : TestWithClassPath() {
 
     @Test
     fun `exception caused by empty jar carries file information`() {
@@ -76,7 +76,7 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
     }
 
     @Test
-    fun `#buildPluginAccessorsFor`() {
+    fun `#buildPluginDependencySpecAccessorsFor`() {
 
         // given:
         val pluginsJar = jarWithPluginDescriptors(
@@ -90,7 +90,7 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
 
         // when:
         withSynchronousIO {
-            buildPluginAccessorsFor(
+            buildPluginDependencySpecAccessorsFor(
                 pluginDescriptorsClassPath = classPathOf(pluginsJar),
                 srcDir = srcDir,
                 binDir = binDir
@@ -98,7 +98,7 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
         }
 
         // then:
-        val generatedAccessors = String(srcDir.resolve("org/gradle/kotlin/dsl/PluginAccessors.kt").readBytes())
+        val generatedAccessors = String(srcDir.resolve("org/gradle/kotlin/dsl/PluginDependencySpecAccessors.kt").readBytes())
         assertThat(
             generatedAccessors,
             allOf(
@@ -147,7 +147,7 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
 
         // and:
         classLoaderFor(binDir).useToRun {
-            val className = "org.gradle.kotlin.dsl.PluginAccessorsKt"
+            val className = "org.gradle.kotlin.dsl.PluginDependencySpecAccessorsKt"
             val accessorsClass = loadClass(className)
             assertThat(
                 accessorsClass.declaredMethods.map { it.name },
