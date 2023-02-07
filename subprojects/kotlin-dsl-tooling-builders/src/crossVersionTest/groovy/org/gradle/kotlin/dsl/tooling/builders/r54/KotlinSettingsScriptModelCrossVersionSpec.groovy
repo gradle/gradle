@@ -26,6 +26,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 @Ignore("seems to be broken")
 @TargetGradleVersion(">=5.4")
+@Ignore("It's so flaky that it causes failures on release6x")
 class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "can fetch classpath of settings script"() {

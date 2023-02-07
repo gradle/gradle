@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.not
 
 @Ignore("seems to be broken")
 @TargetGradleVersion(">=7.5")
+@Ignore("It's so flaky that it causes failures on release6x")
 class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     @LeaksFileHandles("Kotlin compiler daemon on buildSrc jar")
