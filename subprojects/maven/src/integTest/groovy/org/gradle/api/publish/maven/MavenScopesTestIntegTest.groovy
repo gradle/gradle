@@ -35,7 +35,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
             configurations {
                 custom {
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
                     }
                 }
             }
@@ -96,7 +96,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
             configurations {
                 custom {
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
                     }
                 }
             }
@@ -161,7 +161,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
             configurations {
                 custom {
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
                     }
                 }
             }
@@ -226,7 +226,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
             configurations {
                 custom {
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
                     }
                 }
             }
@@ -295,7 +295,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
             configurations {
                 custom {
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
                     }
                 }
             }
@@ -357,7 +357,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
             configurations {
                 custom {
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
                     }
                 }
             }
