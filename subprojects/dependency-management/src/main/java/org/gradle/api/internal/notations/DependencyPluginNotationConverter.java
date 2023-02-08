@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
+import org.gradle.api.internal.dependencies.PluginDependencyMarkerCoordinates;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
@@ -41,7 +42,7 @@ public class DependencyPluginNotationConverter implements NotationConverter<Plug
 
     @Override
     public void convert(PluginDependency notation, NotationConvertResult<? super MinimalExternalModuleDependency> result) throws TypeConversionException {
-        ModuleIdentifier module = DefaultModuleIdentifier.newId(notation.getPluginId(), notation.getPluginId() + ".gradle.plugin");
+        ModuleIdentifier module = DefaultModuleIdentifier.newId(notation.getPluginId(), PluginDependencyMarkerCoordinates.pluginName(notation.getPluginId()));
         MutableVersionConstraint version = new DefaultMutableVersionConstraint(notation.getVersion());
         MinimalExternalModuleDependency minimalDependency = new DefaultMinimalDependency(module, version);
 

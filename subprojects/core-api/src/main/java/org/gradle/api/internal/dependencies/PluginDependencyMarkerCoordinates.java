@@ -33,7 +33,11 @@ public class PluginDependencyMarkerCoordinates {
     }
 
     public static String pluginNotation(String id, @Nullable String version) {
-        String notation = id + ":" + id + ".gradle.plugin";
+        String notation = id + ":" + pluginName(id);
         return version == null ? notation : notation + ":" + version;
+    }
+
+    public static String pluginName(String id) {
+        return id + ".gradle.plugin";
     }
 }
