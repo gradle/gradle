@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import groovy.util.Node;
 import groovy.util.NodeList;
 import org.gradle.internal.xml.XmlTransformer;
@@ -28,8 +27,12 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Represents the customizable elements of an eclipse classpath file. (via XML hooks everything is customizable).
@@ -85,15 +88,39 @@ public class Classpath extends XmlPersistableConfigurationObject {
     }
 
     @SuppressWarnings({"unchecked"}) // TODO: Change this signature once we can break compatibility
-    public Object configure(List newEntries) {
-        Set<ClasspathEntry> updatedEntries = Sets.newLinkedHashSet();
-        for (ClasspathEntry entry : entries) {
-            if (!isDependency(entry) && !isJreContainer(entry) && !isOutputLocation(entry)) {
-                updatedEntries.add(entry);
-            }
-        }
-        updatedEntries.addAll(newEntries);
+    public Object configure(List<?> newEntries) {
+        List<SourceFolder> newSourceFolders = newEntries.stream()
+            .filter(SourceFolder.class::isInstance)
+            .map(SourceFolder.class::cast)
+            .collect(toList());
+
+        Set<ClasspathEntry> updatedEntries = entries.stream()
+            .filter(entry -> shouldKeepEntry(newSourceFolders, entry))
+            .collect(toCollection(LinkedHashSet::new));
+
+        updatedEntries.addAll((List<ClasspathEntry>)newEntries); //merge new and old entries with matching path entries
         return entries = Lists.newArrayList(updatedEntries);
+    }
+
+    private boolean shouldKeepEntry(List<SourceFolder> newEntries, ClasspathEntry entry) {
+        return !isDependency(entry)
+            && !isJreContainer(entry)
+            && !isOutputLocation(entry)
+            && !isExistingEntryDuplicate(newEntries, entry);
+    }
+
+    private static boolean isExistingEntryDuplicate(List<SourceFolder> newSourceFolders, ClasspathEntry existingEntry) {
+        if (!(existingEntry instanceof SourceFolder)) {
+            return false;
+        }
+
+        SourceFolder sourceFolder = (SourceFolder) existingEntry;
+        return newSourceFolders.stream().anyMatch(newSourceFolder -> {
+            return Objects.equal(sourceFolder.getKind(), newSourceFolder.getKind())
+                && Objects.equal(sourceFolder.getPath(), newSourceFolder.getPath())
+                && Objects.equal(sourceFolder.getExcludes(), newSourceFolder.getExcludes())
+                && Objects.equal(sourceFolder.getIncludes(), newSourceFolder.getIncludes());
+        });
     }
 
     @Override
