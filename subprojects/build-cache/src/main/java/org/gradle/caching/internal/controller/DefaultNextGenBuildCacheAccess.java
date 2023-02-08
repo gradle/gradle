@@ -171,10 +171,15 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             }
 
             LOGGER.warn("Storing {} in remote", key);
-            boolean stored = local.load(key, input -> {
-                // TODO Pass size here so we don't need to copy data to memory first
+            // TODO Use a buffer fit for large files
+            @SuppressWarnings("resource")
                 UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
-                IOUtils.copyLarge(input, data, bufferProvider.getBuffer());
+            boolean foundLocally = local.load(key, input -> IOUtils.copyLarge(input, data, bufferProvider.getBuffer()));
+            // TODO Handle this better? Do we need to hadnle it at all?
+            if (!foundLocally) {
+                throw new IllegalStateException("Couldn't store " + key + " in remote cache because it was missing from local cache");
+            }
+
                 remote.store(key, new BuildCacheEntryWriter() {
                     @Override
                     public InputStream openStream() {
@@ -186,12 +191,6 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                         return data.size();
                     }
                 });
-            });
-
-            // TODO Handle this better? Do we need to hadnle it at all?
-            if (!stored) {
-                throw new IllegalStateException("Couldn't store " + key + " in remote cache because it was missing from local cache");
-            }
         }
     }
 }
