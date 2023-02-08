@@ -59,7 +59,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         this.remote = remote;
         this.bufferProvider = bufferProvider;
         // TODO Configure this properly
-        this.remoteProcessor = executorFactory.createThreadPool("Build cache access", 16, 256, 10, TimeUnit.SECONDS);
+        this.remoteProcessor = executorFactory.createThreadPool("Build cache access", 256, 256, 10, TimeUnit.SECONDS);
         this.counter = new ConcurrencyCounter(remoteProcessor);
     }
 
