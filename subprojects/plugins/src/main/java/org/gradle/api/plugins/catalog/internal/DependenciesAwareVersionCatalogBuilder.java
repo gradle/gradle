@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.catalog.DefaultVersionCatalog;
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder;
+import org.gradle.api.internal.dependencies.DependencyHelper;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -114,7 +115,7 @@ public class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalo
     private static void copyDependencyVersion(Dependency dependency, String group, String name, MutableVersionConstraint v) {
         if (dependency instanceof ExternalModuleDependency) {
             VersionConstraint vc = ((ExternalModuleDependency) dependency).getVersionConstraint();
-            copyConstraint(vc, v);
+            DependencyHelper.copyVersionConstraint(vc, v);
         } else {
             String version = dependency.getVersion();
             if (version == null || version.isEmpty()) {
@@ -132,28 +133,13 @@ public class DependenciesAwareVersionCatalogBuilder extends DefaultVersionCatalo
             if (seen.add(id)) {
                 String alias = explicitAliases.get(id);
                 if (alias != null) {
-                    library(alias, group, name).version(into -> copyConstraint(constraint.getVersionConstraint(), into));
+                    library(alias, group, name).version(into -> DependencyHelper.copyVersionConstraint(constraint.getVersionConstraint(), into));
                 } else {
-                    tryGenericAlias(group, name, into -> copyConstraint(constraint.getVersionConstraint(), into));
+                    tryGenericAlias(group, name, into -> DependencyHelper.copyVersionConstraint(constraint.getVersionConstraint(), into));
                 }
             } else {
                 LOGGER.warn("Duplicate entry for constraint " + group + ":" + name);
             }
-        }
-    }
-
-    private static void copyConstraint(VersionConstraint from, MutableVersionConstraint into) {
-        if (!from.getRequiredVersion().isEmpty()) {
-            into.require(from.getRequiredVersion());
-        }
-        if (!from.getStrictVersion().isEmpty()) {
-            into.strictly(from.getStrictVersion());
-        }
-        if (!from.getPreferredVersion().isEmpty()) {
-            into.prefer(from.getPreferredVersion());
-        }
-        if (!from.getRejectedVersions().isEmpty()) {
-            into.reject(from.getRejectedVersions().toArray(new String[0]));
         }
     }
 
