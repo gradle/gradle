@@ -239,7 +239,7 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultWriteContext.writeBuildState(build: BuildToStore, buildTreeState: StoredBuildTreeState, rootBuild: VintageGradleBuild) {
         val state = build.build.state
-        if (!build.hasWork && !build.hasChildren) {
+        if (!build.hasWork && !build.hasChildren && !buildTreeState.hasBuildServicesFor(build.id)) {
             writeEnum(BuildType.BuildWithNoWork)
             writeBuildWithNoWork(state, rootBuild)
         } else if (state is RootBuildState) {
@@ -799,7 +799,9 @@ class ConfigurationCacheState(
 internal
 class StoredBuildTreeState(
     val requiredBuildServicesPerBuild: Map<BuildIdentifier, List<BuildServiceProvider<*, *>>>
-)
+) {
+    fun hasBuildServicesFor(id: BuildIdentifier) = requiredBuildServicesPerBuild.containsKey(id)
+}
 
 
 internal

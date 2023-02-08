@@ -58,6 +58,9 @@ data class BuildToStore(
     // Does this build have a child build with work scheduled?
     val hasChildren: Boolean
 ) {
+    val id
+        get() = build.state.buildIdentifier!!
+
     fun hasChildren() = BuildToStore(build, hasWork, true)
 }
 
