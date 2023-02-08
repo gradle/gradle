@@ -897,7 +897,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
         if (dependenciesResolverFactory == null) {
-            dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
+            dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(getIdentity(), new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
                 (attributes, filter) -> {
                     ImmutableAttributes fullAttributes = attributesFactory.concat(configurationAttributes.asImmutable(), attributes);
                     return new ResolutionBackedFileCollection(
@@ -1619,11 +1619,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private class DefaultResolutionResultProvider implements ResolutionResultProvider<ResolutionResult> {
 
         @Override
-        public ConfigurationIdentity getConfigurationIdentity() {
-            return DefaultConfiguration.this.getIdentity();
-        }
-
-        @Override
         public ResolutionResult getTaskDependencyValue() {
             return getResultsForBuildDependencies().getResolutionResult();
         }
@@ -1636,10 +1631,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private class VisitedArtifactsSetProvider implements ResolutionResultProvider<VisitedArtifactSet> {
 
-        @Override
-        public ConfigurationIdentity getConfigurationIdentity() {
-            return DefaultConfiguration.this.getIdentity();
-        }
         @Override
         public VisitedArtifactSet getTaskDependencyValue() {
             assertIsResolvable();

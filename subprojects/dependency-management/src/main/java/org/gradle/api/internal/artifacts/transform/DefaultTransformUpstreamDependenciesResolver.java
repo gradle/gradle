@@ -89,6 +89,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     };
 
     private final ComponentIdentifier componentIdentifier;
+    private final ConfigurationIdentity configurationIdentity;
     private final ResolutionResultProvider<ResolutionResult> resolutionResultProvider;
     private final DomainObjectContext owner;
     private final FilteredResultFactory filteredResultFactory;
@@ -98,12 +99,14 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
     public DefaultTransformUpstreamDependenciesResolver(
         ComponentIdentifier componentIdentifier,
+        ConfigurationIdentity configurationIdentity,
         ResolutionResultProvider<ResolutionResult> resolutionResultProvider,
         DomainObjectContext owner,
         FilteredResultFactory filteredResultFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         this.componentIdentifier = componentIdentifier;
+        this.configurationIdentity = configurationIdentity;
         this.resolutionResultProvider = resolutionResultProvider;
         this.owner = owner;
         this.filteredResultFactory = filteredResultFactory;
@@ -119,7 +122,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         if (!transformationStep.requiresDependencies()) {
             return NO_DEPENDENCIES;
         }
-        ConfigurationIdentity configurationIdentity = resolutionResultProvider.getConfigurationIdentity();
         return new TransformUpstreamDependenciesImpl(configurationIdentity, transformationStep, calculatedValueContainerFactory);
     }
 
