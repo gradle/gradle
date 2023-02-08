@@ -252,6 +252,6 @@ Version catalog accessors for plugin aliases in the `plugins {}` block aren't sh
 
 If you were using the `@Suppress("DSL_SCOPE_VIOLATION")` annotation as a workaround, you can now remove it.
 
-If you were using the link:https://plugins.jetbrains.com/plugin/18949-gradle-libs-error-suppressor[Gradle Libs Error Suppressor] IntelliJ IDEA plugin, you can now remove it.
+If you were using the link:https://plugins.jetbrains.com/plugin/18949-gradle-libs-error-suppressor[Gradle Libs Error Suppressor] IntelliJ IDEA plugin, you can now uninstall it.
 
 Also see <<upgrading_version_8.adoc#kotlin_dsl_deprecated_catalogs_plugins_block, the deprecated usages of version catalogs in the Kotlin DSL `plugins {}` block>> above.
