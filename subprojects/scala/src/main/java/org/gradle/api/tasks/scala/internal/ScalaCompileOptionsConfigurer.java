@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.scala.internal;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
@@ -24,7 +23,6 @@ import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -69,17 +67,12 @@ public class ScalaCompileOptionsConfigurer {
             return;
         }
 
-        List<String> additionalParameters = scalaCompileOptions.getAdditionalParameters();
-        if (additionalParameters != null && hasTargetDefiningParameter(additionalParameters)) {
+        if (hasTargetDefiningParameter(scalaCompileOptions.getAdditionalParameters())) {
             return;
         }
 
         String targetParameter = determineTargetParameter(scalaVersion, (JavaToolchain) toolchain);
-        if (additionalParameters == null) {
-            scalaCompileOptions.setAdditionalParameters(Collections.singletonList(targetParameter));
-        } else {
-            scalaCompileOptions.setAdditionalParameters(new ImmutableList.Builder<String>().addAll(additionalParameters).add(targetParameter).build());
-        }
+        scalaCompileOptions.getAdditionalParameters().add(targetParameter);
     }
 
     private static boolean hasTargetDefiningParameter(List<String> additionalParameters) {

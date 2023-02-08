@@ -30,4 +30,4 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true

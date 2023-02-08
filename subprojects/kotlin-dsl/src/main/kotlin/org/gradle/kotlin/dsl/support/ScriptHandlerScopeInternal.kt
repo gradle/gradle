@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.kotlin.dsl.ScriptHandlerScope
+import org.gradle.api.internal.catalog.ExternalModuleDependencyFactory
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.kotlin.dsl.*
 
 
 internal
-inline fun ScriptHandler.configureWith(block: ScriptHandlerScope.() -> Unit) {
-    ScriptHandlerScope.of(this).block()
+class ScriptHandlerScopeInternal(
+    private val scriptTarget: ExtensionAware,
+    scriptHandler: ScriptHandler,
+) : ScriptHandlerScope(scriptHandler) {
+
+    /**
+     * Used by version catalog accessors in project scripts plugins {} block.
+     */
+    @Suppress("UNUSED")
+    fun versionCatalogExtension(name: String): ExternalModuleDependencyFactory =
+        scriptTarget.extensions[name] as ExternalModuleDependencyFactory
 }

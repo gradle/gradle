@@ -22,13 +22,13 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class PluginAccessorsTest {
+class PluginDependencySpecAccessorsTest {
 
     @Test
-    fun `#pluginAccessorsFor`() {
+    fun `#pluginDependencySpecAccessorsFor`() {
 
         assertThat(
-            pluginAccessorsFor(
+            pluginDependencySpecAccessorsFor(
                 linkedMapOf(
                     "my-plugin" to PluginTree.PluginSpec(
                         "my-plugin", "my.Plugin"
@@ -43,7 +43,7 @@ class PluginAccessorsTest {
             ).toList(),
             equalTo(
                 listOf(
-                    PluginAccessor.ForPlugin(
+                    PluginDependencySpecAccessor.ForPlugin(
                         "my-plugin",
                         "my.Plugin",
                         ExtensionSpec(
@@ -52,7 +52,7 @@ class PluginAccessorsTest {
                             pluginDependencySpecTypeSpec
                         )
                     ),
-                    PluginAccessor.ForGroup(
+                    PluginDependencySpecAccessor.ForGroup(
                         "my",
                         ExtensionSpec(
                             "my",
@@ -60,7 +60,7 @@ class PluginAccessorsTest {
                             typeSpecForPluginGroupType("MyPluginGroup")
                         )
                     ),
-                    PluginAccessor.ForPlugin(
+                    PluginDependencySpecAccessor.ForPlugin(
                         "my.plugin-a",
                         "my.PluginA",
                         ExtensionSpec(

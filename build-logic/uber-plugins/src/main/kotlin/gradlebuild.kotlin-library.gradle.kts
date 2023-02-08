@@ -34,6 +34,20 @@ configurations.transitiveSourcesElements {
     }
 }
 
+kotlin {
+    target.compilations.named("testFixtures") {
+        associateWith(target.compilations["main"])
+    }
+    target.compilations.named("test") {
+        associateWith(target.compilations["main"])
+        associateWith(target.compilations["testFixtures"])
+    }
+    target.compilations.named("integTest") {
+        associateWith(target.compilations["main"])
+        associateWith(target.compilations["testFixtures"])
+    }
+}
+
 tasks {
     withType<KotlinCompile>().configureEach {
         configureKotlinCompilerForGradleBuild()
@@ -62,10 +76,10 @@ tasks {
 
 fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
     compilerOptions {
-        allWarningsAsErrors.set(true)
-        apiVersion.set(KotlinVersion.KOTLIN_1_8)
-        languageVersion.set(KotlinVersion.KOTLIN_1_8)
-        jvmTarget.set(JvmTarget.JVM_1_8)
+        allWarningsAsErrors = true
+        apiVersion = KotlinVersion.KOTLIN_1_8
+        languageVersion = KotlinVersion.KOTLIN_1_8
+        jvmTarget = JvmTarget.JVM_1_8
         freeCompilerArgs.addAll(
             "-Xjsr305=strict",
             "-java-parameters",

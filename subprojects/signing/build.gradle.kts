@@ -42,4 +42,4 @@ packageCycles {
     excludePatterns.add("org/gradle/plugins/signing/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true

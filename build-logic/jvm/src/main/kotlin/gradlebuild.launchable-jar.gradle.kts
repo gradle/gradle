@@ -44,7 +44,7 @@ tasks.jar.configure {
 
 
 val startScripts = tasks.register<GradleStartScriptGenerator>("startScripts") {
-    startScriptsDir.set(layout.buildDirectory.dir("startScripts"))
+    startScriptsDir = layout.buildDirectory.dir("startScripts")
     launcherJar.from(tasks.jar)
     // The trick below is to use the templates from the current code instead of the wrapper. It does not cover the case where the generation logic is updated though.
     unixScriptTemplate.from(layout.projectDirectory.file("../plugins/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt"))

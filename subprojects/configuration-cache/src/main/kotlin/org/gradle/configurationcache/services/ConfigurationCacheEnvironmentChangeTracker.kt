@@ -18,8 +18,7 @@ package org.gradle.configurationcache.services
 
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.internal.service.scopes.Scopes
-import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.initialization.EnvironmentChangeTracker
 import java.util.concurrent.ConcurrentHashMap
 
 
@@ -33,19 +32,31 @@ import java.util.concurrent.ConcurrentHashMap
  * Mode selection happens upon the first use of the class. Calling an operation that isn't supported in the current
  * mode results in the IllegalStateException.
  */
-@ServiceScope(Scopes.BuildTree::class)
+
 internal
-class EnvironmentChangeTracker(private val problemFactory: ProblemFactory) {
+class ConfigurationCacheEnvironmentChangeTracker(private val problemFactory: ProblemFactory) : EnvironmentChangeTracker {
     private
     val mode = ModeHolder()
 
+    override fun systemPropertyChanged(key: Any, value: Any?, consumer: String?) =
+        mode.toTrackingMode().systemPropertyChanged(key, value, consumer)
+
+    override fun systemPropertyLoaded(key: Any, value: Any?, oldValue: Any?) {
+        mode.toTrackingMode().systemPropertyLoaded(key, value, oldValue)
+    }
+
+    override fun systemPropertyOverridden(key: Any) =
+        mode.toTrackingMode().systemPropertyOverridden(key)
+
     fun isSystemPropertyMutated(key: String) = mode.toTrackingMode().isSystemPropertyMutated(key)
+
+    fun isSystemPropertyLoaded(key: String) = mode.toTrackingMode().isSystemPropertyLoaded(key)
+
+    fun getLoadedPropertyOldValue(key: String) = mode.toTrackingMode().getLoadedPropertyOldValue(key)
 
     fun loadFrom(storedState: CachedEnvironmentState) = mode.toRestoringMode().loadFrom(storedState)
 
     fun getCachedState() = mode.toTrackingMode().getCachedState()
-
-    fun systemPropertyChanged(key: Any, value: Any?, consumer: String) = mode.toTrackingMode().systemPropertyChanged(key, value, consumer)
 
     fun systemPropertyRemoved(key: Any) = mode.toTrackingMode().systemPropertyRemoved(key)
 
@@ -84,7 +95,7 @@ class EnvironmentChangeTracker(private val problemFactory: ProblemFactory) {
         }
 
         override fun toRestoring(): Restoring {
-            return Restoring()
+            return Restoring(emptySet())
         }
     }
 
@@ -102,11 +113,23 @@ class EnvironmentChangeTracker(private val problemFactory: ProblemFactory) {
         }
 
         override fun toRestoring(): Restoring {
-            return Restoring()
+            // Restoration must consider properties that was overridden after store.
+            // When property was loaded and stored then loaded value will be presented for execution time after restore.
+            // This is a wrong behavior if property was overridden. Execution time must see overridden value instead of restored one.
+            // Overridden properties keys are passed to be excluded from the restoration process.
+            return Restoring(mutatedSystemProperties.filterValues { it is SystemPropertyOverride }.keys)
         }
 
         fun isSystemPropertyMutated(key: String): Boolean {
-            return systemPropertiesCleared || mutatedSystemProperties.containsKey(key)
+            return systemPropertiesCleared || mutatedSystemProperties[key] is SystemPropertyMutate
+        }
+
+        fun isSystemPropertyLoaded(key: String): Boolean {
+            return mutatedSystemProperties[key] is SystemPropertyLoad
+        }
+
+        fun getLoadedPropertyOldValue(key: String): Any? {
+            return (mutatedSystemProperties[key] as? SystemPropertyLoad)?.oldValue
         }
 
         fun getCachedState(): CachedEnvironmentState {
@@ -117,8 +140,21 @@ class EnvironmentChangeTracker(private val problemFactory: ProblemFactory) {
             )
         }
 
-        fun systemPropertyChanged(key: Any, value: Any?, consumer: String) {
-            mutatedSystemProperties[key] = SystemPropertySet(key, value, problemFactory.locationForCaller(consumer))
+        fun systemPropertyOverridden(key: Any) {
+            mutatedSystemProperties[key] = SystemPropertyOverride
+        }
+
+        fun systemPropertyLoaded(key: Any, value: Any?, oldValue: Any?) {
+            val loadedOldValue = when (val loadedSystemProperty = mutatedSystemProperties[key]) {
+                is SystemPropertyLoad -> loadedSystemProperty.oldValue
+                else -> oldValue
+            }
+
+            mutatedSystemProperties[key] = SystemPropertyLoad(key, value, loadedOldValue)
+        }
+
+        fun systemPropertyChanged(key: Any, value: Any?, consumer: String?) {
+            mutatedSystemProperties[key] = SystemPropertyMutate(key, value, problemFactory.locationForCaller(consumer))
         }
 
         fun systemPropertyRemoved(key: Any) {
@@ -142,7 +178,7 @@ class EnvironmentChangeTracker(private val problemFactory: ProblemFactory) {
     }
 
     private
-    class Restoring : TrackerMode {
+    class Restoring(private val overriddenSystemProperties: Set<Any>) : TrackerMode {
         override fun toTracking(): Tracking {
             throw IllegalStateException("Cannot track state because it was restored")
         }
@@ -156,9 +192,16 @@ class EnvironmentChangeTracker(private val problemFactory: ProblemFactory) {
                 System.getProperties().clear()
             }
 
-            storedState.updates.forEach { update ->
-                System.getProperties()[update.key] = update.value
-            }
+            storedState.updates
+                .filter { update ->
+                    // Only loaded properties can be overridden.
+                    // Mutated properties are taking precedence over overridden because the
+                    // first ones defined in build logic, hence we want to restore it.
+                    update !is SystemPropertyLoad || !overriddenSystemProperties.contains(update.key)
+                }
+                .forEach { update ->
+                    System.getProperties()[update.key] = update.value
+                }
 
             storedState.removals.forEach { removal ->
                 System.clearProperty(removal.key)
@@ -170,7 +213,14 @@ class EnvironmentChangeTracker(private val problemFactory: ProblemFactory) {
 
     sealed class SystemPropertyChange
 
-    class SystemPropertySet(val key: Any, val value: Any?, val location: PropertyTrace) : SystemPropertyChange()
+    sealed class SystemPropertySet(val key: Any, val value: Any?, val location: PropertyTrace) : SystemPropertyChange()
+
+    class SystemPropertyMutate(key: Any, value: Any?, location: PropertyTrace) : SystemPropertySet(key, value, location)
+
+    class SystemPropertyLoad(key: Any, value: Any?, val oldValue: Any?) : SystemPropertySet(key, value, PropertyTrace.Unknown)
+
+    object SystemPropertyOverride : SystemPropertyChange()
+
     class SystemPropertyRemove(val key: String) : SystemPropertyChange()
 
     /**

@@ -50,6 +50,17 @@ import kotlin.script.templates.ScriptTemplateDefinition
 
 
 /**
+ * Base script template for compilation of `plugins {}` blocks extracted from precompiled scripts.
+ */
+open class PrecompiledPluginsBlock(private val pluginDependencies: PluginDependenciesSpec) {
+
+    fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
+        PluginDependenciesSpecScope(pluginDependencies).configuration()
+    }
+}
+
+
+/**
  * Script template definition for precompiled Kotlin script targeting [Gradle] instances.
  *
  * @see PrecompiledProjectScript
@@ -88,9 +99,9 @@ open class PrecompiledSettingsScript(
      * @see [PluginDependenciesSpec]
      */
     @Suppress("unused")
-    fun plugins(block: PluginDependenciesSpec.() -> Unit) {
+    fun plugins(block: PluginDependenciesSpecScope.() -> Unit) {
         block(
-            object : PluginDependenciesSpec {
+            PluginDependenciesSpecScope(object : PluginDependenciesSpec {
                 override fun id(id: String): PluginDependencySpec {
                     pluginManager.apply(id)
                     return NullPluginDependencySpec
@@ -104,7 +115,7 @@ open class PrecompiledSettingsScript(
                 override fun alias(notation: ProviderConvertible<PluginDependency>): PluginDependencySpec {
                     return alias(notation.asProvider())
                 }
-            }
+            })
         )
     }
 }
@@ -157,9 +168,9 @@ open class PrecompiledProjectScript(
      * @see [PluginDependenciesSpec]
      */
     @Suppress("unused")
-    fun plugins(block: PluginDependenciesSpec.() -> Unit) {
+    fun plugins(block: PluginDependenciesSpecScope.() -> Unit) {
         block(
-            object : PluginDependenciesSpec {
+            PluginDependenciesSpecScope(object : PluginDependenciesSpec {
                 override fun id(id: String): PluginDependencySpec {
                     pluginManager.apply(id)
                     return NullPluginDependencySpec
@@ -173,7 +184,7 @@ open class PrecompiledProjectScript(
                 override fun alias(notation: ProviderConvertible<PluginDependency>): PluginDependencySpec {
                     return alias(notation.asProvider())
                 }
-            }
+            })
         )
     }
 }
