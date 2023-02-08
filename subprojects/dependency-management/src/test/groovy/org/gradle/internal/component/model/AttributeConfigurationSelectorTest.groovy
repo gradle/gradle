@@ -18,6 +18,7 @@ package org.gradle.internal.component.model
 
 import com.google.common.base.Optional
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.Lists
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
@@ -28,9 +29,9 @@ import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.util.SnapshotTestUtil
@@ -489,9 +490,7 @@ All of them match the consumer attributes:
         Stub(ModuleConfigurationMetadata) {
             getName() >> name
             getAttributes() >> attributes
-            getCapabilities() >> Mock(CapabilitiesMetadataInternal) {
-                getCapabilities() >> ImmutableList.copyOf(capabilities)
-            }
+            getCapabilities() >> ImmutableCapabilities.of(Lists.newArrayList(capabilities));
         }
     }
 
