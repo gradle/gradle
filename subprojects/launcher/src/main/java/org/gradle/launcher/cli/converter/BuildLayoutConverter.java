@@ -24,6 +24,7 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.BuildLayoutParametersBuildOptions;
 import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 
@@ -87,10 +88,14 @@ public class BuildLayoutConverter {
             startParameter.setCurrentDir(buildLayout.getCurrentDir());
             startParameter.setGradleUserHomeDir(buildLayout.getGradleUserHomeDir());
             if (buildLayout.getBuildFile() != null) {
-                startParameter.setBuildFile(buildLayout.getBuildFile());
+                DeprecationLogger.whileDisabled(() ->
+                    startParameter.setBuildFile(buildLayout.getBuildFile())
+                );
             }
             if (buildLayout.getSettingsFile() != null) {
-                startParameter.setSettingsFile(buildLayout.getSettingsFile());
+                DeprecationLogger.whileDisabled(() ->
+                    startParameter.setSettingsFile(buildLayout.getSettingsFile())
+                );
             }
         }
 

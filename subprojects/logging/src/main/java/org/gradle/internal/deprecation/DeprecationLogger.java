@@ -279,6 +279,15 @@ public class DeprecationLogger {
         }
     }
 
+    public static <E extends Exception> void whileDisabledThrowing(ThrowingRunnable<E> runnable) {
+        disable();
+        try {
+            toUncheckedThrowingRunnable(runnable).run();
+        } finally {
+           maybeEnable();
+        }
+    }
+
     private static void disable() {
         DISABLE_COUNT.set(DISABLE_COUNT.get() + 1);
     }
@@ -296,6 +305,10 @@ public class DeprecationLogger {
         T create() throws E;
     }
 
+    public interface ThrowingRunnable<E extends Exception> {
+        void run() throws E;
+    }
+
     /**
      * Turns a {@link ThrowingFactory} into a {@link Factory}.
      * The compiler is happy with the casting that allows to hide the checked exception.
@@ -309,6 +322,23 @@ public class DeprecationLogger {
                 @SuppressWarnings("unchecked")
                 ThrowingFactory<T, RuntimeException> factory = (ThrowingFactory<T, RuntimeException>) throwingFactory;
                 return factory.create();
+            }
+        };
+    }
+
+    /**
+     * Turns a {@link ThrowingRunnable} into a {@link Runnable}.
+     *
+     * @see #toUncheckedThrowingFactory(ThrowingFactory)
+     */
+    private static <E extends Exception> Runnable toUncheckedThrowingRunnable(final ThrowingRunnable<E> throwingRunnable) {
+        return new Runnable() {
+            @Nullable
+            @Override
+            public void run() {
+                @SuppressWarnings("unchecked")
+                ThrowingRunnable<RuntimeException> runnable = (ThrowingRunnable<RuntimeException>) throwingRunnable;
+                runnable.run();
             }
         };
     }
