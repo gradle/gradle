@@ -222,6 +222,9 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def result = runner(false, versionNumber, ':tasks')
             .expectDeprecationWarning("The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the testResults method instead. See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.", '')
             .expectDeprecationWarning("The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.", '')
+            .deprecations(KotlinDeprecations) {
+                expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+            }
             .build()
 
         then:

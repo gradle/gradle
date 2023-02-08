@@ -54,10 +54,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class DeprecationLogger {
 
-    private static final ThreadLocal<Boolean> ENABLED = new ThreadLocal<Boolean>() {
+    /**
+     * Counts the levels of nested {@code whileDisabled} invocations.
+     */
+    private static final ThreadLocal<Integer> DISABLE_COUNT = new ThreadLocal<Integer>() {
         @Override
-        protected Boolean initialValue() {
-            return true;
+        protected Integer initialValue() {
+            return 0;
         }
     };
 
@@ -250,39 +253,52 @@ public class DeprecationLogger {
 
     @Nullable
     public static <T> T whileDisabled(Factory<T> factory) {
-        ENABLED.set(false);
+        disable();
         try {
             return factory.create();
         } finally {
-            ENABLED.set(true);
+            maybeEnable();
         }
     }
 
     public static void whileDisabled(Runnable action) {
-        ENABLED.set(false);
+        disable();
         try {
             action.run();
         } finally {
-            ENABLED.set(true);
+            maybeEnable();
         }
     }
 
     public static <T, E extends Exception> T whileDisabledThrowing(ThrowingFactory<T, E> factory) {
-        ENABLED.set(false);
+        disable();
         try {
             return toUncheckedThrowingFactory(factory).create();
         } finally {
-            ENABLED.set(true);
+            maybeEnable();
         }
     }
 
     public static <E extends Exception> void whileDisabledThrowing(ThrowingRunnable<E> runnable) {
-        ENABLED.set(false);
+        disable();
         try {
             toUncheckedThrowingRunnable(runnable).run();
         } finally {
-            ENABLED.set(true);
+           maybeEnable();
         }
+    }
+
+    private static void disable() {
+        DISABLE_COUNT.set(DISABLE_COUNT.get() + 1);
+    }
+
+    private static void maybeEnable() {
+        DISABLE_COUNT.set(DISABLE_COUNT.get() - 1);
+    }
+
+    private static boolean isEnabled() {
+        // log deprecation messages only after the outermost whileDisabled finished execution
+        return DISABLE_COUNT.get() == 0;
     }
 
     public interface ThrowingFactory<T, E extends Exception> {
@@ -325,10 +341,6 @@ public class DeprecationLogger {
                 runnable.run();
             }
         };
-    }
-
-    private static boolean isEnabled() {
-        return ENABLED.get();
     }
 
     private synchronized static void nagUserWith(DeprecatedFeatureUsage usage) {

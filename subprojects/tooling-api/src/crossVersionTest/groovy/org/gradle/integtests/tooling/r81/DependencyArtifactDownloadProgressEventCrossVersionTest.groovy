@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.AbstractHttpCrossVersionSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
@@ -28,6 +29,7 @@ import org.gradle.tooling.events.download.internal.NotFoundFileDownloadSuccessRe
 
 @ToolingApiVersion(">=8.1")
 @TargetGradleVersion(">=8.1")
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3638")
 class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHttpCrossVersionSpec {
 
     def "generates success event for failing first attempt to get dependency"() {
@@ -72,7 +74,7 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         [projectFModuleMissing, projectF2]
     }
 
-    @ToolingApiVersion("<8.1 >=7.0")
+    @ToolingApiVersion("<8.1 >=7.3")
     @TargetGradleVersion(">=8.1")
     def "generates"() {
         def (MavenHttpModule projectFModuleMissing, MavenHttpModule projectF2) = prepareTest()

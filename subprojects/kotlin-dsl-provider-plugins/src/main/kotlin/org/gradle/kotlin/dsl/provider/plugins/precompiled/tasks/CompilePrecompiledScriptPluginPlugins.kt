@@ -35,12 +35,10 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.jvm.toolchain.JavaLauncher
-
-import org.gradle.kotlin.dsl.support.CompiledKotlinPluginsBlock
+import org.gradle.kotlin.dsl.precompile.v1.PrecompiledPluginsBlock
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.compileKotlinScriptModuleTo
 import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
-
 import javax.inject.Inject
 
 
@@ -100,7 +98,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
                     kotlinModuleName,
                     scriptFiles,
                     scriptDefinitionFromTemplate(
-                        CompiledKotlinPluginsBlock::class,
+                        PrecompiledPluginsBlock::class,
                         implicitImportsForPrecompiledScriptPlugins(implicitImports)
                     ),
                     classPathFiles,

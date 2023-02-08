@@ -22,16 +22,15 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyDefaultP
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequests
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequestsOf
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CloseTargetScope
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CollectProjectScriptDependencies
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.SetupEmbeddedKotlin
 import org.gradle.kotlin.dsl.execution.ResidualProgram.PluginRequestSpec
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 import org.hamcrest.CoreMatchers.containsString
-
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.fail
-
 import org.junit.Test
 
 
@@ -96,7 +95,7 @@ class PartialEvaluatorTest {
             isResidualProgram(
                 Static(
                     SetupEmbeddedKotlin,
-                    Eval(fragment.source),
+                    CollectProjectScriptDependencies(fragment.source),
                     ApplyDefaultPluginRequests
                 )
             )
@@ -126,7 +125,7 @@ class PartialEvaluatorTest {
                 Dynamic(
                     Static(
                         SetupEmbeddedKotlin,
-                        Eval(buildscriptFragment.source),
+                        CollectProjectScriptDependencies(buildscriptFragment.source),
                         ApplyDefaultPluginRequests,
                         ApplyBasePlugins
                     ),
