@@ -22,12 +22,13 @@ import org.gradle.test.fixtures.maven.MavenJavaModule
 import org.gradle.test.fixtures.maven.MavenModule
 
 class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
-    def "test adding custom variant with dependency mapped to Maven runtime scope"() {
-        given:
+    def setup() {
         settingsFile << "rootProject.name = 'publishTest'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java-library'
+            plugins {
+                id 'maven-publish'
+                id 'java-library'
+            }
 
             group = 'org.gradle.test'
             version = '1.9'
@@ -39,11 +40,16 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-
+            
             dependencies {
                 custom 'log4j:log4j:1.2.17'
             }
+        """
+    }
 
+    def "test adding custom variant with dependency mapped to Maven runtime scope"() {
+        given:
+        buildFile << """
             components.java.addVariantsFromConfiguration(configurations.custom) {
                 mapToMavenScope('runtime')
             }
@@ -85,26 +91,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
 
     def "test adding custom variant with dependency mapped to Maven runtime scope, then changed to compile scope"() {
         given:
-        settingsFile << "rootProject.name = 'publishTest'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java-library'
-
-            group = 'org.gradle.test'
-            version = '1.9'
-
-            configurations {
-                custom {
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
-                    }
-                }
-            }
-
-            dependencies {
-                custom 'log4j:log4j:1.2.17'
-            }
-
             components.java.addVariantsFromConfiguration(configurations.custom) {
                 mapToMavenScope('runtime')
             }
@@ -150,26 +137,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
 
     def "test adding custom variant with dependency mapped to Maven compile scope, then changed to runtime scope"() {
         given:
-        settingsFile << "rootProject.name = 'publishTest'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java-library'
-
-            group = 'org.gradle.test'
-            version = '1.9'
-
-            configurations {
-                custom {
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
-                    }
-                }
-            }
-
-            dependencies {
-                custom 'log4j:log4j:1.2.17'
-            }
-
             components.java.addVariantsFromConfiguration(configurations.custom) {
                 mapToMavenScope('compile')
             }
@@ -215,26 +183,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
 
     def "test adding custom variant with dependency mapped to Maven compile scope, then changed to runtime scope, then changed back to compile"() {
         given:
-        settingsFile << "rootProject.name = 'publishTest'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java-library'
-
-            group = 'org.gradle.test'
-            version = '1.9'
-
-            configurations {
-                custom {
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
-                    }
-                }
-            }
-
-            dependencies {
-                custom 'log4j:log4j:1.2.17'
-            }
-
             components.java.addVariantsFromConfiguration(configurations.custom) {
                 mapToMavenScope('compile')
             }
@@ -284,26 +233,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
 
     def "test adding custom variant with dependency mapped to optional Maven runtime scope"() {
         given:
-        settingsFile << "rootProject.name = 'publishTest'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java-library'
-
-            group = 'org.gradle.test'
-            version = '1.9'
-
-            configurations {
-                custom {
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
-                    }
-                }
-            }
-
-            dependencies {
-                custom 'log4j:log4j:1.2.17'
-            }
-
             components.java.addVariantsFromConfiguration(configurations.custom) {
                 mapToMavenScope('runtime')
                 mapToOptional()
@@ -346,26 +276,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
 
     def "test adding custom variant with dependency mapped to optional with no explicit Maven scope"() {
         given:
-        settingsFile << "rootProject.name = 'publishTest'"
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java-library'
-
-            group = 'org.gradle.test'
-            version = '1.9'
-
-            configurations {
-                custom {
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
-                    }
-                }
-            }
-
-            dependencies {
-                custom 'log4j:log4j:1.2.17'
-            }
-
             components.java.addVariantsFromConfiguration(configurations.custom) {
                 mapToOptional()
             }
