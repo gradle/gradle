@@ -20,14 +20,13 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmModelingServices;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 
 import javax.inject.Inject;
 
-import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_API;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_FEATURE_NAME;
 
@@ -60,31 +59,22 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
                     .exposesApi()
                     .published()
             );
-            createImplicitTestFixturesDependencies(project, findJavaExtension(project));
+            createImplicitTestFixturesDependencies(project);
         });
     }
 
-    private void createImplicitTestFixturesDependencies(Project project, JavaPluginExtension extension) {
+    private void createImplicitTestFixturesDependencies(Project project) {
         DependencyHandler dependencies = project.getDependencies();
         dependencies.add(TEST_FIXTURES_API, dependencies.create(project));
-        SourceSet testSourceSet = findTestSourceSet(extension);
+        SourceSet testSourceSet = JvmPluginsHelper.getDefaultTestSuite(project).getSources();
         ProjectDependency testDependency = (ProjectDependency) dependencies.add(testSourceSet.getImplementationConfigurationName(), dependencies.create(project));
         testDependency.capabilities(new ProjectTestFixtures(project));
 
         // Overwrite what the Java plugin defines for test, in order to avoid duplicate classes
         // see gradle/gradle#10872
         ConfigurationContainer configurations = project.getConfigurations();
-        testSourceSet.setCompileClasspath(project.getObjects().fileCollection().from(configurations.getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
-        testSourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSet.getOutput(), configurations.getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
-
-    }
-
-    private SourceSet findTestSourceSet(JavaPluginExtension extension) {
-        return extension.getSourceSets().getByName("test");
-    }
-
-    private JavaPluginExtension findJavaExtension(Project project) {
-        return project.getExtensions().getByType(JavaPluginExtension.class);
+        testSourceSet.setCompileClasspath(project.getObjects().fileCollection().from(configurations.getByName(testSourceSet.getCompileClasspathConfigurationName())));
+        testSourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSet.getOutput(), configurations.getByName(testSourceSet.getRuntimeClasspathConfigurationName())));
     }
 
 }

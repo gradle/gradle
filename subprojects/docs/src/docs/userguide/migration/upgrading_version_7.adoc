@@ -15,8 +15,8 @@
 [[upgrading_version_7]]
 = Upgrading your build from Gradle 7.x to 8.0
 
-This chapter provides the information you need to migrate your Gradle 7.x builds to the latest Gradle release.
-For migrating from Gradle 4.x, 5.x, or 6.x, see the <<upgrading_version_6.adoc#upgrading_version_6, older migration guide>> first.
+This chapter provides the information you need to migrate your Gradle 7.x builds to Gradle 8.0.
+For migrating from Gradle 6.x or earlier, complete the  <<upgrading_version_6.adoc#upgrading_version_6, older migration guide>> first.
 
 We recommend the following steps for all users:
 
@@ -242,6 +242,63 @@ Use the `version(Action)` method to configure strict versions instead.
 The deprecated `build-scan` plugin application method has been removed from the Kotlin DSL.
 Use the `gradle-enterprise` method instead.
 
+==== Configuration extension methods removed from Kotlin DSL
+
+The Kotlin DSL added specialized extension methods for `NamedDomainObjectProvider<Configuration>` that are available when looking up a configuration by name.
+These extensions allowed builds to access some properties of a `Configuration` when using an instance of `NamedDomainObjectProvider<Configuration>` directly:
+```
+configurations.compileClasspath.files // equivalent to configurations.compileClasspath.get().files
+configurations.compileClasspath.singleFile // equivalent to configurations.compileClasspath.get().singleFile
+```
+
+All of these extensions have been removed from the API, but the methods are still available for plugins compiled against older versions of Gradle.
+
+* NamedDomainObjectProvider<Configuration>.addToAntBuilder
+* NamedDomainObjectProvider<Configuration>.all
+* NamedDomainObjectProvider<Configuration>.allArtifacts
+* NamedDomainObjectProvider<Configuration>.allDependencies
+* NamedDomainObjectProvider<Configuration>.allDependencyConstraints
+* NamedDomainObjectProvider<Configuration>.artifacts
+* NamedDomainObjectProvider<Configuration>.asFileTree
+* NamedDomainObjectProvider<Configuration>.asPath
+* NamedDomainObjectProvider<Configuration>.attributes
+* NamedDomainObjectProvider<Configuration>.buildDependencies
+* NamedDomainObjectProvider<Configuration>.contains
+* NamedDomainObjectProvider<Configuration>.copy
+* NamedDomainObjectProvider<Configuration>.copyRecursive
+* NamedDomainObjectProvider<Configuration>.defaultDependencies
+* NamedDomainObjectProvider<Configuration>.dependencies
+* NamedDomainObjectProvider<Configuration>.dependencyConstraints
+* NamedDomainObjectProvider<Configuration>.description
+* NamedDomainObjectProvider<Configuration>.exclude
+* NamedDomainObjectProvider<Configuration>.excludeRules
+* NamedDomainObjectProvider<Configuration>.extendsFrom
+* NamedDomainObjectProvider<Configuration>.fileCollection
+* NamedDomainObjectProvider<Configuration>.files
+* NamedDomainObjectProvider<Configuration>.filter
+* NamedDomainObjectProvider<Configuration>.getTaskDependencyFromProjectDependency
+* NamedDomainObjectProvider<Configuration>.hierarchy
+* NamedDomainObjectProvider<Configuration>.incoming
+* NamedDomainObjectProvider<Configuration>.isCanBeConsumed
+* NamedDomainObjectProvider<Configuration>.isCanBeResolved
+* NamedDomainObjectProvider<Configuration>.isEmpty
+* NamedDomainObjectProvider<Configuration>.isTransitive
+* NamedDomainObjectProvider<Configuration>.isVisible
+* NamedDomainObjectProvider<Configuration>.minus
+* NamedDomainObjectProvider<Configuration>.outgoing
+* NamedDomainObjectProvider<Configuration>.plus
+* NamedDomainObjectProvider<Configuration>.resolutionStrategy
+* NamedDomainObjectProvider<Configuration>.resolve
+* NamedDomainObjectProvider<Configuration>.resolvedConfiguration
+* NamedDomainObjectProvider<Configuration>.setDescription
+* NamedDomainObjectProvider<Configuration>.setExtendsFrom
+* NamedDomainObjectProvider<Configuration>.setTransitive
+* NamedDomainObjectProvider<Configuration>.singleFile
+* NamedDomainObjectProvider<Configuration>.state
+* NamedDomainObjectProvider<Configuration>.withDependencies
+
+You should prefer to directly reference the methods from `Configuration`.
+
 === Potential breaking changes
 
 ==== `JavaForkOptions` `getJvmArgs()` and `getAllJvmArgs()` return immutable lists
@@ -418,8 +475,6 @@ This behavior is now default.
 The property has been deprecated and its usage should be removed.
 You can find more information about this property <<upgrading_version_7.adoc#strict-kotlin-dsl-precompiled-scripts-accessors, below>>.
 
-==== Adding `jst.ejb` with the `eclipse wtp` plugin now removes the `jst.utility` facet
-
 ==== Init scripts are applied to `buildSrc` builds
 
 Init scripts specified using `--init-script` are now applied to `buildSrc` builds. In previous releases these were applied to included builds but not `buildSrc builds.
@@ -444,7 +499,64 @@ the tasks for `buildSrc` completed and before any requested tasks started.
 
 This behavior is now consistent for `buildSrc` and included builds.
 
-==== Adding `jst.ejb` with the `eclipse wtp' plugin now removes the `jst.utility` facet
+==== Changes to paths of included builds
+
+In order to handle conflicts between nested included build names better, Gradle now uses the directory hierarchy of included builds to assign the build path.
+If you are running tasks from the command line in nested included builds, then you may need to adjust your invocation.
+
+For example, if you have the following hierarchy:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── settings.gradle.kts
+└── nested
+    ├── settings.gradle.kts
+    └── nestedNested
+        └── settings.gradle.kts
+----
+.settings.gradle.kts
+[source,kotlin]
+----
+includeBuild("nested")
+----
+.nested/settings.gradle.kts
+[source,kotlin]
+----
+includeBuild("nestedNested")
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── settings.gradle
+└── nested
+    ├── settings.gradle
+    └── nestedNested
+        └── settings.gradle
+----
+.settings.gradle
+[source,groovy]
+----
+includeBuild("nested")
+----
+.nested/settings.gradle
+[source,groovy]
+----
+includeBuild("nestedNested")
+----
+=====
+====
+
+Before Gradle 8.0, you ran `gradle :nestedNested:compileJava`.
+In Gradle 8.0 the invocation changes to `gradle :nested:nestedNested:compileJava`.
+
+==== Adding `jst.ejb` with the `eclipse wtp` plugin now removes the `jst.utility` facet
 
 The `eclipse wtp` plugin adds the `jst.utility` facet to java projects.
 Now, adding the `jst.ejb` facet implicitly removes the `jst.utility` facet:
@@ -463,34 +575,6 @@ eclipse {
 
 Previously, you had to explicitly configure PMD to ignore default rules with `ruleSets = []`.
 In the Gradle 8.0, setting `ruleSetConfig` or `ruleSetFiles` to a non-empty value implicitly ignores default rules.
-
-==== Changing test framework after setting test framework options is now an error
-
-When configuring the built-in test task for Java, Groovy, and Scala projects, Gradle no longer allows you to
-change the test framework used by the `Test` task after configuring options.
-This was deprecated since it silently discarded configuration in some cases.
-
-The following code example now produces an error:
-```
-test {
-   options {
-   }
-
-   useJUnitPlatform()
-}
-```
-Instead, you can:
-
-- set the test framework before configuring options
-- migrate to the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>>
-```
-test {
-   // select test framework before configuring options
-   useJUnitPlatform()
-   options {
-   }
-}
-```
 
 ==== Report `getOutputLocation` return type changed from Provider to Property
 
@@ -531,9 +615,10 @@ Gradle changes the compression library used for creating archives from an Ant ba
 As a consequence archives created from the same content, are unlikely to end up identical byte-by-byte to their older versions, created with the old library.
 
 [[kotlin_1_8.0]]
-==== Upgrade to Kotlin 1.8.0
+==== Upgrade to Kotlin 1.8.10
 
-The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.8.0[Kotlin 1.8.0].
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.10[Kotlin 1.8.10].
+Also see link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.0[Kotlin 1.8.0] release notes.
 For more information, see the release notes for Kotlin
 
 * https://github.com/JetBrains/kotlin/releases/tag/v1.7.20[1.7.20]
@@ -612,12 +697,6 @@ If `JavaBasePlugin` is applied, the convention value for tool properties on the 
 In case no toolchains are explicitly configured, the toolchain corresponding to the JVM running Gradle is used.
 
 Similarly, tasks from the Groovy and Scala plugins also rely on toolchains to determine on which JVM they are executed.
-
-==== Scala compile options `getAdditionalParameters()` returns immutable list
-
-The list of additional parameters for Scala compilation retrieved from the `ScalaCompileOptions` or `BaseScalaCompileOptions` is now immutable.
-
-Previously, the mutability of the list depended on the last assigned value.
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
@@ -760,13 +839,6 @@ Other syntax effected by this change includes:
 Use `implementation.bundle(libs.bundles.testing)` instead.
 
 For more information, see the updated <<jvm_test_suite_plugin.adoc#sec:declare_an_additional_test_suite, declare an additional test suite>> example in the JVM Test Suite Plugin section of the user guide and the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyAdder.html[`DependencyAdder`] page in the DSL reference.
-
-==== Incremental compilation temporarily changes the output location
-
-Incremental Java and Groovy compilation may now change the compiler output location.
-This might affect some annotation processors that allow users to wire some action to file paths (e.g. `-XepExcludedPaths` in Error Prone).
-This behaviour can be disabled by setting `options.incrementalAfterFailure` to `false`.
-Please refer to the <<java_plugin#sec:incremental_compilation_known_issues, userguide section about known incremental compilation issues>> for more details.
 
 === Deprecations
 
@@ -1635,7 +1707,7 @@ They are replaced by the properties of link:{groovyDslPath}/org.gradle.api.plugi
 
 Some of the core Gradle plugins declare configurations that are used by the plugin itself and are not meant to be
 published or consumed by another subproject directly.
-Gradle did not explicitly prohobit this.
+Gradle did not explicitly prohibit this.
 Gradle 7.1 deprecates consumption of those configurations and this will become an error in Gradle 8.0.
 
 The following plugin configurations have been deprecated for consumption:

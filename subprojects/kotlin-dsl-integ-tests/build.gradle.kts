@@ -10,6 +10,7 @@ dependencies {
     integTestImplementation(project(":base-services"))
     integTestImplementation(project(":core-api"))
     integTestImplementation(project(":core"))
+    integTestImplementation(project(":model-core"))
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":logging"))
     integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
@@ -28,7 +29,7 @@ dependencies {
     crossVersionTestLocalRepository(project(":kotlin-dsl-plugins"))
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true
 
 // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
 tasks.configCacheIntegTest {

@@ -469,7 +469,7 @@ Method <org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.isTransitive(o
 Method <org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.isVisible(org.gradle.api.NamedDomainObjectProvider)> does not have raw return type assignable to org.gradle.api.provider.Property in (ConfigurationDeprecatedExtensions.kt:163)
 Method <org.gradle.kotlin.dsl.GroovyBuilderScope.getDelegate()> does not have raw return type assignable to org.gradle.api.provider.Provider in (GroovyInteroperability.kt:0)
 Method <org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegate.getValue(java.lang.Object, kotlin.reflect.KProperty)> does not have raw return type assignable to org.gradle.api.provider.Property in (ExtraPropertiesExtensions.kt:135)
-Method <org.gradle.kotlin.dsl.KotlinBuildScript.getBuildscript()> does not have raw return type assignable to org.gradle.api.provider.Provider in (KotlinBuildScript.kt:65)
+Method <org.gradle.kotlin.dsl.KotlinBuildScript.getBuildscript()> does not have raw return type assignable to org.gradle.api.provider.Provider in (KotlinBuildScript.kt:63)
 Method <org.gradle.kotlin.dsl.KotlinClosure0.getFunction()> does not have raw return type assignable to org.gradle.api.provider.Provider in (GroovyInteroperability.kt:66)
 Method <org.gradle.kotlin.dsl.KotlinClosure1.getFunction()> does not have raw return type assignable to org.gradle.api.provider.Provider in (GroovyInteroperability.kt:88)
 Method <org.gradle.kotlin.dsl.KotlinClosure2.getFunction()> does not have raw return type assignable to org.gradle.api.provider.Provider in (GroovyInteroperability.kt:111)

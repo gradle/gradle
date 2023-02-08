@@ -97,7 +97,7 @@ docsPath.description = "Resolves to the complete Gradle documentation - automati
 // List of relocated packages that will be used at Gradle runtime to generate the runtime shaded jars
 val generateRelocatedPackageList by tasks.registering(PackageListGenerator::class) {
     classpath.from(runtimeClasspath)
-    outputFile.set(generatedTxtFileFor("api-relocated"))
+    outputFile = generatedTxtFileFor("api-relocated")
 }
 
 // Extract pubic API metadata from source code of Gradle module Jars packaged in the distribution (used by the two tasks below to handle default imports in build scripts)
@@ -108,21 +108,21 @@ val dslMetaData by tasks.registering(ExtractDslMetaDataTask::class) {
             exclude(PublicApi.excludes)
         }
     )
-    destinationFile.set(generatedBinFileFor("dsl-meta-data.bin"))
+    destinationFile = generatedBinFileFor("dsl-meta-data.bin")
 }
 
 // List of packages that are imported by default in Gradle build scripts
 val defaultImports = tasks.register("defaultImports", GenerateDefaultImports::class) {
-    metaDataFile.set(dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile))
-    importsDestFile.set(generatedTxtFileFor("default-imports"))
-    excludedPackages.set(GradleUserManualPlugin.getDefaultExcludedPackages())
+    metaDataFile = dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile)
+    importsDestFile = generatedTxtFileFor("default-imports")
+    excludedPackages = GradleUserManualPlugin.getDefaultExcludedPackages()
 }
 
 // Mapping of default imported types to their fully qualified name
 val apiMapping by tasks.registering(GenerateApiMapping::class) {
-    metaDataFile.set(dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile))
-    mappingDestFile.set(generatedTxtFileFor("api-mapping"))
-    excludedPackages.set(GradleUserManualPlugin.getDefaultExcludedPackages())
+    metaDataFile = dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile)
+    mappingDestFile = generatedTxtFileFor("api-mapping")
+    excludedPackages = GradleUserManualPlugin.getDefaultExcludedPackages()
 }
 
 // Which plugins are in the distribution and which are part of the public API? Required to generate API and Kotlin DSL Jars
@@ -131,19 +131,19 @@ val implementationPluginsManifest by pluginsManifestTask(runtimeClasspath, coreR
 
 // At runtime, Gradle expects each Gradle jar to have a classpath manifest
 val emptyClasspathManifest by tasks.registering(ClasspathManifest::class) {
-    this.manifestFile.set(generatedPropertiesFileFor("$runtimeApiJarName-classpath"))
+    this.manifestFile = generatedPropertiesFileFor("$runtimeApiJarName-classpath")
 }
 
 // Jar task to package all metadata in 'gradle-runtime-api-info.jar'
 val runtimeApiInfoJar by tasks.registering(Jar::class) {
-    archiveVersion.set(moduleIdentity.version.map { it.baseVersion.version })
+    archiveVersion = moduleIdentity.version.map { it.baseVersion.version }
     manifest.attributes(
         mapOf(
             Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
             Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }
         )
     )
-    archiveBaseName.set(runtimeApiJarName)
+    archiveBaseName = runtimeApiJarName
     into("org/gradle/api/internal/runtimeshaded") {
         from(generateRelocatedPackageList)
     }
@@ -179,7 +179,7 @@ fun pluginsManifestTask(runtimeClasspath: Configuration, coreRuntimeClasspath: C
             }.files
         )
         coreClasspath.from(coreRuntimeClasspath)
-        manifestFile.set(generatedPropertiesFileFor("gradle${if (api == GradleModuleApiAttribute.API) "" else "-implementation"}-plugins"))
+        manifestFile = generatedPropertiesFileFor("gradle${if (api == GradleModuleApiAttribute.API) "" else "-implementation"}-plugins")
     }
 
 fun configureDistribution(name: String, distributionSpec: CopySpec, buildDistLifecycleTask: TaskProvider<Task>, normalized: Boolean = false) {
@@ -196,11 +196,11 @@ fun configureDistribution(name: String, distributionSpec: CopySpec, buildDistLif
     }
 
     val distributionZip = tasks.register<Zip>("${name}DistributionZip") {
-        archiveBaseName.set("gradle")
-        archiveClassifier.set(name)
-        archiveVersion.set(moduleIdentity.version.map { it.baseVersion.version })
+        archiveBaseName = "gradle"
+        archiveClassifier = name
+        archiveVersion = moduleIdentity.version.map { it.baseVersion.version }
 
-        destinationDirectory.set(project.layout.buildDirectory.dir(disDir))
+        destinationDirectory = project.layout.buildDirectory.dir(disDir)
 
         into(zipRootFolder) {
             with(distributionSpec)

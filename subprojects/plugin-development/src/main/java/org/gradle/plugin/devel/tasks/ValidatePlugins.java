@@ -18,6 +18,7 @@ package org.gradle.plugin.devel.tasks;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -27,12 +28,18 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.WorkValidationException;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.plugin.devel.tasks.internal.ValidateAction;
 import org.gradle.workers.WorkerExecutor;
 
@@ -62,12 +69,29 @@ public abstract class ValidatePlugins extends DefaultTask {
         getEnableStricterValidation().convention(false);
         getIgnoreFailures().convention(false);
         getFailOnWarning().convention(true);
+
+        JavaToolchainService service = getProject().getExtensions().findByType(JavaToolchainService.class);
+        if (service != null) {
+            // This will be the only case in v9.0
+            getLauncher().convention(service.launcherFor(spec -> {}));
+        }
     }
 
     @TaskAction
     public void validateTaskClasses() throws IOException {
         getWorkerExecutor()
-            .classLoaderIsolation(spec -> spec.getClasspath().setFrom(getClasses(), getClasspath()))
+            .processIsolation(spec -> {
+                if (getLauncher().isPresent()) {
+                    spec.getForkOptions().setExecutable(getLauncher().get().getExecutablePath());
+                } else {
+                    DeprecationLogger.deprecateBehaviour("Using task ValidatePlugins without applying the Java Toolchain plugin.")
+                        .willBecomeAnErrorInGradle9()
+                        .withUpgradeGuideSection(8, "validate_plugins_without_java_toolchain")
+                        .nagUser();
+                    spec.getForkOptions().setExecutable(Jvm.current().getJavaExecutable());
+                }
+                spec.getClasspath().setFrom(getClasses(), getClasspath());
+            })
             .submit(ValidateAction.class, params -> {
                 params.getClasses().setFrom(getClasses());
                 params.getOutputFile().set(getOutputFile());
@@ -140,6 +164,16 @@ public abstract class ValidatePlugins extends DefaultTask {
      */
     @Classpath
     public abstract ConfigurableFileCollection getClasspath();
+
+    /**
+     * The toolchain launcher used to execute workers when forking.
+     *
+     * @since 8.1.
+     */
+    @Nested
+    @Optional
+    @Incubating
+    public abstract Property<JavaLauncher> getLauncher();
 
     /**
      * Specifies whether the build should break when plugin verifications fails.

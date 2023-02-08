@@ -1,19 +1,27 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.codehaus.groovy.runtime.StringGroovyMethods
+import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.kotlin.dsl.fixtures.classEntriesFor
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.TextUtil.normaliseFileSeparators
+import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import spock.lang.Issue
 import java.io.File
 
 
@@ -526,7 +534,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             // then:
             assertThat(
                 output.count("*version 1*"),
-                equalTo(2)
+                equalTo(1)
             )
         }
 
@@ -538,7 +546,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             // then:
             assertThat(
                 output.count("*version 2*"),
-                equalTo(2)
+                equalTo(1)
             )
         }
     }
@@ -547,8 +555,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     fun CharSequence.count(text: CharSequence): Int =
         StringGroovyMethods.count(this, text)
 
-    // https://github.com/gradle/gradle/issues/15416
     @Test
+    @Issue("https://github.com/gradle/gradle/issues/15416")
     fun `can use an empty plugins block in precompiled settings plugin`() {
         withFolders {
             "build-logic" {
@@ -588,8 +596,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         }
     }
 
-    // https://github.com/gradle/gradle/issues/15416
     @Test
+    @Issue("https://github.com/gradle/gradle/issues/15416")
     fun `can apply a plugin from the same project in precompiled settings plugin`() {
         withFolders {
             "build-logic" {
@@ -637,8 +645,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         }
     }
 
-    // https://github.com/gradle/gradle/issues/15416
     @Test
+    @Issue("https://github.com/gradle/gradle/issues/15416")
     fun `can apply a plugin from a repository in precompiled settings plugin`() {
         withFolders {
             "external-plugin" {
@@ -817,6 +825,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @Issue("https://github.com/gradle/gradle/issues/22091")
     fun `does not add extra task actions to kotlin compilation task`() {
         assumeNonEmbeddedGradleExecuter()
         withKotlinDslPlugin().appendText("""
@@ -830,5 +839,303 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         withPrecompiledKotlinScript("my-plugin.gradle.kts", "")
 
         compileKotlin()
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/23576")
+    @ToBeImplemented
+    fun `can compile precompiled scripts with compileOnly dependency`() {
+
+        fun withPluginJar(fileName: String, versionString: String): File =
+            withZip(
+                fileName,
+                classEntriesFor(MyPlugin::class.java, MyTask::class.java) + sequenceOf(
+                    "META-INF/gradle-plugins/my-plugin.properties" to "implementation-class=org.gradle.kotlin.dsl.integration.MyPlugin".toByteArray(),
+                    "my-plugin-version.txt" to versionString.toByteArray(),
+                )
+            )
+
+        val pluginJarV1 = withPluginJar("my-plugin-1.0.jar", "1.0")
+        val pluginJarV2 = withPluginJar("my-plugin-2.0.jar", "2.0")
+
+        withBuildScriptIn("buildSrc", """
+            plugins {
+                `kotlin-dsl`
+            }
+
+            $repositoriesBlock
+
+            dependencies {
+                compileOnly(files("${normaliseFileSeparators(pluginJarV1.absolutePath)}"))
+            }
+        """)
+        val precompiledScript = withFile("buildSrc/src/main/kotlin/my-precompiled-script.gradle.kts", """
+            plugins {
+                id("my-plugin")
+            }
+        """)
+
+        withBuildScript("""
+            buildscript {
+                dependencies {
+                    classpath(files("${normaliseFileSeparators(pluginJarV2.absolutePath)}"))
+                }
+            }
+            plugins {
+                id("my-precompiled-script")
+            }
+        """)
+
+        buildAndFail("action").apply {
+            assertHasFailure("Plugin [id: 'my-plugin'] was not found in any of the following sources") {
+                assertHasErrorOutput("Precompiled script plugin '${precompiledScript.absolutePath}' line: 1")
+            }
+        }
+
+        // Once implemented:
+        // build("action").apply {
+        //     assertOutputContains("Applied plugin 2.0")
+        // }
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/23564")
+    fun `respects offline start parameter on synthetic builds for accessors generation`() {
+
+        withSettings("""include("producer", "consumer")""")
+
+        withKotlinDslPluginIn("producer")
+        withFile("producer/src/main/kotlin/offline.gradle.kts", """
+            if (!gradle.startParameter.isOffline) throw IllegalStateException("Build is not offline!")
+        """)
+
+        withKotlinDslPluginIn("consumer").appendText("""
+           dependencies { implementation(project(":producer")) }
+        """)
+        withFile("consumer/src/main/kotlin/my-plugin.gradle.kts", """
+            plugins { id("offline") }
+        """)
+
+        buildAndFail(":consumer:generatePrecompiledScriptPluginAccessors").apply {
+            assertHasFailure("An exception occurred applying plugin request [id: 'offline']") {
+                assertHasCause("Build is not offline!")
+            }
+        }
+
+        build(":consumer:generatePrecompiledScriptPluginAccessors", "--offline")
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/17831")
+    fun `precompiled script plugins in resources are ignored`() {
+        withKotlinDslPlugin()
+        withPrecompiledKotlinScript("correct.gradle.kts", "")
+        file("src/main/resources/invalid.gradle.kts", "DOES NOT COMPILE")
+        compileKotlin()
+        val generated = file("build/generated-sources/kotlin-dsl-plugins/kotlin").walkTopDown().filter { it.isFile }.map { it.name }
+        assertThat(generated.toList(), equalTo(listOf("CorrectPlugin.kt")))
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/17831")
+    fun `fails with a reasonable error message if init precompiled script has no plugin id`() {
+        withKotlinDslPlugin()
+        val init = withPrecompiledKotlinScript("init.gradle.kts", "")
+        buildAndFail(":compileKotlin").apply {
+            assertHasCause("Precompiled script '${normaliseFileSeparators(init.absolutePath)}' file name is invalid, please rename it to '<plugin-id>.init.gradle.kts'.")
+        }
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/17831")
+    fun `fails with a reasonable error message if settings precompiled script has no plugin id`() {
+        withKotlinDslPlugin()
+        val settings = withPrecompiledKotlinScript("settings.gradle.kts", "")
+        buildAndFail(":compileKotlin").apply {
+            assertHasCause("Precompiled script '${normaliseFileSeparators(settings.absolutePath)}' file name is invalid, please rename it to '<plugin-id>.settings.gradle.kts'.")
+        }
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/12955")
+    @ToBeFixedForConfigurationCache(because = "KGP uses project at execution time")
+    fun `captures output of schema collection and displays it on errors`() {
+
+        fun outputFrom(origin: String, logger: Boolean = true) = buildString {
+            appendLine("""println("STDOUT from $origin")""")
+            appendLine("""System.err.println("STDERR from $origin")""")
+            if (logger) {
+                appendLine("""logger.lifecycle("LIFECYCLE log from $origin")""")
+                appendLine("""logger.warn("WARN log from $origin")""")
+                appendLine("""logger.error("ERROR log from $origin")""")
+            }
+        }
+
+        withDefaultSettingsIn("external-plugins")
+        withKotlinDslPluginIn("external-plugins").appendText("""group = "test"""")
+        withFile("external-plugins/src/main/kotlin/applied-output.gradle.kts", outputFrom("applied-output plugin"))
+        withFile("external-plugins/src/main/kotlin/applied-output-fails.gradle.kts", """
+            ${outputFrom("applied-output-fails plugin")}
+            TODO("applied-output-fails plugin application failure")
+        """)
+
+        withDefaultSettings().appendText("""includeBuild("external-plugins")""")
+        withKotlinDslPlugin().appendText("""dependencies { implementation("test:external-plugins") }""")
+        withPrecompiledKotlinScript("some.gradle.kts", """
+            plugins {
+                ${outputFrom("plugins block", logger = false)}
+                id("applied-output")
+            }
+        """)
+        build(":compileKotlin").apply {
+            assertNotOutput("STDOUT")
+            assertNotOutput("STDERR")
+            // TODO logging is not captured yet
+            assertOutputContains("LIFECYCLE")
+            assertOutputContains("WARN")
+            assertHasErrorOutput("ERROR")
+        }
+
+        withPrecompiledKotlinScript("some.gradle.kts", """
+            plugins {
+                ${outputFrom("plugins block", logger = false)}
+                id("applied-output")
+                TODO("some plugins block failure")
+            }
+        """)
+        buildAndFail(":compileKotlin").apply {
+            assertHasFailure("Execution failed for task ':generatePrecompiledScriptPluginAccessors'.") {
+                assertHasCause("Failed to collect plugin requests of 'src/main/kotlin/some.gradle.kts'")
+                assertHasCause("An operation is not implemented: some plugins block failure")
+            }
+            assertHasErrorOutput("STDOUT from plugins block")
+            assertHasErrorOutput("STDERR from plugins block")
+            assertNotOutput("STDOUT from applied plugin")
+            assertNotOutput("STDERR from applied plugin")
+        }
+
+        withPrecompiledKotlinScript("some.gradle.kts", """
+            plugins {
+                ${outputFrom("plugins block", logger = false)}
+                id("applied-output-fails")
+            }
+        """)
+        buildAndFail(":compileKotlin").apply {
+            assertHasFailure("Execution failed for task ':generatePrecompiledScriptPluginAccessors'.") {
+                assertHasCause("Failed to generate type-safe Gradle model accessors for the following precompiled script plugins")
+                assertHasCause("An operation is not implemented: applied-output-fails plugin application failure")
+            }
+            assertHasErrorOutput("src/main/kotlin/some.gradle.kts")
+            assertHasErrorOutput("STDOUT from applied-output-fails plugin")
+            assertHasErrorOutput("STDERR from applied-output-fails plugin")
+            assertNotOutput("STDOUT from plugins block")
+            assertNotOutput("STDERR from plugins block")
+            // TODO logging is not captured yet
+            assertOutputContains("LIFECYCLE")
+            assertOutputContains("WARN")
+            assertHasErrorOutput("ERROR")
+        }
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/12955")
+    @ToBeFixedForConfigurationCache(because = "KGP uses project at execution time")
+    fun `captures output of schema collection but not of concurrent tasks`() {
+
+        val repeatOutput = 50
+        val server = BlockingHttpServer()
+
+        try {
+            server.start()
+
+            withDefaultSettingsIn("external-plugins")
+            withKotlinDslPluginIn("external-plugins").appendText("""group = "test"""")
+            withFile("external-plugins/src/main/kotlin/applied-output.gradle.kts", """
+                println("STDOUT from applied-output plugin")
+                System.err.println("STDERR from applied-output plugin")
+                logger.warn("WARN from applied-output plugin")
+            """)
+            withDefaultSettings().appendText("""includeBuild("external-plugins")""")
+            withKotlinDslPlugin().prependText("import java.net.URL").appendText("""
+                dependencies { implementation("test:external-plugins") }
+
+                abstract class ConcurrentWork : WorkAction<WorkParameters.None> {
+                    private val logger: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger("SOME")
+                    override fun execute() {
+                        URL("${server.uri("blockStart")}").readText()
+                        repeat($repeatOutput) {
+                            Thread.sleep(25)
+                            println("STDOUT from concurrent task ${'$'}it")
+                            System.err.println("STDERR from concurrent task ${'$'}it")
+                            logger.warn("WARN from concurrent task ${'$'}it")
+                        }
+                        URL("${server.uri("blockStop")}").readText()
+                    }
+                }
+
+                abstract class ConcurrentTask : DefaultTask() {
+                    @get:Inject abstract val workers: WorkerExecutor
+                    @TaskAction fun action() {
+                        workers.noIsolation().submit(ConcurrentWork::class) {}
+                    }
+                }
+
+                tasks {
+                    val concurrentTask by registering(ConcurrentTask::class)
+                    val generatePrecompiledScriptPluginAccessors by existing {
+                        shouldRunAfter(concurrentTask)
+                        doFirst {
+                            URL("${server.uri("unblockStart")}").readText()
+                        }
+                        doLast {
+                            URL("${server.uri("unblockStop")}").readText()
+                        }
+                    }
+                }
+            """)
+            withPrecompiledKotlinScript("some.gradle.kts", """plugins { id("applied-output") }""")
+
+            server.expectConcurrent("blockStart", "unblockStart")
+            server.expectConcurrent("blockStop", "unblockStop")
+
+            build(":concurrentTask", ":compileKotlin").apply {
+                assertThat(output.lineSequence().filter { it.startsWith("STDOUT from concurrent task") }.count(), equalTo(repeatOutput))
+                assertThat(error.lineSequence().filter { it.startsWith("STDERR from concurrent task") }.count(), equalTo(repeatOutput))
+                assertThat(output.lineSequence().filter { it.startsWith("WARN from concurrent task") }.count(), equalTo(repeatOutput))
+                assertNotOutput("STDOUT from applied-output plugin")
+                assertNotOutput("STDERR from applied-output plugin")
+                // TODO logging is not captured yet
+                assertOutputContains("WARN from applied-output plugin")
+            }
+        } finally {
+            server.stop()
+        }
+    }
+}
+
+
+private
+fun File.prependText(text: String): File {
+    writeText(text + "\n\n" + readText())
+    return this
+}
+
+
+abstract class MyPlugin : Plugin<Project> {
+    override fun apply(project: Project) {
+        project.tasks.register("action", MyTask::class.java)
+    }
+}
+
+
+abstract class MyTask : DefaultTask() {
+    @TaskAction
+    fun action() {
+        this::class.java.classLoader
+            .getResource("my-plugin-version.txt")!!
+            .readText()
+            .let { version ->
+                println("Applied plugin $version")
+            }
     }
 }

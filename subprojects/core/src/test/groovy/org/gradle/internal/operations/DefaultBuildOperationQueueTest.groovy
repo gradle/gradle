@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
-import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -131,31 +131,47 @@ class DefaultBuildOperationQueueTest extends Specification {
         5    | 10
     }
 
-    def "does not submit more workers than #threads threads"() {
+    def "does not submit more work processors than #threads threads"() {
         given:
         setupQueue(threads)
-        def success = Mock(TestBuildOperation)
-        def workerCount = Math.min(runs, threads)
-        def workersStarted = new AtomicInteger()
-        def barrier = new CyclicBarrier(workerCount, { println "all expected concurrent workers have started..." })
-        def executorService = Mock(ExecutorService)
-        def delegateExecutor = Executors.newFixedThreadPool(threads)
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, executorService, new BlockingWorker(barrier, workersStarted))
+        lease.leaseFinish() // Release worker lease to allow operation to run, when there is max 1 worker thread
 
-        println "expecting ${workerCount} concurrent workers to be started..."
+        def expectedWorkerCount = Math.min(runs, threads)
+        def workersStarted = new AtomicInteger()
+        def startedLatch = new CountDownLatch(expectedWorkerCount)
+        def releaseLatch = new CountDownLatch(1)
+        def operationAction = {
+            if (workersStarted.get() < expectedWorkerCount) {
+                println "started worker in thread ${Thread.currentThread().id} (waiting for ${expectedWorkerCount - workersStarted.incrementAndGet()}).."
+            }
+        }
+        def executor = Mock(Executor)
+        def delegateExecutor = Executors.newFixedThreadPool(threads)
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, executor, new SimpleWorker())
+
+        println "expecting ${expectedWorkerCount} concurrent work processors to be started..."
 
         when:
-        runs.times { operationQueue.add(success) }
+        def waitForCompletionThread = new Thread({
+            workerRegistry.runAsWorkerThread {
+                runs.times { operationQueue.add(new SynchronizedBuildOperation(operationAction, startedLatch, releaseLatch)) }
+                operationQueue.waitForCompletion()
+            }
+        })
+        waitForCompletionThread.start()
 
         and:
-        operationQueue.waitForCompletion()
+        startedLatch.await(30, TimeUnit.SECONDS)
+        releaseLatch.countDown()
+
+        and:
+        waitForCompletionThread.join(30000)
 
         then:
-        runs * success.run(_)
+        !waitForCompletionThread.alive
         // The main thread sometimes processes items when there are more items than threads available, so
-        // we may only submit workerCount - 1 worker threads, but we should never submit more than workerCount
-        // threads
-        (_..workerCount) * executorService.execute(_) >> { args -> delegateExecutor.execute(args[0]) }
+        // we may only submit workerCount - 1 work processors, but we should never submit more than workerCount
+        ((expectedWorkerCount-1)..expectedWorkerCount) * executor.execute(_) >> { args -> delegateExecutor.execute(args[0]) }
 
         where:
         runs | threads
@@ -226,7 +242,7 @@ class DefaultBuildOperationQueueTest extends Specification {
     }
 
     def "when queue is canceled, unstarted operations do not execute (#runs runs, #threads threads)"() {
-        def expectedInvocations = threads <= runs ? threads : runs
+        def expectedInvocations = Math.min(runs, threads)
         CountDownLatch startedLatch = new CountDownLatch(expectedInvocations)
         CountDownLatch releaseLatch = new CountDownLatch(1)
         def operationAction = Mock(Runnable)
@@ -236,9 +252,17 @@ class DefaultBuildOperationQueueTest extends Specification {
         lease.leaseFinish() // Release worker lease to allow operation to run, when there is max 1 worker thread
 
         when:
-        runs.times { operationQueue.add(new SynchronizedBuildOperation(operationAction, startedLatch, releaseLatch)) }
+        def waitForCompletionThread = new Thread({
+            workerRegistry.runAsWorkerThread {
+                runs.times { operationQueue.add(new SynchronizedBuildOperation(operationAction, startedLatch, releaseLatch)) }
+                operationQueue.waitForCompletion()
+            }
+        })
+        waitForCompletionThread.start()
+
+        and:
         // wait for operations to begin running
-        startedLatch.await()
+        startedLatch.await(30, TimeUnit.SECONDS)
 
         and:
         operationQueue.cancel()
@@ -246,18 +270,14 @@ class DefaultBuildOperationQueueTest extends Specification {
         and:
         // release the running operations to complete
         releaseLatch.countDown()
-        workerRegistry.runAsWorkerThread {
-            operationQueue.waitForCompletion()
-        }
+        waitForCompletionThread.join(30000)
 
         then:
+        !waitForCompletionThread.alive
         expectedInvocations * operationAction.run()
 
         where:
         runs | threads
-        0    | 1
-        0    | 4
-        0    | 10
         1    | 1
         1    | 4
         1    | 10

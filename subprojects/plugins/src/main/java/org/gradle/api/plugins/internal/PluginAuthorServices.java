@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmPluginServices;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Describables;
@@ -54,6 +55,7 @@ public class PluginAuthorServices extends AbstractPluginServiceRegistry {
     private static class ProjectScopeServices {
         JvmPluginServices createJvmPluginServices(ConfigurationContainer configurations,
                                                   ObjectFactory objectFactory,
+                                                  ProviderFactory providerFactory,
                                                   TaskContainer tasks,
                                                   SoftwareComponentContainer components,
                                                   InstantiatorFactory instantiatorFactory) {
@@ -62,6 +64,7 @@ public class PluginAuthorServices extends AbstractPluginServiceRegistry {
                 Describables.of("JVM Plugin Services"),
                 configurations,
                 objectFactory,
+                providerFactory,
                 tasks,
                 components,
                 instantiator);

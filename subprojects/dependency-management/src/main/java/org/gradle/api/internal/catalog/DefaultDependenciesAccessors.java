@@ -37,6 +37,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
@@ -71,6 +72,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -224,7 +226,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     @Nullable
-    private <T> Class<? extends T> loadFactory(ClassLoaderScope classLoaderScope, String className) {
+    private static <T> Class<? extends T> loadFactory(ClassLoaderScope classLoaderScope, String className) {
         Class<? extends T> clazz;
         try {
             clazz = Cast.uncheckedCast(classLoaderScope.getExportClassLoader().loadClass(className));
@@ -243,10 +245,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 ImmutableMap.Builder<String, VersionCatalog> catalogs = ImmutableMap.builderWithExpectedSize(models.size());
                 for (DefaultVersionCatalog model : models) {
                     if (model.isNotEmpty()) {
-                        Class<? extends ExternalModuleDependencyFactory> factory;
-                        synchronized (this) {
-                            factory = factories.computeIfAbsent(model.getName(), n -> loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME_PREFIX + StringUtils.capitalize(n)));
-                        }
+                        Class<? extends ExternalModuleDependencyFactory> factory = loadVersionCatalogFactoryClass(accessorClassNameSuffix(model));
                         if (factory != null) {
                             container.create(model.getName(), factory, model);
                             catalogs.put(model.getName(), new VersionCatalogView(model, providerFactory, project.getObjects(), attributesFactory, capabilityNotationParser));
@@ -263,6 +262,42 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 createProjectsExtension(container, drm, projectFinder);
             }
         }
+    }
+
+    private String accessorClassNameSuffix(DefaultVersionCatalog model) {
+        return StringUtils.capitalize(model.getName());
+    }
+
+    @Override
+    public Map<String, ExternalModuleDependencyFactory> createPluginsBlockFactories(ObjectFactory objects) {
+        if (!models.isEmpty()) {
+            ImmutableMap.Builder<String, ExternalModuleDependencyFactory> catalogs = ImmutableMap.builderWithExpectedSize(models.size());
+            for (DefaultVersionCatalog model : models) {
+                if (model.isNotEmpty()) {
+                    Class<? extends ExternalModuleDependencyFactory> factory = loadVersionCatalogFactoryClass(pluginsBlockAccessorClassNameSuffix(model));
+                    if (factory != null) {
+                        catalogs.put(model.getName(), objects.newInstance(factory, model));
+                    }
+                }
+            }
+            return catalogs.build();
+        }
+        return Collections.emptyMap();
+    }
+
+    private String pluginsBlockAccessorClassNameSuffix(DefaultVersionCatalog model) {
+        return accessorClassNameSuffix(model) + IN_PLUGINS_BLOCK_FACTORIES_SUFFIX;
+    }
+
+    @Nullable
+    private Class<? extends ExternalModuleDependencyFactory> loadVersionCatalogFactoryClass(String accessorsClassnameSuffix) {
+        Class<? extends ExternalModuleDependencyFactory> factory;
+        synchronized (this) {
+            factory = factories.computeIfAbsent(accessorsClassnameSuffix, n ->
+                loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME_PREFIX + accessorsClassnameSuffix)
+            );
+        }
+        return factory;
     }
 
     private void createProjectsExtension(ExtensionContainer container, DependencyResolutionManagementInternal drm, ProjectFinder projectFinder) {
@@ -368,7 +403,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         protected List<ClassSource> getClassSources() {
-            return Collections.singletonList(new DependenciesAccessorClassSource(model.getName(), model));
+            return Arrays.asList(
+                new DependenciesAccessorClassSource(model.getName(), model),
+                new PluginsBlockDependenciesAccessorClassSource(model.getName(), model)
+            );
         }
 
         @Override
@@ -465,6 +503,33 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         public String getSource() {
             StringWriter writer = new StringWriter();
             LibrariesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName());
+            return writer.toString();
+        }
+    }
+
+    private static class PluginsBlockDependenciesAccessorClassSource implements ClassSource {
+        private final String name;
+        private final DefaultVersionCatalog model;
+
+        private PluginsBlockDependenciesAccessorClassSource(String name, DefaultVersionCatalog model) {
+            this.name = name;
+            this.model = model;
+        }
+
+        @Override
+        public String getPackageName() {
+            return ACCESSORS_PACKAGE;
+        }
+
+        @Override
+        public String getSimpleClassName() {
+            return ACCESSORS_CLASSNAME_PREFIX + StringUtils.capitalize(name) + IN_PLUGINS_BLOCK_FACTORIES_SUFFIX;
+        }
+
+        @Override
+        public String getSource() {
+            StringWriter writer = new StringWriter();
+            LibrariesSourceGenerator.generatePluginsBlockSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName());
             return writer.toString();
         }
     }

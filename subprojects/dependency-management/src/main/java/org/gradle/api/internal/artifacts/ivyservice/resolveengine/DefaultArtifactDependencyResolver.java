@@ -41,6 +41,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
@@ -90,6 +91,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final Instantiator instantiator;
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final ResolvedVariantCache resolvedVariantCache;
 
     public DefaultArtifactDependencyResolver(
         BuildOperationExecutor buildOperationExecutor,
@@ -105,7 +107,8 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
         InstantiatorFactory instantiatorFactory,
         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        ResolvedVariantCache resolvedVariantCache
     ) {
         this.resolverFactories = resolverFactories;
         this.ivyFactory = ivyFactory;
@@ -121,6 +124,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.instantiator = instantiatorFactory.decorateScheme().instantiator();
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.resolvedVariantCache = resolvedVariantCache;
     }
 
     @Override
@@ -191,7 +195,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         resolvers.add(projectDependencyResolver);
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
         resolvers.add(ivyFactory.create(resolveContext.getName(), resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessorFactory(), resolveContext.getAttributes(), consumerSchema, attributesFactory, componentMetadataSupplierRuleExecutor));
-        return new ComponentResolversChain(resolvers, artifactTypeRegistry, calculatedValueContainerFactory);
+        return new ComponentResolversChain(resolvers, artifactTypeRegistry, calculatedValueContainerFactory, resolvedVariantCache);
     }
 
     private ModuleConflictHandler createModuleConflictHandler(ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules metadataHandler) {

@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.cache.Cleanup
+import org.gradle.api.cache.MarkingStrategy
 import org.gradle.api.file.FileCollection
 import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.api.flow.FlowScope
@@ -53,7 +54,7 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.configurationcache.serialization.writeStrings
-import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.BuildStructureOperationProject
@@ -280,6 +281,7 @@ class ConfigurationCacheState(
         withGradleIsolate(gradle, userTypesCodec) {
             write(gradle.settings.settingsScript.resource.file)
             writeBuildDefinition(state.buildDefinition)
+            write(state.identityPath)
         }
         // Encode the build state using the contextualized IO service for the nested build
         state.projects.withMutableStateOfAllProjects {
@@ -292,7 +294,8 @@ class ConfigurationCacheState(
         val build = withGradleIsolate(rootBuild.gradle, userTypesCodec) {
             val settingsFile = read() as File?
             val definition = readIncludedBuildDefinition(rootBuild)
-            rootBuild.addIncludedBuild(definition, settingsFile)
+            val buildPath = read() as Path
+            rootBuild.addIncludedBuild(definition, settingsFile, buildPath)
         }
         // Decode the build state using the contextualized IO service for the build
         return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(stateFileFor((build.state as NestedBuildState).buildDefinition), build)
@@ -636,6 +639,7 @@ class ConfigurationCacheState(
             write(cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.createdResources.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.cleanup)
+            write(cacheConfigurations.markingStrategy)
         }
     }
 
@@ -647,6 +651,7 @@ class ConfigurationCacheState(
             cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.cleanup.value(readNonNull<Provider<Cleanup>>())
+            cacheConfigurations.markingStrategy.value(readNonNull<Provider<MarkingStrategy>>())
         }
         if (gradle.isRootBuild) {
             gradle.serviceOf<CacheConfigurationsInternal>().setCleanupHasBeenConfigured(true)
@@ -674,14 +679,14 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultWriteContext.writeCachedEnvironmentState(gradle: GradleInternal) {
-        val environmentChangeTracker = gradle.serviceOf<EnvironmentChangeTracker>()
+        val environmentChangeTracker = gradle.serviceOf<ConfigurationCacheEnvironmentChangeTracker>()
         write(environmentChangeTracker.getCachedState())
     }
 
     private
     suspend fun DefaultReadContext.readCachedEnvironmentState(gradle: GradleInternal) {
-        val environmentChangeTracker = gradle.serviceOf<EnvironmentChangeTracker>()
-        val storedState = read() as EnvironmentChangeTracker.CachedEnvironmentState
+        val environmentChangeTracker = gradle.serviceOf<ConfigurationCacheEnvironmentChangeTracker>()
+        val storedState = read() as ConfigurationCacheEnvironmentChangeTracker.CachedEnvironmentState
         environmentChangeTracker.loadFrom(storedState)
     }
 

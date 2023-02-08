@@ -10,10 +10,18 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-
+[Attila Király](https://github.com/akiraly),
+[Björn Kautler](https://github.com/Vampire),
+[DJtheRedstoner](https://github.com/DJtheRedstoner),
+[JayaKrishnan Nair K](https://github.com/jknair0),
+[kackey0-1](https://github.com/kackey0-1),
 [Martin Bonnin](https://github.com/martinbonnin),
+[Martin Kealey](https://github.com/kurahaupo),
+[modmuss50](https://github.com/modmuss50),
+[Sebastian Schuberth](https://github.com/sschuberth),
 [valery1707](https://github.com/valery1707),
-[Yanshun Li](https://github.com/Chaoba).
+[Xin Wang](https://github.com/scaventz),
+[Yanshun Li](https://github.com/Chaoba)
 
 ## Upgrade instructions
 
@@ -25,7 +33,7 @@ See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@b
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
-## New features and usability improvements
+## New features, performance and usability improvements
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
@@ -37,6 +45,7 @@ The [`--gradle-version`](userguide/gradle_wrapper.html#sec:adding_wrapper) param
 now supports using predefined labels to select a version.
 
 The allowed labels are:
+
 - `latest`
 - `release-candidate`
 - `nightly`
@@ -83,6 +92,7 @@ ADD RELEASE FEATURES ABOVE
 -->
 
 ## Promoted features
+
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 

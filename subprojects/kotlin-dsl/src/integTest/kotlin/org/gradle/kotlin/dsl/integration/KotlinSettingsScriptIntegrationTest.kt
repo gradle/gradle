@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -195,5 +196,14 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                 """.trimIndent()
             )
         )
+    }
+
+    @Test
+    fun `enableSettingsPreview is available`() {
+        withSettings("""
+            rootProject.name = "under-test"
+            enableFeaturePreview("${FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS.name}")
+        """)
+        build("help")
     }
 }

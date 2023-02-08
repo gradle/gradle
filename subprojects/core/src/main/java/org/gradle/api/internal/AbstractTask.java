@@ -99,7 +99,7 @@ import java.util.concurrent.Callable;
 import static org.gradle.util.internal.GUtil.uncheckedCall;
 
 /**
- * @deprecated This class will be removed in Gradle 8.0. Please use {@link org.gradle.api.DefaultTask} instead.
+ * @deprecated This class will be removed in Gradle 9.0. Please use {@link org.gradle.api.DefaultTask} instead.
  */
 @Deprecated
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
@@ -388,7 +388,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public DescribingAndSpec<? super TaskInternal> getOnlyIf() {
+    public Spec<? super TaskInternal> getOnlyIf() {
         return onlyIfSpec;
     }
 

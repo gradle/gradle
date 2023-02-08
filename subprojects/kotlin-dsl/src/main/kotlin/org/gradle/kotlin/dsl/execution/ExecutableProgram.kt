@@ -27,6 +27,7 @@ import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.plugin.management.internal.PluginRequests
 
 
+internal
 abstract class ExecutableProgram {
 
     abstract fun execute(programHost: Host, scriptHost: KotlinScriptHost<*>)

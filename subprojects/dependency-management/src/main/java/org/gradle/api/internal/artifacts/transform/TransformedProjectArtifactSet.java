@@ -37,7 +37,7 @@ import java.util.Collection;
 /**
  * An artifact set containing transformed project artifacts.
  */
-public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileCollectionInternal.Source, ResolvedArtifactSet.Artifacts {
+public class TransformedProjectArtifactSet implements TransformedArtifactSet, FileCollectionInternal.Source, ResolvedArtifactSet.Artifacts {
 
     private final ComponentVariantIdentifier targetVariant;
     private final Collection<TransformationNode> transformedArtifacts;
