@@ -22,7 +22,6 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
 
-import java.util.Optional;
 import java.util.function.Predicate;
 
 public class JvmInstallationMetadataMatcher implements Predicate<JvmInstallationMetadata> {
