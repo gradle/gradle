@@ -27,6 +27,7 @@ import org.gradle.internal.file.BufferProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultNextGenBuildCacheAccess.class);
@@ -45,17 +47,20 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     private final NextGenBuildCacheHandler remote;
     private final BufferProvider bufferProvider;
     private final ManagedThreadPoolExecutor remoteProcessor;
+    private final ConcurrencyCounter counter;
 
     public DefaultNextGenBuildCacheAccess(
         NextGenBuildCacheHandler local,
         NextGenBuildCacheHandler remote,
         BufferProvider bufferProvider,
-        ExecutorFactory executorFactory) {
+        ExecutorFactory executorFactory
+    ) {
         this.local = local;
         this.remote = remote;
         this.bufferProvider = bufferProvider;
         // TODO Configure this properly
         this.remoteProcessor = executorFactory.createThreadPool("Build cache access", 16, 256, 10, TimeUnit.SECONDS);
+        this.counter = new ConcurrencyCounter(remoteProcessor);
     }
 
     @Override
@@ -64,7 +69,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         entries.forEach((key, payload) -> {
             boolean foundLocally = local.canLoad() && local.load(key, input -> handler.handle(input, payload));
             if (!foundLocally && remote.canLoad()) {
-                remoteDownloads.add(CompletableFuture.runAsync(new RemoteDownload<>(key, payload, handler), remoteProcessor));
+                remoteDownloads.add(CompletableFuture.runAsync(counter.wrap(new RemoteDownload<>(key, payload, handler)), remoteProcessor));
             }
         });
         // TODO Add error handling
@@ -84,7 +89,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             }
             // TODO Add error handling
             if (remote.canStore()) {
-                remoteProcessor.submit(new RemoteUpload(key));
+                remoteProcessor.submit(counter.wrap(new RemoteUpload(key)));
             }
         });
     }
@@ -104,7 +109,33 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         });
         closer.register(local);
         closer.register(remote);
+        closer.register(counter);
         closer.close();
+    }
+
+    private static class ConcurrencyCounter implements Closeable {
+        private final AtomicInteger maxQueueLength = new AtomicInteger(0);
+        private final AtomicInteger maxActiveCount = new AtomicInteger(0);
+
+        private final ManagedThreadPoolExecutor processor;
+
+        public ConcurrencyCounter(ManagedThreadPoolExecutor processor) {
+            this.processor = processor;
+        }
+
+        public Runnable wrap(Runnable delegate) {
+            return () -> {
+                maxQueueLength.updateAndGet(max -> Integer.max(max, processor.getQueue().size()));
+                maxActiveCount.updateAndGet(max -> Integer.max(max, processor.getActiveCount()));
+                delegate.run();
+            };
+        }
+
+        @Override
+        public void close() {
+            LOGGER.warn("Max concurrency encountered while processing remote cache entries: {}, max queue length: {}",
+                maxActiveCount.get(), maxQueueLength.get());
+        }
     }
 
     private class RemoteDownload<T> implements Runnable {
@@ -173,24 +204,24 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             LOGGER.warn("Storing {} in remote", key);
             // TODO Use a buffer fit for large files
             @SuppressWarnings("resource")
-                UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
+            UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
             boolean foundLocally = local.load(key, input -> IOUtils.copyLarge(input, data, bufferProvider.getBuffer()));
             // TODO Handle this better? Do we need to hadnle it at all?
             if (!foundLocally) {
                 throw new IllegalStateException("Couldn't store " + key + " in remote cache because it was missing from local cache");
             }
 
-                remote.store(key, new BuildCacheEntryWriter() {
-                    @Override
-                    public InputStream openStream() {
-                        return data.toInputStream();
-                    }
+            remote.store(key, new BuildCacheEntryWriter() {
+                @Override
+                public InputStream openStream() {
+                    return data.toInputStream();
+                }
 
-                    @Override
-                    public long getSize() {
-                        return data.size();
-                    }
-                });
+                @Override
+                public long getSize() {
+                    return data.size();
+                }
+            });
         }
     }
 }
