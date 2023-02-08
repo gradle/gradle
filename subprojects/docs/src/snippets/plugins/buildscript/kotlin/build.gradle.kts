@@ -4,10 +4,10 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath(id("com.jfrog.bintray", "1.8.5")) // <1>
-        classpath(plugin("org.jetbrains.kotlin.js", "1.8.0")) // <2>
-        classpath(libs.plugins.jmh) // <3>
+        classpath(plugin("org.jetbrains.kotlin.js", "1.8.0")) // <1>
+        classpath(libs.plugins.jmh) // <2>
+        classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5") // <3>
 }
 
-apply(plugin = "com.jfrog.bintray") // <1>
+apply(plugin = "com.jfrog.bintray") // <3>
 // end::buildscript_block[]

@@ -346,8 +346,6 @@ include::sample[dir="snippets/plugins/declaringDependencies/groovy", files="buil
 <1> Declaring plugin dependencies in the main dependency block.
 <2> Declaring plugin dependencies in the test-suites block.
 
-For more information see the API documentation for <<plugins.adoc#plugins, plugins>>.
-
 [[sub:gradle_distribution_dependencies]]
 === Gradle distribution-specific dependencies
 
