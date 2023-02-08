@@ -51,8 +51,8 @@ import org.gradle.api.internal.artifacts.dependencies.*
 buildscript {
     ${mavenCentralRepository()}
     dependencies {
-        classpath(libs.plugins.js)
-        classpath(libs.plugins.jvm)
+        classpath(plugin(libs.plugins.js))
+        classpath(plugin(libs.plugins.jvm))
     }
 }
 
@@ -67,9 +67,9 @@ configurations {
 }
 
 dependencies {
-    conf(libs.plugins.js)
-    conf(libs.plugins.jvm)
-    conf(libs.plugins.scripting)
+    conf(plugin(libs.plugins.js))
+    conf(plugin(libs.plugins.jvm))
+    conf(plugin(libs.plugins.scripting))
 }
 
 // test-suite dependencies
@@ -147,8 +147,8 @@ task checkDeps {
                     ${mavenCentralRepository(GradleDsl.KOTLIN)}
                 }
                 dependencies {
-                    classpath(libs.plugins.js)
-                    classpath(libs.plugins.jvm)
+                    classpath(plugin(libs.plugins.js))
+                    classpath(plugin(libs.plugins.jvm))
                 }
             }
 
@@ -163,9 +163,9 @@ task checkDeps {
             }
 
             dependencies {
-                "conf"(libs.plugins.js)
-                "conf"(libs.plugins.jvm)
-                "conf"(libs.plugins.scripting)
+                "conf"(plugin(libs.plugins.js))
+                "conf"(plugin(libs.plugins.jvm))
+                "conf"(plugin(libs.plugins.scripting))
             }
 
             // test-suite dependencies

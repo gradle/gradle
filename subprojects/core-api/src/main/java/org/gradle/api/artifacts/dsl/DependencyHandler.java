@@ -30,6 +30,8 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.plugin.use.PluginDependency;
+
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -562,6 +564,16 @@ public interface DependencyHandler extends ExtensionAware {
      */
     @Incubating
     String plugin(String id, String version);
+
+    /**
+     * Converts the type of the provider from {@link PluginDependency} to {@link ExternalModuleDependency}.
+     * @param provider the provider
+     * @return the new provider of type ExternalModuleDependency
+     * @since 8.1
+     *
+     */
+    @Incubating
+    Provider<? extends ExternalModuleDependency> plugin(Provider<? extends PluginDependency> provider);
 
     /**
      * Declares a dependency on a platform. If the target coordinates represent multiple

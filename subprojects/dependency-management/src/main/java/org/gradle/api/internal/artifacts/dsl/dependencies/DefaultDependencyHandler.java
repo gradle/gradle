@@ -61,6 +61,7 @@ import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
+import org.gradle.plugin.use.PluginDependency;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -339,6 +340,12 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Override
     public String plugin(String id, String version) {
         return PluginDependencyMarkerCoordinates.pluginNotation(id, version);
+    }
+
+    @Override
+    public Provider<? extends ExternalModuleDependency> plugin(Provider<? extends PluginDependency> provider) {
+        return provider.map((PluginDependency dependency) ->
+            PluginDependencyMarkerCoordinates.getExternalModuleDependency(dependencyFactory, dependency));
     }
 
     @Override

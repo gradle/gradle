@@ -36,6 +36,7 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
+import org.gradle.plugin.use.PluginDependency
 
 
 /**
@@ -132,6 +133,9 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
 
     override fun plugin(id: String, version: String): String =
         delegate.plugin(id, version)
+
+    override fun plugin(provider: Provider<out PluginDependency>): Provider<out ExternalModuleDependency> =
+        delegate.plugin(provider)
 
     override fun platform(notation: Any): Dependency =
         delegate.platform(notation)
