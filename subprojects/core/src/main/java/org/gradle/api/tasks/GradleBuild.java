@@ -96,7 +96,7 @@ public abstract class GradleBuild extends ConventionTask {
      *
      * @return The build file. May be null.
      * @deprecated Use {@link #getDir()} instead to get the root of the nested build.
-     * This method will be removed in Gradle 8.0.
+     * This method will be removed in Gradle 9.0.
      */
     @Nullable
     @Optional
@@ -116,7 +116,7 @@ public abstract class GradleBuild extends ConventionTask {
      * @param file The build file. May be null to use the default build file for the build.
      * @since 4.0
      * @deprecated Use {@link #setDir(File)} instead to set the root of the nested build.
-     * This method will be removed in Gradle 8.0.
+     * This method will be removed in Gradle 9.0.
      */
     @Deprecated
     public void setBuildFile(@Nullable File file) {
@@ -128,7 +128,7 @@ public abstract class GradleBuild extends ConventionTask {
      *
      * @param file The build file. May be null to use the default build file for the build.
      * @deprecated Use {@link #setDir(Object)} instead to set the root of the nested build.
-     * This method will be removed in Gradle 8.0.
+     * This method will be removed in Gradle 9.0.
      */
     @Deprecated
     public void setBuildFile(@Nullable Object file) {

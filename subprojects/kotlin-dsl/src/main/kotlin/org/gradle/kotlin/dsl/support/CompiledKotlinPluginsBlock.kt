@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugin.use.PluginDependenciesSpec
 
@@ -25,10 +26,13 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 /**
  * Base class for `plugins` block evaluation for any target.
  */
-open class CompiledKotlinPluginsBlock(private val pluginDependencies: PluginDependenciesSpec) {
+open class CompiledKotlinPluginsBlock(
+    private val host: KotlinScriptHost<ExtensionAware>,
+    private val pluginDependencies: PluginDependenciesSpec,
+) {
 
     fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
-        PluginDependenciesSpecScope(pluginDependencies).configuration()
+        PluginDependenciesSpecScopeInternal(host.objectFactory, pluginDependencies).configuration()
     }
 }
 
@@ -67,7 +71,7 @@ open class CompiledKotlinSettingsPluginManagementBlock(
  */
 @ImplicitReceiver(Project::class)
 open class CompiledKotlinBuildscriptAndPluginsBlock(
-    host: KotlinScriptHost<Project>,
+    private val host: KotlinScriptHost<Project>,
     private val pluginDependencies: PluginDependenciesSpec
 ) : CompiledKotlinBuildScript(host) {
 
@@ -77,10 +81,10 @@ open class CompiledKotlinBuildscriptAndPluginsBlock(
      * @see [Project.buildscript]
      */
     override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        ScriptHandlerScope(buildscript).block()
+        ScriptHandlerScopeInternal(host.target, buildscript).block()
     }
 
     override fun plugins(block: PluginDependenciesSpecScope.() -> Unit) {
-        PluginDependenciesSpecScope(pluginDependencies).block()
+        PluginDependenciesSpecScopeInternal(host.objectFactory, pluginDependencies).block()
     }
 }
