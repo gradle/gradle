@@ -21,9 +21,9 @@ import org.gradle.configurationcache.problems.DefaultProblemFactory
 import org.junit.Test
 
 
-class EnvironmentChangeTrackerTest {
+class ConfigurationCacheEnvironmentChangeTrackerTest {
     private
-    val tracker = EnvironmentChangeTracker(DefaultProblemFactory(DefaultUserCodeApplicationContext(), { _, _ -> null }))
+    val tracker = ConfigurationCacheEnvironmentChangeTracker(DefaultProblemFactory(DefaultUserCodeApplicationContext(), { _, _ -> null }))
 
     @Test
     fun `can load state after capturing`() {
@@ -47,5 +47,5 @@ class EnvironmentChangeTrackerTest {
     }
 
     private
-    fun emptyEnvironmentState() = EnvironmentChangeTracker.CachedEnvironmentState(cleared = false, updates = listOf(), removals = listOf())
+    fun emptyEnvironmentState() = ConfigurationCacheEnvironmentChangeTracker.CachedEnvironmentState(cleared = false, updates = listOf(), removals = listOf())
 }

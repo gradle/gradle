@@ -86,7 +86,7 @@ Acts as a placeholder and matches any implementation from any vendor (e.g. hotsp
 `J9`::
 Matches only virtual machine implementations using the OpenJ9/IBM J9 runtime engine.
 
-For example, to use an https://www.eclipse.org/openj9/[IBM Semeru] JVM, distributed via https://adoptopenjdk.net/[AdoptOpenJDK],
+For example, to use an https://www.eclipse.org/openj9/[IBM] JVM, distributed via https://adoptopenjdk.net/[AdoptOpenJDK],
 you can specify the filter as shown in the example below.
 
 ====
@@ -197,6 +197,12 @@ JVM auto-detection knows how to work with:
 * https://www.jetbrains.com/help/idea/sdk.html#jdk-from-ide[IntelliJ IDEA] installations
 
 Among the set of all detected JRE/JDK installations, one will be picked according to the <<sec:precedence,Toolchain Precedence Rules>>.
+
+[NOTE]
+====
+Whether you are using toolchain auto-detection or you are configuring <<sec:custom_loc>>, installations that are
+non-existing or without a `bin/java` executable will be ignored with a warning, but they won't generate an error.
+====
 
 [[sub:disable_auto_detect]]
 === How to disable auto-detection

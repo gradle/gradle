@@ -25,6 +25,7 @@ import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -52,6 +53,17 @@ public class PreferJavaRuntimeVariant extends EmptySchema {
     @Override
     public Set<Attribute<?>> getAttributes() {
         return SUPPORTED_ATTRIBUTES;
+    }
+
+    @Nullable
+    @Override
+    public Attribute<?> getAttributeByName(String name) {
+        for (Attribute<?> attr : SUPPORTED_ATTRIBUTES) {
+            if (name.equals(attr.getName())) {
+                return attr;
+            }
+        }
+        return null;
     }
 
     @Override

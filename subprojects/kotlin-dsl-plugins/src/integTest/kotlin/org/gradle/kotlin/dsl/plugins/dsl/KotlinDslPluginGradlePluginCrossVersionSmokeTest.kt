@@ -21,6 +21,7 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
@@ -97,8 +98,18 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         )
         withFile("src/main/kotlin/SomeSource.kt", "fun main(args: Array<String>) {}")
 
+
         if (kotlinVersion.startsWith("1.6")) {
             executer.expectDocumentedDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
+        }
+
+        if (VersionNumber.parse(kotlinVersion) < VersionNumber.parse("1.7.20")) {
+            executer.expectDocumentedDeprecationWarning(
+                "The org.gradle.util.WrapUtil type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
+            )
         }
 
         build("classes").apply {

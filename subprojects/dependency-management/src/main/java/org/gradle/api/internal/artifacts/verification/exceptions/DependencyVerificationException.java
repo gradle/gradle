@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.internal;
+package org.gradle.api.internal.artifacts.verification.exceptions;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
 
-/**
- * Defines a software component which can be diagnosed via the constructs in the {@code :diagnostics} module.
- */
-public interface DiagnosableSoftwareComponent extends SoftwareComponent {
-    /**
-     * Get the compile classpath of the component.
-     */
-    Configuration getCompileClasspath();
+@Contextual
+public class DependencyVerificationException extends GradleException {
+
+    public DependencyVerificationException(String message) {
+        super(message);
+    }
+
+    public DependencyVerificationException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

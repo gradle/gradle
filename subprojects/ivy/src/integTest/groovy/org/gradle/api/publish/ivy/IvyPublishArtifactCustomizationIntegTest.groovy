@@ -412,6 +412,7 @@ The following types/formats are supported:
 
             task customDocsTask {
                 ext.outputFile = file('customDocs.html')
+                def outputFile = outputFile
                 doLast {
                     outputFile << '<html/>'
                 }
@@ -421,6 +422,7 @@ The following types/formats are supported:
                 ext.outputFile = project.objects.fileProperty()
                 outputs.file(outputFile)
                 outputFile.set(file('regularFile-1.0.reg'))
+                def outputFile = outputFile
                 doLast {
                     outputFile.get().getAsFile() << 'foo'
                 }

@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
@@ -32,6 +31,8 @@ import org.gradle.util.internal.ConfigureUtil;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+
+import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 
 @SuppressWarnings("rawtypes")
 public class DefaultResolutionResult implements ResolutionResult {
@@ -70,23 +71,6 @@ public class DefaultResolutionResult implements ResolutionResult {
     @Override
     public void allDependencies(final Closure closure) {
         allDependencies(ConfigureUtil.configureUsing(closure));
-    }
-
-    private void eachElement(
-        ResolvedComponentResult node,
-        Action<? super ResolvedComponentResult> moduleAction, Action<? super DependencyResult> dependencyAction,
-        Set<ResolvedComponentResult> visited
-    ) {
-        if (!visited.add(node)) {
-            return;
-        }
-        moduleAction.execute(node);
-        for (DependencyResult d : node.getDependencies()) {
-            dependencyAction.execute(d);
-            if (d instanceof ResolvedDependencyResult) {
-                eachElement(((ResolvedDependencyResult) d).getSelected(), moduleAction, dependencyAction, visited);
-            }
-        }
     }
 
     @Override

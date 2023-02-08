@@ -16,14 +16,10 @@
 
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
-
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
-import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
-import org.gradle.internal.component.model.AttributeSelectionSchema
-import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -33,8 +29,7 @@ class GradlePluginVariantsSupportTest extends Specification {
 
     def attributes = AttributeTestUtil.attributesFactory()
     def objects = TestUtil.objectFactory()
-    def matcher = new ComponentAttributeMatcher()
-    def schema = new DefaultAttributesSchema(matcher, TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
+    def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
     def ep = Stub(AttributeMatchingExplanationBuilder)
 
     def setup() {
@@ -50,8 +45,8 @@ class GradlePluginVariantsSupportTest extends Specification {
         def producer = versionAttribute('7.0')
 
         then:
-        accepts == (matcher.match(schema(), [producer], consumer, null, ep) == [producer])
-        accepts == matcher.isMatching(schema(), producer, consumer)
+        accepts == (schema.matcher().matches([producer], consumer, null, ep) == [producer])
+        accepts == schema.matcher().isMatching(producer, consumer)
 
         where:
         currentGradleVersion       | acceptsOrRejects
@@ -79,7 +74,7 @@ class GradlePluginVariantsSupportTest extends Specification {
         ]
 
         then:
-        matcher.match(schema(), producer, consumer, null, ep) == [versionAttribute('7.0')]
+        schema.matcher().matches(producer, consumer, null, ep) == [versionAttribute('7.0')]
 
     }
 
@@ -97,7 +92,7 @@ class GradlePluginVariantsSupportTest extends Specification {
         ]
 
         then:
-        matcher.match(schema(), producer, consumer, null, ep) == [versionAttribute('7.1')]
+        schema.matcher().matches(producer, consumer, null, ep) == [versionAttribute('7.1')]
     }
 
     def "fails to select one candidate if there is no clear preference"() {
@@ -112,12 +107,7 @@ class GradlePluginVariantsSupportTest extends Specification {
         ]
 
         then:
-        matcher.match(schema(), producer, consumer, null, ep) == [versionAttribute('7.1'), versionAttribute('7.1')]
-    }
-
-    private AttributeSelectionSchema schema() {
-        //noinspection GroovyAccessibility
-        schema.mergeWith(EmptySchema.INSTANCE)
+        schema.matcher().matches(producer, consumer, null, ep) == [versionAttribute('7.1'), versionAttribute('7.1')]
     }
 
     private AttributeContainerInternal versionAttribute(String version) {

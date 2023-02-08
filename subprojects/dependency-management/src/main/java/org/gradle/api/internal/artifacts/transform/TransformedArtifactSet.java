@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.verification;
+package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.Contextual;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 
-@Contextual
-public class DependencyVerificationException extends GradleException {
-
-    public DependencyVerificationException(String message) {
-        super(message);
-    }
-
-    public DependencyVerificationException(String message, Throwable cause) {
-        super(message, cause);
-    }
+public interface TransformedArtifactSet extends ResolvedArtifactSet {
 }

@@ -21,6 +21,8 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.junit.Assume.assumeFalse
+
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     public static final int VERSION = 17
@@ -68,6 +70,9 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
     }
 
     def "can download missing j9 jdk automatically"() {
+        assumeFalse("J9 JDKs are not available on aarch64 or JDK untar support for the archive is broken",
+            System.getProperty("os.arch") == "aarch64")
+
         buildFile << """
             java {
                 toolchain {
