@@ -260,3 +260,19 @@ Please use standard locations for settings and build files:
 
 * settings file in the root of the build
 * build file in the root of each subproject
+
+=== Changes in the IDE integration
+
+[[kotlin_dsl_plugins_catalogs_workaround]]
+==== Workaround for false positive errors shown in Kotlin DSL `plugins {}` block using version catalog is not needed anymore
+
+Version catalog accessors for plugin aliases in the `plugins {}` block aren't shown as errors in IntelliJ IDEA and Android Studio Kotlin script editor anymore.
+
+If you were using the `@Suppress("DSL_SCOPE_VIOLATION")` annotation as a workaround, you can now remove it.
+
+If you were using the link:https://plugins.jetbrains.com/plugin/18949-gradle-libs-error-suppressor[Gradle Libs Error Suppressor] IntelliJ IDEA plugin, you can now uninstall it.
+
+After upgrading Gradle to 8.1 you will need to clear the IDE caches and restart.
+
+Also see <<upgrading_version_8.adoc#kotlin_dsl_deprecated_catalogs_plugins_block, the deprecated usages of version catalogs in the Kotlin DSL `plugins {}` block>> above.
+
