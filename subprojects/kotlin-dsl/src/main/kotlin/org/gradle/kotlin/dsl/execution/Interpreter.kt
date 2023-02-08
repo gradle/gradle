@@ -20,10 +20,8 @@ import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.GradleScriptException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
@@ -44,7 +42,6 @@ import org.gradle.kotlin.dsl.support.serviceRegistryOf
 import org.gradle.plugin.management.internal.PluginRequests
 import java.io.File
 import java.lang.reflect.InvocationTargetException
-import kotlin.script.experimental.api.KotlinType
 
 
 /**
@@ -61,7 +58,7 @@ import kotlin.script.experimental.api.KotlinType
  *
  * Because each program is specialized to a given script structure, a lot of work is
  * avoided. For example, a top-level script containing a `plugins` block but no body
- * can be compiled down to a specialized program that instantiates the precompiled
+ * can be compiled down to a specialized program that instantiates the compiled
  * `plugins` block class directly - without reflection - and does nothing else. The
  * same strategy can be used for a **script plugin** (a non top-level script) with a
  * body but no `buildscript` block since the classpath is completely determined at
@@ -72,6 +69,7 @@ import kotlin.script.experimental.api.KotlinType
  * @see ResidualProgram
  * @see ResidualProgramCompiler
  */
+internal
 class Interpreter(val host: Host) {
 
     interface Host {
@@ -103,12 +101,12 @@ class Interpreter(val host: Host) {
 
         /**
          * Provides an additional [ClassPath] to be used in the compilation of a top-level [Project] script
-         * `plugins` block.
+         * `buildscript` or `plugins` block.
          *
          * The [ClassPath] is assumed not to influence the cache key of the script by itself as it should
          * already be implied by [ProgramId.parentClassLoader].
          */
-        fun pluginAccessorsFor(
+        fun stage1BlocksAccessorsFor(
             scriptHost: KotlinScriptHost<*>
         ): ClassPath
 
@@ -252,9 +250,10 @@ class Interpreter(val host: Host) {
         programTarget: ProgramTarget
     ): CompiledScript {
 
-        // TODO: consider computing plugin accessors only when there's a plugins block
-        val pluginAccessorsClassPath = when {
-            requiresAccessors(programTarget, programKind) -> host.pluginAccessorsFor(scriptHost)
+        // TODO: consider computing stage 1 accessors only when there's a buildscript or plugins block
+        // TODO: consider splitting buildscript/plugins block accessors
+        val stage1BlocksAccessorsClassPath = when {
+            requiresAccessors(programTarget, programKind) -> host.stage1BlocksAccessorsFor(scriptHost)
             else -> ClassPath.EMPTY
         }
 
@@ -267,7 +266,7 @@ class Interpreter(val host: Host) {
             programKind,
             programTarget,
             host.compilationClassPathOf(targetScope.parent),
-            pluginAccessorsClassPath,
+            stage1BlocksAccessorsClassPath,
             scriptHost.temporaryFileProvider
         )
 
@@ -276,7 +275,7 @@ class Interpreter(val host: Host) {
             scriptPath,
             classesDir,
             programId.templateId,
-            pluginAccessorsClassPath,
+            stage1BlocksAccessorsClassPath,
             scriptSource
         )
     }
@@ -290,7 +289,7 @@ class Interpreter(val host: Host) {
         programKind: ProgramKind,
         programTarget: ProgramTarget,
         compilationClassPath: ClassPath,
-        pluginAccessorsClassPath: ClassPath,
+        stage1BlocksAccessorsClassPath: ClassPath,
         temporaryFileProvider: TemporaryFileProvider
     ): File = host.cachedDirFor(
         scriptHost,
@@ -326,31 +325,11 @@ class Interpreter(val host: Host) {
                     logger = interpreterLogger,
                     temporaryFileProvider = temporaryFileProvider,
                     compileBuildOperationRunner = host::runCompileBuildOperation,
-                    pluginAccessorsClassPath = pluginAccessorsClassPath,
+                    stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
                     packageName = residualProgram.packageName,
-                    injectedProperties = scriptHost.injectedProperties
                 ).compile(residualProgram.document)
             }
         }
-    }
-
-    private
-    val KotlinScriptHost<*>.injectedProperties: Map<String, KotlinType>
-        get() = when (target) {
-            is Project -> {
-                target.extensions.findByType(VersionCatalogsExtension::class.java)
-                    ?.map { it.name to target.extensions.findByName(it.name) }
-                    ?.filter { it.second != null }
-                    ?.associate { it.first to it.second!!.getKotlinType() }
-                    ?: mapOf()
-            }
-            else -> mapOf()
-        }
-
-    private
-    fun Any.getKotlinType(): KotlinType = when (this) {
-        is GeneratedSubclass -> KotlinType(this.publicType().kotlin)
-        else -> KotlinType(this.javaClass.kotlin)
     }
 
     private

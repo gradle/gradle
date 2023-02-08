@@ -275,8 +275,7 @@ class PromotionProjectTests {
         // Set the project id here, so we can use methods on the DslContext
         DslContext.projectId = AbsoluteId("Gradle_${branchName.toCapitalized()}")
         DslContext.addParameters("Branch" to branchName)
-        val model = PromotionProject(VersionedSettingsBranch(branchName, true))
-        return model
+        return PromotionProject(VersionedSettingsBranch(branchName))
     }
 
     private fun gradleStep(steps: List<BuildStep>, index: Int): GradleBuildStep {

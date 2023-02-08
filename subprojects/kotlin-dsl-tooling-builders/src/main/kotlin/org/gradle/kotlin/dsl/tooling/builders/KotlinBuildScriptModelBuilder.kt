@@ -36,7 +36,7 @@ import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.time.Time.startTimer
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
-import org.gradle.kotlin.dsl.accessors.PluginAccessorClassPathGenerator
+import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
@@ -248,10 +248,10 @@ fun projectScriptModelBuilder(
     project = project,
     scriptClassPath = project.scriptCompilationClassPath,
     accessorsClassPath = { classPath ->
-        val pluginAccessorClassPathGenerator = project.serviceOf<PluginAccessorClassPathGenerator>()
+        val stage1BlocksAccessorClassPathGenerator = project.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
         val projectAccessorClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
         val dependenciesAccessors = project.serviceOf<DependenciesAccessors>()
-        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) + pluginAccessorClassPathGenerator.pluginSpecBuildersClassPath(project) + AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
+        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) + stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(project) + AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources)
     },
     sourceLookupScriptHandlers = sourceLookupScriptHandlersFor(project),
     enclosingScriptProjectDir = project.projectDir

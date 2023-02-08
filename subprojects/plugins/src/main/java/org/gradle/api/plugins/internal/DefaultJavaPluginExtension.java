@@ -21,10 +21,10 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
@@ -32,16 +32,19 @@ import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.FeatureSpec;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JavaResolutionConsistency;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
+import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchainSpecInternal;
@@ -54,8 +57,6 @@ import static org.gradle.api.attributes.DocsType.JAVADOC;
 import static org.gradle.api.attributes.DocsType.SOURCES;
 import static org.gradle.api.plugins.JavaPlugin.JAVADOC_ELEMENTS_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.JavaPlugin.SOURCES_ELEMENTS_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureDocumentationVariantWithArtifact;
-import static org.gradle.api.plugins.internal.JvmPluginsHelper.findJavaComponent;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
 public class DefaultJavaPluginExtension implements JavaPluginExtension {
@@ -64,7 +65,6 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
 
     private final JavaToolchainSpecInternal toolchainSpec;
     private final ObjectFactory objectFactory;
-    private final SoftwareComponentContainer components;
     private final ModularitySpec modularity;
     private final JvmPluginServices jvmPluginServices;
     private final JavaToolchainSpec toolchain;
@@ -86,7 +86,6 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         this.sourceSets = sourceSets;
         this.toolchainSpec = toolchainSpec;
         this.objectFactory = project.getObjects();
-        this.components = project.getComponents();
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         this.jvmPluginServices = jvmPluginServices;
         this.toolchain = toolchainSpec;
@@ -199,6 +198,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         return !autoTargetJvm;
     }
 
+    @Override
     public void registerFeature(String name, Action<? super FeatureSpec> configureAction) {
         Capability defaultCapability = new ProjectDerivedCapability(project, name);
         DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(
@@ -209,38 +209,69 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         spec.create();
     }
 
+    @Override
     public void withJavadocJar() {
-        TaskContainer tasks = project.getTasks();
-        ConfigurationContainer configurations = project.getConfigurations();
-        SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        configureDocumentationVariantWithArtifact(JAVADOC_ELEMENTS_CONFIGURATION_NAME, null, JAVADOC, ImmutableList.of(), main.getJavadocJarTaskName(), tasks.named(main.getJavadocTaskName()), findJavaComponent(components), configurations, tasks, objectFactory, project.getFileResolver(), project.getTaskDependencyFactory());
+        maybeEmitMissingJavaComponentDeprecation("withJavadocJar()");
+
+        if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
+            JvmPluginsHelper.getJavaComponent(project).enableJavadocJarVariant();
+        } else {
+            SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+            JvmPluginsHelper.createDocumentationVariantWithArtifact(
+                JAVADOC_ELEMENTS_CONFIGURATION_NAME,
+                null,
+                JAVADOC,
+                ImmutableList.of(),
+                main.getJavadocJarTaskName(),
+                project.getTasks().named(main.getJavadocTaskName()),
+                project
+            );
+        }
     }
 
+    @Override
     public void withSourcesJar() {
-        TaskContainer tasks = project.getTasks();
-        ConfigurationContainer configurations = project.getConfigurations();
-        SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        configureDocumentationVariantWithArtifact(SOURCES_ELEMENTS_CONFIGURATION_NAME, null, SOURCES, ImmutableList.of(), main.getSourcesJarTaskName(), main.getAllSource(), findJavaComponent(components), configurations, tasks, objectFactory, project.getFileResolver(), project.getTaskDependencyFactory());
+        maybeEmitMissingJavaComponentDeprecation("withSourcesJar()");
+
+        if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
+            JvmPluginsHelper.getJavaComponent(project).enableSourcesJarVariant();
+        } else {
+            SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+            JvmPluginsHelper.createDocumentationVariantWithArtifact(
+                SOURCES_ELEMENTS_CONFIGURATION_NAME,
+                null,
+                SOURCES,
+                ImmutableList.of(),
+                main.getSourcesJarTaskName(),
+                main.getAllSource(),
+                project
+            );
+        }
     }
 
+    @Override
     public ModularitySpec getModularity() {
         return modularity;
     }
 
+    @Override
     public JavaToolchainSpec getToolchain() {
         return toolchain;
     }
 
+    @Override
     public JavaToolchainSpec toolchain(Action<? super JavaToolchainSpec> action) {
         action.execute(toolchain);
         return toolchain;
     }
 
+    @Override
     public void consistentResolution(Action<? super JavaResolutionConsistency> action) {
+        maybeEmitMissingJavaComponentDeprecation("consistentResolution(Action)");
+
         final ConfigurationContainer configurations = project.getConfigurations();
         final SourceSetContainer sourceSets = getSourceSets();
-
-        action.execute(project.getObjects().newInstance(DefaultJavaPluginExtension.DefaultJavaResolutionConsistency.class, sourceSets, configurations));
+        action.execute(project.getObjects().newInstance(DefaultJavaPluginExtension.DefaultJavaResolutionConsistency.class, project, sourceSets, configurations));
     }
 
     private static String validateFeatureName(String name) {
@@ -250,7 +281,17 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         return name;
     }
 
-    public static class DefaultJavaResolutionConsistency implements JavaResolutionConsistency {
+    private void maybeEmitMissingJavaComponentDeprecation(String name) {
+        if (!project.getPlugins().hasPlugin(JavaPlugin.class)) {
+            DeprecationLogger.deprecateBehaviour(name + " was called without the presence of the java component.")
+                .withAdvice("Apply a JVM component plugin such as: java-library, application, groovy, or scala")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "java_extension_without_java_component")
+                .nagUser();
+        }
+    }
+
+    static class DefaultJavaResolutionConsistency implements JavaResolutionConsistency {
         private final Configuration mainCompileClasspath;
         private final Configuration mainRuntimeClasspath;
         private final Configuration testCompileClasspath;
@@ -259,15 +300,26 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         private final ConfigurationContainer configurations;
 
         @Inject
-        public DefaultJavaResolutionConsistency(SourceSetContainer sourceSets, ConfigurationContainer configurations) {
+        public DefaultJavaResolutionConsistency(Project project, SourceSetContainer sourceSets, ConfigurationContainer configurations) {
             this.sourceSets = sourceSets;
             this.configurations = configurations;
-            SourceSet mainSourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-            SourceSet testSourceSet = sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME);
-            mainCompileClasspath = findConfiguration(mainSourceSet.getCompileClasspathConfigurationName());
-            mainRuntimeClasspath = findConfiguration(mainSourceSet.getRuntimeClasspathConfigurationName());
-            testCompileClasspath = findConfiguration(testSourceSet.getCompileClasspathConfigurationName());
-            testRuntimeClasspath = findConfiguration(testSourceSet.getRuntimeClasspathConfigurationName());
+
+            if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
+                JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
+                JvmTestSuite defaultTestSuite = JvmPluginsHelper.getDefaultTestSuite(project);
+
+                mainCompileClasspath = component.getCompileClasspathConfiguration();
+                mainRuntimeClasspath = component.getRuntimeClasspathConfiguration();
+                testCompileClasspath = findConfiguration(defaultTestSuite.getSources().getCompileClasspathConfigurationName());
+                testRuntimeClasspath = findConfiguration(defaultTestSuite.getSources().getRuntimeClasspathConfigurationName());
+            } else {
+                SourceSet mainSourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+                SourceSet testSourceSet = sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME);
+                mainCompileClasspath = findConfiguration(mainSourceSet.getCompileClasspathConfigurationName());
+                mainRuntimeClasspath = findConfiguration(mainSourceSet.getRuntimeClasspathConfigurationName());
+                testCompileClasspath = findConfiguration(testSourceSet.getCompileClasspathConfigurationName());
+                testRuntimeClasspath = findConfiguration(testSourceSet.getRuntimeClasspathConfigurationName());
+            }
         }
 
         @Override

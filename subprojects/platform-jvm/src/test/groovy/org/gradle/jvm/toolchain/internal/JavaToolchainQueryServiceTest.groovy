@@ -518,6 +518,9 @@ class JavaToolchainQueryServiceTest extends Specification {
             boolean installationExists(InstallationLocation installationLocation) {
                 return true
             }
+            boolean installationHasExecutable(InstallationLocation installationLocation) {
+                return true
+            }
         }
         registry
     }

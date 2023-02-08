@@ -1461,8 +1461,11 @@ $append
                 optionalFeatureRuntimeElements file:file("\$buildDir/other-artifact.jar"), builtBy: 'touchFile', classifier: 'optional-feature'
             }
             task touchFile {
+                // explicit dependency otherwise this task may run before the Jar task
+                dependsOn tasks.jar
+                def file = file("\$buildDir/other-artifact.jar")
                 doLast {
-                    file("\$buildDir/other-artifact.jar") << "test"
+                    file << "test"
                 }
             }
         """

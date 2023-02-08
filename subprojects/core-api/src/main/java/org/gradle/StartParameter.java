@@ -282,7 +282,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return The build file. May be null.
      *
      * @deprecated Setting custom build file to select the default project has been deprecated.
-     * This method will be removed in Gradle 8.0.
+     * This method will be removed in Gradle 9.0.
      */
     @Deprecated
     @Nullable
@@ -297,7 +297,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @deprecated Setting custom build file to select the default project has been deprecated.
      * Please use {@link #setProjectDir(File)} to specify the directory of the default project instead.
-     * This method will be removed in Gradle 8.0.
+     * This method will be removed in Gradle 9.0.
      */
     @Deprecated
     public void setBuildFile(@Nullable File buildFile) {
@@ -462,7 +462,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @deprecated Setting custom settings file for the build has been deprecated.
      * Please use {@link #setProjectDir(File)} to specify the directory of the default project instead.
-     * This method will be removed in Gradle 8.0.
+     * This method will be removed in Gradle 9.0.
      */
     @Deprecated
     public void setSettingsFile(@Nullable File settingsFile) {
@@ -482,7 +482,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return The settings file. May be null.
      *
      * @deprecated Setting custom build file to select the default project has been deprecated.
-     * This method will be removed in Gradle 8.0.
+     * This method will be removed in Gradle 9.0.
      */
     @Deprecated
     @Nullable

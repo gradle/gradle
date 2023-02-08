@@ -22,6 +22,33 @@ import javax.annotation.Nullable;
 
 /**
  * A helper to handle transform errors in {@link org.gradle.internal.agents.InstrumentingClassLoader}.
+ * The agent cannot abort the class loading by throwing an exception during instrumentation.
+ * Instead, this class allows to record the exception and rethrow it after class loading is mostly done.
+ * The suggested pattern is to override the {@link ClassLoader#findClass(String)}:
+ * <pre>
+ * <code>
+ *
+ * private final TransformErrorHandler handler = new TransformErrorHandler("loader-name")
+ *
+ * protected Class&lt;?&gt; findClass(String name) throws ClassNotFoundException {
+ *     handler.enterClassLoadingScope(name);
+ *     Class&lt;?&gt; result;
+ *     try {
+ *         result = super.findClass(name);
+ *     } catch (Throwable th) {
+ *         throw handler.exitClassLoadingScopeWithException(th);
+ *     }
+ *     handler.exitClassLoadingScope();
+ *     return result;
+ * }
+ *
+ * public void transformFailed(String className, Throwable th) {
+ *     handler.classLoadingError(className, th);
+ * }
+ * </code>
+ * </pre>
+ * <p>
+ * This class is thread-safe, though it only tracks pending exceptions per-thread.
  */
 public class TransformErrorHandler {
     private final ThreadLocal<ClassNotFoundException> lastError = new ThreadLocal<ClassNotFoundException>();
@@ -39,12 +66,24 @@ public class TransformErrorHandler {
     public void enterClassLoadingScope(String className) throws ClassNotFoundException {
         ClassNotFoundException lastError = getLastErrorAndClear();
         if (lastError != null) {
-            throw new ClassNotFoundException("A pending instrumentation exception prevented loading a class " + className + " in " + classLoaderName, lastError);
+            throw new ClassNotFoundException(
+                "A pending instrumentation exception prevented loading a class " + className + " in " + classLoaderName, lastError);
         }
     }
 
+    /**
+     * Call this when an error occurs during class loading.
+     * This method only records the error but doesn't throw any exceptions.
+     * The exception will be rethrown (wrapped in a ClassNotFoundException) when this thread enters or exits the class loading scope.
+     * <p>
+     * This may be called outside the class loading scope.
+     *
+     * @param className the name of the class that was loading
+     * @param cause the original exception
+     */
     public void classLoadingError(@Nullable String className, Throwable cause) {
-        ClassNotFoundException newError = new ClassNotFoundException("Failed to instrument class " + className + " in " + classLoaderName, cause);
+        ClassNotFoundException newError = new ClassNotFoundException(
+            "Failed to instrument class " + className + " in " + classLoaderName, cause);
         Throwable prevError = lastError.get();
         if (prevError == null) {
             lastError.set(newError);
@@ -65,6 +104,7 @@ public class TransformErrorHandler {
             throw lastError;
         }
     }
+
     /**
      * Marks the end of code where a transformation exception may occur, if this block completed exceptionally.
      * Rethrows the supplied throwable.

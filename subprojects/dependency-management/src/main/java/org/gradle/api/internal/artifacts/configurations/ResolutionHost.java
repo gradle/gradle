@@ -22,9 +22,15 @@ import java.util.Collection;
 import java.util.Optional;
 
 public interface ResolutionHost {
+    String getDisplayName();
+
     DisplayName displayName(String type);
 
-    void rethrowFailure(String type, Collection<Throwable> failures);
+    default void rethrowFailure(String type, Collection<Throwable> failures) {
+        mapFailure(type, failures).ifPresent(e -> {
+            throw e;
+        });
+    }
 
     Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures);
 }

@@ -30,6 +30,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ObjectConfigurationAction
 
 import org.gradle.groovy.scripts.ScriptSource
@@ -42,15 +43,16 @@ import org.gradle.util.internal.ConfigureUtil.configureByMap
 import java.io.File
 
 
-class KotlinScriptHost<out T : Any>(
+class KotlinScriptHost<out T : Any> internal constructor(
     val target: T,
     val scriptSource: ScriptSource,
-    val scriptHandler: ScriptHandler,
-    val targetScope: ClassLoaderScope,
-    val baseScope: ClassLoaderScope,
+    internal val scriptHandler: ScriptHandler,
+    internal val targetScope: ClassLoaderScope,
+    private val baseScope: ClassLoaderScope,
     private val serviceRegistry: ServiceRegistry
 ) {
 
+    internal
     val fileName = scriptSource.fileName!!
 
     internal
@@ -60,6 +62,11 @@ class KotlinScriptHost<out T : Any>(
 
     internal
     val processOperations: ProcessOperations by unsafeLazy {
+        serviceRegistry.get()
+    }
+
+    internal
+    val objectFactory: ObjectFactory by unsafeLazy {
         serviceRegistry.get()
     }
 

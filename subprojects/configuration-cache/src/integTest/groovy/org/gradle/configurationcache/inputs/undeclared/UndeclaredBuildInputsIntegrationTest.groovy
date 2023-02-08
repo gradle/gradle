@@ -868,6 +868,35 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         outputContains("Execution: some.property.2 = 2")
     }
 
+    def "system properties overwritten in build logic cannot be overridden by CLI argument"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            System.properties.putAll(("someProperty"): "build-logic-value")
+            def property = providers.systemProperty("someProperty")
+
+             tasks.register("print") {
+                doLast {
+                 println("Execution: \${property.orNull}")
+                }
+             }
+        """)
+
+        when:
+        configurationCacheRun "print"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Execution: build-logic-value")
+
+        when:
+        System.clearProperty("someProperty")
+        configurationCacheRun "print", "-DsomeProperty=cli-overridden-value"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Execution: build-logic-value")
+    }
+
     def "reports build logic reading files in #title"() {
         def configurationCache = newConfigurationCacheFixture()
         def inputFile = testDirectory.file("testInput.txt") << "some test input"

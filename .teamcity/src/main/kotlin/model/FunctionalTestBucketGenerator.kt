@@ -22,7 +22,7 @@ const val MAX_PROJECT_NUMBER_IN_BUCKET = 11
 fun main() {
     val model = CIBuildModel(
         projectId = "Check",
-        branch = VersionedSettingsBranch("master", true),
+        branch = VersionedSettingsBranch("master"),
         buildScanTags = listOf("Check"),
         subprojects = JsonBasedGradleSubprojectProvider(File("./subprojects.json"))
     )

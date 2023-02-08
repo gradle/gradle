@@ -20,7 +20,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
-import org.gradle.internal.Cast;
 
 import java.util.List;
 
@@ -48,8 +47,7 @@ public class DefaultMutableCapabilities implements MutableCapabilitiesMetadata {
 
     @Override
     public CapabilitiesMetadata asImmutable() {
-        ImmutableList<ImmutableCapability> capabilities = Cast.uncheckedCast(getCapabilities());
-        return new ImmutableCapabilities(capabilities);
+        return ImmutableCapabilities.of(getCapabilities());
     }
 
     @Override

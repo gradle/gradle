@@ -34,13 +34,13 @@ val acceptedApiChangesFile = layout.projectDirectory.file("src/changes/accepted-
 val verifyAcceptedApiChangesOrdering = tasks.register<gradlebuild.binarycompatibility.AlphabeticalAcceptedApiChangesTask>("verifyAcceptedApiChangesOrdering") {
     group = "verification"
     description = "Ensures the accepted api changes file is kept alphabetically ordered to make merging changes to it easier"
-    apiChangesFile.set(acceptedApiChangesFile)
+    apiChangesFile = acceptedApiChangesFile
 }
 
 val sortAcceptedApiChanges = tasks.register<gradlebuild.binarycompatibility.SortAcceptedApiChangesTask>("sortAcceptedApiChanges") {
     group = "verification"
     description = "Sort the accepted api changes file alphabetically"
-    apiChangesFile.set(acceptedApiChangesFile)
+    apiChangesFile = acceptedApiChangesFile
 }
 
 tasks.test {
@@ -62,7 +62,7 @@ tasks.test {
 
     predictiveSelection {
         // PTS doesn't work well with architecture tests which scan all classes
-        enabled.set(false)
+        enabled = false
     }
 }
 

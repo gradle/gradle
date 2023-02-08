@@ -6,9 +6,9 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "4.0.3"
+version = "4.0.8"
 
-base.archivesName.set("plugins")
+base.archivesName = "plugins"
 
 dependencies {
     compileOnly(project(":base-services"))
@@ -60,7 +60,7 @@ packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/plugins/precompiled/**")
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true
 
 pluginPublish {
     bundledGradlePlugin(

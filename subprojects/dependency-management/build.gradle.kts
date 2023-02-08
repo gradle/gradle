@@ -119,7 +119,7 @@ packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true
 
 tasks.clean {
     val testFiles = layout.buildDirectory.dir("tmp/test files")

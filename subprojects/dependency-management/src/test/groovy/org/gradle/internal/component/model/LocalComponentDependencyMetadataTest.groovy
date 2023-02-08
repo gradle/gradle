@@ -58,7 +58,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     }
 
     def setup() {
-        attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
+        attributesSchema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         factory = AttributeTestUtil.attributesFactory()
     }
 
@@ -429,7 +429,7 @@ Configuration 'bar':
         def toState = Stub(ComponentGraphResolveState) {
             getMetadata() >> toComponent
         }
-        def attributeSchemaWithCompatibility = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
+        def attributeSchemaWithCompatibility = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         attributeSchemaWithCompatibility.attribute(Attribute.of('key', String), {
             it.compatibilityRules.add(EqualsValuesCompatibleRule)
             it.compatibilityRules.add(ValueCompatibleRule)
