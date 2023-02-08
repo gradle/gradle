@@ -59,14 +59,14 @@ public interface DependencyFactory {
     ExternalModuleDependency create(CharSequence dependencyNotation);
 
     /**
-     * Create an {@link ExternalModuleDependency} from an id and a version string.
+     * Create an {@link ExternalModuleDependency} from a plugin identifier and a version string.
      *
-     * @param id the id
-     * @param version the version (optional)
+     * @param pluginId the plugin identifier
+     * @param version the plugin version (optional)
      * @return the new dependency
      * @since 8.1
      */
-    ExternalModuleDependency create(String id, @Nullable String version);
+    ExternalModuleDependency create(String pluginId, @Nullable String version);
 
     /**
      * Create an {@link ExternalModuleDependency} from a series of strings.
