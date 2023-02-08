@@ -90,7 +90,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     @Internal
     @Override
     public boolean isCurrentJvm() {
-        return metadata.getJavaHome().toFile().equals(Jvm.current().getJavaHome());
+        return javaHome.getAsFile().equals(Jvm.current().getJavaHome());
     }
 
     @Internal
@@ -106,7 +106,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     @Internal
     @Override
     public String getDisplayName() {
-        return metadata.getJavaHome().toString();
+        return javaHome.toString();
     }
 
     @Internal

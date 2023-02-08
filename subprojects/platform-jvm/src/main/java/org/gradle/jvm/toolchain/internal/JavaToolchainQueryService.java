@@ -41,7 +41,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Comparator;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
@@ -157,22 +156,20 @@ public class JavaToolchainQueryService {
 
         Predicate<JvmInstallationMetadata> matcher = new JvmInstallationMetadataMatcher(spec);
 
-        Optional<JavaToolchainInstantiationResult> result = registry.listInstallations().stream()
+        return registry.listInstallations().stream()
             .map(location -> new JavaToolchainInstantiationResult(location, detector.getMetadata(location)))
-            .filter(it -> it.metadata.isValidInstallation())
-            .filter(it -> matcher.test(it.metadata))
-            .min(Comparator.comparing(it -> it.metadata, new JvmInstallationMetadataComparator(currentJvm)));
-
-        if (result.isPresent()) {
-            JavaToolchainInstantiationResult pair = result.get();
-            warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(pair.javaHome);
-            return new JavaToolchain(pair.metadata, fileFactory, new JavaToolchainInput(spec), false);
-        }
-
-        InstallationLocation downloadedInstallation = downloadToolchain(spec);
-        JavaToolchain downloadedToolchain = asToolchainOrThrow(downloadedInstallation, spec, false);
-        registry.addInstallation(downloadedInstallation);
-        return downloadedToolchain;
+            .filter(result -> result.metadata.isValidInstallation())
+            .filter(result -> matcher.test(result.metadata))
+            .min(Comparator.comparing(result -> result.metadata, new JvmInstallationMetadataComparator(currentJvm)))
+            .map(result -> {
+                warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(result.javaHome);
+                return new JavaToolchain(result.metadata, fileFactory, new JavaToolchainInput(spec), false);
+            }).orElseGet(() -> {
+                InstallationLocation downloadedInstallation = downloadToolchain(spec);
+                JavaToolchain downloadedToolchain = asToolchainOrThrow(downloadedInstallation, spec, false);
+                registry.addInstallation(downloadedInstallation);
+                return downloadedToolchain;
+            });
     }
 
     private void warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(InstallationLocation javaHome) {

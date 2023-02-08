@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,9 @@ import static org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor.BELLSO
 import static org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor.ORACLE
 import static org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor.UNKNOWN
 
+/**
+ * Tests {@link JvmInstallationMetadataComparator}.
+ */
 class JvmInstallationMetadataComparatorTest extends Specification {
 
     def "prefers higher major versions"() {
@@ -42,7 +45,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
         ]
 
         when:
-        metadata.sort(new JvmInstallationMetadataComparator(newJvm("2.0")))
+        metadata.sort(new JvmInstallationMetadataComparator(newJvm()))
 
         then:
         assertOrder(metadata, "11.0", "8.0", "6.0", "5.1")
@@ -60,7 +63,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
         ]
 
         when:
-        metadata.sort(new JvmInstallationMetadataComparator(newJvm("2.0")))
+        metadata.sort(new JvmInstallationMetadataComparator(newJvm()))
 
         then:
         assertOrder(metadata, "8.3", "8.2", "8.1", "8.8", "8.7", "8.4")
@@ -75,7 +78,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
         ]
 
         when:
-        metadata.sort(new JvmInstallationMetadataComparator(newJvm("2.0")))
+        metadata.sort(new JvmInstallationMetadataComparator(newJvm()))
 
         then:
         assertOrder(metadata, "8.0.1234", "8.0.123", "8.0.1")
@@ -89,7 +92,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
         def metadata = [jre, jdk]
 
         when:
-        metadata.sort(new JvmInstallationMetadataComparator(newJvm("2.0")))
+        metadata.sort(new JvmInstallationMetadataComparator(newJvm()))
 
         then:
         metadata == [jdk, jre]
@@ -103,7 +106,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
         def metadata = [prevJdk, nextJdk]
 
         when:
-        metadata.sort(new JvmInstallationMetadataComparator(newJvm("2.0")))
+        metadata.sort(new JvmInstallationMetadataComparator(newJvm()))
 
         then:
         metadata == [nextJdk, prevJdk]
@@ -141,7 +144,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
         }
     }
 
-    private static Jvm newJvm(String implementationVersion, boolean isJdk = false, String installPath = null) {
+    private static Jvm newJvm(String implementationVersion = "1.1", boolean isJdk = false, String installPath = null) {
         return Jvm.discovered(getJavaHome(implementationVersion, isJdk, installPath), implementationVersion, JavaVersion.toVersion(implementationVersion))
     }
 
