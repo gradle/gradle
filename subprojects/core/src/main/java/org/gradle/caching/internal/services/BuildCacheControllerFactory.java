@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
@@ -43,8 +45,6 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -56,7 +56,7 @@ public final class BuildCacheControllerFactory {
 
     public static final String REMOTE_CONTINUE_ON_ERROR_PROPERTY = "org.gradle.unsafe.build-cache.remote-continue-on-error";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheControllerFactory.class);
+    private static final Logger LOGGER = Logging.getLogger(BuildCacheControllerFactory.class);
 
     public enum BuildCacheMode {
         ENABLED, DISABLED
@@ -182,7 +182,7 @@ public final class BuildCacheControllerFactory {
     }
 
     private static void logConfig(Path buildIdentityPath, BuildCacheServiceRole role, BuildCacheDescription description) {
-        if (LOGGER.isInfoEnabled()) {
+        if (LOGGER.isLifecycleEnabled()) {
             StringBuilder config = new StringBuilder();
             boolean pullOnly = !description.isPush();
             if (!description.config.isEmpty() || pullOnly) {
@@ -213,7 +213,7 @@ public final class BuildCacheControllerFactory {
                 buildDescription = "build '" + buildIdentityPath + "'";
             }
 
-            LOGGER.info("Using {} {} build cache for {}{}.",
+            LOGGER.lifecycle("Using {} {} build cache for {}{}.",
                 role.getDisplayName(),
                 description.type == null ? description.className : description.type,
                 buildDescription,

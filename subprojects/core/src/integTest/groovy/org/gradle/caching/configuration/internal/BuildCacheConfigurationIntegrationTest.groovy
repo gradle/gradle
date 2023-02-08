@@ -207,7 +207,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     def "emits a useful message when using the build cache"() {
         when:
         executer.withBuildCacheEnabled()
-        succeeds("help", "--info")
+        succeeds("help")
         then:
         outputContains("Using local directory build cache")
     }
@@ -218,7 +218,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         """
         executer.withArgument("--no-build-cache")
         when:
-        succeeds("help", "--info")
+        succeeds("help")
         then:
         outputDoesNotContain("Using local directory build cache")
     }
@@ -229,7 +229,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         """
         executer.withArgument("--build-cache")
         when:
-        succeeds("help", "--info")
+        succeeds("help")
         then:
         outputContains("Using local directory build cache")
     }
@@ -270,7 +270,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         executer.withBuildCacheEnabled()
-        succeeds("customTask", "--info")
+        succeeds("customTask")
 
         then:
         outputContains("Using local directory build cache for the root build (pull-only, location = ${file("local-cache")}, removeUnusedEntriesAfter = 7 days).")
