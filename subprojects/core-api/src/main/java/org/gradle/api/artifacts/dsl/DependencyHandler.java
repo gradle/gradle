@@ -540,10 +540,10 @@ public interface DependencyHandler extends ExtensionAware {
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
     /**
-     * Returns the coordinates string of a Gradle plugin, specified by id.
+     * Returns the Maven coordinates string of a Gradle plugin, specified by a plugin identifier.
      *
      * @param id the id of the plugin
-     * @return the plugin coordinates string
+     * @return the plugin Maven coordinates string
      *
      * @since 8.1
      */
@@ -551,12 +551,12 @@ public interface DependencyHandler extends ExtensionAware {
     String plugin(String id);
 
     /**
-     * Returns the coordinates string of a Gradle plugin,
-     * specified by id and version.
+     * Returns the Maven coordinates string of a Gradle plugin,
+     * specified by a plugin identifier and a version.
      *
      * @param id the id of the plugin
      * @param version the version of the plugin
-     * @return the plugin coordinates string
+     * @return the plugin Maven coordinates string
      *
      * @since 8.1
      */

@@ -336,7 +336,7 @@ The details of this are described in the section on <<composite_builds.adoc#defi
 
 [[sec:gradle-plugin-dependencies]]
 ==== Gradle plugin dependencies
-<<plugins.adoc#plugins, Gradle plugins>> are used to add new tasks, domain objects and conventions to a project as well as to extend core objects and objects from other plugins.
+<<plugins.adoc#plugins, Gradle plugins>> play a crucial role in enhancing the functionality of a project by introducing new tasks, domain objects, and conventions, as well as augmenting core objects and objects from other plugins.
 A dependency on a plugin can be declared using the id and (optionally) the version of the plugin.
 
 ====

@@ -80,7 +80,7 @@ TODO - File system repositories are fully supported including dynamic versions i
 
 ### Convenient declaration of dependencies on Gradle plugins
 
-The dependency on a Gradle plugin can now be declared using either the plugin id or the plugin entry from a version catalog. 
+Declaring a dependency on a Gradle plugin can now be accomplished using either the plugin's identifier or the version catalog's plugin coordinates, providing greater flexibility and improved ease of use.
 
 More details can be found in the dedicated section of the [Implementing Gradle Plugins](implementing_gradle_plugins.html#[reacting_to_plugins](sec:depending_on_plugins)) user manual chapter.
 
