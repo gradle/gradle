@@ -32,9 +32,6 @@ public class DefaultTextFileResourceLoader implements TextFileResourceLoader {
         if (sourceFile == null) {
             return new StringTextResource(description, "");
         }
-        if (sourceFile.exists()) {
-            return new UriTextResource(description, sourceFile, resolver);
-        }
-        return new EmptyFileTextResource(description, sourceFile, resolver);
+        return UriTextResource.from(description, sourceFile, resolver);
     }
 }
