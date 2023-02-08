@@ -27,11 +27,6 @@ import spock.lang.Specification
 import java.nio.charset.Charset
 
 import static org.gradle.internal.resource.UriTextResource.extractCharacterEncoding
-import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.MatcherAssert.assertThat
-import static org.junit.Assert.assertFalse
-import static org.junit.Assert.assertNull
-import static org.junit.Assert.fail
 
 class UriTextResourceTest extends Specification {
     private TestFile testDir
@@ -188,15 +183,14 @@ class UriTextResourceTest extends Specification {
     }
 
     def hasNoContentWhenUsingFileUriAndFileDoesNotExist() {
-        UriTextResource resource = new UriTextResource('<display-name>', fileUri, resolver)
-        assertFalse(resource.exists)
-        assertNull(resource.file)
-        try {
-            resource.text
-            fail()
-        } catch (MissingResourceException e) {
-            assertThat(e.message, equalTo("Could not read <display-name> '$file' as it does not exist." as String))
-        }
+        when:
+        UriTextResource resource = UriTextResource.from('<display-name>', file, resolver)
+
+        then:
+        resource.exists
+        resource.file == null
+        resource.location.file == file
+        resource.text == ""
     }
 
     def readsFileContentUsingJarUriWhenFileExists() {
