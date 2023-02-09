@@ -125,6 +125,13 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                 public List<PlannedNode> getExecutionPlan() {
                     return plannedNodes;
                 }
+
+                @Override
+                public List<PlannedNode> getExecutionPlan(Set<NodeIdentity.NodeType> types) {
+                    return plannedNodes.stream()
+                        .filter(node -> types.contains(node.getNodeIdentity().getNodeType()))
+                        .collect(Collectors.toList());
+                }
             });
         }
 
