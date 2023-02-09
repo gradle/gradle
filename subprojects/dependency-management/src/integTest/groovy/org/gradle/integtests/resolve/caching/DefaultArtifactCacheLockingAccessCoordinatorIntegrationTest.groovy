@@ -220,14 +220,64 @@ class DefaultArtifactCacheLockingAccessCoordinatorIntegrationTest extends Abstra
         findFiles(cacheDir, 'files-*/*').isEmpty()
     }
 
-    def "does not clean up resources and files when cache cleanup is disabled via #method"() {
+    def "does not clean up resources and files when cache cleanup is disabled via #cleanupMethod"() {
         given:
         buildscriptWithDependency(snapshotModule)
 
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
-        disableCacheCleanup(method)
+
+        and:
+        disableCacheCleanup(cleanupMethod)
+        cleanupMethod.maybeExpectDeprecationWarning(executer)
+
+        and:
+        succeeds 'resolve'
+
+        then:
+        def resource = findFile(cacheDir, 'resources-*/**/maven-metadata.xml')
+        def files = findFiles(cacheDir, "files-*/**/*")
+        files.size() == 2
+        journal.assertExists()
+
+        when:
+        executer.noDeprecationChecks()
+        run '--stop' // ensure daemon does not cache file access times in memory
+        forceCleanup(gcFile)
+
+        and:
+        writeLastFileAccessTimeToJournal(resource.parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES + 1))
+        writeLastFileAccessTimeToJournal(files[0].parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES + 1))
+        writeLastFileAccessTimeToJournal(files[1].parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES + 1))
+
+        and:
+        cleanupMethod.maybeExpectDeprecationWarning(executer)
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks('help').start().waitForFinish()
+
+        then:
+        resource.assertExists()
+        files[0].assertExists()
+        files[1].assertExists()
+
+        where:
+        cleanupMethod << CleanupMethod.values()
+    }
+
+    def "cleans up resources and files that were not recently used from caches when DSL is configured even if legacy property is set"() {
+        given:
+        buildscriptWithDependency(snapshotModule)
+
+        when:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+
+        and:
+        disableCacheCleanupViaProperty()
+        explicitlyEnableCacheCleanupViaDsl()
+
+        and:
         succeeds 'resolve'
 
         then:
@@ -250,12 +300,13 @@ class DefaultArtifactCacheLockingAccessCoordinatorIntegrationTest extends Abstra
         executer.withTasks('help').start().waitForFinish()
 
         then:
-        resource.assertExists()
-        files[0].assertExists()
-        files[1].assertExists()
+        resource.assertDoesNotExist()
+        files[0].assertDoesNotExist()
+        files[1].assertDoesNotExist()
 
-        where:
-        method << CleanupMethod.values()
+        and: // deletes empty parent directories
+        findFiles(cacheDir, 'resources-*/*').isEmpty()
+        findFiles(cacheDir, 'files-*/*').isEmpty()
     }
 
     @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")

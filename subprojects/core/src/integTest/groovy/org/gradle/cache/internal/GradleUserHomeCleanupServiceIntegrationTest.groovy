@@ -222,15 +222,10 @@ class GradleUserHomeCleanupServiceIntegrationTest extends AbstractIntegrationSpe
         DistType.SNAPSHOT | NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_SNAPSHOT_DISTS
     }
 
-    def "does not clean up unused version-specific cache directories and corresponding distributions when clean is disabled using #description"() {
+    def "does not clean up unused version-specific cache directories and corresponding distributions when clean is disabled using #cleanupMethod"() {
         given:
         requireOwnGradleUserHomeDir() // because we delete caches and distributions
-        if (useLegacyProperty) {
-            disableCacheCleanupViaProperty()
-        }
-        if (useDSL) {
-            disableCacheCleanupViaDsl()
-        }
+        disableCacheCleanup(cleanupMethod)
 
         and:
         def oldButRecentlyUsedGradleDist = versionedDistDirs(DistType.RELEASED.version("1.4.5"), USED_TODAY, "my-dist-1")
@@ -240,13 +235,7 @@ class GradleUserHomeCleanupServiceIntegrationTest extends AbstractIntegrationSpe
         def currentDist = createDistributionChecksumDir(GradleVersion.current()).parentFile
 
         and:
-        if (expectDeprecation) {
-            executer.expectDocumentedDeprecationWarning(
-                "Disabling Gradle user home cache cleanup with the 'org.gradle.cache.cleanup' property has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#disabling_user_home_cache_cleanup"
-            )
-        }
+        cleanupMethod.maybeExpectDeprecationWarning(executer)
 
         when:
         succeeds("help")
@@ -259,10 +248,7 @@ class GradleUserHomeCleanupServiceIntegrationTest extends AbstractIntegrationSpe
         currentDist.assertExists()
 
         where:
-        description                    | useLegacyProperty | useDSL | expectDeprecation
-        "legacy property only"         | true              | false  | true
-        "DSL only"                     | false             | true   | false
-        "both legacy property and DSL" | true              | true   | false
+        cleanupMethod << CleanupMethod.values()
     }
 
     def "cleans up unused version-specific cache directories and corresponding #type distributions when DSL is configured even if legacy property is present"() {
