@@ -24,6 +24,11 @@ import javax.annotation.Nullable;
 
 public interface TransformationIdentity extends NodeIdentity {
 
+    @Override
+    default NodeType getNodeType() {
+        return NodeType.ARTIFACT_TRANSFORM;
+    }
+
     /**
      * Path of an included build of the consumer project.
      */

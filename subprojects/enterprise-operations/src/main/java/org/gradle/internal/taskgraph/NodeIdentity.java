@@ -16,4 +16,14 @@
 
 package org.gradle.internal.taskgraph;
 
-public interface NodeIdentity {}
+// TODO: should identities implement equality? If not, this should be noted in the contract
+public interface NodeIdentity {
+
+    enum NodeType {
+        TASK,
+        ARTIFACT_TRANSFORM
+    }
+
+    NodeType getNodeType();
+
+}
