@@ -16,6 +16,8 @@
 
 package org.gradle.caching.internal.controller;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -40,9 +42,9 @@ import org.gradle.caching.internal.DefaultBuildCacheKey;
 import org.gradle.caching.internal.controller.CacheManifest.ManifestEntry;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.caching.internal.packaging.impl.RelativePathParser;
 import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.FilePathUtil;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
@@ -68,7 +70,9 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -210,7 +214,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
             });
 
-            FileSystemLocationSnapshot snapshot = getSnapshot(root, manifestEntries);
+            FileSystemLocationSnapshot snapshot = createSnapshot(root, manifestEntries);
             snapshots.put(propertyName, snapshot);
         });
 
@@ -233,21 +237,24 @@ public class NextGenBuildCacheController implements BuildCacheController {
         });
     }
 
-    private FileSystemLocationSnapshot getSnapshot(File root, List<ManifestEntry> entries) {
+    /**
+     * TODO: extract snapshotting part to it's own class
+     */
+    @VisibleForTesting
+    FileSystemLocationSnapshot createSnapshot(File root, List<ManifestEntry> entries) {
         ManifestEntry rootEntry = entries.get(0);
         switch (rootEntry.getType()) {
             case Directory:
-                return getDirectorySnapshot(root, entries);
+                return createDirectorySnapshot(root, entries);
             case RegularFile:
-                File file = new File(root, rootEntry.getRelativePath());
-                return getFileSnapshot(rootEntry, file);
+                return createFileSnapshot(rootEntry, root);
             default:
                 throw new IllegalStateException("Cannot snapshot missing data");
         }
     }
 
-    private FileSystemLocationSnapshot getDirectorySnapshot(File root, List<ManifestEntry> entries) {
-        String rootPath = "/";
+    private FileSystemLocationSnapshot createDirectorySnapshot(File root, List<ManifestEntry> entries) {
+        String rootPath = root.getName();
         RelativePathParser parser = new RelativePathParser(rootPath);
         DirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
         builder.enterDirectory(DIRECT, stringInterner.intern(root.getAbsolutePath()), stringInterner.intern(root.getName()), INCLUDE_EMPTY_DIRS);
@@ -256,7 +263,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
             File file = new File(root, entry.getRelativePath());
 
             boolean isDirectory = entry.getType() == Directory;
-            String relativePath = rootPath + entry.getRelativePath();
+            String relativePath = rootPath  + "/" + entry.getRelativePath();
             boolean outsideOfRoot = parser.nextPath(relativePath, isDirectory, builder::leaveDirectory);
             if (outsideOfRoot) {
                 break;
@@ -269,7 +276,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                     builder.enterDirectory(DIRECT, internedAbsolutePath, internedName, INCLUDE_EMPTY_DIRS);
                     break;
                 case RegularFile:
-                    RegularFileSnapshot fileSnapshot = getFileSnapshot(entry, file);
+                    RegularFileSnapshot fileSnapshot = createFileSnapshot(entry, file);
                     builder.visitLeafElement(fileSnapshot);
                     break;
                 case Missing:
@@ -282,7 +289,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
         return checkNotNull(builder.getResult());
     }
 
-    private RegularFileSnapshot getFileSnapshot(CacheManifest.ManifestEntry entry, File file) {
+    private RegularFileSnapshot createFileSnapshot(CacheManifest.ManifestEntry entry, File file) {
         return new RegularFileSnapshot(
             stringInterner.intern(file.getAbsolutePath()),
             stringInterner.intern(file.getName()),
@@ -424,4 +431,82 @@ public class NextGenBuildCacheController implements BuildCacheController {
         return true;
     }
 
+    private static class RelativePathParser {
+        private static final CharMatcher IS_SLASH = CharMatcher.is('/');
+
+        private final Deque<String> directoryPaths = new ArrayDeque<>();
+        private final Deque<String> directoryNames = new ArrayDeque<>();
+        private final int rootLength;
+        private String currentPath;
+        private int sizeOfCommonPrefix;
+
+        public RelativePathParser(String rootPath) {
+            this.directoryPaths.addLast(rootPath);
+            this.rootLength = rootPath.length();
+            this.currentPath = rootPath;
+        }
+
+        public String getRelativePath() {
+            return currentPath.substring(rootLength);
+        }
+
+        public String getName() {
+            return currentPath.substring(sizeOfCommonPrefix + 1);
+        }
+
+        /**
+         * TODO Fix duplication by removing {@link org.gradle.caching.internal.packaging.impl.RelativePathParser}
+         * The only difference between this class and {@link org.gradle.caching.internal.packaging.impl.RelativePathParser} is, that
+         * RelativePathParser requires directories to end with '/' while for this class directories should not end with '/'
+         */
+        @SuppressWarnings("DuplicatedCode")
+        public boolean nextPath(String nextPath, boolean directory, Runnable exitDirectoryHandler) {
+            currentPath = nextPath;
+            String lastDirPath = directoryPaths.peekLast();
+            sizeOfCommonPrefix = FilePathUtil.sizeOfCommonPrefix(lastDirPath, currentPath, 0, '/');
+            int directoriesExited = determineDirectoriesExited(lastDirPath, sizeOfCommonPrefix);
+            for (int i = 0; i < directoriesExited; i++) {
+                if (exitDirectory(exitDirectoryHandler)) {
+                    return true;
+                }
+            }
+            String currentName = currentPath.substring(sizeOfCommonPrefix + 1);
+            if (directory) {
+                directoryPaths.addLast(currentPath);
+                directoryNames.addLast(currentName);
+            }
+            return isRoot();
+        }
+
+        private boolean exitDirectory(Runnable exitDirectoryHandler) {
+            if (directoryPaths.pollLast() == null) {
+                return true;
+            }
+            if (directoryNames.pollLast() == null) {
+                return true;
+            }
+            exitDirectoryHandler.run();
+            return false;
+        }
+
+        private static int determineDirectoriesExited(String lastDirPath, int sizeOfCommonPrefix) {
+            if (sizeOfCommonPrefix == lastDirPath.length()) {
+                return 0;
+            }
+            int rootDirAdjustment = (sizeOfCommonPrefix == 0) ? 1 : 0;
+            return rootDirAdjustment + IS_SLASH.countIn(lastDirPath.substring(sizeOfCommonPrefix));
+        }
+
+        public boolean isRoot() {
+            return directoryNames.isEmpty() && currentPath.length() == rootLength;
+        }
+
+        public void exitToRoot(Runnable exitDirectoryHandler) {
+            while (true) {
+                if (exitDirectory(exitDirectoryHandler)) {
+                    break;
+                }
+            }
+        }
+    }
 }
