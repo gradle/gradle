@@ -1,3 +1,4 @@
+import gradlebuild.basics.isBundleGroovy4
 import gradlebuild.basics.tasks.PackageListGenerator
 
 plugins {
@@ -44,7 +45,7 @@ dependencies {
 
 val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {
     classpath.from(sourceSets.main.map { it.runtimeClasspath })
-    outputFile.set(layout.buildDirectory.file("runtime-api-info/test-kit-relocated.txt"))
+    outputFile = layout.buildDirectory.file("runtime-api-info/test-kit-relocated.txt")
 }
 tasks.jar {
     into("org/gradle/api/internal/runtimeshaded") {
@@ -58,4 +59,17 @@ packageCycles {
 
 tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
+}
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}
+
+tasks {
+    withType<Test>().configureEach {
+        if (project.isBundleGroovy4) {
+            exclude("org/gradle/testkit/runner/enduser/GradleRunnerSamplesEndUserIntegrationTest*") // cannot be parameterized for both Groovy 3 and 4
+        }
+    }
 }

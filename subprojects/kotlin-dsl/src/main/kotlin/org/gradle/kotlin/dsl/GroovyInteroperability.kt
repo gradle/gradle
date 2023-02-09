@@ -20,6 +20,7 @@ import groovy.lang.Closure
 import groovy.lang.GroovyObject
 import groovy.lang.MetaClass
 import org.codehaus.groovy.runtime.InvokerHelper.getMetaClass
+import org.gradle.api.Incubating
 import org.gradle.kotlin.dsl.support.uncheckedCast
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
@@ -213,6 +214,16 @@ interface GroovyBuilderScope : GroovyObject {
     val delegate: Any
 
     /**
+     * Returns true if the object has a property named [name].
+     *
+     * Note that this method will only return true for realised Groovy properties and does not take into account implementation of Groovy's `getProperty` or `propertyMissing`.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    fun hasProperty(name: String): Boolean
+
+    /**
      * Invokes with Groovy semantics and [arguments].
      */
     operator fun String.invoke(vararg arguments: Any?): Any?
@@ -259,6 +270,9 @@ interface GroovyBuilderScope : GroovyObject {
 private
 class GroovyBuilderScopeForGroovyObject(override val delegate: GroovyObject) : GroovyBuilderScope {
 
+    override fun hasProperty(name: String): Boolean =
+        delegate.metaClass.hasProperty(delegate, name) != null
+
     override fun String.invoke(vararg arguments: Any?): Any? =
         delegate.invokeMethod(this, arguments)
 
@@ -290,6 +304,9 @@ class GroovyBuilderScopeForRegularObject(override val delegate: Any) : GroovyBui
     val groovyMetaClass: MetaClass by unsafeLazy {
         getMetaClass(delegate)
     }
+
+    override fun hasProperty(name: String): Boolean =
+        groovyMetaClass.hasProperty(delegate, name) != null
 
     override fun invokeMethod(name: String, args: Any?): Any? =
         groovyMetaClass.invokeMethod(delegate, name, args)

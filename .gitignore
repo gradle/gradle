@@ -101,3 +101,4 @@ atlassian-ide-plugin.xml
 
 # Added GE support maven support to the maven build in .teamcity, per the GE docs, this dir is NOT to be committed
 .teamcity/.mvn/.gradle-enterprise/
+/discoclient.properties

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
@@ -128,6 +129,11 @@ public class NodeState implements DependencyGraphNode {
     private List<EdgeState> endorsesStrictVersionsFrom;
     private boolean removingOutgoingEdges;
     private boolean findingExternalVariants;
+
+    @VisibleForTesting // just for testing purposes
+    public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, VariantGraphResolveMetadata md, boolean selectedByVariantAwareResolution) {
+        this(resultId, id, component, null, md, selectedByVariantAwareResolution);
+    }
 
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, VariantGraphResolveMetadata md, boolean selectedByVariantAwareResolution) {
         this.resultId = resultId;

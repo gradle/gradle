@@ -24,6 +24,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
+import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.specs.Spec
@@ -227,11 +228,11 @@ suspend fun <T> T.withTaskOf(
     action: suspend () -> Unit
 ) where T : IsolateContext, T : MutableIsolateContext {
     withIsolate(IsolateOwner.OwnerTask(task), codec) {
-        withPropertyTrace(PropertyTrace.Task(taskType, task.path)) {
+        withPropertyTrace(PropertyTrace.Task(taskType, task.identityPath.path)) {
             if (task.isCompatibleWithConfigurationCache) {
                 action()
             } else {
-                forIncompatibleType(task.path, action)
+                forIncompatibleType(task.identityPath.path, action)
             }
         }
     }
@@ -421,13 +422,13 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                     val normalizer = readEnum<InputNormalizer>()
                     val directorySensitivity = readEnum<DirectorySensitivity>()
                     val lineEndingNormalization = readEnum<LineEndingSensitivity>()
-                    (task as TaskInternal).inputs.run {
+                    ((task as TaskInternal).inputs.run {
                         when (filePropertyType) {
                             InputFilePropertyType.FILE -> file(pack(propertyValue))
                             InputFilePropertyType.DIRECTORY -> dir(pack(propertyValue))
                             InputFilePropertyType.FILES -> files(pack(propertyValue))
                         }
-                    }.run {
+                    } as TaskInputFilePropertyBuilderInternal).run {
                         withPropertyName(propertyName)
                         optional(optional)
                         skipWhenEmpty(inputBehavior.shouldSkipWhenEmpty())

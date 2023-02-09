@@ -17,6 +17,7 @@
 package org.gradle.api.internal.cache
 
 import org.gradle.api.cache.Cleanup
+import org.gradle.api.cache.MarkingStrategy
 import org.gradle.cache.CleanupFrequency
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -79,6 +80,7 @@ class DefaultCacheConfigurationsTest extends Specification {
         cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan."${method}"(firstValue)
         cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan."${method}"(firstValue)
         cacheConfigurations.cleanup."${method}"(Cleanup.DISABLED)
+        cacheConfigurations.markingStrategy."${method}"(MarkingStrategy.NONE)
 
         then:
         noExceptionThrown()
@@ -120,6 +122,13 @@ class DefaultCacheConfigurationsTest extends Specification {
         then:
         e = thrown(IllegalStateException)
         assertCannotConfigureErrorIsThrown(e, "cleanup")
+
+        when:
+        cacheConfigurations.markingStrategy."${method}"(MarkingStrategy.CACHEDIR_TAG)
+
+        then:
+        e = thrown(IllegalStateException)
+        assertCannotConfigureErrorIsThrown(e, "markingStrategy")
 
         where:
         method << ["set", "value", "convention"]
@@ -184,12 +193,14 @@ class DefaultCacheConfigurationsTest extends Specification {
         cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.set(twoDaysAgo)
         cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
         cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+        cacheConfigurations.markingStrategy.set(MarkingStrategy.NONE)
 
         then:
         mutableCacheConfigurations.createdResources.removeUnusedEntriesOlderThan.get() == twoDaysAgo
         mutableCacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.get() == twoDaysAgo
         mutableCacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan.get() == twoDaysAgo
         mutableCacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.get() == twoDaysAgo
+        mutableCacheConfigurations.markingStrategy.get() == MarkingStrategy.NONE
     }
 
     def "will not require cleanup unless configured"() {

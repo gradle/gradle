@@ -22,7 +22,6 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.DefaultDecompressionCacheFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultArchiveOperations;
-import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.DefaultFileSystemOperations;
@@ -45,13 +44,14 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.DecompressionCacheFactory;
-import org.gradle.cache.internal.scopes.DefaultProjectScopedCache;
-import org.gradle.cache.scopes.ProjectScopedCache;
-import org.gradle.cache.scopes.ScopedCache;
+import org.gradle.cache.internal.scopes.DefaultProjectScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.ProjectScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -77,7 +77,10 @@ public class WorkerSharedProjectScopeServices {
     void configure(ServiceRegistration registration) {
         registration.add(DefaultPropertyFactory.class);
         registration.add(DefaultFilePropertyFactory.class);
-        registration.add(DefaultFileCollectionFactory.class);
+    }
+
+    protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost) {
+        return parent.forChildScope(fileResolver, taskDependencyFactory, propertyHost);
     }
 
     protected FileResolver createFileResolver(FileLookup lookup) {
@@ -99,7 +102,7 @@ public class WorkerSharedProjectScopeServices {
             ProviderFactory providers,
             TaskDependencyFactory taskDependencyFactory,
             DecompressionCacheFactory decompressionCache,
-            ScopedCache scopedCache
+            ScopedCacheBuilderFactory cacheBuilderFactory
     ) {
         return new DefaultFileOperations(
                 fileResolver,
@@ -116,7 +119,7 @@ public class WorkerSharedProjectScopeServices {
                 taskDependencyFactory,
                 providers,
                 decompressionCache,
-                scopedCache);
+                cacheBuilderFactory);
     }
 
     protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
@@ -151,10 +154,11 @@ public class WorkerSharedProjectScopeServices {
         return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 
-    protected ProjectScopedCache createProjectScopedCache(TemporaryFileProvider temporaryFileProvider, CacheRepository cacheRepository) {
-        return new DefaultProjectScopedCache(temporaryFileProvider.newTemporaryFile(".cache"), cacheRepository);
+    protected ProjectScopedCacheBuilderFactory createProjectScopedCache(TemporaryFileProvider temporaryFileProvider, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        return new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory);
     }
-    protected DecompressionCacheFactory createDecompressionCacheFactory(ProjectScopedCache cacheFactory) {
-        return new DefaultDecompressionCacheFactory(cacheFactory);
+
+    protected DecompressionCacheFactory createDecompressionCacheFactory(TemporaryFileProvider temporaryFileProvider, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        return new DefaultDecompressionCacheFactory(() -> new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory));
     }
 }

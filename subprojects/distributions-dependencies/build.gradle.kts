@@ -1,3 +1,5 @@
+import gradlebuild.basics.isBundleGroovy4
+
 /**
  * This project provides the "platform" for the Gradle distribution.
  * We want the versions that are packaged in the distribution to be used everywhere (e.g. in all test scenarios)
@@ -14,21 +16,23 @@ plugins {
 description = "Provides a platform dependency to align all distribution versions"
 
 val antVersion = "1.10.11"
-val archunitVersion = "1.0.0-rc1"
 val asmVersion = "9.3"
 val awsS3Version = "1.12.365"
 val bouncycastleVersion = "1.68"
 val jacksonVersion = "2.14.1"
 val jaxbVersion = "3.0.0"
-val jettyVersion = "9.4.36.v20210114"
 val junit5Version = "5.8.2"
 val mavenVersion = "3.6.3"
 val nativePlatformVersion = "0.22-milestone-24"
 val slf4jVersion = "1.7.30"
-val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
+val spockVersion = if (isBundleGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
 val tomljVersion = "1.0.0"
 
+// test only
+val archunitVersion = "1.0.0-rc1"
 val bytebuddyVersion = "1.10.20"
+val jettyVersion = "9.4.36.v20210114"
+val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
 
 // For the junit-bom
 javaPlatform.allowDependencies()
@@ -104,12 +108,12 @@ dependencies {
         api(libs.jcifs)                 { version { strictly("1.3.17") }}
         api(libs.jclToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.jcommander)            { version { strictly("1.78") }}
-        api(libs.jetbrainsAnnotations)  { version { strictly("20.1.0") }}
+        api(libs.jetbrainsAnnotations)  { version { strictly("24.0.0") }}
         api(libs.jgit)                  { version { strictly("5.7.0.202003110725-r"); because("Upgrade has breaking API changes") }}
         api(libs.joda)                  { version { strictly("2.10.4") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
         api(libs.jsch)                  { version { strictly("0.1.55") }}
-        api(libs.jsoup)                 { version { strictly("1.15.1") }}
+        api(libs.jsoup)                 { version { strictly("1.15.3") }}
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.junit)                 { version { strictly("4.13.2") }}
@@ -176,8 +180,8 @@ dependencies {
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
         api(libs.socksProxy)            { version { strictly("2.0.0") }}
-        api(libs.spock)                 { version { strictly("2.3-groovy-3.0") }}
-        api(libs.spockJUnit4)           { version { strictly("2.3-groovy-3.0") }}
+        api(libs.spock)                 { version { strictly(spockVersion) }}
+        api(libs.spockJUnit4)           { version { strictly(spockVersion) }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}

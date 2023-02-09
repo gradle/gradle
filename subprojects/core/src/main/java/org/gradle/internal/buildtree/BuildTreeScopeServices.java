@@ -18,12 +18,14 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.cache.DefaultDecompressionCacheFactory;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.collections.FileCollectionObservationListener;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.internal.DecompressionCacheFactory;
-import org.gradle.cache.scopes.BuildTreeScopedCache;
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.execution.DefaultTaskSelector;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.TaskNameResolver;
@@ -42,6 +44,9 @@ import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.DefaultListenerManager;
+import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
+import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
@@ -75,7 +80,9 @@ public class BuildTreeScopeServices {
         registration.add(DeprecationsReporter.class);
         registration.add(TaskPathProjectEvaluator.class);
         registration.add(DefaultFeatureFlags.class);
+        registration.add(DefaultProblemLocationAnalyzer.class);
         registration.add(DefaultExceptionAnalyser.class);
+        registration.add(ScriptUsageLocationReporter.class);
         modelServices.applyServicesTo(registration);
     }
 
@@ -99,7 +106,11 @@ public class BuildTreeScopeServices {
         return exceptionAnalyser;
     }
 
-    protected DecompressionCacheFactory createDecompressionCacheFactory(BuildTreeScopedCache cacheFactory) {
-        return new DefaultDecompressionCacheFactory(cacheFactory);
+    protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, ListenerManager listenerManager) {
+        return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class));
+    }
+
+    protected DecompressionCacheFactory createDecompressionCacheFactory(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
+        return new DefaultDecompressionCacheFactory(() -> cacheBuilderFactory);
     }
 }

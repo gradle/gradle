@@ -85,6 +85,8 @@ class DefaultConfigurationContainerSpec extends Specification {
         resolver,
         listenerManager,
         metaDataProvider,
+        componentIdentifierFactory,
+        dependencyLockingProvider,
         domainObjectContext,
         fileCollectionFactory,
         buildOperationExecutor,

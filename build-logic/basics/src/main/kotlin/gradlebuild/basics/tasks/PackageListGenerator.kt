@@ -174,7 +174,7 @@ abstract class PackageListGenerator : DefaultTask() {
                     @Throws(Exception::class)
                     override fun doExecute(s: String) {
                         bufferedWriter.write(s)
-                        bufferedWriter.write('\n'.toInt())
+                        bufferedWriter.write('\n'.code)
                     }
                 })
             }

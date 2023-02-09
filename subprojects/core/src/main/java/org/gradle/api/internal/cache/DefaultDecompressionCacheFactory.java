@@ -19,24 +19,25 @@ package org.gradle.api.internal.cache;
 import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.internal.DefaultDecompressionCache;
-import org.gradle.cache.scopes.ScopedCache;
+import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 
 import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.function.Supplier;
 
 /**
- * Implements a factory to create a {@link DecompressionCache} for a given {@link ScopedCache}.
+ * Implements a factory to create a {@link DecompressionCache} for a given {@link ScopedCacheBuilderFactory}.
  *
  * This class manages a singleton cache and creates it on demand. Closing this factory will close the cache.
  */
 public class DefaultDecompressionCacheFactory implements DecompressionCacheFactory, Closeable {
 
-    private final ScopedCache scopedCache;
+    private final Supplier<? extends ScopedCacheBuilderFactory> cacheBuilderFactorySupplier;
     private volatile DecompressionCache cache;
 
-    public DefaultDecompressionCacheFactory(ScopedCache scopedCache) {
-        this.scopedCache = scopedCache;
+    public DefaultDecompressionCacheFactory(Supplier<? extends ScopedCacheBuilderFactory> cacheBuilderFactorySupplier) {
+        this.cacheBuilderFactorySupplier = cacheBuilderFactorySupplier;
     }
 
     @Nonnull
@@ -45,7 +46,7 @@ public class DefaultDecompressionCacheFactory implements DecompressionCacheFacto
         if (cache == null) {
             synchronized (this) {
                 if (cache == null) {
-                    cache = new DefaultDecompressionCache(scopedCache);
+                    cache = new DefaultDecompressionCache(cacheBuilderFactorySupplier.get());
                 }
             }
         }

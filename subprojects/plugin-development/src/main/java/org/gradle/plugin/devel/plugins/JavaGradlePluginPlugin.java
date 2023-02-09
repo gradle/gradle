@@ -40,6 +40,7 @@ import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.Copy;
@@ -51,6 +52,8 @@ import org.gradle.initialization.buildsrc.GradlePluginApiVersionAttributeConfigu
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
@@ -175,9 +178,8 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     private GradlePluginDevelopmentExtension createExtension(Project project) {
-        JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-        SourceSet defaultPluginSourceSet = javaPluginExtension.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        SourceSet defaultTestSourceSet = javaPluginExtension.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
+        SourceSet defaultPluginSourceSet = JvmPluginsHelper.getJavaComponent(project).getSourceSet();
+        SourceSet defaultTestSourceSet = JvmPluginsHelper.getDefaultTestSuite(project).getSources();
         return project.getExtensions().create(EXTENSION_NAME, GradlePluginDevelopmentExtension.class, project, defaultPluginSourceSet, defaultTestSourceSet);
     }
 
@@ -264,12 +266,20 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
             task.getClasses().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getOutput().getClassesDirs());
             task.getClasspath().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getCompileClasspath());
+
+            task.getLauncher().convention(toolchainLauncher(project));
         });
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, check -> check.dependsOn(validatorTask));
     }
 
     private void configureDependencyGradlePluginsResolution(Project project) {
         new GradlePluginApiVersionAttributeConfigurationAction().execute((ProjectInternal) project);
+    }
+
+    private Provider<JavaLauncher> toolchainLauncher(Project project) {
+        JavaPluginExtension extension = project.getExtensions().findByType(JavaPluginExtension.class);
+        JavaToolchainService service = project.getExtensions().findByType(JavaToolchainService.class);
+        return service.launcherFor(extension.getToolchain());
     }
 
     /**

@@ -24,8 +24,8 @@ description = "Provides a custom CodeNarc rule used by the Gradle build"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
-        vendor.set(JvmVendorSpec.ADOPTIUM)
+        languageVersion = JavaLanguageVersion.of(11)
+        vendor = JvmVendorSpec.ADOPTIUM
     }
 }
 

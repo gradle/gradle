@@ -84,6 +84,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/18084')
     @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Flaky(because = "Sometimes it hangs for hours")
     def "can debug on selected port with org.gradle.debug.port"() {
         given:
         executer.requireDaemon().requireIsolatedDaemons()

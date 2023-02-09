@@ -39,8 +39,8 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access project ':b' from project ':'")
         }
 
         when:
@@ -51,8 +51,8 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access project ':b' from project ':'")
         }
     }
 
@@ -113,7 +113,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+            problem("Build file 'build.gradle': line 3: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
 
         when:
@@ -124,7 +124,7 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         fixture.assertStateStoredAndDiscarded {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+            problem("Build file 'build.gradle': line 3: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
 

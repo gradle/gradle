@@ -302,6 +302,7 @@ class ModuleResolveState implements CandidateModule {
     }
 
     public ComponentState getVersion(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
+        assert id.getModule().equals(this.id);
         ComponentState moduleRevision = versions.get(id);
         if (moduleRevision == null) {
             moduleRevision = new ComponentState(idGenerator.generateId(), this, id, componentIdentifier, metaDataResolver, attributeDesugaring);

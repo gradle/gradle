@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.ResolveException;
@@ -36,7 +35,6 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public interface ConfigurationInternal extends ResolveContext, Configuration, DeprecatableConfiguration, DependencyMetaDataProvider, FinalizableValue {
     enum InternalState {
@@ -117,8 +115,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     @Nullable
     ConfigurationInternal getConsistentResolutionSource();
 
-    Supplier<List<DependencyConstraint>> getConsistentResolutionConstraints();
-
     /**
      * Decorates a resolve exception with more context. This can be used
      * to give hints to the user when a resolution error happens.
@@ -140,7 +136,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     /**
      * Configures if a configuration can have dependencies declared upon it.
      *
-     * @since 8.0
      */
     void setCanBeDeclaredAgainst(boolean allowed);
 
@@ -148,9 +143,20 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      * Returns true if it is allowed to declare dependencies upon this configuration.
      * Defaults to true.
      * @return true if this configuration can have dependencies declared
-     * @since 8.0
      */
     boolean isCanBeDeclaredAgainst();
+
+    /**
+     * Prevents any calls to methods that change this configuration's allowed usage (e.g. {@link #setCanBeConsumed(boolean)},
+     * {@link #setCanBeResolved(boolean)}, {@link #deprecateForResolution(String...)}) from succeeding; and causes them
+     * to throw an exception.
+     */
+    void preventUsageMutation();
+
+    /**
+     * Returns the role used to create this configuration and set its initial allowed usage.
+     */
+    ConfigurationRole getRoleAtCreation();
 
     /**
      * Test if the given configuration can either be declared against or extends another

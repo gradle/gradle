@@ -57,7 +57,7 @@ public class ConfigurationVariantMapping {
         this.action = Actions.composite(this.action, action);
     }
 
-    public void collectUsageContexts(final ImmutableCollection.Builder<UsageContext> outgoing) {
+    public void collectVariants(final ImmutableCollection.Builder<UsageContext> outgoing) {
         if (!outgoingConfiguration.isTransitive()) {
             DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level", "Consider using 'transitive = false' at the dependency level if you need this to be published.")
                 .withUserManual("publishing_ivy", "configurations_marked_as_non_transitive")
@@ -69,7 +69,7 @@ public class ConfigurationVariantMapping {
         action.execute(details);
         String outgoingConfigurationName = outgoingConfiguration.getName();
         if (details.shouldPublish()) {
-            registerUsageContext(outgoing, seen, defaultConfigurationVariant, outgoingConfigurationName, details.getMavenScope(), details.isOptional());
+            registerVariant(outgoing, seen, defaultConfigurationVariant, outgoingConfigurationName, details.getMavenScope(), details.isOptional());
         }
         NamedDomainObjectContainer<ConfigurationVariant> extraVariants = outgoingConfiguration.getOutgoing().getVariants();
         for (ConfigurationVariant variant : extraVariants) {
@@ -77,14 +77,14 @@ public class ConfigurationVariantMapping {
             action.execute(details);
             if (details.shouldPublish()) {
                 String name = outgoingConfigurationName + StringUtils.capitalize(variant.getName());
-                registerUsageContext(outgoing, seen, variant, name, details.getMavenScope(), details.isOptional());
+                registerVariant(outgoing, seen, variant, name, details.getMavenScope(), details.isOptional());
             }
         }
     }
 
-    private void registerUsageContext(ImmutableCollection.Builder<UsageContext> outgoing, Set<String> seen, ConfigurationVariant variant, String name, String scope, boolean optional) {
+    private void registerVariant(ImmutableCollection.Builder<UsageContext> outgoing, Set<String> seen, ConfigurationVariant variant, String name, String scope, boolean optional) {
         assertNoDuplicateVariant(name, seen);
-        outgoing.add(new FeatureConfigurationUsageContext(name, outgoingConfiguration, variant, scope, optional));
+        outgoing.add(new FeatureConfigurationVariant(name, outgoingConfiguration, variant, scope, optional));
     }
 
     static class DefaultConfigurationVariant implements ConfigurationVariant {

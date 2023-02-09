@@ -875,8 +875,15 @@ service: closed with value 12
         fails("hello")
 
         then:
-        failureDescriptionContains("An exception occurred applying plugin request [id: 'my.plugin1']")
-        failureCauseContains("java.lang.IllegalArgumentException: Service 'test' has already been registered with type 'MyService', cannot register another with type 'MyService' (same name but from a different classloader).")
+        outputContains """
+> Task :subproject1:hello
+Hello, subproject1
+"""
+        outputContains """
+> Task :subproject2:hello FAILED
+"""
+        failureDescriptionContains("Execution failed for task ':subproject2:hello'.")
+        failureCauseContains("assert MyService == myService.type")
     }
 
     def "service provided by a plugin can be shared by subprojects with different classloaders when using by-type service references"() {

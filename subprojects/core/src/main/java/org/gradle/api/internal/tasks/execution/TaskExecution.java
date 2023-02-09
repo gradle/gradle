@@ -376,7 +376,7 @@ public class TaskExecution implements UnitOfWork {
                 .withContext("Accessing unreadable inputs or outputs is not supported.")
                 .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
         }
-        return builder.withUserManual("more_about_tasks", "disable-state-tracking")
+        return builder.withUserManual("incremental_build", "disable-state-tracking")
             .build(cause);
     }
 

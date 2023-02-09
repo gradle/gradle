@@ -98,6 +98,18 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         outputEventListener.events.empty
     }
 
+    def "nested whileDisabled call does not enable deprecation log in the outer method"() {
+        when:
+        DeprecationLogger.whileDisabled {
+            DeprecationLogger.whileDisabled {
+            }
+            DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
+        }
+
+        then:
+        outputEventListener.events.empty
+    }
+
     def "warnings are disabled for the current thread only"() {
         when:
         async {

@@ -238,8 +238,8 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         artifact1.classifier = "classy"
         def artifact2 = new FileBasedIvyArtifact(new File("foo"), new DefaultIvyPublicationIdentity("", "", ""), DefaultTaskDependencyFactory.withNoAssociatedProject())
         artifact2.setConf("runtime")
-        generator.addArtifact(artifact1)
-        generator.addArtifact(artifact2)
+        generator.addArtifact(artifact1.asNormalisedArtifact())
+        generator.addArtifact(artifact2.asNormalisedArtifact())
 
         then:
         includesMavenNamespace()

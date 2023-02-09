@@ -27,14 +27,14 @@ public interface ArtifactCachesProvider extends Closeable, GlobalCache {
     ArtifactCacheMetadata getWritableCacheMetadata();
     Optional<ArtifactCacheMetadata> getReadOnlyCacheMetadata();
 
-    ArtifactCacheLockingManager getWritableCacheLockingManager();
-    Optional<ArtifactCacheLockingManager> getReadOnlyCacheLockingManager();
+    ArtifactCacheLockingAccessCoordinator getWritableCacheAccessCoordinator();
+    Optional<ArtifactCacheLockingAccessCoordinator> getReadOnlyCacheAccessCoordinator();
 
-    default <T> T withWritableCache(BiFunction<? super ArtifactCacheMetadata, ? super ArtifactCacheLockingManager, T> function) {
-        return function.apply(getWritableCacheMetadata(), getWritableCacheLockingManager());
+    default <T> T withWritableCache(BiFunction<? super ArtifactCacheMetadata, ? super ArtifactCacheLockingAccessCoordinator, T> function) {
+        return function.apply(getWritableCacheMetadata(), getWritableCacheAccessCoordinator());
     }
 
-    default <T> Optional<T> withReadOnlyCache(BiFunction<? super ArtifactCacheMetadata, ? super ArtifactCacheLockingManager, T> function) {
-        return getReadOnlyCacheMetadata().map(artifactCacheMetadata -> function.apply(artifactCacheMetadata, getReadOnlyCacheLockingManager().get()));
+    default <T> Optional<T> withReadOnlyCache(BiFunction<? super ArtifactCacheMetadata, ? super ArtifactCacheLockingAccessCoordinator, T> function) {
+        return getReadOnlyCacheMetadata().map(artifactCacheMetadata -> function.apply(artifactCacheMetadata, getReadOnlyCacheAccessCoordinator().get()));
     }
 }

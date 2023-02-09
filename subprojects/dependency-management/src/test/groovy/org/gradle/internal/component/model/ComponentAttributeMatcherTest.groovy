@@ -41,7 +41,7 @@ class ComponentAttributeMatcherTest extends Specification {
 
     def "selects candidate with same set of attributes and whose values match"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def usage = Attribute.of('usage', String)
         schema.attribute(usage)
@@ -51,16 +51,16 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "match")
 
         expect:
-        matcher.match(schema, [candidate1, candidate2], requested, null, explanationBuilder) == [candidate1]
-        matcher.match(schema, [candidate2], requested, null, explanationBuilder) == []
+        matcher.matches([candidate1, candidate2], requested, null, explanationBuilder) == [candidate1]
+        matcher.matches([candidate2], requested, null, explanationBuilder) == []
 
-        matcher.isMatching(schema, candidate1, requested)
-        !matcher.isMatching(schema, candidate2, requested)
+        matcher.isMatching(candidate1, requested)
+        !matcher.isMatching(candidate2, requested)
     }
 
     def "selects candidate with subset of attributes and whose values match"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def usage = Attribute.of('usage', String)
         schema.attribute(usage)
@@ -75,18 +75,18 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "match", other: "match")
 
         expect:
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate1]
-        matcher.match(schema, [candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate4]
+        matcher.matches([candidate1, candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate1]
+        matcher.matches([candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate4]
 
-        matcher.isMatching(schema, candidate1, requested)
-        !matcher.isMatching(schema, candidate2, requested)
-        !matcher.isMatching(schema, candidate3, requested)
-        matcher.isMatching(schema, candidate4, requested)
+        matcher.isMatching(candidate1, requested)
+        !matcher.isMatching(candidate2, requested)
+        !matcher.isMatching(candidate3, requested)
+        matcher.isMatching(candidate4, requested)
     }
 
     def "selects candidate with additional attributes and whose values match"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def usage = Attribute.of('usage', String)
         schema.attribute(usage)
@@ -98,16 +98,16 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "match")
 
         expect:
-        matcher.match(schema, [candidate1, candidate2], requested, null, explanationBuilder) == [candidate1]
-        matcher.match(schema, [candidate2], requested, null, explanationBuilder) == []
+        matcher.matches([candidate1, candidate2], requested, null, explanationBuilder) == [candidate1]
+        matcher.matches([candidate2], requested, null, explanationBuilder) == []
 
-        matcher.isMatching(schema, candidate1, requested)
-        !matcher.isMatching(schema, candidate2, requested)
+        matcher.isMatching(candidate1, requested)
+        !matcher.isMatching(candidate2, requested)
     }
 
     def "selects multiple candidates with compatible values"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def usage = Attribute.of('usage', String)
         schema.attribute(usage)
@@ -123,12 +123,12 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "match", other: "match")
 
         expect:
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate5], requested, null, explanationBuilder) == [candidate1, candidate3, candidate4, candidate5]
+        matcher.matches([candidate1, candidate2, candidate3, candidate4, candidate5], requested, null, explanationBuilder) == [candidate1, candidate3, candidate4, candidate5]
     }
 
     def "applies disambiguation rules and selects intersection of best matches for each attribute"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def usage = Attribute.of('usage', String)
         schema.attribute(usage)
@@ -150,15 +150,15 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "requested", other: "requested")
 
         expect:
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate5], requested, null, explanationBuilder) == [candidate5]
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate1, candidate3, candidate4]
-        matcher.match(schema, [candidate1, candidate2, candidate4], requested, null, explanationBuilder) == [candidate1]
-        matcher.match(schema, [candidate2, candidate4], requested, null, explanationBuilder) == [candidate4]
+        matcher.matches([candidate1, candidate2, candidate3, candidate4, candidate5], requested, null, explanationBuilder) == [candidate5]
+        matcher.matches([candidate1, candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate1, candidate3, candidate4]
+        matcher.matches([candidate1, candidate2, candidate4], requested, null, explanationBuilder) == [candidate1]
+        matcher.matches([candidate2, candidate4], requested, null, explanationBuilder) == [candidate4]
     }
 
     def "rule can disambiguate based on requested value"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def usage = Attribute.of('usage', String)
         def rule = new AttributeDisambiguationRule<String>() {
@@ -185,13 +185,13 @@ class ComponentAttributeMatcherTest extends Specification {
 
 
         expect:
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested1, null, explanationBuilder) == [candidate3]
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested2, null, explanationBuilder) == [candidate1]
+        matcher.matches([candidate1, candidate2, candidate3, candidate4], requested1, null, explanationBuilder) == [candidate3]
+        matcher.matches([candidate1, candidate2, candidate3, candidate4], requested2, null, explanationBuilder) == [candidate1]
     }
 
     def "disambiguation rule is presented with all non-null candidate values"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
         def usage = Attribute.of("usage", String)
         def rule = new AttributeDisambiguationRule<String>() {
             @Override
@@ -213,12 +213,12 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "requested")
 
         expect:
-        matcher.match(schema, [candidate1, candidate2, candidate3], requested, null, explanationBuilder) == [candidate1]
+        matcher.matches([candidate1, candidate2, candidate3], requested, null, explanationBuilder) == [candidate1]
     }
 
     def "prefers match with superset of matching attributes"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def usage = Attribute.of('usage', String)
         schema.attribute(usage)
@@ -234,15 +234,15 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "match", other: "match")
 
         expect:
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, null, explanationBuilder) == [candidate5]
-        matcher.match(schema, [candidate1, candidate2, candidate3, candidate4, candidate6], requested, null, explanationBuilder) == [candidate1, candidate3, candidate4, candidate6]
-        matcher.match(schema, [candidate1, candidate2, candidate4, candidate6], requested, null, explanationBuilder) == [candidate1, candidate4, candidate6]
-        matcher.match(schema, [candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate3]
+        matcher.matches([candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested, null, explanationBuilder) == [candidate5]
+        matcher.matches([candidate1, candidate2, candidate3, candidate4, candidate6], requested, null, explanationBuilder) == [candidate1, candidate3, candidate4, candidate6]
+        matcher.matches([candidate1, candidate2, candidate4, candidate6], requested, null, explanationBuilder) == [candidate1, candidate4, candidate6]
+        matcher.matches([candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate3]
     }
 
     def "disambiguates multiple matches using extra attributes from producer"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
         def usage = Attribute.of("usage", String)
         def other = Attribute.of("other", String)
         schema.attribute(usage)
@@ -254,13 +254,13 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "match")
 
         expect:
-        def matches = matcher.match(schema, [candidate1, candidate2], requested, null, explanationBuilder)
+        def matches = matcher.matches([candidate1, candidate2], requested, null, explanationBuilder)
         matches == [candidate2]
     }
 
     def "ignores extra attributes if match is found after disambiguation requested attributes"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def usage = Attribute.of("usage", String)
         schema.attribute(usage)
@@ -277,13 +277,13 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes(usage: "foo")
 
         expect:
-        def matches = matcher.match(schema, [candidate1, candidate2], requested, null, explanationBuilder)
+        def matches = matcher.matches([candidate1, candidate2], requested, null, explanationBuilder)
         matches == [candidate2]
     }
 
     def "empty consumer attributes match any producer attributes"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def usage = Attribute.of("usage", String)
         schema.attribute(usage)
@@ -293,30 +293,30 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes()
 
         expect:
-        matcher.match(schema, [candidate1, candidate2], requested, null, explanationBuilder) == [candidate1, candidate2]
+        matcher.matches([candidate1, candidate2], requested, null, explanationBuilder) == [candidate1, candidate2]
 
-        matcher.match(schema, [candidate1], requested, null, explanationBuilder) == [candidate1]
-        matcher.isMatching(schema, candidate1, requested)
+        matcher.matches([candidate1], requested, null, explanationBuilder) == [candidate1]
+        matcher.isMatching(candidate1, requested)
 
-        matcher.match(schema, [candidate2], requested, null, explanationBuilder) == [candidate2]
-        matcher.isMatching(schema, candidate2, requested)
+        matcher.matches([candidate2], requested, null, explanationBuilder) == [candidate2]
+        matcher.isMatching(candidate2, requested)
     }
 
     def "non-empty consumer attributes match empty producer attributes"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def candidate = attributes()
         def requested = attributes(usage: "dont care", other: "dont care")
 
         expect:
-        matcher.match(schema, [candidate], requested, null, explanationBuilder) == [candidate]
-        matcher.isMatching(schema, candidate, requested)
+        matcher.matches([candidate], requested, null, explanationBuilder) == [candidate]
+        matcher.isMatching(candidate, requested)
     }
 
     def "selects fallback when it matches requested and there are no candidates"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def usage = Attribute.of("usage", String)
         def other = Attribute.of("other", String)
@@ -335,30 +335,30 @@ class ComponentAttributeMatcherTest extends Specification {
 
         expect:
         // No candidates, fallback matches
-        matcher.match(schema, [], requested, fallback1, explanationBuilder) == [fallback1]
-        matcher.match(schema, [], requested, fallback2, explanationBuilder) == [fallback2]
-        matcher.match(schema, [], requested, fallback3, explanationBuilder) == [fallback3]
+        matcher.matches([], requested, fallback1, explanationBuilder) == [fallback1]
+        matcher.matches([], requested, fallback2, explanationBuilder) == [fallback2]
+        matcher.matches([], requested, fallback3, explanationBuilder) == [fallback3]
 
         // Fallback does not match
-        matcher.match(schema, [], requested, fallback4, explanationBuilder) == []
+        matcher.matches([], requested, fallback4, explanationBuilder) == []
 
         // Candidates, fallback matches
-        matcher.match(schema, [candidate1, candidate2], requested, fallback1, explanationBuilder) == []
-        matcher.match(schema, [candidate1, candidate2], requested, fallback2, explanationBuilder) == []
-        matcher.match(schema, [candidate1, candidate2], requested, fallback3, explanationBuilder) == []
+        matcher.matches([candidate1, candidate2], requested, fallback1, explanationBuilder) == []
+        matcher.matches([candidate1, candidate2], requested, fallback2, explanationBuilder) == []
+        matcher.matches([candidate1, candidate2], requested, fallback3, explanationBuilder) == []
 
         // No fallback
-        matcher.match(schema, [candidate1, candidate2], requested, null, explanationBuilder) == []
-        matcher.match(schema, [], requested, null, explanationBuilder) == []
+        matcher.matches([candidate1, candidate2], requested, null, explanationBuilder) == []
+        matcher.matches([], requested, null, explanationBuilder) == []
 
         // Fallback also a candidate
-        matcher.match(schema, [candidate1, fallback4], requested, fallback4, explanationBuilder) == []
-        matcher.match(schema, [candidate1, candidate2, fallback1], requested, fallback1, explanationBuilder) == [fallback1]
+        matcher.matches([candidate1, fallback4], requested, fallback4, explanationBuilder) == []
+        matcher.matches([candidate1, candidate2, fallback1], requested, fallback1, explanationBuilder) == [fallback1]
     }
 
     def "can match when consumer uses more general type for attribute"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def consumer = Attribute.of("a", Number)
         def producer = Attribute.of("a", Integer)
@@ -369,12 +369,12 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes().attribute(consumer, 1)
 
         expect:
-        matcher.match(schema, [candidate1, candidate2], requested, null, explanationBuilder) == [candidate1]
+        matcher.matches([candidate1, candidate2], requested, null, explanationBuilder) == [candidate1]
     }
 
     def "can match when producer uses desugared attribute of type Named"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def consumer = Attribute.of("a", NamedTestAttribute)
         def producer = Attribute.of("a", String)
@@ -385,12 +385,12 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes().attribute(consumer, objectFactory().named(NamedTestAttribute, "name1"))
 
         expect:
-        matcher.match(schema, [candidate1, candidate2], requested, null, explanationBuilder) == [candidate1]
+        matcher.matches([candidate1, candidate2], requested, null, explanationBuilder) == [candidate1]
     }
 
     def "can match when consumer uses desugared attribute of type Named"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def consumer = Attribute.of("a", String)
         def producer = Attribute.of("a", NamedTestAttribute)
@@ -401,12 +401,12 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes().attribute(consumer, "name1")
 
         expect:
-        matcher.match(schema, [candidate1, candidate2], requested, null, explanationBuilder) == [candidate1]
+        matcher.matches([candidate1, candidate2], requested, null, explanationBuilder) == [candidate1]
     }
 
     def "can match when producer uses desugared attribute of type Enum"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def consumer = Attribute.of("a", EnumTestAttribute)
         def producer = Attribute.of("a", String)
@@ -417,12 +417,12 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes().attribute(consumer, EnumTestAttribute.NAME1)
 
         expect:
-        matcher.match(schema, [candidate1, candidate2], requested, null, explanationBuilder) == [candidate1]
+        matcher.matches([candidate1, candidate2], requested, null, explanationBuilder) == [candidate1]
     }
 
     def "can match when consumer uses desugared attribute of type Enum"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def consumer = Attribute.of("a", String)
         def producer = Attribute.of("a", EnumTestAttribute)
@@ -433,12 +433,12 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes().attribute(consumer, "NAME1")
 
         expect:
-        matcher.match(schema, [candidate1, candidate2], requested, null, explanationBuilder) == [candidate1]
+        matcher.matches([candidate1, candidate2], requested, null, explanationBuilder) == [candidate1]
     }
 
     def "cannot match when producer uses desugared attribute of unsupported type"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def consumer = Attribute.of("a", NotSerializableInGradleMetadataAttribute)
         def producer = Attribute.of("a", String)
@@ -449,7 +449,7 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes().attribute(consumer, new NotSerializableInGradleMetadataAttribute("name1"))
 
         when:
-        matcher.match(schema, [candidate1, candidate2], requested, null, explanationBuilder)
+        matcher.matches([candidate1, candidate2], requested, null, explanationBuilder)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -458,7 +458,7 @@ class ComponentAttributeMatcherTest extends Specification {
 
     def "cannot match when consumer uses desugared attribute of unsupported type"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def consumer = Attribute.of("a", String)
         def producer = Attribute.of("a", NotSerializableInGradleMetadataAttribute)
@@ -469,7 +469,7 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes().attribute(consumer, "name1")
 
         when:
-        matcher.match(schema, [candidate1, candidate2], requested, null, explanationBuilder)
+        matcher.matches([candidate1, candidate2], requested, null, explanationBuilder)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -478,7 +478,7 @@ class ComponentAttributeMatcherTest extends Specification {
 
     def "matching fails when attribute has incompatible types in consumer and producer"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def consumer = Attribute.of("a", String)
         def producer = Attribute.of("a", Number)
@@ -488,7 +488,7 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes().attribute(consumer, "1")
 
         when:
-        matcher.match(schema, [candidate], requested, null, explanationBuilder)
+        matcher.matches([candidate], requested, null, explanationBuilder)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -497,7 +497,7 @@ class ComponentAttributeMatcherTest extends Specification {
 
     def "prefers a strict match with requested values"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def usage = Attribute.of("usage", String)
         def other = Attribute.of("other", String)
@@ -509,13 +509,13 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes(usage: 'match')
 
         expect:
-        def matches = matcher.match(schema, [candidate1, candidate2], requested, null, explanationBuilder)
+        def matches = matcher.matches([candidate1, candidate2], requested, null, explanationBuilder)
         matches == [candidate1]
     }
 
     def "prefers a shorter match with compatible requested values and more than one extra attribute (type: #type)"() {
         given:
-        def matcher = new ComponentAttributeMatcher()
+        def matcher = new ComponentAttributeMatcher(schema)
 
         def usage = Attribute.of("usage", String)
         def bundling = Attribute.of("bundling", type)
@@ -537,7 +537,7 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes(usage: 'java-api')
 
         when:
-        def result = matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested, null, explanationBuilder)
+        def result = matcher.matches([candidate1, candidate2, candidate3, candidate4], requested, null, explanationBuilder)
         then:
         result == [candidate1]
 
@@ -547,7 +547,7 @@ class ComponentAttributeMatcherTest extends Specification {
         candidate3 = attributes(usage: 'java-api-extra', bundling: value2, status: 'integration')
         candidate4 = attributes(usage: 'java-runtime-extra', bundling: value1, status: 'integration')
 
-        result = matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested, null, explanationBuilder)
+        result = matcher.matches([candidate1, candidate2, candidate3, candidate4], requested, null, explanationBuilder)
 
         then:
         result == [candidate1]
@@ -558,7 +558,7 @@ class ComponentAttributeMatcherTest extends Specification {
         candidate3 = attributes(bundling: value1, status: 'integration', usage: 'java-api-extra')
         candidate4 = attributes(status: 'integration', usage: 'java-runtime-extra', bundling: value2)
 
-        result = matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested, null, explanationBuilder)
+        result = matcher.matches([candidate1, candidate2, candidate3, candidate4], requested, null, explanationBuilder)
 
         then:
         result == [candidate1]

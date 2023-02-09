@@ -77,9 +77,20 @@ You will find these references useful when authoring AsciiDoc:
  - [Asciidoctor User Manual](https://asciidoctor.org/docs/user-manual/)
  - [Asciidoctor Gradle Plugin Reference](https://asciidoctor.org/docs/asciidoctor-gradle-plugin/)
 
-### Using Asciidoctor
+### Adding new chapters
 
-To write a chapter in Asciidoctor format, simply place it in `src/docs/userguide` called `<chapter>.adoc`.
+When adding a new chapter to the manual do the following steps:
+1. Create a file called `<chapter>.adoc` in a suitable subdirectory of `src/docs/userguide` and write the content there.
+2. Add the license text to the top of the file and also add an ID for the chapter title.
+This is required to be able to link directly to the chapter from other chapters, as opposed to linking to a section inside.\
+The ID should preferably match the name of the `adoc` file. 
+For instance, linking to `toolchains.adoc` is possible with `<<toolchains.adoc#toolchains,Text>>`, and the declaration looks like:
+    ```asciidoc
+    [[toolchains]]
+    = Toolchains for JVM projects
+    ```
+3. Include the new chapter file in the [`userguide_single.adoc`](src/docs/userguide/userguide_single.adoc).
+4. Include the relative link to the new chapter in the [`header.html`](src/main/resources/header.html)
 
 ### Code Snippets
 

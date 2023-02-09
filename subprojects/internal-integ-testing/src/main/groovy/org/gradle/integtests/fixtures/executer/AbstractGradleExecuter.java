@@ -50,6 +50,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
@@ -126,10 +127,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private static final String LAUNCHER_DEBUG_SYSPROP = "org.gradle.integtest.launcher.debug";
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
 
-    protected static final List<String> DEBUG_ARGS = ImmutableList.of(
-        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
-    );
-
     private final Logger logger;
 
     protected final IntegrationTestBuildContext buildContext;
@@ -189,8 +186,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected final GradleDistribution distribution;
     private GradleVersion gradleVersionOverride;
 
-    private boolean debug = Boolean.getBoolean(DEBUG_SYSPROP);
-    private boolean debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);
+    private JavaDebugOptionsInternal debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP));
+
+    private JavaDebugOptionsInternal debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP));
+
     private String profiler = System.getProperty(PROFILE_SYSPROP, "");
 
     protected boolean interactive;
@@ -257,8 +256,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         renderWelcomeMessage = false;
         disableToolchainDownload = true;
         disableToolchainDetection = true;
-        debug = Boolean.getBoolean(DEBUG_SYSPROP);
-        debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);
+        debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP));
+        debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP));
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
@@ -405,10 +404,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             executer.withGradleVersionOverride(gradleVersionOverride);
         }
 
-        executer.startBuildProcessInDebugger(debug);
-        executer.startLauncherInDebugger(debugLauncher);
-        executer.withProfiler(profiler);
-        executer.withForceInteractive(interactive);
+        executer.startBuildProcessInDebugger(opts -> debug.copyTo(opts))
+            .startLauncherInDebugger(opts -> debugLauncher.copyTo(opts))
+            .withProfiler(profiler)
+            .withForceInteractive(interactive);
 
         if (!checkDeprecations) {
             executer.noDeprecationChecks();
@@ -562,7 +561,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             gradleInvocation.implicitLauncherJvmArgs.add(String.format("-D%s=%s", key, value));
         }
         if (isDebugLauncher()) {
-            gradleInvocation.implicitLauncherJvmArgs.addAll(DEBUG_ARGS);
+            gradleInvocation.implicitLauncherJvmArgs.add(debugLauncher.toDebugArgument());
         }
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
     }
@@ -578,7 +577,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             if (System.getenv().containsKey("CI")) {
                 throw new IllegalArgumentException("Builds cannot be started with the debugger enabled on CI. This will cause tests to hang forever. Remove the call to startBuildProcessInDebugger().");
             }
-            buildJvmOpts.addAll(DEBUG_ARGS);
+            buildJvmOpts.add(debug.toDebugArgument());
         }
         if (isProfile()) {
             buildJvmOpts.add(profiler);
@@ -1066,7 +1065,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             allArgs.add("-Porg.gradle.java.installations.auto-download=false");
         }
         if (disableToolchainDetection) {
-            allArgs.add("-Porg.gradle.java.installations.auto-detect=false");
+            allArgs.add("-P" + AutoDetectingInstallationSupplier.AUTO_DETECT + "=false");
         }
 
         allArgs.addAll(args);
@@ -1491,6 +1490,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         stackTraceChecksOn = false;
         return this;
     }
+
     @Override
     public GradleExecuter withJdkWarningChecksEnabled() {
         jdkWarningChecksOn = true;
@@ -1513,19 +1513,33 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter startBuildProcessInDebugger(boolean flag) {
-        debug = flag;
+        debug.setEnabled(flag);
+        return this;
+    }
+
+
+    @Override
+    public GradleExecuter startBuildProcessInDebugger(Action<JavaDebugOptionsInternal> action) {
+        debug.setEnabled(true);
+        action.execute(debug);
         return this;
     }
 
     @Override
     public GradleExecuter startLauncherInDebugger(boolean flag) {
-        debugLauncher = flag;
+        debugLauncher.setEnabled(flag);
+        return this;
+    }
+
+    public GradleExecuter startLauncherInDebugger(Action<JavaDebugOptionsInternal> action) {
+        debugLauncher.setEnabled(true);
+        action.execute(debugLauncher);
         return this;
     }
 
     @Override
     public boolean isDebugLauncher() {
-        return debugLauncher;
+        return debugLauncher.isEnabled();
     }
 
     @Override
@@ -1584,7 +1598,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public boolean isDebug() {
-        return debug;
+        return debug.isEnabled();
     }
 
     @Override

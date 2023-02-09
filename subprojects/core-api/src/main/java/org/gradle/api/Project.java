@@ -304,7 +304,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Returns the name of this project. The project's name is not necessarily unique within a project hierarchy. You
-     * should use the {@link #getPath()} method for a unique identifier for the project.</p>
+     * should use the {@link #getPath()} method for a unique identifier for the project.
+     * If the root project is unnamed and is located on a file system root it will have a randomly-generated name
+     * </p>
      *
      * @return The name of this project. Never return null.
      */

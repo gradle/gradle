@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider
 import org.gradle.test.fixtures.file.TestFile
@@ -26,7 +26,6 @@ import static org.gradle.plugins.signing.SigningIntegrationSpec.SignMethod.OPEN_
 
 class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache
     def "sign jar with default signatory"() {
         given:
         buildFile << """
@@ -54,7 +53,6 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         skipped(":signJar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "sign multiple jars with default signatory"() {
         given:
         buildFile << """
@@ -86,7 +84,6 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
     }
 
     @Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
-    @ToBeFixedForConfigurationCache
     def "out-of-date when signatory changes"() {
         given:
         def originalSignMethod = signMethod
@@ -127,7 +124,6 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         skipped(":signJar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "out-of-date when signatureType changes"() {
         given:
         buildFile << """
@@ -162,7 +158,6 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         skipped(":signJar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "out-of-date when input file changes"() {
         given:
         def inputFile = file("input.txt")
@@ -198,7 +193,6 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         skipped(":signCustomFile")
     }
 
-    @ToBeFixedForConfigurationCache
     def "out-of-date when output file is deleted"() {
         given:
         file("input.txt") << "foo"
@@ -234,7 +228,6 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         skipped(":signCustomFile")
     }
 
-    @ToBeFixedForConfigurationCache
     def "up-to-date when order of signed files changes"() {
         given:
         def inputFile1 = file("input1.txt") << "foo"
@@ -285,7 +278,6 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         failureHasCause "You cannot sign tasks that are not 'archive' tasks, such as 'jar', 'zip' etc. (you tried to sign task ':clean')"
     }
 
-    @ToBeFixedForConfigurationCache
     def "changes to task information after signing block are respected"() {
         given:
         buildFile << """
@@ -313,7 +305,6 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "sign with subkey"() {
         given:
         buildFile << """

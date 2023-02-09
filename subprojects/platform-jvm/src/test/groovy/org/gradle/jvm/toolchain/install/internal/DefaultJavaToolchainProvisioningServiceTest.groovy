@@ -30,6 +30,7 @@ import org.gradle.jvm.toolchain.JavaToolchainResolver
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository
+import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
@@ -122,10 +123,10 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
 
         when:
-        def result = provisioningService.tryInstall(spec)
+        provisioningService.tryInstall(spec)
 
         then:
-        !result.isPresent()
+        thrown(ToolchainDownloadFailedException.class)
         0 * downloader.download(_, _, _)
     }
 
@@ -138,10 +139,10 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
 
         when:
-        def result = provisioningService.tryInstall(spec)
+        provisioningService.tryInstall(spec)
 
         then:
-        !result.isPresent()
+        thrown(ToolchainDownloadFailedException.class)
     }
 
     def "downloads from url"() {

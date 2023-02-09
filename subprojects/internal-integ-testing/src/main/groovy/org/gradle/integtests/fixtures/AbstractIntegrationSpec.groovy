@@ -573,6 +573,15 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         """
     }
 
+    protected configureRepositoryKeys(String accessKey, String secretKey, String repositoryName) {
+        // configuration property prefix - the identity - is determined from the repository name
+        // https://docs.gradle.org/current/userguide/userguide_single.html#sec:handling_credentials
+        propertiesFile << """
+        ${repositoryName}AccessKey=${accessKey}
+        ${repositoryName}SecretKey=${secretKey}
+        """
+    }
+
     public MavenFileRepository publishedMavenModules(String... modulesToPublish) {
         modulesToPublish.each { String notation ->
             def modules = notation.split("->").reverse()
@@ -608,7 +617,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         return zip
     }
 
-    def createDir(String name, @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+    TestFile createDir(String name, @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         TestFile root = file(name)
         root.create(cl)
     }
@@ -702,6 +711,29 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         repositories {
             ${RepoScriptBlockUtil.repositoryDefinition(dsl, "maven", mavenRepo.rootDir.name, mavenRepo.uri.toString())}
         }
+        """
+    }
+
+    /**
+     * Generates a `repositories` block pointing to the standard Ivy repo fixture.
+     *
+     * This is often required for running with configuration cache enabled, as
+     * configuration cache eagerly resolves dependencies when storing the classpath.
+     */
+    protected String ivyTestRepository(GradleDsl dsl = GROOVY) {
+        """
+        repositories {
+            ${RepoScriptBlockUtil.repositoryDefinition(dsl, "ivy", ivyRepo.rootDir.name, ivyRepo.uri.toString())}
+        }
+        """
+    }
+
+    protected String emptyJavaClasspath() {
+        """
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
         """
     }
 }
