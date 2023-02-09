@@ -27,7 +27,7 @@ public final class AgentUtils {
     /**
      * Checks if the command-line argument looks like JVM switch that applies gradle instrumentation agent.
      * If the returned value is {@code true} then the argument is definitely a java agent application.
-     * However, only the name of the agent jar is checked, so it is possible to have false positives of false negatives.
+     * However, only the name of the agent jar is checked, so it is possible to have false positives and false negatives.
      *
      * @param jvmArg the argument to check
      * @return {@code true} if the argument looks like a switch, {@code false} otherwise
