@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import javax.annotation.Nullable;
+
 public interface ConfigurationIdentity {
 
     String getBuildPath();
 
+    @Nullable
     String getProjectPath();
 
     String getName();
