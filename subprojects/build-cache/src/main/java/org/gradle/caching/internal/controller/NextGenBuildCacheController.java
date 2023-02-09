@@ -213,6 +213,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
             FileSystemLocationSnapshot snapshot = createSnapshot(root, manifestEntries);
             snapshots.put(propertyName, snapshot);
+            fileSystemAccess.record(snapshot);
         });
 
         ImmutableSortedMap<String, FileSystemSnapshot> resultingSnapshots = snapshots.build();
