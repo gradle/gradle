@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.cache.Cleanup
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.file.TestFiles
@@ -168,7 +167,7 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
         cleanupService.cleanup()
 
         then:
-        cacheConfigurations.cleanup >> property(Cleanup.DISABLED)
+        cacheConfigurations.cleanupFrequency >> property(CleanupFrequency.NEVER)
 
         and:
         oldCacheDir.assertExists()
