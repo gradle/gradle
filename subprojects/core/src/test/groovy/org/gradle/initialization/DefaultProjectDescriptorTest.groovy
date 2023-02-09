@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.scripts.ScriptFileResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Path
 import org.junit.Rule
 import org.junit.rules.TestName
 import spock.lang.Specification
@@ -55,7 +54,6 @@ class DefaultProjectDescriptorTest extends Specification {
         descriptor.name = "newName"
 
         then:
-        1 * registry.changeDescriptorPath(Path.path(Project.PATH_SEPARATOR + testName.methodName), Path.path(Project.PATH_SEPARATOR + "newName"))
         descriptor.name == "newName"
     }
 

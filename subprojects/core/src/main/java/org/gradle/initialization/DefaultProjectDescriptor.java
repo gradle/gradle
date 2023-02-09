@@ -105,7 +105,6 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     public void setName(String name) {
         NameValidator.validate(name, "project name",
             INVALID_NAME_IN_INCLUDE_HINT);
-        projectDescriptorRegistry.changeDescriptorPath(path, path(name));
         this.name = name;
         this.nameExplicitlySet = true;
     }
