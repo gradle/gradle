@@ -65,7 +65,7 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
     void disableCacheCleanupViaProperty() {
         gradleUserHomeDir.mkdirs()
         new File(gradleUserHomeDir, 'gradle.properties') << """
-            ${GradleUserHomeCacheCleanupActionDecorator.CACHE_CLEANUP_PROPERTY}=false
+            ${LegacyCacheCleanupEnablement.CACHE_CLEANUP_PROPERTY}=false
         """.stripIndent()
     }
 

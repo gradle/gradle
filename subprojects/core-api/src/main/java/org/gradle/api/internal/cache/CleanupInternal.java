@@ -21,9 +21,4 @@ import org.gradle.cache.CleanupFrequency;
 
 public interface CleanupInternal extends Cleanup {
     CleanupFrequency getCleanupFrequency();
-
-    /**
-     * Used as the convention when no cleanup is explicitly configured.
-     */
-    Cleanup NOT_SET = new DefaultCleanup(CleanupFrequency.DAILY);
 }
