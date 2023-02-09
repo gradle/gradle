@@ -1576,8 +1576,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private ConfigurationIdentity getIdentity() {
         String name = getName();
-        // TODO: can we get an NPE for project here?
-        String projectPath = domainObjectContext.getProjectPath().toString();
+        String projectPath = domainObjectContext.getProjectPath() == null ? null : domainObjectContext.getProjectPath().toString();
         String buildPath = domainObjectContext.getBuildPath().toString();
         String identityPath = getIdentityPath().toString();
         return new ConfigurationIdentity() {
