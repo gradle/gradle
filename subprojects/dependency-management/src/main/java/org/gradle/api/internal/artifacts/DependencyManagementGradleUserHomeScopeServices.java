@@ -27,7 +27,6 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
-import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
@@ -62,10 +61,9 @@ public class DependencyManagementGradleUserHomeScopeServices {
         DefaultArtifactCaches.WritableArtifactCacheLockingParameters parameters,
         ListenerManager listenerManager,
         DocumentationRegistry documentationRegistry,
-        CleanupActionDecorator cleanupActionDecorator,
         CacheConfigurationsInternal cacheConfigurations
     ) {
-        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(cacheBuilderFactory, unscopedCacheBuilderFactory, parameters, documentationRegistry, cleanupActionDecorator, cacheConfigurations);
+        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(cacheBuilderFactory, unscopedCacheBuilderFactory, parameters, documentationRegistry, cacheConfigurations);
         listenerManager.addListener(new BuildAdapter() {
             @SuppressWarnings("deprecation")
             @Override
@@ -102,7 +100,6 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
-        CleanupActionDecorator cleanupActionDecorator,
         CacheConfigurationsInternal cacheConfigurations
     ) {
         return new ImmutableTransformationWorkspaceServices(
@@ -113,7 +110,6 @@ public class DependencyManagementGradleUserHomeScopeServices {
             fileAccessTimeJournal,
             executionHistoryStore,
             crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful),
-            cleanupActionDecorator,
             cacheConfigurations
         );
     }
