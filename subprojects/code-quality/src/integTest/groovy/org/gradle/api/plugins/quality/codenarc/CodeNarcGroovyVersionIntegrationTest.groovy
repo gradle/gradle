@@ -39,10 +39,9 @@ class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec imple
             dependencies {
                 implementation(platform("${group}:groovy-bom:${groovyVersion}"))
                 implementation("${group}:groovy")
-
-                codenarc("org.codenarc:CodeNarc:${codenarcVersion}")
-                codenarc(platform("${group}:groovy-bom:${groovyVersion}"))
             }
+
+            codenarc.toolVersion = "${codenarcVersion}"
         """.stripIndent()
     }
 
