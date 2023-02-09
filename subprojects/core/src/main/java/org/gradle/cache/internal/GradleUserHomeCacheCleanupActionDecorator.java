@@ -16,11 +16,14 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.cache.CacheConfigurations;
+import org.gradle.api.internal.cache.CleanupInternal;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.cache.MonitoredCleanupAction;
 import org.gradle.internal.cache.MonitoredCleanupActionDecorator;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
@@ -34,9 +37,11 @@ public class GradleUserHomeCacheCleanupActionDecorator implements CleanupActionD
     public static final String CACHE_CLEANUP_PROPERTY = "org.gradle.cache.cleanup";
 
     private final GradleUserHomeDirProvider userHomeDirProvider;
+    private final CacheConfigurations cacheConfigurations;
 
-    public GradleUserHomeCacheCleanupActionDecorator(GradleUserHomeDirProvider userHomeDirProvider) {
+    public GradleUserHomeCacheCleanupActionDecorator(GradleUserHomeDirProvider userHomeDirProvider, CacheConfigurations cacheConfigurations) {
         this.userHomeDirProvider = userHomeDirProvider;
+        this.cacheConfigurations = cacheConfigurations;
     }
 
     private boolean isEnabled() {
@@ -45,9 +50,20 @@ public class GradleUserHomeCacheCleanupActionDecorator implements CleanupActionD
         if (gradleProperties.isFile()) {
             Properties properties = GUtil.loadProperties(gradleProperties);
             String cleanup = properties.getProperty(CACHE_CLEANUP_PROPERTY);
-            return cleanup == null || !cleanup.equals("false");
+            if (cleanup != null && isNotConfiguredViaDsl()) {
+                DeprecationLogger.deprecateAction("Disabling Gradle user home cache cleanup with the '" + CACHE_CLEANUP_PROPERTY + "' property")
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "disabling_user_home_cache_cleanup")
+                    .nagUser();
+                return !cleanup.equals("false");
+            }
+            return true;
         }
         return true;
+    }
+
+    private boolean isNotConfiguredViaDsl() {
+        return cacheConfigurations.getCleanup().get() == CleanupInternal.NOT_SET;
     }
 
     /**

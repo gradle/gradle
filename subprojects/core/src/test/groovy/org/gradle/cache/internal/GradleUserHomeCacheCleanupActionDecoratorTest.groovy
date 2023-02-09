@@ -16,11 +16,15 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.api.cache.CacheConfigurations
+import org.gradle.api.cache.Cleanup
+import org.gradle.api.internal.cache.CleanupInternal
 import org.gradle.cache.CleanableStore
 import org.gradle.cache.CleanupAction
 import org.gradle.cache.CleanupProgressMonitor
 import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.internal.cache.MonitoredCleanupAction
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -33,9 +37,10 @@ class GradleUserHomeCacheCleanupActionDecoratorTest extends Specification {
     def delegateCleanupAction = Mock(CleanupAction)
     def delegateDirectoryCleanupAction = Mock(MonitoredCleanupAction)
     def gradleUserHomeProvider = Stub(GradleUserHomeDirProvider)
-    def cacheCleanupDecorator = new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeProvider)
+    def cacheConfigurations = Mock(CacheConfigurations)
+    def cacheCleanupDecorator = new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeProvider, cacheConfigurations)
 
-    def "wrapping allows cleanup when enabled"() {
+    def "decoration allows cleanup when enabled"() {
         given:
         withCacheCleanupEnabledByDefault()
 
@@ -46,7 +51,7 @@ class GradleUserHomeCacheCleanupActionDecoratorTest extends Specification {
         1 * delegateCleanupAction.clean(_, _)
     }
 
-    def "wrapping does not allow cleanup when cleanup is disabled"() {
+    def "decoration does not allow cleanup when cleanup is disabled"() {
         given:
         withCacheCleanupDisabled()
 
@@ -55,9 +60,10 @@ class GradleUserHomeCacheCleanupActionDecoratorTest extends Specification {
 
         then:
         0 * delegateCleanupAction.clean(_, _)
+        1 * cacheConfigurations.getCleanup() >> TestUtil.objectFactory().property(Cleanup).convention(CleanupInternal.NOT_SET)
     }
 
-    def "wrapping allows directory cleanup when enabled"() {
+    def "decoration allows directory cleanup when enabled"() {
         given:
         withCacheCleanupEnabledByDefault()
 
@@ -68,7 +74,7 @@ class GradleUserHomeCacheCleanupActionDecoratorTest extends Specification {
         1 * delegateDirectoryCleanupAction.execute(_)
     }
 
-    def "wrapping does not allow directory cleanup when cleanup is disabled"() {
+    def "decoration does not allow directory cleanup when cleanup is disabled"() {
         given:
         withCacheCleanupDisabled()
 
@@ -77,6 +83,31 @@ class GradleUserHomeCacheCleanupActionDecoratorTest extends Specification {
 
         then:
         0 * delegateDirectoryCleanupAction.execute(_)
+        1 * cacheConfigurations.getCleanup() >> TestUtil.objectFactory().property(Cleanup).convention(CleanupInternal.NOT_SET)
+    }
+
+    def "decoration allows cleanup when cleanup is disabled by property, but DSL is configured"() {
+        given:
+        withCacheCleanupDisabled()
+
+        when:
+        cacheCleanupDecorator.decorate(delegateCleanupAction).clean(Mock(CleanableStore), Mock(CleanupProgressMonitor))
+
+        then:
+        1 * delegateCleanupAction.clean(_, _)
+        1 * cacheConfigurations.getCleanup() >> TestUtil.objectFactory().property(Cleanup).convention(CleanupInternal.DEFAULT)
+    }
+
+    def "decoration allows directory cleanup when cleanup is disabled by property, but DSL is configured"() {
+        given:
+        withCacheCleanupDisabled()
+
+        when:
+        cacheCleanupDecorator.decorate(delegateDirectoryCleanupAction).execute(Mock(CleanupProgressMonitor))
+
+        then:
+        1 * delegateDirectoryCleanupAction.execute(_)
+        1 * cacheConfigurations.getCleanup() >> TestUtil.objectFactory().property(Cleanup).convention(CleanupInternal.DEFAULT)
     }
 
     private File setGradleUserHome(String gradleUserHomePath) {
