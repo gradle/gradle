@@ -21,7 +21,8 @@ The sections below describe Gradle's compatibility with several integrations. Ot
 A Java version between 8 and 19 is required to execute Gradle.
 Java 20 and later versions are not yet supported.
 
-Java 6 and 7 can still be used for <<building_java_projects.adoc#sec:java_cross_compilation,compilation and forked test execution>>.
+Java 6 and 7 can still be used for <<building_java_projects.adoc#sec:java_cross_compilation,compilation>>, but are deprecated
+for use with testing. Testing with Java 6 and 7 will not be supported in Gradle 9.0.
 
 Any supported version of Java can be used for compile or test.
 
