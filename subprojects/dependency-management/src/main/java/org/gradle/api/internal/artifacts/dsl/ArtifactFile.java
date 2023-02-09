@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.apache.commons.lang.StringUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -32,28 +33,30 @@ public class ArtifactFile {
         this(file.getName(), version);
     }
 
-    public ArtifactFile(String fileBaseName, String version) {
+    public ArtifactFile(String fileBaseName, @Nullable String version) {
         name = fileBaseName;
         extension = "";
         classifier = "";
         boolean done = false;
 
-        int startVersion = StringUtils.lastIndexOf(name, "-" + version);
-        if (startVersion >= 0) {
-            int endVersion = startVersion + version.length() + 1;
-            if (endVersion == name.length()) {
-                name = name.substring(0, startVersion);
-                done = true;
-            } else if (endVersion < name.length() && name.charAt(endVersion) == '-') {
-                String tail = name.substring(endVersion + 1);
-                name = name.substring(0, startVersion);
-                classifier = StringUtils.substringBeforeLast(tail, ".");
-                extension = StringUtils.substringAfterLast(tail, ".");
-                done = true;
-            } else if (endVersion < name.length() && StringUtils.lastIndexOf(name, ".") == endVersion) {
-                extension = name.substring(endVersion + 1);
-                name = name.substring(0, startVersion);
-                done = true;
+        if (version != null) {
+            int startVersion = StringUtils.lastIndexOf(name, "-" + version);
+            if (startVersion >= 0) {
+                int endVersion = startVersion + version.length() + 1;
+                if (endVersion == name.length()) {
+                    name = name.substring(0, startVersion);
+                    done = true;
+                } else if (endVersion < name.length() && name.charAt(endVersion) == '-') {
+                    String tail = name.substring(endVersion + 1);
+                    name = name.substring(0, startVersion);
+                    classifier = StringUtils.substringBeforeLast(tail, ".");
+                    extension = StringUtils.substringAfterLast(tail, ".");
+                    done = true;
+                } else if (endVersion < name.length() && StringUtils.lastIndexOf(name, ".") == endVersion) {
+                    extension = name.substring(endVersion + 1);
+                    name = name.substring(0, startVersion);
+                    done = true;
+                }
             }
         }
         if (!done) {
