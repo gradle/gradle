@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
+import org.apache.http.StatusLine
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.gradle.internal.resource.ExternalResourceName
 import spock.lang.Specification
@@ -25,7 +26,7 @@ class HttpResourceAccessorTest extends Specification {
     def name = new ExternalResourceName(uri)
 
     def "should call close() on CloseableHttpResource when getMetaData is called"() {
-        def response = Mock(CloseableHttpResponse)
+        def response = mockHttpResponse()
         def http = Mock(HttpClientHelper) {
             performHead(uri.toString(), _) >> new HttpClientResponse("GET", uri, response)
         }
@@ -35,5 +36,13 @@ class HttpResourceAccessorTest extends Specification {
 
         then:
         1 * response.close()
+    }
+
+    private CloseableHttpResponse mockHttpResponse() {
+        def response = Mock(CloseableHttpResponse)
+        def statusLine = Mock(StatusLine)
+        statusLine.getStatusCode() >> 200
+        response.getStatusLine() >> statusLine
+        response
     }
 }

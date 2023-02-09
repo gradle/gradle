@@ -49,10 +49,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
                 repositories {
                     ivy {
                         url "${ivySftpRepo.uri}"
-                        credentials {
-                            username 'sftp'
-                            password 'sftp'
-                        }
+                        credentials(PasswordCredentials)
                     }
                 }
                 publications {
@@ -70,6 +67,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         def module = ivySftpRepo.module("org.group.name", "publish", "2")
 
         settingsFile << 'rootProject.name = "publish"'
+        configureRepositoryCredentials("sftp", "sftp", "ivy")
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'ivy-publish'
@@ -81,10 +79,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
                 repositories {
                     ivy {
                         url "${ivySftpRepo.uri}"
-                        credentials {
-                            username 'sftp'
-                            password 'sftp'
-                        }
+                        credentials(PasswordCredentials)
                         layout "$layout"
                     }
                 }
@@ -141,6 +136,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         def module = ivySftpRepo.module("org.group.name", "publish", "2")
 
         settingsFile << 'rootProject.name = "publish"'
+        configureRepositoryCredentials("sftp", "sftp", "ivy")
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'ivy-publish'
@@ -152,10 +148,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
                 repositories {
                     ivy {
                         url "${ivySftpRepo.uri}"
-                        credentials {
-                            username 'sftp'
-                            password 'sftp'
-                        }
+                        credentials(PasswordCredentials)
                         patternLayout {
                             artifact "${ivySftpRepo.baseArtifactPattern}"
                             ivy "${ivySftpRepo.baseIvyPattern}"
@@ -202,6 +195,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
 
     def "publishing to a SFTP repo when directory creation fails"() {
         given:
+        configureRepositoryCredentials("sftp", "sftp", "ivy")
         buildAndSettingsFilesForPublishing()
 
         when:
@@ -222,6 +216,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
 
     def "publishing to a SFTP repo when file uploading fails"() {
         given:
+        configureRepositoryCredentials("sftp", "sftp", "ivy")
         buildAndSettingsFilesForPublishing()
         def module = ivySftpRepo.module('org.group.name', 'publish', '2')
 

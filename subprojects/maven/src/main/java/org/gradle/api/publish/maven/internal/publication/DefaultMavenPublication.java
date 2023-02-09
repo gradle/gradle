@@ -147,7 +147,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final PublicationArtifactSet<MavenArtifact> publishableArtifacts;
     private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<>();
     private final Set<MavenDependencyInternal> apiDependencies = new LinkedHashSet<>();
-    private final Set<MavenDependencyInternal> optionalDependencies = new LinkedHashSet<>();
+    private final Set<MavenDependencyInternal> optionalRuntimeDependencies = new LinkedHashSet<>();
+    private final Set<MavenDependencyInternal> optionalApiDependencies = new LinkedHashSet<>();
     private final Set<MavenDependency> runtimeDependencyConstraints = new LinkedHashSet<>();
     private final Set<MavenDependency> apiDependencyConstraints = new LinkedHashSet<>();
     private final Set<MavenDependency> importDependencyConstraints = new LinkedHashSet<>();
@@ -438,9 +439,9 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 case runtime:
                     return runtimeDependencies;
                 case compile_optional:
+                    return optionalApiDependencies;
                 case runtime_optional:
-                    // currently single list of optionals
-                    return optionalDependencies;
+                    return optionalRuntimeDependencies;
             }
         }
         // legacy mode for internal APIs
@@ -641,9 +642,15 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     @Override
-    public Set<MavenDependencyInternal> getOptionalDependencies() {
+    public Set<MavenDependencyInternal> getOptionalRuntimeDependencies() {
         populateFromComponent();
-        return optionalDependencies;
+        return optionalRuntimeDependencies;
+    }
+
+    @Override
+    public Set<MavenDependencyInternal> getOptionalApiDependencies() {
+        populateFromComponent();
+        return optionalApiDependencies;
     }
 
     @Override

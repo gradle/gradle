@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+import com.gradle.enterprise.gradleplugin.testdistribution.TestDistributionExtension
 import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
 import com.gradle.enterprise.gradleplugin.testretry.retry
+import com.gradle.enterprise.gradleplugin.testselection.PredictiveTestSelectionExtension
 import com.gradle.enterprise.gradleplugin.testselection.internal.PredictiveTestSelectionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
@@ -277,15 +279,12 @@ fun configureTests() {
         configureSpock()
         configureFlakyTest()
 
-        distribution {
+        extensions.findByType<TestDistributionExtension>()?.apply {
             this as TestDistributionExtensionInternal
             // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
             server = uri("https://ge-td-dogfooding.grdev.net")
-        }
 
-        if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject()) {
-            distribution {
-                this as TestDistributionExtensionInternal
+            if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject()) {
                 enabled = true
                 project.maxTestDistributionPartitionSecond?.apply {
                     preferredMaxDuration = Duration.ofSeconds(this)
@@ -318,8 +317,9 @@ fun configureTests() {
             // GitHub actions for contributor PRs uses public build scan instance
             // in this case we need to explicitly configure the PTS server
             // Don't move this line into the lambda as it may cause config cache problems
-            (predictiveSelection as PredictiveTestSelectionExtensionInternal).server = uri("https://ge.gradle.org")
-            predictiveSelection {
+            extensions.findByType<PredictiveTestSelectionExtension>()?.apply {
+                this as PredictiveTestSelectionExtensionInternal
+                server = uri("https://ge.gradle.org")
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }

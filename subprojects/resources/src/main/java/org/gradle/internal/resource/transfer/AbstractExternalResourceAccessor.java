@@ -33,14 +33,10 @@ public abstract class AbstractExternalResourceAccessor implements ExternalResour
         if (response == null) {
             return null;
         }
-        try {
-            try {
-                try (InputStream inputStream = response.openStream()) {
-                    return action.execute(inputStream, response.getMetaData());
-                }
-            } finally {
-                response.close();
-            }
+
+        try (InputStream inputStream = response.openStream();
+             ExternalResourceReadResponse responseCloser = response) {
+            return action.execute(inputStream, responseCloser.getMetaData());
         } catch (IOException e) {
             throw ResourceExceptions.getFailed(location.getUri(), e);
         }

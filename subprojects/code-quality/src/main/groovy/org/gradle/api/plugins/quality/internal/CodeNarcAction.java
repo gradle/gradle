@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.verification;
+package org.gradle.api.plugins.quality.internal;
 
-import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.Contextual;
+import org.gradle.api.Action;
+import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 
-@Contextual
-public class DependencyVerificationException extends GradleException {
+/**
+ * Action to be run via the Worker API which executes a CodeNarc Ant task.
+ */
+public abstract class CodeNarcAction extends AntWorkAction<CodeNarcActionParameters> {
 
-    public DependencyVerificationException(String message) {
-        super(message);
+    @Override
+    protected String getActionName() {
+        return "codenarc";
     }
 
-    public DependencyVerificationException(String message, Throwable cause) {
-        super(message, cause);
+    @Override
+    protected Action<AntBuilderDelegate> getAntAction() {
+        return new CodeNarcInvoker(getParameters());
     }
 }

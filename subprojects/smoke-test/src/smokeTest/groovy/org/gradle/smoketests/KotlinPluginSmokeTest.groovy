@@ -17,7 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
@@ -30,7 +30,6 @@ import static org.junit.Assume.assumeTrue
 
 class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin jvm (kotlin=#version, workers=#workers)'() {
         given:
         useSample("kotlin-example")
@@ -43,6 +42,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectKotlinWorkerSubmitDeprecation(workers, version)
                 expectKotlinArchiveNameDeprecation(version)
                 expectAbstractCompileDestinationDirDeprecation(version)
+                expectOrgGradleUtilWrapUtilDeprecation(version)
             }.build()
 
         then:
@@ -50,7 +50,12 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         assert result.output.contains("Hello world!")
 
         when:
-        result = runner(workers, versionNumber, 'run').build()
+        result = runner(workers, versionNumber, 'run')
+            .deprecations(KotlinDeprecations) {
+                if (GradleContextualExecuter.isNotConfigCache()) {
+                    expectOrgGradleUtilWrapUtilDeprecation(version)
+                }
+            }.build()
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE
@@ -63,11 +68,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         ].combinations()
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin javascript (kotlin=#version, workers=#workers)'() {
 
         // kotlinjs has been removed in Kotlin 1.7 in favor of kotlin-mpp
-        assumeTrue(VersionNumber.parse(version).baseVersion < VersionNumber.version(1,7))
+        assumeTrue(VersionNumber.parse(version).baseVersion < VersionNumber.version(1, 7))
 
         given:
         useSample("kotlin-js-sample")
@@ -83,6 +87,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectKotlinParallelTasksDeprecation(version)
                 expectKotlinCompileDestinationDirPropertyDeprecation(version)
                 expectKotlinArchiveNameDeprecation(version)
+                expectOrgGradleUtilWrapUtilDeprecation(version)
             }.build()
 
         then:
@@ -95,7 +100,6 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         ].combinations()
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
         given:
         buildFile << """
@@ -130,6 +134,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             .deprecations(KotlinDeprecations) {
                 expectKotlinArchiveNameDeprecation(kotlinVersion)
                 expectAbstractCompileDestinationDirDeprecation(kotlinVersion)
+                expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
             }.build()
 
         then:
@@ -140,7 +145,6 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = KGP_NO_CC_ITERATION_MATCHER)
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
 
         assumeFalse(kotlinVersion.startsWith("1.3."))
@@ -168,15 +172,21 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         when:
         def result = runner(false, versionNumber, 'build')
-                .deprecations(KotlinDeprecations) {
-                    expectAbstractCompileDestinationDirDeprecation(kotlinVersion)
-                }.build()
+            .deprecations(KotlinDeprecations) {
+                expectAbstractCompileDestinationDirDeprecation(kotlinVersion)
+                expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+            }.build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
 
         when:
-        result = runner(false, versionNumber, 'build').build()
+        result = runner(false, versionNumber, 'build')
+            .deprecations(KotlinDeprecations) {
+                if (GradleContextualExecuter.isNotConfigCache()) {
+                    expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+                }
+            }.build()
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE
@@ -212,6 +222,9 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def result = runner(false, versionNumber, ':tasks')
             .expectDeprecationWarning("The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the testResults method instead. See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.", '')
             .expectDeprecationWarning("The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.", '')
+            .deprecations(KotlinDeprecations) {
+                expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+            }
             .build()
 
         then:
@@ -267,6 +280,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             testRunner.expectDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring", '')
         }
 
+        testRunner.deprecations(KotlinDeprecations) {
+            expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+        }
+
         def result = testRunner.build()
 
         then:
@@ -274,7 +291,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         where:
         // withJava is incompatible pre 1.6.20 since it attempts to set the `archiveName` convention property on the Jar task.
-        kotlinVersion << TestedVersions.kotlin.versions.findAll { VersionNumber.parse(it) > VersionNumber.parse("1.6.10")}
+        kotlinVersion << TestedVersions.kotlin.versions.findAll { VersionNumber.parse(it) > VersionNumber.parse("1.6.10") }
     }
 
     private SmokeTestGradleRunner runner(boolean workers, VersionNumber kotlinVersion, String... tasks) {
@@ -397,12 +414,24 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         void expectAbstractCompileDestinationDirDeprecation(String version) {
             VersionNumber versionNumber = VersionNumber.parse(version)
             runner.expectDeprecationWarningIf(
-                    versionNumber <= VersionNumber.parse("1.6.21"),
-                    "The AbstractCompile.destinationDir property has been deprecated. " +
-                        "This is scheduled to be removed in Gradle 9.0. " +
-                        "Please use the destinationDirectory property instead. " +
-                        "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring",
-            ""
+                versionNumber <= VersionNumber.parse("1.6.21"),
+                "The AbstractCompile.destinationDir property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Please use the destinationDirectory property instead. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring",
+                ""
+            )
+        }
+
+        void expectOrgGradleUtilWrapUtilDeprecation(String version) {
+            VersionNumber versionNumber = VersionNumber.parse(version)
+            runner.expectDeprecationWarningIf(
+                versionNumber < VersionNumber.parse("1.7.20"),
+                "The org.gradle.util.WrapUtil type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations",
+                ""
             )
         }
     }

@@ -19,11 +19,13 @@ package org.gradle.api.internal.artifacts.result;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
@@ -134,5 +136,22 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
 
     public void associateDependencyToVariant(DependencyResult dependencyResult, ResolvedVariantResult fromVariant) {
         variantDependencies.put(fromVariant, dependencyResult);
+    }
+
+    public static void eachElement(
+        ResolvedComponentResult node,
+        Action<? super ResolvedComponentResult> moduleAction, Action<? super DependencyResult> dependencyAction,
+        Set<ResolvedComponentResult> visited
+    ) {
+        if (!visited.add(node)) {
+            return;
+        }
+        moduleAction.execute(node);
+        for (DependencyResult d : node.getDependencies()) {
+            dependencyAction.execute(d);
+            if (d instanceof ResolvedDependencyResult) {
+                eachElement(((ResolvedDependencyResult) d).getSelected(), moduleAction, dependencyAction, visited);
+            }
+        }
     }
 }

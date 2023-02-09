@@ -36,6 +36,7 @@ class IvyPublishS3IntegrationTest extends AbstractIvyPublishIntegTest {
         def ivyRepo = server.remoteIvyRepo
 
         settingsFile << 'rootProject.name = "publishS3Test"'
+        configureRepositoryKeys("someKey", "someSecret", "ivy")
         buildFile << """
 apply plugin: 'java'
 apply plugin: 'ivy-publish'
@@ -47,10 +48,7 @@ publishing {
     repositories {
         ivy {
             url "${ivyRepo.uri}"
-            credentials(AwsCredentials) {
-                accessKey "someKey"
-                secretKey "someSecret"
-            }
+            credentials(AwsCredentials)
         }
     }
     publications {

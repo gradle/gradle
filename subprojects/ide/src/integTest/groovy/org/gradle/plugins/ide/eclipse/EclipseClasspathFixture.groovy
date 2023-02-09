@@ -126,6 +126,10 @@ class EclipseClasspathFixture {
             return entry.@path
         }
 
+        String getOutput() {
+            return entry.@output
+        }
+
         void assertOutputLocation(String output) {
             assert entry.@output == output
         }
