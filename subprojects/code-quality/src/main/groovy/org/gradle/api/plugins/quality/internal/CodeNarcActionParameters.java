@@ -18,48 +18,33 @@ package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.plugins.quality.PmdReports;
-import org.gradle.api.plugins.quality.TargetJdk;
+import org.gradle.api.plugins.quality.CodeNarcReports;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 
 /**
- * Parameters used to configure a {@link PmdAction}.
+ * Parameters used to configure a {@link CodeNarcAction}.
  */
-public interface PmdActionParameters extends AntWorkParameters {
+public interface CodeNarcActionParameters extends AntWorkParameters {
 
-    ConfigurableFileCollection getPmdClasspath();
+    ConfigurableFileCollection getCompilationClasspath();
 
-    Property<TargetJdk> getTargetJdk();
+    RegularFileProperty getConfig();
 
-    ListProperty<String> getRuleSets();
+    Property<Integer> getMaxPriority1Violations();
 
-    ConfigurableFileCollection getRuleSetConfigFiles();
+    Property<Integer> getMaxPriority2Violations();
 
-    Property<Boolean> getIgnoreFailures();
-
-    Property<Boolean> getConsoleOutput();
-
-    Property<Boolean> getStdOutIsAttachedToTerminal();
-
-    ConfigurableFileCollection getAuxClasspath();
-
-    Property<Integer> getRulesMinimumPriority();
-
-    Property<Integer> getMaxFailures();
-
-    Property<Boolean> getIncrementalAnalysis();
-
-    RegularFileProperty getIncrementalCacheFile();
-
-    Property<Integer> getThreads();
-
-    ConfigurableFileCollection getSource();
+    Property<Integer> getMaxPriority3Violations();
 
     ListProperty<EnabledReport> getEnabledReports();
 
+    Property<Boolean> getIgnoreFailures();
+
+    ConfigurableFileCollection getSource();
+
     /**
-     * Based off of {@link PmdReports}.
+     * Based off of {@link CodeNarcReports}.
      */
     interface EnabledReport {
 
