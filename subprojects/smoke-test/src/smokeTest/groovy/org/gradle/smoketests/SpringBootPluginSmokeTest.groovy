@@ -93,22 +93,4 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
             'org.springframework.boot': Versions.of(TestedVersions.springBoot)
         ]
     }
-
-    @Override
-    void configureValidation(String pluginId, String version) {
-        Map<String, Severity> messages = [:]
-
-        validatePlugins {
-            onPlugin(pluginId) {
-                messages[incorrectUseOfInputAnnotation {
-                    type'org.springframework.boot.gradle.tasks.bundling.BootBuildImage'
-                    property 'archiveFile'
-                    propertyType 'RegularFileProperty'
-                    includeLink()
-                }] = ERROR
-
-                failsWith messages
-            }
-        }
-    }
 }
