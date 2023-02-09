@@ -261,6 +261,63 @@ Please use standard locations for settings and build files:
 * settings file in the root of the build
 * build file in the root of each subproject
 
+[[disabling_user_home_cache_cleanup]]
+==== Deprecated org.gradle.cache.cleanup property
+
+The `org.gradle.cache.cleanup` property in `gradle.properties` under Gradle user home has been deprecated.  Please use the link:https://docs.gradle.org/current/userguide/directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[cache cleanup DSL] instead to disable or modify the cleanup configuration.
+
+Since the `org.gradle.cache.cleanup` property may still be needed for older versions of Gradle, this property may still be present and no deprecation warnings will be printed as long as it is also configured via the DSL.
+The DSL value will always take preference over the `org.gradle.cache.cleanup` property.
+If the desired configuration is to disable cleanup for older versions of Gradle (using `org.gradle.cache.cleanup`), but to enable cleanup with the default values for Gradle versions at or above Gradle 8, then cleanup should be configured to use link:{javadocPath}/org/gradle/api/cache/Cleanup.html#DEFAULT[Cleanup.DEFAULT]:
+
+====
+[.multi-language-sample]
+=====
+.cache-settings.gradle
+[source,groovy]
+----
+if (GradleVersion.current() >= GradleVersion.version('8.0')) {
+    apply from: "gradle8/cache-settings.gradle"
+}
+----
+=====
+[.multi-language-sample]
+=====
+.cache-settings.gradle.kts
+[source,kotlin]
+----
+if (GradleVersion.current() >= GradleVersion.version("8.0")) {
+    apply(from = "gradle8/cache-settings.gradle")
+}
+----
+=====
+====
+====
+[.multi-language-sample]
+=====
+.gradle8/cache-settings.gradle
+[source,groovy]
+----
+beforeSettings { settings ->
+    settings.caches {
+        cleanup = Cleanup.DEFAULT
+    }
+}
+----
+=====
+=====
+.gradle8/cache-settings.gradle.kts
+[source,kotlin]
+----
+beforeSettings {
+    caches {
+        cleanup.set(Cleanup.DEFAULT)
+    }
+}
+----
+=====
+====
+
 === Changes in the IDE integration
 
 [[kotlin_dsl_plugins_catalogs_workaround]]

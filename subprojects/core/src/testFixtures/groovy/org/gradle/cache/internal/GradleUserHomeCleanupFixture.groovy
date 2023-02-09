@@ -73,6 +73,10 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
         setCleanupInterval("DISABLED")
     }
 
+    void explicitlyEnableCacheCleanupViaDsl() {
+        setCleanupInterval("DEFAULT")
+    }
+
     void disableCacheCleanup(CleanupMethod method) {
         switch (method) {
             case CleanupMethod.PROPERTY:
