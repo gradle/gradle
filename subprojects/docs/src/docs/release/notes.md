@@ -191,7 +191,7 @@ The [configuration cache](userguide/configuration_cache.html) improves build tim
 Configuration cache now enables more fine-grained parallelism than using the [parallel execution](userguide/multi_project_configuration_and_execution.html#sec:parallel_execution).
 Starting in Gradle 8.0, tasks run in parallel from the first build when using the configuration cache.
 
-Gradle has always run tasks in parallel when it reuses a [configuration cache](userguide/configuration_cache.html) entry.  Now, it does this also when storing a cache entry.
+Gradle has always run tasks in parallel when it reuses a [configuration cache](userguide/configuration_cache.html) entry. All tasks run in parallel by default, even those within the same project, subject to dependency constraints.  Now, it does this also when storing a cache entry.
 
 When the configuration cache is enabled and Gradle is able to find a compatible cache entry for the current build, it will load the tasks from the cache and run them in isolation. If Gradle cannot find a suitable cache entry, it will run the configuration phase to determine the necessary tasks, store them in a new cache entry, and then immediately run the build based on the saved state.
 
