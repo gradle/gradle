@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Iterables;
 import com.google.common.io.Closer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -31,6 +32,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
@@ -38,13 +40,18 @@ import org.gradle.caching.internal.DefaultBuildCacheKey;
 import org.gradle.caching.internal.controller.CacheManifest.ManifestEntry;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.caching.internal.packaging.impl.RelativePathParser;
 import org.gradle.internal.file.BufferProvider;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.DirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
@@ -69,12 +76,18 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT;
+import static org.gradle.internal.file.FileType.Directory;
+import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
+
 public class NextGenBuildCacheController implements BuildCacheController {
     private final BufferProvider bufferProvider;
     private final NextGenBuildCacheAccess cacheAccess;
     private final FileSystemAccess fileSystemAccess;
     private final String buildInvocationId;
     private final Deleter deleter;
+    private final StringInterner stringInterner;
     private final Gson gson;
 
     public NextGenBuildCacheController(
@@ -82,6 +95,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
         Deleter deleter,
         FileSystemAccess fileSystemAccess,
         BufferProvider bufferProvider,
+        StringInterner stringInterner,
         NextGenBuildCacheAccess cacheAccess
     ) {
         this.buildInvocationId = buildInvocationId;
@@ -89,6 +103,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
         this.fileSystemAccess = fileSystemAccess;
         this.bufferProvider = bufferProvider;
         this.cacheAccess = cacheAccess;
+        this.stringInterner = stringInterner;
         this.gson = new GsonBuilder()
             .registerTypeAdapter(Duration.class, new TypeAdapter<Duration>() {
                 @Override
@@ -152,15 +167,18 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
             // Note that there can be multiple output files with the same content
             ImmutableListMultimap.Builder<BuildCacheKey, File> filesBuilder = ImmutableListMultimap.builder();
-            manifest.getPropertyManifests().get(propertyName).forEach(entry -> {
+            List<ManifestEntry> manifestEntries = manifest.getPropertyManifests().get(propertyName);
+            manifestEntries.forEach(entry -> {
                 File file = new File(root, entry.getRelativePath());
                 switch (entry.getType()) {
                     case Directory:
+                        // TODO set correct file permissions
                         // TODO Handle this
                         //noinspection ResultOfMethodCallIgnored
                         file.mkdirs();
                         break;
                     case RegularFile:
+                        // TODO set correct file permissions
                         filesBuilder.put(new DefaultBuildCacheKey(entry.getContentHash()), file);
                         break;
                     case Missing:
@@ -192,8 +210,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
             });
 
-            // TODO Reuse the data in the manifest instead of re-reading just written files
-            FileSystemLocationSnapshot snapshot = fileSystemAccess.read(root.getAbsolutePath());
+            FileSystemLocationSnapshot snapshot = getSnapshot(root, manifestEntries);
             snapshots.put(propertyName, snapshot);
         });
 
@@ -214,6 +231,64 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 return resultingSnapshots;
             }
         });
+    }
+
+    private FileSystemLocationSnapshot getSnapshot(File root, List<ManifestEntry> entries) {
+        ManifestEntry rootEntry = entries.get(0);
+        switch (rootEntry.getType()) {
+            case Directory:
+                return getDirectorySnapshot(root, entries);
+            case RegularFile:
+                File file = new File(root, rootEntry.getRelativePath());
+                return getFileSnapshot(rootEntry, file);
+            default:
+                throw new IllegalStateException("Cannot snapshot missing data");
+        }
+    }
+
+    private FileSystemLocationSnapshot getDirectorySnapshot(File root, List<ManifestEntry> entries) {
+        String rootPath = "/";
+        RelativePathParser parser = new RelativePathParser(rootPath);
+        DirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
+        builder.enterDirectory(DIRECT, stringInterner.intern(root.getAbsolutePath()), stringInterner.intern(root.getName()), INCLUDE_EMPTY_DIRS);
+
+        for (ManifestEntry entry : Iterables.skip(entries, 1)) {
+            File file = new File(root, entry.getRelativePath());
+
+            boolean isDirectory = entry.getType() == Directory;
+            String relativePath = rootPath + entry.getRelativePath();
+            boolean outsideOfRoot = parser.nextPath(relativePath, isDirectory, builder::leaveDirectory);
+            if (outsideOfRoot) {
+                break;
+            }
+
+            switch (entry.getType()) {
+                case Directory:
+                    String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
+                    String internedName = stringInterner.intern(parser.getName());
+                    builder.enterDirectory(DIRECT, internedAbsolutePath, internedName, INCLUDE_EMPTY_DIRS);
+                    break;
+                case RegularFile:
+                    RegularFileSnapshot fileSnapshot = getFileSnapshot(entry, file);
+                    builder.visitLeafElement(fileSnapshot);
+                    break;
+                case Missing:
+                    break;
+            }
+        }
+
+        parser.exitToRoot(builder::leaveDirectory);
+        builder.leaveDirectory();
+        return checkNotNull(builder.getResult());
+    }
+
+    private RegularFileSnapshot getFileSnapshot(CacheManifest.ManifestEntry entry, File file) {
+        return new RegularFileSnapshot(
+            stringInterner.intern(file.getAbsolutePath()),
+            stringInterner.intern(file.getName()),
+            entry.getContentHash(),
+            DefaultFileMetadata.file(file.lastModified(), entry.getLength(), DIRECT)
+        );
     }
 
     @Override
@@ -300,7 +375,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
         }
         switch (type) {
             case DIRECTORY:
-                if (snapshot.getType() != FileType.Directory) {
+                if (snapshot.getType() != Directory) {
                     throw new IllegalArgumentException(String.format("Expected '%s' to be a directory", snapshot.getAbsolutePath()));
                 }
                 break;
