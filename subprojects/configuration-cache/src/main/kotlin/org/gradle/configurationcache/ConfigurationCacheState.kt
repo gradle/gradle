@@ -54,7 +54,7 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.configurationcache.serialization.writeStrings
-import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.BuildStructureOperationProject
@@ -281,6 +281,7 @@ class ConfigurationCacheState(
         withGradleIsolate(gradle, userTypesCodec) {
             write(gradle.settings.settingsScript.resource.file)
             writeBuildDefinition(state.buildDefinition)
+            write(state.identityPath)
         }
         // Encode the build state using the contextualized IO service for the nested build
         state.projects.withMutableStateOfAllProjects {
@@ -293,7 +294,8 @@ class ConfigurationCacheState(
         val build = withGradleIsolate(rootBuild.gradle, userTypesCodec) {
             val settingsFile = read() as File?
             val definition = readIncludedBuildDefinition(rootBuild)
-            rootBuild.addIncludedBuild(definition, settingsFile)
+            val buildPath = read() as Path
+            rootBuild.addIncludedBuild(definition, settingsFile, buildPath)
         }
         // Decode the build state using the contextualized IO service for the build
         return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(stateFileFor((build.state as NestedBuildState).buildDefinition), build)
@@ -677,14 +679,14 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultWriteContext.writeCachedEnvironmentState(gradle: GradleInternal) {
-        val environmentChangeTracker = gradle.serviceOf<EnvironmentChangeTracker>()
+        val environmentChangeTracker = gradle.serviceOf<ConfigurationCacheEnvironmentChangeTracker>()
         write(environmentChangeTracker.getCachedState())
     }
 
     private
     suspend fun DefaultReadContext.readCachedEnvironmentState(gradle: GradleInternal) {
-        val environmentChangeTracker = gradle.serviceOf<EnvironmentChangeTracker>()
-        val storedState = read() as EnvironmentChangeTracker.CachedEnvironmentState
+        val environmentChangeTracker = gradle.serviceOf<ConfigurationCacheEnvironmentChangeTracker>()
+        val storedState = read() as ConfigurationCacheEnvironmentChangeTracker.CachedEnvironmentState
         environmentChangeTracker.loadFrom(storedState)
     }
 

@@ -10,15 +10,18 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-
+[Attila Király](https://github.com/akiraly),
+[Björn Kautler](https://github.com/Vampire),
+[DJtheRedstoner](https://github.com/DJtheRedstoner),
+[JayaKrishnan Nair K](https://github.com/jknair0),
+[kackey0-1](https://github.com/kackey0-1),
 [Martin Bonnin](https://github.com/martinbonnin),
-<<<<<<< gh/pr/21004
-[Yanshun Li](https://github.com/Chaoba),
-[Xin Wang](https://github.com/scaventz).
-=======
+[Martin Kealey](https://github.com/kurahaupo),
+[modmuss50](https://github.com/modmuss50),
+[Sebastian Schuberth](https://github.com/sschuberth),
 [valery1707](https://github.com/valery1707),
-[Yanshun Li](https://github.com/Chaoba).
->>>>>>> master
+[Xin Wang](https://github.com/scaventz),
+[Yanshun Li](https://github.com/Chaoba)
 
 ## Upgrade instructions
 

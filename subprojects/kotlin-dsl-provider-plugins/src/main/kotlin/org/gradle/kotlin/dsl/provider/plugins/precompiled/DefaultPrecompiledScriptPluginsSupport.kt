@@ -16,7 +16,6 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled
 
 
-import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -33,6 +32,7 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.ClasspathNormalizer
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
@@ -139,7 +139,7 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
 
     override fun enableOn(target: PrecompiledScriptPluginsSupport.Target): Boolean = target.project.run {
 
-        val scriptPluginFiles = collectScriptPluginFiles()
+        val scriptPluginFiles = target.kotlinSourceDirectorySet.collectScriptPluginFiles()
         if (scriptPluginFiles.isEmpty()) {
             return false
         }
@@ -161,7 +161,7 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
     }
 
     override fun collectScriptPluginFilesOf(project: Project): List<File> =
-        project.collectScriptPluginFiles().toList()
+        project.gradlePlugin.pluginSourceSet.kotlin.collectScriptPluginFiles().toList()
 }
 
 
@@ -437,12 +437,18 @@ fun Project.exposeScriptsAsGradlePlugins(scriptPlugins: List<PrecompiledScriptPl
 
 
 private
-fun Project.collectScriptPluginFiles(): Set<File> =
-    gradlePlugin.pluginSourceSet.allSource.matching {
-        it.include("**/*.gradle.kts")
-    }.filter {
-        it.isFile
-    }.files
+fun SourceDirectorySet.collectScriptPluginFiles(): Set<File> =
+    matching { it.include("**/*.gradle.kts") }
+        .filter { it.isFile }
+        .files
+
+
+/**
+ * Uses the Groovy builder to access the `kotlin` source set because KGP types are not available here.
+ */
+private
+val SourceSet.kotlin: SourceDirectorySet
+    get() = withGroovyBuilder { getProperty("kotlin") } as SourceDirectorySet
 
 
 private
@@ -454,7 +460,7 @@ private
 fun Project.validateScriptPlugin(scriptPlugin: PrecompiledScriptPlugin) {
 
     if (scriptPlugin.id == DefaultPluginManager.CORE_PLUGIN_NAMESPACE || scriptPlugin.id.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
-        throw GradleException(
+        throw PrecompiledScriptException(
             String.format(
                 "The precompiled plugin (%s) cannot start with '%s' or be in the '%s' package.\n\n%s", this.relativePath(scriptPlugin.scriptFile),
                 DefaultPluginManager.CORE_PLUGIN_NAMESPACE, DefaultPluginManager.CORE_PLUGIN_NAMESPACE,
@@ -464,7 +470,7 @@ fun Project.validateScriptPlugin(scriptPlugin: PrecompiledScriptPlugin) {
     }
     val existingPlugin = plugins.findPlugin(scriptPlugin.id)
     if (existingPlugin != null && existingPlugin.javaClass.getPackage().name.startsWith(DefaultPluginManager.CORE_PLUGIN_PREFIX)) {
-        throw GradleException(
+        throw PrecompiledScriptException(
             String.format(
                 "The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.\n\n%s", this.relativePath(scriptPlugin.scriptFile), scriptPlugin.id, PRECOMPILED_SCRIPT_MANUAL.consultDocumentationMessage()
             )

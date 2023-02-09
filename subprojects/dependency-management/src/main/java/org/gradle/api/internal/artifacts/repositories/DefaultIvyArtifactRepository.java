@@ -342,6 +342,14 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         additionalPatternsLayout.ivyPatterns.add(pattern);
     }
 
+    public Set<String> additionalArtifactPatterns() {
+        return additionalPatternsLayout.getArtifactPatterns();
+    }
+
+    public Set<String> additionalIvyPatterns() {
+        return additionalPatternsLayout.getIvyPatterns();
+    }
+
     @Override
     public void layout(String layoutName) {
         invalidateDescriptor();
@@ -378,6 +386,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     public void setRepositoryLayout(AbstractRepositoryLayout layout) {
+        invalidateDescriptor();
         this.layout = layout;
     }
 

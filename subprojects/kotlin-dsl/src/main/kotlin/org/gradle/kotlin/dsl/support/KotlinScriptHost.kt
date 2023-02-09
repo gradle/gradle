@@ -30,6 +30,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ObjectConfigurationAction
 
 import org.gradle.groovy.scripts.ScriptSource
@@ -61,6 +62,11 @@ class KotlinScriptHost<out T : Any> internal constructor(
 
     internal
     val processOperations: ProcessOperations by unsafeLazy {
+        serviceRegistry.get()
+    }
+
+    internal
+    val objectFactory: ObjectFactory by unsafeLazy {
         serviceRegistry.get()
     }
 

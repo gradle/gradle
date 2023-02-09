@@ -52,8 +52,7 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactor
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedFileVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
@@ -389,8 +388,8 @@ class DefaultConfigurationSpec extends Specification {
         def fileCollection = configuration.fileCollection(dependency1)
 
         then:
-        fileCollection.dependencySpec.isSatisfiedBy(dependency1)
-        !fileCollection.dependencySpec.isSatisfiedBy(dependency2)
+        fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency1)
+        !fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency2)
     }
 
     def fileCollectionWithSpec() {
@@ -401,7 +400,7 @@ class DefaultConfigurationSpec extends Specification {
         def fileCollection = configuration.fileCollection(spec)
 
         then:
-        fileCollection.dependencySpec == spec
+        fileCollection.resultProvider.dependencySpec == spec
     }
 
     def fileCollectionWithClosureSpec() {
@@ -412,8 +411,8 @@ class DefaultConfigurationSpec extends Specification {
         def fileCollection = configuration.fileCollection(closure)
 
         then:
-        fileCollection.dependencySpec.isSatisfiedBy(dependency("group1", "name", "version"))
-        !fileCollection.dependencySpec.isSatisfiedBy(dependency("group2", "name", "version"))
+        fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency("group1", "name", "version"))
+        !fileCollection.resultProvider.dependencySpec.isSatisfiedBy(dependency("group2", "name", "version"))
     }
 
     def filesWithDependencies() {
@@ -477,11 +476,9 @@ class DefaultConfigurationSpec extends Specification {
         def visitedArtifactSet = Stub(VisitedArtifactSet)
 
         _ * visitedArtifactSet.select(_, _, _, _, _) >> Stub(SelectedArtifactSet) {
-            visitArtifacts(_, _) >> { ArtifactVisitor visitor, boolean l ->
+            visitFiles(_, _) >> { ResolvedFileVisitor visitor, boolean l ->
                 files.each {
-                    def artifact = Stub(ResolvableArtifact)
-                    _ * artifact.file >> it
-                    visitor.visitArtifact(null, null, [], artifact)
+                    visitor.visitFile(it)
                 }
                 visitor.endVisitCollection(null)
             }
@@ -514,7 +511,7 @@ class DefaultConfigurationSpec extends Specification {
         def resolvedConfiguration = Stub(ResolvedConfiguration)
 
         _ * visitedArtifactSet.select(_, _, _, _, _) >> Stub(SelectedArtifactSet) {
-            visitArtifacts(_, _) >> { ArtifactVisitor v, boolean l -> v.visitFailure(failure) }
+            visitFiles(_, _) >> { ResolvedFileVisitor v, boolean l -> v.visitFailure(failure) }
         }
         _ * resolvedConfiguration.hasError() >> true
 

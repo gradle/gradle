@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 
@@ -159,5 +160,29 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
 
         then:
         failure.assertHasCause("The value for property 'languageVersion' is final and cannot be changed any further")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "CC toolchain provisioning but we don't have an IBM one on CI")
+    def "nag user when toolchain spec is IBM_SEMERU"() {
+        given:
+        buildScript """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
+                    vendor = JvmVendorSpec.IBM_SEMERU
+                    implementation = JvmImplementation.J9
+                }
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning "Requesting JVM vendor IBM_SEMERU. " +
+            "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#ibm_semeru_should_not_be_used"
+
+        then:
+        succeeds ':build'
     }
 }

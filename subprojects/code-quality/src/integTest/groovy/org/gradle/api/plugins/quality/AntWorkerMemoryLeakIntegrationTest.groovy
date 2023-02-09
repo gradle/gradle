@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests
+package org.gradle.api.plugins.quality
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
-class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
+class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
+    public static final String LOCAL_GROOVY = 'localGroovy()'
 
     private void goodCode(String groovyVersion, TestFile root = testDirectory) {
         root.file("src/main/java/org/gradle/Class0.java") << "package org.gradle; public class Class0 { }"
         root.file("src/main/groovy/org/gradle/Class1.groovy") << "package org.gradle; class Class1 { }"
-        buildFile << """
+        root.file('build.gradle') << """
 
             allprojects {
                 ${mavenCentralRepository()}
@@ -50,7 +53,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
                 ruleset('rulesets/naming.xml')
             }
         """
-        buildFile << """
+        root.file('build.gradle') << """
             allprojects {
                 apply plugin: 'codenarc'
 
@@ -76,7 +79,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
             <module name="Checker">
             </module>
         """
-        buildFile << """
+        root.file('build.gradle') << """
             allprojects {
                 apply plugin: 'checkstyle'
             }
@@ -84,57 +87,63 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
     }
 
     @Issue('https://github.com/gradle/gradle/issues/22172')
-    void 'CodeNarc does not fail with PermGen space error with Groovy 3'() {
+    void 'CodeNarc/Checkstyle do not fail with PermGen space error'() {
         given:
-        assumeGroovy3()
-        withCodenarc(groovyVersion)
         withCheckstyle()
-        goodCode(groovyVersion)
+        20.times { count ->
+            def projectName = "project${count}"
+            def projectDir = file(projectName).createDir()
+            settingsFile << """
+                include (':${projectName}')
+            """
+            withCodenarc(getDependencyFor(groovyVersion), getCodeNarcVesionFor(groovyVersion), projectDir)
+            withCheckstyle(projectDir)
+            goodCode(getDependencyFor(groovyVersion), projectDir)
+        }
 
         expect:
+        args('--max-workers=1')
         succeeds 'check'
 
         where:
-        groovyVersion << groovyVersions() * 3
+        groovyVersion << groovyVersions()
     }
 
-    @Issue('https://github.com/gradle/gradle/issues/22172')
-    void 'CodeNarc does not fail with PermGen space error with Groovy 4'() {
-        given:
-        assumeGroovy4()
-        withCodenarc(groovyVersion, '3.1.0-groovy-4.0')
-        withCheckstyle()
-        goodCode(groovyVersion)
-
-        expect:
-        succeeds 'check'
-
-        where:
-        groovyVersion << ['localGroovy()'] * 12
+    private static String getCodeNarcVesionFor(String groovyVersion) {
+        return VersionNumber.parse(groovyVersion).major >= 4 ? '3.1.0-groovy-4.0' : '0.24.1'
     }
 
-    private static List<String> groovyVersions() {
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
-            return [
-                'localGroovy()',
-                "'org.codehaus.groovy:groovy:3.0.5', 'org.codehaus.groovy:groovy-templates:3.0.5'"
-            ]
+    private static String getDependencyFor(String groovyVersion) {
+        if (groovyVersion == LOCAL_GROOVY) {
+            return LOCAL_GROOVY
         }
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9)) {
-            return [
-                'localGroovy()',
-                // Leave this at 2.4.7 even if Groovy is upgraded
-                "'org.codehaus.groovy:groovy-all:2.4.7'",
-            ]
+
+        def groovyVersionNumber = VersionNumber.parse(groovyVersion)
+        String group = groovyVersionNumber.major >= 4 ? "org.apache.groovy" : "org.codehaus.groovy"
+        String module = groovyVersionNumber.major >= 3 ? "groovy" : "groovy-all"
+        String dependency = "'${group}:${module}:${groovyVersion}'"
+        return groovyVersionNumber.major >= 3 ? dependency + ", '${group}:groovy-templates:${groovyVersion}'" : dependency
+    }
+
+    private static Set<String> groovyVersions() {
+        // Codenarc is not compatible with earlier Groovy versions
+        VersionNumber lowerBound = VersionNumber.parse('1.8.8')
+
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_11)) {
+            // Codenarc is not compatible with earlier Groovy versions on JDK11+
+            lowerBound = VersionNumber.parse('2.1.9')
         }
-        return [
-            'localGroovy()',
-            "'org.codehaus.groovy:groovy-all:2.3.10'",
-            "'org.codehaus.groovy:groovy-all:2.2.1'",
-            "'org.codehaus.groovy:groovy-all:2.1.9'",
-            "'org.codehaus.groovy:groovy-all:2.0.4'",
-            "'org.codehaus.groovy:groovy-all:1.8.7'"
-        ]
+
+        return [ LOCAL_GROOVY ] +
+            // Leave this at 2.4.7 even if Groovy is upgraded (there is a known problem with 2.4.7 we want to be sure to test)
+            GROOVY_2_4_7ifSupported +
+            GroovyCoverage.SUPPORTED_BY_JDK.findAll {
+                VersionNumber.parse(it) >= lowerBound
+            }
+    }
+
+    private static Set<String> getGROOVY_2_4_7ifSupported() {
+        return VersionNumber.parse(GroovyCoverage.SUPPORTED_BY_JDK.min()) <= VersionNumber.parse("2.4.7") ? [ "2.4.7" ] : []
     }
 
     @Requires(TestPrecondition.JDK11_OR_LATER) // grgit 5 requires JDK 11, see https://github.com/ajoberstar/grgit/issues/355
@@ -156,7 +165,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
             Grgit.open(currentDir: project.rootProject.rootDir)
         """
         withCheckstyle()
-        goodCode('localGroovy()')
+        goodCode(LOCAL_GROOVY)
 
         expect:
         succeeds 'check'
@@ -165,3 +174,4 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         iteration << (0..10)
     }
 }
+

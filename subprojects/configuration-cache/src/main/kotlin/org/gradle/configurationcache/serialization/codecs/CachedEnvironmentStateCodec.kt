@@ -23,19 +23,20 @@ import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.withPropertyTrace
 import org.gradle.configurationcache.serialization.writeCollection
-import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 
 
 internal
-object CachedEnvironmentStateCodec : Codec<EnvironmentChangeTracker.CachedEnvironmentState> {
+object CachedEnvironmentStateCodec : Codec<ConfigurationCacheEnvironmentChangeTracker.CachedEnvironmentState> {
 
-    override suspend fun WriteContext.encode(value: EnvironmentChangeTracker.CachedEnvironmentState) {
+    override suspend fun WriteContext.encode(value: ConfigurationCacheEnvironmentChangeTracker.CachedEnvironmentState) {
         writeBoolean(value.cleared)
 
         writeCollection(value.updates) { update ->
             val keyString = update.key.toString()
             withPropertyTrace(PropertyTrace.SystemProperty(keyString, update.location)) {
                 try {
+                    writeClass(update.javaClass)
                     write(update.key)
                     write(update.value)
                 } catch (error: Exception) {
@@ -52,19 +53,26 @@ object CachedEnvironmentStateCodec : Codec<EnvironmentChangeTracker.CachedEnviro
         }
     }
 
-    override suspend fun ReadContext.decode(): EnvironmentChangeTracker.CachedEnvironmentState {
+    override suspend fun ReadContext.decode(): ConfigurationCacheEnvironmentChangeTracker.CachedEnvironmentState {
         val cleared = readBoolean()
         val updates = readList {
+            val clazz = readClass()
             val key = read() as Any
             val value = read()
-            EnvironmentChangeTracker.SystemPropertySet(key, value, PropertyTrace.Unknown)
+            when (clazz) {
+                ConfigurationCacheEnvironmentChangeTracker.SystemPropertyMutate::class.java ->
+                    ConfigurationCacheEnvironmentChangeTracker.SystemPropertyMutate(key, value, PropertyTrace.Unknown)
+                ConfigurationCacheEnvironmentChangeTracker.SystemPropertyLoad::class.java ->
+                    ConfigurationCacheEnvironmentChangeTracker.SystemPropertyLoad(key, value, null)
+                else -> throw IllegalStateException("$clazz instances is not expected to be stored")
+            }
         }
 
         val removals = readList {
             val key = readString()
-            EnvironmentChangeTracker.SystemPropertyRemove(key)
+            ConfigurationCacheEnvironmentChangeTracker.SystemPropertyRemove(key)
         }
 
-        return EnvironmentChangeTracker.CachedEnvironmentState(cleared, updates, removals)
+        return ConfigurationCacheEnvironmentChangeTracker.CachedEnvironmentState(cleared, updates, removals)
     }
 }

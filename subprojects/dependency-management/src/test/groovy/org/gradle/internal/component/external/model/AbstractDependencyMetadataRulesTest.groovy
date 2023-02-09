@@ -35,7 +35,6 @@ import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
-import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.util.AttributeTestUtil
@@ -65,7 +64,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     }
 
     private DefaultAttributesSchema createSchema() {
-        def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
+        def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         DependencyManagementTestUtil.platformSupport().configureSchema(schema)
         GradlePluginVariantsSupport.configureSchema(schema)
         JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())

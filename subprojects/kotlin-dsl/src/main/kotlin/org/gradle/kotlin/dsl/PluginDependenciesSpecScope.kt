@@ -32,7 +32,7 @@ import org.gradle.plugin.use.PluginDependencySpec
  * @see [PluginDependenciesSpec]
  */
 @GradleDsl
-class PluginDependenciesSpecScope internal constructor(
+open class PluginDependenciesSpecScope internal constructor(
     private val plugins: PluginDependenciesSpec
 ) : PluginDependenciesSpec {
 
