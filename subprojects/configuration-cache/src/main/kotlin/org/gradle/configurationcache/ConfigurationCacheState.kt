@@ -18,7 +18,9 @@ package org.gradle.configurationcache
 
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.cache.Cleanup
+import org.gradle.api.cache.MarkingStrategy
 import org.gradle.api.file.FileCollection
+import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.api.flow.FlowScope
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.FeaturePreviews
@@ -27,13 +29,11 @@ import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
-import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.configurationcache.flow.BuildFlowScope
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.configurationcache.serialization.DefaultReadContext
@@ -54,7 +54,7 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.configurationcache.serialization.writeStrings
-import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.BuildStructureOperationProject
@@ -63,7 +63,6 @@ import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.NestedBuildState
 import org.gradle.internal.build.PublicBuildPath
@@ -195,7 +194,6 @@ class ConfigurationCacheState(
         }
         val buildEventListeners = buildEventListenersOf(gradle)
         writeBuildsInTree(rootBuild, buildEventListeners)
-        writeRootEventListenerSubscriptions(gradle, buildEventListeners)
     }
 
     private
@@ -204,9 +202,7 @@ class ConfigurationCacheState(
         val rootBuild = host.createBuild(settingsFile)
         val gradle = rootBuild.gradle
         readBuildTreeState(gradle)
-        val builds = readBuildsInTree(rootBuild)
-        readRootEventListenerSubscriptions(gradle)
-        return builds
+        return readBuildsInTree(rootBuild)
     }
 
     private
@@ -285,6 +281,7 @@ class ConfigurationCacheState(
         withGradleIsolate(gradle, userTypesCodec) {
             write(gradle.settings.settingsScript.resource.file)
             writeBuildDefinition(state.buildDefinition)
+            write(state.identityPath)
         }
         // Encode the build state using the contextualized IO service for the nested build
         state.projects.withMutableStateOfAllProjects {
@@ -297,7 +294,8 @@ class ConfigurationCacheState(
         val build = withGradleIsolate(rootBuild.gradle, userTypesCodec) {
             val settingsFile = read() as File?
             val definition = readIncludedBuildDefinition(rootBuild)
-            rootBuild.addIncludedBuild(definition, settingsFile)
+            val buildPath = read() as Path
+            rootBuild.addIncludedBuild(definition, settingsFile, buildPath)
         }
         // Decode the build state using the contextualized IO service for the build
         return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(stateFileFor((build.state as NestedBuildState).buildDefinition), build)
@@ -366,7 +364,7 @@ class ConfigurationCacheState(
                 writeGradleState(gradle)
                 val projects = collectProjects(state.projects, scheduledNodes, gradle.serviceOf())
                 writeProjects(gradle, projects)
-                writeRequiredBuildServicesOf(gradle, buildTreeState)
+                writeRequiredBuildServicesOf(state, buildTreeState)
             }
             withDebugFrame({ "Work Graph" }) {
                 writeWorkGraphOf(gradle, scheduledNodes)
@@ -442,17 +440,34 @@ class ConfigurationCacheState(
         codecs.workNodeCodecFor(gradle)
 
     private
-    suspend fun DefaultWriteContext.writeRequiredBuildServicesOf(gradle: GradleInternal, buildTreeState: StoredBuildTreeState) {
-        withGradleIsolate(gradle, userTypesCodec) {
-            write(buildTreeState.requiredBuildServicesPerBuild[buildIdentifierOf(gradle)])
+    suspend fun DefaultWriteContext.writeRequiredBuildServicesOf(build: BuildState, buildTreeState: StoredBuildTreeState) {
+        withGradleIsolate(build.mutableModel, userTypesCodec) {
+            val providers = buildTreeState.requiredBuildServicesPerBuild[build.buildIdentifier] ?: emptyList()
+            writeCollection(providers) { listener ->
+                writeBuildEventListenerSubscription(listener)
+            }
         }
     }
 
     private
     suspend fun DefaultReadContext.readRequiredBuildServicesOf(gradle: GradleInternal) {
+        val eventListenerRegistry by lazy { gradle.serviceOf<BuildEventListenerRegistryInternal>() }
         withGradleIsolate(gradle, userTypesCodec) {
-            read()
+            readCollection {
+                readBuildEventListenerSubscription(eventListenerRegistry)
+            }
         }
+    }
+
+    private
+    suspend fun DefaultWriteContext.writeBuildEventListenerSubscription(listener: Provider<*>) {
+        write(listener)
+    }
+
+    private
+    suspend fun DefaultReadContext.readBuildEventListenerSubscription(eventListenerRegistry: BuildEventListenerRegistryInternal) {
+        val listener = readNonNull<Provider<*>>()
+        eventListenerRegistry.subscribe(listener)
     }
 
     private
@@ -471,6 +486,7 @@ class ConfigurationCacheState(
             withDebugFrame({ "environment state" }) {
                 writeCachedEnvironmentState(gradle)
                 writePreviewFlags(gradle)
+                writeFileSystemDefaultExcludes(gradle)
             }
             withDebugFrame({ "gradle enterprise" }) {
                 writeGradleEnterprisePluginManager(gradle)
@@ -489,27 +505,12 @@ class ConfigurationCacheState(
         withGradleIsolate(gradle, userTypesCodec) {
             readCachedEnvironmentState(gradle)
             readPreviewFlags(gradle)
+            readFileSystemDefaultExcludes(gradle)
             // It is important that the Gradle Enterprise plugin be read before
             // build cache configuration, as it may contribute build cache configuration.
             readGradleEnterprisePluginManager(gradle)
             readBuildCacheConfiguration(gradle)
             readCacheConfigurations(gradle)
-        }
-    }
-
-    private
-    suspend fun DefaultWriteContext.writeRootEventListenerSubscriptions(gradle: GradleInternal, listeners: List<Provider<*>>) {
-        withGradleIsolate(gradle, userTypesCodec) {
-            withDebugFrame({ "listener subscriptions" }) {
-                writeBuildEventListenerSubscriptions(listeners)
-            }
-        }
-    }
-
-    private
-    suspend fun DefaultReadContext.readRootEventListenerSubscriptions(gradle: GradleInternal) {
-        withGradleIsolate(gradle, userTypesCodec) {
-            readBuildEventListenerSubscriptions(gradle)
         }
     }
 
@@ -599,6 +600,19 @@ class ConfigurationCacheState(
     }
 
     private
+    suspend fun DefaultWriteContext.writeFileSystemDefaultExcludes(gradle: GradleInternal) {
+        val fileSystemDefaultExcludesProvider = gradle.serviceOf<FileSystemDefaultExcludesProvider>()
+        val currentDefaultExcludes = fileSystemDefaultExcludesProvider.currentDefaultExcludes
+        writeStrings(currentDefaultExcludes.toList())
+    }
+
+    private
+    suspend fun DefaultReadContext.readFileSystemDefaultExcludes(gradle: GradleInternal) {
+        val defaultExcludes = readStrings()
+        gradle.serviceOf<FileSystemDefaultExcludesProvider>().updateCurrentDefaultExcludes(defaultExcludes)
+    }
+
+    private
     suspend fun DefaultWriteContext.writeBuildCacheConfiguration(gradle: GradleInternal) {
         gradle.settings.buildCache.let { buildCache ->
             write(buildCache.local)
@@ -625,6 +639,7 @@ class ConfigurationCacheState(
             write(cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.createdResources.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.cleanup)
+            write(cacheConfigurations.markingStrategy)
         }
     }
 
@@ -636,52 +651,10 @@ class ConfigurationCacheState(
             cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.cleanup.value(readNonNull<Provider<Cleanup>>())
+            cacheConfigurations.markingStrategy.value(readNonNull<Provider<MarkingStrategy>>())
         }
         if (gradle.isRootBuild) {
             gradle.serviceOf<CacheConfigurationsInternal>().setCleanupHasBeenConfigured(true)
-        }
-    }
-
-    private
-    suspend fun DefaultWriteContext.writeBuildEventListenerSubscriptions(listeners: List<Provider<*>>) {
-        writeCollection(listeners) { listener ->
-            when (listener) {
-                is RegisteredBuildServiceProvider<*, *> -> {
-                    writeBoolean(true)
-                    write(listener.buildIdentifier)
-                    writeString(listener.name)
-                }
-
-                else -> {
-                    writeBoolean(false)
-                    write(listener)
-                }
-            }
-        }
-    }
-
-    private
-    suspend fun DefaultReadContext.readBuildEventListenerSubscriptions(gradle: GradleInternal) {
-        val eventListenerRegistry by unsafeLazy {
-            gradle.serviceOf<BuildEventListenerRegistryInternal>()
-        }
-        val buildStateRegistry by unsafeLazy {
-            gradle.serviceOf<BuildStateRegistry>()
-        }
-        readCollection {
-            when (readBoolean()) {
-                true -> {
-                    val buildIdentifier = readNonNull<BuildIdentifier>()
-                    val serviceName = readString()
-                    val provider = buildStateRegistry.buildServiceRegistrationOf(buildIdentifier).getByName(serviceName)
-                    eventListenerRegistry.subscribe(provider.service)
-                }
-
-                else -> {
-                    val provider = readNonNull<Provider<*>>()
-                    eventListenerRegistry.subscribe(provider)
-                }
-            }
         }
     }
 
@@ -706,14 +679,14 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultWriteContext.writeCachedEnvironmentState(gradle: GradleInternal) {
-        val environmentChangeTracker = gradle.serviceOf<EnvironmentChangeTracker>()
+        val environmentChangeTracker = gradle.serviceOf<ConfigurationCacheEnvironmentChangeTracker>()
         write(environmentChangeTracker.getCachedState())
     }
 
     private
     suspend fun DefaultReadContext.readCachedEnvironmentState(gradle: GradleInternal) {
-        val environmentChangeTracker = gradle.serviceOf<EnvironmentChangeTracker>()
-        val storedState = read() as EnvironmentChangeTracker.CachedEnvironmentState
+        val environmentChangeTracker = gradle.serviceOf<ConfigurationCacheEnvironmentChangeTracker>()
+        val storedState = read() as ConfigurationCacheEnvironmentChangeTracker.CachedEnvironmentState
         environmentChangeTracker.loadFrom(storedState)
     }
 
@@ -805,10 +778,6 @@ class ConfigurationCacheState(
         get() = codecs.userTypesCodec()
 
     private
-    fun buildIdentifierOf(gradle: GradleInternal) =
-        gradle.owner.buildIdentifier
-
-    private
     fun buildEventListenersOf(gradle: GradleInternal) =
         gradle.serviceOf<BuildEventListenerRegistryInternal>()
             .subscriptions
@@ -818,10 +787,6 @@ class ConfigurationCacheState(
     private
     fun isRelevantBuildEventListener(provider: RegisteredBuildServiceProvider<*, *>) =
         provider.buildIdentifier.name != BUILD_SRC
-
-    private
-    fun BuildStateRegistry.buildServiceRegistrationOf(buildId: BuildIdentifier) =
-        getBuild(buildId).mutableModel.serviceOf<BuildServiceRegistryInternal>().registrations
 
     private
     val BuildState.projectsAvailable

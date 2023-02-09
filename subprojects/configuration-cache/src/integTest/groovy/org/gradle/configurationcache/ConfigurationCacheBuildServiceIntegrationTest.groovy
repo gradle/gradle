@@ -29,6 +29,12 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.OperationFinishEvent
+import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.operations.OperationProgressEvent
+import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
@@ -40,6 +46,57 @@ import javax.inject.Inject
 import java.util.concurrent.atomic.AtomicInteger
 
 class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    def "BuildOperationListener build service is instantiated only once per build"() {
+        given:
+        buildFile """
+            abstract class ListenerService
+                implements $BuildService.name<${BuildServiceParameters.name}.None>, $BuildOperationListener.name {
+
+                public ListenerService() {
+                    println('onInstantiated')
+                }
+
+                // Shouldn't be called
+                void started($BuildOperationDescriptor.name buildOperation, $OperationStartEvent.name startEvent) {
+                    println('onStarted')
+                }
+
+                // Shouldn't be called
+                void progress($OperationIdentifier.name operationIdentifier, $OperationProgressEvent.name progressEvent) {
+                    println('onProgress')
+                }
+
+                void finished($BuildOperationDescriptor.name buildOperation, $OperationFinishEvent.name finishEvent) {
+                    println('onFinished')
+                }
+            }
+
+            def listener = gradle.sharedServices.registerIfAbsent("listener", ListenerService) { }
+            def registry = services.get(BuildEventsListenerRegistry)
+            registry.onOperationCompletion(listener)
+        """
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun()
+
+        then: 'finish event is dispatched but start and progress are not'
+        output.count('onInstantiated') == 1
+        outputDoesNotContain 'onStarted'
+        outputDoesNotContain 'onProgress'
+        outputContains 'onFinished'
+
+        when:
+        configurationCacheRun()
+
+        then: 'behaves the same'
+        configurationCache.assertStateLoaded()
+        output.count('onInstantiated') == 1
+        outputDoesNotContain 'onStarted'
+        outputDoesNotContain 'onProgress'
+        outputContains 'onFinished'
+    }
 
     @Issue('https://github.com/gradle/gradle/issues/20001')
     def "build service from buildSrc is not restored"() {

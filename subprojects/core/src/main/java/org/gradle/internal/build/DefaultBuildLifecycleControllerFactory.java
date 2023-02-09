@@ -17,21 +17,15 @@
 package org.gradle.internal.build;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Action;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
-import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.model.StateTransitionControllerFactory;
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import java.io.File;
@@ -55,37 +49,19 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
     public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildScopeServices buildScopeServices) {
         StartParameter startParameter = buildDefinition.getStartParameter();
 
-        final ListenerManager listenerManager = buildScopeServices.get(ListenerManager.class);
-        for (Action<ListenerManager> action : buildScopeServices.getAll(BuildScopeListenerManagerAction.class)) {
-            action.execute(listenerManager);
-        }
-
-        ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
-        listenerManager.addListener(usageLocationReporter);
-
-        ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
-        switch (showStacktrace) {
-            case ALWAYS:
-            case ALWAYS_FULL:
-                LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(true);
-                break;
-            default:
-                LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(false);
-        }
-
-        DeprecationLogger.init(usageLocationReporter, startParameter.getWarningMode(), buildScopeServices.get(BuildOperationProgressEventEmitter.class));
         @SuppressWarnings("deprecation")
-        File customSettingsFile = startParameter.getSettingsFile();
+        File customSettingsFile = DeprecationLogger.whileDisabled(startParameter::getSettingsFile);
         if (customSettingsFile != null) {
             logFileDeprecationWarning(DeprecationLogger.deprecateAction("Specifying custom settings file location"));
         }
         @SuppressWarnings("deprecation")
-        File customBuildFile = startParameter.getBuildFile();
+        File customBuildFile = DeprecationLogger.whileDisabled(startParameter::getBuildFile);
         if (customBuildFile != null) {
             logFileDeprecationWarning(DeprecationLogger.deprecateAction("Specifying custom build file location"));
         }
 
         GradleInternal gradle = buildScopeServices.get(GradleInternal.class);
+        ListenerManager listenerManager = buildScopeServices.get(ListenerManager.class);
 
         BuildModelController buildModelController = buildScopeServices.get(BuildModelController.class);
 
@@ -102,8 +78,8 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
         );
     }
 
-    private static void logFileDeprecationWarning(DeprecationMessageBuilder<?> specifyingCustomfileLocation) {
-        specifyingCustomfileLocation
+    private static void logFileDeprecationWarning(DeprecationMessageBuilder<?> specifyingCustomFileLocation) {
+        specifyingCustomFileLocation
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "configuring_custom_build_layout")
             .nagUser();

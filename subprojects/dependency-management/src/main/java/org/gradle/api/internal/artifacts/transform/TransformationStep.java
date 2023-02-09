@@ -137,6 +137,10 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         return transformer.getFromAttributes();
     }
 
+    public ImmutableAttributes getToAttributes() {
+        return transformer.getToAttributes();
+    }
+
     @Override
     public String toString() {
         return transformer.getDisplayName();

@@ -16,7 +16,7 @@
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-stdlib</artifactId>
       <version>1.7.10</version>
-      <scope>compile</scope>
+      <scope>runtime</scope>
       <optional>true</optional>
     </dependency>
   </dependencies>

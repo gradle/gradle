@@ -160,7 +160,7 @@ public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
     public void readsTarFileWithNullPermissions() {
         resources.findResource("nullpermissions.tar").copyTo(archiveFile);
 
-        final Map<String, Integer> expected = new HashMap<String, Integer>();
+        final Map<String, Integer> expected = new HashMap<>();
         expected.put("bin", 0755);
 
         assertVisitsPermissions(tree, expected);

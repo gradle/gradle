@@ -85,7 +85,11 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     private final static Logger LOGGER = Logging.getLogger(DefaultVersionCatalogBuilder.class);
     private final static List<String> FORBIDDEN_LIBRARY_ALIAS_PREFIX = ImmutableList.of("bundles", "versions", "plugins");
-    private final static Set<String> RESERVED_ALIAS_NAMES = ImmutableSet.of("extensions", "class", "convention");
+    private final static Set<String> RESERVED_ALIAS_NAMES = ImmutableSet.of("extensions", "convention");
+    /**
+     * names that are forbidden in generated accessors because we can't override getClass()
+     */
+    private final static Set<String> RESERVED_JAVA_NAMES = ImmutableSet.of("class");
 
     private final Interner<String> strings;
     private final Interner<ImmutableVersionConstraint> versionConstraintInterner;
@@ -373,6 +377,17 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
                             .addSolution(() -> "Use a different alias which isn't in the reserved names " + oxfordListOf(RESERVED_ALIAS_NAMES, "or"))
                             .documented()
             );
+        }
+
+        for (String name: normalizedAlias.split("\\.")) {
+            if (RESERVED_JAVA_NAMES.contains(name)) {
+                throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
+                    spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
+                        .happensBecause(() -> "Alias '" + alias + "' contains a reserved name in Gradle and prevents generation of accessors")
+                        .addSolution(() -> "Use a different alias which doesn't contain any of " + oxfordListOf(RESERVED_JAVA_NAMES, "or"))
+                        .documented()
+                );
+            }
         }
     }
 

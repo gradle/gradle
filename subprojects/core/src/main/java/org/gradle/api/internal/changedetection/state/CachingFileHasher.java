@@ -18,8 +18,8 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.IndexedCache;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -33,7 +33,7 @@ import org.gradle.internal.serialize.InterningStringSerializer;
 import java.io.File;
 
 public class CachingFileHasher implements FileHasher {
-    private final PersistentIndexedCache<String, FileInfo> cache;
+    private final IndexedCache<String, FileInfo> cache;
     private final FileHasher delegate;
     private final FileSystem fileSystem;
     private final StringInterner stringInterner;
@@ -52,8 +52,8 @@ public class CachingFileHasher implements FileHasher {
     ) {
         this.delegate = delegate;
         this.fileSystem = fileSystem;
-        this.cache = store.createCache(
-            PersistentIndexedCacheParameters.of(cacheName, new InterningStringSerializer(stringInterner), new FileInfoSerializer()),
+        this.cache = store.createIndexedCache(
+            IndexedCacheParameters.of(cacheName, new InterningStringSerializer(stringInterner), new FileInfoSerializer()),
             inMemorySize,
             true);
         this.stringInterner = stringInterner;

@@ -20,42 +20,38 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
-import org.gradle.internal.event.ListenerManager
 
 
-abstract class AbstractTaskProjectAccessChecker : TaskExecutionAccessChecker {
+abstract class AbstractTaskProjectAccessChecker(
+    private val broadcaster: TaskExecutionAccessListener
+) : TaskExecutionAccessChecker {
     override fun notifyProjectAccess(task: TaskInternal) {
         if (shouldReportExecutionTimeAccess(task)) {
-            accessBroadcaster(task).onProjectAccess("Task.project", task)
+            broadcaster.onProjectAccess("Task.project", task)
         }
     }
 
     override fun notifyTaskDependenciesAccess(task: TaskInternal, invocationDescription: String) {
         if (shouldReportExecutionTimeAccess(task)) {
-            accessBroadcaster(task).onTaskDependenciesAccess(invocationDescription, task)
+            broadcaster.onTaskDependenciesAccess(invocationDescription, task)
         }
     }
 
     protected
     abstract fun shouldReportExecutionTimeAccess(task: TaskInternal): Boolean
-
-    private
-    fun accessBroadcaster(fromTask: TaskInternal): TaskExecutionAccessListener =
-        fromTask.projectUnchecked.services
-            .get(ListenerManager::class.java)
-            .getBroadcaster(TaskExecutionAccessListener::class.java)
 }
 
 
 object TaskExecutionAccessCheckers {
 
-    object TaskStateBased : AbstractTaskProjectAccessChecker() {
+    class TaskStateBased(broadcaster: TaskExecutionAccessListener) : AbstractTaskProjectAccessChecker(broadcaster) {
         override fun shouldReportExecutionTimeAccess(task: TaskInternal): Boolean = task.state.executing
     }
 
     class ConfigurationTimeBarrierBased(
-        private val configurationTimeBarrier: ConfigurationTimeBarrier
-    ) : AbstractTaskProjectAccessChecker() {
+        private val configurationTimeBarrier: ConfigurationTimeBarrier,
+        broadcaster: TaskExecutionAccessListener
+    ) : AbstractTaskProjectAccessChecker(broadcaster) {
 
         override fun shouldReportExecutionTimeAccess(task: TaskInternal): Boolean =
             !configurationTimeBarrier.isAtConfigurationTime

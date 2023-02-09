@@ -146,8 +146,8 @@ class UnitOfWorkBuilder {
     }
 
     UnitOfWork build() {
-        Map<String, OutputPropertySpec> outputFileSpecs = Maps.transformEntries(outputFiles, { key, value -> outputFileSpec(value) }) as Map<String, OutputPropertySpec> // FIXME remove cast after https://issues.apache.org/jira/browse/GROOVY-10765 is fixed
-        Map<String, OutputPropertySpec> outputDirSpecs = Maps.transformEntries(outputDirs, { key, value -> outputDirectorySpec(value) }) as Map<String, OutputPropertySpec> // FIXME remove cast after https://issues.apache.org/jira/browse/GROOVY-10765 is fixed
+        Map<String, OutputPropertySpec> outputFileSpecs = Maps.transformEntries(outputFiles, { key, value -> outputFileSpec(value) })
+        Map<String, OutputPropertySpec> outputDirSpecs = Maps.transformEntries(outputDirs, { key, value -> outputDirectorySpec(value) })
         Map<String, OutputPropertySpec> outputs = outputFileSpecs + outputDirSpecs
 
         return new UnitOfWork() {

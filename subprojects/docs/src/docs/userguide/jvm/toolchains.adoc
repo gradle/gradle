@@ -86,7 +86,7 @@ Acts as a placeholder and matches any implementation from any vendor (e.g. hotsp
 `J9`::
 Matches only virtual machine implementations using the OpenJ9/IBM J9 runtime engine.
 
-For example, to use an https://www.eclipse.org/openj9/[IBM Semeru] JVM, distributed via https://adoptopenjdk.net/[AdoptOpenJDK],
+For example, to use an https://www.eclipse.org/openj9/[IBM] JVM, distributed via https://adoptopenjdk.net/[AdoptOpenJDK],
 you can specify the filter as shown in the example below.
 
 ====
@@ -198,6 +198,12 @@ JVM auto-detection knows how to work with:
 
 Among the set of all detected JRE/JDK installations, one will be picked according to the <<sec:precedence,Toolchain Precedence Rules>>.
 
+[NOTE]
+====
+Whether you are using toolchain auto-detection or you are configuring <<sec:custom_loc>>, installations that are
+non-existing or without a `bin/java` executable will be ignored with a warning, but they won't generate an error.
+====
+
 [[sub:disable_auto_detect]]
 === How to disable auto-detection
 
@@ -230,13 +236,19 @@ Toolchain download repository definitions are added to a build by applying speci
 For details on writing such plugins, consult the <<toolchain_plugins.adoc#toolchain_plugins,Toolchain Resolver Plugins>> page.
 
 One example of a toolchain resolver plugin is the https://github.com/gradle/disco-toolchains[Disco Toolchains Plugin], based on the https://github.com/foojayio/discoapi[foojay Disco API].
+It even has a convention variant, which automatically takes care of all the needed configuration, just by being applied:
 
-Beyond applying toolchain resolver plugins, the toolchain download resolvers provided by them also need to be configured.
+====
+include::sample[dir="snippets/java/toolchain-foojay/kotlin/",files="settings.gradle.kts[tags=plugin-application]"]
+include::sample[dir="snippets/java/toolchain-foojay/groovy/",files="settings.gradle[tags=plugin-application]"]
+====
+
+In general, when applying toolchain resolver plugins, the toolchain download resolvers provided by them also need to be configured.
 Let's illustrate with an example.
 Consider two toolchain resolver plugins applied by the build:
 
-* One is the Disco plugin mentioned above, which downloads toolchains via the `DiscoToolchainResolver` it provides.
-* The other contains a resolver named `AdoptiumResolver`, which duplicates the legacy toolchain resolver from past Gradle versions.
+* One is the Foojay plugin mentioned above, which downloads toolchains via the `FoojayToolchainResolver` it provides.
+* The other contains a **FICTITIOUS** resolver named `MadeUpResolver`.
 
 The following example uses these toolchain resolvers in a build via the `toolchainManagement` block in the settings file:
 
@@ -417,7 +429,7 @@ include::sample[dir="snippets/java/toolchain-task/kotlin/",files="build.gradle.k
 include::sample[dir="snippets/java/toolchain-task/groovy/",files="build.gradle[tags=custom-toolchain-task-with-java]"]
 ====
 <1> We declare a `JavaLauncher` property on the task.
-The property must be marked as a <<more_about_tasks.adoc#sec:task_input_nested_inputs,`@Nested` input>> to make sure the task is responsive to toolchain changes.
+The property must be marked as a <<incremental_build.adoc#sec:task_input_nested_inputs,`@Nested` input>> to make sure the task is responsive to toolchain changes.
 <2> We obtain the toolchain spec from the `java` extension to use it as a default.
 <3> Using the `JavaToolchainService` we get a provider of the `JavaLauncher` that matches the toolchain.
 <4> Finally, we wire the launcher provider as a convention for our property.

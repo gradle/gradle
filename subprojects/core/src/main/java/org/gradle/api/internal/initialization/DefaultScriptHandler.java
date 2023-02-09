@@ -39,6 +39,13 @@ import java.io.File;
 import java.net.URI;
 
 public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInternal, DynamicObjectAware {
+
+    /**
+     * If set to {@code true}, the buildscript's {@code classpath} configuration will not be reset after the
+     * classpath has been assembled. Defaults to {@code false}.
+     */
+    public static final String DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY = "org.gradle.incubating.reset-buildscript-classpath.disabled";
+
     private static final Logger LOGGER = Logging.getLogger(DefaultScriptHandler.class);
 
     private final ResourceLocation scriptResource;
@@ -47,6 +54,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private final DependencyResolutionServices dependencyResolutionServices;
     private final DependencyLockingHandler dependencyLockingHandler;
     // The following values are relatively expensive to create, so defer creation until required
+    private ClassPath resolvedClasspath;
     private RepositoryHandler repositoryHandler;
     private DependencyHandler dependencyHandler;
     private ConfigurationContainer configContainer;
@@ -79,7 +87,13 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     @Override
     public ClassPath getInstrumentedScriptClassPath() {
-        return scriptClassPathResolver.resolveClassPath(classpathConfiguration);
+        if (resolvedClasspath == null) {
+            resolvedClasspath = scriptClassPathResolver.resolveClassPath(classpathConfiguration);
+            if (!System.getProperty(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY, "false").equals("true") && classpathConfiguration != null) {
+                ((ResettableConfiguration) classpathConfiguration).resetResolutionState();
+            }
+        }
+        return resolvedClasspath;
     }
 
     @Override

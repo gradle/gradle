@@ -846,7 +846,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     private
     fun configureProjectAndExpectCompileAvoidanceWarnings(vararg tasks: String): BuildOperationsAssertions {
-        ignoreKotlinDaemonJvmDeprecationWarningsOnJdk16()
         val buildOperations = BuildOperationsFixture(executer, testDirectoryProvider)
         val output = executer.withArgument("--info").withTasks(*tasks).run().normalizedOutput
         return BuildOperationsAssertions(buildOperations, output, true)

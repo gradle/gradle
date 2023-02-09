@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.initialization
 
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.DependencyConstraintSet
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
@@ -36,7 +35,7 @@ class DefaultScriptHandlerTest extends Specification {
     def dependencyConstraintHandler = Mock(DependencyConstraintHandler)
     def dependencyConstraintSet = Mock(DependencyConstraintSet)
     def configurationContainer = Mock(ConfigurationContainer)
-    def configuration = Mock(Configuration)
+    def configuration = Mock(ResettableConfiguration)
     def scriptSource = Stub(ScriptSource)
     def depMgmtServices = Mock(DependencyResolutionServices) {
         getAttributesSchema() >> Stub(AttributesSchemaInternal)

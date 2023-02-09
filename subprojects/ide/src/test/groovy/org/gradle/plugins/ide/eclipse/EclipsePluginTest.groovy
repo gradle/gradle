@@ -23,6 +23,8 @@ import org.gradle.api.tasks.Delete
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
+import static org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants.DEFAULT_PROJECT_OUTPUT_PATH
+
 class EclipsePluginTest extends AbstractProjectBuilderSpec {
 
     private EclipsePlugin eclipsePlugin
@@ -164,7 +166,7 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         assert classpath.minusConfigurations == []
 
         assert classpath.containers == ["org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/${project.eclipse.jdt.getJavaRuntimeName()}/"] + additionalContainers as Set
-        assert classpath.defaultOutputDir == new File(project.projectDir, 'bin/default')
+        assert classpath.defaultOutputDir == new File(project.projectDir, DEFAULT_PROJECT_OUTPUT_PATH)
     }
 
     private void checkEclipseJdt() {

@@ -306,7 +306,7 @@
    <components>
       <component group="android-studio" name="android-studio" version="2022.1.1.12">
          <artifact name="android-studio-2022.1.1.12.linux.tar.gz">
-            <sha256 value="f224853c7d0f4d0933575b7c6c4abb081b4e53ca737670ff3eba557203e73ba4" reason="Artifact is not signed"/>
+            <sha256 value="f224853c7d0f4d0933575b7c6c4abb081b4e53ca737670ff3eba557203e73ba4" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
          <artifact name="android-studio-2022.1.1.12.mac.zip">
             <sha256 value="e9e154f7d5714f2f46463646dc7fa15b8dcb6f4c79bb87c8295ab7aa3eb6b0a4" reason="Artifact is not signed"/>
@@ -502,6 +502,11 @@
       <component group="com.github.ben-manes.caffeine" name="caffeine" version="2.8.5">
          <artifact name="caffeine-2.8.5.jar">
             <pgp value="635ee627345f3c1dd422b2e207d3516820bcf6b1"/>
+         </artifact>
+      </component>
+      <component group="com.github.javaparser" name="javaparser-core" version="3.24.9">
+         <artifact name="javaparser-core-3.24.9.jar">
+            <pgp value="fc2c31fc25fede4e7ad0d18c2bfd7825a8984fbe"/>
          </artifact>
       </component>
       <component group="com.github.siom79.japicmp" name="japicmp" version="0.15.7">
@@ -1190,16 +1195,6 @@
             <pgp value="ea23db1360d9029481e7f2efecdfea3cb4493b94"/>
          </artifact>
       </component>
-      <component group="org.gradle" name="docs-asciidoctor-extensions" version="0.14.0">
-         <artifact name="docs-asciidoctor-extensions-0.14.0.jar">
-            <sha256 value="477b75ad990d57e999851800466d70f0562c57d7f3278d6cf25239bd2c97cc55" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle" name="docs-asciidoctor-extensions-base" version="0.14.0">
-         <artifact name="docs-asciidoctor-extensions-base-0.14.0.jar">
-            <sha256 value="1d0713920e7f7c48627fc1d91c9aa99c982d185018d99de08d8c95b1439e6725" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="org.gradle" name="gradle-tooling-api" version="5.2.1">
          <artifact name="gradle-tooling-api-5.2.1.jar">
             <sha256 value="479c6f0007c36e5e74371ff4b1dac7f73cd8f90a8b5ffe002a64a8a3c34ce7fe" reason="Artifact is not signed"/>
@@ -1270,9 +1265,9 @@
             <sha256 value="b4182982109d85f9a623fa597932c3f09651467559bb99965c41d45159e89a68" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="3.2.7">
-         <artifact name="gradle-kotlin-dsl-plugins-3.2.7.jar">
-            <sha256 value="e65e9a5bda2636575c1b0dbf5bfca0a3825e76158b4577972d4d0f8849524b14" origin="Verified" reason="Artifact is not signed"/>
+      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="4.0.7">
+         <artifact name="gradle-kotlin-dsl-plugins-4.0.7.jar">
+            <sha256 value="7700af78c35bdd8c164e3f3a3026a568c66cf9dbd182a1756e087b2dfa3b02fb" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle.kotlin" name="plugins" version="1.3.6">
@@ -1293,6 +1288,11 @@
       <component group="org.jetbrains" name="annotations" version="13.0">
          <artifact name="annotations-13.0.jar">
             <pgp value="2e3a1affe42b5f53af19f780bcf4173966770193"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains" name="annotations" version="24.0.0">
+         <artifact name="annotations-24.0.0.jar">
+            <pgp value="33fd4bfd33554634053d73c0c2148900bcd3c2af"/>
          </artifact>
       </component>
       <component group="org.jetbrains.kotlin" name="kotlin-scripting-compiler-impl-embeddable" version="1.6.21">

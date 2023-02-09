@@ -32,7 +32,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectOrderingUtil;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
@@ -100,7 +99,7 @@ import java.util.concurrent.Callable;
 import static org.gradle.util.internal.GUtil.uncheckedCall;
 
 /**
- * @deprecated This class will be removed in Gradle 8.0. Please use {@link org.gradle.api.DefaultTask} instead.
+ * @deprecated This class will be removed in Gradle 9.0. Please use {@link org.gradle.api.DefaultTask} instead.
  */
 @Deprecated
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
@@ -111,8 +110,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskIdentity<?> identity;
 
     private final ProjectInternal project;
-
-    private final ProjectState owner;
 
     private List<InputChangesAwareTaskAction> actions;
 
@@ -179,7 +176,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         this.identity = taskInfo.identity;
         this.project = taskInfo.project;
-        this.owner = project.getOwner();
 
         assert project != null;
         assert identity.name != null;
@@ -238,16 +234,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     public Project getProject() {
         taskExecutionAccessChecker.notifyProjectAccess(this);
         return project;
-    }
-
-    @Override
-    public ProjectInternal getProjectUnchecked() {
-        return project;
-    }
-
-    @Override
-    public ProjectState getOwner() {
-        return owner;
     }
 
     @Internal
@@ -402,7 +388,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public DescribingAndSpec<? super TaskInternal> getOnlyIf() {
+    public Spec<? super TaskInternal> getOnlyIf() {
         return onlyIfSpec;
     }
 
@@ -544,7 +530,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public int compareTo(Task otherTask) {
-        int depthCompare = ProjectOrderingUtil.compare(getOwner(), ((TaskInternal) otherTask).getOwner());
+        int depthCompare = ProjectOrderingUtil.compare(project, ((AbstractTask) otherTask).project);
         if (depthCompare == 0) {
             return getPath().compareTo(otherTask.getPath());
         } else {

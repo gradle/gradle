@@ -5,11 +5,7 @@ import com.alibaba.fastjson.JSONArray
 import com.alibaba.fastjson.JSONObject
 import common.Os
 import configurations.FunctionalTest
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
-import model.TestSplitType.EXCLUDE
-import model.TestSplitType.INCLUDE
+import configurations.ParallelizationMethod
 import java.io.File
 
 /**
@@ -87,16 +83,14 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
         testCoverageAndBuckets.associate { testCoverageAndBucket ->
             testCoverageAndBucket as JSONObject
             val testCoverage: TestCoverage = uuidToTestCoverage.getValue(testCoverageAndBucket.getIntValue("testCoverageUuid"))
-            val buckets: List<BuildTypeBucket> = testCoverageAndBucket.getJSONArray("buckets").map {
-                fromJsonObject(it as JSONObject).toBuildTypeBucket(model.subprojects)
+            val buckets: List<SmallSubprojectBucket> = testCoverageAndBucket.getJSONArray("buckets").map {
+                FunctionalTestBucket(it as JSONObject).toBuildTypeBucket(model.subprojects)
             }
 
             // Sometimes people may add new subproject into `subprojects.json`
             // in this case we have no historical test running time, so we simply add these subprojects into first available bucket
-            val allSubprojectsInBucketJson = buckets.flatMap {
-                if (it is SmallSubprojectBucket) it.subprojects.map { it.name }
-                else listOf((it as LargeSubprojectSplitBucket).subproject.name)
-            }.toSet()
+            val allSubprojectsInBucketJson = buckets.flatMap { it.subprojects.map { it.name } }.toSet()
+
             val allSubprojectsInModel = model.subprojects.getSubprojectsForFunctionalTest(testCoverage).map { it.name }
             val subprojectsInModelButNotInBucketJson = allSubprojectsInModel.toMutableList().apply { removeAll(allSubprojectsInBucketJson) }
 
@@ -110,10 +104,13 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
 
     private fun mergeUnknownSubprojectsIntoFirstAvailableBucket(buckets: List<BuildTypeBucket>, unknownSubprojects: List<GradleSubproject>): MutableList<BuildTypeBucket> =
         buckets.toMutableList().apply {
-            val firstAvailableBucketIndex = indexOfFirst { it is SmallSubprojectBucket }
+            val firstAvailableBucketIndex = indexOfFirst {
+                it is SmallSubprojectBucket &&
+                    (it.parallelizationMethod !is ParallelizationMethod.TeamCityParallelTests || it.parallelizationMethod.numberOfBatches == 1)
+            }
             val firstSmallSubprojectsBucket = get(firstAvailableBucketIndex) as SmallSubprojectBucket
 
-            set(firstAvailableBucketIndex, SmallSubprojectBucket(firstSmallSubprojectsBucket.subprojects + unknownSubprojects, firstSmallSubprojectsBucket.enableTestDistribution))
+            set(firstAvailableBucketIndex, SmallSubprojectBucket(firstSmallSubprojectsBucket.subprojects + unknownSubprojects, firstSmallSubprojectsBucket.parallelizationMethod))
         }
 
     override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage): List<FunctionalTest> {
@@ -124,102 +121,36 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
 }
 
 class GradleVersionRangeCrossVersionTestBucket(private val startInclusive: String, private val endExclusive: String) : BuildTypeBucket {
-    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int) =
-        FunctionalTest(
+    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int): FunctionalTest {
+        val parallelizationMethod = when (testCoverage.os) {
+            Os.LINUX -> ParallelizationMethod.TestDistribution
+            else -> ParallelizationMethod.None
+        }
+
+        return FunctionalTest(
             model,
             testCoverage.getBucketUuid(model, bucketIndex),
             "${testCoverage.asName()} ($startInclusive <= gradle <$endExclusive)",
             "${testCoverage.asName()} for gradle ($startInclusive <= gradle <$endExclusive)",
             testCoverage,
             stage,
-            enableTestDistribution = testCoverage.os == Os.LINUX,
+            parallelizationMethod,
             emptyList(),
             extraParameters = "-PonlyTestGradleVersion=$startInclusive-$endExclusive"
         )
-}
-
-class TestClassAndSourceSet(
-    val testClass: String,
-    val sourceSet: String
-) {
-    constructor(classAndSourceSet: String) : this(
-        classAndSourceSet.substringBefore("="),
-        classAndSourceSet.substringAfter("=")
-    )
-
-    fun toPropertiesLine() = "$testClass=$sourceSet"
-}
-
-class LargeSubprojectSplitBucket(
-    val subproject: GradleSubproject,
-    val number: Int,
-    val include: Boolean,
-    val classes: List<TestClassAndSourceSet>
-) : BuildTypeBucket {
-    val name = "${subproject.name}_$number"
-
-    override fun getName(testCoverage: TestCoverage): String = "${testCoverage.asName()} ($name)"
-
-    override fun getDescription(testCoverage: TestCoverage) = "${testCoverage.asName()} for $name"
-
-    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int): FunctionalTest =
-        FunctionalTest(
-            model,
-            testCoverage.getBucketUuid(model, bucketIndex),
-            getName(testCoverage),
-            getDescription(testCoverage),
-            testCoverage,
-            stage,
-            subprojects = listOf(subproject.name),
-            enableTestDistribution = false,
-            extraParameters = if (include) "-PincludeTestClasses=true -x ${subproject.name}:test" else "-PexcludeTestClasses=true", // Only run unit test in last bucket
-            preBuildSteps = prepareTestClassesStep(testCoverage.os, if (include) INCLUDE else EXCLUDE, classes.map { it.toPropertiesLine() })
-        )
-}
-
-enum class TestSplitType(val action: String) {
-    INCLUDE("include"), EXCLUDE("exclude")
-}
-
-fun prepareTestClassesStep(os: Os, type: TestSplitType, testClasses: List<String>): BuildSteps.() -> Unit {
-    val action = type.action
-    val unixScript = """
-mkdir -p test-splits
-rm -rf test-splits/*-test-classes.properties
-cat > test-splits/$action-test-classes.properties << EOL
-${testClasses.joinToString("\n")}
-EOL
-echo "Tests to be ${action}d in this build"
-cat test-splits/$action-test-classes.properties
-"""
-
-    val linesWithEcho = testClasses.joinToString("\n") { "echo $it" }
-
-    val windowsScript = """
-mkdir test-splits
-del /f /q test-splits\include-test-classes.properties
-del /f /q test-splits\exclude-test-classes.properties
-(
-$linesWithEcho
-) > test-splits\$action-test-classes.properties
-echo "Tests to be ${action}d in this build"
-type test-splits\$action-test-classes.properties
-"""
-
-    return {
-        script {
-            name = "PREPARE_TEST_CLASSES"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = if (os == Os.WINDOWS) windowsScript else unixScript
-        }
     }
 }
 
-class SmallSubprojectBucket(
+data class TestClassAndSourceSet(
+    val testClass: String,
+    val sourceSet: String
+)
+
+data class SmallSubprojectBucket(
     val subprojects: List<GradleSubproject>,
-    val enableTestDistribution: Boolean
+    val parallelizationMethod: ParallelizationMethod
 ) : BuildTypeBucket {
-    constructor(subproject: GradleSubproject, enableTestDistribution: Boolean) : this(listOf(subproject), enableTestDistribution)
+    constructor(subproject: GradleSubproject, parallelizationMethod: ParallelizationMethod) : this(listOf(subproject), parallelizationMethod)
 
     val name = truncateName(subprojects.joinToString(","))
 
@@ -239,11 +170,15 @@ class SmallSubprojectBucket(
             getDescription(testCoverage),
             testCoverage,
             stage,
-            enableTestDistribution,
+            parallelizationMethod,
             subprojects.map { it.name }
         )
 
     override fun getName(testCoverage: TestCoverage) = truncateName("${testCoverage.asName()} (${subprojects.joinToString(",") { it.name }})")
 
     override fun getDescription(testCoverage: TestCoverage) = "${testCoverage.asName()} for ${subprojects.joinToString(", ") { it.name }}"
+
+    fun toJsonBucket(): FunctionalTestBucket {
+        return FunctionalTestBucket(subprojects.map { it.name }, parallelizationMethod)
+    }
 }

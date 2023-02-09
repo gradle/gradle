@@ -1,13 +1,17 @@
 package org.gradle.kotlin.dsl
 
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
+import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 
 import groovy.lang.Closure
 import groovy.lang.GroovyObject
+import groovy.lang.MetaBeanProperty
+import groovy.lang.MetaClass
 
 import org.gradle.util.internal.ConfigureUtil
 
@@ -18,8 +22,11 @@ import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.Locale
 
 
 class GroovyInteroperabilityTest {
@@ -86,7 +93,7 @@ class GroovyInteroperabilityTest {
 
         assertEquals(
             "GROOVY",
-            closure { toUpperCase() }.call("groovy")
+            closure { uppercase(Locale.US) }.call("groovy")
         )
     }
 
@@ -198,7 +205,7 @@ class GroovyInteroperabilityTest {
         val builderResult = delegate.withGroovyBuilder {
             val invokeResult = "withKeywordArguments"("string" to "42", "int" to 42)
             assertThat(invokeResult, sameInstance(expectedInvokeResult))
-            assertThat(this.delegate, sameInstance<Any>(expectedDelegate))
+            assertThat(this.delegate, sameInstance(expectedDelegate))
             expectedBuilderResult
         }
         assertThat(builderResult, sameInstance(expectedBuilderResult))
@@ -232,12 +239,12 @@ class GroovyInteroperabilityTest {
         val expectedBuilderResult = Any()
         val builderResult = delegate.withGroovyBuilder {
             val invokeResult = "nest" {
-                assertThat(this.delegate, sameInstance<Any>(nestedDelegate))
+                assertThat(this.delegate, sameInstance(nestedDelegate))
                 val nestedInvokeResult = "nestedInvocation"()
                 assertThat(nestedInvokeResult, sameInstance(expectedNestedInvokeResult))
             }
             assertThat(invokeResult, sameInstance(expectedInvokeResult))
-            assertThat(this.delegate, sameInstance<Any>(expectedDelegate))
+            assertThat(this.delegate, sameInstance(expectedDelegate))
             expectedBuilderResult
         }
         assertThat(builderResult, sameInstance(expectedBuilderResult))
@@ -247,6 +254,7 @@ class GroovyInteroperabilityTest {
     }
 
     interface NonGroovyObject {
+        val existingProperty: String
         fun withKeywordArguments(args: Map<String, Any?>): Any?
     }
 
@@ -271,5 +279,52 @@ class GroovyInteroperabilityTest {
 
         val expectedKeywordArguments = mapOf("string" to "42", "int" to 42)
         verify(delegate).withKeywordArguments(expectedKeywordArguments)
+    }
+
+    @Test
+    fun `#withGroovyBuilder can query property existence against GroovyObject`() {
+
+        val existingPropertyName = "existingProperty"
+        val absentPropertyName = "absentProperty"
+
+        val metaClass = mock<MetaClass> {
+            on { hasProperty(any(), any()) } doAnswer {
+                if (it.arguments[1] == existingPropertyName) mock<MetaBeanProperty>()
+                else null
+            }
+        }
+        val delegate = mock<GroovyObject> {
+            on { getMetaClass() } doReturn metaClass
+        }
+
+        assertTrue(
+            delegate.withGroovyBuilder { hasProperty(existingPropertyName) }
+        )
+
+        assertFalse(
+            delegate.withGroovyBuilder { hasProperty(absentPropertyName) }
+        )
+
+        inOrder(delegate, metaClass) {
+            verify(delegate).metaClass
+            verify(metaClass).hasProperty(delegate, existingPropertyName)
+            verify(delegate).metaClass
+            verify(metaClass).hasProperty(delegate, absentPropertyName)
+            verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `#withGroovyBuilder can query property existence against non GroovyObject`() {
+
+        val delegate = mock<NonGroovyObject>()
+
+        assertTrue(
+            delegate.withGroovyBuilder { hasProperty("existingProperty") }
+        )
+
+        assertFalse(
+            delegate.withGroovyBuilder { hasProperty("absentProperty") }
+        )
     }
 }

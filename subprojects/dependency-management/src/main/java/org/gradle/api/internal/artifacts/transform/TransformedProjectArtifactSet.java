@@ -40,7 +40,7 @@ import java.util.List;
 /**
  * An artifact set containing transformed project artifacts.
  */
-public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileCollectionInternal.Source, ResolvedArtifactSet.Artifacts {
+public class TransformedProjectArtifactSet implements TransformedArtifactSet, FileCollectionInternal.Source, ResolvedArtifactSet.Artifacts {
     private final ComponentIdentifier componentIdentifier;
     private final ImmutableAttributes targetAttributes;
     private final List<? extends Capability> capabilities;

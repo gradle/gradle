@@ -166,8 +166,8 @@ class ConfigurationCacheHost internal constructor(
         override fun getProject(path: String): ProjectInternal =
             state.projects.getProject(Path.path(path)).mutableModel
 
-        override fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?): ConfigurationCacheBuild {
-            return DefaultConfigurationCacheBuild(buildStateRegistry.addIncludedBuild(buildDefinition), fileResolver, buildStateRegistry, settingsFile)
+        override fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, buildPath: Path): ConfigurationCacheBuild {
+            return DefaultConfigurationCacheBuild(buildStateRegistry.addIncludedBuild(buildDefinition, buildPath), fileResolver, buildStateRegistry, settingsFile)
         }
 
         override fun getBuildSrcOf(ownerId: BuildIdentifier): ConfigurationCacheBuild {

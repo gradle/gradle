@@ -374,7 +374,7 @@ Since `processResources` is an instance of the `ProcessResources` task, you can 
 [[sec:properties_files]]
 === Java properties files and reproducible builds
 
-You can easily create Java properties files via the link:{groovyDslPath}/org.gradle.api.tasks.WriteProperties.html[WriteProperties] task, which fixes a well-known problem with `Properties.store()` that can reduce the usefulness of <<more_about_tasks.adoc#sec:up_to_date_checks,incremental builds>>.
+You can easily create Java properties files via the link:{groovyDslPath}/org.gradle.api.tasks.WriteProperties.html[WriteProperties] task, which fixes a well-known problem with `Properties.store()` that can reduce the usefulness of <<incremental_build.adoc#incremental_build,incremental builds>>.
 
 The standard Java API for writing properties files produces a unique file every time, even when the same properties and values are used, because it includes a timestamp in the comments. Gradle's `WriteProperties` task generates exactly the same output byte-for-byte if none of the properties have changed. This is achieved by a few tweaks to how a properties file is generated:
 

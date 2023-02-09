@@ -492,6 +492,102 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecutedAndNotSkipped(':update1', ':update2', ':verify')
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/23253")
+    def "decompression cache for zip archives respects relocated build dir"() {
+        given:
+        createZip('test.zip') {
+            subdir1 {
+                file ('file.txt').text = 'original text 1'
+            }
+            subdir2 {
+                file('file2.txt').text = 'original text 2'
+                file ('file3.txt').text =  'original text 3'
+            }
+        }
+
+        and: "a build using a relocated build dir"
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            project.buildDir = project.file('new-location')
+
+            ${defineVerifyTask('zip')}
+
+            def theArchive = rootProject.file('test.zip')
+
+            tasks.register('verify', VerifyTask) {
+                archive = theArchive
+                beginsWith = 'original'
+            }
+        """
+
+        and: "a source file exists to be compiled into the new build dir"
+        file('src/main/java/MyClass.java') << """
+            public class MyClass {
+                public static void main(String[] args) {
+                    System.out.println("Hello world");
+                }
+            }
+        """
+
+        when:
+        succeeds 'verify', 'build'
+
+        then: "the build dir is relocated, and the decompression cache is also relocated under it"
+        file('new-location/tmp/.cache/expanded').exists()
+        !file('build').exists()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23253")
+    def "decompression cache for tar archives respects relocated build dir"() {
+        given:
+        createTar('test.tar') {
+            subdir1 {
+                file ('file.txt').text = 'original text 1'
+            }
+            subdir2 {
+                file('file2.txt').text = 'original text 2'
+                file ('file3.txt').text =  'original text 3'
+            }
+        }
+
+        and: "a build using a relocated build dir"
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            project.buildDir = project.file('new-location')
+
+            ${defineVerifyTask('tar')}
+
+            def theArchive = rootProject.file('test.tar')
+
+            tasks.register('verify', VerifyTask) {
+                archive = theArchive
+                beginsWith = 'original'
+            }
+        """
+
+        and: "a source file exists to be compiled into the new build dir"
+        file('src/main/java/MyClass.java') << """
+            public class MyClass {
+                public static void main(String[] args) {
+                    System.out.println("Hello world");
+                }
+            }
+        """
+
+        when:
+        succeeds 'verify', 'build'
+
+        then: "the build dir is relocated, and the decompression cache is also relocated under it"
+        file('new-location/tmp/.cache/expanded').exists()
+        !file('build').exists()
+    }
+
     private def createTar(String name, Closure cl) {
         TestFile tarRoot = file("${name}.root")
         tarRoot.deleteDir()

@@ -16,72 +16,27 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.scripts.ScriptExecutionListener;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.problems.Location;
+import org.gradle.problems.buildtree.ProblemLocationAnalyzer;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
+@ServiceScope(Scopes.BuildTree.class)
 @ThreadSafe
-public class ScriptUsageLocationReporter implements ScriptExecutionListener, UsageLocationReporter {
-    private final Lock lock = new ReentrantLock();
-    private final Map<String, ScriptSource> scripts = new HashMap<String, ScriptSource>();
+public class ScriptUsageLocationReporter implements UsageLocationReporter {
+    private final ProblemLocationAnalyzer locationAnalyzer;
 
-    @Override
-    public void onScriptClassLoaded(ScriptSource scriptSource, Class<?> scriptClass) {
-        lock.lock();
-        try {
-            scripts.put(scriptSource.getFileName(), scriptSource);
-        } finally {
-            lock.unlock();
-        }
+    public ScriptUsageLocationReporter(ProblemLocationAnalyzer locationAnalyzer) {
+        this.locationAnalyzer = locationAnalyzer;
     }
 
     @Override
     public void reportLocation(FeatureUsage usage, StringBuilder target) {
-        lock.lock();
-        try {
-            doReportLocation(usage, target);
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void doReportLocation(FeatureUsage usage, StringBuilder target) {
-        List<StackTraceElement> stack = usage.getStack();
-        if (stack.isEmpty()) {
-            return;
-        }
-
-        StackTraceElement directCaller = stack.get(0);
-        if (scripts.containsKey(directCaller.getFileName())) {
-            reportStackTraceElement(directCaller, target);
-            return;
-        }
-
-        int caller = 1;
-        while (caller < stack.size() && stack.get(caller).getClassName().equals(directCaller.getClassName())) {
-            caller++;
-        }
-        if (caller == stack.size()) {
-            return;
-        }
-        StackTraceElement indirectCaller = stack.get(caller);
-        if (scripts.containsKey(indirectCaller.getFileName())) {
-            reportStackTraceElement(indirectCaller, target);
-        }
-    }
-
-    private void reportStackTraceElement(StackTraceElement stackTraceElement, StringBuilder target) {
-        ScriptSource scriptSource = scripts.get(stackTraceElement.getFileName());
-        target.append(scriptSource.getLongDisplayName().getCapitalizedDisplayName());
-        if (stackTraceElement.getLineNumber() > 0) {
-            target.append(": line ");
-            target.append(stackTraceElement.getLineNumber());
+        Location location = locationAnalyzer.locationForUsage(usage.getStack(), false);
+        if (location != null) {
+            target.append(location.getFormatted());
         }
     }
 }

@@ -18,12 +18,12 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.jvm.JavaClassUtil
+import org.gradle.internal.classanalysis.JavaClassUtil
+import org.gradle.internal.jvm.Jvm
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.not
-import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Assume.assumeThat
+import org.junit.Assume.assumeNotNull
 import org.junit.Test
 
 
@@ -48,7 +48,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `precompiled scripts use jvmTarget 8 by default`() {
+    fun `precompiled scripts use the build jvm target default`() {
 
         withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
 
@@ -62,7 +62,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
         withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
         withBuildScript("""plugins { id("some") }""")
 
-        assertThat(build("help").output, containsString(outputFor(JavaVersion.VERSION_1_8)))
+        assertThat(build("help").output, containsString(outputFor(JavaVersion.current())))
     }
 
     @Test
@@ -74,6 +74,12 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
 
         withDefaultSettingsIn("buildSrc")
         withKotlinDslPluginIn("buildSrc").appendText("""
+
+            java {
+                sourceCompatibility = JavaVersion.VERSION_11
+                targetCompatibility = JavaVersion.VERSION_11
+            }
+
             kotlinDslPluginOptions {
                 jvmTarget.set("11")
             }
@@ -92,43 +98,82 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `can use java toolchain to compile precompiled scripts`() {
+    @LeaksFileHandles("Kotlin compiler daemon  taking time to shut down")
+    fun `can use Java Toolchain to compile precompiled scripts`() {
 
-        // https://github.com/gradle/gradle/issues/23125
-        assumeJava11OrHigher()
+        val currentJvm = Jvm.current()
+        assumeNotNull(currentJvm)
 
-        val jdk11 = AvailableJavaHomes.getJdk11()
-        assumeThat(jdk11, not(nullValue()))
+        val newerJvm = AvailableJavaHomes.getDifferentVersion { it.languageVersion > currentJvm.javaVersion }
+        assumeNotNull(newerJvm)
 
-        withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
+        val installationPaths = listOf(currentJvm!!, newerJvm!!)
+            .joinToString(",") { it.javaHome.absolutePath }
 
-        withDefaultSettingsIn("buildSrc")
-        withKotlinDslPluginIn("buildSrc").appendText("""
+        val utils = withClassJar("utils.jar", JavaClassUtil::class.java)
+        mavenRepo.module("test", "utils", "1.0")
+            .mainArtifact(mapOf("content" to utils.readBytes()))
+            .publish()
 
+        withDefaultSettingsIn("plugin")
+        withBuildScriptIn("plugin", """
+            plugins {
+                `kotlin-dsl`
+                `maven-publish`
+            }
+            group = "test"
+            version = "1.0"
             java {
                 toolchain {
-                    languageVersion.set(JavaLanguageVersion.of(11))
+                    languageVersion.set(JavaLanguageVersion.of(${newerJvm.javaVersion?.majorVersion}))
                 }
             }
-
             dependencies {
-                implementation(files("utils.jar"))
+                implementation("test:utils:1.0")
+            }
+            repositories {
+                maven(url = "${mavenRepo.uri}")
+                gradlePluginPortal()
+            }
+            publishing {
+                repositories {
+                    maven(url = "${mavenRepo.uri}")
+                }
             }
         """)
+        withFile("plugin/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
 
-        withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
-        withBuildScript("""plugins { id("some") }""")
-
-        val result = gradleExecuterFor(arrayOf("help"))
-            .withArgument("-Porg.gradle.java.installations.paths=${jdk11!!.javaHome.absolutePath}")
+        gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
+            .withJavaHome(currentJvm.javaHome)
+            .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
             .run()
 
-        assertThat(result.output, containsString(outputFor(JavaVersion.VERSION_11)))
+        withSettingsIn("consumer", """
+            pluginManagement {
+                repositories {
+                    maven(url = "${mavenRepo.uri}")
+                }
+                resolutionStrategy {
+                    eachPlugin {
+                        if (requested.id.id == "some") {
+                            useModule("test:plugin:1.0")
+                        }
+                    }
+                }
+            }
+        """)
+        withBuildScriptIn("consumer", """plugins { id("some") }""")
+
+        val helpResult = gradleExecuterFor(arrayOf("help"), rootDir = file("consumer"))
+            .withJavaHome(newerJvm.javaHome)
+            .run()
+
+        assertThat(helpResult.output, containsString(outputFor(newerJvm.javaVersion!!)))
     }
 
     private
     val printScriptJavaClassFileMajorVersion = """
-        println("Java Class Major Version = ${'$'}{org.gradle.integtests.fixtures.jvm.JavaClassUtil.getClassMajorVersion(this::class.java)}")
+        println("Java Class Major Version = ${'$'}{org.gradle.internal.classanalysis.JavaClassUtil.getClassMajorVersion(this::class.java)}")
     """
 
     private

@@ -17,10 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
 import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactMetadataSerializer;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.IndexedCache;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -33,24 +33,24 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 import java.util.Set;
 
 public class DefaultModuleArtifactsCache extends AbstractArtifactsCache {
-    private final ArtifactCacheLockingManager artifactCacheLockingManager;
+    private final ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator;
 
-    private PersistentIndexedCache<ArtifactsAtRepositoryKey, AbstractArtifactsCache.ModuleArtifactsCacheEntry> cache;
+    private IndexedCache<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> cache;
 
-    public DefaultModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager) {
+    public DefaultModuleArtifactsCache(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator) {
         super(timeProvider);
-        this.artifactCacheLockingManager = artifactCacheLockingManager;
+        this.cacheAccessCoordinator = cacheAccessCoordinator;
     }
 
-    private PersistentIndexedCache<ArtifactsAtRepositoryKey, AbstractArtifactsCache.ModuleArtifactsCacheEntry> getCache() {
+    private IndexedCache<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> getCache() {
         if (cache == null) {
             cache = initCache();
         }
         return cache;
     }
 
-    private PersistentIndexedCache<ArtifactsAtRepositoryKey, AbstractArtifactsCache.ModuleArtifactsCacheEntry> initCache() {
-        return artifactCacheLockingManager.createCache("module-artifacts", new ModuleArtifactsKeySerializer(), new ModuleArtifactsCacheEntrySerializer());
+    private IndexedCache<ArtifactsAtRepositoryKey, ModuleArtifactsCacheEntry> initCache() {
+        return cacheAccessCoordinator.createCache("module-artifacts", new ModuleArtifactsKeySerializer(), new ModuleArtifactsCacheEntrySerializer());
     }
 
     @Override
