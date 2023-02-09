@@ -93,6 +93,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
             deleter,
             fileSystemAccess,
             bufferProvider,
+            stringInterner,
             new GZipNextGenBuildCacheAccess(
                 new DefaultNextGenBuildCacheAccess(
                     local,
