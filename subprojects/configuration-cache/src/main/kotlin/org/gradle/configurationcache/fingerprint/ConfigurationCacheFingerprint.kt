@@ -128,6 +128,11 @@ sealed class ConfigurationCacheFingerprint {
         val prefix: String,
         val snapshot: Map<String, String?>
     ) : ConfigurationCacheFingerprint()
+
+    data class EncryptionSignature(
+        val encrypted: Boolean,
+        val keyHash: HashCode
+    ) : ConfigurationCacheFingerprint()
 }
 
 

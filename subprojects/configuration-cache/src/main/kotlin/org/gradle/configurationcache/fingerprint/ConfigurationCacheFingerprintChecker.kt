@@ -44,6 +44,8 @@ internal
 class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
     interface Host {
+        val isEncrypted: Boolean
+        val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
         val startParameterProperties: Map<String, Any?>
@@ -147,6 +149,15 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     private
     fun check(input: ConfigurationCacheFingerprint): InvalidationReason? {
         when (input) {
+            is ConfigurationCacheFingerprint.EncryptionSignature -> input.run {
+                if (host.isEncrypted != input.encrypted) {
+                    return "encryption mode has changed"
+                }
+                if (host.encryptionKeyHashCode != input.keyHash) {
+                    return "encryption key has changed"
+                }
+            }
+
             is ConfigurationCacheFingerprint.WorkInputs -> input.run {
                 val currentFingerprint = host.fingerprintOf(fileSystemInputs)
                 if (currentFingerprint != fileSystemInputsFingerprint) {

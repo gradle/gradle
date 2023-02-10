@@ -84,14 +84,21 @@ import java.io.OutputStream
 
 
 internal
-enum class StateType {
-    Work, Model, Entry, BuildFingerprint, ProjectFingerprint, IntermediateModels, ProjectMetadata
+enum class StateType(val encryptable: Boolean = false) {
+    Work(true),
+    Model(true),
+    Entry(false),
+    BuildFingerprint(true),
+    ProjectFingerprint(true),
+    IntermediateModels(true),
+    ProjectMetadata(true)
 }
 
 
 internal
 interface ConfigurationCacheStateFile {
     val exists: Boolean
+    val stateType: StateType
     fun outputStream(): OutputStream
     fun inputStream(): InputStream
     fun delete()
