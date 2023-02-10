@@ -49,7 +49,7 @@ internal
 class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) : ConfigurationCacheEncryptionService {
     private
     val keyStorePath: File = startParameter.keystorePath
-        .let { File(it) }
+        ?.let { File(it) } ?: File(startParameter.gradleUserHomeDir, "gradle.keystore")
 
     private
     val keyStorePassword: String? = startParameter.keystorePassword
@@ -71,12 +71,20 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
     private
     val shouldEncrypt: Boolean by lazy { encryptingRequested && secretKey != null }
 
+    init {
+        if (encryptingRequested) {
+            logger.warn("Configuration cache encryption requested, using keystore: {}", keyStorePath)
+            if (!isEncrypting) {
+                logger.info("Configuration cache encryption requested but not enabled")
+            }
+        }
+    }
+
     private
     fun computeSecretKey(): SecretKey? {
         val ks = KeyStore.getInstance(KeyStore.getDefaultType())
         val key: SecretKey
         val alias = "gradle-secret"
-        logger.info("Configuration cache encryption is enabled? $encryptingRequested")
         if (keyStorePath.isFile) {
             logger.info("Loading keystore from $keyStorePath")
             keyStorePath.inputStream().use { fis ->
@@ -84,24 +92,24 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
                     ks.load(fis, keyStorePassword?.toCharArray())
                 } catch (e: Exception) {
                     // could not load, store password is wrong
-                    logger.error("Keystore exists, but cannot be loaded, encryption not enabled", e)
+                    logger.warn("Keystore exists, but cannot be loaded, encryption will not be enabled", e)
                     return@computeSecretKey null
                 }
             }
             val entry = ks.getEntry(alias, keyProtection) as KeyStore.SecretKeyEntry?
             if (entry != null) {
                 key = entry.secretKey
-                logger.info("Retrieved key: ${key.asString()}")
+                logger.debug("Retrieved key")
             } else {
-                logger.info("No key found")
+                logger.debug("No key found")
                 key = generateKey(ks, alias)
-                logger.info("Key created")
+                logger.warn("Key added to existing keystore at $keyStorePath")
             }
         } else {
-            logger.info("No keystore found")
+            logger.debug("No keystore found")
             ks.load(null, null)
             key = generateKey(ks, alias)
-            logger.info("Keystore created")
+            logger.warn("Key added to a new keystore at $keyStorePath")
         }
         return key
     }
@@ -109,7 +117,7 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
     private
     fun generateKey(ks: KeyStore, alias: String): SecretKey {
         val newKey = KeyGenerator.getInstance("AES").generateKey()!!
-        logger.info("Generated key: ${newKey.asString()}")
+        logger.info("Generated key")
         val entry = KeyStore.SecretKeyEntry(newKey)
         ks.setEntry(alias, entry, keyProtection)
         keyStorePath.outputStream().use { fos -> ks.store(fos, keyStorePassword?.toCharArray()) }
