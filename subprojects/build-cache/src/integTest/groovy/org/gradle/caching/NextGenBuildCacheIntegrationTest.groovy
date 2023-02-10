@@ -70,6 +70,40 @@ class NextGenBuildCacheIntegrationTest extends AbstractIntegrationSpec implement
         file("build/empty").assertIsEmptyDir()
     }
 
+    def "missing output is cached properly"() {
+        given:
+        buildFile << """
+            task customTask {
+                def existingFile = file("build/existing.txt")
+                def missingFile = file("build/missing.txt")
+                def missingDir = file("build/missing")
+                outputs.file existingFile withPropertyName "existing"
+                outputs.file missingFile optional() withPropertyName "missingFile"
+                outputs.dir missingDir optional() withPropertyName "missingDir"
+                outputs.cacheIf { true }
+                doLast {
+                    existingFile.text = "data"
+                    missingFile.delete()
+                    missingDir.delete()
+                }
+            }
+        """
+
+        when:
+        runWithCacheNG "customTask"
+        then:
+        executedAndNotSkipped ":customTask"
+        file("build/missing.txt").assertDoesNotExist()
+        file("build/missing").assertDoesNotExist()
+
+        when:
+        cleanBuildDir()
+        runWithCacheNG "customTask"
+        then:
+        skipped ":customTask"
+        file("build/missing").assertDoesNotExist()
+    }
+
     def "non-cacheable task with cache enabled gets cached"() {
         file("input.txt") << "data"
         buildFile << """

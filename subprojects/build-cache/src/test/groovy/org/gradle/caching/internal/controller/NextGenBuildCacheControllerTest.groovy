@@ -20,7 +20,11 @@ import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.RelativePathSupplier
+import org.gradle.internal.file.FileType
 import org.gradle.internal.file.ThreadLocalBufferProvider
+import org.gradle.internal.file.TreeType
+import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RelativePathTracker
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor
@@ -52,11 +56,11 @@ class NextGenBuildCacheControllerTest extends Specification {
         )
     }
 
-    def "should use snapshots from cache data for #input output"() {
+    def "should use snapshots from cache data for #description output"() {
         given:
-        TestFile root = tmpDir.createDir("root")
-        createOuputFunction(root)
-        ImmutableList.Builder<CacheManifest.ManifestEntry> manifestEntriesBuilder = ImmutableList.builder();
+        def root = tmpDir.file("root")
+        createOuput(root)
+        def manifestEntriesBuilder = ImmutableList.<CacheManifest.ManifestEntry> builder()
         def rootSnapshot = fileSystemAccess.read(root.absolutePath)
         rootSnapshot.accept(new RelativePathTracker(), new RelativePathTrackingFileSystemSnapshotHierarchyVisitor() {
             @Override
@@ -65,35 +69,68 @@ class NextGenBuildCacheControllerTest extends Specification {
                     snapshot.getType(),
                     relativePath.toRelativePath(),
                     snapshot.getHash(),
-                    SnapshotUtil.getLength(snapshot)));
-                return SnapshotVisitResult.CONTINUE;
+                    SnapshotUtil.getLength(snapshot)))
+                return SnapshotVisitResult.CONTINUE
             }
         })
-        List<CacheManifest.ManifestEntry> manifestEntries = manifestEntriesBuilder.build()
+        def manifestEntries = manifestEntriesBuilder.build()
 
         when:
-        def actualSnapshot = controller.createSnapshot(root, manifestEntries)
+        def actualSnapshot = controller.createSnapshot(type, root, manifestEntries)
+            .get()
 
         then:
         actualSnapshot == rootSnapshot
 
         where:
-        input       | createOuputFunction
-        "file"      | { TestFile location -> createFileOutput(location) }
-        "directory" | { TestFile location -> createDirectoryOutput(location) }
+        description | type               | createOuput
+        "file"      | TreeType.FILE      | { TestFile location -> createFileOutput(location) }
+        "directory" | TreeType.DIRECTORY | { TestFile location -> createDirectoryOutput(location) }
     }
 
-    def createFileOutput(TestFile root) {
-        root.createFile("a.txt") << "Hello world"
+    def "can handle missing file output"() {
+        given:
+        def root = tmpDir.file("root")
+        def manifestEntries = [new CacheManifest.ManifestEntry(FileType.Missing, "", TestHashCodes.hashCodeFrom(12345678L), 0)]
+
+        when:
+        def actualSnapshot = controller.createSnapshot(TreeType.FILE, root, manifestEntries)
+
+        then:
+        actualSnapshot.empty
     }
 
-    def createDirectoryOutput(TestFile root) {
-        root.createFile("a.txt") << "Hello world: 'a'"
-        root.createDir("b")
-        root.createFile("b/b.txt") << "Hello world: 'b'"
-        root.createDir("c")
-        root.createFile("c/c.txt") << "Hello world: 'c'"
-        root.createDir("c/d")
-        root.createFile("c/d/d.txt") << "Hello world: 'd'"
+    def "can handle missing directory output"() {
+        given:
+        def root = tmpDir.file("root")
+        def manifestEntries = [new CacheManifest.ManifestEntry(FileType.Missing, "", TestHashCodes.hashCodeFrom(12345678L), 0)]
+
+        when:
+        def actualSnapshot = controller.createSnapshot(TreeType.DIRECTORY, root, manifestEntries)
+            .get()
+
+        then:
+        actualSnapshot instanceof DirectorySnapshot
+        actualSnapshot.absolutePath == root.absolutePath
+        actualSnapshot.accept { FileSystemLocationSnapshot entry ->
+            // Make sure don't have entries in the directory snapshot apart from itself
+            entry == this
+            return SnapshotVisitResult.CONTINUE
+        }
+    }
+
+    void createFileOutput(TestFile location) {
+        location.createFile() << "Hello world"
+    }
+
+    void createDirectoryOutput(TestFile location) {
+        location.createDir()
+        location.createFile("a.txt") << "Hello world: 'a'"
+        location.createDir("b")
+        location.createFile("b/b.txt") << "Hello world: 'b'"
+        location.createDir("c")
+        location.createFile("c/c.txt") << "Hello world: 'c'"
+        location.createDir("c/d")
+        location.createFile("c/d/d.txt") << "Hello world: 'd'"
     }
 }

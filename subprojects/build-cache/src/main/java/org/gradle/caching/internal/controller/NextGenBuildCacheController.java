@@ -211,9 +211,11 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
             });
 
-            FileSystemLocationSnapshot snapshot = createSnapshot(root, manifestEntries);
-            snapshots.put(propertyName, snapshot);
-            fileSystemAccess.record(snapshot);
+            createSnapshot(type, root, manifestEntries)
+                .ifPresent(snapshot -> {
+                    snapshots.put(propertyName, snapshot);
+                    fileSystemAccess.record(snapshot);
+                });
         });
 
         ImmutableSortedMap<String, FileSystemSnapshot> resultingSnapshots = snapshots.build();
@@ -235,22 +237,34 @@ public class NextGenBuildCacheController implements BuildCacheController {
         });
     }
 
-    /**
-     * TODO: extract snapshotting part to it's own class
-     */
+    // TODO Extract snapshotting part to it's own class
     @VisibleForTesting
-    FileSystemLocationSnapshot createSnapshot(File root, List<ManifestEntry> entries) {
-        ManifestEntry rootEntry = entries.get(0);
-        switch (rootEntry.getType()) {
-            case Directory:
-                return createDirectorySnapshot(root, entries);
-            case RegularFile:
-                return createFileSnapshot(rootEntry, root);
+    Optional<FileSystemLocationSnapshot> createSnapshot(TreeType type, File root, List<ManifestEntry> entries) {
+        switch (type) {
+            case DIRECTORY:
+                return Optional.of(createDirectorySnapshot(root, entries));
+            case FILE:
+                if (entries.size() != 1) {
+                    throw new IllegalStateException("Expected a single manifest entry, found " + entries.size());
+                }
+                ManifestEntry rootEntry = entries.get(0);
+                switch (rootEntry.getType()) {
+                    case Directory:
+                        throw new IllegalStateException("Directory manifest entry found for a file output");
+                    case RegularFile:
+                        return Optional.of(createFileSnapshot(rootEntry, root));
+                    case Missing:
+                        // No need to create a
+                        return Optional.empty();
+                    default:
+                        throw new AssertionError("Unknown manifest entry type " + rootEntry.getType());
+                }
             default:
-                throw new IllegalStateException("Cannot snapshot missing data");
+                throw new AssertionError("Unknown output type " + type);
         }
     }
 
+    // TODO We should not capture any snapshot for a missing directory output
     private FileSystemLocationSnapshot createDirectorySnapshot(File root, List<ManifestEntry> entries) {
         String rootPath = root.getName() + "/";
         RelativePathParser parser = new RelativePathParser(rootPath);
@@ -280,6 +294,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                     builder.visitLeafElement(fileSnapshot);
                     break;
                 case Missing:
+                    // No need to store a snapshot for a missing file
                     break;
             }
         }
@@ -336,6 +351,9 @@ public class NextGenBuildCacheController implements BuildCacheController {
             cacheAccess.store(manifestIndex, manifestEntry -> new BuildCacheEntryWriter() {
                 @Override
                 public InputStream openStream() throws IOException {
+                    // TODO Replace with "Files.newInputStream()" as it seems to be more efficient
+                    //      Might be a good idea to pass `root` as `Path` instead of `File` then
+                    //noinspection IOStreamConstructor
                     return new FileInputStream(new File(root, manifestEntry.getRelativePath()));
                 }
 
