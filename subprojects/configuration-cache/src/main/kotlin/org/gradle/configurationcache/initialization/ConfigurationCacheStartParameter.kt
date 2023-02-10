@@ -22,6 +22,7 @@ import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
+import org.gradle.internal.buildoption.StringInternalOption
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
@@ -41,6 +42,14 @@ class ConfigurationCacheStartParameter(
     val loadAfterStore: Boolean = !modelParameters.isRequiresBuildModel && options.getOption(InternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)).get()
 
     val taskExecutionAccessPreStable: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")).get()
+
+    val encryptedCache: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.encrypted")).get()
+
+    val keystorePath: String = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.key-store-path", String.format("%s/.gradle.keystore", System.getProperty("user.home")))).get()
+
+    val keystorePassword: String? = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.key-store-password", null)).get()
+
+    val keyPassword: String = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.key-password", "")).get()
 
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties

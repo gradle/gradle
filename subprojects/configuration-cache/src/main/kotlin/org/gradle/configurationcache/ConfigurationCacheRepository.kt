@@ -69,9 +69,9 @@ class ConfigurationCacheRepository(
         private val cacheDir: File,
         private val onFileAccess: (File) -> Unit
     ) : Layout() {
-        override fun fileForRead(stateType: StateType) = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType))
+        override fun fileForRead(stateType: StateType) = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateType)
 
-        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), onFileAccess)
+        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateType, onFileAccess)
     }
 
     private
@@ -80,7 +80,7 @@ class ConfigurationCacheRepository(
     ) : Layout() {
         override fun fileForRead(stateType: StateType) = fileFor(stateType)
 
-        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType))
+        override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType), stateType)
     }
 
     override fun stop() {
@@ -89,7 +89,8 @@ class ConfigurationCacheRepository(
 
     private
     inner class ReadableConfigurationCacheStateFile(
-        private val file: File
+        private val file: File,
+        override val stateType: StateType
     ) : ConfigurationCacheStateFile {
         override val exists: Boolean
             get() = file.isFile
@@ -110,13 +111,15 @@ class ConfigurationCacheRepository(
 
         override fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile =
             ReadableConfigurationCacheStateFile(
-                includedBuildFileFor(file, build)
+                includedBuildFileFor(file, build),
+                stateType
             )
     }
 
     private
     inner class WriteableConfigurationCacheStateFile(
         private val file: File,
+        override val stateType: StateType,
         private val onFileAccess: (File) -> Unit
     ) : ConfigurationCacheStateFile {
         override val exists: Boolean
@@ -141,6 +144,7 @@ class ConfigurationCacheRepository(
         override fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile =
             WriteableConfigurationCacheStateFile(
                 includedBuildFileFor(file, build),
+                stateType,
                 onFileAccess
             )
     }
