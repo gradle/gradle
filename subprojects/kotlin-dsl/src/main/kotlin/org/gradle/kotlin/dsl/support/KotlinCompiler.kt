@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
+import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment
 
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
@@ -545,7 +546,7 @@ class LoggingMessageCollector(
                 path.let(pathTranslation).let { path ->
                     when {
                         line >= 0 && column >= 0 -> compilerMessageFor(path, line, column, message)
-                        else -> "$path: $message"
+                        else -> "${clickableFileUrlFor(path)}: $message"
                     }
                 }
             } ?: message
@@ -560,8 +561,8 @@ class LoggingMessageCollector(
             }
 
             in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
-            CompilerMessageSeverity.STRONG_WARNING -> log.info { taggedMsg() }
-            CompilerMessageSeverity.WARNING -> log.info { taggedMsg() }
+            CompilerMessageSeverity.STRONG_WARNING -> log.warn { taggedMsg() }
+            CompilerMessageSeverity.WARNING -> log.warn { taggedMsg() }
             CompilerMessageSeverity.INFO -> log.info { msg() }
             else -> log.debug { taggedMsg() }
         }
@@ -571,4 +572,9 @@ class LoggingMessageCollector(
 
 internal
 fun compilerMessageFor(path: String, line: Int, column: Int, message: String) =
-    "$path:$line:$column: $message"
+    "${clickableFileUrlFor(path)}:$line:$column: $message"
+
+
+private
+fun clickableFileUrlFor(path: String): String =
+    ConsoleRenderer().asClickableFileUrl(File(path))
