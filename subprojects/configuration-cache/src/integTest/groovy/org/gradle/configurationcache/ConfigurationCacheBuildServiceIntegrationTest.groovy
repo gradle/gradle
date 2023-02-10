@@ -557,4 +557,45 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         expect:
         configurationCacheFails "check"
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/23700")
+    def "build service registered as listener in an included build with no work is not restored"() {
+        def onFinishMessage = "You won't see me!"
+        withListenerBuildServicePlugin onFinishMessage
+
+        def configurationCache = newConfigurationCacheFixture()
+        createDir('included-build') {
+            file('settings.gradle') << """
+                pluginManagement {
+                    repositories {
+                        maven { url '$mavenRepo.uri' }
+                    }
+                }
+            """
+            file('build.gradle') << """
+                plugins { id 'listener-build-service-plugin' version '1.0' }
+            """
+        }
+
+        settingsScript("""
+            includeBuild("included-build")
+        """)
+
+        buildScript("""
+            tasks.register("check") {}
+        """)
+
+        when:
+        configurationCacheRun "check"
+
+        then:
+        outputContains onFinishMessage
+
+        when:
+        configurationCacheRun "check"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputDoesNotContain onFinishMessage
+    }
 }
