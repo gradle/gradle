@@ -42,6 +42,12 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorInternal {
+    private enum MatcherKind {
+        SIMPLE,
+        REGEX,
+        SUB_GROUP,
+    }
+
     private Set<String> includedConfigurations;
     private Set<String> excludedConfigurations;
     private Set<ContentSpec> includeSpecs;
@@ -129,13 +135,13 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     @Override
     public void includeGroup(String group) {
         checkNotNull(group, "Group cannot be null");
-        addInclude(group, null, null, false);
+        addInclude(group, null, null, MatcherKind.SIMPLE);
     }
 
     @Override
     public void includeGroupAndSubGroups(String group) {
         checkNotNull(group, "Group cannot be null");
-        addInclude(createSubGroupRegex(group), null, null, true);
+        addInclude(group, null, null, MatcherKind.SUB_GROUP);
     }
 
     private static void checkNotNull(@Nullable String value, String message) {
@@ -147,21 +153,21 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     @Override
     public void includeGroupByRegex(String groupRegex) {
         checkNotNull(groupRegex, "Group cannot be null");
-        addInclude(groupRegex, null, null, true);
+        addInclude(groupRegex, null, null, MatcherKind.REGEX);
     }
 
     @Override
     public void includeModule(String group, String moduleName) {
         checkNotNull(group, "Group cannot be null");
         checkNotNull(moduleName, "Module name cannot be null");
-        addInclude(group, moduleName, null, false);
+        addInclude(group, moduleName, null, MatcherKind.REGEX);
     }
 
     @Override
     public void includeModuleByRegex(String groupRegex, String moduleNameRegex) {
         checkNotNull(groupRegex, "Group cannot be null");
         checkNotNull(moduleNameRegex, "Module name cannot be null");
-        addInclude(groupRegex, moduleNameRegex, null, true);
+        addInclude(groupRegex, moduleNameRegex, null, MatcherKind.REGEX);
     }
 
     @Override
@@ -169,7 +175,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         checkNotNull(group, "Group cannot be null");
         checkNotNull(moduleName, "Module name cannot be null");
         checkNotNull(version, "Version cannot be null");
-        addInclude(group, moduleName, version, false);
+        addInclude(group, moduleName, version, MatcherKind.SIMPLE);
     }
 
     @Override
@@ -177,51 +183,47 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         checkNotNull(groupRegex, "Group cannot be null");
         checkNotNull(moduleNameRegex, "Module name cannot be null");
         checkNotNull(versionRegex, "Version cannot be null");
-        addInclude(groupRegex, moduleNameRegex, versionRegex, true);
+        addInclude(groupRegex, moduleNameRegex, versionRegex, MatcherKind.REGEX);
     }
 
-    private void addInclude(String group, @Nullable String moduleName, @Nullable String version, boolean regex) {
+    private void addInclude(String group, @Nullable String moduleName, @Nullable String version, MatcherKind matcherKind) {
         assertMutable();
         if (includeSpecs == null) {
             includeSpecs = Sets.newHashSet();
         }
-        includeSpecs.add(new ContentSpec(regex, group, moduleName, version, versionSelectorScheme, versionSelectors, true));
-    }
-
-    private String createSubGroupRegex(String group) {
-        return group.replaceAll("\\.", "\\\\.") + "(?:\\..+|\\Z|:.+)";
+        includeSpecs.add(new ContentSpec(matcherKind, group, moduleName, version, versionSelectorScheme, versionSelectors, true));
     }
 
     @Override
     public void excludeGroup(String group) {
         checkNotNull(group, "Group cannot be null");
-        addExclude(group, null, null, false);
+        addExclude(group, null, null, MatcherKind.SIMPLE);
     }
 
     @Override
     public void excludeGroupAndSubGroups(String group) {
         checkNotNull(group, "Group cannot be null");
-        addExclude(createSubGroupRegex(group), null, null, true);
+        addExclude(group, null, null, MatcherKind.SUB_GROUP);
     }
 
     @Override
     public void excludeGroupByRegex(String groupRegex) {
         checkNotNull(groupRegex, "Group cannot be null");
-        addExclude(groupRegex, null, null, true);
+        addExclude(groupRegex, null, null, MatcherKind.REGEX);
     }
 
     @Override
     public void excludeModule(String group, String moduleName) {
         checkNotNull(group, "Group cannot be null");
         checkNotNull(moduleName, "Module name cannot be null");
-        addExclude(group, moduleName, null, false);
+        addExclude(group, moduleName, null, MatcherKind.SIMPLE);
     }
 
     @Override
     public void excludeModuleByRegex(String groupRegex, String moduleNameRegex) {
         checkNotNull(groupRegex, "Group cannot be null");
         checkNotNull(moduleNameRegex, "Module name cannot be null");
-        addExclude(groupRegex, moduleNameRegex, null, true);
+        addExclude(groupRegex, moduleNameRegex, null, MatcherKind.REGEX);
     }
 
     @Override
@@ -229,7 +231,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         checkNotNull(group, "Group cannot be null");
         checkNotNull(moduleName, "Module name cannot be null");
         checkNotNull(version, "Version cannot be null");
-        addExclude(group, moduleName, version, false);
+        addExclude(group, moduleName, version, MatcherKind.SIMPLE);
     }
 
     @Override
@@ -237,15 +239,15 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         checkNotNull(groupRegex, "Group cannot be null");
         checkNotNull(moduleNameRegex, "Module name cannot be null");
         checkNotNull(versionRegex, "Version cannot be null");
-        addExclude(groupRegex, moduleNameRegex, versionRegex, true);
+        addExclude(groupRegex, moduleNameRegex, versionRegex, MatcherKind.REGEX);
     }
 
-    private void addExclude(String group, @Nullable String moduleName, @Nullable String version, boolean regex) {
+    private void addExclude(String group, @Nullable String moduleName, @Nullable String version, MatcherKind matcherKind) {
         assertMutable();
         if (excludeSpecs == null) {
             excludeSpecs = Sets.newHashSet();
         }
-        excludeSpecs.add(new ContentSpec(regex, group, moduleName, version, versionSelectorScheme, versionSelectors, false));
+        excludeSpecs.add(new ContentSpec(matcherKind, group, moduleName, version, versionSelectorScheme, versionSelectors, false));
     }
 
     @Override
@@ -323,7 +325,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     private static class ContentSpec {
-        private final boolean regex;
+        private final MatcherKind matcherKind;
         private final String group;
         private final String module;
         private final String version;
@@ -332,15 +334,15 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         private final boolean inclusive;
         private final int hashCode;
 
-        private ContentSpec(boolean regex, String group, @Nullable String module, @Nullable String version, VersionSelectorScheme versionSelectorScheme, ConcurrentHashMap<String, VersionSelector> versionSelectors, boolean inclusive) {
-            this.regex = regex;
+        private ContentSpec(MatcherKind matcherKind, String group, @Nullable String module, @Nullable String version, VersionSelectorScheme versionSelectorScheme, ConcurrentHashMap<String, VersionSelector> versionSelectors, boolean inclusive) {
+            this.matcherKind = matcherKind;
             this.group = group;
             this.module = module;
             this.version = version;
             this.versionSelectorScheme = versionSelectorScheme;
             this.versionSelectors = versionSelectors;
             this.inclusive = inclusive;
-            this.hashCode = Objects.hashCode(regex, group, module, version, inclusive);
+            this.hashCode = Objects.hashCode(matcherKind, group, module, version, inclusive);
         }
 
         @Override
@@ -352,7 +354,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
                 return false;
             }
             ContentSpec that = (ContentSpec) o;
-            return regex == that.regex &&
+            return matcherKind == that.matcherKind &&
                     hashCode == that.hashCode &&
                     Objects.equal(group, that.group) &&
                     Objects.equal(module, that.module) &&
@@ -366,10 +368,17 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         }
 
         SpecMatcher toMatcher() {
-            if (regex) {
-                return new PatternSpecMatcher(group, module, version, inclusive);
+            switch (matcherKind) {
+                case SIMPLE:
+                case SUB_GROUP:
+                    return new SimpleSpecMatcher(
+                        group, module, version, versionSelectorScheme, versionSelectors, inclusive, matcherKind == MatcherKind.SUB_GROUP
+                    );
+                case REGEX:
+                    return new PatternSpecMatcher(group, module, version, inclusive);
+                default:
+                    throw new AssertionError("Unknown matcher kind: " + matcherKind);
             }
-            return new SimpleSpecMatcher(group, module, version, versionSelectorScheme, versionSelectors, inclusive);
         }
     }
 
@@ -385,25 +394,42 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         private final String version;
         private final VersionSelector versionSelector;
         private final boolean inclusive;
+        private final boolean includeSubGroups;
 
-        private SimpleSpecMatcher(String group, @Nullable String module, @Nullable String version, VersionSelectorScheme versionSelectorScheme, ConcurrentHashMap<String, VersionSelector> versionSelectors, boolean inclusive) {
+        private SimpleSpecMatcher(
+            String group, @Nullable String module, @Nullable String version, VersionSelectorScheme versionSelectorScheme,
+            ConcurrentHashMap<String, VersionSelector> versionSelectors, boolean inclusive, boolean includeSubGroups
+        ) {
             this.group = group;
             this.module = module;
             this.version = version;
             this.inclusive = inclusive;
+            this.includeSubGroups = includeSubGroups;
             this.versionSelector = getVersionSelector(versionSelectors, versionSelectorScheme, version);
+        }
+
+        private boolean groupMatches(String checkTarget) {
+            if (!checkTarget.startsWith(group)) {
+                return false;
+            }
+            // Check if the group is simply equal
+            if (checkTarget.length() == group.length()) {
+                return true;
+            }
+            // Check if the group is a subgroup
+            return includeSubGroups && checkTarget.charAt(group.length()) == '.';
         }
 
         @Override
         public boolean matches(ModuleIdentifier id) {
-            return group.equals(id.getGroup())
+            return groupMatches(id.getGroup())
                 && (module == null || module.equals(id.getName()))
                 && (inclusive || version == null);
         }
 
         @Override
         public boolean matches(ModuleComponentIdentifier id) {
-            return group.equals(id.getGroup())
+            return groupMatches(id.getGroup())
                 && (module == null || module.equals(id.getModule()))
                 && (version == null || version.equals(id.getVersion()) || versionSelector.accept(id.getVersion()));
         }
