@@ -37,6 +37,13 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         ex.message == "Group cannot be null"
 
         when:
+        descriptor.includeGroupAndSubGroups(null)
+
+        then:
+        ex = thrown()
+        ex.message == "Group cannot be null"
+
+        when:
         descriptor.includeModule("foo", null)
 
         then:
@@ -122,6 +129,13 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
 
         then:
         IllegalArgumentException ex = thrown()
+        ex.message == "Group cannot be null"
+
+        when:
+        descriptor.excludeGroupAndSubGroups(null)
+
+        then:
+        ex = thrown()
         ex.message == "Group cannot be null"
 
         when:
