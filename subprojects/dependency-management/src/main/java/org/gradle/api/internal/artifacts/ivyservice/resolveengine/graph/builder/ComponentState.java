@@ -37,7 +37,7 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Pair;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -67,7 +67,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final Long resultId;
     private final ModuleResolveState module;
     private final List<ComponentSelectionDescriptorInternal> selectionCauses = Lists.newArrayList();
-    private final ImmutableCapability implicitCapability;
+    private final DefaultImmutableCapability implicitCapability;
     private final int hashCode;
 
     private volatile ComponentGraphResolveState resolveState;
@@ -87,7 +87,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         this.id = id;
         this.componentIdentifier = componentIdentifier;
         this.resolver = resolver;
-        this.implicitCapability = ImmutableCapability.defaultCapabilityForComponent(id);
+        this.implicitCapability = DefaultImmutableCapability.defaultCapabilityForComponent(id);
         this.attributeDesugaring = attributeDesugaring;
         this.hashCode = 31 * id.hashCode() ^ resultId.hashCode();
     }

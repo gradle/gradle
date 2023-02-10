@@ -37,7 +37,7 @@ import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.util.internal.TextUtil;
 
@@ -136,7 +136,7 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
 
     @Override
     public JvmVariantBuilder capability(String group, String name, String version) {
-        return capability(new ImmutableCapability(group, name, version));
+        return capability(new DefaultImmutableCapability(group, name, version));
     }
 
     @Override

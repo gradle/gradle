@@ -55,7 +55,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.instantiation.InstanceGenerator;
 
@@ -393,7 +393,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             if (capabilities == null) {
                 capabilities = Lists.newArrayList();
             }
-            ImmutableCapability capability = new ImmutableCapability(group, name, version);
+            DefaultImmutableCapability capability = new DefaultImmutableCapability(group, name, version);
             if (capability.getVersion() == null) {
                 throw new InvalidUserDataException("Capabilities declared on outgoing variants must have a version");
             }
