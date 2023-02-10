@@ -15,35 +15,25 @@
  */
 package org.gradle.api.plugins.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
-import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
-import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
+import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
-import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.JvmTestSuitePlugin;
-import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
@@ -51,14 +41,9 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
-import org.gradle.internal.jvm.JavaModuleDetector;
-import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.testing.base.TestSuite;
-import org.gradle.testing.base.TestingExtension;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -129,7 +114,7 @@ public class JvmPluginsHelper {
         if (!tasks.getNames().contains(javadocTaskName)) {
             tasks.register(javadocTaskName, Javadoc.class, javadoc -> {
                 javadoc.setDescription("Generates Javadoc API documentation for the " + (featureName == null ? "main source code." : "'" + featureName + "' feature."));
-                javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
+                javadoc.setGroup(JvmConstants.DOCUMENTATION_GROUP);
                 javadoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
                 javadoc.setSource(sourceSet.getAllJava());
                 if (javaPluginExtension != null) {
@@ -183,55 +168,4 @@ public class JvmPluginsHelper {
         return variant;
     }
 
-    /**
-     * Gets the main Java component. This method assumes the Java plugin is applied.
-     *
-     * @throws GradleException If the {@code java} component does not exist.
-     */
-    public static JvmSoftwareComponentInternal getJavaComponent(Project project) {
-        SoftwareComponent component = project.getComponents().findByName("java");
-
-        if (!(component instanceof JvmSoftwareComponentInternal)) {
-            throw new GradleException("The Java plugin must be applied to access the java component.");
-        }
-
-        return (JvmSoftwareComponentInternal) component;
-    }
-
-    /**
-     * Gets the default test suite. This method assumes the Java plugin is applied.
-     *
-     * @throws GradleException If the default test suite does not exist.
-     */
-    public static JvmTestSuite getDefaultTestSuite(Project project) {
-        String message = "The Java plugin must be applied to access the default test suite.";
-
-        TestingExtension testing = project.getExtensions().findByType(TestingExtension.class);
-        if (testing == null) {
-            throw new GradleException(message);
-        }
-
-        TestSuite defaultTestSuite = testing.getSuites().findByName(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME);
-        if (!(defaultTestSuite instanceof JvmTestSuite)) {
-            throw new GradleException(message);
-        }
-
-        return (JvmTestSuite) defaultTestSuite;
-    }
-
-    public static Action<ConfigurationInternal> configureLibraryElementsAttributeForCompileClasspath(boolean javaClasspathPackaging, SourceSet sourceSet, TaskProvider<JavaCompile> compileTaskProvider, ObjectFactory objectFactory) {
-        return conf -> {
-            AttributeContainerInternal attributes = conf.getAttributes();
-            if (!attributes.contains(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)) {
-                String libraryElements;
-                // If we are compiling a module, we require JARs of all dependencies as they may potentially include an Automatic-Module-Name
-                if (javaClasspathPackaging || JavaModuleDetector.isModuleSource(compileTaskProvider.get().getModularity().getInferModulePath().get(), CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree()))) {
-                    libraryElements = LibraryElements.JAR;
-                } else {
-                    libraryElements = LibraryElements.CLASSES;
-                }
-                attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, libraryElements));
-            }
-        };
-    }
 }
