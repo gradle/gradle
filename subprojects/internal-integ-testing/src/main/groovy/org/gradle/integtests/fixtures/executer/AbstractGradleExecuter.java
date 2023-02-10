@@ -39,8 +39,7 @@ import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.agents.DefaultAgentStatus;
-import org.gradle.internal.agents.DisabledAgentStatus;
+import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -113,7 +112,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         .parent(newCommandLineProcessLogging())
         .parent(NativeServicesTestFixture.getInstance())
         .parent(ValidationServicesFixture.getServices())
-        .provider(new GlobalScopeServices(true, isAgentInstrumentationEnabled() ? new DefaultAgentStatus() : new DisabledAgentStatus()))
+        .provider(new GlobalScopeServices(true, AgentStatus.of(isAgentInstrumentationEnabled())))
         .build();
 
     private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);

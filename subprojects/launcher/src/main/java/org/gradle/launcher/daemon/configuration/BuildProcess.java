@@ -20,7 +20,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.agents.AgentStatus;
-import org.gradle.internal.agents.DefaultAgentStatus;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.process.internal.JvmOptions;
@@ -34,7 +33,7 @@ public class BuildProcess extends CurrentProcess {
     public BuildProcess(FileCollectionFactory fileCollectionFactory) {
         super(fileCollectionFactory);
         // For purposes of this class, it is better to check if the agent is actually applied, regardless of the feature flag status.
-        this.agentStatus = new DefaultAgentStatus();
+        this.agentStatus = AgentStatus.allowed();
     }
 
     protected BuildProcess(JavaInfo jvm, JvmOptions effectiveJvmOptions, AgentStatus agentStatus) {

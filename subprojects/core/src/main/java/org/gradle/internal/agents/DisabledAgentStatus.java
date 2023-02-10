@@ -16,7 +16,7 @@
 
 package org.gradle.internal.agents;
 
-public class DisabledAgentStatus implements AgentStatus {
+class DisabledAgentStatus implements AgentStatus {
     @Override
     public boolean isAgentInstrumentationEnabled() {
         return false;
