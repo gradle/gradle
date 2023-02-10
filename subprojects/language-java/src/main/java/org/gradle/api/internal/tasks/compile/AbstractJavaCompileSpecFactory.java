@@ -49,7 +49,7 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
 
             String customExecutable = compileOptions.getForkOptions().getExecutable();
             if (customExecutable != null) {
-                return getCommandLineSpec(JavaExecutableUtils.validateExecutable(customExecutable));
+                return getCommandLineSpec(JavaExecutableUtils.resolveExecutable(customExecutable));
             }
 
             return getForkingSpec(Jvm.current().getJavaHome());
