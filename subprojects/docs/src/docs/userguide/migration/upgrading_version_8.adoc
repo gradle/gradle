@@ -40,6 +40,13 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Kotlin DSL scripts emit compilation warnings
+
+Compilation warnings from Kotlin DSL scripts are printed to the console output.
+For example, the use of deprecated APIs in Kotlin DSL will emit warnings each time the script is compiled.
+
+This is a potentially breaking change if you are consuming the console output of Gradle builds.
+
 === Deprecations
 
 [[custom_configuration_roles]]
