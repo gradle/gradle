@@ -30,4 +30,27 @@ public interface AgentStatus {
      * @return {@code true} if the agent instrumentation should be used
      */
     boolean isAgentInstrumentationEnabled();
+
+    /**
+     * Returns an AgentStatus instance that enables instrumentation if the agent is available.
+     */
+    static AgentStatus allowed() {
+        return new DefaultAgentStatus();
+    }
+
+    /**
+     * Returns an AgentStatus instance that disables instrumentation regardless of the agent's availability.
+     */
+    static AgentStatus disabled() {
+        return new DisabledAgentStatus();
+    }
+
+    /**
+     * Returns {@link #allowed()} or {@link #disabled()} AgentStatus according to the value of the flag.
+     *
+     * @param agentInstrumentationAllowed if {@code true} then the returned status allows instrumentation
+     */
+    static AgentStatus of(boolean agentInstrumentationAllowed) {
+        return agentInstrumentationAllowed ? allowed() : disabled();
+    }
 }

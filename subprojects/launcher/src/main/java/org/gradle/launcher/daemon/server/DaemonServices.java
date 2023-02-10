@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.agents.AgentStatus;
-import org.gradle.internal.agents.DefaultAgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -84,7 +83,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         this.loggingManager = loggingManager;
 
         addProvider(new DaemonRegistryServices(configuration.getBaseDir()));
-        addProvider(new GlobalScopeServices(!configuration.isSingleUse(), new DefaultAgentStatus(), additionalModuleClassPath));
+        addProvider(new GlobalScopeServices(!configuration.isSingleUse(), AgentStatus.allowed(), additionalModuleClassPath));
     }
 
     protected DaemonContext createDaemonContext(AgentStatus agentStatus) {
