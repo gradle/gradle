@@ -63,6 +63,7 @@ class DefaultConfigurationCache internal constructor(
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationExecutor: BuildOperationExecutor,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController,
+    private val encryptionService: ConfigurationCacheEncryptionService,
     /**
      * Force the [FileSystemAccess] service to be initialized as it initializes important static state.
      */
