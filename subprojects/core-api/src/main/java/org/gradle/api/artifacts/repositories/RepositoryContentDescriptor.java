@@ -42,7 +42,9 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
      * Declares that an entire group and subgroups should be searched for in this repository.
      *
      * @param group the group name
+     * @since 8.1
      */
+    @Incubating
     @Override
     void includeGroupAndSubGroups(String group);
 
@@ -106,9 +108,8 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
     /**
      * Declares that an entire group and subgroups shouldn't be searched for in this repository.
      *
-     * @since 8.1
-     *
      * @param group the group name
+     * @since 8.1
      */
     @Incubating
     void excludeGroupAndSubGroups(String group);
