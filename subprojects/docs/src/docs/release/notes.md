@@ -295,7 +295,7 @@ To ensure future compatibility, the [CodeNarc Plugin](userguide/codenarc_plugin.
 
 You can still explicitly specify a CodeNarc version with the `toolVersion` property on the [CodeNarcExtension](dsl/org.gradle.api.plugins.quality.CodeNarcExtension.html#org.gradle.api.plugins.quality.CodeNarcExtension).
 
-#### PMD and CodeNarc tasks now execute in parallel by default
+#### Enhanced PMD tasks to execute in parallel by default
 
 The [PMD](userguide/pmd_plugin.html) plugin performs quality checks on your project’s Java source files using a static code analyzer. It now uses the Gradle [worker API](userguide/custom_tasks.html#worker_api) and [JVM toolchains](userguide/toolchains.html#header). This tool now performs analysis via an external worker process, and therefore its tasks may now run in parallel within one project.
 
