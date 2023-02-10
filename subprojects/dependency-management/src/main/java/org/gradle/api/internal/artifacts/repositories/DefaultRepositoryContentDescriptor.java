@@ -132,18 +132,6 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         return matchers;
     }
 
-    @Override
-    public void includeGroup(String group) {
-        checkNotNull(group, "Group cannot be null");
-        addInclude(group, null, null, MatcherKind.SIMPLE);
-    }
-
-    @Override
-    public void includeGroupAndSubGroups(String group) {
-        checkNotNull(group, "Group cannot be null");
-        addInclude(group, null, null, MatcherKind.SUB_GROUP);
-    }
-
     private static void checkNotNull(@Nullable String value, String message) {
         if (value == null) {
             throw new IllegalArgumentException(message);
@@ -151,8 +139,20 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     @Override
+    public void includeGroup(String group) {
+        checkNotNull(group, "Group cannot be null");
+        addInclude(group, null, null, MatcherKind.SIMPLE);
+    }
+
+    @Override
+    public void includeGroupAndSubgroups(String groupPrefix) {
+        checkNotNull(groupPrefix, "Group prefix cannot be null");
+        addInclude(groupPrefix, null, null, MatcherKind.SUB_GROUP);
+    }
+
+    @Override
     public void includeGroupByRegex(String groupRegex) {
-        checkNotNull(groupRegex, "Group cannot be null");
+        checkNotNull(groupRegex, "Group regex cannot be null");
         addInclude(groupRegex, null, null, MatcherKind.REGEX);
     }
 
@@ -165,8 +165,8 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
 
     @Override
     public void includeModuleByRegex(String groupRegex, String moduleNameRegex) {
-        checkNotNull(groupRegex, "Group cannot be null");
-        checkNotNull(moduleNameRegex, "Module name cannot be null");
+        checkNotNull(groupRegex, "Group regex cannot be null");
+        checkNotNull(moduleNameRegex, "Module name regex cannot be null");
         addInclude(groupRegex, moduleNameRegex, null, MatcherKind.REGEX);
     }
 
@@ -180,9 +180,9 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
 
     @Override
     public void includeVersionByRegex(String groupRegex, String moduleNameRegex, String versionRegex) {
-        checkNotNull(groupRegex, "Group cannot be null");
-        checkNotNull(moduleNameRegex, "Module name cannot be null");
-        checkNotNull(versionRegex, "Version cannot be null");
+        checkNotNull(groupRegex, "Group regex cannot be null");
+        checkNotNull(moduleNameRegex, "Module name regex cannot be null");
+        checkNotNull(versionRegex, "Version regex cannot be null");
         addInclude(groupRegex, moduleNameRegex, versionRegex, MatcherKind.REGEX);
     }
 
@@ -201,14 +201,14 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     }
 
     @Override
-    public void excludeGroupAndSubGroups(String group) {
-        checkNotNull(group, "Group cannot be null");
-        addExclude(group, null, null, MatcherKind.SUB_GROUP);
+    public void excludeGroupAndSubgroups(String groupPrefix) {
+        checkNotNull(groupPrefix, "Group prefix cannot be null");
+        addExclude(groupPrefix, null, null, MatcherKind.SUB_GROUP);
     }
 
     @Override
     public void excludeGroupByRegex(String groupRegex) {
-        checkNotNull(groupRegex, "Group cannot be null");
+        checkNotNull(groupRegex, "Group regex cannot be null");
         addExclude(groupRegex, null, null, MatcherKind.REGEX);
     }
 
@@ -221,8 +221,8 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
 
     @Override
     public void excludeModuleByRegex(String groupRegex, String moduleNameRegex) {
-        checkNotNull(groupRegex, "Group cannot be null");
-        checkNotNull(moduleNameRegex, "Module name cannot be null");
+        checkNotNull(groupRegex, "Group regex cannot be null");
+        checkNotNull(moduleNameRegex, "Module name regex cannot be null");
         addExclude(groupRegex, moduleNameRegex, null, MatcherKind.REGEX);
     }
 
@@ -236,9 +236,9 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
 
     @Override
     public void excludeVersionByRegex(String groupRegex, String moduleNameRegex, String versionRegex) {
-        checkNotNull(groupRegex, "Group cannot be null");
-        checkNotNull(moduleNameRegex, "Module name cannot be null");
-        checkNotNull(versionRegex, "Version cannot be null");
+        checkNotNull(groupRegex, "Group regex cannot be null");
+        checkNotNull(moduleNameRegex, "Module name regex cannot be null");
+        checkNotNull(versionRegex, "Version regex cannot be null");
         addExclude(groupRegex, moduleNameRegex, versionRegex, MatcherKind.REGEX);
     }
 

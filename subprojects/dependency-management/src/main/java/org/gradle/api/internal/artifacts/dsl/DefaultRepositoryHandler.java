@@ -198,8 +198,8 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
             }
 
             @Override
-            public void includeGroupAndSubGroups(String group) {
-                desc.includeGroupAndSubGroups(group);
+            public void includeGroupAndSubgroups(String groupPrefix) {
+                desc.includeGroupAndSubgroups(groupPrefix);
             }
 
             @Override
