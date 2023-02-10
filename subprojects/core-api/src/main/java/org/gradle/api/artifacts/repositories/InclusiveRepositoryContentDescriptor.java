@@ -42,9 +42,8 @@ public interface InclusiveRepositoryContentDescriptor {
     /**
      * Declares that an entire group and subgroups should be searched for in this repository.
      *
-     * @since 8.1
-     *
      * @param group the group name
+     * @since 8.1
      */
     @Incubating
     void includeGroupAndSubGroups(String group);
