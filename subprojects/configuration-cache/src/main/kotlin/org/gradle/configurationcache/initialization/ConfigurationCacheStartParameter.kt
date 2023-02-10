@@ -43,7 +43,7 @@ class ConfigurationCacheStartParameter(
 
     val taskExecutionAccessPreStable: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")).get()
 
-    val encryptedCache: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.encrypted", false)).get()
+    val encryptedCache: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.encrypted", true)).get()
 
     val keystorePath: String? = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.key-store-path", null)).get()
 
