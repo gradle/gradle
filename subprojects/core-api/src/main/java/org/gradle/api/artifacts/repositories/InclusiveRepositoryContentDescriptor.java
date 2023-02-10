@@ -40,13 +40,20 @@ public interface InclusiveRepositoryContentDescriptor {
     void includeGroup(String group);
 
     /**
-     * Declares that an entire group and subgroups should be searched for in this repository.
+     * Declares that an entire group and its subgroups should be searched for in this repository.
      *
-     * @param group the group name
+     * <p>
+     * A subgroup is a group that starts with the given prefix and has a dot immediately after the prefix.
+     * For example, if the prefix is {@code org.gradle}, then {@code org.gradle} is matched as a group,
+     * and {@code org.gradle.foo} and {@code org.gradle.foo.bar} are matched as subgroups. {@code org.gradlefoo}
+     * is not matched as a subgroup.
+     * </p>
+     *
+     * @param groupPrefix the group prefix to include
      * @since 8.1
      */
     @Incubating
-    void includeGroupAndSubGroups(String group);
+    void includeGroupAndSubgroups(String groupPrefix);
 
     /**
      * Declares that an entire group should be searched for in this repository.
