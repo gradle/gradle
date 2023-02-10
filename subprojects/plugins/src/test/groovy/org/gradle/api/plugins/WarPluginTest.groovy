@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.tasks.bundling.War
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
@@ -63,7 +64,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
         task instanceof War
-        dependsOn(JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME).matches(task)
+        dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME).matches(task)
         task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
 
         when:
@@ -121,7 +122,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         def task = project.task('customWar', type: War)
 
         then:
-        dependsOn(JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME).matches(task)
+        dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME).matches(task)
         task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
     }
 

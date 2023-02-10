@@ -25,8 +25,8 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.SourceSet;
@@ -363,7 +363,7 @@ public abstract class EclipseClasspath {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
         boolean inferModulePath = false;
-        Task javaCompileTask = project.getTasks().findByName(JavaPlugin.COMPILE_JAVA_TASK_NAME);
+        Task javaCompileTask = project.getTasks().findByName(JvmConstants.COMPILE_JAVA_TASK_NAME);
         if (javaCompileTask instanceof JavaCompile) {
             JavaCompile javaCompile = (JavaCompile) javaCompileTask;
             inferModulePath = javaCompile.getModularity().getInferModulePath().get();
