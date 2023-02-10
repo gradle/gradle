@@ -21,7 +21,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.plugins.jvm.internal.JvmModelingServices;
 import org.gradle.api.plugins.jvm.internal.JvmVariantBuilderInternal;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 
 import java.util.List;
 
@@ -55,7 +55,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
             capabilities.clear();
             overrideDefaultCapability = false;
         }
-        capabilities.add(new ImmutableCapability(group, name, version));
+        capabilities.add(new DefaultImmutableCapability(group, name, version));
     }
 
     @Override
