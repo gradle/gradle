@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
@@ -62,11 +61,16 @@ public interface LocalConfigurationMetadataBuilder {
         private final Map<String, DefaultLocalConfigurationMetadataBuilder.DependencyState> cache = new HashMap<>();
 
         public DefaultLocalConfigurationMetadataBuilder.DependencyState computeIfAbsent(
-            Configuration configuration,
+            ConfigurationInternal configuration,
             ComponentIdentifier componentId,
-            BiFunction<Configuration, ComponentIdentifier, DefaultLocalConfigurationMetadataBuilder.DependencyState> factory
+            BiFunction<ConfigurationInternal, ComponentIdentifier, DefaultLocalConfigurationMetadataBuilder.DependencyState> factory
         ) {
-            return cache.computeIfAbsent(configuration.getName(), name -> factory.apply(configuration, componentId));
+            DependencyState state = cache.get(configuration.getName());
+            if (state == null) {
+                state = factory.apply(configuration, componentId);
+                cache.put(configuration.getName(), state);
+            }
+            return state;
         }
 
         public void invalidate() {
