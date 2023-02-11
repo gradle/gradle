@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -77,9 +76,6 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ModelContainer<?> model,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        // Run any actions to add/modify dependencies
-        configuration.runDependencyActions();
-
         ComponentIdentifier componentId = parent.getId();
         ComponentConfigurationIdentifier configurationIdentifier = new ComponentConfigurationIdentifier(componentId, configuration.getName());
 
@@ -144,7 +140,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ImmutableSet.Builder<LocalFileDependencyMetadata> files = ImmutableSet.builder();
         ImmutableList.Builder<ExcludeMetadata> excludes = ImmutableList.builder();
 
-        for (Configuration config : configurations.getAll()) {
+        for (ConfigurationInternal config : configurations.getAll()) {
             if (hierarchy.contains(config.getName())) {
                 DependencyState defined = getDefinedState(config, componentId, cache);
                 dependencies.addAll(defined.dependencies);
@@ -159,7 +155,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
     /**
      * Get the defined dependencies and excludes for {@code configuration}, while also caching the result.
      */
-    private DependencyState getDefinedState(Configuration configuration, ComponentIdentifier componentId, DependencyCache cache) {
+    private DependencyState getDefinedState(ConfigurationInternal configuration, ComponentIdentifier componentId, DependencyCache cache) {
         return cache.computeIfAbsent(configuration, componentId, this::doGetDefinedState);
     }
 
@@ -167,7 +163,9 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
      * Calculate the defined dependencies and excludes for {@code configuration}, while converting the
      * DSL representation to the internal representation.
      */
-    private DependencyState doGetDefinedState(Configuration configuration, ComponentIdentifier componentId) {
+    private DependencyState doGetDefinedState(ConfigurationInternal configuration, ComponentIdentifier componentId) {
+        // Run any actions to add/modify dependencies
+        configuration.runDependencyActions();
 
         AttributeContainer attributes = configuration.getAttributes();
 
