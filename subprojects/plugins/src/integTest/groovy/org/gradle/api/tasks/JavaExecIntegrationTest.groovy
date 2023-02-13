@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
 class JavaExecIntegrationTest extends AbstractIntegrationSpec {
@@ -69,7 +70,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
     def "emits deprecation warning if executable specified as relative path"() {
         given:
-        def executable = Jvm.current().javaExecutable
+        def executable = TextUtil.normaliseFileSeparators(Jvm.current().javaExecutable.toString())
 
         buildFile << """
             tasks.withType(JavaExec) {

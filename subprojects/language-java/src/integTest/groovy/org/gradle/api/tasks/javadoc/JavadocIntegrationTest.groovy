@@ -127,7 +127,7 @@ Joe!""")
 
     def "emits deprecation warning if executable specified as relative path"() {
         given:
-        def executable = Jvm.current().javadocExecutable
+        def executable = TextUtil.normaliseFileSeparators(Jvm.current().javadocExecutable.toString())
 
         buildFile << """
             task javadoc(type: Javadoc) {

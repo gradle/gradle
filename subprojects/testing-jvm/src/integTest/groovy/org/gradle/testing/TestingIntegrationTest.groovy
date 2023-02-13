@@ -25,6 +25,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.TextUtil
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -428,7 +429,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
 
     def "emits deprecation warning if executable specified as relative path"() {
         given:
-        def executable = Jvm.current().javaExecutable
+        def executable = TextUtil.normaliseFileSeparators(Jvm.current().javaExecutable.toString())
 
         buildFile << """
             apply plugin:'java'
