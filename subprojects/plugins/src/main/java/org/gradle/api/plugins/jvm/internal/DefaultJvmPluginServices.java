@@ -247,17 +247,17 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     @Override
-    public void createJvmVariant(String name, Action<? super JvmVariantBuilder> configuration) {
+    public void createJvmVariant(String name, SourceSet sourceSet, Action<? super JvmVariantBuilder> action) {
         DefaultJvmVariantBuilder builder = instanceGenerator.newInstance(DefaultJvmVariantBuilder.class,
             name,
+            sourceSet,
             new ProjectDerivedCapability(project, name),
             this,
-            sourceSets,
             configurations,
             tasks,
             components,
             project);
-        configuration.execute(builder);
+        action.execute(builder);
         builder.build();
     }
 

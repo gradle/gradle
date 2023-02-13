@@ -42,8 +42,7 @@ class JvmVariantBuilderIntegrationTest extends AbstractIntegrationSpec {
 
             ${mavenCentralRepository()}
 
-            jvm.createJvmVariant("integTest") {
-            }
+            jvm.createJvmVariant("integTest", sourceSets.create("integTest")) {}
 
             configurations {
                 integTestImplementation.extendsFrom(testImplementation)
@@ -90,7 +89,7 @@ class JvmVariantBuilderIntegrationTest extends AbstractIntegrationSpec {
             sourceSets {
                 integTestFixtures
             }
-            jvm.createJvmVariant("integTestFixtures") {
+            jvm.createJvmVariant("integTestFixtures", sourceSets.create("integTestFixtures")) {
                 distinctCapability()
                 withDisplayName("Integration test fixtures")
                 if ($exposeApi) { exposesApi() }
