@@ -28,9 +28,12 @@ import org.gradle.kotlin.dsl.support.invalidPluginsCall
 import org.gradle.kotlin.dsl.template.KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider
 import org.gradle.plugin.use.PluginDependenciesSpec
 import kotlin.script.experimental.annotations.KotlinScript
+import kotlin.script.experimental.api.asSuccess
 import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.filePathPattern
 import kotlin.script.experimental.api.implicitReceivers
+import kotlin.script.experimental.api.refineConfiguration
+import kotlin.script.experimental.api.with
 import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
 import kotlin.script.templates.ScriptTemplateDefinition
 
@@ -40,6 +43,21 @@ class KotlinProjectScriptTemplateCompilationConfiguration : KotlinDslStandaloneS
     filePathPattern.put(".+(?<!(^|\\.)(init|settings))\\.gradle\\.kts")
     baseClass(KotlinProjectScriptTemplate::class)
     implicitReceivers(Project::class)
+    refineConfiguration {
+        println("KotlinProjectScriptTemplateCompilationConfiguration: refineConfiguration")
+        beforeParsing { (source, compilationConfiguration, _) ->
+            println("KotlinProjectScriptTemplateCompilationConfiguration: beforeParsing: ${source.locationId}")
+            compilationConfiguration.with {
+                println("KotlinProjectScriptTemplateCompilationConfiguration: beforeParsing::compilationConfiguration: ${source.locationId}")
+            }.asSuccess()
+        }
+        beforeCompiling { (source, compilationConfiguration, _) ->
+            println("KotlinProjectScriptTemplateCompilationConfiguration: beforeCompiling: ${source.locationId}")
+            compilationConfiguration.with {
+                println("KotlinProjectScriptTemplateCompilationConfiguration: beforeCompiling::compilationConfiguration: ${source.locationId}")
+            }.asSuccess()
+        }
+    }
 })
 
 
