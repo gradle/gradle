@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.test.fixtures.file.TestFile
@@ -62,6 +63,8 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         """
     }
 
+    @IgnoreIf({ GradleContextualExecuter.parallel })
+    @UnsupportedWithConfigurationCache(because = "parallel by default")
     def "reuses compiler daemons within a single project build"() {
         withSingleProjectSources()
 
@@ -76,6 +79,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
+    @UnsupportedWithConfigurationCache(because = "parallel by default")
     def "reuses compiler daemons within a multi-project build"() {
         withMultiProjectSources()
 
