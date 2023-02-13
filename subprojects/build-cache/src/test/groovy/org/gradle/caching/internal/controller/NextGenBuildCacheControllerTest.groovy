@@ -26,6 +26,7 @@ import org.gradle.internal.file.TreeType
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor
 import org.gradle.internal.snapshot.RelativePathTracker
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor
 import org.gradle.internal.snapshot.SnapshotUtil
@@ -112,11 +113,14 @@ class NextGenBuildCacheControllerTest extends Specification {
         then:
         actualSnapshot instanceof DirectorySnapshot
         actualSnapshot.absolutePath == root.absolutePath
-        actualSnapshot.accept { FileSystemLocationSnapshot entry ->
-            // Make sure don't have entries in the directory snapshot apart from itself
-            entry == this
-            return SnapshotVisitResult.CONTINUE
-        }
+        actualSnapshot.accept(new FileSystemSnapshotHierarchyVisitor() {
+            @Override
+            SnapshotVisitResult visitEntry(FileSystemLocationSnapshot entry) {
+                // Make sure we don't have entries in the directory snapshot apart from itself
+                assert entry == actualSnapshot
+                return SnapshotVisitResult.CONTINUE
+            }
+        })
     }
 
     void createFileOutput(TestFile location) {
