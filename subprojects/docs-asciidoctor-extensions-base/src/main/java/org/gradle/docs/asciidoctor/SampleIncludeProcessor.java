@@ -51,18 +51,6 @@ public class SampleIncludeProcessor extends IncludeProcessor {
         return Collections.unmodifiableMap(map);
     }
 
-    // Even though these are unused, these constructors are necessary to prevent
-    // "(ArgumentError) asciidoctor: FAILED: Failed to load AsciiDoc document - wrong number of arguments (1 for 0)"
-    // See https://github.com/asciidoctor/asciidoctorj/issues/451#issuecomment-210914940
-    // This is fixed in asciidoctorj 1.6.0
-    public SampleIncludeProcessor() {
-        super(new HashMap<>());
-    }
-
-    public SampleIncludeProcessor(Map<String, Object> config) {
-        super(config);
-    }
-
     @Override
     public boolean handles(String target) {
         return target.equals(SAMPLE);
