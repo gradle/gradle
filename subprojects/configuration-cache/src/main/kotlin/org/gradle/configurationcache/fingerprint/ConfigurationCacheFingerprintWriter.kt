@@ -173,11 +173,6 @@ class ConfigurationCacheFingerprintWriter(
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
     init {
-        buildScopedSink.write(
-            ConfigurationCacheFingerprint.EncryptionSignature(
-                host.isEncrypted, host.encryptionKeyHashCode
-            )
-        )
         buildScopedSink.initScripts(host.allInitScripts)
         buildScopedSink.write(
             ConfigurationCacheFingerprint.GradleEnvironment(

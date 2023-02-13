@@ -36,17 +36,30 @@ import javax.crypto.spec.IvParameterSpec
 
 
 internal
-interface ConfigurationCacheEncryptionService {
-    fun outputStream(stateFile: ConfigurationCacheStateFile): OutputStream
-    fun inputStream(stateFile: ConfigurationCacheStateFile): InputStream
+interface EncryptionConfiguration {
     val isEncrypting: Boolean
     val encryptionKeyHashCode: HashCode
 }
 
 
+internal
+interface EncryptionService : EncryptionConfiguration {
+    fun outputStream(stateType: StateType, output: () -> OutputStream): OutputStream
+    fun outputStream(stateFile: ConfigurationCacheStateFile): OutputStream =
+        outputStream(stateFile.stateType, stateFile::outputStream)
+    fun outputStream(stateFile: ConfigurationCacheStateStore.StateFile): OutputStream =
+        outputStream(stateFile.stateType, stateFile.file::outputStream)
+    fun inputStream(stateType: StateType, input: () -> InputStream): InputStream
+    fun inputStream(stateFile: ConfigurationCacheStateFile): InputStream =
+        inputStream(stateFile.stateType, stateFile::inputStream)
+    fun inputStream(stateFile: ConfigurationCacheStateStore.StateFile): InputStream =
+        inputStream(stateFile.stateType, stateFile.file::inputStream)
+}
+
+
 @ServiceScope(Scopes.BuildTree::class)
 internal
-class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) : ConfigurationCacheEncryptionService {
+class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) : EncryptionService {
     private
     val keyStorePath: File = startParameter.keystorePath
         ?.let { File(it) } ?: File(startParameter.gradleUserHomeDir, "gradle.keystore")
@@ -59,8 +72,7 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
 
     private
     val keyProtection =
-        keyPassword
-            .let { PasswordProtection(it.toCharArray()) }
+        PasswordProtection(keyPassword.toCharArray())
 
     private
     val encryptingRequested: Boolean = startParameter.encryptedCache
@@ -73,9 +85,9 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
 
     init {
         if (encryptingRequested) {
-            logger.warn("Configuration cache encryption requested, using keystore: {}", keyStorePath)
+            logger.info("Configuration cache encryption requested, using keystore: {}", keyStorePath)
             if (!isEncrypting) {
-                logger.info("Configuration cache encryption requested but not enabled")
+                logger.warn("Configuration cache encryption requested but not enabled")
             }
         }
     }
@@ -109,7 +121,7 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
             logger.debug("No keystore found")
             ks.load(null, null)
             key = generateKey(ks, alias)
-            logger.warn("Key added to a new keystore at $keyStorePath")
+            logger.debug("Key added to a new keystore at $keyStorePath")
         }
         return key
     }
@@ -135,17 +147,19 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
         }.hash()
     } ?: Hashing.newHasher().hash()
 
-    override fun outputStream(stateFile: ConfigurationCacheStateFile): OutputStream =
-        if (shouldEncrypt && stateFile.stateType.encryptable)
-            encryptingOutputStream(stateFile.outputStream())
-        else
-            stateFile.outputStream()
+    override fun outputStream(stateType: StateType, output: () -> OutputStream): OutputStream =
+        if (shouldEncrypt && stateType.encryptable) {
+            logger.debug("Encrypting $stateType")
+            encryptingOutputStream(output.invoke())
+        } else
+            output.invoke()
 
-    override fun inputStream(stateFile: ConfigurationCacheStateFile): InputStream =
-        if (shouldEncrypt && stateFile.stateType.encryptable)
-            decryptingInputStream(stateFile.inputStream())
-        else
-            stateFile.inputStream()
+    override fun inputStream(stateType: StateType, input: () -> InputStream): InputStream =
+        if (shouldEncrypt && stateType.encryptable) {
+            logger.debug("Decrypting $stateType")
+            decryptingInputStream(input.invoke())
+        } else
+            input.invoke()
 
     private
     fun decryptingInputStream(inputStream: InputStream): InputStream {
@@ -165,6 +179,7 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
         return CipherOutputStream(outputStream, cipher)
     }
 
+    private
     fun cipher() = Cipher.getInstance("AES/CBC/PKCS5Padding")
 }
 
