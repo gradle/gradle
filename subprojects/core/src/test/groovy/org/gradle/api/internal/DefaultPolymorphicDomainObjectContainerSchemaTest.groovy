@@ -58,7 +58,7 @@ class DefaultPolymorphicDomainObjectContainerSchemaTest extends Specification {
     static class DefaultPerson extends AbstractPerson {
     }
 
-    @PublicType(MarkedPerson)
+    @PublicType(type = MarkedPerson)
     static abstract class AbstractMarkedIntrovert extends AbstractPerson {}
 
     static class SecretlyMarkedIntrovert extends AbstractMarkedIntrovert {
@@ -67,7 +67,7 @@ class DefaultPolymorphicDomainObjectContainerSchemaTest extends Specification {
         }
     }
 
-    @PublicType(MarkedPerson)
+    @PublicType(type = MarkedPerson)
     static class MarkedIntrovert extends AbstractPerson {
         MarkedIntrovert(String name) {
             this.name = name

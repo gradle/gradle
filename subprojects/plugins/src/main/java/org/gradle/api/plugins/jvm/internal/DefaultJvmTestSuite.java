@@ -52,7 +52,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@PublicType(JvmTestSuite.class)
+@PublicType(type = JvmTestSuite.class)
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     /**
      * Dependency information and default versions for supported testing frameworks.
