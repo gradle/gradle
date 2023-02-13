@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
  * <ul>
  *     <li>{@code @PublicType} without parameters means that annotated type is the public type</li>
  *     <li>{@code @PublicType(type = SomeOtherType.class)} means that {@code SomeOtherType} is the public type of the annotated type</li>
- *     <li>{@code @PublicType(supplier = ThePublicTypeSupplier.class)} means that {@code @ThePublicTypeSupplier}, which must implement {@link PublicTypeSupplier} must be used to resolve the public type of the annotated type</li>
+ *     <li>{@code @PublicType(supplier = ThePublicTypeSupplier.class)} means that {@code @ThePublicTypeSupplier}, which must implement {@link PublicTypeSupplier}, must be used to resolve the public type of the annotated type</li>
  * </ul>
  *
  * Using a {@link PublicTypeSupplier} allows to capture high fidelity generic type tokens with {@link TypeOf}.
@@ -60,7 +60,7 @@ public @interface PublicType {
     Class<? extends PublicTypeSupplier> supplier() default NoSupplier.class;
 
     /**
-     * Default value for {@link PublicType} annotation {@code value} parameter.
+     * Default value for {@link PublicType} annotation {@code type} parameter.
      *
      * Means that the annotated class is the public type.
      *
@@ -77,7 +77,7 @@ public @interface PublicType {
     /**
      * Default value for {@link PublicType} annotation {@code supplier} parameter.
      *
-     * Means that there is no supplied provided and the {@code value} parameter should be used instead.
+     * Means that there is no supplied provided and the {@code type} parameter should be used instead.
      *
      * This type should not be used by user code and is intended for internal handling only.
      *
@@ -89,6 +89,8 @@ public @interface PublicType {
         private NoSupplier() {}
 
         @Override
-        public TypeOf<?> getPublicType() {throw new UnsupportedOperationException();}
+        public TypeOf<?> getPublicType() {
+            throw new UnsupportedOperationException();
+        }
     }
 }
