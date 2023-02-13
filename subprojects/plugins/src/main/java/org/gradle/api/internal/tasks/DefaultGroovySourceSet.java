@@ -19,19 +19,18 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.reflect.HasPublicType;
-import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.reflect.PublicType;
 import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.GroovySourceSet;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
 @Deprecated
-public abstract class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
+@PublicType(type = GroovySourceSet.class)
+public abstract class DefaultGroovySourceSet implements GroovySourceSet {
     private final GroovySourceDirectorySet groovy;
     private final SourceDirectorySet allGroovy;
 
@@ -69,10 +68,5 @@ public abstract class DefaultGroovySourceSet implements GroovySourceSet, HasPubl
     @Override
     public SourceDirectorySet getAllGroovy() {
         return allGroovy;
-    }
-
-    @Override
-    public TypeOf<?> getPublicType() {
-        return typeOf(GroovySourceSet.class);
     }
 }

@@ -1047,7 +1047,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `convention accessors honor HasPublicType`() {
+    fun `convention accessors honor PublicType and HasPublicType`() {
 
         withDefaultSettingsIn("buildSrc")
 
@@ -1118,6 +1118,29 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             containsString("Type of `myConvention` receiver is Any")
         )
 
+        // @PublicType
+        withFile(
+            "buildSrc/src/main/kotlin/plugins/MyConvention.kt",
+            """
+            package plugins
+
+            import org.gradle.api.reflect.*
+            import org.gradle.kotlin.dsl.*
+
+            interface MyConvention
+
+            @PublicType(type = MyConvention::class)
+            internal
+            class MyPrivateConventionImpl : MyConvention
+            """
+        )
+
+        assertThat(
+            build("help").output,
+            containsString("Type of `myConvention` receiver is MyConvention")
+        )
+
+        // HasPublicType
         withFile(
             "buildSrc/src/main/kotlin/plugins/MyConvention.kt",
             """

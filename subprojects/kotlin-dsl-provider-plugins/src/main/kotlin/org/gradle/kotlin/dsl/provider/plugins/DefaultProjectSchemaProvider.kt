@@ -23,8 +23,8 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
@@ -242,18 +242,7 @@ fun sourceSetsOf(project: Project) =
 
 private
 fun inferPublicTypeOfConvention(instance: Any) =
-    if (instance is HasPublicType) instance.publicType
-    else TypeOf.typeOf(instance::class.java.firstNonSyntheticOrSelf)
-
-
-private
-val Class<*>.firstNonSyntheticOrSelf
-    get() = firstNonSyntheticOrNull ?: this
-
-
-private
-val Class<*>.firstNonSyntheticOrNull: Class<*>?
-    get() = takeIf { !isSynthetic } ?: superclass?.firstNonSyntheticOrNull
+    DslObject(instance).publicType
 
 
 private

@@ -21,15 +21,14 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.reflect.PublicType;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
 
-import static org.gradle.api.reflect.TypeOf.typeOf;
-
+@PublicType(type = SourceSetContainer.class)
 public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObjectContainer<SourceSet> implements SourceSetContainer {
     private final ObjectFactory objectFactory;
     private final FileResolver fileResolver;
@@ -57,10 +56,5 @@ public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObje
         DefaultSourceSet sourceSet = instantiator.newInstance(DefaultSourceSet.class, name, objectFactory);
         sourceSet.setClasses(instantiator.newInstance(DefaultSourceSetOutput.class, sourceSet.getDisplayName(), taskDependencyFactory, fileResolver, fileCollectionFactory));
         return sourceSet;
-    }
-
-    @Override
-    public TypeOf<?> getPublicType() {
-        return typeOf(SourceSetContainer.class);
     }
 }

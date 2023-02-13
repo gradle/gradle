@@ -19,8 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.reflect.HasPublicType;
-import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.reflect.PublicType;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.util.internal.ConfigureUtil;
@@ -28,10 +27,9 @@ import org.gradle.util.internal.ConfigureUtil;
 import javax.inject.Inject;
 import java.io.File;
 
-import static org.gradle.api.reflect.TypeOf.typeOf;
-
 @Deprecated
-public abstract class DefaultEarPluginConvention extends org.gradle.plugins.ear.EarPluginConvention implements HasPublicType {
+@PublicType(type = org.gradle.plugins.ear.EarPluginConvention.class)
+public abstract class DefaultEarPluginConvention extends org.gradle.plugins.ear.EarPluginConvention {
     private ObjectFactory objectFactory;
 
     private DeploymentDescriptor deploymentDescriptor;
@@ -47,11 +45,6 @@ public abstract class DefaultEarPluginConvention extends org.gradle.plugins.ear.
         deploymentDescriptor.readFrom(appDirName + "/META-INF/" + deploymentDescriptor.getFileName());
         generateDeploymentDescriptor = objectFactory.property(Boolean.class);
         generateDeploymentDescriptor.convention(true);
-    }
-
-    @Override
-    public TypeOf<?> getPublicType() {
-        return typeOf(org.gradle.plugins.ear.EarPluginConvention.class);
     }
 
     @Override

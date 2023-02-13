@@ -19,17 +19,16 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.reflect.PublicType;
 import org.gradle.api.tasks.ScalaSourceDirectorySet;
-import org.gradle.api.reflect.HasPublicType;
-import org.gradle.api.reflect.TypeOf;
 
 import javax.inject.Inject;
 
-import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
 @Deprecated
-public abstract class DefaultScalaSourceSet implements org.gradle.api.tasks.ScalaSourceSet, HasPublicType {
+@PublicType(type = org.gradle.api.tasks.ScalaSourceSet.class)
+public abstract class DefaultScalaSourceSet implements org.gradle.api.tasks.ScalaSourceSet {
     private final ScalaSourceDirectorySet scala;
     private final SourceDirectorySet allScala;
 
@@ -68,10 +67,5 @@ public abstract class DefaultScalaSourceSet implements org.gradle.api.tasks.Scal
     @Override
     public SourceDirectorySet getAllScala() {
         return allScala;
-    }
-
-    @Override
-    public TypeOf<?> getPublicType() {
-        return typeOf(org.gradle.api.tasks.ScalaSourceSet.class);
     }
 }

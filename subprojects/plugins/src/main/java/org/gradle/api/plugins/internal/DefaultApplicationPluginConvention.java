@@ -19,15 +19,13 @@ package org.gradle.api.plugins.internal;
 import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.plugins.ApplicationPluginConvention;
-import org.gradle.api.reflect.HasPublicType;
-import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.reflect.PublicType;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
 
-import static org.gradle.api.reflect.TypeOf.typeOf;
-
-public abstract class DefaultApplicationPluginConvention extends ApplicationPluginConvention implements HasPublicType {
+@PublicType(type = ApplicationPluginConvention.class)
+public abstract class DefaultApplicationPluginConvention extends ApplicationPluginConvention {
     private String applicationName;
     private String mainClassName;
     private Iterable<String> applicationDefaultJvmArgs = new ArrayList<String>();
@@ -41,12 +39,6 @@ public abstract class DefaultApplicationPluginConvention extends ApplicationPlug
         this.project = project;
         applicationDistribution = project.copySpec();
     }
-
-    @Override
-    public TypeOf<?> getPublicType() {
-        return typeOf(ApplicationPluginConvention.class);
-    }
-
     @Override
     public String getApplicationName() {
         return applicationName;

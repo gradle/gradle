@@ -24,8 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.reflect.HasPublicType;
-import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.reflect.PublicType;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.util.internal.RelativePathUtil;
@@ -33,9 +32,8 @@ import org.gradle.util.internal.RelativePathUtil;
 import javax.inject.Inject;
 import java.io.File;
 
-import static org.gradle.api.reflect.TypeOf.typeOf;
-
-public abstract class DefaultJavaPluginConvention extends JavaPluginConvention implements HasPublicType {
+@PublicType(type = JavaPluginConvention.class)
+public abstract class DefaultJavaPluginConvention extends JavaPluginConvention {
 
     private final ProjectInternal project;
     private final JavaPluginExtension extension;
@@ -44,11 +42,6 @@ public abstract class DefaultJavaPluginConvention extends JavaPluginConvention i
     public DefaultJavaPluginConvention(ProjectInternal project, JavaPluginExtension extension) {
         this.project = project;
         this.extension = extension;
-    }
-
-    @Override
-    public TypeOf<?> getPublicType() {
-        return typeOf(JavaPluginConvention.class);
     }
 
     @Override

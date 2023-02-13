@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.reflect.PublicType;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -38,8 +38,7 @@ import javax.inject.Inject;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import static org.gradle.api.reflect.TypeOf.typeOf;
-
+@PublicType(type = MutableVersionCatalogContainer.class)
 public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainObjectContainer<VersionCatalogBuilder> implements MutableVersionCatalogContainer {
     private static final String VALID_EXTENSION_NAME = "[a-z]([a-zA-Z0-9])+";
     private static final Pattern VALID_EXTENSION_PATTERN = Pattern.compile(VALID_EXTENSION_NAME);
@@ -90,10 +89,4 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
     protected VersionCatalogBuilder doCreate(String name) {
         return objects.newInstance(DefaultVersionCatalogBuilder.class, name, strings, versions, objects, dependencyResolutionServices);
     }
-
-    @Override
-    public TypeOf<?> getPublicType() {
-        return typeOf(MutableVersionCatalogContainer.class);
-    }
-
 }

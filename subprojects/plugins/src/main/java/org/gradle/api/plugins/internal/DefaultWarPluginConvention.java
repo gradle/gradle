@@ -18,15 +18,13 @@ package org.gradle.api.plugins.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.plugins.WarPluginConvention;
-import org.gradle.api.reflect.HasPublicType;
-import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.reflect.PublicType;
 
 import javax.inject.Inject;
 import java.io.File;
 
-import static org.gradle.api.reflect.TypeOf.typeOf;
-
-public abstract class DefaultWarPluginConvention extends WarPluginConvention implements HasPublicType {
+@PublicType(type = WarPluginConvention.class)
+public abstract class DefaultWarPluginConvention extends WarPluginConvention {
     private String webAppDirName;
     private final Project project;
 
@@ -34,11 +32,6 @@ public abstract class DefaultWarPluginConvention extends WarPluginConvention imp
     public DefaultWarPluginConvention(Project project) {
         this.project = project;
         webAppDirName = "src/main/webapp";
-    }
-
-    @Override
-    public TypeOf<?> getPublicType() {
-        return typeOf(WarPluginConvention.class);
     }
 
     @Override
