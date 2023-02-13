@@ -19,6 +19,7 @@ package org.gradle.internal.extensibility
 import org.gradle.api.Action
 import org.gradle.api.plugins.Convention
 import org.gradle.api.reflect.HasPublicType
+import org.gradle.api.reflect.PublicType
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.TestUtil
@@ -153,12 +154,26 @@ class DefaultConventionTest {
         assert extension.is(convention.getByName("foo"))
     }
 
-    @Test void honoursHasPublicTypeForAddedExtension() {
+    @Test
+    void honoursPublicTypeForAddedExtension() {
+        convention.add("pet", new ExtensionAnnotatedPublicType())
+        assert publicTypeOf("pet") == typeOf(PublicExtensionType)
+    }
+
+    @Test
+    void honoursHasPublicTypeForAddedExtension() {
         convention.add("pet", new ExtensionWithPublicType())
         assert publicTypeOf("pet") == typeOf(PublicExtensionType)
     }
 
-    @Test void honoursHasPublicTypeForCreatedExtension() {
+    @Test
+    void honoursPublicTypeForCreatedExtension() {
+        convention.create("pet", ExtensionAnnotatedPublicType)
+        assert publicTypeOf("pet") == typeOf(PublicExtensionType)
+    }
+
+    @Test
+    void honoursHasPublicTypeForCreatedExtension() {
         convention.create("pet", ExtensionWithPublicType)
         assert publicTypeOf("pet") == typeOf(PublicExtensionType)
     }
@@ -175,6 +190,9 @@ class DefaultConventionTest {
 
     interface PublicExtensionType {
     }
+
+    @PublicType(type = PublicExtensionType.class)
+    static class ExtensionAnnotatedPublicType {}
 
     static class ExtensionWithPublicType implements HasPublicType {
         @Override

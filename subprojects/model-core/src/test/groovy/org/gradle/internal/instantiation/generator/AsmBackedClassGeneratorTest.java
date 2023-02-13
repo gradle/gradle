@@ -48,6 +48,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.HasPublicType;
+import org.gradle.api.reflect.PublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory;
@@ -1091,6 +1092,12 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
+    public void honorsHasPublicType() throws Exception {
+        DslObject dslObject = new DslObject(newInstance(BeanHasPublicType.class));
+        assertEquals(typeOf(Bean.class), dslObject.getPublicType());
+    }
+
+    @Test
     public void includesNotInheritedTypeAnnotations() {
         Class<? extends AnnotatedBean> generatedClass = generator.generate(AnnotatedBean.class).getGeneratedClass();
 
@@ -1202,7 +1209,10 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public static class BeanWithPublicType extends Bean implements HasPublicType {
+    @PublicType(type = Bean.class)
+    public static class BeanWithPublicType extends Bean {}
+
+    public static class BeanHasPublicType extends Bean implements HasPublicType {
         @Override
         public TypeOf<?> getPublicType() {
             return typeOf(Bean.class);
