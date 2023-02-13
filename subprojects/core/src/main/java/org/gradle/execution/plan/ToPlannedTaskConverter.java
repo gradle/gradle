@@ -79,13 +79,13 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
             getNodeIdentity(taskNode),
             nodeDependencies,
             taskDependencies,
-            taskIdentifiesOf(taskNode.getMustSuccessors()),
-            taskIdentifiesOf(taskNode.getShouldSuccessors()),
-            taskIdentifiesOf(taskNode.getFinalizers())
+            getTaskIdentities(taskNode.getMustSuccessors()),
+            getTaskIdentities(taskNode.getShouldSuccessors()),
+            getTaskIdentities(taskNode.getFinalizers())
         );
     }
 
-    private List<TaskIdentity> taskIdentifiesOf(Collection<Node> nodes) {
+    private List<TaskIdentity> getTaskIdentities(Collection<Node> nodes) {
         if (nodes.isEmpty()) {
             return Collections.emptyList();
         }

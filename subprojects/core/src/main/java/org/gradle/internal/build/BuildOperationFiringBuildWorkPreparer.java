@@ -107,10 +107,6 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             QueryableExecutionPlan.ScheduledNodes scheduledWork = contents.getScheduledNodes();
 
             List<PlannedNode> plannedNodes = toPlannedNodes(scheduledWork);
-            List<PlannedTask> plannedTasks = plannedNodes.stream()
-                .filter(PlannedTask.class::isInstance)
-                .map(PlannedTask.class::cast)
-                .collect(Collectors.toList());
 
             buildOperationContext.setResult(new Result() {
 
@@ -126,7 +122,10 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
                 @Override
                 public List<PlannedTask> getTaskPlan() {
-                    return plannedTasks;
+                    return plannedNodes.stream()
+                        .filter(PlannedTask.class::isInstance)
+                        .map(PlannedTask.class::cast)
+                        .collect(Collectors.toList());
                 }
 
                 @Override

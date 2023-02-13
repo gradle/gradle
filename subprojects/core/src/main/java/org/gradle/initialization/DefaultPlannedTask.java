@@ -16,11 +16,11 @@
 
 package org.gradle.initialization;
 
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedTask;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import java.util.List;
-
-import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.*;
 
 public class DefaultPlannedTask implements PlannedTask {
 

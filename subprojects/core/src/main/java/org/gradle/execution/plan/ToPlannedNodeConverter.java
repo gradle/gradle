@@ -35,7 +35,7 @@ public interface ToPlannedNodeConverter {
     NodeIdentity getNodeIdentity(Node node);
 
     /**
-     * Returns true if the given is not an actual executable node but only represents a node from another execution plan.
+     * Returns true if the given {@link Node} is not an actual executable node but only represents a node from another execution plan.
      */
     boolean isInSamePlan(Node node);
 
