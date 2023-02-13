@@ -407,7 +407,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
 
     // Only works on Java 8, see https://bugs.openjdk.java.net/browse/JDK-7050570
     @Issue(['GRADLE-1506'])
-    @ToBeFixedForConfigurationCache
     def "create Jar with metadata encoded using UTF-8 when platform default charset is not UTF-8"() {
         given:
         buildScript """
