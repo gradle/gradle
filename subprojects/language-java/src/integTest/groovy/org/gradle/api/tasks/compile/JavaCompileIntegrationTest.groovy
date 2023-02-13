@@ -36,7 +36,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     def "emits deprecation warning if executable specified as relative path"() {
         given:
-        def executable = Jvm.current().javacExecutable
+        def executable = TextUtil.normaliseFileSeparators(Jvm.current().javacExecutable.toString())
 
         buildFile << """
             apply plugin: "java"
