@@ -174,8 +174,8 @@ To use the unpublished library unmodified in a composite build, the composing bu
 
 .Declaring the substitutions for an included build
 ====
-include::sample[dir="samples/build-organization/composite-builds/declared-substitution/kotlin",files="settings.gradle.kts[]"]
-include::sample[dir="samples/build-organization/composite-builds/declared-substitution/groovy",files="settings.gradle[]"]
+include::sample[dir="samples/build-organization/composite-builds/declared-substitution/kotlin",files="settings.gradle.kts[tags=composite_substitution]"]
+include::sample[dir="samples/build-organization/composite-builds/declared-substitution/groovy",files="settings.gradle[tags=composite_substitution]"]
 ====
 
 With this configuration, the "my-app" composite build will substitute any dependency on `org.sample:number-utils` with a dependency on the root project of "anonymous-library".
