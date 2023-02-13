@@ -50,8 +50,8 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
             }
 
             task writeCompilerIdentities {
+                def compilerDaemonIdentityFile = file("$compilerDaemonIdentityFileName")
                 doLast { task ->
-                    def compilerDaemonIdentityFile = file("$compilerDaemonIdentityFileName")
                     compilerDaemonIdentityFile << services.get(WorkerDaemonClientsManager).allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
                 }
             }
