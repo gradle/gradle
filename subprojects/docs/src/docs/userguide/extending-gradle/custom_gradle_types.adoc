@@ -143,7 +143,10 @@ That is, they do not use a `Property<T>` or `Provider<T>` types but are instead 
 This style of property definition is legacy in Gradle and is discouraged.
 Properties in Gradle's core plugins that are still of this style will be migrated to managed properties in future versions.
 
-== DSL support and extensibility
+[[dsl_support_and_extensibility]]
+== DSL support
+
+=== Extensibility
 
 When Gradle creates an instance of a custom type, it _decorates_ the instance to mix-in DSL and extensibility support.
 
@@ -151,6 +154,13 @@ Each decorated instance implements link:{javadocPath}/org/gradle/api/plugins/Ext
 objects attached to it.
 
 Note that plugins and the elements of containers created using link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[Project.container()] are currently not decorated, due to backwards compatibility issues.
+
+=== Public types
+
+When Gradle exposes the custom types to the DSL it can choose a preferred public type.
+You can influence this by declaring the public type for your custom types using the link:{javadocPath}/org/gradle/api/reflect/PublicType.html[@PublicType] annotation.
+
+The public type of an object is the one exposed to statically-typed consumers, such as Kotlin build scripts, by default.
 
 [[service_injection]]
 == Service injection

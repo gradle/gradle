@@ -76,7 +76,7 @@ public interface ExtensionContainer {
      * <li> add 'foo' dynamic method that accepts a closure that is a configuration script block
      * </ul>
      *
-     * The extension will be exposed as {@code extension.getClass()} unless the extension itself declares a preferred public type via the {@link org.gradle.api.reflect.HasPublicType} protocol.
+     * The extension will be exposed as {@code extension.getClass()} unless the extension itself declares a preferred public type via the {@link org.gradle.api.reflect.PublicType} annotation or the {@link org.gradle.api.reflect.HasPublicType} protocol.
      *
      * @param name The name for the extension
      * @param extension Any object
@@ -126,7 +126,7 @@ public interface ExtensionContainer {
      * Creates and adds a new extension to this container.
      *
      * A new instance of the given {@code type} will be created using the given {@code constructionArguments}.
-     * The extension will be exposed as {@code type} unless the extension itself declares a preferred public type via the {@link org.gradle.api.reflect.HasPublicType} protocol.
+     * The extension will be exposed as {@code type} unless the extension itself declares a preferred public type via the {@link org.gradle.api.reflect.PublicType} annotation or the {@link org.gradle.api.reflect.HasPublicType} protocol.
      * The new instance will have been dynamically made {@link ExtensionAware}, which means that you can cast it to {@link ExtensionAware}.
      *
      * @param name The name for the extension
