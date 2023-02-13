@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.Action
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
+import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.tasks.ScalaSourceSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -68,6 +69,6 @@ class DefaultScalaSourceSetTest {
 
     @Test
     void exposesConventionPublicType() {
-        sourceSet.publicType == typeOf(ScalaSourceSet)
+        new DslObject(sourceSet).publicType == typeOf(ScalaSourceSet)
     }
 }
