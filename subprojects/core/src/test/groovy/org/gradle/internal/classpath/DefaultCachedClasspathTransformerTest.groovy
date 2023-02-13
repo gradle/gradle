@@ -64,7 +64,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     def usedGradleVersions = Stub(UsedGradleVersions)
     def cleanupActionDecorator = Stub(CleanupActionDecorator)
     def cacheConfigurations = Stub(CacheConfigurationsInternal)
-    def cacheFactory = new DefaultClasspathTransformerCacheFactory(usedGradleVersions, cleanupActionDecorator, cacheConfigurations)
+    def cacheFactory = new DefaultClasspathTransformerCacheFactory(usedGradleVersions, cacheConfigurations)
     def classpathWalker = new ClasspathWalker(TestFiles.fileSystem())
     def classpathBuilder = new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(testDirectoryProvider.root))
     def fileSystemAccess = TestFiles.fileSystemAccess()

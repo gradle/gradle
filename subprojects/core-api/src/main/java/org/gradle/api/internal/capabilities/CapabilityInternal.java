@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.component.external.model;
+package org.gradle.api.internal.capabilities;
 
-import org.gradle.api.capabilities.CapabilitiesMetadata;
+import org.gradle.api.capabilities.Capability;
 
-/**
- * A marker interface only that helps performance of selection by avoiding to
- * check if a variant contains the implicit capability.
- */
-public interface ShadowedCapabilityOnly extends CapabilitiesMetadata {
+public interface CapabilityInternal extends Capability {
+    String getCapabilityId();
 }

@@ -44,6 +44,12 @@ inline fun Logger.info(msg: () -> String) {
 
 
 internal
+inline fun Logger.warn(msg: () -> String) {
+    if (isWarnEnabled) warn(msg())
+}
+
+
+internal
 inline fun Logger.error(msg: () -> String) {
     if (isErrorEnabled) error(msg())
 }

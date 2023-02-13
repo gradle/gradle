@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.component.external.model;
 
-import org.gradle.api.capabilities.Capability;
+package org.gradle.api.internal.capabilities;
 
-public interface CapabilityInternal extends Capability {
-    String getCapabilityId();
-}
+/**
+ * A marker interface that indicates this type is deeply immutable.
+ */
+public interface ImmutableCapability extends CapabilityInternal { /* empty */ }
