@@ -44,6 +44,7 @@ interface EncryptionConfiguration {
     val encryptionKeyHashCode: HashCode
 }
 
+
 /**
  * A service for encrypting/decrypting streams.
  */
