@@ -30,6 +30,7 @@ import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.internal.streams.DefaultValueStore
 import org.gradle.cache.internal.streams.ValueStore
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
+import org.gradle.configurationcache.ConfigurationCacheStateStore.StateFile
 import org.gradle.configurationcache.extensions.toDefaultLowerCase
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.internal.Factory
@@ -153,9 +154,10 @@ class ConfigurationCacheRepository(
     inner class StoreImpl(
         private val baseDir: File
     ) : ConfigurationCacheStateStore {
-        override fun assignSpoolFile(stateType: StateType): File {
+        override fun assignSpoolFile(stateType: StateType): StateFile {
             Files.createDirectories(baseDir.toPath())
-            return Files.createTempFile(baseDir.toPath(), stateType.fileBaseName, ".tmp").toFile()
+            val tempFile = Files.createTempFile(baseDir.toPath(), stateType.fileBaseName, ".tmp")
+            return StateFile(stateType, tempFile.toFile())
         }
 
         override fun <T> createValueStore(stateType: StateType, writer: ValueStore.Writer<T>, reader: ValueStore.Reader<T>): ValueStore<T> {

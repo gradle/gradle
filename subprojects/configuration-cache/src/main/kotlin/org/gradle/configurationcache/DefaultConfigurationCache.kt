@@ -63,7 +63,7 @@ class DefaultConfigurationCache internal constructor(
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationExecutor: BuildOperationExecutor,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController,
-    private val encryptionService: ConfigurationCacheEncryptionService,
+    private val encryptionService: EncryptionService,
     /**
      * Force the [FileSystemAccess] service to be initialized as it initializes important static state.
      */
@@ -489,7 +489,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun <T> readFingerprintFile(fingerprintFile: ConfigurationCacheStateFile, action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T): T =
-        fingerprintFile.inputStream().use { inputStream ->
+        encryptionService.inputStream(fingerprintFile).use { inputStream ->
             cacheIO.withReadContextFor(inputStream) { codecs ->
                 withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec()) {
                     action(object : ConfigurationCacheFingerprintController.Host {

@@ -22,6 +22,8 @@ import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.RunTasksRequirements
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.not
@@ -134,7 +136,13 @@ class ConfigurationCacheKeyTest {
                 DefaultInternalOptions(mapOf()),
                 BuildModelParameters(false, true, false, false, false, false, false)
             ),
-            RunTasksRequirements(startParameter)
+            RunTasksRequirements(startParameter),
+            object : EncryptionConfiguration {
+                override val encryptionKeyHashCode: HashCode
+                    get() = Hashing.newHasher().hash()
+                override val isEncrypting: Boolean
+                    get() = false
+            }
         ).string
     }
 
