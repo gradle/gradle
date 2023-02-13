@@ -32,16 +32,21 @@ import javax.crypto.CipherInputStream
 import javax.crypto.CipherOutputStream
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
-import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.GCMParameterSpec
 
 
+/**
+ * Provides access to configuration parameters to control encryption.
+ */
 internal
 interface EncryptionConfiguration {
     val isEncrypting: Boolean
     val encryptionKeyHashCode: HashCode
 }
 
-
+/**
+ * A service for encrypting/decrypting streams.
+ */
 internal
 interface EncryptionService : EncryptionConfiguration {
     fun outputStream(stateType: StateType, output: () -> OutputStream): OutputStream
@@ -139,24 +144,24 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
     override val isEncrypting: Boolean
         get() = shouldEncrypt
 
-    override val encryptionKeyHashCode: HashCode = secretKey?.let {
-        Hashing.sha512().newHasher().apply {
-            putBytes(it.encoded)
-            putString(it.format)
-            putString(it.algorithm)
-        }.hash()
-    } ?: Hashing.newHasher().hash()
+    override val encryptionKeyHashCode: HashCode by lazy {
+        secretKey?.let {
+            Hashing.sha512().newHasher().apply {
+                putBytes(it.encoded)
+                putString(it.format)
+                putString(it.algorithm)
+            }.hash()
+        } ?: Hashing.newHasher().hash()
+    }
 
     override fun outputStream(stateType: StateType, output: () -> OutputStream): OutputStream =
         if (shouldEncrypt && stateType.encryptable) {
-            logger.debug("Encrypting $stateType")
             encryptingOutputStream(output.invoke())
         } else
             output.invoke()
 
     override fun inputStream(stateType: StateType, input: () -> InputStream): InputStream =
         if (shouldEncrypt && stateType.encryptable) {
-            logger.debug("Decrypting $stateType")
             decryptingInputStream(input.invoke())
         } else
             input.invoke()
@@ -164,9 +169,9 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
     private
     fun decryptingInputStream(inputStream: InputStream): InputStream {
         val cipher = cipher()
-        val fileIv = ByteArray(16)
+        val fileIv = ByteArray(12)
         inputStream.read(fileIv)
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, IvParameterSpec(fileIv))
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, fileIv))
         return CipherInputStream(inputStream, cipher)
     }
 
@@ -180,7 +185,7 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
     }
 
     private
-    fun cipher() = Cipher.getInstance("AES/CBC/PKCS5Padding")
+    fun cipher() = Cipher.getInstance("AES/GCM/NoPadding")
 }
 
 
