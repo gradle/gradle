@@ -86,11 +86,11 @@ import java.io.OutputStream
 internal
 enum class StateType(val encryptable: Boolean = false) {
     Work(true),
-    Model(true),
-    Entry(true),
+    Model(false),
+    Entry(false),
     BuildFingerprint(true),
-    ProjectFingerprint(true),
-    IntermediateModels(true),
+    ProjectFingerprint(false),
+    IntermediateModels(false),
     ProjectMetadata(false)
 }
 
