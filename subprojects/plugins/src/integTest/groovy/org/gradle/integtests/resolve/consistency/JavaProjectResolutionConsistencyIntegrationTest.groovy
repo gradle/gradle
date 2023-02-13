@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.consistency
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -210,6 +211,7 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         resolve
     }
 
+    @ToBeFixedForConfigurationCache(because = "resolves configuration at execution time")
     def "can declare a configuration which extends from a resolvable configuration which uses consistency"() {
         withRuntimeClasspathAsReference()
         def foo = mavenHttpRepo.module('org', 'foo', '1.0').publish()
