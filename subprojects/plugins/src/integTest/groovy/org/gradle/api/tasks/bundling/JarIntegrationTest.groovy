@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
@@ -406,6 +407,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
 
     // Only works on Java 8, see https://bugs.openjdk.java.net/browse/JDK-7050570
     @Issue(['GRADLE-1506'])
+    @ToBeFixedForConfigurationCache
     def "create Jar with metadata encoded using UTF-8 when platform default charset is not UTF-8"() {
         given:
         buildScript """
@@ -506,6 +508,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
         manifest.contains('moji: bak€')
     }
 
+    @ToBeFixedForConfigurationCache
     @Issue('GRADLE-3374')
     def "write manifests using a user defined character set"() {
         given:
