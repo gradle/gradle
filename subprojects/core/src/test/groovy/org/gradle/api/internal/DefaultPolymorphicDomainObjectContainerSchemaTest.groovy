@@ -137,7 +137,7 @@ class DefaultPolymorphicDomainObjectContainerSchemaTest extends Specification {
         container.getByName("edward")
         container.getByName("jameson")
 
-        then: "schema is (almost) the same"
+        then: "schema is the same"
         assertSchemaIs(expectedSchema)
     }
 

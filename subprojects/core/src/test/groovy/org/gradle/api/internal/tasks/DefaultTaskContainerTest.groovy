@@ -1637,7 +1637,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.getByName("r3")
         actualSchema = container.collectionSchema.elements.collectEntries { schema -> [schema.name, schema.publicType.simpleName] }
 
-        then:
+        then: "schema is changed!"
         actualSchema.get("r1") ==~ /DefaultTask.SpockMock.*/
         actualSchema.get("r2") ==~ /DefaultTaskContainerTest.DefaultCustomTask.SpockMock.*/
         actualSchema.get("r3") ==~ /DefaultTaskContainerTest.DefaultMyCustomTask.SpockMock.*/
