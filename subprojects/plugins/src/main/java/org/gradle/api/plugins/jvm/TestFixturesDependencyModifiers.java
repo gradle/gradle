@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyModifier;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.component.external.model.TestFixturesSupport;
 
@@ -65,7 +65,7 @@ public interface TestFixturesDependencyModifiers {
         public <D extends ModuleDependency> D modify(D dependency) {
             if (dependency instanceof ExternalDependency) {
                 dependency.capabilities(capabilities -> {
-                    capabilities.requireCapability(new ImmutableCapability(dependency.getGroup(), dependency.getName() + TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX, null));
+                    capabilities.requireCapability(new DefaultImmutableCapability(dependency.getGroup(), dependency.getName() + TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX, null));
                 });
             } else if (dependency instanceof ProjectDependency) {
                 ProjectDependency projectDependency = Cast.uncheckedCast(dependency);

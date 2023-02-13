@@ -2298,7 +2298,7 @@ public class BuildScriptBuilder {
 
             @Override
             protected void handleInsecureURL(URI repoLocation, ScriptBlockImpl statements) {
-                LOGGER.error("Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. For more options, see {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
+                LOGGER.error("Gradle found an insecure protocol in a repository definition. The current strategy for handling insecure URLs is to fail. For more options, see {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "sec:allow_insecure"));
                 throw new GradleException(String.format("Build generation aborted due to insecure protocol in repository: %s", repoLocation));
             }
         }
@@ -2314,7 +2314,7 @@ public class BuildScriptBuilder {
 
             @Override
             protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
-                LOGGER.warn("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
+                LOGGER.warn("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "sec:allow_insecure"));
                 // use the insecure URL as-is
                 statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
                 // Leave a commented out block for opting into using the insecure repository

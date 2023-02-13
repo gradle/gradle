@@ -18,11 +18,9 @@ package org.gradle.api.internal.artifacts.dsl
 import spock.lang.Specification
 
 class ArtifactFileTest extends Specification {
-    final String module = '1.2'
-
-    def "determines name and extension from file name"() {
+    def "determines name and extension from file name #inputFileName with version #version"() {
         when:
-        def artifactFile = new ArtifactFile(new File(inputFileName), module)
+        def artifactFile = new ArtifactFile(new File(inputFileName), version)
 
         then:
         artifactFile.name == name
@@ -30,16 +28,21 @@ class ArtifactFileTest extends Specification {
         artifactFile.classifier == null
 
         where:
-        inputFileName       | name              | extension
-        "some-file.zip"     | "some-file"       | "zip"
-        "some-file.zip.zip" | "some-file.zip"   | "zip"
-        ".zip"              | ""                | "zip"
-        "some-file"         | "some-file"       | ""
+        inputFileName       | name              | extension | version
+        "some-file.zip"     | "some-file"       | "zip"     | "1.2"
+        "some-file.zip.zip" | "some-file.zip"   | "zip"     | "1.2"
+        ".zip"              | ""                | "zip"     | "1.2"
+        "some-file"         | "some-file"       | ""        | "1.2"
+
+        "some-file.zip"     | "some-file"       | "zip"     | null
+        "some-file.zip.zip" | "some-file.zip"   | "zip"     | null
+        ".zip"              | ""                | "zip"     | null
+        "some-file"         | "some-file"       | ""        | null
     }
 
-    def "removes module version from file name"() {
+    def "removes module version from file name #inputFileName with version #version"() {
         when:
-        def artifactFile = new ArtifactFile(new File(inputFileName), module)
+        def artifactFile = new ArtifactFile(new File(inputFileName), version)
 
         then:
         artifactFile.name == name
@@ -47,17 +50,23 @@ class ArtifactFileTest extends Specification {
         artifactFile.classifier == null
 
         where:
-        inputFileName            | name                 | extension
-        "some-file-1.2.zip"      | "some-file"          | "zip"
-        "some-file-1.2-1.2.zip"  | "some-file-1.2"      | "zip"
-        "some-file-1.2"          | "some-file"          | ""
-        "some-file-1.22.zip"     | "some-file-1.22"     | "zip"
-        "some-file-1.22.zip.zip" | "some-file-1.22.zip" | "zip"
+        inputFileName            | name                 | extension | version
+        "some-file-1.2.zip"      | "some-file"          | "zip"     | "1.2"
+        "some-file-1.2-1.2.zip"  | "some-file-1.2"      | "zip"     | "1.2"
+        "some-file-1.2"          | "some-file"          | ""        | "1.2"
+        "some-file-1.22.zip"     | "some-file-1.22"     | "zip"     | "1.2"
+        "some-file-1.22.zip.zip" | "some-file-1.22.zip" | "zip"     | "1.2"
+
+        "some-file-1.2.zip"      | "some-file-1.2"      | "zip"     | null
+        "some-file-1.2-1.2.zip"  | "some-file-1.2-1.2"  | "zip"     | null
+        "some-file-1.2"          | "some-file-1"        | "2"       | null
+        "some-file-1.22.zip"     | "some-file-1.22"     | "zip"     | null
+        "some-file-1.22.zip.zip" | "some-file-1.22.zip" | "zip"     | null
     }
 
-    def "determines classifier from file name"() {
+    def "determines classifier from file name #inputFileName with version #version"() {
         when:
-        def artifactFile = new ArtifactFile(new File(inputFileName), module)
+        def artifactFile = new ArtifactFile(new File(inputFileName), version)
 
         then:
         artifactFile.name == name
@@ -65,11 +74,17 @@ class ArtifactFileTest extends Specification {
         artifactFile.classifier == classifier
 
         where:
-        inputFileName                      | name                       | classifier   | extension
-        "some-file-1.2-classifier.jar"     | "some-file"                | "classifier" | "jar"
-        "some-file-1.2-classifier-1.2.jar" | "some-file-1.2-classifier" | null         | "jar"
-        "-1.2-classifier.jar"              | ""                         | "classifier" | "jar"
-        "some-file-1.2-classifier"         | "some-file"                | "classifier" | ""
-        "some-file-1.2-.jar"               | "some-file"                | null         | "jar"
+        inputFileName                      | name                           | classifier    | extension         | version
+        "some-file-1.2-classifier.jar"     | "some-file"                    | "classifier"  | "jar"             | "1.2"
+        "some-file-1.2-classifier-1.2.jar" | "some-file-1.2-classifier"     | null          | "jar"             | "1.2"
+        "-1.2-classifier.jar"              | ""                             | "classifier"  | "jar"             | "1.2"
+        "some-file-1.2-classifier"         | "some-file"                    | "classifier"  | ""                | "1.2"
+        "some-file-1.2-.jar"               | "some-file"                    | null          | "jar"             | "1.2"
+
+        "some-file-1.2-classifier.jar"     | "some-file-1.2-classifier"     | null          | "jar"             | null
+        "some-file-1.2-classifier-1.2.jar" | "some-file-1.2-classifier-1.2" | null          | "jar"             | null
+        "-1.2-classifier.jar"              | "-1.2-classifier"              | null          | "jar"             | null
+        "some-file-1.2-classifier"         | "some-file-1"                  | null          | "2-classifier"    | null
+        "some-file-1.2-.jar"               | "some-file-1.2-"               | null          | "jar"             | null
     }
 }

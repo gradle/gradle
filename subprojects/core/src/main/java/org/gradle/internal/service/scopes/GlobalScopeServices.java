@@ -24,7 +24,6 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
@@ -57,7 +56,7 @@ import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
-import org.gradle.internal.classloader.DefaultClassLoaderFactory;
+import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
@@ -66,7 +65,6 @@ import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector;
-import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -116,7 +114,6 @@ import java.util.List;
  */
 public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
-    protected final ClassPath additionalModuleClassPath;
     private final GradleBuildEnvironment environment;
 
     public GlobalScopeServices(final boolean longLiving) {
@@ -124,8 +121,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     public GlobalScopeServices(final boolean longLiving, ClassPath additionalModuleClassPath) {
-        super();
-        this.additionalModuleClassPath = additionalModuleClassPath;
+        super(additionalModuleClassPath);
         this.environment = () -> longLiving;
     }
 
@@ -173,8 +169,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         );
     }
 
-    JdkToolsInitializer createJdkToolsInitializer() {
-        return new DefaultJdkToolsInitializer(new DefaultClassLoaderFactory());
+    JdkToolsInitializer createJdkToolsInitializer(ClassLoaderFactory classLoaderFactory) {
+        return new DefaultJdkToolsInitializer(classLoaderFactory);
     }
 
     InstanceGenerator createInstantiator(InstantiatorFactory instantiatorFactory) {
@@ -283,14 +279,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
             new DefaultClassPathProvider(moduleRegistry),
             new DynamicModulesClassPathProvider(moduleRegistry,
                 pluginModuleRegistry));
-    }
-
-    DefaultModuleRegistry createModuleRegistry(CurrentGradleInstallation currentGradleInstallation) {
-        return new DefaultModuleRegistry(additionalModuleClassPath, currentGradleInstallation.getInstallation());
-    }
-
-    CurrentGradleInstallation createCurrentGradleInstallation() {
-        return CurrentGradleInstallation.locate();
     }
 
     PluginModuleRegistry createPluginModuleRegistry(ModuleRegistry moduleRegistry) {
