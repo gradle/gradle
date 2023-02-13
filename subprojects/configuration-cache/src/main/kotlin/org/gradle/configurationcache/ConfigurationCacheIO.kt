@@ -69,7 +69,7 @@ class ConfigurationCacheIO internal constructor(
     val codecs = codecs()
 
     private
-    val encryptionService by lazy { service<ConfigurationCacheEncryptionService>() }
+    val encryptionService by lazy { service<EncryptionService>() }
 
     internal
     fun writeCacheEntryDetailsTo(
@@ -184,7 +184,7 @@ class ConfigurationCacheIO internal constructor(
     ): T {
 
         val build = host.currentBuild
-        val (context, codecs) = writerContextFor(encryptionService.outputStream(stateFile), build.gradle.owner.displayName.displayName + " state")
+        val (context, codecs) = writerContextFor(encryptionService.outputStream(stateFile.stateType, stateFile::outputStream), build.gradle.owner.displayName.displayName + " state")
         return context.useToRun {
             runWriteOperation {
                 action(ConfigurationCacheState(codecs, stateFile, eventEmitter, host))
