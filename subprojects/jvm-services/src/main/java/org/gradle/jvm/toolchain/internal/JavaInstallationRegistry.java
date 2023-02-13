@@ -17,7 +17,6 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Supplier;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -26,6 +25,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -36,9 +37,10 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-
+@ServiceScope(Scopes.Build.class)
 public class JavaInstallationRegistry {
     private final BuildOperationExecutor executor;
     private final Installations installations;
@@ -80,6 +82,7 @@ public class JavaInstallationRegistry {
             .flatMap(Set::stream)
             .filter(this::installationExists)
             .map(this::canonicalize)
+            .filter(this::installationHasExecutable)
             .filter(distinctByKey(InstallationLocation::getLocation))
             .collect(Collectors.toSet());
     }
@@ -97,12 +100,20 @@ public class JavaInstallationRegistry {
         return true;
     }
 
+    boolean installationHasExecutable(InstallationLocation installationLocation) {
+        if (!hasJavaExecutable(installationLocation.getLocation())) {
+            logger.warn("Path for java installation {} does not contain a java executable", installationLocation.getDisplayName());
+            return false;
+        }
+        return true;
+    }
+
     private InstallationLocation canonicalize(InstallationLocation location) {
         final File file = location.getLocation();
         try {
             final File canonicalFile = file.getCanonicalFile();
             final File javaHome = findJavaHome(canonicalFile);
-            return new InstallationLocation(javaHome, location.getSource());
+            return new InstallationLocation(javaHome, location.getSource(), location.isAutoProvisioned());
         } catch (IOException e) {
             throw new GradleException(String.format("Could not canonicalize path to java installation: %s.", file), e);
         }
@@ -151,12 +162,12 @@ public class JavaInstallationRegistry {
 
     private static class Installations {
 
-        private final Supplier<Set<InstallationLocation>> initialiser;
+        private final Supplier<Set<InstallationLocation>> initializer;
 
         private Set<InstallationLocation> locations = null;
 
-        Installations(Supplier<Set<InstallationLocation>> initialiser) {
-            this.initialiser = initialiser;
+        Installations(Supplier<Set<InstallationLocation>> initializer) {
+            this.initializer = initializer;
         }
 
         synchronized Set<InstallationLocation> get() {
@@ -171,7 +182,7 @@ public class JavaInstallationRegistry {
 
         private void initIfNeeded() {
             if (locations == null) {
-                locations = initialiser.get();
+                locations = initializer.get();
             }
         }
 

@@ -18,9 +18,8 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.internal.cache.MonitoredCleanupActionDecorator;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -31,20 +30,19 @@ public class GradleUserHomeCleanupServices {
 
     public void configure(
         ServiceRegistration registration,
-        GlobalScopedCache globalScopedCache,
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         Deleter deleter,
         GradleUserHomeDirProvider gradleUserHomeDirProvider,
         ProgressLoggerFactory progressLoggerFactory,
-        MonitoredCleanupActionDecorator monitoredCleanupActionDecorator,
         CacheConfigurationsInternal cacheConfigurations,
         ListenerManager listenerManager,
         CacheFactory cacheFactory
     ) {
-        UsedGradleVersions usedGradleVersions = new UsedGradleVersionsFromGradleUserHomeCaches(globalScopedCache);
+        UsedGradleVersions usedGradleVersions = new UsedGradleVersionsFromGradleUserHomeCaches(cacheBuilderFactory);
         registration.add(UsedGradleVersions.class, usedGradleVersions);
 
         // register eagerly so stop() is triggered when services are being stopped
-        GradleUserHomeCleanupService gradleUserHomeCleanupService = new GradleUserHomeCleanupService(deleter, gradleUserHomeDirProvider, globalScopedCache, usedGradleVersions, progressLoggerFactory, monitoredCleanupActionDecorator, cacheConfigurations);
+        GradleUserHomeCleanupService gradleUserHomeCleanupService = new GradleUserHomeCleanupService(deleter, gradleUserHomeDirProvider, cacheBuilderFactory, usedGradleVersions, progressLoggerFactory, cacheConfigurations);
         registration.add(
             GradleUserHomeCleanupService.class,
             gradleUserHomeCleanupService

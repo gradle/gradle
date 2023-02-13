@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 class WbDependentModuleTest extends Specification {
     final static String XML_TEXT = '''
-                <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/gradle-1.0.0.jar">
+                <dependent-module archiveName="gradle-1.0.0.jar" deploy-path="/WEB-INF/lib" handle="module:/classpath/gradle-1.0.0.jar">
                     <dependency-type>uses</dependency-type>
                 </dependent-module>'''
 
@@ -52,7 +52,7 @@ class WbDependentModuleTest extends Specification {
     }
 
     private WbDependentModule createWbDependentModule() {
-        return new WbDependentModule("/WEB-INF/lib", "module:/classpath/gradle-1.0.0.jar")
+        return new WbDependentModule("gradle-1.0.0.jar", "/WEB-INF/lib", "module:/classpath/gradle-1.0.0.jar")
     }
 
 

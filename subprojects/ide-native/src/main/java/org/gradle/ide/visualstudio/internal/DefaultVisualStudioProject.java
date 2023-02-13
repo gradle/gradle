@@ -18,7 +18,6 @@ package org.gradle.ide.visualstudio.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -116,12 +115,7 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
 
     @Input
     public Set<String> getSourceFilePaths() {
-        return collect(getSourceFiles().getFiles(), new Transformer<String, File>() {
-            @Override
-            public String transform(File file) {
-                return file.getAbsolutePath();
-            }
-        });
+        return collect(getSourceFiles().getFiles(), File::getAbsolutePath);
     }
 
     @Internal
@@ -135,12 +129,7 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
 
     @Input
     public Set<String> getResourceFilePaths() {
-        return collect(getResourceFiles(), new Transformer<String, File>() {
-            @Override
-            public String transform(File file) {
-                return file.getAbsolutePath();
-            }
-        });
+        return collect(getResourceFiles(), File::getAbsolutePath);
     }
 
     @Internal
@@ -150,12 +139,7 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
 
     @Input
     public Set<String> getHeaderFilePaths() {
-        return collect(getHeaderFiles().getFiles(), new Transformer<String, File>() {
-            @Override
-            public String transform(File file) {
-                return file.getAbsolutePath();
-            }
-        });
+        return collect(getHeaderFiles().getFiles(), File::getAbsolutePath);
     }
 
     @Nested

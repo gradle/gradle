@@ -22,13 +22,10 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
 @LeaksFileHandles
-class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
+class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.kt"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.kt"
-
-    @Override
-    String subprojectName() { 'lib' }
 
     def "defaults to kotlin build scripts"() {
         when:
@@ -76,7 +73,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixture.assertHasTestSuite('test')
 
         when:
-        succeeds('test')
+        run('test')
         then:
         assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 

@@ -120,8 +120,9 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
             }
 
             task resolve {
+                def conf = configurations.conf
                 doLast {
-                    println configurations.conf.files
+                    println conf.files
                 }
             }
 """

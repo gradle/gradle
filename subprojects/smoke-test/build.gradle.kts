@@ -55,14 +55,14 @@ tasks {
     val santaGitUri = "https://github.com/gradle/santa-tracker-android.git"
 
     val santaTracker by registering(RemoteProject::class) {
-        remoteUri.set(santaGitUri)
+        remoteUri = santaGitUri
         // Pinned from branch main
-        ref.set("622fc64b7c39cb84e94174be3df9a54393348b45")
+        ref = "180b7a91054d5fe5b617543bb2f74a3819537b7b"
     }
 
     val gradleBuildCurrent by registering(RemoteProject::class) {
-        remoteUri.set(rootDir.absolutePath)
-        ref.set(buildCommitId)
+        remoteUri = rootDir.absolutePath
+        ref = buildCommitId
     }
 
     val remoteProjects = arrayOf(santaTracker, gradleBuildCurrent)

@@ -38,6 +38,7 @@ import java.util.Set;
 
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
+
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
 
     @Inject
@@ -53,7 +54,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         JavaCompiler.CompilationTask task = createCompileTask(spec, result);
         boolean success = task.call();
         if (!success) {
-            throw new CompilationFailedException();
+            throw new CompilationFailedException(result);
         }
         return result;
     }
@@ -67,9 +68,15 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSourceFiles());
         boolean hasEmptySourcepaths = JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options);
         JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
-        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, spec.getClasses(), compilationUnits);
+        JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, spec.getClassesToProcess(), compilationUnits);
         if (compiler instanceof IncrementalCompilationAwareJavaCompiler) {
-            task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(task, result.getSourceClassesMapping(), result.getConstantsAnalysisResult(), new CompilationSourceDirs(spec));
+            task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(
+                task,
+                result.getSourceClassesMapping(),
+                result.getConstantsAnalysisResult(),
+                new CompilationSourceDirs(spec),
+                new CompilationClassBackupService(spec, result)
+            );
         }
         Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();
         task = new AnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());

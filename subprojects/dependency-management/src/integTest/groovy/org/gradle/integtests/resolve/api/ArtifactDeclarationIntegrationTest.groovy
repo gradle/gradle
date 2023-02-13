@@ -436,12 +436,6 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
                 dependencies {
                     compile project(':a')
                 }
-                task checkArtifacts {
-                    inputs.files configurations.compile
-                    doLast {
-                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["someDir"]
-                    }
-                }
             }
         """
 
@@ -500,4 +494,5 @@ classes.attributes.keySet().collect { it.name } == ['usage', 'format']
             }
         }
     }
+
 }

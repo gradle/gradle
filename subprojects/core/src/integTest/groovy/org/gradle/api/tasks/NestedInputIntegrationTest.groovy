@@ -426,7 +426,13 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
     def "execution fails when a nested property throws an exception where property is a #description"() {
         buildFile << """
-            class TaskWithFailingNestedInput extends DefaultTask {
+            import javax.inject.Inject
+            import org.gradle.api.provider.ProviderFactory
+
+            abstract class TaskWithFailingNestedInput extends DefaultTask {
+                @Inject
+                abstract ProviderFactory getProviders()
+
                 @Nested
                 Object getNested() {
                     $propertyValue
@@ -457,8 +463,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         where:
         description                | propertyValue
         "Java type"                | "throw new RuntimeException(\"BOOM\")"
-        "Provider"                 | "return project.providers.provider { throw new RuntimeException(\"BOOM\") }"
-        "Provider in a collection" | "return [project.providers.provider { throw new RuntimeException(\"BOOM\") }]"
+        "Provider"                 | "return providers.provider { throw new RuntimeException(\"BOOM\") }"
+        "Provider in a collection" | "return [providers.provider { throw new RuntimeException(\"BOOM\") }]"
 
     }
 

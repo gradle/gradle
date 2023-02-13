@@ -52,7 +52,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
     def "fails if custom executable does not exist"() {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
         javaCompile.destinationDirectory.fileValue(new File('somewhere'))
-        def invalidExecutable = "invalidExecutable"
+        def invalidExecutable = temporaryFolder.file("invalidExecutable")
 
         when:
         javaCompile.options.fork = true
@@ -63,7 +63,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def e = thrown(AbstractProperty.PropertyQueryException)
         def cause = TestUtil.getRootCause(e) as InvalidUserDataException
         cause.message.contains("The configured executable does not exist")
-        cause.message.contains(invalidExecutable)
+        cause.message.contains(invalidExecutable.absolutePath)
     }
 
     def "fails if custom executable is a directory"() {

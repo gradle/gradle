@@ -19,6 +19,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
+import org.gradle.internal.agents.DefaultClassFileTransformer;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
@@ -48,12 +49,13 @@ public class ProcessBootstrap {
         ClassPath antClasspath = classPathRegistry.getClassPath("ANT");
         ClassPath runtimeClasspath = classPathRegistry.getClassPath("GRADLE_RUNTIME");
         ClassLoader antClassLoader = classLoaderFactory.createIsolatedClassLoader("ant-loader", antClasspath);
-        ClassLoader runtimeClassLoader = new VisitableURLClassLoader("ant-and-gradle-loader", antClassLoader, runtimeClasspath);
+        ClassLoader runtimeClassLoader = VisitableURLClassLoader.fromClassPath("ant-and-gradle-loader", antClassLoader, runtimeClasspath);
 
         ClassLoader oldClassLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(runtimeClassLoader);
 
         try {
+            DefaultClassFileTransformer.tryInstallInClassLoader(runtimeClassLoader);
             Class<?> mainClass = runtimeClassLoader.loadClass(mainClassName);
             Object entryPoint = mainClass.getConstructor().newInstance();
             Method mainMethod = mainClass.getMethod("run", String[].class);

@@ -24,10 +24,11 @@ import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.DefaultCopySpec
+import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.resources.DefaultResourceHandler
+import org.gradle.cache.internal.TestCaches
 import org.gradle.internal.hash.FileHasher
-import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -35,31 +36,33 @@ import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.TempDir
 
 @UsesNativeServices
 class DefaultFileOperationsTest extends Specification {
+    @Rule
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+
+    @TempDir
+    File cacheDir
+
     private final FileResolver resolver = Mock() {
         getPatternSetFactory() >> TestFiles.getPatternSetFactory()
     }
-    private final TemporaryFileProvider temporaryFileProvider = Mock()
+    private final TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(() -> cacheDir);
     private final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private final DefaultDirectoryFileTreeFactory directoryFileTreeFactory = Mock()
-    private final StreamHasher streamHasher = Mock()
     private final FileHasher fileHasher = Mock()
     private final DefaultResourceHandler.Factory resourceHandlerFactory = Mock()
     private final FileCollectionFactory fileCollectionFactory = Mock()
     private DefaultFileOperations fileOperations = instance()
-    @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     private DefaultFileOperations instance(FileResolver resolver = resolver) {
         instantiator.newInstance(
             DefaultFileOperations,
             resolver,
-            temporaryFileProvider,
             instantiator,
             directoryFileTreeFactory,
-            streamHasher,
             fileHasher,
             resourceHandlerFactory,
             fileCollectionFactory,
@@ -69,7 +72,9 @@ class DefaultFileOperationsTest extends Specification {
             TestFiles.deleter(),
             TestFiles.documentationRegistry(),
             TestFiles.taskDependencyFactory(),
-            TestUtil.providerFactory()
+            TestUtil.providerFactory(),
+            TestCaches.decompressionCacheFactory(temporaryFileProvider.newTemporaryDirectory("cache")),
+            null
         )
     }
 
@@ -249,4 +254,3 @@ class DefaultFileOperationsTest extends Specification {
         return TestFiles.resolver(tmpDir.testDirectory)
     }
 }
-

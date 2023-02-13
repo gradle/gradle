@@ -601,8 +601,9 @@ eclipse {
 }
 
 task resolve {
+    def runtimeClasspath = configurations.runtimeClasspath
     doLast {
-        configurations.runtimeClasspath.each { println it }
+        runtimeClasspath.each { println it }
     }
 }
 """

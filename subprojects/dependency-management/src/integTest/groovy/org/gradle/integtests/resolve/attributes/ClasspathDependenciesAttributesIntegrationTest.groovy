@@ -83,8 +83,9 @@ dependencies {
 }
 
 task printDeps {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        println configurations.compileClasspath.files
+        println compileClasspath.files
     }
 }
 """

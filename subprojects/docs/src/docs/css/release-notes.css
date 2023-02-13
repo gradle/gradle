@@ -8,9 +8,21 @@
   list-style-type: none;
 }
 
+
+.text-list  {
+  margin-left: 50px;
+}
+
+
+li.subTopic :before {
+  color: #02303A;
+  content: '\002022';
+  font: 0.9em bold sans-serif;
+  margin-left: 3em;
+  margin-right: 0.4em;
+}
 #fixed-issues-list li:before,
-.table-of-contents ul li:before,
-.topic ul li:before {
+li.mainTopic :before {
   color: #02303A;
   content: '\002022';
   font: 0.9em bold sans-serif;
@@ -18,12 +30,16 @@
   margin-right: 0.4em;
 }
 
+
 pre {
     overflow: auto;
 }
 
-ul.toc-sub {
-  margin-bottom: 0;
+
+h4{
+  margin-top: 1rem;
+  font-size: 1.0625rem;
+  font-style: italic;
 }
 
 button.display-toggle {

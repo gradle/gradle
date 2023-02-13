@@ -258,6 +258,11 @@ The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> is used to generate a
 
 WARNING: Note that the Signing plugin is not yet compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
 
+[TIP]
+====
+`publishToMavenLocal` does not create checksum files in `$USER_HOME/.m2/repository`. If you want to verify that the checksum files are created correctly, or use them for later publishing, consider configuring a <<declaring_repositories.adoc#sec:maven_repo,custom Maven repository>> with a `file://` URL and using that as the publishing target instead.
+====
+
 [[publishing_maven:deferred_configuration]]
 == Removal of deferred configuration behavior
 

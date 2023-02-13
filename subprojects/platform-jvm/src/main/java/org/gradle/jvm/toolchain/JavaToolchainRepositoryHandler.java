@@ -42,7 +42,7 @@ public interface JavaToolchainRepositoryHandler {
      *
      * @since 7.6.1
      */
-    List<JavaToolchainRepository> repositories();
+    List<JavaToolchainRepository> getAsList();
 
     /**
      * Returns the count of the repositories added so far.
@@ -50,5 +50,14 @@ public interface JavaToolchainRepositoryHandler {
      * @since 7.6.1
      */
     int size();
+
+    /**
+     * Removes the repository with the given name.
+     * <p>
+     * Returns true if a repository with the specified name exists and has been successfully removed, false otherwise.
+     *
+     * @since 7.6.1
+     */
+    boolean remove(String name);
 
 }

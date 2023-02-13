@@ -19,9 +19,9 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -80,23 +80,18 @@ public abstract class BasePlugin implements Plugin<Project> {
     }
 
     private void configureConfigurations(final Project project) {
-        ConfigurationContainer configurations = project.getConfigurations();
+        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
         ((ProjectInternal)project).getInternalStatus().convention("integration");
 
-        final Configuration archivesConfiguration = configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
+        final Configuration archivesConfiguration = configurations.maybeCreateWithRole(Dependency.ARCHIVES_CONFIGURATION, ConfigurationRoles.INTENDED_CONSUMABLE, false, false).
             setDescription("Configuration for archive artifacts.");
 
-        final Configuration defaultConfiguration =  configurations.maybeCreate(Dependency.DEFAULT_CONFIGURATION).
+        final Configuration defaultConfiguration =  configurations.maybeCreateWithRole(Dependency.DEFAULT_CONFIGURATION, ConfigurationRoles.INTENDED_CONSUMABLE, false, false).
             setDescription("Configuration for default artifacts.");
 
         final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(
             "defaultArtifacts", DefaultArtifactPublicationSet.class, archivesConfiguration.getArtifacts()
         );
-
-        archivesConfiguration.setCanBeResolved(false);
-        defaultConfiguration.setCanBeResolved(false);
-        ((ConfigurationInternal) archivesConfiguration).setCanBeDeclaredAgainst(false);
-        ((ConfigurationInternal) defaultConfiguration).setCanBeDeclaredAgainst(false);
 
         configurations.all(configuration -> {
             if (!configuration.equals(archivesConfiguration)) {

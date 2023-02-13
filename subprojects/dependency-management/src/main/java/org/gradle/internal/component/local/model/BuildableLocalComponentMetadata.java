@@ -17,7 +17,6 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
@@ -26,9 +25,7 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public interface BuildableLocalComponentMetadata {
     /**
@@ -41,9 +38,8 @@ public interface BuildableLocalComponentMetadata {
      *
      * @param hierarchy Must include name
      * @param attributes the attributes of the configuration.
-     * @param consistentResolutionConstraints the consistent resolution constraints
      */
-    BuildableLocalConfigurationMetadata addConfiguration(String name, @Nullable String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, @Nullable DeprecationMessageBuilder.WithDocumentation consumptionDeprecation, boolean canBeResolved, ImmutableCapabilities capabilities, Supplier<List<DependencyConstraint>> consistentResolutionConstraints);
+    BuildableLocalConfigurationMetadata addConfiguration(String name, @Nullable String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, @Nullable DeprecationMessageBuilder.WithDocumentation consumptionDeprecation, boolean canBeResolved, ImmutableCapabilities capabilities);
 
     /**
      * Provides a backing configuration instance from which dependencies and excludes will be sourced.

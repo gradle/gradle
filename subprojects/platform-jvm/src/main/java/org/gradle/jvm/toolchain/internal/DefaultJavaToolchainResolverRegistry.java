@@ -65,7 +65,7 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
     }
 
     @Override
-    public DefaultJavaToolchainRepositoryHandler getRepositories() {
+    public JavaToolchainRepositoryHandlerInternal getRepositories() {
         return repositoryHandler;
     }
 
@@ -91,7 +91,7 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
         realizedRepositories.clear();
 
         Set<Class<?>> resolvers = new HashSet<>();
-        for (JavaToolchainRepository repository : repositoryHandler.repositories()) {
+        for (JavaToolchainRepository repository : repositoryHandler.getAsList()) {
             if (!resolvers.add(repository.getResolverClass().get())) {
                 throw new GradleException("Duplicate configuration for repository implementation '" + repository.getResolverClass().get().getName() + "'.");
             }

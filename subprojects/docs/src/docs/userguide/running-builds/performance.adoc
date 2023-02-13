@@ -206,7 +206,7 @@ include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",fil
 ====
 
 For more information about incremental builds, check out the
-<<more_about_tasks.adoc#sec:up_to_date_checks,incremental builds documentation>>.
+<<incremental_build.adoc#incremental_build,incremental build documentation>>.
 
 === Visualize incremental builds with build scan timelines
 
@@ -741,7 +741,7 @@ To enable incremental compilation by default in older Gradle versions, add the f
 [source.multi-language-sample,kotlin]
 ----
 tasks.withType<JavaCompile>().configureEach {
-    options.incremental = true
+    options.isIncremental = true
 }
 ----
 .build.gradle

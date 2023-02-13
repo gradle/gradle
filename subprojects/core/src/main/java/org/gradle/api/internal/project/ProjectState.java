@@ -83,6 +83,12 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     File getProjectDir();
 
     /**
+     * Returns the nesting level of a project in a multi-project hierarchy. For single project builds this is always
+     * 0. In a multi-project hierarchy 0 is returned for the root project.
+     */
+    int getDepth();
+
+    /**
      * Returns the identifier of the default component produced by this project.
      */
     ProjectComponentIdentifier getComponentIdentifier();

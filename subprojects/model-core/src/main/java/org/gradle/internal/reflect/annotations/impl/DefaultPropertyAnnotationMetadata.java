@@ -17,24 +17,32 @@
 package org.gradle.internal.reflect.annotations.impl;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.reflect.TypeToken;
+import org.gradle.api.GradleException;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
 public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMetadata {
     private final String propertyName;
     private final Method getter;
+    private final TypeToken<?> declaredType;
     private final ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory;
     private final ImmutableMap<Class<? extends Annotation>, Annotation> annotationsByType;
 
     public DefaultPropertyAnnotationMetadata(String propertyName, Method getter, ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory) {
         this.propertyName = propertyName;
         this.getter = getter;
+        getter.setAccessible(true);
+        this.declaredType = TypeToken.of(getter.getGenericReturnType());
         this.annotationsByCategory = annotationsByCategory;
         this.annotationsByType = collectAnnotationsByType(annotationsByCategory);
     }
@@ -74,7 +82,24 @@ public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMeta
 
     @Override
     public int compareTo(@Nonnull PropertyAnnotationMetadata o) {
-        return getter.getName().compareTo(o.getGetter().getName());
+        return propertyName.compareTo(o.getPropertyName());
+    }
+
+    @Override
+    public TypeToken<?> getDeclaredType() {
+        return declaredType;
+    }
+
+    @Nullable
+    @Override
+    public Object getPropertyValue(Object object) {
+        try {
+            return getter.invoke(object);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not call %s.%s() on %s", getter.getDeclaringClass().getSimpleName(), getter.getName(), object), e);
+        }
     }
 
     @Override

@@ -269,6 +269,10 @@ class SmokeTestGradleRunner extends GradleRunner {
         return this
     }
 
+    List<String> getJvmArguments() {
+        return delegate.getJvmArguments()
+    }
+
     SmokeTestGradleRunner withJvmArguments(List<String> jvmArguments) {
         delegate.withJvmArguments(jvmArguments)
         return this

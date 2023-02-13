@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -101,6 +102,8 @@ public class IntegrationTestBuildContext {
     }
 
     public GradleDistribution distribution(String version) {
+        NativeServicesTestFixture.initialize();
+
         if (version.equals(getVersion().getVersion())) {
             return new UnderDevelopmentGradleDistribution();
         }

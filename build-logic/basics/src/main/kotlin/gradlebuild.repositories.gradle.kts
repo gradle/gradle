@@ -23,7 +23,6 @@ repositories {
             includeModule("flot", "flot")
             includeModule("org.gradle", "gradle-tooling-api")
             includeModule("org.gradle.buildtool.internal", "configuration-cache-report")
-            includeModuleByRegex("org.gradle", "docs-asciidoctor-extensions(-base)?")
         }
     }
     google {

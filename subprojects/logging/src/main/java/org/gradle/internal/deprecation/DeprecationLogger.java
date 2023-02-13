@@ -54,10 +54,13 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class DeprecationLogger {
 
-    private static final ThreadLocal<Boolean> ENABLED = new ThreadLocal<Boolean>() {
+    /**
+     * Counts the levels of nested {@code whileDisabled} invocations.
+     */
+    private static final ThreadLocal<Integer> DISABLE_COUNT = new ThreadLocal<Integer>() {
         @Override
-        protected Boolean initialValue() {
-            return true;
+        protected Integer initialValue() {
+            return 0;
         }
     };
 
@@ -139,7 +142,7 @@ public class DeprecationLogger {
             DeprecationMessage build() {
                 return new DeprecationMessage(behaviour + ". This behavior is deprecated.", "", advice, null, Documentation.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
             }
-        });
+        }); // TODO: it is not ok that NO_DOCUMENTATION is hardcoded here
     }
 
     /**
@@ -250,25 +253,94 @@ public class DeprecationLogger {
 
     @Nullable
     public static <T> T whileDisabled(Factory<T> factory) {
-        ENABLED.set(false);
+        disable();
         try {
             return factory.create();
         } finally {
-            ENABLED.set(true);
+            maybeEnable();
         }
     }
 
     public static void whileDisabled(Runnable action) {
-        ENABLED.set(false);
+        disable();
         try {
             action.run();
         } finally {
-            ENABLED.set(true);
+            maybeEnable();
         }
     }
 
+    public static <T, E extends Exception> T whileDisabledThrowing(ThrowingFactory<T, E> factory) {
+        disable();
+        try {
+            return toUncheckedThrowingFactory(factory).create();
+        } finally {
+            maybeEnable();
+        }
+    }
+
+    public static <E extends Exception> void whileDisabledThrowing(ThrowingRunnable<E> runnable) {
+        disable();
+        try {
+            toUncheckedThrowingRunnable(runnable).run();
+        } finally {
+           maybeEnable();
+        }
+    }
+
+    private static void disable() {
+        DISABLE_COUNT.set(DISABLE_COUNT.get() + 1);
+    }
+
+    private static void maybeEnable() {
+        DISABLE_COUNT.set(DISABLE_COUNT.get() - 1);
+    }
+
     private static boolean isEnabled() {
-        return ENABLED.get();
+        // log deprecation messages only after the outermost whileDisabled finished execution
+        return DISABLE_COUNT.get() == 0;
+    }
+
+    public interface ThrowingFactory<T, E extends Exception> {
+        T create() throws E;
+    }
+
+    public interface ThrowingRunnable<E extends Exception> {
+        void run() throws E;
+    }
+
+    /**
+     * Turns a {@link ThrowingFactory} into a {@link Factory}.
+     * The compiler is happy with the casting that allows to hide the checked exception.
+     * The runtime is happy with the casting because the checked exception type information is captured in a generic type parameter which gets erased.
+     */
+    private static <T, E extends Exception> Factory<T> toUncheckedThrowingFactory(final ThrowingFactory<T, E> throwingFactory) {
+        return new Factory<T>() {
+            @Nullable
+            @Override
+            public T create() {
+                @SuppressWarnings("unchecked")
+                ThrowingFactory<T, RuntimeException> factory = (ThrowingFactory<T, RuntimeException>) throwingFactory;
+                return factory.create();
+            }
+        };
+    }
+
+    /**
+     * Turns a {@link ThrowingRunnable} into a {@link Runnable}.
+     *
+     * @see #toUncheckedThrowingFactory(ThrowingFactory)
+     */
+    private static <E extends Exception> Runnable toUncheckedThrowingRunnable(final ThrowingRunnable<E> throwingRunnable) {
+        return new Runnable() {
+            @Nullable
+            @Override
+            public void run() {
+                @SuppressWarnings("unchecked")
+                ThrowingRunnable<RuntimeException> runnable = (ThrowingRunnable<RuntimeException>) throwingRunnable;
+                runnable.run();
+            }
+        };
     }
 
     private synchronized static void nagUserWith(DeprecatedFeatureUsage usage) {

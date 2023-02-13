@@ -434,7 +434,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * Returns all the configurations belonging to the same configuration container as this
      * configuration (including this configuration).
      *
-     * @return All of the configurations belong to the configuration container that this set belongs to.
+     * @return All the configurations belonging to the configuration container that this set belongs to itself.
      */
     Set<Configuration> getAll();
 
@@ -446,15 +446,17 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     ResolvableDependencies getIncoming();
 
     /**
-     * Returns the outgoing artifacts of this configuration.
+     * Returns the outgoing {@link ConfigurationPublications} instance that advertises and allows configuring the artifacts and variants published by this configuration.
+     * <p>
+     * This allows adding additional artifacts and accessing and configuring variants to publish.
      *
-     * @return The outgoing artifacts of this configuration.
+     * @return The outgoing publications object containing artifacts and variants published by this configuration.
      * @since 3.4
      */
     ConfigurationPublications getOutgoing();
 
     /**
-     * Configures the outgoing artifacts of this configuration.
+     * Configures the outgoing {@link ConfigurationPublications} instance that advertises and allows configuring the artifacts and variants published by this configuration.
      *
      * @param action The action to perform the configuration.
      * @since 3.4

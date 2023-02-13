@@ -29,6 +29,7 @@ import org.gradle.api.tasks.scala.ScalaForkOptions;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,7 +53,7 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
 
     private boolean force;
 
-    private List<String> additionalParameters;
+    private final List<String> additionalParameters = new ArrayList<>();
 
     private boolean listFiles;
 
@@ -164,14 +165,25 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
     /**
      * Additional parameters passed to the compiler.
      * Each parameter must start with '-'.
+     *
+     * @return The list of additional parameters.
      */
-    @Nullable @Optional @Input
+    @Optional
+    @Input
     public List<String> getAdditionalParameters() {
         return additionalParameters;
     }
 
-    public void setAdditionalParameters(@Nullable List<String> additionalParameters) {
-        this.additionalParameters = additionalParameters;
+    /**
+     * Sets the additional parameters.
+     * <p>
+     * Setting this property will clear any previously set additional parameters.
+     */
+    public void setAdditionalParameters(List<String> additionalParameters) {
+        this.additionalParameters.clear();
+        if (additionalParameters != null) {
+            this.additionalParameters.addAll(additionalParameters);
+        }
     }
 
     /**

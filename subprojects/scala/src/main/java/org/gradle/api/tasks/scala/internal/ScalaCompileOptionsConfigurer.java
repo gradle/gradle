@@ -23,7 +23,6 @@ import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -68,17 +67,12 @@ public class ScalaCompileOptionsConfigurer {
             return;
         }
 
-        List<String> additionalParameters = scalaCompileOptions.getAdditionalParameters();
-        if (additionalParameters != null && hasTargetDefiningParameter(additionalParameters)) {
+        if (hasTargetDefiningParameter(scalaCompileOptions.getAdditionalParameters())) {
             return;
         }
 
         String targetParameter = determineTargetParameter(scalaVersion, (JavaToolchain) toolchain);
-        if (additionalParameters == null) {
-            scalaCompileOptions.setAdditionalParameters(Collections.singletonList(targetParameter));
-        } else {
-            additionalParameters.add(targetParameter);
-        }
+        scalaCompileOptions.getAdditionalParameters().add(targetParameter);
     }
 
     private static boolean hasTargetDefiningParameter(List<String> additionalParameters) {

@@ -195,7 +195,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         buildFile << """
             subprojects {
                 task badTask {
-                    outputs.file { project.layout.buildDirectory.file("${forbiddenPath}") } withPropertyName "output"
+                    def projectLayout = project.layout
+                    outputs.file { projectLayout.buildDirectory.file("${forbiddenPath}") } withPropertyName "output"
                     doLast { }
                 }
             }
@@ -1633,9 +1634,19 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
+
+        then:
+        gcFile.assertExists()
+
+        when:
         writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
 
         and:
+        executer.beforeExecute {
+            if (!GradleContextualExecuter.embedded) {
+                executer.withArgument("-D$REUSE_USER_HOME_SERVICES=true")
+            }
+        }
         // start as new process so journal is not restored from in-memory cache
         executer.withTasks("help").start().waitForFinish()
 
@@ -1765,7 +1776,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         transformingBuild.waitForFinish()
     }
 
-    def "does not clean up cache when cache cleanup is disabled via #method"() {
+    def "does not clean up cache when cache cleanup is disabled via #cleanupMethod"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
         ["lib1", "lib2"].each { name ->
@@ -1775,7 +1786,47 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
-        disableCacheCleanup(method)
+        disableCacheCleanup(cleanupMethod)
+        cleanupMethod.maybeExpectDeprecationWarning(executer)
+        succeeds ":app:resolve"
+
+        then:
+        def outputDir1 = outputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
+        def outputDir2 = outputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        journal.assertExists()
+
+        when:
+        executer.noDeprecationChecks()
+        run '--stop' // ensure daemon does not cache file access times in memory
+        def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
+        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
+        gcFile.lastModified = daysAgo(2)
+
+        and:
+        cleanupMethod.maybeExpectDeprecationWarning(executer)
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks("help").start().waitForFinish()
+
+        then:
+        outputDir1.assertExists()
+        outputDir2.assertExists()
+
+        where:
+        cleanupMethod << CleanupMethod.values()
+    }
+
+    def "cleans up cache when DSL is configured even if legacy property is set"() {
+        given:
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
+        ["lib1", "lib2"].each { name ->
+            buildFile << withExternalLibDependency(name)
+        }
+
+        when:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        disableCacheCleanupViaProperty()
+        explicitlyEnableCacheCleanupViaDsl()
         succeeds ":app:resolve"
 
         then:
@@ -1794,11 +1845,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         executer.withTasks("help").start().waitForFinish()
 
         then:
-        outputDir1.assertExists()
+        outputDir1.assertDoesNotExist()
         outputDir2.assertExists()
-
-        where:
-        method << CleanupMethod.values()
+        gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
     }
 
     String getResolveTask() {

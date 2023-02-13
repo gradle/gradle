@@ -23,9 +23,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContributor;
-import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.IncludedBuildFactory;
-import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.buildtree.GlobalDependencySubstitutionRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
@@ -61,19 +59,16 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             serviceRegistration.add(BuildStateFactory.class);
             serviceRegistration.add(DefaultIncludedBuildFactory.class);
             serviceRegistration.add(DefaultIncludedBuildTaskGraph.class);
+            serviceRegistration.add(DefaultIncludedBuildRegistry.class);
         }
 
-        public BuildStateRegistry createIncludedBuildRegistry(CompositeBuildContext context,
-                                                              Instantiator instantiator,
-                                                              ListenerManager listenerManager,
-                                                              ObjectFactory objectFactory,
-                                                              NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
-                                                              ImmutableAttributesFactory attributesFactory,
-                                                              BuildStateFactory buildStateFactory,
-                                                              IncludedBuildFactory includedBuildFactory) {
+        public GlobalDependencySubstitutionRegistry createGlobalDependencySubstitutionRegistry(CompositeBuildContext context,
+                                                                                               Instantiator instantiator,
+                                                                                               ObjectFactory objectFactory,
+                                                                                               NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
+                                                                                               ImmutableAttributesFactory attributesFactory) {
             NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-            IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder = new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, capabilityNotationParser);
-            return new DefaultIncludedBuildRegistry(includedBuildFactory, dependencySubstitutionsBuilder, listenerManager, buildStateFactory);
+            return new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, capabilityNotationParser);
         }
 
         public CompositeBuildContext createCompositeBuildContext() {

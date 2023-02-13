@@ -19,6 +19,7 @@ package org.gradle.configurationcache.isolated
 import org.gradle.configurationcache.fixtures.SomeToolingModel
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
+import spock.lang.Ignore
 
 class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
@@ -27,6 +28,7 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
         """
     }
 
+    @Ignore("https://github.com/gradle/gradle/issues/23196")
     def "caches creation of custom tooling model"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
@@ -79,6 +81,7 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
+            modelsReused(":buildSrc")
         }
         outputContains("creating model for root project 'root'")
 
@@ -116,8 +119,8 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
         fixture.assertStateStoredWithProblems {
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            problem("Build file 'build.gradle': Cannot access project ':a' from project ':'")
-            problem("Build file 'build.gradle': Cannot access project ':b' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access project ':a' from project ':'")
+            problem("Build file 'build.gradle': line 3: Cannot access project ':b' from project ':'")
         }
 
         when:

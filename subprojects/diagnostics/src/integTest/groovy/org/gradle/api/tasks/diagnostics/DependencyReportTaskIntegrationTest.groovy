@@ -1036,7 +1036,7 @@ compileClasspath - Compile classpath for source set 'main'.
         buildFile << """
             subprojects {
                 configurations {
-                    compile.deprecateForDeclaration('implementation')
+                    compile.deprecateForDeclarationAgainst('implementation')
                     'default' { extendsFrom compile }
                 }
                 group = "group"
@@ -1087,7 +1087,7 @@ compileClasspath - Compile classpath for source set 'main'.
             configurations {
                 compileOnly.deprecateForResolution("compileClasspath")
                 compileOnly.deprecateForConsumption { builder ->
-                    builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
+                    builder.willBecomeAnErrorInGradle9().withUpgradeGuideSection(8, "foo")
                 }
                 implementation.extendsFrom compileOnly
             }

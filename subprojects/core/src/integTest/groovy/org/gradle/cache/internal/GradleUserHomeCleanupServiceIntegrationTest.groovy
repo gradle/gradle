@@ -18,13 +18,12 @@ package org.gradle.cache.internal
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
-import java.text.SimpleDateFormat
-import java.time.Instant
-
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.USED_TODAY
+import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 
 class GradleUserHomeCleanupServiceIntegrationTest extends AbstractIntegrationSpec implements GradleUserHomeCleanupFixture {
     private static final int HALF_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS = Math.max(1, CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS / 2 as int)
@@ -177,6 +176,12 @@ class GradleUserHomeCleanupServiceIntegrationTest extends AbstractIntegrationSpe
 
     def "always cleans up unused version-specific cache directories and corresponding #type distributions when configured"() {
         given:
+        executer.requireIsolatedDaemons() // because we want to reuse Gradle user home services
+        executer.beforeExecute {
+            if (!GradleContextualExecuter.embedded) {
+                executer.withArgument("-D$REUSE_USER_HOME_SERVICES=true")
+            }
+        }
         requireOwnGradleUserHomeDir() // because we delete caches and distributions
         alwaysCleanupCaches()
 
@@ -217,73 +222,59 @@ class GradleUserHomeCleanupServiceIntegrationTest extends AbstractIntegrationSpe
         DistType.SNAPSHOT | NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_SNAPSHOT_DISTS
     }
 
-    private GradleDistDirs versionedDistDirs(String version, MarkerFileType lastUsed, String customDistName) {
-        def distVersion = GradleVersion.version(version)
-        return new GradleDistDirs(
-            createVersionSpecificCacheDir(distVersion, lastUsed),
-            createDistributionChecksumDir(distVersion).parentFile,
-            createCustomDistributionChecksumDir(customDistName, distVersion).parentFile
-        )
+    def "does not clean up unused version-specific cache directories and corresponding distributions when clean is disabled using #cleanupMethod"() {
+        given:
+        requireOwnGradleUserHomeDir() // because we delete caches and distributions
+        disableCacheCleanup(cleanupMethod)
+
+        and:
+        def oldButRecentlyUsedGradleDist = versionedDistDirs(DistType.RELEASED.version("1.4.5"), USED_TODAY, "my-dist-1")
+        def oldNotRecentlyUsedGradleDist = versionedDistDirs(DistType.RELEASED.version("2.3.4"), NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_RELEASED_DISTS, "my-dist-2")
+
+        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_RELEASED_DISTS)
+        def currentDist = createDistributionChecksumDir(GradleVersion.current()).parentFile
+
+        and:
+        cleanupMethod.maybeExpectDeprecationWarning(executer)
+
+        when:
+        succeeds("help")
+
+        then:
+        oldButRecentlyUsedGradleDist.assertAllDirsExist()
+        oldNotRecentlyUsedGradleDist.assertAllDirsExist()
+
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
+
+        where:
+        cleanupMethod << CleanupMethod.values()
     }
 
-    private static class GradleDistDirs {
-        private final TestFile cacheDir
-        private final TestFile distDir
-        private final TestFile customDistDir
+    def "cleans up unused version-specific cache directories and corresponding #type distributions when DSL is configured even if legacy property is present"() {
+        given:
+        requireOwnGradleUserHomeDir() // because we delete caches and distributions
+        disableCacheCleanupViaProperty()
+        explicitlyEnableCacheCleanupViaDsl()
 
-        GradleDistDirs(TestFile cacheDir, TestFile distDir, TestFile customDistDir) {
-            this.cacheDir = cacheDir
-            this.distDir = distDir
-            this.customDistDir = customDistDir
-        }
+        and:
+        def oldButRecentlyUsedGradleDist = versionedDistDirs(DistType.RELEASED.version("1.4.5"), USED_TODAY, "my-dist-1")
+        def oldNotRecentlyUsedGradleDist = versionedDistDirs(DistType.RELEASED.version("2.3.4"), NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_RELEASED_DISTS, "my-dist-2")
 
-        void assertAllDirsExist() {
-            cacheDir.assertExists()
-            distDir.assertExists()
-            customDistDir.assertExists()
-        }
+        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_RELEASED_DISTS)
+        def currentDist = createDistributionChecksumDir(GradleVersion.current()).parentFile
 
-        void assertAllDirsDoNotExist() {
-            cacheDir.assertDoesNotExist()
-            distDir.assertDoesNotExist()
-            customDistDir.assertDoesNotExist()
-        }
-    }
+        when:
+        succeeds("help")
 
-    private static enum DistType {
-        RELEASED() {
-            @Override
-            String version(String baseVersion) {
-                return baseVersion
-            }
+        then:
+        oldButRecentlyUsedGradleDist.assertAllDirsExist()
+        oldNotRecentlyUsedGradleDist.assertAllDirsDoNotExist()
 
-            @Override
-            String alternateVersion(String baseVersion) {
-                throw new UnsupportedOperationException()
-            }
-        },
-        SNAPSHOT() {
-            def formatter = new SimpleDateFormat("yyyyMMddHHmmssZ")
-            def now = Instant.now()
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
 
-            @Override
-            String version(String baseVersion) {
-                return baseVersion + '-' + formatter.format(Date.from(now))
-            }
-
-            @Override
-            String alternateVersion(String baseVersion) {
-                return baseVersion + '-' + formatter.format(Date.from(now.plusSeconds(60)))
-            }
-        }
-
-        abstract String version(String baseVersion)
-        abstract String alternateVersion(String baseVersion)
-
-        @Override
-        String toString() {
-            return name().toLowerCase()
-        }
+        getGcFile(currentCacheDir).assertExists()
     }
 
     @Override

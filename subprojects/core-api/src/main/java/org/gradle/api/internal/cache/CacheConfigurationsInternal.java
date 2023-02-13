@@ -18,6 +18,7 @@ package org.gradle.api.internal.cache;
 
 import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.api.cache.Cleanup;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.CleanupFrequency;
@@ -37,13 +38,18 @@ public interface CacheConfigurationsInternal extends CacheConfigurations {
     @Override
     CacheResourceConfigurationInternal getCreatedResources();
 
-    void setReleasedWrappers(CacheResourceConfigurationInternal releasedWrappers);
-    void setSnapshotWrappers(CacheResourceConfigurationInternal snapshotWrappers);
-    void setDownloadedResources(CacheResourceConfigurationInternal downloadedResources);
-    void setCreatedResources(CacheResourceConfigurationInternal createdResources);
-    void setCleanup(Property<Cleanup> cleanup);
-
-    void finalizeConfigurations();
+    @Override
+    Property<Cleanup> getCleanup();
 
     Provider<CleanupFrequency> getCleanupFrequency();
+
+    void finalizeConfiguration(Gradle gradle);
+
+    /**
+     * Synchronizes the property values of the provided cache configurations with those of this cache configuration
+     * by setting the provided configuration's properties to be backed by the properties of this configuration.
+     */
+    void synchronize(CacheConfigurationsInternal cacheConfigurationsInternal);
+
+    void setCleanupHasBeenConfigured(boolean hasBeenConfigured);
 }

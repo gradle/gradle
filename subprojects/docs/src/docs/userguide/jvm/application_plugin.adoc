@@ -116,7 +116,7 @@ include::sample[dir="snippets/java/application/kotlin",files="build.gradle.kts[t
 include::sample[dir="snippets/java/application/groovy",files="build.gradle[tags=distribution-spec]"]
 ====
 
-By specifying that the distribution should include the task's output files (see <<more_about_tasks.adoc#sec:task_inputs_outputs, more about tasks>>), Gradle knows that the task that produces the files must be invoked before the distribution can be assembled and will take care of this for you.
+By specifying that the distribution should include the task's output files (see <<incremental_build.adoc#sec:task_inputs_outputs, incremental builds>>), Gradle knows that the task that produces the files must be invoked before the distribution can be assembled and will take care of this for you.
 
 You can run `gradle installDist` to create an image of the application in `build/install/__projectName__`. You can run `gradle distZip` to create a ZIP containing the distribution, `gradle distTar` to create an application TAR or `gradle assemble` to build both.
 

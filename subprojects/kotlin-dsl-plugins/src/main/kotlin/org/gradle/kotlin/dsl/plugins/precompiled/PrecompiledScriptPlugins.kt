@@ -22,6 +22,8 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.internal.Factory
+import org.gradle.internal.deprecation.DeprecationLogger
 
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPluginOptions
@@ -54,7 +56,10 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
     class Target(override val project: Project) : PrecompiledScriptPluginsSupport.Target {
 
         override val jvmTarget: Provider<JavaVersion> =
-            project.the<KotlinDslPluginOptions>().jvmTarget.map { JavaVersion.toVersion(it) }
+            DeprecationLogger.whileDisabled(Factory {
+                @Suppress("DEPRECATION")
+                project.the<KotlinDslPluginOptions>().jvmTarget.map { JavaVersion.toVersion(it) }
+            })!!
 
         override val kotlinSourceDirectorySet: SourceDirectorySet
             get() = project.sourceSets["main"].kotlin

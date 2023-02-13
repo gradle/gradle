@@ -95,7 +95,7 @@ public interface BuildState {
     File getBuildRootDir();
 
     /**
-     * Returns the current state of the mutable model of this build.
+     * Returns the current state of the mutable model of this build. Try to use {@link #withState(Transformer)} instead.
      */
     GradleInternal getMutableModel();
 

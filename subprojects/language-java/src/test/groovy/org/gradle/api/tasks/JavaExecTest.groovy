@@ -26,7 +26,7 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
 
     def 'fails if custom executable does not exist'() {
         def task = project.tasks.create("run", JavaExec)
-        def invalidExecutable = "invalid"
+        def invalidExecutable = temporaryFolder.file("invalid")
 
         when:
         task.executable = invalidExecutable
@@ -36,7 +36,7 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
         def e = thrown(TaskExecutionException)
         def cause = TestUtil.getRootCause(e) as InvalidUserDataException
         cause.message.contains("The configured executable does not exist")
-        cause.message.contains(invalidExecutable)
+        cause.message.contains(invalidExecutable.absolutePath)
     }
 
     def 'fails if custom executable is a directory'() {

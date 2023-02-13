@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
@@ -33,9 +34,7 @@ import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.build.CompositeBuildParticipantBuildState
 import org.gradle.internal.build.RootBuildState
-import org.gradle.internal.build.StandAloneNestedBuild
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
@@ -62,7 +61,7 @@ class ConfigurationCacheHost internal constructor(
     }
 
     override fun createBuild(settingsFile: File?): ConfigurationCacheBuild =
-        DefaultConfigurationCacheBuild(gradle, service(), service(), settingsFile)
+        DefaultConfigurationCacheBuild(gradle.owner, service(), service(), settingsFile)
 
     override fun <T> service(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
@@ -79,7 +78,7 @@ class ConfigurationCacheHost internal constructor(
             get() = state.mutableModel
 
         override val hasScheduledWork: Boolean
-            get() = if (state is StandAloneNestedBuild) false else gradle.taskGraph.size() > 0
+            get() = gradle.taskGraph.size() > 0
 
         override val scheduledWork: List<Node>
             get() {
@@ -91,7 +90,7 @@ class ConfigurationCacheHost internal constructor(
 
     private
     inner class DefaultConfigurationCacheBuild(
-        override val gradle: GradleInternal,
+        override val state: BuildState,
         private val fileResolver: PathToFileResolver,
         private val buildStateRegistry: BuildStateRegistry,
         private val settingsFile: File?
@@ -101,12 +100,14 @@ class ConfigurationCacheHost internal constructor(
         val buildDirs = mutableMapOf<Path, File>()
 
         init {
-            require(gradle.owner is CompositeBuildParticipantBuildState)
             gradle.run {
                 attachSettings(createSettings())
                 setBaseProjectClassLoaderScope(coreScope)
             }
         }
+
+        override val gradle: GradleInternal
+            get() = state.mutableModel
 
         override fun registerRootProject(rootProjectName: String, projectDir: File, buildDir: File) {
             // Root project is registered when the settings are created, just need to adjust its properties
@@ -165,8 +166,12 @@ class ConfigurationCacheHost internal constructor(
         override fun getProject(path: String): ProjectInternal =
             state.projects.getProject(Path.path(path)).mutableModel
 
-        override fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?): ConfigurationCacheBuild {
-            return DefaultConfigurationCacheBuild(buildStateRegistry.addIncludedBuild(buildDefinition).mutableModel, fileResolver, buildStateRegistry, settingsFile)
+        override fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, buildPath: Path): ConfigurationCacheBuild {
+            return DefaultConfigurationCacheBuild(buildStateRegistry.addIncludedBuild(buildDefinition, buildPath), fileResolver, buildStateRegistry, settingsFile)
+        }
+
+        override fun getBuildSrcOf(ownerId: BuildIdentifier): ConfigurationCacheBuild {
+            return DefaultConfigurationCacheBuild(buildStateRegistry.getBuildSrcNestedBuild(buildStateRegistry.getBuild(ownerId))!!, fileResolver, buildStateRegistry, null)
         }
 
         private
@@ -210,9 +215,6 @@ class ConfigurationCacheHost internal constructor(
         private
         val projectDescriptorRegistry
             get() = (gradle.settings as DefaultSettings).projectDescriptorRegistry
-
-        override
-        val state: CompositeBuildParticipantBuildState = gradle.owner as CompositeBuildParticipantBuildState
     }
 
     private

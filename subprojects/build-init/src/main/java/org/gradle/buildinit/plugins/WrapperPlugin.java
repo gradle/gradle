@@ -20,7 +20,15 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.resources.TextResource;
+import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.api.tasks.wrapper.Wrapper;
+import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
+import org.gradle.util.internal.DistributionLocator;
+
+import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.NIGHTLY;
+import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.RELEASE_CANDIDATE;
+import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.RELEASE_NIGHTLY;
 
 /**
  * The wrapper plugin.
@@ -28,18 +36,35 @@ import org.gradle.api.tasks.wrapper.Wrapper;
  * @see <a href="https://docs.gradle.org/current/userguide/gradle_wrapper.html">Gradle Wrapper reference</a>
  */
 public abstract class WrapperPlugin implements Plugin<Project> {
+
+    private static final String SERVICES_GRADLE_ORG_VERSIONS_OVERRIDE_URL_PROPERTY = "org.gradle.internal.services.version.url.override";
+
     @Override
     public void apply(Project project) {
         if (project.getParent() == null) {
+            String versionUrl = getVersionUrl();
+            TextResourceFactory textFactory = project.getResources().getText();
+            TextResource latest = textFactory.fromUri(versionUrl + "/current");
+            TextResource releaseCandidate = textFactory.fromUri(versionUrl + "/" + RELEASE_CANDIDATE);
+            TextResource nightly = textFactory.fromUri(versionUrl + "/" + NIGHTLY);
+            TextResource releaseNightly = textFactory.fromUri(versionUrl + "/" + RELEASE_NIGHTLY);
+
             project.getTasks().register("wrapper", Wrapper.class, wrapper -> {
                 wrapper.setGroup("Build Setup");
                 wrapper.setDescription("Generates Gradle wrapper files.");
                 wrapper.getNetworkTimeout().convention(10000);
+                wrapper.setWrapperVersionsResources(new DefaultWrapperVersionsResources(latest, releaseCandidate, nightly, releaseNightly));
 
                 Task initTask = project.getTasks().findByName("init");
                 wrapper.onlyIf("The init task did not fail if it was executed", new WrapperOnlyIfSpec(initTask));
             });
         }
+    }
+
+    private static String getVersionUrl() {
+        String baseUrl = System.getProperty(SERVICES_GRADLE_ORG_VERSIONS_OVERRIDE_URL_PROPERTY,
+            DistributionLocator.SERVICES_GRADLE_BASE_URL);
+        return baseUrl + "/versions";
     }
 
     private static class WrapperOnlyIfSpec implements Spec<Task> {

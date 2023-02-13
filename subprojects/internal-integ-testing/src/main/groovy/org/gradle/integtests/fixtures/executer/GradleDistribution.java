@@ -170,4 +170,9 @@ public interface GradleDistribution {
      * Returns true if this version loads the work graph from the configuration cache in the same build that the entry is stored.
      */
     boolean isLoadsFromConfigurationCacheAfterStore();
+
+    /**
+     * Returns true if this version runs tests when building `buildSrc`
+     */
+    boolean isRunsBuildSrcTests();
 }

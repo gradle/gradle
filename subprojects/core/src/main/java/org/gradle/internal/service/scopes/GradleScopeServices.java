@@ -18,7 +18,6 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -28,16 +27,12 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.tasks.options.OptionReader;
-import org.gradle.api.services.internal.BuildServiceProvider;
-import org.gradle.api.services.internal.BuildServiceProviderNagger;
-import org.gradle.api.services.internal.BuildServiceRegistryInternal;
-import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.SplitFileContentCacheFactory;
-import org.gradle.cache.scopes.BuildScopedCache;
+import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
@@ -63,19 +58,15 @@ import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.TaskExecutionTracker;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -184,7 +175,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     FileContentCacheFactory createFileContentCacheFactory(
         GlobalCacheLocations globalCacheLocations,
-        BuildScopedCache cacheRepository,
+        BuildScopedCacheBuilderFactory cacheBuilderFactory,
         FileContentCacheFactory globalCacheFactory,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         ListenerManager listenerManager,
@@ -193,40 +184,13 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         DefaultFileContentCacheFactory localCacheFactory = new DefaultFileContentCacheFactory(
             listenerManager,
             fileSystemAccess,
-            cacheRepository,
+            cacheBuilderFactory,
             inMemoryCacheDecoratorFactory
         );
         return new SplitFileContentCacheFactory(
             globalCacheFactory,
             localCacheFactory,
             globalCacheLocations
-        );
-    }
-
-    BuildServiceRegistryInternal createSharedServiceRegistry(
-        BuildState buildState,
-        Instantiator instantiator,
-        DomainObjectCollectionFactory factory,
-        InstantiatorFactory instantiatorFactory,
-        ServiceRegistry services,
-        ListenerManager listenerManager,
-        IsolatableFactory isolatableFactory,
-        SharedResourceLeaseRegistry sharedResourceLeaseRegistry,
-        FeatureFlags featureFlags
-    ) {
-        // Instantiate via `instantiator` for the DSL decorations to the `BuildServiceRegistry` API
-        return instantiator.newInstance(
-            DefaultBuildServicesRegistry.class,
-            buildState.getBuildIdentifier(),
-            factory,
-            instantiatorFactory,
-            services,
-            listenerManager,
-            isolatableFactory,
-            sharedResourceLeaseRegistry,
-            featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
-                ? new BuildServiceProviderNagger(services.get(TaskExecutionTracker.class))
-                : BuildServiceProvider.Listener.EMPTY
         );
     }
 

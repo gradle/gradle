@@ -1250,7 +1250,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         withFile(
             "buildSrc/src/main/kotlin/my-plugin.gradle.kts",
             """
-            (dependencies as ExtensionAware).extensions.create<Mine>("mine")
+            dependencies.extensions.create<Mine>("mine")
             """
         )
 
