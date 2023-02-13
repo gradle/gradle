@@ -70,6 +70,10 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         feature == MAIN_FEATURE ? "" : "$feature-"
     }
 
+    void assertPublished(String pomPackaging, String artifactFileExtension) {
+        assertPublished(pomPackaging, artifactFileExtension, ['apiElements', 'runtimeElements'] as Set)
+    }
+
     void assertPublished(String pomPackaging, String artifactFileExtension, Set<String> expectedVariantNames) {
         super.assertPublished()
         assertArtifactsPublished(artifactFileExtension)
