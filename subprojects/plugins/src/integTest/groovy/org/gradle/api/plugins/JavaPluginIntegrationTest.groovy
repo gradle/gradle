@@ -127,7 +127,7 @@ Artifacts
                     sourceElementsConfig.getResolvedConfiguration().files
                 }
                 doLast {
-                    assert resolvedConfig.files.containsAll(expectedResolvedFiles)
+                    assert resolvedConfigFiles.get().containsAll(expectedResolvedFiles)
                 }
             }
             """.stripIndent()
