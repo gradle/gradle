@@ -540,6 +540,68 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         executedAndNotSkipped ':compileMain211Java', ':compileMain212Java'
     }
 
+    def "creates configurations when using main source set and java-library is not applied" () {
+        given:
+        buildFile << """
+            plugins {
+                id('java-base')
+            }
+
+            sourceSets {
+               main
+            }
+
+            configurations {
+                testCompileClasspath
+                testRuntimeClasspath
+            }
+
+            java {
+               registerFeature('feature') {
+                  usingSourceSet(sourceSets.main)
+               }
+            }
+        """
+
+        when:
+        succeeds 'dependencies'
+
+        then:
+        outputContains("featureRuntimeOnly")
+        outputContains("featureCompileOnly")
+        outputContains("featureImplementation")
+        outputContains("featureApi")
+        outputContains("featureCompileOnlyApi")
+        outputContains("featureRuntimeElements")
+        outputContains("featureApiElements")
+    }
+
+    def "creates configurations when using main source set and main feature name"() {
+        buildFile << """
+            plugins {
+                id('java-library')
+            }
+
+            java {
+                registerFeature('main') {
+                   usingSourceSet(sourceSets.main)
+                }
+            }
+        """
+
+        when:
+        run 'dependencies'
+
+        then:
+        outputContains("mainRuntimeOnly")
+        outputContains("mainCompileOnly")
+        outputContains("mainImplementation")
+        outputContains("mainApi")
+        outputContains("mainCompileOnlyApi")
+        outputContains("mainRuntimeElements")
+        outputContains("mainApiElements")
+    }
+
     def "elements configurations have the correct roles"() {
         given:
         buildFile << """
