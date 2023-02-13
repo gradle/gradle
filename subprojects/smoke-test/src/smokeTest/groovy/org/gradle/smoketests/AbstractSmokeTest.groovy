@@ -92,7 +92,7 @@ abstract class AbstractSmokeTest extends Specification {
         static springDependencyManagement = "1.0.14.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "2.7.3"
+        static springBoot = "2.7.8"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "30.0.2"
@@ -115,7 +115,7 @@ abstract class AbstractSmokeTest extends Specification {
         static grgit = "4.1.1"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
-        static gradleVersions = "0.42.0"
+        static gradleVersions = "0.45.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
         static playframework = "0.13"

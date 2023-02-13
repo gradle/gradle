@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cache;
+package org.gradle.api.plugins.quality.internal;
+
+import org.gradle.api.Action;
+import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 
 /**
- * Allows {@link MonitoredCleanupAction} instances to be decorated with additional functionality, such as checking whether cleanup has been disabled or not.
+ * Action to be run via the Worker API which executes a CodeNarc Ant task.
  */
-public interface MonitoredCleanupActionDecorator {
-    /**
-     * Decorates the provided {@link MonitoredCleanupAction}
-     */
-    MonitoredCleanupAction decorate(MonitoredCleanupAction cleanupAction);
+public abstract class CodeNarcAction extends AntWorkAction<CodeNarcActionParameters> {
+
+    @Override
+    protected String getActionName() {
+        return "codenarc";
+    }
+
+    @Override
+    protected Action<AntBuilderDelegate> getAntAction() {
+        return new CodeNarcInvoker(getParameters());
+    }
 }

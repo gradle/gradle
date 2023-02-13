@@ -24,10 +24,12 @@ import org.gradle.util.internal.VersionNumber
 import static org.hamcrest.CoreMatchers.startsWith
 
 class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec implements CodeNarcTestFixture {
-    private static final STABLE_VERSION = CodeNarcPlugin.DEFAULT_CODENARC_VERSION
-    private static final STABLE_VERSION_WITH_GROOVY4_SUPPORT = "${STABLE_VERSION}-groovy-4.0"
-
     def setup() {
+        writeRuleFile()
+    }
+
+    void writeBuildFile(String groovyVersion, String codenarcVersion) {
+        String group = VersionNumber.parse(groovyVersion).major >= 4 ? "org.apache.groovy" : "org.codehaus.groovy"
         buildFile << """
             apply plugin: "groovy"
             apply plugin: "codenarc"
@@ -35,28 +37,32 @@ class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec imple
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation(platform("org.apache.groovy:groovy-bom:${latestGroovy4Version}"))
-                implementation("org.apache.groovy:groovy")
-
-                codenarc("org.codenarc:CodeNarc:${STABLE_VERSION_WITH_GROOVY4_SUPPORT}")
-                codenarc(platform("org.apache.groovy:groovy-bom:${latestGroovy4Version}"))
+                implementation(platform("${group}:groovy-bom:${groovyVersion}"))
+                implementation("${group}:groovy")
             }
-        """.stripIndent()
 
-        writeRuleFile()
+            codenarc.toolVersion = "${codenarcVersion}"
+        """.stripIndent()
     }
 
-    def "analyze good code"() {
+    def "analyze good code (groovy: #groovyVersion, codenarc: #codenarcVersion)"() {
         goodCode()
+        writeBuildFile(groovyVersion, codenarcVersion)
 
         expect:
         succeeds("check")
         report("main").exists()
         report("test").exists()
+
+        where:
+        groovyVersion        | codenarcVersion
+        latestGroovy3Version | CodeNarcPlugin.STABLE_VERSION
+        latestGroovy4Version | CodeNarcPlugin.STABLE_VERSION_WITH_GROOVY4_SUPPORT
     }
 
     def "analyze bad code"() {
         badCode()
+        writeBuildFile(groovyVersion, codenarcVersion)
 
         expect:
         fails("check")
@@ -64,9 +70,18 @@ class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec imple
         failure.assertThatCause(startsWith("CodeNarc rule violations were found. See the report at:"))
         !report("main").text.contains("Class2")
         report("test").text.contains("testclass2")
+
+        where:
+        groovyVersion        | codenarcVersion
+        latestGroovy3Version | CodeNarcPlugin.STABLE_VERSION
+        latestGroovy4Version | CodeNarcPlugin.STABLE_VERSION_WITH_GROOVY4_SUPPORT
     }
 
-    def getLatestGroovy4Version() {
+    static String getLatestGroovy4Version() {
         return GroovyCoverage.SUPPORTED_BY_JDK.collect { VersionNumber.parse(it) }.findAll {it.major == 4 }.max()
+    }
+
+    static String getLatestGroovy3Version() {
+        return GroovyCoverage.SUPPORTED_BY_JDK.collect { VersionNumber.parse(it) }.findAll {it.major == 3 }.max()
     }
 }

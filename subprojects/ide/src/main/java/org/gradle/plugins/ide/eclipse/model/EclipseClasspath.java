@@ -246,6 +246,16 @@ public abstract class EclipseClasspath {
     }
 
     /**
+     * The base output directory for source sets.
+     * <p>
+     * See {@link EclipseClasspath} for an example.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    public abstract Property<File> getBaseSourceOutputDir();
+
+    /**
      * Whether to download and associate source Jars with the dependency Jars. Defaults to true.
      * <p>
      * See {@link EclipseClasspath} for an example.

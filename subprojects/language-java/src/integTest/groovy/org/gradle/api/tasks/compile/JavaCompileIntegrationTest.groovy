@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.Resources
@@ -32,6 +33,31 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Resources resources = new Resources()
+
+    def "emits deprecation warning if executable specified as relative path"() {
+        given:
+        def executable = TextUtil.normaliseFileSeparators(Jvm.current().javacExecutable.toString())
+
+        buildFile << """
+            apply plugin: "java"
+            tasks.withType(JavaCompile) {
+                options.fork = true
+                options.forkOptions.executable = new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString()
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        executer.expectDeprecationWarning("Configuring a Java executable via a relative path. " +
+                "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
+                "Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against. " +
+                "Configure an absolute path to a Java executable instead.")
+        run("compileJava")
+
+        then:
+        result.assertTaskExecuted(":compileJava")
+    }
 
     def "task does nothing when only minimal configuration applied"() {
         buildFile << """
