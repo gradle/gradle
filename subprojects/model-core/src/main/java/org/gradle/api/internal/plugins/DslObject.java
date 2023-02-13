@@ -28,6 +28,7 @@ import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.PublicTypeAnnotationDetector;
 
+import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
@@ -90,37 +91,54 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
         return getPublicType().getConcreteClass();
     }
 
+    /**
+     * @return the public type of this DSL object or its {@link #getImplementationType()} if no public type is declared
+     * @see org.gradle.api.reflect.PublicType
+     * @see org.gradle.api.reflect.HasPublicType
+     */
     public TypeOf<Object> getPublicType() {
-        return getPublicType(GeneratedSubclasses.unpackType(object));
+        return getPublicType(getImplementationType());
     }
 
+    /**
+     * @param defaultPublicType the type to use as public if no public type is declared
+     * @return the public type of this DSL object or the given {@code defaultPublicType} if no public type is declared
+     * @see org.gradle.api.reflect.PublicType
+     * @see org.gradle.api.reflect.HasPublicType
+     */
     public TypeOf<Object> getPublicType(Class<?> defaultPublicType) {
-        @SuppressWarnings("unchecked")
-        TypeOf<Object> publicType = (TypeOf<Object>) PublicTypeAnnotationDetector.detect(object);
+        TypeOf<?> publicType = PublicTypeAnnotationDetector.detect(object.getClass());
         if (publicType != null) {
-            return publicType;
+            return uncheckedCast(publicType);
         }
         if (object instanceof HasPublicType) {
             return uncheckedCast(((HasPublicType) object).getPublicType());
         }
-        return TypeOf.<Object>typeOf(defaultPublicType);
+        return uncheckedCast(typeOf(defaultPublicType));
     }
 
     public Class<?> getImplementationType() {
         return GeneratedSubclasses.unpackType(object);
     }
 
+    /**
+     * @return the public type for the given class or it's concrete type if no public type is declared
+     * @see org.gradle.api.reflect.PublicType
+     */
     public static TypeOf<Object> getPublicTypeFromClass(Class<?> type) {
         return getPublicTypeFromClass(type, GeneratedSubclasses.unpack(type));
     }
 
+    /**
+     * @return the public type for the given class or the given {@code defaultPublicType} if no public type is declared
+     * @see org.gradle.api.reflect.PublicType
+     */
     public static TypeOf<Object> getPublicTypeFromClass(Class<?> type, Class<?> defaultPublicType) {
-        @SuppressWarnings("unchecked")
-        TypeOf<Object> publicType = (TypeOf<Object>) PublicTypeAnnotationDetector.detect(type);
+        TypeOf<?> publicType = PublicTypeAnnotationDetector.detect(type);
         if (publicType != null) {
-            return publicType;
+            return uncheckedCast(publicType);
         }
-        return TypeOf.<Object>typeOf(defaultPublicType);
+        return uncheckedCast(typeOf(defaultPublicType));
     }
 
     private static <T> T toType(Object delegate, Class<T> type) {
