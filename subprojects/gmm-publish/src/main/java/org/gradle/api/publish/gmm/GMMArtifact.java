@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-/**
- * Plugin and types used for publishing Gradle Module Metadata.
- *
- * @see <a href="https://docs.gradle.org/current/userguide/publishing_gradle_module_metadata.html">Gradle Module Metadata documentation reference</a>
- */
-@NonNullApi
-package org.gradle.api.publish.gmm.plugins;
+package org.gradle.api.publish.gmm;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.api.Incubating;
+import org.gradle.api.component.Artifact;
+import org.gradle.api.publish.PublicationArtifact;
+
+/**
+ * The {@link Artifact} specialization for Gradle Module Metadata.
+ *
+ * @since 8.1
+ */
+@Incubating
+public interface GMMArtifact extends PublicationArtifact { /* empty */ }

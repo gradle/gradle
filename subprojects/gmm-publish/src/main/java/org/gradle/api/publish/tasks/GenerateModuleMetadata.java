@@ -78,6 +78,8 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * A task that generates a Gradle metadata file to represent a published {@link org.gradle.api.component.SoftwareComponent} instance.
+ * <p>
+ * Not relocated to a (theoretical) {@code org.gradle.api.publish.gmm.tasks} package to avoid binary compatibility issues.
  *
  * @since 4.3
  */

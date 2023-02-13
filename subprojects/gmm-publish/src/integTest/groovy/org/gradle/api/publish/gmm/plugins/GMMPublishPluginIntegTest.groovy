@@ -163,6 +163,17 @@ class GMMPublishPluginIntegTest extends AbstractIntegrationSpec {
 
             group = 'org.gradle.test'
             version = '1.9'
+            
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    gmm(GMMPublication) {
+                        $artifacts
+                    }
+                }
+            }
         """
 
         when:

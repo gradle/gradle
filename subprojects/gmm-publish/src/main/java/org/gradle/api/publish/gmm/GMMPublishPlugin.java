@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.gmm.plugins;
+package org.gradle.api.publish.gmm;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
