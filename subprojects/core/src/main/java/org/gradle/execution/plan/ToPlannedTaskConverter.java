@@ -16,15 +16,14 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.initialization.DefaultPlannedTask;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
@@ -35,10 +34,10 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
     }
 
     @Override
-    public CalculateTaskGraphBuildOperationType.TaskIdentity getNodeIdentity(Node node) {
+    public TaskIdentity getNodeIdentity(Node node) {
         TaskNode taskNode = (TaskNode) node;
-        TaskIdentity<?> delegate = taskNode.getTask().getTaskIdentity();
-        return new CalculateTaskGraphBuildOperationType.TaskIdentity() {
+        org.gradle.api.internal.project.taskfactory.TaskIdentity<?> delegate = taskNode.getTask().getTaskIdentity();
+        return new TaskIdentity() {
             @Override
             public String getBuildPath() {
                 return delegate.getBuildPath();
@@ -67,22 +66,26 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
     }
 
     @Override
-    public CalculateTaskGraphBuildOperationType.PlannedTask convert(Node node, Function<Node, List<? extends NodeIdentity>> findDependencies) {
+    public CalculateTaskGraphBuildOperationType.PlannedTask convert(Node node, DependencyLookup dependencyLookup) {
         if (!isInSamePlan(node)) {
             throw new IllegalArgumentException("Cannot convert task from another plan: " + node);
         }
 
         LocalTaskNode taskNode = (LocalTaskNode) node;
+        List<? extends NodeIdentity> nodeDependencies = dependencyLookup.findNodeDependencies(taskNode);
+        @SuppressWarnings("unchecked")
+        List<TaskIdentity> taskDependencies = (List<TaskIdentity>) dependencyLookup.findTaskDependencies(taskNode);
         return new DefaultPlannedTask(
             getNodeIdentity(taskNode),
-            findDependencies.apply(taskNode),
+            nodeDependencies,
+            taskDependencies,
             taskIdentifiesOf(taskNode.getMustSuccessors()),
             taskIdentifiesOf(taskNode.getShouldSuccessors()),
             taskIdentifiesOf(taskNode.getFinalizers())
         );
     }
 
-    private List<CalculateTaskGraphBuildOperationType.TaskIdentity> taskIdentifiesOf(Collection<Node> nodes) {
+    private List<TaskIdentity> taskIdentifiesOf(Collection<Node> nodes) {
         if (nodes.isEmpty()) {
             return Collections.emptyList();
         }

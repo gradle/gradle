@@ -19,27 +19,29 @@ package org.gradle.initialization;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.*;
 
 public class DefaultPlannedTask implements PlannedTask {
 
     private final TaskIdentity taskIdentity;
-    private final List<? extends NodeIdentity> dependencies;
+    private final List<? extends NodeIdentity> nodeDependencies;
+    private final List<TaskIdentity> taskDependencies;
     private final List<TaskIdentity> mustRunAfter;
     private final List<TaskIdentity> shouldRunAfter;
     private final List<TaskIdentity> finalizers;
 
     public DefaultPlannedTask(
         TaskIdentity taskIdentity,
-        List<? extends NodeIdentity> dependencies,
+        List<? extends NodeIdentity> nodeDependencies,
+        List<TaskIdentity> taskDependencies,
         List<TaskIdentity> mustRunAfter,
         List<TaskIdentity> shouldRunAfter,
         List<TaskIdentity> finalizers
     ) {
         this.taskIdentity = taskIdentity;
-        this.dependencies = dependencies;
+        this.nodeDependencies = nodeDependencies;
+        this.taskDependencies = taskDependencies;
         this.mustRunAfter = mustRunAfter;
         this.shouldRunAfter = shouldRunAfter;
         this.finalizers = finalizers;
@@ -52,10 +54,7 @@ public class DefaultPlannedTask implements PlannedTask {
 
     @Override
     public List<TaskIdentity> getDependencies() {
-        return dependencies.stream()
-            .filter(TaskIdentity.class::isInstance)
-            .map(TaskIdentity.class::cast)
-            .collect(Collectors.toList());
+        return taskDependencies;
     }
 
     @Override
@@ -80,7 +79,7 @@ public class DefaultPlannedTask implements PlannedTask {
 
     @Override
     public List<? extends NodeIdentity> getNodeDependencies() {
-        return dependencies;
+        return nodeDependencies;
     }
 
     @Override

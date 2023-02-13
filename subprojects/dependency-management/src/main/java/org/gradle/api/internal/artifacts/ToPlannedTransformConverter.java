@@ -21,11 +21,7 @@ import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.initialization.DefaultPlannedTransform;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
-import org.gradle.internal.taskgraph.NodeIdentity;
 import org.gradle.api.internal.artifacts.transform.TransformationIdentity;
-
-import java.util.List;
-import java.util.function.Function;
 
 public class ToPlannedTransformConverter implements ToPlannedNodeConverter {
 
@@ -46,11 +42,11 @@ public class ToPlannedTransformConverter implements ToPlannedNodeConverter {
     }
 
     @Override
-    public CalculateTaskGraphBuildOperationType.PlannedNode convert(Node node, Function<Node, List<? extends NodeIdentity>> findDependencies) {
+    public CalculateTaskGraphBuildOperationType.PlannedNode convert(Node node, DependencyLookup dependencyLookup) {
         TransformationNode transformationNode = (TransformationNode) node;
         return new DefaultPlannedTransform(
             transformationNode.getNodeIdentity(),
-            findDependencies.apply(transformationNode)
+            dependencyLookup.findNodeDependencies(transformationNode)
         );
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
@@ -27,19 +28,22 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,12 +56,12 @@ import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer {
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildWorkPreparer delegate;
-    private final List<ToPlannedNodeConverter> converters;
+    private final ConverterFactory converterFactory;
 
     public BuildOperationFiringBuildWorkPreparer(BuildOperationExecutor buildOperationExecutor, BuildWorkPreparer delegate, List<ToPlannedNodeConverter> converters) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;
-        this.converters = converters;
+        this.converterFactory = new ConverterFactory(converters);
     }
 
     @Override
@@ -67,7 +71,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
     @Override
     public void populateWorkGraph(GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action) {
-        buildOperationExecutor.run(new PopulateWorkGraph(gradle, plan, action));
+        buildOperationExecutor.run(new PopulateWorkGraph(delegate, gradle, plan, action, converterFactory));
     }
 
     @Override
@@ -75,17 +79,21 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
         return delegate.finalizeWorkGraph(gradle, plan);
     }
 
-    private class PopulateWorkGraph implements RunnableBuildOperation {
+    private static class PopulateWorkGraph implements RunnableBuildOperation {
+        private final BuildWorkPreparer delegate;
         private final GradleInternal gradle;
         private final ExecutionPlan plan;
         private final Consumer<? super ExecutionPlan> action;
+        private final ConverterFactory converterFactory;
+        private final NodeDependencyLookup dependencyLookup;
 
-        private final Map<Class<?>, ToPlannedNodeConverter> convertersByNodeType = new HashMap<>();
-
-        public PopulateWorkGraph(GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action) {
+        public PopulateWorkGraph(BuildWorkPreparer delegate, GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action, ConverterFactory converterFactory) {
+            this.delegate = delegate;
             this.gradle = gradle;
             this.plan = plan;
             this.action = action;
+            this.converterFactory = converterFactory;
+            this.dependencyLookup = new NodeDependencyLookup(converterFactory);
         }
 
         @Override
@@ -156,9 +164,9 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             List<PlannedNode> plannedNodes = new ArrayList<>();
             scheduledWork.visitNodes(nodes -> {
                 for (Node node : nodes) {
-                    ToPlannedNodeConverter converter = getConverter(node);
+                    ToPlannedNodeConverter converter = converterFactory.getConverter(node);
                     if (converter != null && converter.isInSamePlan(node)) {
-                        PlannedNode plannedNode = converter.convert(node, this::findDependencies);
+                        PlannedNode plannedNode = converter.convert(node, dependencyLookup);
                         plannedNodes.add(plannedNode);
                     }
                 }
@@ -166,20 +174,48 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             return plannedNodes;
         }
 
-        private List<? extends NodeIdentity> findDependencies(Node node) {
-            return findDependencies(node.getDependencySuccessors(), Node::getDependencySuccessors);
+
+    }
+
+    private static List<String> toTaskPaths(Set<Task> tasks) {
+        return tasks.stream().map(Task::getPath).distinct().collect(Collectors.toList());
+    }
+
+    private static class NodeDependencyLookup implements ToPlannedNodeConverter.DependencyLookup {
+
+        private final ConverterFactory converterFactory;
+
+        private NodeDependencyLookup(ConverterFactory converterFactory) {
+            this.converterFactory = converterFactory;
         }
 
-        private List<? extends NodeIdentity> findDependencies(Collection<Node> nodes, Function<? super Node, ? extends Collection<Node>> traverser) {
-            if (nodes.isEmpty()) {
-                return Collections.emptyList();
-            }
+        @Override
+        public List<? extends NodeIdentity> findNodeDependencies(Node node) {
+            return findDependencies(node, Node::getDependencySuccessors, it -> true).collect(Collectors.toList());
+        }
 
-            return findIdentifiedNodes(nodes, traverser, newSetFromMap(new IdentityHashMap<>()))
+        @Override
+        public List<? extends TaskIdentity> findTaskDependencies(Node node) {
+            return findDependencies(node, Node::getDependencySuccessors, it -> it instanceof TaskIdentity)
+                .map(TaskIdentity.class::cast)
                 .collect(Collectors.toList());
         }
 
-        private Stream<NodeIdentity> findIdentifiedNodes(Collection<Node> nodes, Function<? super Node, ? extends Collection<Node>> traverser, Set<Node> seen) {
+        private Stream<? extends NodeIdentity> findDependencies(
+            Node node,
+            Function<? super Node, ? extends Collection<Node>> traverser,
+            Predicate<NodeIdentity> isDependencyNode
+        ) {
+            return findIdentifiedNodes(node, traverser, isDependencyNode, newSetFromMap(new IdentityHashMap<>()));
+        }
+
+        private Stream<NodeIdentity> findIdentifiedNodes(
+            Node curNode,
+            Function<? super Node, ? extends Collection<Node>> traverser,
+            Predicate<NodeIdentity> isDependencyNode,
+            Set<Node> seen
+        ) {
+            Collection<Node> nodes = traverser.apply(curNode);
             if (nodes.isEmpty()) {
                 return Stream.empty();
             }
@@ -187,19 +223,52 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             return nodes.stream()
                 .filter(seen::add)
                 .flatMap(node -> {
-                    ToPlannedNodeConverter converter = getConverter(node);
-                    // We do not check for the same execution plan, because a node can depend on nodes from other plans
-                    return converter != null
-                        ? Stream.of(converter.getNodeIdentity(node))
-                        : findIdentifiedNodes(traverser.apply(node), traverser, seen);
+                    NodeIdentity nodeIdentity = identifyAsDependencyNode(node, isDependencyNode);
+                    return nodeIdentity != null
+                        ? Stream.of(nodeIdentity)
+                        : findIdentifiedNodes(node, traverser, isDependencyNode, seen);
                 });
         }
 
-        private ToPlannedNodeConverter getConverter(Node node) {
+        private NodeIdentity identifyAsDependencyNode(Node node, Predicate<NodeIdentity> isDependencyNode) {
+            ToPlannedNodeConverter converter = converterFactory.getConverter(node);
+            if (converter == null) {
+                return null;
+            }
+            NodeIdentity nodeIdentity = converter.getNodeIdentity(node);
+            return isDependencyNode.test(nodeIdentity) ? nodeIdentity : null;
+        }
+    }
+
+    private static class ConverterFactory {
+
+        private final List<ToPlannedNodeConverter> converters;
+
+        private final Map<Class<?>, ToPlannedNodeConverter> convertersByNodeType = new HashMap<>();
+        private final Set<Class<?>> unsupportedNodeTypes = new HashSet<>();
+
+        private ConverterFactory(List<ToPlannedNodeConverter> converters) {
+            validateConverters(converters);
+            this.converters = ImmutableList.copyOf(converters);
+
+            for (ToPlannedNodeConverter converter : this.converters) {
+                convertersByNodeType.put(converter.getSupportedNodeType(), converter);
+            }
+        }
+
+        /**
+         * Returns a converter for the given node, or null if there is no converter for the node.
+         */
+        @Nullable
+        public ToPlannedNodeConverter getConverter(Node node) {
             Class<? extends Node> nodeType = node.getClass();
             ToPlannedNodeConverter converter = convertersByNodeType.get(nodeType);
             if (converter != null) {
                 return converter;
+            }
+
+            if (unsupportedNodeTypes.contains(nodeType)) {
+                return null;
             }
 
             for (ToPlannedNodeConverter converterCandidate : converters) {
@@ -212,14 +281,27 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
             if (converter != null) {
                 convertersByNodeType.put(nodeType, converter);
+            } else {
+                unsupportedNodeTypes.add(nodeType);
             }
 
             return converter;
         }
-    }
 
-    private static List<String> toTaskPaths(Set<Task> tasks) {
-        return tasks.stream().map(Task::getPath).distinct().collect(Collectors.toList());
-    }
+        private static void validateConverters(List<ToPlannedNodeConverter> converters) {
+            for (ToPlannedNodeConverter converter1 : converters) {
+                Class<? extends Node> supportedNodeType1 = converter1.getSupportedNodeType();
+                for (ToPlannedNodeConverter converter2 : converters) {
+                    if (converter1 == converter2) {
+                        continue;
+                    }
 
+                    Class<? extends Node> supportedNodeType2 = converter2.getSupportedNodeType();
+                    if (supportedNodeType1.isAssignableFrom(supportedNodeType2) || supportedNodeType2.isAssignableFrom(supportedNodeType1)) {
+                        throw new IllegalStateException("Converter " + converter1 + " is not compatible with converter " + converter2);
+                    }
+                }
+            }
+        }
+    }
 }
