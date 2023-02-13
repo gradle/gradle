@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 /**
- * Tasks used for publishing to a binary repository.
+ * Tasks used for publishing Gradle Module Metadata.
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/publishing_gradle_module_metadata.html">Gradle Module Metadata documentation reference</a>
  */
 package org.gradle.api.publish.tasks;

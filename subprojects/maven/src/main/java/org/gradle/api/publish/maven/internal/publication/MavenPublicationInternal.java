@@ -36,8 +36,6 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
 
     void setPomGenerator(TaskProvider<? extends Task> pomGenerator);
 
-    void setModuleDescriptorGenerator(TaskProvider<? extends Task> moduleMetadataGenerator);
-
     MutableMavenProjectIdentity getMavenProjectIdentity();
 
     Set<MavenDependency> getApiDependencyConstraints();

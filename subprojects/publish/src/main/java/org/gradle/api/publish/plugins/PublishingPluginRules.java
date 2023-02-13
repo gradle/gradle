@@ -28,7 +28,10 @@ import org.gradle.model.RuleSource;
 
 /**
  * These bindings are only here for backwards compatibility, as some users might depend on the extensions being available in the model.
+ *
+ * @deprecated Use the {@link PublishingExtension} directly.
  */
+@Deprecated
 class PublishingPluginRules extends RuleSource {
     @Model
     PublishingExtension publishing(ExtensionContainer extensions) {

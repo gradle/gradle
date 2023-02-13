@@ -76,7 +76,7 @@ class IvyJavaModule extends DelegatingIvyModule<IvyFileModule> implements Publis
     void assertRuntimeDependencies(String... expected) {
         if (expected.length == 0) {
             assert parsedModuleMetadata.variant('runtimeElements').dependencies.empty
-            assert parsedIvy.dependencies.findAll { it.value.conf == 'runtime' }.isEmpty()
+            assert parsedIvy.dependencies.findAll { it.value.confs.contains('runtime') }.isEmpty()
         } else {
             assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords as Set == expected as Set
             parsedIvy.assertConfigurationDependsOn('runtime', expected)
@@ -106,14 +106,18 @@ class IvyJavaModule extends DelegatingIvyModule<IvyFileModule> implements Publis
 
     @Override
     void assertPublished() {
+        assertPublished(['apiElements', 'runtimeElements'] as Set)
+    }
+
+    void assertPublished(Set<String> expectedVariants) {
         super.assertPublished()
 
         List<String> expectedArtifacts = [backingModule.jarFile.name, backingModule.moduleMetadataFile.name, backingModule.ivyFile.name]
         expectedArtifacts.addAll(additionalArtifacts.file.name)
         backingModule.assertArtifactsPublished(expectedArtifacts as String[])
 
-        // Verify Gradle metadata particulars
-        assert backingModule.parsedModuleMetadata.variants*.name as Set == ['apiElements', 'runtimeElements'] as Set
+    // Verify Gradle metadata particulars
+        assert backingModule.parsedModuleMetadata.variants*.name as Set == expectedVariants
         assert backingModule.parsedModuleMetadata.variant('apiElements').files*.name == [backingModule.jarFile.name]
         assert backingModule.parsedModuleMetadata.variant('runtimeElements').files*.name == [backingModule.jarFile.name]
     }

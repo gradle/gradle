@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":plugin-use"))
     implementation(project(":publish"))
+    implementation(project(":gmm-publish"))
     implementation(project(":resources"))
 
     implementation(libs.slf4jApi)

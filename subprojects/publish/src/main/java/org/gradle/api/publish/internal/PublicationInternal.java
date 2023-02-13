@@ -16,6 +16,7 @@
 package org.gradle.api.publish.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentPublication;
@@ -23,6 +24,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;
@@ -74,6 +76,7 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
 
     boolean isPublishBuildId();
 
+    void setModuleDescriptorGenerator(TaskProvider<? extends Task> moduleMetadataGenerator);
 
     interface PublishedFile {
         String getName();

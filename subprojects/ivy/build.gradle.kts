@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":file-collections"))
     implementation(project(":resources"))
     implementation(project(":publish"))
+    implementation(project(":gmm-publish"))
     implementation(project(":plugin-use"))
     implementation(project(":dependency-management"))
 

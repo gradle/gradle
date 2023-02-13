@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":platform-native"))
     implementation(project(":plugins"))
     implementation(project(":publish"))
+    implementation(project(":gmm-publish"))
     implementation(project(":maven"))
     implementation(project(":ivy"))
     implementation(project(":tooling-api"))

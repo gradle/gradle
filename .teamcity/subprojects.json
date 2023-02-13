@@ -336,6 +336,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "gmm-publish",
+    "name": "gmm-publish",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "hashing",
     "name": "hashing",
     "unitTests": true,

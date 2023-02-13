@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":plugin-use"))
     implementation(project(":publish"))
+    implementation(project(":gmm-publish"))
     implementation(project(":messaging"))
     implementation(project(":workers"))
     implementation(project(":model-groovy"))
