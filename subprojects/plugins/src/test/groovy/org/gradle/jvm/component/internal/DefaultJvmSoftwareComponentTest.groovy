@@ -56,7 +56,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName(JvmConstants.PROCESS_RESOURCES_TASK_NAME) == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main", ext)
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
 
         then:
         component.sourceSet == ext.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
@@ -100,7 +100,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName('processFeatureResources') == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "feature", ext)
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "feature")
 
         then:
         component.sourceSet == ext.sourceSets.getByName('feature')
@@ -126,9 +126,9 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         def ext = project.getExtensions().getByType(JavaPluginExtension.class)
 
         when:
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main", ext)
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "feature1", ext)
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "feature2", ext)
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "feature1")
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "feature2")
 
         then:
         ext.sourceSets.getByName('main')
@@ -142,12 +142,12 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         def ext = project.getExtensions().getByType(JavaPluginExtension.class)
 
         when:
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name1", "feature", ext)
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name2", "feature", ext)
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name1", "feature")
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name2", "feature")
 
         then:
         def e = thrown(ObjectInstantiationException)
-        e.cause.message == "Cannot create multiple instances of DefaultJvmSoftwareComponent_Decorated with source set name 'feature'."
+        e.cause.message == "Cannot create multiple instances of DefaultJvmSoftwareComponent with source set name 'feature'."
     }
 
     def "can configure javadoc jar variant"() {
@@ -162,7 +162,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName("javadoc") == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main", ext)
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
         component.enableJavadocJarVariant()
 
         then:
@@ -191,7 +191,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName("sources") == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main", ext)
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
         component.enableSourcesJarVariant()
 
         then:
@@ -212,7 +212,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         when:
         project.plugins.apply(JavaBasePlugin)
         def ext = project.getExtensions().getByType(JavaPluginExtension.class)
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main", ext)
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
 
         then:
         component.usages*.name == ["apiElements", "runtimeElements"]

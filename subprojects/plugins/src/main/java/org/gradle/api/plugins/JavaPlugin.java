@@ -244,10 +244,8 @@ public abstract class JavaPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaBasePlugin.class);
         project.getPluginManager().apply("org.gradle.jvm-test-suite");
 
-        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-
         // Create the 'java' component.
-        JvmSoftwareComponentInternal component = objectFactory.newInstance(DefaultJvmSoftwareComponent.class, "java", "main", javaExtension);
+        JvmSoftwareComponentInternal component = objectFactory.newInstance(DefaultJvmSoftwareComponent.class, "java", "main");
         project.getComponents().add(component);
 
         // Set the 'java' component as the project's default.
@@ -255,6 +253,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         defaultConfiguration.extendsFrom(component.getRuntimeElementsConfiguration());
         ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(component);
 
+        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
 
         configureBuiltInTest(project, component);
