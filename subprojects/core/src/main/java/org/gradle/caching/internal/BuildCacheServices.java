@@ -58,6 +58,8 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
@@ -66,6 +68,7 @@ import java.util.List;
  * Build scoped services for build cache usage.
  */
 public final class BuildCacheServices extends AbstractPluginServiceRegistry {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheServices.class);
 
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
@@ -151,9 +154,11 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 StringInterner stringInterner
             ) {
                 if (isRoot(gradle) || isGradleBuildTaskRoot(rootControllerRef)) {
+                    LOGGER.warn("[MASTER] Creating build cache controller");
                     return doCreateBuildCacheController(serviceRegistry, buildCacheConfiguration, buildOperationExecutor, instantiatorFactory, gradle, temporaryFileProvider, fileSystemAccess, packer, originMetadataFactory, stringInterner);
                 } else {
                     // must be an included build or buildSrc
+                    LOGGER.warn("[MASTER] Reusing root build cache controller in non-root build");
                     return rootControllerRef.getForNonRootBuild();
                 }
             }
