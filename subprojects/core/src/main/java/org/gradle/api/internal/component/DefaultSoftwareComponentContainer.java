@@ -17,23 +17,31 @@
 package org.gradle.api.internal.component;
 
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.provider.Property;
+import org.gradle.api.reflect.HasPublicType;
+import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultSoftwareComponentContainer extends DefaultNamedDomainObjectSet<SoftwareComponent> implements SoftwareComponentContainerInternal {
+import javax.inject.Inject;
 
-    private final Property<SoftwareComponent> mainComponent;
+/**
+ * Default implementation of {@link SoftwareComponentContainer}.
+ */
+public abstract class DefaultSoftwareComponentContainer extends DefaultPolymorphicDomainObjectContainer<SoftwareComponent> implements SoftwareComponentContainerInternal, HasPublicType {
 
-    public DefaultSoftwareComponentContainer(Instantiator instantiator, CollectionCallbackActionDecorator decorator, ObjectFactory objectFactory) {
-        super(SoftwareComponentInternal.class, instantiator, decorator);
-        mainComponent = objectFactory.property(SoftwareComponent.class);
+    @Inject
+    public DefaultSoftwareComponentContainer(Instantiator instantiator, CollectionCallbackActionDecorator decorator) {
+        super(SoftwareComponent.class, instantiator, instantiator, decorator);
     }
 
     @Override
-    public Property<SoftwareComponent> getMainComponent() {
-        return mainComponent;
+    public abstract Property<SoftwareComponent> getMainComponent();
+
+    @Override
+    public TypeOf<?> getPublicType() {
+        return TypeOf.typeOf(SoftwareComponentContainer.class);
     }
 }

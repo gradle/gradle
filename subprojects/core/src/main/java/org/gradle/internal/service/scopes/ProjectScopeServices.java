@@ -207,9 +207,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         ).create();
     }
 
-    protected SoftwareComponentContainer createSoftwareComponentContainer(CollectionCallbackActionDecorator decorator, ObjectFactory objectFactory) {
-        Instantiator instantiator = get(Instantiator.class);
-        return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator, decorator, objectFactory);
+    protected SoftwareComponentContainer createSoftwareComponentContainer(InstantiatorFactory instantiatorFactory, ServiceRegistry services, CollectionCallbackActionDecorator decorator) {
+        Instantiator instantiator = instantiatorFactory.decorate(services);
+        return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator, decorator);
     }
 
     protected ProjectFinder createProjectFinder() {
