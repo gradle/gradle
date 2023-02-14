@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.component.OpaqueComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -264,7 +265,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
                 }
             };
         } else {
-            return new org.gradle.api.internal.artifacts.component.UnknownComponentIdentifier() {
+            return new OpaqueComponentIdentifier() {
                 @Override
                 public String getDisplayName() {
                     return componentId.getDisplayName();
