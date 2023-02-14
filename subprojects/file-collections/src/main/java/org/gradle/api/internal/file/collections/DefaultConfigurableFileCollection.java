@@ -174,12 +174,37 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void setFromAnyValue(Object object) {
-        // TODO: Move check in setFrom
-        // Don't allow a += b or a = (a + b), this is not support and results in stack overflow
-        if (object instanceof UnionFileCollection && ((UnionFileCollection) object).getSources().contains(this)) {
-            throw new UnsupportedOperationException("Operation for ConfigurableFileCollection of type a += b or a = (a + b) is not supported");
-        }
-        // Currently we support just FileCollection for Groovy assign
+        // Currently we support just FileCollection for Groovy assign, so first try to cast to FileCollection
+        FileCollectionInternal fileCollection = Cast.castNullable(FileCollectionInternal.class, Cast.castNullable(FileCollection.class, object));
+
+        // Don't allow a += b or a = (a + b), this is not support
+        fileCollection.visitStructure(new FileCollectionStructureVisitor() {
+            @Override
+            public boolean startVisit(FileCollectionInternal.Source source, FileCollectionInternal fileCollection) {
+                if (DefaultConfigurableFileCollection.this == fileCollection) {
+                    throw new UnsupportedOperationException("Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.");
+                }
+                return true;
+            }
+
+            @Override
+            public VisitType prepareForVisit(Source source) {
+                return VisitType.NoContents;
+            }
+
+            @Override
+            public void visitCollection(Source source, Iterable<File> contents) {
+            }
+
+            @Override
+            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+            }
+
+            @Override
+            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+            }
+        });
+
         setFrom(Cast.castNullable(FileCollection.class, object));
     }
 

@@ -1150,8 +1150,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         void visitProperty(PropertyMetadata property) {
-            if (property.isReadable() && isPropertyType(property.getType())
-                || property.isReadOnly() && isConfigurableFileCollectionType(property.getType())) {
+            if (property.isReadable() && (isPropertyType(property.getType()) || isConfigurableFileCollectionType(property.getType()))) {
                 lazyGroovySupportTyped.add(property);
             }
         }
