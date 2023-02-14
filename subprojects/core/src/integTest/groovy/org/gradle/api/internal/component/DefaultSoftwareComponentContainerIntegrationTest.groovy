@@ -23,13 +23,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  */
 class DefaultSoftwareComponentContainerIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can instantiate and configure single element with closure"() {
+    def "can instantiate and configure single element with closure in Groovy DSL"() {
         given:
         buildFile << """
-            ${customComponentWithName("DefaultComponent")}
+            ${customGroovyComponentWithName("TestComponent")}
 
             components {
-                registerBinding(SoftwareComponent, DefaultComponent)
+                registerBinding(SoftwareComponent, DefaultTestComponent)
                 first {
                     value = 1
                 }
@@ -44,7 +44,7 @@ class DefaultSoftwareComponentContainerIntegrationTest extends AbstractIntegrati
             task verify {
                 assert components.first.name == "first"
                 assert components.first.value.get() == 20
-                assert components.first instanceof DefaultComponent
+                assert components.first instanceof DefaultTestComponent
             }
         """
 
@@ -52,13 +52,13 @@ class DefaultSoftwareComponentContainerIntegrationTest extends AbstractIntegrati
         succeeds "verify"
     }
 
-    def "can instantiate and configure single element with configure method"() {
+    def "can instantiate and configure single element with configure method in Groovy DSL"() {
         given:
         buildFile << """
-            ${customComponentWithName("DefaultComponent")}
+            ${customGroovyComponentWithName("TestComponent")}
 
             components.configure {
-                registerBinding(SoftwareComponent, DefaultComponent)
+                registerBinding(SoftwareComponent, DefaultTestComponent)
                 first {
                     value = 1
                 }
@@ -73,7 +73,7 @@ class DefaultSoftwareComponentContainerIntegrationTest extends AbstractIntegrati
             task verify {
                 assert components.first.name == "first"
                 assert components.first.value.get() == 20
-                assert components.first instanceof DefaultComponent
+                assert components.first instanceof TestComponent
             }
         """
 
@@ -81,15 +81,44 @@ class DefaultSoftwareComponentContainerIntegrationTest extends AbstractIntegrati
         succeeds "verify"
     }
 
-    def "can instantiate multiple components"() {
+    def "can instantiate and configure single element in Kotlin DSL"() {
         given:
-        buildFile << """
-            ${customComponentWithName("DefaultComponent")}
-            ${customComponentWithName("CustomComponent")}
+        buildKotlinFile << """
+            ${customKotlinComponentWithName("TestComponent")}
 
             components {
-                registerBinding(SoftwareComponent, DefaultComponent)
-                registerBinding(CustomComponent, CustomComponent)
+                registerBinding(TestComponent::class.java, DefaultTestComponent::class.java)
+                create<TestComponent>("first") {
+                    value.set(1)
+                }
+            }
+
+            components {
+                named<TestComponent>("first") {
+                    value.set(20)
+                }
+            }
+
+            tasks.register("verify") {
+                assert(components.named<TestComponent>("first").get().name == "first")
+                assert(components.named<TestComponent>("first").get().value.get() == 20)
+                assert(components.named<TestComponent>("first").get() is DefaultTestComponent)
+            }
+        """
+
+        expect:
+        succeeds "verify"
+    }
+
+    def "can instantiate multiple components in Groovy DSL"() {
+        given:
+        buildFile << """
+            ${customGroovyComponentWithName("TestComponent")}
+            ${customGroovyComponentWithName("CustomComponent")}
+
+            components {
+                registerBinding(SoftwareComponent, DefaultTestComponent)
+                registerBinding(CustomComponent, DefaultCustomComponent)
                 first {
                     value = 1
                 }
@@ -104,15 +133,15 @@ class DefaultSoftwareComponentContainerIntegrationTest extends AbstractIntegrati
             task verify {
                 assert components.first.name == "first"
                 assert components.first.value.get() == 1
-                assert components.first instanceof DefaultComponent
+                assert components.first instanceof DefaultTestComponent
 
                 assert components.second.name == "second"
                 assert components.second.value.get() == 2
-                assert components.second instanceof DefaultComponent
+                assert components.second instanceof DefaultTestComponent
 
                 assert components.third.name == "third"
                 assert components.third.value.get() == 3
-                assert components.third instanceof CustomComponent
+                assert components.third instanceof DefaultCustomComponent
             }
         """
 
@@ -120,13 +149,45 @@ class DefaultSoftwareComponentContainerIntegrationTest extends AbstractIntegrati
         succeeds "verify"
     }
 
-    def "can configure multiple elements"() {
+    def "can instantiate multiple components in Kotlin DSL"() {
         given:
-        buildFile << """
-            ${customComponentWithName("DefaultComponent")}
+        buildKotlinFile << """
+            ${customKotlinComponentWithName("TestComponent")}
+            ${customKotlinComponentWithName("CustomComponent")}
 
             components {
-                registerBinding(SoftwareComponent, DefaultComponent)
+                registerBinding(TestComponent::class.java, DefaultTestComponent::class.java)
+                registerBinding(CustomComponent::class.java, DefaultCustomComponent::class.java)
+                create<TestComponent>("first") {
+                    value.set(1)
+                }
+                create<CustomComponent>("second") {
+                    value.set(2)
+                }
+            }
+
+            tasks.register("verify") {
+                assert(components.named<TestComponent>("first").get().name == "first")
+                assert(components.named<TestComponent>("first").get().value.get() == 1)
+                assert(components.named<TestComponent>("first").get() is DefaultTestComponent)
+
+                assert(components.named<CustomComponent>("second").get().name == "second")
+                assert(components.named<CustomComponent>("second").get().value.get() == 2)
+                assert(components.named<CustomComponent>("second").get() is DefaultCustomComponent)
+            }
+        """
+
+        expect:
+        succeeds "verify"
+    }
+
+    def "can configure multiple elements in Groovy DSL"() {
+        given:
+        buildFile << """
+            ${customGroovyComponentWithName("TestComponent")}
+
+            components {
+                registerBinding(SoftwareComponent, DefaultTestComponent)
                 comp1 {
                     value = 1
                 }
@@ -148,11 +209,11 @@ class DefaultSoftwareComponentContainerIntegrationTest extends AbstractIntegrati
             task verify {
                 assert components.comp1.name == "comp1"
                 assert components.comp1.value.get() == 2
-                assert components.comp1 instanceof DefaultComponent
+                assert components.comp1 instanceof DefaultTestComponent
 
                 assert components.comp2.name == "comp2"
                 assert components.comp2.value.get() == 20
-                assert components.comp2 instanceof DefaultComponent
+                assert components.comp2 instanceof DefaultTestComponent
             }
         """
 
@@ -160,22 +221,74 @@ class DefaultSoftwareComponentContainerIntegrationTest extends AbstractIntegrati
         succeeds "verify"
     }
 
-    private static String customComponentWithName(String name) {
+    def "can configure multiple elements in Kotlin DSL"() {
+        given:
+        buildKotlinFile << """
+            ${customKotlinComponentWithName("TestComponent")}
+
+            components {
+                registerBinding(TestComponent::class.java, DefaultTestComponent::class.java)
+                create<TestComponent>("comp1") {
+                    value.set(1)
+                }
+                create<TestComponent>("comp2") {
+                    value.set(10)
+                }
+            }
+
+            components.named<TestComponent>("comp1") {
+                value.set(2)
+            }
+
+            components {
+                named<TestComponent>("comp2") {
+                    value.set(20)
+                }
+            }
+
+            tasks.register("verify") {
+                assert(components.named<TestComponent>("comp1").get().name == "comp1")
+                assert(components.named<TestComponent>("comp1").get().value.get() == 2)
+                assert(components.named<TestComponent>("comp1").get() is DefaultTestComponent)
+
+                assert(components.named<TestComponent>("comp2").get().name == "comp2")
+                assert(components.named<TestComponent>("comp2").get().value.get() == 20)
+                assert(components.named<TestComponent>("comp2").get() is DefaultTestComponent)
+            }
         """
-            abstract class ${name} implements SoftwareComponent {
+
+        expect:
+        succeeds "verify"
+    }
+
+    private static String customGroovyComponentWithName(String name) {
+        """
+            interface ${name} extends SoftwareComponent {
+                Property<Integer> getValue()
+            }
+
+            abstract class Default${name} implements ${name} {
 
                 private final String name
 
                 @Inject
-                public ${name}(String name) {
+                public Default${name}(String name) {
                     this.name = name
                 }
 
                 public String getName() {
                     return name
                 }
+            }
+        """
+    }
 
-                public abstract Property<Integer> getValue()
+    private static String customKotlinComponentWithName(String name) {
+        """
+            interface ${name} : SoftwareComponent {
+                val value: Property<Int>
+            }
+            abstract class Default${name} @Inject constructor(val name: String) : ${name} {
             }
         """
     }
