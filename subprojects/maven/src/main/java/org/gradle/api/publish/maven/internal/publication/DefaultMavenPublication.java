@@ -254,6 +254,11 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         updateModuleDescriptorArtifact();
     }
 
+    @Override
+    public TaskProvider<? extends Task> getModuleDescriptorGenerator() {
+        return moduleDescriptorGenerator;
+    }
+
     private void updateModuleDescriptorArtifact() {
         if (!canPublishModuleMetadata()) {
             return;

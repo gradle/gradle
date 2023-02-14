@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -48,18 +49,23 @@ public abstract class DefaultGMMPublication implements GMMPublicationInternal {
     private final String name;
     private final TaskDependencyFactory taskDependencyFactory;
     private final DocumentationRegistry documentationRegistry;
+    private final GMMProjectIdentity projectIdentity;
 
     private SoftwareComponentInternal component;
+    private TaskProvider<? extends Task> moduleDescriptorGenerator;
+    private boolean withBuildIdentifier = false;
 
     @Inject
     public DefaultGMMPublication(
             String name,
             TaskDependencyFactory taskDependencyFactory,
-            DocumentationRegistry documentationRegistry
+            DocumentationRegistry documentationRegistry,
+            GMMProjectIdentity projectIdentity
     ) {
         this.name = name;
         this.taskDependencyFactory = taskDependencyFactory;
         this.documentationRegistry = documentationRegistry;
+        this.projectIdentity = projectIdentity;
     }
 
     @Override
@@ -96,37 +102,73 @@ public abstract class DefaultGMMPublication implements GMMPublicationInternal {
         return false;
     }
 
-
-
-
-
-
-
-    @Nullable
     @Override
-    public <T> T getCoordinates(Class<T> type) {
-        return null;
+    public void setModuleDescriptorGenerator(TaskProvider<? extends Task> moduleMetadataGenerator) {
+        this.moduleDescriptorGenerator = moduleMetadataGenerator;
+    }
+
+    @Override
+    public TaskProvider<? extends Task> getModuleDescriptorGenerator() {
+        return moduleDescriptorGenerator;
     }
 
     @Override
     public void withoutBuildIdentifier() {
-
+        withBuildIdentifier = false;
     }
 
     @Override
     public void withBuildIdentifier() {
-
+        withBuildIdentifier = true;
     }
 
     @Override
-    public ModuleVersionIdentifier getCoordinates() {
-        return null;
+    public boolean isPublishBuildId() {
+        return withBuildIdentifier;
     }
 
     @Override
     public ImmutableAttributes getAttributes() {
+        return ImmutableAttributes.EMPTY;
+    }
+
+    @Override
+    public PublishedFile getPublishedFile(PublishArtifact source) {
+        final String publishedUrl = source.getFile().toURI().toString();
+        return new PublishedFile() {
+            @Override
+            public String getName() {
+                return publishedUrl;
+            }
+
+            @Override
+            public String getUri() {
+                return publishedUrl;
+            }
+        };
+    }
+
+    @Override
+    public ModuleVersionIdentifier getCoordinates() {
+        return DefaultModuleVersionIdentifier.newId(projectIdentity.getGroupId().get(), projectIdentity.getArtifactId().get(), projectIdentity.getVersion().get());
+    }
+
+    @Nullable
+    @Override
+    public <T> T getCoordinates(Class<T> type) {
+        if (type.isAssignableFrom(ModuleVersionIdentifier.class)) {
+            return type.cast(getCoordinates());
+        }
         return null;
     }
+
+
+
+
+
+
+
+    // TODO: What is needed from here?
 
     @Override
     public void setAlias(boolean alias) {
@@ -160,22 +202,7 @@ public abstract class DefaultGMMPublication implements GMMPublicationInternal {
     }
 
     @Override
-    public PublishedFile getPublishedFile(PublishArtifact source) {
-        return null;
-    }
-
-    @Override
     public VersionMappingStrategyInternal getVersionMappingStrategy() {
         return null;
-    }
-
-    @Override
-    public boolean isPublishBuildId() {
-        return false;
-    }
-
-    @Override
-    public void setModuleDescriptorGenerator(TaskProvider<? extends Task> moduleMetadataGenerator) {
-
     }
 }

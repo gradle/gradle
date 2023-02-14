@@ -77,6 +77,7 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
     boolean isPublishBuildId();
 
     void setModuleDescriptorGenerator(TaskProvider<? extends Task> moduleMetadataGenerator);
+    TaskProvider<? extends Task> getModuleDescriptorGenerator();
 
     interface PublishedFile {
         String getName();

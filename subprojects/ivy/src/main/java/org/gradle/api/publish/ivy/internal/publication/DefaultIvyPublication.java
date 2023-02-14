@@ -226,6 +226,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         updateModuleDescriptorArtifact();
     }
 
+    @Override
+    public TaskProvider<? extends Task> getModuleDescriptorGenerator() {
+        return moduleDescriptorGenerator;
+    }
+
     private void updateModuleDescriptorArtifact() {
         if (!canPublishModuleMetadata()) {
             return;

@@ -152,8 +152,9 @@ class GMMPublishPluginIntegTest extends AbstractIntegrationSpec {
         assert ivyModule.parsedModuleMetadata.variant('custom').dependencies*.coords as Set == ['log4j:log4j:1.2.17'] as Set
     }
 
-    def "can apply only the gmm-publish plugin"() {
+    def "gmm publish plugin with minimal custom variant"() {
         given:
+        def myRepo = file("myFileRepo")
         settingsFile << "rootProject.name = 'publishTest'"
         buildFile << """
             plugins {
@@ -163,27 +164,54 @@ class GMMPublishPluginIntegTest extends AbstractIntegrationSpec {
 
             group = 'org.gradle.test'
             version = '1.9'
+
+            configurations {
+                custom {
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
+                    }
+                }
+            }
+            dependencies {
+                custom 'log4j:log4j:1.2.17'
+            }
+            components.java.addVariantsFromConfiguration(configurations.custom) {
+                // TODO: I shouldn't neeed to provide an action here if I have nothing to do
+            }
             
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    flatDir {
+                        name = 'myFileRepo'
+                        dirs '${myRepo.absolutePath}'
+                    }
                 }
                 publications {
                     gmm(GMMPublication) {
-                        $artifacts
+                        from components.java
                     }
                 }
             }
         """
 
         when:
-        succeeds 'tasks'
+        succeeds 'publishGmmPublicationToMyFileRepoRepository'
 
         then:
-        outputContains "publish - Publishes all publications produced by this project."
+        myRepo.file("module.xml").exists()
 
-        expect:
-        succeeds "publish", "--console=plain"
+        and:
+        GradleModuleMetadata gmmMetadata = new GradleModuleMetadata(myRepo.file("module.xml"))
+        gmmMetadata.variant("apiElements") {
+            noMoreDependencies()
+        }
+        gmmMetadata.variant("runtimeElements") {
+            noMoreDependencies()
+        }
+        gmmMetadata.variant("custom") {
+            dependency('log4j:log4j:1.2.17').exists()
+            noMoreDependencies()
+        }
     }
 
     private static MavenJavaModule moduleFor(MavenFileModule mavenFileModule, List<String> features = [MavenJavaModule.MAIN_FEATURE], boolean withDocumentation = false) {

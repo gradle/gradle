@@ -159,7 +159,7 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
     }
 
     private void disableGradleMetadataGenerationIfCustomLayout(final TaskContainer tasks, final NamedDomainObjectList<IvyArtifactRepository> repositories, final String publicationName) {
-        String generateTaskName = "generateMetadataFileFor" + StringUtils.capitalize(publicationName) + "Publication";
+        String generateTaskName = "generateGMMFileFor" + StringUtils.capitalize(publicationName) + "Publication";
         tasks.named(generateTaskName, GenerateModuleMetadata.class, generateTask -> {
             Provider<Boolean> standard = new DefaultProvider<>(() -> repositories.stream().allMatch(IvyPublishPlugin::hasStandardPattern));
             generateTask.onlyIf("The Ivy repositories follow the standard layout", Cast.uncheckedCast(new CheckStandardLayoutSpec(standard)));
