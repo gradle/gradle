@@ -501,11 +501,14 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
         @Override
         public TransformationSubject call(BuildOperationContext context) {
-            context.setResult(ExecuteScheduledTransformationStepBuildOperationType.RESULT);
+            context.setResult(RESULT);
             return transform();
         }
 
         protected abstract TransformationSubject transform();
     }
+
+    private static final ExecuteScheduledTransformationStepBuildOperationType.Result RESULT = new ExecuteScheduledTransformationStepBuildOperationType.Result() {
+    };
 
 }
