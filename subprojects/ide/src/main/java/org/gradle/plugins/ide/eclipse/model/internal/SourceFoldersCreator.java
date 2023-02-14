@@ -92,7 +92,7 @@ public class SourceFoldersCreator {
     private List<SourceFolder> configureProjectRelativeFolders(Iterable<SourceSet> sourceSets, Collection<SourceSet> testSourceSets,
                                                                Function<File, String> provideRelativePath, File defaultOutputDir, String baseSourceOutputDir) {
         String defaultOutputPath = PathUtil.normalizePath(provideRelativePath.apply(defaultOutputDir));
-        ImmutableList.Builder<SourceFolder> entries = ImmutableList.<SourceFolder>builder();
+        ImmutableList.Builder<SourceFolder> entries = ImmutableList.builder();
         List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
         Map<SourceSet, String> sourceSetOutputPaths = collectSourceSetOutputPaths(sortedSourceSets, defaultOutputPath, baseSourceOutputDir);
         Multimap<SourceSet, SourceSet> sourceSetUsages = getSourceSetUsages(sortedSourceSets);
