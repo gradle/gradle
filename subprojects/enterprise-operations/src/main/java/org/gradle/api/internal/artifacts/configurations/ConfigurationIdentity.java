@@ -18,6 +18,9 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import javax.annotation.Nullable;
 
+/**
+ * Identifies a configuration.
+ */
 public interface ConfigurationIdentity {
 
     String getBuildPath();

@@ -22,6 +22,12 @@ import org.gradle.internal.taskgraph.NodeIdentity;
 
 import java.util.List;
 
+/**
+ * Converts a node to a planned node.
+ * <p>
+ * Each implementation of this interface is responsible for nodes of {@link #getSupportedNodeType()}.
+ * The converter can obtain the node identity for each node of the supported type via {@link #getNodeIdentity(Node)}.
+ */
 public interface ToPlannedNodeConverter {
 
     /**

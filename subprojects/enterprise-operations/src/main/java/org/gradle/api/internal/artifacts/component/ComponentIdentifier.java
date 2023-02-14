@@ -16,5 +16,10 @@
 
 package org.gradle.api.internal.artifacts.component;
 
+/**
+ * A marker interface for identifiers for a component instance.
+ * <p>
+ * There are various sub-interfaces that expose specific details about the identifier.
+ */
 public interface ComponentIdentifier {
 }

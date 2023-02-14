@@ -22,8 +22,14 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Identifier of a variant of a component.
+ */
 public interface ComponentVariantIdentifier {
 
+    /**
+     *  The component which owns this variant
+     */
     ComponentIdentifier getComponentId();
 
     /**

@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts.component;
 
+/**
+ * An identifier for a component instance that is built as part of the current build.
+ */
 public interface ProjectComponentIdentifier extends ComponentIdentifier {
 
     String getBuildPath();

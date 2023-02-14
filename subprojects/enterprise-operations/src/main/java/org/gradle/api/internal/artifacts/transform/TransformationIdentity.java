@@ -22,6 +22,9 @@ import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.Nullable;
 
+/**
+ * Identity of a transformation node.
+ */
 public interface TransformationIdentity extends NodeIdentity {
 
     @Override

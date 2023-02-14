@@ -24,8 +24,11 @@ import org.gradle.api.attributes.AttributeContainer;
 import java.util.Arrays;
 import java.util.Map;
 
+/**
+ * Converts attributes to a stringy map preserving the order.
+ */
 public class AttributesToMapConverter {
-    
+
     private AttributesToMapConverter() {}
 
     /**
