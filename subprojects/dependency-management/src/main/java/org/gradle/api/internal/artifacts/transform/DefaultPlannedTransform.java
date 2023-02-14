@@ -21,6 +21,9 @@ import org.gradle.internal.taskgraph.NodeIdentity;
 
 import java.util.List;
 
+/**
+ * A {@link CalculateTaskGraphBuildOperationType.PlannedNode} for a {@link TransformationNode}.
+ */
 public class DefaultPlannedTransform implements CalculateTaskGraphBuildOperationType.PlannedNode {
 
     private final TransformationIdentity transformationIdentity;

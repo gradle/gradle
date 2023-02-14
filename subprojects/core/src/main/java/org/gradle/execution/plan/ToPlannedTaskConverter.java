@@ -26,6 +26,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * A {@link ToPlannedTaskConverter} for {@link TaskNode}s.
+ * <p>
+ * Only can convert {@link LocalTaskNode}s to {@link org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedTask}s.
+ */
 public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
 
     @Override

@@ -18,8 +18,12 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
+import org.gradle.execution.plan.ToPlannedTaskConverter;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 
+/**
+ * A {@link ToPlannedTaskConverter} for {@link TransformationNode}s.
+ */
 public class ToPlannedTransformConverter implements ToPlannedNodeConverter {
 
     @Override

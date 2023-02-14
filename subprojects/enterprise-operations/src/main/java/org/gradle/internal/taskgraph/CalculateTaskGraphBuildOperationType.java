@@ -73,6 +73,8 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
     }
 
     /**
+     * A {@link PlannedNode} for a task in the execution graph.
+     *
      * @since 6.2
      */
     public interface PlannedTask extends PlannedNode {

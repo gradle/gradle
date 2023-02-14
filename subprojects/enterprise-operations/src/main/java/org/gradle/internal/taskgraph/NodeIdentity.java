@@ -16,6 +16,11 @@
 
 package org.gradle.internal.taskgraph;
 
+/**
+ * The identity of a node in the execution graph.
+ * <p>
+ * Needs to be unique across all the execution graphs of the current build.
+ */
 // TODO: should identities implement equality? If not, this should be noted in the contract
 public interface NodeIdentity {
 

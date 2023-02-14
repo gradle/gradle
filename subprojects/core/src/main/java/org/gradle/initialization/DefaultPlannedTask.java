@@ -22,6 +22,9 @@ import org.gradle.internal.taskgraph.NodeIdentity;
 
 import java.util.List;
 
+/**
+ * Default implementation of {@link PlannedTask}.
+ */
 public class DefaultPlannedTask implements PlannedTask {
 
     private final TaskIdentity taskIdentity;

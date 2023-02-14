@@ -31,6 +31,9 @@ import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.writeCollection
 
 
+/**
+ * Codec for [ComponentVariantIdentifier] instances.
+ */
 object ComponentVariantIdentifierCodec : Codec<ComponentVariantIdentifier> {
     override suspend fun WriteContext.encode(value: ComponentVariantIdentifier) {
         encodePreservingSharedIdentityOf(value) {

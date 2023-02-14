@@ -22,6 +22,9 @@ import org.gradle.api.capabilities.Capability;
 
 import java.util.List;
 
+/**
+ * Identifier of a variant of a component.
+ */
 public class ComponentVariantIdentifier {
 
     private final ComponentIdentifier componentId;

@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts.component;
 
+/**
+ * An identifier for a component instance which is available as a module version.
+ **/
 public interface ModuleComponentIdentifier extends ComponentIdentifier {
 
     String getGroup();

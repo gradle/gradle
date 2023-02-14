@@ -22,7 +22,10 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import java.util.Map;
 
 /**
- * @since 5.1
+ * A {@link BuildOperationType} for executing a scheduled transformation step.
+ * <p>
+ * Encompasses the execution of a transformation node.
+ * A transformation node runs only one transformation step, though possibly on multiple files.
  */
 @UsedByScanPlugin
 public class ExecuteScheduledTransformationStepBuildOperationType implements BuildOperationType<ExecuteScheduledTransformationStepBuildOperationType.Details, ExecuteScheduledTransformationStepBuildOperationType.Result> {
