@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 
 import org.gradle.test.fixtures.file.TestFile
+import org.testcontainers.shaded.com.trilead.ssh2.crypto.cipher.AES
 
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
@@ -36,19 +37,27 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         keyPassword = "gradle-key-pwd"
     }
 
-    def "configuration cache can be loaded without errors if encryption is #status"() {
+    def "configuration cache can be loaded without errors if encryption is #status, #keyAlg, #encryptionAlg, #initVectorLength"() {
         given:
+        def additionalOpts = [
+            "-Dorg.gradle.configuration-cache.internal.key-alg=${keyAlg}",
+            "-Dorg.gradle.configuration-cache.internal.init-vector-len=${initVectorLength}",
+            "-Dorg.gradle.configuration-cache.internal.encryption-alg=${encryptionAlg}"
+        ]
         def configurationCache = newConfigurationCacheFixture()
-        runWithEncryption(status)
+        runWithEncryption(status, ["help"], additionalOpts)
 
         when:
-        runWithEncryption(status)
+        runWithEncryption(status, ["help"], additionalOpts)
 
         then:
         configurationCache.assertStateLoaded()
 
         where:
-        status << [true, false]
+        status      | keyAlg        | encryptionAlg             | initVectorLength
+        false       | null          | null                      | 0
+        true        | "AES"         | "AES/CBC/PKCS5PADDING"    | 16
+        true        | "AES"         | "AES/GCM/NOPADDING"       | 12
     }
 
     def "configuration cache is #encrypted if enabled=#status"() {
