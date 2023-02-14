@@ -16,6 +16,14 @@
 
 package org.gradle.api.internal.provider.support;
 
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.provider.Property;
+import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator;
+
+/**
+ * An interface used to support lazy assignment for types like {@link Property} and {@link ConfigurableFileCollection} in Groovy DSL.
+ * Call to this interface is generated via {@link AsmBackedClassGenerator}.
+ */
 public interface LazyGroovySupport {
 
     /**
