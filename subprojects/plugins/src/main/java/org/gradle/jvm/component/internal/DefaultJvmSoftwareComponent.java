@@ -35,7 +35,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent;
@@ -97,7 +96,6 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
     public DefaultJvmSoftwareComponent(
         String componentName,
         String sourceSetName,
-        JavaPluginExtension javaExtension,
         Project project,
         JvmPluginServices jvmPluginServices,
         ObjectFactory objectFactory,
@@ -114,7 +112,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         PluginContainer plugins = project.getPlugins();
         ExtensionContainer extensions = project.getExtensions();
 
-        assert project.getPlugins().hasPlugin(JavaBasePlugin.class);
+        JavaPluginExtension javaExtension = getJavaPluginExtension(extensions);
         this.sourceSet = createSourceSet(sourceSetName, javaExtension.getSourceSets());
 
         this.compileJava = tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
@@ -140,9 +138,17 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", false));
     }
 
-    private SourceSet createSourceSet(String name, SourceSetContainer sourceSets) {
+    private static JavaPluginExtension getJavaPluginExtension(ExtensionContainer extensions) {
+        JavaPluginExtension javaExtension = extensions.findByType(JavaPluginExtension.class);
+        if (javaExtension == null) {
+            throw new GradleException("The java-base plugin must be applied in order to create instances of " + DefaultJvmSoftwareComponent.class.getSimpleName() + ".");
+        }
+        return javaExtension;
+    }
+
+    private static SourceSet createSourceSet(String name, SourceSetContainer sourceSets) {
         if (sourceSets.findByName(name) != null) {
-            throw new GradleException("Cannot create multiple instances of " + this.getClass().getSimpleName() + " with source set name '" + name +"'.");
+            throw new GradleException("Cannot create multiple instances of " + DefaultJvmSoftwareComponent.class.getSimpleName() + " with source set name '" + name +"'.");
         }
 
         return sourceSets.create(name);

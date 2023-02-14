@@ -33,8 +33,8 @@ import javax.inject.Inject;
 public abstract class DefaultSoftwareComponentContainer extends DefaultPolymorphicDomainObjectContainer<SoftwareComponent> implements SoftwareComponentContainerInternal, HasPublicType {
 
     @Inject
-    public DefaultSoftwareComponentContainer(Instantiator instantiator, CollectionCallbackActionDecorator decorator) {
-        super(SoftwareComponent.class, instantiator, instantiator, decorator);
+    public DefaultSoftwareComponentContainer(Instantiator instantiator, Instantiator elementInstantiator, CollectionCallbackActionDecorator decorator) {
+        super(SoftwareComponent.class, instantiator, elementInstantiator, decorator);
     }
 
     @Override
