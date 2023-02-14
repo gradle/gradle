@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.taskgraph.NodeIdentity;
-import org.gradle.api.internal.artifacts.transform.TransformationIdentity;
 
 import java.util.List;
 
