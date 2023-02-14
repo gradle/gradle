@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.artifacts.transform.TransformationNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
-import org.gradle.initialization.DefaultPlannedTransform;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
-import org.gradle.api.internal.artifacts.transform.TransformationIdentity;
 
 public class ToPlannedTransformConverter implements ToPlannedNodeConverter {
 
