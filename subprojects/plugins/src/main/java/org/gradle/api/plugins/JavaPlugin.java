@@ -247,7 +247,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
 
         // Create the 'java' component.
-        JvmSoftwareComponentInternal component = objectFactory.newInstance(DefaultJvmSoftwareComponent.class, "java", javaExtension);
+        JvmSoftwareComponentInternal component = objectFactory.newInstance(DefaultJvmSoftwareComponent.class, "java", "main", javaExtension);
         project.getComponents().add(component);
 
         // Set the 'java' component as the project's default.

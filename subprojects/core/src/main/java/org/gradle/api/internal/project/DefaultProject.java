@@ -260,6 +260,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             extensibleDynamicObject.setParent(parentInherited);
         }
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
+        getExtensions().add("components", getComponents());
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
