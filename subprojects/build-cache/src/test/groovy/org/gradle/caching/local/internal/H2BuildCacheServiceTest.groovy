@@ -19,10 +19,13 @@ package org.gradle.caching.local.internal
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.controller.service.StoreTarget
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+// TODO On GitHub Actions only we see the database file remaining after the test finished
+@LeaksFileHandles
 class H2BuildCacheServiceTest extends Specification {
 
     @Rule
