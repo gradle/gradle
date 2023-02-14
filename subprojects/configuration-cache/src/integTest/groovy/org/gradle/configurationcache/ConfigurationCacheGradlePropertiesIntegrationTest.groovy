@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 
 import org.gradle.configurationcache.fixtures.SystemPropertiesCompositeBuildFixture
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
@@ -148,6 +149,57 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
             'gradleProp',
             'ext.gradleProp'
         ]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19793")
+    @ToBeImplemented("Fails with 'GradleProperties has not been loaded yet.' accessing gradle properties on a warm cache")
+    def "gradle properties must be accessible from task in included build"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        createDir('included1') {
+            file('gradle.properties') << """
+                P1=foo
+                P2=zoo
+            """
+            groovyFile file("build.gradle"), """
+            tasks.register('includedTask') {
+                def p1 = providers.gradleProperty("P1")
+                doLast {
+                    println("P1=\${p1.get()}")
+                }
+            }
+            """
+        }
+        file('settings.gradle') << """
+            includeBuild('included1')
+        """
+        groovyFile file("build.gradle"), """
+        tasks.register('delegatingTask') {
+            dependsOn gradle.includedBuild('included1').task(':includedTask')
+        }
+        """
+
+        when:
+        configurationCacheRun "delegatingTask"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains """
+> Task :included1:includedTask
+P1=foo
+
+> Task :delegatingTask
+        """
+
+        when:
+        configurationCacheFails "delegatingTask"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains """
+> Task :included1:includedTask FAILED
+"""
+        failureCauseContains("GradleProperties has not been loaded yet.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19184")
