@@ -153,11 +153,11 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
         public void run() {
             LOGGER.warn("Loading {} from remote", key);
             remote.load(key, input -> {
-                LOGGER.warn("Found {} in remote", key);
                 // TODO Make this work for large pieces of content, too
                 UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
                 byte[] buffer = bufferProvider.getBuffer();
                 IOUtils.copyLarge(input, data, buffer);
+                LOGGER.warn("Found {} in remote (size: {})", key, data.size());
 
                 // Mirror data in local cache
                 // TODO Do we need to support local push = false?
@@ -201,7 +201,6 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 return;
             }
 
-            LOGGER.warn("Storing {} in remote", key);
             // TODO Use a buffer fit for large files
             @SuppressWarnings("resource")
             UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
@@ -211,6 +210,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 throw new IllegalStateException("Couldn't store " + key + " in remote cache because it was missing from local cache");
             }
 
+            LOGGER.warn("Storing {} in remote (size: {})", key, data.size());
             remote.store(key, new BuildCacheEntryWriter() {
                 @Override
                 public InputStream openStream() {
