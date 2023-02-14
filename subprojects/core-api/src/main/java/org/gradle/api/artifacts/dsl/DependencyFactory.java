@@ -66,7 +66,7 @@ public interface DependencyFactory {
      * @return the new dependency
      * @since 8.1
      */
-    ExternalModuleDependency create(String pluginId, @Nullable String version);
+    ExternalModuleDependency createFromPluginId(String pluginId, @Nullable String version);
 
     /**
      * Create an {@link ExternalModuleDependency} from a series of strings.

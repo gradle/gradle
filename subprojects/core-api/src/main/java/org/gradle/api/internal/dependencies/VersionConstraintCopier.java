@@ -19,7 +19,9 @@ package org.gradle.api.internal.dependencies;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
 
-public class DependencyHelper {
+public class VersionConstraintCopier {
+
+    private VersionConstraintCopier() {}
 
     public static void copyVersionConstraint(VersionConstraint from, MutableVersionConstraint into) {
         if (from.getBranch() != null) {

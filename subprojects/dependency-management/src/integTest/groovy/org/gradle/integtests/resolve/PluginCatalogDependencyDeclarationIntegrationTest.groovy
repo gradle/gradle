@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.dsl.GradleDsl
 
-class PluginDependencyDeclarationIntegrationTest extends AbstractIntegrationSpec {
+class PluginCatalogDependencyDeclarationIntegrationTest extends AbstractIntegrationSpec {
 
     static final String JS = 'org.jetbrains.kotlin.js'
     static final String JVM = 'org.jetbrains.kotlin.jvm'

@@ -118,7 +118,7 @@ public interface Dependencies {
      * @since 8.1
      */
     default ExternalModuleDependency plugin(String id) {
-        return getDependencyFactory().create(id, null);
+        return getDependencyFactory().createFromPluginId(id, null);
     }
 
     /**
@@ -130,7 +130,7 @@ public interface Dependencies {
      * @since 8.1
      */
     default ExternalModuleDependency plugin(String id, String version) {
-        return getDependencyFactory().create(id, version);
+        return getDependencyFactory().createFromPluginId(id, version);
     }
 
     /**

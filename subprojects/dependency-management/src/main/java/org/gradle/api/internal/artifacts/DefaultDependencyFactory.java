@@ -141,7 +141,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     }
 
     @Override
-    public ExternalModuleDependency create(String id, @Nullable String version) {
+    public ExternalModuleDependency createFromPluginId(String id, @Nullable String version) {
         String pluginNotation = PluginDependencyMarkerCoordinates.pluginNotation(id, version);
         ExternalModuleDependency dependency = dependencyNotationParser.getStringNotationParser().parseNotation(pluginNotation);
         injectServices(dependency);
