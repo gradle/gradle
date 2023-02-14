@@ -21,14 +21,14 @@ import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.testing.base.TestSuite;
-import org.gradle.testing.base.TestSuiteContainer;
+import org.gradle.testing.base.TestSuites;
 
 import javax.inject.Inject;
 
-public class DefaultTestSuiteContainer extends DefaultPolymorphicDomainObjectContainer<TestSuite> implements TestSuiteContainer {
+public class DefaultTestSuites extends DefaultPolymorphicDomainObjectContainer<TestSuite> implements TestSuites {
 
     @Inject
-    public DefaultTestSuiteContainer(InstantiatorFactory instantiatorFactory, ServiceRegistry servicesToInject, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public DefaultTestSuites(InstantiatorFactory instantiatorFactory, ServiceRegistry servicesToInject, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(TestSuite.class, instantiatorFactory.decorateLenient(), instantiatorFactory.decorateLenient(servicesToInject), collectionCallbackActionDecorator);
     }
 }

@@ -33,7 +33,7 @@ import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.InvalidModelException;
 import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.testing.base.TestSuiteSpecContainer;
+import org.gradle.testing.base.TestSuiteContainer;
 
 import java.io.File;
 import java.util.Collection;
@@ -117,7 +117,7 @@ public class NativeTestSuites {
             .withRole("executable", true);
     }
 
-    public static <S extends NativeTestSuiteSpec> void createConventionalTestSuites(TestSuiteSpecContainer testSuites, ModelMap<NativeComponentSpec> components, Class<S> testSuiteSpecClass) {
+    public static <S extends NativeTestSuiteSpec> void createConventionalTestSuites(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components, Class<S> testSuiteSpecClass) {
         for (final NativeComponentSpec component : components.values()) {
             final String suiteName = component.getName() + "Test";
             testSuites.create(suiteName, testSuiteSpecClass, new Action<S>() {

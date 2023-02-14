@@ -38,7 +38,7 @@ import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
 import org.gradle.platform.base.ComponentBinaries;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
-import org.gradle.testing.base.TestSuiteSpecContainer;
+import org.gradle.testing.base.TestSuiteContainer;
 
 import java.io.File;
 
@@ -86,7 +86,7 @@ public abstract class CUnitPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        public void createCUnitLauncherTasks(TaskContainer tasks, TestSuiteSpecContainer testSuites) {
+        public void createCUnitLauncherTasks(TaskContainer tasks, TestSuiteContainer testSuites) {
             for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {
 
                 String taskName = suite.getName() + "CUnitLauncher";

@@ -25,7 +25,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.internal.NativeTestSuites;
-import org.gradle.testing.base.TestSuiteSpecContainer;
+import org.gradle.testing.base.TestSuiteContainer;
 
 /**
  * A plugin that applies the {@link GoogleTestPlugin} and adds conventions on top of it.
@@ -43,7 +43,7 @@ public abstract class GoogleTestConventionPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
 
         @Defaults
-        public void createCUnitTestSuitePerComponent(TestSuiteSpecContainer testSuites, ModelMap<NativeComponentSpec> components) {
+        public void createCUnitTestSuitePerComponent(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components) {
             NativeTestSuites.createConventionalTestSuites(testSuites, components, GoogleTestTestSuiteSpec.class);
         }
     }

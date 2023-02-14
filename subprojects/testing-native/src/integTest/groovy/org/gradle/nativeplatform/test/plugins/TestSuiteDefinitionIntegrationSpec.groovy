@@ -61,7 +61,7 @@ class TestSuitePlugin extends RuleSource {
     }
 
     @Mutate
-    void testSuiteDefaults(TestSuiteSpecContainer testSuites) {
+    void testSuiteDefaults(TestSuiteContainer testSuites) {
 //        testSuites.withType(CustomTestSuite).beforeEach { suite ->
         testSuites.withType(CustomTestSuite) { suite ->
             suite.sources.create('tests', CustomTestSourceSet)

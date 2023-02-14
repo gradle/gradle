@@ -50,7 +50,7 @@ import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedResult;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
-import org.gradle.testing.base.TestSuiteSpecContainer;
+import org.gradle.testing.base.TestSuiteContainer;
 import org.gradle.testing.base.plugins.TestingModelBasePlugin;
 
 import java.util.List;
@@ -112,7 +112,7 @@ public abstract class NativeBinariesTestPlugin implements Plugin<Project> {
         }
 
         @Finalize
-        public void wireBuildDependentsTasks(ModelMap<Task> tasks, TestSuiteSpecContainer testSuites, final BinaryContainer binaries, final DependentBinariesResolver dependentsResolver, ServiceRegistry serviceRegistry) {
+        public void wireBuildDependentsTasks(ModelMap<Task> tasks, TestSuiteContainer testSuites, final BinaryContainer binaries, final DependentBinariesResolver dependentsResolver, ServiceRegistry serviceRegistry) {
             final ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
             final ModelMap<NativeBinarySpecInternal> nativeBinaries = binaries.withType(NativeBinarySpecInternal.class);
             for (final NativeBinarySpecInternal binary : nativeBinaries) {

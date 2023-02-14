@@ -20,24 +20,24 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.testing.base.TestSuiteContainer;
+import org.gradle.testing.base.TestSuites;
 import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
 
 public abstract class DefaultTestingExtension implements TestingExtension {
-    private final TestSuiteContainer suites;
+    private final TestSuites suites;
 
     @Inject
     public DefaultTestingExtension(ObjectFactory objectFactory, InstantiatorFactory instantiatorFactory, ServiceRegistry servicesToInject, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        this.suites = objectFactory.newInstance(DefaultTestSuiteContainer.class, instantiatorFactory, servicesToInject, collectionCallbackActionDecorator);
+        this.suites = objectFactory.newInstance(DefaultTestSuites.class, instantiatorFactory, servicesToInject, collectionCallbackActionDecorator);
     }
 
     @Inject
     public abstract ObjectFactory getObjectFactory();
 
     @Override
-    public TestSuiteContainer getSuites() {
+    public TestSuites getSuites() {
         return suites;
     }
 

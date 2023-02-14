@@ -34,12 +34,12 @@ package org.gradle.testing.base.plugins
 
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.PlatformBaseSpecification
-import org.gradle.testing.base.TestSuiteSpecContainer
+import org.gradle.testing.base.TestSuiteContainer
 import org.gradle.testing.base.TestSuiteSpec
 
 class TestingModelBasePluginTest extends PlatformBaseSpecification {
-    TestSuiteSpecContainer realizeTestSuites() {
-        project.modelRegistry.find("testSuites", TestSuiteSpecContainer)
+    TestSuiteContainer realizeTestSuites() {
+        project.modelRegistry.find("testSuites", TestSuiteContainer)
     }
 
     def "registers TestSuiteSpec"() {

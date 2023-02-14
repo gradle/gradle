@@ -30,5 +30,5 @@ public interface TestingExtension {
      *
      * The type of test suites available depend on which other plugins are applied.
      */
-    TestSuiteContainer getSuites();
+    TestSuites getSuites();
 }
