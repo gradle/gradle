@@ -24,10 +24,14 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.inject)
-    implementation("com.h2database:h2:2.1.214")
-    implementation(libs.hikariCP)
+    implementation(libs.h2Database) {
+        because("Used in BuildCacheNG")
+    }
+    implementation(libs.hikariCP) {
+        because("Used in BuildCacheNG")
+    }
     implementation(libs.gson) {
-        because("Cache manifest uses JSON format")
+        because("Used in Build Cache NG: Cache manifest uses JSON format")
     }
     implementation(libs.commonsIo)
 

@@ -77,6 +77,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val groovyXml = "$groovyGroup:groovy-xml"
     val gson = "com.google.code.gson:gson"
     val guava = "com.google.guava:guava"
+    val h2Database = "com.h2database:h2"
     val hamcrest = "org.hamcrest:hamcrest-core"
     val httpcore = "org.apache.httpcomponents:httpcore"
     val inject = "javax.inject:javax.inject"
@@ -215,6 +216,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         groovy to License.Apache2,
         gson to License.Apache2,
         guava to License.Apache2,
+        h2Database to License.EPL,
         hamcrest to License.BSD3,
         httpcore to License.Apache2,
         hikariCP to License.Apache2,
