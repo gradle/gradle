@@ -892,7 +892,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addPropertySetterOverloads(PropertyMetadata property, MethodMetadata getter) {
+        public void addLazyGroovySupportSetterOverloads(PropertyMetadata property, MethodMetadata getter) {
             if (!mixInDsl) {
                 return;
             }
@@ -1922,7 +1922,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addPropertySetterOverloads(PropertyMetadata property, MethodMetadata getter) {
+        public void addLazyGroovySupportSetterOverloads(PropertyMetadata property, MethodMetadata getter) {
         }
 
         @Override
