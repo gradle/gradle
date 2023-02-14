@@ -1,11 +1,11 @@
 
 The Gradle team is excited to announce a new major version of Gradle, 8.0. This major version has breaking changes; please consult the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) for guidance.
 
-This release includes several improvements to the [Kotlin DSL](#kotlin-dsl). This consists of an interpreter to skip the Kotlin compiler for declarative plugins and an upgrade to Kotlin API level 1.8.
+This release includes several improvements to the [Kotlin DSL](#kotlin-dsl) including performance improvements to script compilation and an upgrade to Kotlin API level 1.8.
 
-Many of the benefits of included builds are now available with [`buildSrc`](#improvements-for-buildsrc-builds), such as running `buildSrc` tasks directly, skipping tests, and including other builds with `buildSrc`. For now, there are still some advantages to included builds that will be incorporated into `buildSrc` in future releases. 
+We have made enhancements to the [configuration cache](#configuration-cache). This includes fine-grained parallel task execution from the first build, resulting in improved performance.
 
-Additionally, we have made enhancements to the [configuration cache](#configuration-cache). This includes more fine-grained parallelism by loading tasks from the cache entry and running tasks as isolated on the first build.
+Additionally, it is now possible to configure the retention time of Gradle user home caches. Cache cleanup can also be disabled for more caches.
 
 Gradle 8.0 also has several bug fixes, removes deprecated features, and other [general improvements](#general-improvements).
 <!--
@@ -106,7 +106,7 @@ Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax 
 
 #### Improved script compilation performance
 
-Gradle 8.0 introduces an interpreter for the [declarative plugins {} blocks](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts that make the overall build time around 20% faster. Calling the Kotlin compiler for declarative `plugins {}` blocks is avoided by default.
+Gradle 8.0 introduces an interpreter for the [declarative plugins {} blocks](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts that make the overall script compilation time around 20% faster. Calling the Kotlin compiler for declarative `plugins {}` blocks is avoided by default.
 
 To utilize this performance, ensure you are using the supported formats in the declarative `plugins {}` blocks, for example:
 
