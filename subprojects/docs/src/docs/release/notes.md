@@ -5,7 +5,7 @@ This release includes several improvements to the [Kotlin DSL](#kotlin-dsl) incl
 
 We have made enhancements to the [configuration cache](#configuration-cache). This includes fine-grained parallel task execution from the first build, resulting in improved performance.
 
-Additionally, it is now possible to configure the retention time of Gradle user home caches. Cache cleanup can also be disabled for more caches.
+Additionally, it is now possible to configure the retention time of [Gradle user home caches](#cache-cleanup). Cache cleanup can also be disabled for more caches.
 
 Gradle 8.0 also has several bug fixes, removes deprecated features, and other [general improvements](#general-improvements).
 <!--
@@ -231,6 +231,7 @@ For more details, see the [user manual](userguide/toolchains.html#sec:provisioni
 <a name="general-improvements"></a>
 ### General improvements
 
+<a name="cache-cleanup"></a>
 #### Improved Gradle user home cache cleanup
 
 Previously, cleanup of the caches in Gradle user home used fixed retention periods (30 days or 7 days, depending on the cache). These retention periods can now be configured via the [settings](dsl/org.gradle.api.initialization.Settings.html) object in an init script in Gradle user home.
