@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.component;
 /**
  * An opaque immutable identifier for a component instance.
  */
-public interface UnknownComponentIdentifier extends ComponentIdentifier {
+public interface OpaqueComponentIdentifier extends ComponentIdentifier {
 
     String getDisplayName();
 
