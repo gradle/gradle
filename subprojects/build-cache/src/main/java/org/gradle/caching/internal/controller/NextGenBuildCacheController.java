@@ -57,6 +57,8 @@ import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -83,6 +85,9 @@ import static org.gradle.internal.file.FileType.Directory;
 import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
 
 public class NextGenBuildCacheController implements BuildCacheController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(NextGenBuildCacheController.class);
+
     private final BufferProvider bufferProvider;
     private final NextGenBuildCacheAccess cacheAccess;
     private final FileSystemAccess fileSystemAccess;
@@ -129,6 +134,8 @@ public class NextGenBuildCacheController implements BuildCacheController {
                 }
             })
             .create();
+
+        LOGGER.warn("Creating next-generation build cache controller");
     }
 
     @Override
@@ -416,6 +423,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
     @Override
     public void close() throws IOException {
+        LOGGER.warn("Closing next-generation build cache controller");
         cacheAccess.close();
     }
 
