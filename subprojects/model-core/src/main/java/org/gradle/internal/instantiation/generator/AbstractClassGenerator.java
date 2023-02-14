@@ -1150,7 +1150,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         void visitProperty(PropertyMetadata property) {
-            if (property.isReadable() && (isPropertyType(property.getType()) || isConfigurableFileCollectionType(property.getType()))) {
+            if (property.isReadable() && isPropertyType(property.getType()) ||
+                property.isReadOnly() && isConfigurableFileCollectionType(property.getType())) {
                 lazyGroovySupportTyped.add(property);
             }
         }
@@ -1158,7 +1159,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         @Override
         void applyTo(ClassGenerationVisitor visitor) {
             for (PropertyMetadata property : lazyGroovySupportTyped) {
-                visitor.addPropertySetterOverloads(property, property.mainGetter);
+                visitor.addLazyGroovySupportSetterOverloads(property, property.mainGetter);
             }
         }
     }
@@ -1480,7 +1481,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void addActionMethod(Method method);
 
-        void addPropertySetterOverloads(PropertyMetadata property, MethodMetadata getter);
+        void addLazyGroovySupportSetterOverloads(PropertyMetadata property, MethodMetadata getter);
 
         void addNameProperty();
 
