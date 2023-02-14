@@ -54,8 +54,4 @@ public class ExecuteScheduledTransformationStepBuildOperationType implements Bui
 
     public interface Result {
     }
-
-    static final Result RESULT = new Result() {
-    };
-
 }
