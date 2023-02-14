@@ -76,6 +76,7 @@ class ConfigurationCacheKey(
 
         putBoolean(encryptionConfiguration.isEncrypting)
         putHash(encryptionConfiguration.encryptionKeyHashCode)
+        putHash(encryptionConfiguration.encryptionKeyHashCode)
     }
 
     private

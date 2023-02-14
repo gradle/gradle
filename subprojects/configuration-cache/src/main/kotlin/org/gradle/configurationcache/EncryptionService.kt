@@ -26,6 +26,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.security.KeyStore
 import java.security.KeyStore.PasswordProtection
+import java.security.spec.AlgorithmParameterSpec
 import java.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.CipherInputStream
@@ -33,6 +34,7 @@ import javax.crypto.CipherOutputStream
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
+import javax.crypto.spec.IvParameterSpec
 
 
 /**
@@ -77,6 +79,12 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
     val keyPassword: String = startParameter.keyPassword
 
     private
+    val keyAlias: String = startParameter.keyAlias
+
+    private
+    val keyAlgorithm: String = startParameter.keyAlgorithm
+
+    private
     val keyProtection =
         PasswordProtection(keyPassword.toCharArray())
 
@@ -89,9 +97,20 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
     private
     val shouldEncrypt: Boolean by lazy { encryptingRequested && secretKey != null }
 
+    private
+    val encryptionAlgorithm: String = startParameter.encryptionAlgorithm
+
+    private
+    val initVectorLength: Int = startParameter.initVectorLength
+
     init {
         if (encryptingRequested) {
-            logger.info("Configuration cache encryption requested, using keystore: {}", keyStorePath)
+            logger.info("""Configuration cache encryption requested
+                - algorithm: $encryptionAlgorithm
+                - keystore at: $keyStorePath
+                - key algorithm: $keyAlgorithm
+                - key alias: $keyAlias""".trimMargin()
+            )
             if (!isEncrypting) {
                 logger.warn("Configuration cache encryption requested but not enabled")
             }
@@ -102,7 +121,7 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
     fun computeSecretKey(): SecretKey? {
         val ks = KeyStore.getInstance(KeyStore.getDefaultType())
         val key: SecretKey
-        val alias = "gradle-secret"
+        val alias = keyAlias
         if (keyStorePath.isFile) {
             logger.info("Loading keystore from $keyStorePath")
             keyStorePath.inputStream().use { fis ->
@@ -134,7 +153,7 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
 
     private
     fun generateKey(ks: KeyStore, alias: String): SecretKey {
-        val newKey = KeyGenerator.getInstance("AES").generateKey()!!
+        val newKey = KeyGenerator.getInstance(keyAlgorithm).generateKey()!!
         logger.info("Generated key")
         val entry = KeyStore.SecretKeyEntry(newKey)
         ks.setEntry(alias, entry, keyProtection)
@@ -151,6 +170,7 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
                 putBytes(it.encoded)
                 putString(it.format)
                 putString(it.algorithm)
+                putInt(initVectorLength)
             }.hash()
         } ?: Hashing.newHasher().hash()
     }
@@ -170,23 +190,31 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
     private
     fun decryptingInputStream(inputStream: InputStream): InputStream {
         val cipher = cipher()
-        val fileIv = ByteArray(12)
+        val fileIv = ByteArray(initVectorLength)
         inputStream.read(fileIv)
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, fileIv))
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, getAlgorithmParameter(fileIv))
         return CipherInputStream(inputStream, cipher)
     }
+
+    private
+    fun getAlgorithmParameter(initializationVector: ByteArray): AlgorithmParameterSpec =
+        when {
+            encryptionAlgorithm.startsWith("AES/GCM") ->
+                GCMParameterSpec(128, initializationVector)
+            else ->
+                IvParameterSpec(initializationVector)
+        }
 
     private
     fun encryptingOutputStream(outputStream: OutputStream): OutputStream {
         val cipher = cipher()
         cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-        val iv = cipher.iv
-        outputStream.write(iv)
+        outputStream.write(cipher.iv)
         return CipherOutputStream(outputStream, cipher)
     }
 
     private
-    fun cipher() = Cipher.getInstance("AES/GCM/NoPadding")
+    fun cipher() = Cipher.getInstance(encryptionAlgorithm)
 }
 
 
