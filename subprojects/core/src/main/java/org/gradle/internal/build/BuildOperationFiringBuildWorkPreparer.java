@@ -56,12 +56,12 @@ import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer {
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildWorkPreparer delegate;
-    private final ConverterFactory converterFactory;
+    private final ConverterRegistry converterRegistry;
 
     public BuildOperationFiringBuildWorkPreparer(BuildOperationExecutor buildOperationExecutor, BuildWorkPreparer delegate, List<ToPlannedNodeConverter> converters) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;
-        this.converterFactory = new ConverterFactory(converters);
+        this.converterRegistry = new ConverterRegistry(converters);
     }
 
     @Override
@@ -71,7 +71,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
     @Override
     public void populateWorkGraph(GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action) {
-        buildOperationExecutor.run(new PopulateWorkGraph(delegate, gradle, plan, action, converterFactory));
+        buildOperationExecutor.run(new PopulateWorkGraph(delegate, gradle, plan, action, converterRegistry));
     }
 
     @Override
@@ -84,16 +84,16 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
         private final GradleInternal gradle;
         private final ExecutionPlan plan;
         private final Consumer<? super ExecutionPlan> action;
-        private final ConverterFactory converterFactory;
+        private final ConverterRegistry converterRegistry;
         private final NodeDependencyLookup dependencyLookup;
 
-        public PopulateWorkGraph(BuildWorkPreparer delegate, GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action, ConverterFactory converterFactory) {
+        public PopulateWorkGraph(BuildWorkPreparer delegate, GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action, ConverterRegistry converterRegistry) {
             this.delegate = delegate;
             this.gradle = gradle;
             this.plan = plan;
             this.action = action;
-            this.converterFactory = converterFactory;
-            this.dependencyLookup = new NodeDependencyLookup(converterFactory);
+            this.converterRegistry = converterRegistry;
+            this.dependencyLookup = new NodeDependencyLookup(converterRegistry);
         }
 
         @Override
@@ -163,7 +163,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             List<PlannedNode> plannedNodes = new ArrayList<>();
             scheduledWork.visitNodes(nodes -> {
                 for (Node node : nodes) {
-                    ToPlannedNodeConverter converter = converterFactory.getConverter(node);
+                    ToPlannedNodeConverter converter = converterRegistry.getConverter(node);
                     if (converter != null && converter.isInSamePlan(node)) {
                         PlannedNode plannedNode = converter.convert(node, dependencyLookup);
                         plannedNodes.add(plannedNode);
@@ -182,10 +182,10 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
     private static class NodeDependencyLookup implements ToPlannedNodeConverter.DependencyLookup {
 
-        private final ConverterFactory converterFactory;
+        private final ConverterRegistry converterRegistry;
 
-        private NodeDependencyLookup(ConverterFactory converterFactory) {
-            this.converterFactory = converterFactory;
+        private NodeDependencyLookup(ConverterRegistry converterRegistry) {
+            this.converterRegistry = converterRegistry;
         }
 
         @Override
@@ -230,7 +230,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
         }
 
         private NodeIdentity identifyAsDependencyNode(Node node, Predicate<NodeIdentity> isDependencyNode) {
-            ToPlannedNodeConverter converter = converterFactory.getConverter(node);
+            ToPlannedNodeConverter converter = converterRegistry.getConverter(node);
             if (converter == null) {
                 return null;
             }
@@ -239,14 +239,14 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
         }
     }
 
-    private static class ConverterFactory {
+    private static class ConverterRegistry {
 
         private final List<ToPlannedNodeConverter> converters;
 
         private final Map<Class<?>, ToPlannedNodeConverter> convertersByNodeType = new HashMap<>();
         private final Set<Class<?>> unsupportedNodeTypes = new HashSet<>();
 
-        private ConverterFactory(List<ToPlannedNodeConverter> converters) {
+        private ConverterRegistry(List<ToPlannedNodeConverter> converters) {
             validateConverters(converters);
             this.converters = ImmutableList.copyOf(converters);
 
