@@ -16,6 +16,7 @@
 
 package org.gradle.caching.local.internal
 
+
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.controller.service.StoreTarget
@@ -32,7 +33,9 @@ class H2BuildCacheServiceTest extends Specification {
     def service = new H2BuildCacheService(dbDir.toPath(), 20)
 
     def cleanup() {
+        println("Closing H2BuildCacheServiceTest service")
         service.close()
+        println("Closed1 H2BuildCacheServiceTest service")
     }
 
     BuildCacheKey key = Mock(BuildCacheKey) {

@@ -119,6 +119,7 @@ jobs:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
           arguments: |
               ${{ matrix.bucket.tasks }}
+              --stacktrace
               --no-configuration-cache
               -DdisableLocalCache=true
               -PflakyTests=exclude
