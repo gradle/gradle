@@ -113,7 +113,7 @@ jobs:
 
           # PULL REQUESTS -----------------------------------------------------
           days-before-pr-close: 7
-          stale-pr-label: 'pending:pr-dco'
+          stale-pr-label: 'pending:dco'
           close-pr-label: 'closed:missing-dco'
           close-pr-message: >
             While we asked sign your commits, it has not been done. If you sign your commits, we will consider this pull request again.
