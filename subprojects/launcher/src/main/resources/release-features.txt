@@ -1,0 +1,3 @@
+ - Improvements to the Kotlin DSL
+ - Configuration cache performance benefits on first store
+ - Configurable Gradle user home cache cleanup
