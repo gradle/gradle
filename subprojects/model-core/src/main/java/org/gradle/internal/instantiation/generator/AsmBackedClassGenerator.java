@@ -39,6 +39,7 @@ import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
@@ -60,6 +61,7 @@ import org.gradle.model.internal.asm.ClassVisitorScope;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.gradle.util.internal.ConfigureUtil;
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
@@ -71,6 +73,11 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.invoke.CallSite;
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -78,6 +85,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +103,8 @@ import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Opcodes.ACC_TRANSIENT;
+import static org.objectweb.asm.Opcodes.H_INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.V1_8;
 import static org.objectweb.asm.Type.BOOLEAN_TYPE;
 import static org.objectweb.asm.Type.INT_TYPE;
@@ -387,6 +397,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String SERVICES_METHOD = "$gradleServices";
         private static final String FACTORY_METHOD = "$gradleFactory";
         private static final String INIT_METHOD = "$gradleInit";
+        private static final String INIT_WORK_METHOD = INIT_METHOD + "Work";
         private static final String CONVENTION_MAPPING_FIELD_DESCRIPTOR = getDescriptor(ConventionMapping.class);
         private static final String META_CLASS_TYPE_DESCRIPTOR = getDescriptor(MetaClass.class);
         private final static Type META_CLASS_TYPE = getType(MetaClass.class);
@@ -431,6 +442,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type DESCRIBABLE_TYPE = getType(Describable.class);
         private static final Type DISPLAY_NAME_TYPE = getType(DisplayName.class);
         private static final Type INJECT_TYPE = getType(Inject.class);
+        private static final Type RUNNABLE_TYPE = getType(Runnable.class);
+        private static final Type LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class);
+        private static final Type METHOD_HANDLES_TYPE = getType(MethodHandles.class);
+        private static final Type METHOD_HANDLES_LOOKUP_TYPE = getType(MethodHandles.Lookup.class);
+        private static final Type METHOD_TYPE_TYPE = getType(MethodType.class);
+        private static final Type DEPRECATION_LOGGER_TYPE = getType(DeprecationLogger.class);
         private static final String RETURN_STRING = getMethodDescriptor(STRING_TYPE);
         private static final String RETURN_DESCRIBABLE = getMethodDescriptor(DESCRIBABLE_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
@@ -466,6 +483,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS = getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE, CLASS_TYPE);
         private static final String RETURN_OBJECT_FROM_MODEL_OBJECT_STRING_CLASS_CLASS_CLASS = getMethodDescriptor(OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE, CLASS_TYPE, CLASS_TYPE, CLASS_TYPE);
         private static final String RETURN_VOID_FROM_STRING = getMethodDescriptor(VOID_TYPE, STRING_TYPE);
+        private static final String LAMBDA_METAFACTORY_METHOD = getMethodDescriptor(getType(CallSite.class), METHOD_HANDLES_LOOKUP_TYPE, STRING_TYPE, METHOD_TYPE_TYPE, METHOD_TYPE_TYPE, getType(MethodHandle.class), METHOD_TYPE_TYPE);
+        private static final String DEPRECATION_LOGGER_WHILE_DISABLED_METHOD = getMethodDescriptor(Type.VOID_TYPE, RUNNABLE_TYPE);
+        private static final Handle LAMBDA_BOOTSTRAP_HANDLE = new Handle(H_INVOKESTATIC, LAMBDA_METAFACTORY_TYPE.getInternalName(), "metafactory", LAMBDA_METAFACTORY_METHOD, false);
+        private static final Type RETURN_VOID_METHOD_TYPE = Type.getMethodType(RETURN_VOID);
 
         private static final String[] EMPTY_STRINGS = new String[0];
         private static final Type[] EMPTY_TYPES = new Type[0];
@@ -669,8 +690,28 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
         }
 
+        /**
+         * Generates the init method with deprecation logging disabled.
+         *
+         * This is necessary because the initialization work invokes property getters on the decorated instance.
+         */
         private void generateInitMethod() {
+
+            // private void $gradleInit() { DeprecationLogger.whileDisabled(this::$gradleInitWork) }
+            visitInnerClass(METHOD_HANDLES_LOOKUP_TYPE.getInternalName(), METHOD_HANDLES_TYPE.getInternalName(), "Lookup", ACC_PRIVATE | ACC_SYNTHETIC);
             privateSyntheticMethod(INIT_METHOD, RETURN_VOID, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
+                _ALOAD(0);
+                _INVOKEDYNAMIC("run", getMethodDescriptor(RUNNABLE_TYPE, generatedType), LAMBDA_BOOTSTRAP_HANDLE, Arrays.asList(
+                    RETURN_VOID_METHOD_TYPE,
+                    new Handle(H_INVOKESPECIAL, generatedType.getInternalName(), INIT_WORK_METHOD, RETURN_VOID, false),
+                    RETURN_VOID_METHOD_TYPE
+                ));
+                _INVOKESTATIC(DEPRECATION_LOGGER_TYPE, "whileDisabled", DEPRECATION_LOGGER_WHILE_DISABLED_METHOD);
+                _RETURN();
+            }});
+
+            // private void $gradleInitWork() { ... do the work ... }
+            privateSyntheticMethod(INIT_WORK_METHOD, RETURN_VOID, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
 
                 // this.displayName = AsmBackedClassGenerator.getDisplayNameForNext()
                 _ALOAD(0);

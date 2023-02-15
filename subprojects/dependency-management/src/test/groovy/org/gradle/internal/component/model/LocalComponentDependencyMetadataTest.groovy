@@ -35,6 +35,7 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException
 import org.gradle.internal.component.IncompatibleConfigurationSelectionException
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -100,11 +101,13 @@ class LocalComponentDependencyMetadataTest extends Specification {
             getName() >> 'foo'
             getAttributes() >> attributes(key: 'something')
             isCanBeConsumed() >> true
+            getCapabilities() >> Stub(CapabilitiesMetadataInternal)
         }
         def toBarConfig = Stub(ConfigurationGraphResolveMetadata) {
             getName() >> 'bar'
             getAttributes() >> attributes(key: 'something else')
             isCanBeConsumed() >> true
+            getCapabilities() >> Stub(CapabilitiesMetadataInternal)
         }
         def toComponent = Stub(ComponentGraphResolveMetadata) {
             getVariantsForGraphTraversal() >> Optional.of(ImmutableList.of(toFooConfig, toBarConfig))
@@ -211,11 +214,13 @@ Configuration 'bar':
             getName() >> 'foo'
             getAttributes() >> attributes(fooAttributes)
             isCanBeConsumed() >> true
+            getCapabilities() >> Stub(CapabilitiesMetadataInternal)
         }
         def toBarConfig = Stub(ConfigurationGraphResolveMetadata) {
             getName() >> 'bar'
             getAttributes() >> attributes(barAttributes)
             isCanBeConsumed() >> true
+            getCapabilities() >> Stub(CapabilitiesMetadataInternal)
         }
         def toComponent = Stub(ComponentGraphResolveMetadata) {
             getVariantsForGraphTraversal() >> Optional.of(ImmutableList.of(toFooConfig, toBarConfig))
@@ -282,11 +287,13 @@ Configuration 'bar':
             getName() >> 'foo'
             getAttributes() >> attributes(fooAttributes)
             isCanBeConsumed() >> true
+            getCapabilities() >> Stub(CapabilitiesMetadataInternal)
         }
         def toBarConfig = Stub(ConfigurationGraphResolveMetadata) {
             getName() >> 'bar'
             getAttributes() >> attributes(barAttributes)
             isCanBeConsumed() >> true
+            getCapabilities() >> Stub(CapabilitiesMetadataInternal)
         }
         def toComponent = Stub(ComponentGraphResolveMetadata) {
             getVariantsForGraphTraversal() >> Optional.of(ImmutableList.of(toFooConfig, toBarConfig))
@@ -416,11 +423,13 @@ Configuration 'bar':
             getName() >> 'foo'
             getAttributes() >> attributes(key: 'something')
             isCanBeConsumed() >> true
+            getCapabilities() >> Stub(CapabilitiesMetadataInternal)
         }
         def toBarConfig = Stub(ConfigurationGraphResolveMetadata) {
             getName() >> 'bar'
             getAttributes() >> attributes(key: 'something else')
             isCanBeConsumed() >> true
+            getCapabilities() >> Stub(CapabilitiesMetadataInternal)
         }
         def toComponent = Stub(ComponentGraphResolveMetadata) {
             getVariantsForGraphTraversal() >> Optional.of(ImmutableList.of(toFooConfig, toBarConfig))

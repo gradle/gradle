@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Callables;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
@@ -34,6 +35,8 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Cast;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.workers.ForkingWorkerSpec;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -41,6 +44,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
+    private static final String OPEN_MODULES_ARG = "java.prefs/java.util.prefs=ALL-UNNAMED";
 
     protected static ConventionMapping conventionMappingOf(Object object) {
         return ((IConventionAware) object).getConventionMapping();
@@ -228,5 +232,11 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     protected JavaPluginExtension getJavaPluginExtension() {
         return project.getExtensions().getByType(JavaPluginExtension.class);
+    }
+
+    public static void maybeAddOpensJvmArgs(JavaLauncher javaLauncher, ForkingWorkerSpec spec) {
+        if (JavaVersion.toVersion(javaLauncher.getMetadata().getJavaRuntimeVersion()).isJava9Compatible()) {
+            spec.getForkOptions().jvmArgs("--add-opens", OPEN_MODULES_ARG);
+        }
     }
 }

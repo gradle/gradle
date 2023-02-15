@@ -1,6 +1,7 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 import org.gradle.util.internal.TextUtil
 
@@ -82,3 +83,7 @@ fun standardOutputOf(action: () -> Unit): String =
             System.setOut(out)
         }
     }.toString("utf8").normaliseLineSeparators()
+
+
+fun clickableUrlFor(file: File): String =
+    ConsoleRenderer().asClickableFileUrl(file)

@@ -28,6 +28,7 @@ import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.NestedBuildTree;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
@@ -95,7 +96,7 @@ public class BuildStateFactory {
             true
         );
         @SuppressWarnings("deprecation")
-        File customBuildFile = buildSrcStartParameter.getBuildFile();
+        File customBuildFile = DeprecationLogger.whileDisabled(buildSrcStartParameter::getBuildFile);
         assert customBuildFile == null;
         return buildDefinition;
     }
