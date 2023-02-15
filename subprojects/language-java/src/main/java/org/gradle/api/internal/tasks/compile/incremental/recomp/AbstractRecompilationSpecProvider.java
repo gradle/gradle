@@ -42,6 +42,10 @@ import java.util.Map;
 import java.util.Set;
 
 abstract class AbstractRecompilationSpecProvider implements RecompilationSpecProvider {
+
+    private static final String MODULE_INFO_CLASS_NAME = "module-info";
+    private static final String PACKAGE_INFO_CLASS_NAME = "package-info";
+
     private final Deleter deleter;
     private final FileOperations fileOperations;
     private final FileTree sourceTree;
@@ -64,19 +68,20 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
 
     @Override
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
-        RecompilationSpec spec = new RecompilationSpec();
+        RecompilationSpec recompilationSpec = new RecompilationSpec();
         SourceFileClassNameConverter sourceFileClassNameConverter = new FileNameDerivingClassNameConverter(previous.getSourceToClassConverter(), getFileExtensions());
 
-        processClasspathChanges(current, previous, spec);
+        processClasspathChanges(current, previous, recompilationSpec);
 
         SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
-        processSourceChanges(current, sourceFileChangeProcessor, spec, sourceFileClassNameConverter);
-        collectAllSourcePathsAndIndependentClasses(sourceFileChangeProcessor, spec, sourceFileClassNameConverter);
+        processSourceChanges(current, sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
+        collectAllSourcePathsAndIndependentClasses(sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
 
-        Set<String> typesToReprocess = previous.getTypesToReprocess(spec.getClassesToCompile());
-        processTypesToReprocess(typesToReprocess, spec, sourceFileClassNameConverter);
+        Set<String> typesToReprocess = previous.getTypesToReprocess(recompilationSpec.getClassesToCompile());
+        processTypesToReprocess(typesToReprocess, recompilationSpec, sourceFileClassNameConverter);
+        addModuleInfoToCompile(recompilationSpec, sourceFileClassNameConverter);
 
-        return spec;
+        return recompilationSpec;
     }
 
     protected abstract Set<String> getFileExtensions();
@@ -177,7 +182,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
 
     private static void processTypesToReprocess(Set<String> typesToReprocess, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         for (String typeToReprocess : typesToReprocess) {
-            if (typeToReprocess.endsWith("package-info") || typeToReprocess.equals("module-info")) {
+            if (typeToReprocess.endsWith(PACKAGE_INFO_CLASS_NAME) || typeToReprocess.equals(MODULE_INFO_CLASS_NAME)) {
                 // Fixes: https://github.com/gradle/gradle/issues/17572
                 // package-info classes cannot be passed as classes to reprocess to the Java compiler.
                 // Therefore, we need to recompile them every time anything changes if they are processed by an aggregating annotation processor.
@@ -186,6 +191,19 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
             } else {
                 spec.addClassToReprocess(typeToReprocess);
             }
+        }
+    }
+
+    private static void addModuleInfoToCompile(RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+        Set<String> moduleInfoSources = sourceFileClassNameConverter.getRelativeSourcePaths(MODULE_INFO_CLASS_NAME);
+        if (!moduleInfoSources.isEmpty()) {
+            // Always recompile module-info.java if present.
+            // This solves case for incremental compilation for manual --module-path when not combined with --module-source-path or --source-path,
+            // since compiled module-info is not in the output after we change compile outputs in the CompileTransaction.
+            // Alternative would be, that we would move/copy the module-info class to transaction outputs and add transaction outputs to classpath.
+            // First part of fix for: https://github.com/gradle/gradle/issues/23067
+            spec.addClassToCompile(MODULE_INFO_CLASS_NAME);
+            spec.addSourcePaths(moduleInfoSources);
         }
     }
 
@@ -205,6 +223,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
         Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
+        spec.setIsIncrementalCompilationOfJavaModule(recompilationSpec.hasClassToCompile(MODULE_INFO_CLASS_NAME));
         return new CompileTransaction(spec, classesToDelete, resourcesToDelete, fileOperations, deleter);
     }
 

@@ -175,6 +175,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpecFactory(compileOptions, getToolchain()).create();
         spec.setSourceFiles(getSource().getFiles());
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
+        spec.setOriginalDestinationDir(spec.getDestinationDir());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
