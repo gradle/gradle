@@ -29,7 +29,6 @@ import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPluginOptions
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslJarsOf
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 
 /**
@@ -67,9 +66,9 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
 
 private
 val Project.sourceSets
-    get() = project.the<SourceSetContainer>()
+    get() = the<SourceSetContainer>()
 
 
 private
 val SourceSet.kotlin: SourceDirectorySet
-    get() = the<KotlinSourceSet>().kotlin
+    get() = extensions.getByName<SourceDirectorySet>("kotlin")
