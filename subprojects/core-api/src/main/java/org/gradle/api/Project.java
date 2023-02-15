@@ -1765,6 +1765,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     SoftwareComponentContainer getComponents();
 
     /**
+     * Configures software components.
+     *
+     * @param configuration Action to configure the software components.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    void components(Action<? super SoftwareComponentContainer> configuration);
+
+    /**
      * Provides access to configuring input normalization.
      *
      * @since 4.0
