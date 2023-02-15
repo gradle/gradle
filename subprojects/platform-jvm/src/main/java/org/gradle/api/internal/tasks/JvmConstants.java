@@ -197,6 +197,11 @@ public final class JvmConstants {
      */
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
 
+    /**
+     * The name of the component added by the Java plugin.
+     */
+    public static final String JAVA_COMPONENT_NAME = "java";
+
     private JvmConstants() {
         // Private to prevent instantiation.
     }

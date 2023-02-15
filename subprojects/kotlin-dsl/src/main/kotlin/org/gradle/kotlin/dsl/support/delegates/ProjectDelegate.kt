@@ -239,6 +239,9 @@ abstract class ProjectDelegate : Project {
     override fun getComponents(): SoftwareComponentContainer =
         delegate.components
 
+    override fun components(configuration: Action<in SoftwareComponentContainer>) =
+        delegate.components(configuration)
+
     override fun setBuildDir(path: File) {
         delegate.buildDir = path
     }
