@@ -189,7 +189,7 @@ class ConfigurationCacheState(
         require(rootBuild.gradle.owner is RootBuildState)
         val gradle = rootBuild.gradle
         withDebugFrame({ "Gradle" }) {
-            write(gradle.settings.settingsScript.resource.file)
+            write(gradle.settings.settingsScript.resource.location.file)
             writeBuildTreeScopedState(gradle)
         }
         val buildEventListeners = buildEventListenersOf(gradle)
