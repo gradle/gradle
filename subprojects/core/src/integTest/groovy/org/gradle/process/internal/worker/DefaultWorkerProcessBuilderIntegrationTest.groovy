@@ -19,7 +19,7 @@ package org.gradle.process.internal.worker
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class DefaultWorkerProcessBuilderTest extends AbstractIntegrationSpec {
+class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec {
 
     def "test classpath does not contain nonexistent entries"() {
         given:
