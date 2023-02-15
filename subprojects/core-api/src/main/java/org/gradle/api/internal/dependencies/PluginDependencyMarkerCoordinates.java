@@ -29,7 +29,7 @@ public class PluginDependencyMarkerCoordinates {
         String pluginNotation = pluginNotation(pluginDependency.getPluginId(), null);
         ExternalModuleDependency externalModuleDependency = dependencyFactory.create(pluginNotation);
         externalModuleDependency.version(versionConstraint ->
-            DependencyHelper.copyVersionConstraint(pluginDependency.getVersion(), versionConstraint));
+            VersionConstraintCopier.copyVersionConstraint(pluginDependency.getVersion(), versionConstraint));
         return externalModuleDependency;
     }
 
