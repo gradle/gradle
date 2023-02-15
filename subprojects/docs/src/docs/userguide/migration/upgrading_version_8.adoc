@@ -109,7 +109,10 @@ in Gradle 9.0.
 
 For most use cases, this existing default behavior is unnecessary, since most standalone test
 tasks are used to model separate test suites and thus run a separate set of tests than those
-of the default test task. However, this existing default behavior can be restored for a given
+of the default test task. For more information on how to properly configure a standalone test task
+to compile and run against a separate set of tests, see link:https://docs.gradle.org/current/userguide/java_testing.html#sec:configuring_java_integration_tests[Configuring integration tests].
+
+However, this existing default behavior can be restored for a given
 test named `myTestTask` with the following code:
 
 ====
