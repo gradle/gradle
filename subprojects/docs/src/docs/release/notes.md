@@ -1,8 +1,8 @@
 The Gradle team is excited to announce a new major version of Gradle, 8.0.
 
-This release reduces the time spent compiling [Kotlin DSL build scripts](#kotlin-dsl) and upgrades the API level to [Kotlin 1.8](https://kotlinlang.org/docs/whatsnew18.html).
+This release reduces the time spent compiling [Kotlin DSL build scripts](#kotlin-dsl) and upgrades the Kotlin DSL's API level to [Kotlin 1.8](https://kotlinlang.org/docs/whatsnew18.html).
 
-The [incubating configuration cache](#configuration-cache) speeds up builds by executing more tasks in parallel on the first build than enabling `--parallel` alone.
+From the first invocation, the [configuration cache](#configuration-cache) speeds up builds by executing more tasks in parallel compared to the existing [parallel mode](userguide/multi_project_configuration_and_execution.html#sec:parallel_execution).
 
 Additionally, the size of the Gradle user home can be managed by [configuring the retention time](#cache-cleanup) of cache directories. Cache cleanup can also be disabled.
 
@@ -67,7 +67,7 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 <a name="kotlin-dsl"></a>
 ### Kotlin DSL
 
-Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the Groovy DSL with an enhanced editing experience in supported IDEs--superior content assistance, refactoring, documentation and more.
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the Groovy DSL with an enhanced editing experience in supported IDEs — superior content assistance, refactoring, documentation and more.
 
 #### Faster Kotlin DSL build script compilation
 
@@ -85,7 +85,7 @@ plugins {
 }
 ```
 1. Plugin requested by plugin identifier string
-2. Plugin requested by plugin identifier and version and/or the plugin apply flag
+2. Plugin requested by plugin identifier and version and/or the plugin `apply` flag
 3. Plugin requested with the `kotlin(...)` helper
 
 Note that using version catalog aliases for plugins (e.g. `alias(libs.plugins.acme)`) or type-safe plugin accessors (e.g. `` `acme-plugin` ``) will not see a performance improvement. Support for these formats will be added later.
