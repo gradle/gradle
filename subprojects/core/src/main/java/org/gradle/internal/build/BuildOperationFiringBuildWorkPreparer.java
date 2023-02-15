@@ -112,12 +112,12 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
                 @Override
                 public List<String> getRequestedTaskPaths() {
-                    return toTaskPaths(requestedTasks);
+                    return toSortedTaskPaths(requestedTasks);
                 }
 
                 @Override
                 public List<String> getExcludedTaskPaths() {
-                    return toTaskPaths(filteredTasks);
+                    return toSortedTaskPaths(filteredTasks);
                 }
 
                 @Override
@@ -176,8 +176,8 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
     }
 
-    private static List<String> toTaskPaths(Set<Task> tasks) {
-        return tasks.stream().map(Task::getPath).distinct().collect(Collectors.toList());
+    private static List<String> toSortedTaskPaths(Set<Task> tasks) {
+        return tasks.stream().map(Task::getPath).distinct().sorted().collect(Collectors.toList());
     }
 
     private static class NodeDependencyLookup implements ToPlannedNodeConverter.DependencyLookup {
