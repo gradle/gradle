@@ -162,7 +162,7 @@ When the configuration cache is enabled and Gradle is able to find a compatible 
 
 This new behavior has several benefits:
 
-- Any issues that occur during deserialization will be easier to detect because they will be reported in the cache miss build.
+- Any issues that occur during deserialization will be easier to detect because they will be reported in the cache miss build. 
 - Tasks have the same state in both cache miss and cache hit builds, allowing for consistency between builds.
 - Gradle can release memory used by the configuration state before task execution in the cache miss build, which reduces peak memory usage.
 
@@ -272,38 +272,40 @@ The following are the features that have been promoted in this Gradle release.
 
 ### Promoted features in the Tooling API
 
-- The `GradleConnector.disconnect()` method is now considered stable.
+The `GradleConnector.disconnect()` method is now considered stable.
 
 ### Promoted features in the antlr plugin
 
-- The `AntlrSourceDirectorySet` interface is now considered stable.
+The `AntlrSourceDirectorySet` interface is now considered stable.
 
 ### Promoted features in the ear plugin
 
-- The `Ear.getAppDirectory()` method is now considered stable.
+The `Ear.getAppDirectory()` method is now considered stable.
 
 ### Promoted features in the eclipse plugin
 
-- The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
+The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
 
 ### Promoted features in the groovy plugin
 
 The following type and method are now considered stable:
+
 - `GroovySourceDirectorySet`
 - `GroovyCompileOptions.getDisabledGlobalASTTransformations()`
 
 ### Promoted features in the scala plugin
 
-- The `ScalaSourceDirectorySet` interface is now considered stable.
+The `ScalaSourceDirectorySet` interface is now considered stable.
 
 ### Promoted features in the war plugin
 
-- The `War.getWebAppDirectory()` method is now considered stable.
+The `War.getWebAppDirectory()` method is now considered stable.
 
 ### Promoted features in the `Settings` API
 
-- The methods `Settings.dependencyResolutionManagement(Action)` and `Settings.getDependencyResolutionManagement()` are now considered stable.
-- All the methods in `DependencyResolutionManagement` are now stable, except the ones for central repository declaration.
+The methods `Settings.dependencyResolutionManagement(Action)` and `Settings.getDependencyResolutionManagement()` are now considered stable.
+
+All the methods in `DependencyResolutionManagement` are now stable, except the ones for central repository declaration.
 
 ## Fixed issues
 
