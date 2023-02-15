@@ -120,7 +120,7 @@ public abstract class GMMPublishPlugin implements Plugin<Project> {
     @SuppressWarnings("unchecked")
     private void createGenerateMetadataTask(TaskContainer tasks, @SuppressWarnings("rawtypes") final PublicationInternal publication, final DirectoryProperty buildDir) {
         final String publicationName = publication.getName();
-        String descriptorTaskName = "generateGMMFileFor" + capitalize(publicationName) + "Publication";
+        String descriptorTaskName = "generateMetadataFileFor" + capitalize(publicationName) + "Publication";
         TaskProvider<GenerateModuleMetadata> generatorTask = tasks.register(descriptorTaskName, GenerateModuleMetadata.class, generateGMMTask -> {
             generateGMMTask.setDescription("Generates the Gradle Module Metadata file for publication '" + publicationName + "'.");
             generateGMMTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
