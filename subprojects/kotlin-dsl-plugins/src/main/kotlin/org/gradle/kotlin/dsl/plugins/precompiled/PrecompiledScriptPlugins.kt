@@ -24,13 +24,11 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.internal.Factory
 import org.gradle.internal.deprecation.DeprecationLogger
-
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPluginOptions
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslJarsOf
 import org.gradle.kotlin.dsl.support.serviceOf
-
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 
@@ -74,4 +72,4 @@ val Project.sourceSets
 
 private
 val SourceSet.kotlin: SourceDirectorySet
-    get() = @Suppress("deprecation") withConvention(KotlinSourceSet::class) { kotlin } // TODO do we have Extensions we have for this
+    get() = the<KotlinSourceSet>().kotlin

@@ -94,11 +94,8 @@ inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> U
     @Suppress("deprecation")
     typeOf<T>().let { type ->
         // cannot use  DeprecationLogger.whileDisabled(Factory) because Factory is an internal class
-        var c: Convention? = null
-        DeprecationLogger.whileDisabled { c = convention }
-        c!!.findByType(type)?.let(configuration)
-            ?: c!!.findPlugin<T>()?.let(configuration)
-            ?: c!!.configure(type, configuration)
+        val c: Convention = DeprecationLogger.whileDisabled(Factory { convention })!!
+        c.findByType(type)?.let(configuration) ?: c.findPlugin<T>()?.let(configuration) ?: c.configure(type, configuration)
     }
 
 
@@ -111,11 +108,8 @@ inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> U
 inline fun <reified T : Any> Project.the(): T =
     @Suppress("deprecation")
     typeOf<T>().let { type ->
-        var c: Convention? = null
-        DeprecationLogger.whileDisabled { c = convention }
-        c!!.findByType(type)
-            ?: c!!.findPlugin(T::class.java)
-            ?: c!!.getByType(type)
+        val c: Convention = DeprecationLogger.whileDisabled(Factory { convention })!!
+        c.findByType(type) ?: c.findPlugin(T::class.java) ?: c.getByType(type)
     }
 
 
@@ -127,10 +121,8 @@ inline fun <reified T : Any> Project.the(): T =
  */
 @Suppress("deprecation")
 fun <T : Any> Project.the(extensionType: KClass<T>): T {
-    val convention = DeprecationLogger.whileDisabled(Factory { convention })!!
-    return (convention.findByType(extensionType.java)
-        ?: convention.findPlugin(extensionType.java)
-        ?: convention.getByType(extensionType.java))
+    val c = DeprecationLogger.whileDisabled(Factory { convention })!!
+    return c.findByType(extensionType.java) ?: c.findPlugin(extensionType.java) ?: c.getByType(extensionType.java)
 }
 
 
