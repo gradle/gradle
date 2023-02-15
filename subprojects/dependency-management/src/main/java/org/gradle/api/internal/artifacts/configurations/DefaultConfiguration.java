@@ -1578,28 +1578,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         String name = getName();
         String projectPath = domainObjectContext.getProjectPath() == null ? null : domainObjectContext.getProjectPath().toString();
         String buildPath = domainObjectContext.getBuildPath().toString();
-        String identityPath = getIdentityPath().toString();
-        return new ConfigurationIdentity() {
-            @Override
-            public String getBuildPath() {
-                return buildPath;
-            }
-
-            @Override
-            public String getProjectPath() {
-                return projectPath;
-            }
-
-            @Override
-            public String getName() {
-                return name;
-            }
-
-            @Override
-            public String toString() {
-                return "Configuration " + (buildPath.equals(":") ? identityPath : buildPath + identityPath);
-            }
-        };
+        return new DefaultConfigurationIdentity(buildPath, projectPath, name);
     }
 
     private static class ConfigurationDescription implements Describable {
@@ -1612,6 +1591,44 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public String getDisplayName() {
             return "configuration '" + identityPath + "'";
+        }
+    }
+
+    private static class DefaultConfigurationIdentity implements ConfigurationIdentity {
+        private final String buildPath;
+        private final String projectPath;
+        private final String name;
+
+        public DefaultConfigurationIdentity(String buildPath, @Nullable String projectPath, String name) {
+            this.buildPath = buildPath;
+            this.projectPath = projectPath;
+            this.name = name;
+        }
+
+        @Override
+        public String getBuildPath() {
+            return buildPath;
+        }
+
+        @Nullable
+        @Override
+        public String getProjectPath() {
+            return projectPath;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String toString() {
+            Path path = Path.path(buildPath);
+            if (projectPath != null) {
+                path = path.append(Path.path(projectPath));
+            }
+            path = path.child(name);
+            return "Configuration '" + path.toString() + "'";
         }
     }
 
