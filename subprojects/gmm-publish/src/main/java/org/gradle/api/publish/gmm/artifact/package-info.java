@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.gmm;
-
-import org.gradle.api.Incubating;
-import org.gradle.api.component.Artifact;
-import org.gradle.api.publish.PublicationArtifact;
-
 /**
- * The {@link Artifact} specialization for Gradle Module Metadata.
- *
- * @since 8.1
+ * Artifact related types used for publishing Gradle Module Metadata.
  */
-@Incubating
-public interface GMMArtifact extends PublicationArtifact { /* empty */ }
+@NonNullApi
+package org.gradle.api.publish.gmm.artifact;
+
+import org.gradle.api.NonNullApi;

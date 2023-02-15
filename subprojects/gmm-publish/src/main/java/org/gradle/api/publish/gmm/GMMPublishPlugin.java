@@ -34,10 +34,12 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.gmm.internal.GMMProjectIdentity;
 import org.gradle.api.publish.gmm.internal.publication.DefaultGMMPublication;
 import org.gradle.api.publish.gmm.internal.publication.GMMPublicationInternal;
 import org.gradle.api.publish.gmm.internal.publication.MutableGMMProjectIdentity;
 import org.gradle.api.publish.gmm.internal.publication.WritableGMMProjectIdentity;
+import org.gradle.api.publish.gmm.publication.GMMPublication;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
@@ -124,7 +126,7 @@ public abstract class GMMPublishPlugin implements Plugin<Project> {
         TaskProvider<GenerateModuleMetadata> generatorTask = tasks.register(descriptorTaskName, GenerateModuleMetadata.class, generateGMMTask -> {
             generateGMMTask.setDescription("Generates the Gradle Module Metadata file for publication '" + publicationName + "'.");
             generateGMMTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-            generateGMMTask.getOutputFile().set(buildDir.file("publications/" + publication.getName() + "/module.xml"));
+            generateGMMTask.getOutputFile().set(buildDir.file("publications/" + publication.getName() + "/module.json"));
             generateGMMTask.getPublication().set(publication);
         });
         publication.setModuleDescriptorGenerator(generatorTask);
@@ -164,7 +166,7 @@ public abstract class GMMPublishPlugin implements Plugin<Project> {
             );
         }
 
-        private MutableGMMProjectIdentity createProjectIdentity() {
+        private GMMProjectIdentity createProjectIdentity() {
             final Module module = dependencyMetaDataProvider.getModule();
             MutableGMMProjectIdentity projectIdentity = new WritableGMMProjectIdentity(objectFactory);
             projectIdentity.getGroupId().set(providerFactory.provider(module::getGroup));

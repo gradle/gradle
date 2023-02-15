@@ -198,10 +198,10 @@ class GMMPublishPluginIntegTest extends AbstractIntegrationSpec {
         succeeds 'publishGmmPublicationToMyFileRepoRepository'
 
         then:
-        myRepo.file("module.xml").exists()
+        myRepo.file("module.json").exists()
 
         and:
-        GradleModuleMetadata gmmMetadata = new GradleModuleMetadata(myRepo.file("module.xml"))
+        GradleModuleMetadata gmmMetadata = new GradleModuleMetadata(myRepo.file("module.json"))
         gmmMetadata.variant("apiElements") {
             noMoreDependencies()
         }

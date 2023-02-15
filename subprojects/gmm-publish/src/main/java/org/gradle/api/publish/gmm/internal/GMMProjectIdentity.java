@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.gmm.internal.publication;
+package org.gradle.api.publish.gmm.internal;
 
-import org.gradle.api.provider.Property;
-import org.gradle.api.publish.gmm.internal.GMMProjectIdentity;
+import org.gradle.api.provider.Provider;
 
-public interface MutableGMMProjectIdentity extends GMMProjectIdentity {
-    @Override
-    Property<String> getGroupId();
+public interface GMMProjectIdentity {
+    Provider<String> getGroupId();
 
-    @Override
-    Property<String> getArtifactId();
+    Provider<String> getArtifactId();
 
-    @Override
-    Property<String> getVersion();
+    Provider<String> getVersion();
+
 }

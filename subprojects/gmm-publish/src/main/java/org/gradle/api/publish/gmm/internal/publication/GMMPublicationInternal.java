@@ -18,8 +18,8 @@ package org.gradle.api.publish.gmm.internal.publication;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.publish.Publication;
-import org.gradle.api.publish.gmm.GMMArtifact;
-import org.gradle.api.publish.gmm.GMMPublication;
+import org.gradle.api.publish.gmm.artifact.GMMArtifact;
+import org.gradle.api.publish.gmm.publication.GMMPublication;
 import org.gradle.api.publish.internal.PublicationInternal;
 
 /**

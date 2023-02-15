@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.gmm.internal.publication;
+package org.gradle.api.publish.gmm.artifact;
 
-import org.gradle.api.provider.Provider;
+import org.gradle.api.Incubating;
+import org.gradle.api.component.Artifact;
+import org.gradle.api.publish.PublicationArtifact;
 
-public interface GMMProjectIdentity {
-    Provider<String> getGroupId();
-
-    Provider<String> getArtifactId();
-
-    Provider<String> getVersion();
-
-}
+/**
+ * The {@link Artifact} specialization for Gradle Module Metadata.
+ *
+ * @since 8.1
+ */
+@Incubating
+public interface GMMArtifact extends PublicationArtifact { /* empty */ }

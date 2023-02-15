@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.gmm.internal.publication;
+/**
+ * Publication related types used for publishing Gradle Module Metadata.
+ */
+@NonNullApi
+package org.gradle.api.publish.gmm.publication;
 
-import org.gradle.api.provider.Property;
-import org.gradle.api.publish.gmm.internal.GMMProjectIdentity;
-
-public interface MutableGMMProjectIdentity extends GMMProjectIdentity {
-    @Override
-    Property<String> getGroupId();
-
-    @Override
-    Property<String> getArtifactId();
-
-    @Override
-    Property<String> getVersion();
-}
+import org.gradle.api.NonNullApi;

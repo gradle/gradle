@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.gmm;
+package org.gradle.api.publish.gmm.publication;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
