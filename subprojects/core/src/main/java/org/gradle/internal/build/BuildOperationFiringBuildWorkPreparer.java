@@ -35,6 +35,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -129,12 +130,10 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                 }
 
                 @Override
-                public List<PlannedNode> getExecutionPlan() {
-                    return plannedNodes;
-                }
-
-                @Override
                 public List<PlannedNode> getExecutionPlan(Set<NodeIdentity.NodeType> types) {
+                    if (EnumSet.allOf(NodeIdentity.NodeType.class).equals(types)) {
+                        return plannedNodes;
+                    }
                     return plannedNodes.stream()
                         .filter(node -> types.contains(node.getNodeIdentity().getNodeType()))
                         .collect(Collectors.toList());
