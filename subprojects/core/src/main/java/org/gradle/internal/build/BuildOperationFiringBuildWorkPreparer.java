@@ -17,6 +17,7 @@
 package org.gradle.internal.build;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
@@ -28,6 +29,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
@@ -109,36 +111,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
             List<PlannedNode> plannedNodes = toPlannedNodes(scheduledWork);
 
-            buildOperationContext.setResult(new Result() {
-
-                @Override
-                public List<String> getRequestedTaskPaths() {
-                    return toSortedTaskPaths(requestedTasks);
-                }
-
-                @Override
-                public List<String> getExcludedTaskPaths() {
-                    return toSortedTaskPaths(filteredTasks);
-                }
-
-                @Override
-                public List<PlannedTask> getTaskPlan() {
-                    return plannedNodes.stream()
-                        .filter(PlannedTask.class::isInstance)
-                        .map(PlannedTask.class::cast)
-                        .collect(Collectors.toList());
-                }
-
-                @Override
-                public List<PlannedNode> getExecutionPlan(Set<NodeIdentity.NodeType> types) {
-                    if (EnumSet.allOf(NodeIdentity.NodeType.class).equals(types)) {
-                        return plannedNodes;
-                    }
-                    return plannedNodes.stream()
-                        .filter(node -> types.contains(node.getNodeIdentity().getNodeType()))
-                        .collect(Collectors.toList());
-                }
-            });
+            buildOperationContext.setResult(new CalculateTaskGraphResult(requestedTasks, filteredTasks, plannedNodes));
         }
 
         void populateTaskGraph() {
@@ -173,6 +146,56 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
         }
 
 
+        private static class CalculateTaskGraphResult implements Result, CustomOperationTraceSerialization {
+
+            private final Set<Task> requestedTasks;
+            private final Set<Task> filteredTasks;
+            private final List<PlannedNode> plannedNodes;
+
+            public CalculateTaskGraphResult(Set<Task> requestedTasks, Set<Task> filteredTasks, List<PlannedNode> plannedNodes) {
+                this.requestedTasks = requestedTasks;
+                this.filteredTasks = filteredTasks;
+                this.plannedNodes = plannedNodes;
+            }
+
+            @Override
+            public List<String> getRequestedTaskPaths() {
+                return toSortedTaskPaths(requestedTasks);
+            }
+
+            @Override
+            public List<String> getExcludedTaskPaths() {
+                return toSortedTaskPaths(filteredTasks);
+            }
+
+            @Override
+            public List<PlannedTask> getTaskPlan() {
+                return plannedNodes.stream()
+                    .filter(PlannedTask.class::isInstance)
+                    .map(PlannedTask.class::cast)
+                    .collect(Collectors.toList());
+            }
+
+            @Override
+            public List<PlannedNode> getExecutionPlan(Set<NodeIdentity.NodeType> types) {
+                if (EnumSet.allOf(NodeIdentity.NodeType.class).equals(types)) {
+                    return plannedNodes;
+                }
+                return plannedNodes.stream()
+                    .filter(node -> types.contains(node.getNodeIdentity().getNodeType()))
+                    .collect(Collectors.toList());
+            }
+
+            @Override
+            public Object getCustomOperationTraceSerializableModel() {
+                ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
+                builder.put("requestedTaskPaths", getRequestedTaskPaths());
+                builder.put("excludedTaskPaths", getExcludedTaskPaths());
+                builder.put("taskPlan", getTaskPlan());
+                builder.put("executionPlan", getExecutionPlan(EnumSet.allOf(NodeIdentity.NodeType.class)));
+                return builder.build();
+            }
+        }
     }
 
     private static List<String> toSortedTaskPaths(Set<Task> tasks) {
