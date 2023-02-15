@@ -1019,6 +1019,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             """
         )
 
+        executer.expectDocumentedDeprecationWarning("The Project.getConvention method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#all_convention_deprecation")
+
         build("help")
     }
 
@@ -1088,6 +1090,10 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
             """
         )
+
+        executer.beforeExecute {
+            it.expectDocumentedDeprecationWarning("The Project.getConvention method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#all_convention_deprecation")
+        }
 
         assertThat(
             build("help").output,
