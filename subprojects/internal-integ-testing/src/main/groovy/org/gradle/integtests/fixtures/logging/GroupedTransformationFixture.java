@@ -16,28 +16,15 @@
 
 package org.gradle.integtests.fixtures.logging;
 
-import org.gradle.api.specs.Spec;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.gradle.util.internal.CollectionUtils.filter;
-import static org.gradle.util.internal.CollectionUtils.join;
-
-public class GroupedTransformationFixture {
+public class GroupedTransformationFixture extends GroupedNodeFixture {
     private final String initialSubjectType;
     private final String subject;
     private final String transformer;
-    private final List<String> outputs = new ArrayList<String>(1);
 
     public GroupedTransformationFixture(String initialSubjectType, String subject, String transformer) {
         this.initialSubjectType = initialSubjectType;
         this.subject = subject;
         this.transformer = transformer;
-    }
-
-    public void addOutput(String transformationOutput) {
-        outputs.add(transformationOutput);
     }
 
     public String getInitialSubjectType() {
@@ -52,22 +39,12 @@ public class GroupedTransformationFixture {
         return transformer;
     }
 
-    public String getOutput() {
-        List<String> nonEmptyOutputs = filter(outputs, new Spec<String>() {
-            @Override
-            public boolean isSatisfiedBy(String string) {
-                return !string.equals("");
-            }
-        });
-        return join("\n", nonEmptyOutputs);
-    }
-
     @Override
     public String toString() {
         return "GroupedTransformationFixture{" +
-                "initialSubjectType='" + initialSubjectType + '\'' +
-                ", subject='" + subject + '\'' +
-                ", transformer='" + transformer + '\'' +
-                '}';
+            "initialSubjectType='" + initialSubjectType + '\'' +
+            ", subject='" + subject + '\'' +
+            ", transformer='" + transformer + '\'' +
+            '}';
     }
 }
