@@ -47,6 +47,10 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
 
     void setModulePath(List<File> modulePath);
 
+    boolean isIncrementalCompilationOfJavaModule();
+
+    void setIsIncrementalCompilationOfJavaModule(boolean isIncrementalCompilationOfJavaModule);
+
     default boolean annotationProcessingConfigured() {
         return !getAnnotationProcessorPath().isEmpty() && !getCompileOptions().getCompilerArgs().contains("-proc:none");
     }
