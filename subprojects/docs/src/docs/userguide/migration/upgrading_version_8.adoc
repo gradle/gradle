@@ -107,7 +107,10 @@ By default, when applying the `JavaPlugin`, standalone `Test` tasks are configur
 and `classpath` mirror the corresponding values in the default `test` `TestSuite`. This behavior will be removed
 in Gradle 9.0.
 
-To restore the existing behavior, use the following code:
+For most use cases, this existing default behavior is unnecessary, since most standalone test
+tasks are used to model separate test suites and thus run a separate set of tests than those
+of the default test task. However, this existing default behavior can be restored for a given
+test named `myTestTask` with the following code:
 
 ====
 [.multi-language-sample]
@@ -115,7 +118,7 @@ To restore the existing behavior, use the following code:
 .build.gradle.kts
 [source,kotlin]
 ----
-tasks.withType<Test>().configureEach {
+tasks.named<Test>("myTestTask") {
     testClassesDirs = tasks.test.get().testClassesDirs
     classpath = tasks.test.get().classpath
 }
@@ -126,7 +129,7 @@ tasks.withType<Test>().configureEach {
 .build.gradle
 [source,groovy]
 ----
-tasks.withType(Test).configureEach {
+tasks.myTestTask {
     testClassesDirs = tasks.test.testClassesDirs
     classpath = tasks.test.classpath
 }
