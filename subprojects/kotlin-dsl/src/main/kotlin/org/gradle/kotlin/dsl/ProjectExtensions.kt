@@ -93,7 +93,6 @@ inline fun <reified T : Plugin<Project>> Project.apply() =
 inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit): Unit =
     @Suppress("deprecation")
     typeOf<T>().let { type ->
-        // cannot use  DeprecationLogger.whileDisabled(Factory) because Factory is an internal class
         val c: Convention = DeprecationLogger.whileDisabled(Factory { convention })!!
         c.findByType(type)?.let(configuration) ?: c.findPlugin<T>()?.let(configuration) ?: c.configure(type, configuration)
     }
