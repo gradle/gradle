@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.LogContent;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -87,7 +88,7 @@ public class GroupedOutputFixture {
         return strippedOutput;
     }
 
-    private void findOutputs(String strippedOutput, Pattern outputPattern, Consumer<Matcher> consumer) {
+    private static void findOutputs(String strippedOutput, Pattern outputPattern, Consumer<Matcher> consumer) {
         Matcher matcher = outputPattern.matcher(strippedOutput);
         while (matcher.find()) {
             consumer.accept(matcher);
@@ -116,10 +117,24 @@ public class GroupedOutputFixture {
         return tasks.get(taskName);
     }
 
+    public GroupedTransformationFixture transform(String transformer) {
+        List<GroupedTransformationFixture> foundTransformations = transformations.values().stream()
+            .filter(transformation -> transformation.getTransformer().equals(transformer))
+            .collect(Collectors.toList());
+
+        if (foundTransformations.size() == 0) {
+            throw new AssertionError(String.format("The grouped output for transformation with transformer '%s' could not be found.%nOutput:%n%s", transformer, originalOutput));
+        } else if (foundTransformations.size() > 1) {
+            throw new AssertionError(String.format("Multiple grouped outputs for transformation with transformer '%s' were found. Consider specifying a subject.%nOutput:%n%s", transformer, originalOutput));
+        }
+
+        return foundTransformations.get(0);
+    }
+
     public Set<String> subjectsFor(String transformer) {
         return transformations.values().stream()
                 .filter(transformation -> transformation.getTransformer().equals(transformer))
-                .map(transformation -> transformation.getSubject())
+                .map(GroupedTransformationFixture::getSubject)
                 .collect(Collectors.toSet());
     }
 
