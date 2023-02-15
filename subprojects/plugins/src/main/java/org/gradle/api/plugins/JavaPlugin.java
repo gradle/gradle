@@ -245,7 +245,10 @@ public abstract class JavaPlugin implements Plugin<Project> {
         project.getPluginManager().apply("org.gradle.jvm-test-suite");
 
         // Create the 'java' component.
-        JvmSoftwareComponentInternal component = objectFactory.newInstance(DefaultJvmSoftwareComponent.class, "java", "main");
+        JvmSoftwareComponentInternal component = objectFactory.newInstance(
+            DefaultJvmSoftwareComponent.class,
+            JvmConstants.JAVA_COMPONENT_NAME, SourceSet.MAIN_SOURCE_SET_NAME
+        );
         project.getComponents().add(component);
 
         // Set the 'java' component as the project's default.

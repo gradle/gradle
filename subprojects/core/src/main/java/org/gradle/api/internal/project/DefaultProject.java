@@ -260,7 +260,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             extensibleDynamicObject.setParent(parentInherited);
         }
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
-        getExtensions().add("components", getComponents());
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
@@ -1116,6 +1115,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Inject
     @Override
     public abstract SoftwareComponentContainer getComponents();
+
+    @Override
+    public void components(Action<? super SoftwareComponentContainer> configuration) {
+        configuration.execute(getComponents());
+    }
 
     /**
      * This is an implementation of the {@link groovy.lang.GroovyObject}'s corresponding method.

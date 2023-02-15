@@ -144,10 +144,63 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
         succeeds "verify"
     }
 
+    def "can configure java component added by java-library plugin in Groovy DSL"() {
+        given:
+        buildFile << """
+            plugins {
+                id('java-library')
+            }
+
+            ${importStatements()}
+
+            components {
+                java {
+                    enableJavadocJarVariant()
+                }
+            }
+
+            task verify {
+                assert components.java instanceof DefaultJvmSoftwareComponent
+                assert configurations.javadocElements
+                assert sourceSets.main
+            }
+        """
+
+        expect:
+        succeeds "verify"
+    }
+
+    // TODO: Eventually we want accessors to be generated for the `java` component so that
+    // we can use `java {}` instead of `named<JvmSoftwareComponentInternal>("java") {}`.
+    def "can configure java component added by java-library plugin in Kotlin DSL"() {
+        given:
+        buildKotlinFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${importStatements()}
+
+            components {
+                named<JvmSoftwareComponentInternal>("java") {
+                    enableJavadocJarVariant()
+                }
+            }
+
+            tasks.register("verify") {
+                assert(components.named("java").get() is DefaultJvmSoftwareComponent)
+                assert(configurations.named("javadocElements").isPresent())
+                assert(sourceSets.named("main").isPresent())
+            }
+        """
+
+        expect:
+        succeeds "verify"
+    }
+
     private static final String factoryRegistrationGroovy() {
         """
-            import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal
-            import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent
+            ${importStatements()}
 
             components {
                 registerFactory(JvmSoftwareComponentInternal) {
@@ -159,14 +212,23 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
 
     private static final String factoryRegistrationKotlin() {
         """
-            import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal
-            import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent
+            ${importStatements()}
 
             components {
                 registerFactory(JvmSoftwareComponentInternal::class.java) {
                     objects.newInstance(DefaultJvmSoftwareComponent::class.java, it, it)
                 }
             }
+        """
+    }
+
+    /**
+     * Since JvmSoftwareComponent has no non-internal type, we always need to import it.
+     */
+    private static final String importStatements() {
+        """
+            import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal
+            import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent
         """
     }
 }

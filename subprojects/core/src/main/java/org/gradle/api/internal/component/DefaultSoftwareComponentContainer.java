@@ -21,8 +21,6 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.provider.Property;
-import org.gradle.api.reflect.HasPublicType;
-import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
@@ -30,7 +28,7 @@ import javax.inject.Inject;
 /**
  * Default implementation of {@link SoftwareComponentContainer}.
  */
-public abstract class DefaultSoftwareComponentContainer extends DefaultPolymorphicDomainObjectContainer<SoftwareComponent> implements SoftwareComponentContainerInternal, HasPublicType {
+public abstract class DefaultSoftwareComponentContainer extends DefaultPolymorphicDomainObjectContainer<SoftwareComponent> implements SoftwareComponentContainerInternal {
 
     @Inject
     public DefaultSoftwareComponentContainer(Instantiator instantiator, Instantiator elementInstantiator, CollectionCallbackActionDecorator decorator) {
@@ -39,9 +37,4 @@ public abstract class DefaultSoftwareComponentContainer extends DefaultPolymorph
 
     @Override
     public abstract Property<SoftwareComponent> getMainComponent();
-
-    @Override
-    public TypeOf<?> getPublicType() {
-        return TypeOf.typeOf(SoftwareComponentContainer.class);
-    }
 }
