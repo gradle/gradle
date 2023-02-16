@@ -37,7 +37,6 @@ import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -282,7 +281,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
         @Inject
         public DefaultElementsConfigurationBuilder(String name, JvmPluginServices jvmEcosystemUtilities, ConfigurationContainerInternal configurations, SoftwareComponentContainer components, TaskContainer tasks) {
-            super(name, jvmEcosystemUtilities, (RoleBasedConfigurationContainerInternal) configurations);
+            super(name, jvmEcosystemUtilities, configurations);
             this.components = components;
             this.tasks = tasks;
         }
