@@ -1,4 +1,13 @@
-The Gradle team is excited to announce a new major version of Gradle, 8.0.
+The Gradle team is excited to announce Gradle @version@.
+
+This is the first patch release for Gradle 8.0.
+
+It fixes the following issues:
+* TODO
+
+We recommend users upgrade to @version@ instead of 8.0.
+
+---
 
 This release reduces the time spent compiling [Kotlin DSL build scripts](#kotlin-dsl) and upgrades the Kotlin DSL's API level to [Kotlin 1.8](https://kotlinlang.org/docs/whatsnew18.html).
 
