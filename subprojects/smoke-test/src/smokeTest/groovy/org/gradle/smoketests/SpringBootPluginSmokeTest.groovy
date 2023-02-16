@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -38,7 +39,7 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
                 implementation 'org.springframework.boot:spring-boot-starter'
                 testImplementation 'org.springframework.boot:spring-boot-starter-test'
             }
-            
+
             tasks.named('test') {
                 useJUnitPlatform()
             }
@@ -46,10 +47,10 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         file('src/main/java/example/Application.java') << """
             package example;
-            
+
             import org.springframework.boot.SpringApplication;
             import org.springframework.boot.autoconfigure.SpringBootApplication;
-            
+
             @SpringBootApplication
             public class Application {
                 public static void main(String[] args) {
@@ -59,10 +60,10 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         """.stripIndent()
         file("src/test/java/example/ApplicationTest.java") << """
             package example;
-            
+
             import org.junit.jupiter.api.Test;
             import org.springframework.boot.test.context.SpringBootTest;
-            
+
             @SpringBootTest
             class ApplicationTest {
                 @Test
@@ -72,14 +73,27 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         """
 
         when:
-        def buildResult = runner('assembleBootDist', 'check').build()
+        def smokeTestRunner = runner('assembleBootDist', 'check')
+        // verified manually: the 3.0.2 version of Spring Boot plugin removed the deprecated API usage
+        smokeTestRunner.expectLegacyDeprecationWarning(
+            "The Project.getConvention method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation")
+        def buildResult = smokeTestRunner.build()
 
         then:
         buildResult.task(':assembleBootDist').outcome == SUCCESS
         buildResult.task(':check').outcome == SUCCESS
 
         when:
-        def runResult = runner('bootRun').build()
+        smokeTestRunner = runner('bootRun')
+        smokeTestRunner.expectLegacyDeprecationWarning(
+            "The Project.getConvention method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation")
+        def runResult = smokeTestRunner.build()
 
         then:
         runResult.task(':bootRun').outcome == SUCCESS

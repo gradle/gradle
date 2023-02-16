@@ -448,6 +448,11 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Please use the destinationDirectory property instead. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
+            executer.expectDocumentedDeprecationWarning(
+                "The Project.getConvention method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#all_convention_deprecation")
         }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         def eventsOnCompile = toolchainEvents(":compileKotlin")
@@ -468,6 +473,15 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(eventsOnTest, jdkMetadata, "JavaLauncher")
 
         when:
+        if (isKotlin1dot6) {
+            if (GradleContextualExecuter.notConfigCache) {
+                executer.expectDocumentedDeprecationWarning(
+                    "The Project.getConvention method has been deprecated. " +
+                        "This is scheduled to be removed in Gradle 9.0. " +
+                        "Consult the upgrading guide for further information: " +
+                        "https://docs.gradle.org/current/userguide/upgrading_version_7.html#all_convention_deprecation")
+            }
+        }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         eventsOnCompile = toolchainEvents(":compileKotlin")
         eventsOnTest = toolchainEvents(":test")
