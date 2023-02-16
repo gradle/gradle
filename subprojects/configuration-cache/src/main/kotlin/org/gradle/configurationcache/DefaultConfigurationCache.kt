@@ -47,7 +47,6 @@ import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.util.Path
 import java.io.File
-import java.io.OutputStream
 
 
 class DefaultConfigurationCache internal constructor(
@@ -425,8 +424,8 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun cacheFingerprintWriterContextFor(outputStream: OutputStream): DefaultWriteContext {
-        val (context, codecs) = cacheIO.writerContextFor(outputStream, "fingerprint")
+    fun cacheFingerprintWriterContextFor(stateFile: ConfigurationCacheStateStore.StateFile): DefaultWriteContext {
+        val (context, codecs) = cacheIO.writerContextFor(stateFile, "fingerprint")
         return context.apply {
             push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec())
         }
@@ -490,7 +489,7 @@ class DefaultConfigurationCache internal constructor(
     private
     fun <T> readFingerprintFile(fingerprintFile: ConfigurationCacheStateFile, action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T): T =
         encryptionService.inputStream(fingerprintFile).use { inputStream ->
-            cacheIO.withReadContextFor(inputStream) { codecs ->
+            cacheIO.withReadContextFor(fingerprintFile.stateType, inputStream) { codecs ->
                 withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec()) {
                     action(object : ConfigurationCacheFingerprintController.Host {
                         override val valueSourceProviderFactory: ValueSourceProviderFactory

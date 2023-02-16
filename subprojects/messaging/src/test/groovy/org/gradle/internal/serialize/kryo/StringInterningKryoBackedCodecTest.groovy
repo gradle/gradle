@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.serialize
+package org.gradle.internal.serialize.kryo
 
-class StreamBackedCodecTest extends AbstractCodecTest {
+import org.gradle.internal.serialize.AbstractCodecTest
+import org.gradle.internal.serialize.Decoder
+import org.gradle.internal.serialize.Encoder
+
+class StringInterningKryoBackedCodecTest extends AbstractCodecTest {
     @Override
     protected Encoder createEncoder(OutputStream outputStream) {
-        return new OutputStreamBackedEncoder(outputStream)
+        new StringDeduplicatingKryoBackedEncoder(outputStream)
     }
 
     @Override
-    protected InputStreamBackedDecoder createDecoder(InputStream inputStream) {
-        return new InputStreamBackedDecoder(inputStream)
+    protected Decoder createDecoder(InputStream inputStream) {
+        new StringDeduplicatingKryoBackedDecoder(inputStream)
     }
 }

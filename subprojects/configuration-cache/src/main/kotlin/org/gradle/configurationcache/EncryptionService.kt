@@ -19,22 +19,26 @@ package org.gradle.configurationcache
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.serialize.Decoder
+import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.kryo.DecryptingDecoder
+import org.gradle.internal.serialize.kryo.EncryptingEncoder
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.internal.EncryptionAlgorithm
+import org.gradle.util.internal.SupportedEncryptionAlgorithm
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.security.KeyStore
 import java.security.KeyStore.PasswordProtection
-import java.security.spec.AlgorithmParameterSpec
 import java.util.Base64
-import javax.crypto.Cipher
 import javax.crypto.CipherInputStream
 import javax.crypto.CipherOutputStream
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
-import javax.crypto.spec.GCMParameterSpec
-import javax.crypto.spec.IvParameterSpec
 
 
 /**
@@ -44,6 +48,8 @@ internal
 interface EncryptionConfiguration {
     val isEncrypting: Boolean
     val encryptionKeyHashCode: HashCode
+    val initVectorLength: Int
+    val encryptionAlgorithm: EncryptionAlgorithm
 }
 
 
@@ -62,6 +68,8 @@ interface EncryptionService : EncryptionConfiguration {
         inputStream(stateFile.stateType, stateFile::inputStream)
     fun inputStream(stateFile: ConfigurationCacheStateStore.StateFile): InputStream =
         inputStream(stateFile.stateType, stateFile.file::inputStream)
+    fun encoder(stateType: StateType, output: () -> OutputStream): Encoder
+    fun decoder(stateType: StateType, input: () -> InputStream): Decoder
 }
 
 
@@ -97,16 +105,18 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
     private
     val shouldEncrypt: Boolean by lazy { encryptingRequested && secretKey != null }
 
-    private
-    val encryptionAlgorithm: String = startParameter.encryptionAlgorithm
+    override
+    val encryptionAlgorithm: EncryptionAlgorithm by lazy {
+        SupportedEncryptionAlgorithm.byTransformation(startParameter.encryptionAlgorithm)!!
+    }
 
-    private
+    override
     val initVectorLength: Int = startParameter.initVectorLength
 
     init {
         if (encryptingRequested) {
             logger.info("""Configuration cache encryption requested
-                - algorithm: $encryptionAlgorithm
+                - algorithm: ${encryptionAlgorithm.transformation}
                 - keystore at: $keyStorePath
                 - key algorithm: $keyAlgorithm
                 - key alias: $keyAlias""".trimMargin()
@@ -175,46 +185,44 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
         } ?: Hashing.newHasher().hash()
     }
 
+    override fun encoder(stateType: StateType, output: () -> OutputStream): Encoder =
+        if (isEncryptable(stateType))
+            EncryptingEncoder(output.invoke(), encryptionAlgorithm.newSession(secretKey))
+        else
+            KryoBackedEncoder(output.invoke())
+
+    override fun decoder(stateType: StateType, input: () -> InputStream): Decoder =
+        if (isEncryptable(stateType))
+            DecryptingDecoder(input.invoke(), encryptionAlgorithm.newSession(secretKey))
+        else
+            KryoBackedDecoder(input.invoke())
+
+    private
+    fun isEncryptable(stateType: StateType) = shouldEncrypt && stateType.encryptable
+
     override fun outputStream(stateType: StateType, output: () -> OutputStream): OutputStream =
-        if (shouldEncrypt && stateType.encryptable) {
-            encryptingOutputStream(output.invoke())
-        } else
-            output.invoke()
+//        if (isEncryptable(stateType))
+//            encryptingOutputStream(output.invoke())
+//        else
+        output.invoke()
 
     override fun inputStream(stateType: StateType, input: () -> InputStream): InputStream =
-        if (shouldEncrypt && stateType.encryptable) {
-            decryptingInputStream(input.invoke())
-        } else
-            input.invoke()
+//        if (isEncryptable(stateType))
+//            decryptingInputStream(input.invoke())
+//        else
+        input.invoke()
 
     private
     fun decryptingInputStream(inputStream: InputStream): InputStream {
-        val cipher = cipher()
-        val fileIv = ByteArray(initVectorLength)
-        inputStream.read(fileIv)
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, getAlgorithmParameter(fileIv))
+        val cipher = encryptionAlgorithm.newSession(secretKey).decryptingCipher(inputStream::read)
         return CipherInputStream(inputStream, cipher)
     }
 
     private
-    fun getAlgorithmParameter(initializationVector: ByteArray): AlgorithmParameterSpec =
-        when {
-            encryptionAlgorithm.startsWith("AES/GCM") ->
-                GCMParameterSpec(128, initializationVector)
-            else ->
-                IvParameterSpec(initializationVector)
-        }
-
-    private
     fun encryptingOutputStream(outputStream: OutputStream): OutputStream {
-        val cipher = cipher()
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-        outputStream.write(cipher.iv)
+        val cipher = encryptionAlgorithm.newSession(secretKey).encryptingCipher(outputStream::write)
         return CipherOutputStream(outputStream, cipher)
     }
-
-    private
-    fun cipher() = Cipher.getInstance(encryptionAlgorithm)
 }
 
 

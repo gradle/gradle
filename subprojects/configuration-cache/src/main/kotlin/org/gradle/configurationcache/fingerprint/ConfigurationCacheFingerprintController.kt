@@ -24,9 +24,9 @@ import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.ConfigurationCacheStateFile
-import org.gradle.configurationcache.InputTrackingState
-import org.gradle.configurationcache.EncryptionService
 import org.gradle.configurationcache.ConfigurationCacheStateStore.StateFile
+import org.gradle.configurationcache.EncryptionService
+import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.extensions.directoryContentHash
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
@@ -57,7 +57,6 @@ import org.gradle.util.Path
 import org.gradle.util.internal.BuildCommencedTimeProvider
 import org.gradle.util.internal.GFileUtils
 import java.io.File
-import java.io.OutputStream
 import java.net.URI
 import java.nio.file.Files
 
@@ -99,7 +98,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private
     abstract class WritingState {
 
-        open fun maybeStart(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState =
+        open fun maybeStart(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (StateFile) -> DefaultWriteContext): WritingState =
             illegalStateFor("start")
 
         open fun pause(): WritingState =
@@ -124,14 +123,12 @@ class ConfigurationCacheFingerprintController internal constructor(
 
     private
     inner class Idle : WritingState() {
-        override fun maybeStart(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
+        override fun maybeStart(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (StateFile) -> DefaultWriteContext): WritingState {
 
-            val buildScopedOutputStream = encryptionService.outputStream(buildScopedSpoolFile)
-            val projectScopedOutputStream = encryptionService.outputStream(projectScopedSpoolFile)
             val fingerprintWriter = ConfigurationCacheFingerprintWriter(
                 CacheFingerprintWriterHost(),
-                writeContextForOutputStream(buildScopedOutputStream),
-                writeContextForOutputStream(projectScopedOutputStream),
+                writeContextForOutputStream(buildScopedSpoolFile),
+                writeContextForOutputStream(projectScopedSpoolFile),
                 fileCollectionFactory,
                 directoryFileTreeFactory,
                 taskExecutionTracker,
@@ -152,7 +149,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         private val buildScopedSpoolFile: StateFile,
         private val projectScopedSpoolFile: StateFile
     ) : WritingState() {
-        override fun maybeStart(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
+        override fun maybeStart(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (StateFile) -> DefaultWriteContext): WritingState {
             return this
         }
 
@@ -175,7 +172,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         private val buildScopedSpoolFile: StateFile,
         private val projectScopedSpoolFile: StateFile
     ) : WritingState() {
-        override fun maybeStart(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
+        override fun maybeStart(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (StateFile) -> DefaultWriteContext): WritingState {
             addListener(fingerprintWriter)
             // Continue with the current spool file, rather than starting a new one
             return Writing(fingerprintWriter, this.buildScopedSpoolFile, this.projectScopedSpoolFile)
@@ -226,7 +223,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     // Start fingerprinting if not already started and not already committed
     // This should be strict but currently this method may be called multiple times when a
     // build invocation both runs tasks and queries models
-    fun maybeStartCollectingFingerprint(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (OutputStream) -> DefaultWriteContext) {
+    fun maybeStartCollectingFingerprint(buildScopedSpoolFile: StateFile, projectScopedSpoolFile: StateFile, writeContextForOutputStream: (StateFile) -> DefaultWriteContext) {
         writingState = writingState.maybeStart(buildScopedSpoolFile, projectScopedSpoolFile, writeContextForOutputStream)
     }
 

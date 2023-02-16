@@ -325,6 +325,9 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun writeNullableString(value: CharSequence?): Unit =
             undefined()
 
+        override fun getWritePosition(): Long =
+            0
+
         override fun writeNullableSmallInt(value: Int?): Unit =
             undefined()
 
