@@ -25,7 +25,10 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
+import org.gradle.internal.classpath.declarations.InterceptorDeclaration;
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.instrumentation.utils.LocalVariablesSorterWithDroppedVariables;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.objectweb.asm.ClassVisitor;
@@ -43,6 +46,7 @@ import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.SerializedLambda;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -72,7 +76,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 21;
+    private static final int DECORATION_FORMAT = 22;
 
     private static final Type SYSTEM_TYPE = getType(System.class);
     private static final Type STRING_TYPE = getType(String.class);
@@ -268,7 +272,8 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return super.visitMethod(access, RENAMED_DESERIALIZE_LAMBDA, descriptor, signature, exceptions);
             }
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
-            return new InstrumentingMethodVisitor(this, methodVisitor);
+            LocalVariablesSorterWithDroppedVariables sorter = LocalVariablesSorterWithDroppedVariables.create(access, descriptor, methodVisitor);
+            return new InstrumentingMethodVisitor(this, methodVisitor, sorter);
         }
 
         @Override
@@ -351,10 +356,20 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         private final InstrumentingVisitor owner;
         private final String className;
 
-        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor) {
-            super(methodVisitor);
+        private final JvmBytecodeCallInterceptor generatedInterceptor;
+
+        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor originalMethodVisitor, LocalVariablesSorterWithDroppedVariables localVariablesSorter) {
+            super(localVariablesSorter);
             this.owner = owner;
             this.className = owner.className;
+
+            try {
+                generatedInterceptor = (JvmBytecodeCallInterceptor) Class.forName(InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
+                    .getConstructor(MethodVisitor.class, LocalVariablesSorterWithDroppedVariables.class)
+                    .newInstance(originalMethodVisitor, localVariablesSorter);
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         @Override
@@ -366,6 +381,9 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return;
             }
             if (opcode == INVOKESPECIAL && visitINVOKESPECIAL(owner, name, descriptor)) {
+                return;
+            }
+            if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface)) {
                 return;
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);

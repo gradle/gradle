@@ -22,7 +22,9 @@ import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
+import org.gradle.internal.Cast;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.classpath.declarations.InterceptorDeclaration;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
@@ -40,6 +42,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,6 +54,8 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static org.gradle.internal.classpath.InstrumentedUtil.findStaticOrThrowError;
 import static org.gradle.internal.classpath.InstrumentedUtil.kotlinDefaultMethodType;
@@ -109,30 +114,42 @@ public class Instrumented {
     }
 
     private static final CallInterceptorsSet CALL_INTERCEPTORS = new CallInterceptorsSet(
-        new SystemGetPropertyInterceptor(),
-        new SystemSetPropertyInterceptor(),
-        new SystemGetPropertiesInterceptor(),
-        new SystemSetPropertiesInterceptor(),
-        new SystemClearPropertyInterceptor(),
-        new IntegerGetIntegerInterceptor(),
-        new LongGetLongInterceptor(),
-        new BooleanGetBooleanInterceptor(),
-        new SystemGetenvInterceptor(),
-        new RuntimeExecInterceptor(),
-        new FileCheckInterceptor.FileExistsInterceptor(),
-        new FileCheckInterceptor.FileIsFileInterceptor(),
-        new FileCheckInterceptor.FileIsDirectoryInterceptor(),
-        new FileListFilesInterceptor(),
-        new FilesReadStringInterceptor(),
-        new FileTextInterceptor(),
-        new ProcessGroovyMethodsExecuteInterceptor(),
-        new ProcessBuilderStartInterceptor(),
-        new ProcessBuilderStartPipelineInterceptor(),
-        new FileInputStreamConstructorInterceptor());
+        Stream.concat(
+            Stream.of(
+                new SystemGetPropertyInterceptor(),
+                new SystemSetPropertyInterceptor(),
+                new SystemGetPropertiesInterceptor(),
+                new SystemSetPropertiesInterceptor(),
+                new SystemClearPropertyInterceptor(),
+                new IntegerGetIntegerInterceptor(),
+                new LongGetLongInterceptor(),
+                new BooleanGetBooleanInterceptor(),
+                new SystemGetenvInterceptor(),
+                new RuntimeExecInterceptor(),
+                new FilesReadStringInterceptor(),
+                new FileTextInterceptor(),
+                new ProcessGroovyMethodsExecuteInterceptor(),
+                new ProcessBuilderStartInterceptor(),
+                new ProcessBuilderStartPipelineInterceptor()
+            ),
+            StreamSupport.stream(getGeneratedCallInterceptors().spliterator(), false)
+        ).toArray(CallInterceptor[]::new)
+    );
+
+    private static Iterable<CallInterceptor> getGeneratedCallInterceptors() {
+        try {
+            Class<?> generatedClass = Class.forName(InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME);
+            Method callInterceptorsGetter = generatedClass.getDeclaredMethod("getCallInterceptors");
+            return Cast.uncheckedCast(callInterceptorsGetter.invoke(null));
+        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
     // Called by generated code
     @SuppressWarnings("unused")
+
     public static void groovyCallSites(CallSiteArray array) {
         for (CallSite callSite : array.array) {
             array.array[callSite.getIndex()] = CALL_INTERCEPTORS.maybeDecorateGroovyCallSite(callSite);
