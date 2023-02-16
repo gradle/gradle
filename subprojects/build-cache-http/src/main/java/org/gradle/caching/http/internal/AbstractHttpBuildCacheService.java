@@ -46,11 +46,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
 
-/**
- * Build cache implementation that delegates to a service accessible via HTTP.
- */
-public class HttpBuildCacheService implements BuildCacheService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpBuildCacheService.class);
+public abstract class AbstractHttpBuildCacheService implements BuildCacheService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractHttpBuildCacheService.class);
     static final String BUILD_CACHE_CONTENT_TYPE = "application/vnd.gradle.build-cache-artifact.v1";
 
     private static final Set<Integer> FATAL_HTTP_ERROR_CODES = ImmutableSet.of(
@@ -69,7 +66,7 @@ public class HttpBuildCacheService implements BuildCacheService {
     private final HttpBuildCacheRequestCustomizer requestCustomizer;
     private final boolean useExpectContinue;
 
-    public HttpBuildCacheService(HttpClientHelper httpClientHelper, URI url, HttpBuildCacheRequestCustomizer requestCustomizer, boolean useExpectContinue) {
+    public AbstractHttpBuildCacheService(HttpClientHelper httpClientHelper, URI url, HttpBuildCacheRequestCustomizer requestCustomizer, boolean useExpectContinue) {
         this.requestCustomizer = requestCustomizer;
         this.useExpectContinue = useExpectContinue;
         this.root = withTrailingSlash(url);
@@ -78,7 +75,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
     @Override
     public boolean contains(BuildCacheKey key) {
-        final URI uri = root.resolve("./" + key.getHashCode());
+        final URI uri = resolveUriForKey(root, key);
         HttpHead httpHead = new HttpHead(uri);
         requestCustomizer.customize(httpHead);
 
@@ -103,7 +100,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-        final URI uri = root.resolve("./" + key.getHashCode());
+        final URI uri = resolveUriForKey(root, key);
         HttpGet httpGet = new HttpGet(uri);
         httpGet.addHeader(HttpHeaders.ACCEPT, BUILD_CACHE_CONTENT_TYPE + ", */*");
         requestCustomizer.customize(httpGet);
@@ -130,7 +127,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
     @Override
     public void store(BuildCacheKey key, final BuildCacheEntryWriter output) throws BuildCacheException {
-        final URI uri = root.resolve(key.getHashCode());
+        final URI uri = resolveUriForKey(root, key);
         HttpPut httpPut = new HttpPut(uri);
         if (useExpectContinue) {
             httpPut.setHeader(HTTP.EXPECT_DIRECTIVE, HTTP.EXPECT_CONTINUE);
@@ -180,6 +177,8 @@ public class HttpBuildCacheService implements BuildCacheService {
             throw wrap(e);
         }
     }
+
+    protected abstract URI resolveUriForKey(URI root, BuildCacheKey key);
 
     private static BuildCacheException wrap(Throwable e) {
         if (e instanceof Error) {

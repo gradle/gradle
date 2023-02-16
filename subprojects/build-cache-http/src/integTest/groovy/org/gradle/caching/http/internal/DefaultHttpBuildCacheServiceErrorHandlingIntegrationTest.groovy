@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
-class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFixture {
+class DefaultHttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFixture {
     def setup() {
         buildFile << """
             import org.gradle.api.*
