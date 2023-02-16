@@ -590,6 +590,10 @@ Indicates that versions for the specified modules have to be updated in the lock
 This flag also implies `--write-locks`.
 Learn more about this in <<dependency_locking.adoc#dependency-locking,dependency locking>>.
 
+`-a`, `--no-rebuild`::
+Do not rebuild project dependencies.
+Useful for <<organizing_gradle_projects.adoc#sec:build_sources, debugging and fine-tuning `buildSrc`>>, but can lead to wrong results. Use with caution!
+
 [[sec:dependency_verification_options]]
 == Dependency verification options
 Learn more about this in <<dependency_verification.adoc#verifying-dependencies,dependency verification>>.
