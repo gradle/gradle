@@ -1,20 +1,23 @@
+The Gradle team is excited to announce Gradle @version@.
 
-The Gradle team is excited to announce a new major version of Gradle, 8.0. This major version has breaking changes; please consult the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) for guidance.
+This is the first patch release for Gradle 8.0.
 
-This release includes several improvements to the [Kotlin DSL](#kotlin-dsl). This consists of an interpreter to skip the Kotlin compiler for declarative plugins and an upgrade to Kotlin API level 1.8.
+It fixes the following issues:
+* TODO
 
-Many of the benefits of included builds are now available with [`buildSrc`](#improvements-for-buildsrc-builds), such as running `buildSrc` tasks directly, skipping tests, and including other builds with `buildSrc`. For now, there are still some advantages to included builds that will be incorporated into `buildSrc` in future releases. 
+We recommend users upgrade to @version@ instead of 8.0.
 
-Additionally, we have made enhancements to the [configuration cache](#configuration-cache). This includes more fine-grained parallelism by loading tasks from the cache entry and running tasks as isolated on the first build.
+---
 
-Gradle 8.0 also has several bug fixes, removes deprecated features, and other [general improvements](#general-improvements).
-<!--
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
+This release reduces the time spent compiling [Kotlin DSL build scripts](#kotlin-dsl) and upgrades the Kotlin DSL's API level to [Kotlin 1.8](https://kotlinlang.org/docs/whatsnew18.html).
 
- THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
- The list is rendered as is, so use commas after each contributor's name, and a period at the end.
--->
+From the first invocation, the [configuration cache](#configuration-cache) speeds up builds by executing more tasks in parallel compared to the existing [parallel mode](userguide/multi_project_configuration_and_execution.html#sec:parallel_execution).
+
+Additionally, the size of the Gradle user home can be managed by [configuring the retention time](#cache-cleanup) of cache directories. Cache cleanup can also be disabled.
+
+Gradle 8.0 has many bug fixes and other [general improvements](#general-improvements).
+As a major version, this release also has changes to deprecated APIs and behavior. 
+Consult the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) for guidance on removed APIs and behavior.  
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Abdul Rauf](https://github.com/armujahid),
@@ -70,45 +73,18 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 ## New features, performance and usability improvements
 
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
-
-<!--
-
-================== TEMPLATE ==============================
-
-<a name="FILL-IN-KEY-AREA"></a>
-### FILL-IN-KEY-AREA improvements
-
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the usecase or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details
-
-================== END TEMPLATE ==========================
-
-
-==========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
-
-
 <a name="kotlin-dsl"></a>
 ### Kotlin DSL
 
-Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assistance, refactoring, documentation, and more.
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the Groovy DSL with an enhanced editing experience in supported IDEs — superior content assistance, refactoring, documentation and more.
 
-#### Improved script compilation performance
+#### Faster Kotlin DSL build script compilation
 
-Gradle 8.0 introduces an interpreter for the [declarative plugins {} blocks](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts that make the overall build time around 20% faster. Calling the Kotlin compiler for declarative `plugins {}` blocks is avoided by default.
+Gradle 8.0 introduces an interpreter for the [declarative `plugins {}` block](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts that make overall script compilation time around 20% faster.
 
-To utilize this performance, ensure you are using the supported formats in the declarative `plugins {}` blocks, for example:
+The performance improvement is limited in some scenarios.
+If the interpreter cannot parse the declarative `plugins {}` block, Gradle will fallback to using the Kotlin compiler. 
+You need to be using only supported formats, for example:
 
 ```kotlin
 plugins {
@@ -117,57 +93,55 @@ plugins {
     kotlin("jvm") version "1.7.21"                    // <3>
 }
 ```
-1. Plugin specification by plugin identifier string
-2. Plugin specification with version and/or the plugin application flag
-3. Kotlin plugin specification helper
+1. Plugin requested by plugin identifier string
+2. Plugin requested by plugin identifier and version and/or the plugin `apply` flag
+3. Plugin requested with the `kotlin(...)` helper
 
-Note that using version catalog aliases for plugins (e.g. `plugins { alias(libs.plugins.acme) }`) or plugin specification type-safe accessors (e.g. ``plugins { `acme-plugin` }``) is not supported by the `plugins {}` block interpreter. This support will be added in a later version.
+Note that using version catalog aliases for plugins (e.g. `alias(libs.plugins.acme)`) or type-safe plugin accessors (e.g. `` `acme-plugin` ``) will not see a performance improvement. Support for these formats will be added later.
 
-In unsupported cases, Gradle falls back to the Kotlin compiler, providing the same performance as previous Gradle releases.
+For more information on plugin syntax, read the documentation on the [constrained syntax](userguide/plugins.html#sec:constrained_syntax) of the declarative `plugins {}` block.
 
-For more information on plugin syntax, read the documentation on [constrained syntax](userguide/plugins.html#sec:constrained_syntax).
+#### Kotlin DSL updated to Kotlin API level 1.8
 
-#### Updated the Kotlin DSL to Kotlin API level 1.8
+Previously, the Kotlin DSL was limited to Kotlin API level 1.4. Starting with Gradle 8.0, the Kotlin DSL is fixed to [Kotlin API level 1.8](https://kotlinlang.org/docs/whatsnew18.html). This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0 to Kotlin DSL build scripts.
 
-Previously, the Kotlin DSL used Kotlin API level 1.4. Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.8. This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0.
+For information about breaking and non-breaking changes in this upgrade, visit the [upgrading 7.x guide](userguide/upgrading_version_7.html#kotlin_language_1_8).
 
-For information about breaking and non-breaking changes in this upgrade, visit the [upgrading guide](userguide/upgrading_version_7.html#kotlin_language_1_8).
+#### Kotlin DSL can use newer Java features
 
-#### Enhanced script compilation to use the Gradle JVM as Kotlin JVM target
+Previously, the compilation of `.gradle.kts` scripts was limited to Java 8 bytecode and features. Starting with Gradle 8.0, Kotlin DSL will use the Java version of the JVM running the build.
 
-Previously, the compilation of `.gradle.kts` scripts always used Java 8 as the Kotlin JVM target. Starting with Gradle 8.0, it now uses the version of the JVM running the build.
-
-If your team is using e.g., Java 11 to run Gradle, this allows you to use Java 11 libraries and language features in your build scripts.
+If your team is using Java 11 to run Gradle, you can now use Java 11 libraries and language features in your build scripts.
 
 Note that this doesn't apply to precompiled script plugins, see below.
 
-##### Precompiled script plugins now use the configured Java Toolchain
+##### Precompiled script plugins use the configured Java Toolchain
 
-Previously, the compilation of [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) used the JVM target as configured on `kotlinDslPluginOptions.jvmTarget`.
+Previously, the compilation of [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) used the JVM target as configured by `kotlinDslPluginOptions.jvmTarget`.
 
-Starting with Gradle 8.0, it now uses the configured [Java Toolchain](userguide/toolchains.html), or Java 8 if none is configured.
+Starting with Gradle 8.0, precompiled script plugins use the configured [Java Toolchain](userguide/toolchains.html) for the project or Java 8 if no toolchain is configured.
 
-See the [`kotlin-dsl` plugin manual](userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin) for more information on how to configure the Java Toolchain for precompiled script plugins and the [migration guide](userguide/upgrading_version_7.html#kotlin_dsl_plugin_toolchains) for more information on changed behaviour.
+See the [`kotlin-dsl` plugin manual](userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin) for more information on how to configure the Java Toolchain for precompiled script plugins and the [migration guide](userguide/upgrading_version_7.html#kotlin_dsl_plugin_toolchains) for more information on changed behavior.
 
 <a name="improvements-for-buildsrc-builds"></a>
 ### Improvements for `buildSrc` builds
 
-This release includes several improvements for [`buildSrc`](userguide/organizing_gradle_projects.html#sec:build_sources) builds to behave more like [included builds](userguide/composite_builds.html). Included builds are an alternative way to organize your build logic to separate project configurations to better utilize incremental builds and task caching. Now they offer the same benefits. 
+This release includes several improvements for [`buildSrc`](userguide/organizing_gradle_projects.html#sec:build_sources) builds to behave more like [included builds](userguide/composite_builds.html). Included builds are an alternative way to organize your build logic to separate project configurations to better utilize incremental builds and task caching. Now they offer the same benefits.
 
 #### Run `buildSrc` tasks directly
 
 It is now possible to run the tasks of a `buildSrc` build from the command-line, using the same syntax used for tasks of included builds.
 For example, you can use `gradle buildSrc:build` to run the `build` task in the `buildSrc` build.
 
-For more details, see the [user manual](userguide/composite_builds.html#composite_build_executing_tasks)
+For more details, see the [user manual](userguide/composite_builds.html#composite_build_executing_tasks).
 
 #### `buildSrc` can include other builds
 
-The `buildSrc` build can now include other builds by declaring them in `buildSrc/settings.gradle.kts` or `buildSrc/settings.gradle`.  This allows you to better orgaize your build logic while still using `buildSrc`. 
+The `buildSrc` build can now include other builds by declaring them in `buildSrc/settings.gradle.kts` or `buildSrc/settings.gradle`.  This allows you to better orgaize your build logic while still using `buildSrc`.
 
 You can use `pluginsManagement { includeBuild(someDir) }` or `includeBuild(someDir)` in this settings script to include other builds in `buildSrc`.
 
-For more details, see the [user manual](userguide/composite_builds.html)
+For more details, see the [user manual](userguide/composite_builds.html).
 
 #### Tests for `buildSrc` are no longer automatically run
 
@@ -179,16 +153,16 @@ You can run the tests for `buildSrc` in the same way as other projects, as descr
 
 Init scripts specified on the command-line using `--init-script` are now applied to `buildSrc`, in addition to the main build and all included builds.
 
-For more details, see the [user manual](userguide/init_scripts.html)
+For more details, see the [user manual](userguide/init_scripts.html).
 
 <a name="configuration-cache"></a>
 ### Configuration cache
 
-The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds. This is an incubating feature that can significantly improve build performance. 
+The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds. This is an incubating feature that can significantly improve build performance.
 
-#### Improved configuration cache for parallelism on the first run
+#### More parallelism on the first build
 
-Configuration cache now enables more fine-grained parallelism than using the [parallel execution](userguide/multi_project_configuration_and_execution.html#sec:parallel_execution).
+Configuration cache now enables more fine-grained parallelism than just enabling [parallel execution](userguide/multi_project_configuration_and_execution.html#sec:parallel_execution).
 Starting in Gradle 8.0, tasks run in parallel from the first build when using the configuration cache.
 
 Gradle has always run tasks in parallel when it reuses a [configuration cache](userguide/configuration_cache.html) entry. All tasks run in parallel by default, even those within the same project, subject to dependency constraints.  Now, it does this also when storing a cache entry.
@@ -197,15 +171,15 @@ When the configuration cache is enabled and Gradle is able to find a compatible 
 
 This new behavior has several benefits:
 
-- • Any issues that occur during deserialization will be easier to detect because they will be reported in the cache miss build.
-- • Tasks have the same state in both cache miss and cache hit builds, allowing for consistency between builds.
-- • Gradle can release memory used by the configuration state before task execution in the cache miss build, which reduces peak memory usage.
+- Any issues that occur during deserialization will be easier to detect because they will be reported in the cache miss build. 
+- Tasks have the same state in both cache miss and cache hit builds, allowing for consistency between builds.
+- Gradle can release memory used by the configuration state before task execution in the cache miss build, which reduces peak memory usage.
 
 This consistent behavior between cache miss and cache hit builds will help those who are transitioning to using the configuration cache, as more problems can be discovered on the first (cache miss) build.
 
 For more details, see the [user manual](userguide/configuration_cache.html).
 
-#### Improved compatibility with core plugins
+#### Expanded compatibility with core plugins
 
 The [`gradle init` command](userguide/build_init_plugin.html) can be used with the configuration cache enabled.
 
@@ -231,7 +205,8 @@ For more details, see the [user manual](userguide/toolchains.html#sec:provisioni
 <a name="general-improvements"></a>
 ### General improvements
 
-#### Improved Gradle user home cache cleanup
+<a name="cache-cleanup"></a>
+#### Configurable Gradle user home cache cleanup and retention
 
 Previously, cleanup of the caches in Gradle user home used fixed retention periods (30 days or 7 days, depending on the cache). These retention periods can now be configured via the [settings](dsl/org.gradle.api.initialization.Settings.html) object in an init script in Gradle user home.
 
@@ -255,32 +230,27 @@ Now one gets printed for each combination of message and stack trace. This resul
 
 For more details, see the [user manual](userguide/command_line_interface.html#sec:command_line_warnings).
 
-#### Improved dependency verification metadata
+#### Dependency verification metadata supports documenting reasons for trust
 
 [Dependency verification metadata](userguide/dependency_verification.html#sub:verification-metadata) helps keep your project secure by ensuring the dependency being used matches the checksum of that dependency. This metadata is located in an XML configuration file and now accepts a reason attribute. This reason attribute allows for more details on why an artifact is trusted or why a selected checksum verification is required for an artifact directly in the `verification-metadata.xml`.
 
 The following nodes with dependency verification metadata file `verification-metadata.xml` now support a `reason` attribute:
 
-
-- • the `trust` xml node under `trusted-artifacts`
-- • the `md5`, `sha1`, `sha256` and `sha512` nodes under `component`
-
+- the `trust` xml node under `trusted-artifacts`
+- the `md5`, `sha1`, `sha256` and `sha512` nodes under `component`
 
 A reason is helpful to provide more details on why an artifact is trusted or why a selected checksum verification is required for an artifact directly in the `verification-metadata.xml`.
 
 For more details, see the [user manual](userguide/dependency_verification.html#sub:verification-metadata).
 
-#### Improved dependency verification CLI
+#### Trusted keyring files can be exported easily from the CLI
 
-To minimize the number of times CI builds communicate with key servers, we use a [local keyring file](userguide/dependency_verification.html#sec:local-keyring-only). This file should be frequently exported to remain accurate. There is no longer a need to write verification metadata when exporting trusted keys, simplifying the process.
+To minimize the number of times CI builds need to communicate with key servers, Gradle supports a [local keyring file](userguide/dependency_verification.html#sec:local-keyring-only). This file needs to be frequently exported to remain accurate. It is no longer required to write the full verification metadata when exporting trusted keys.
 
 You can now use the `export-keys` flag to export all already trusted keys:
-
 ```asciidoc
 ./gradlew --export-keys
 ```
-
-There is no longer a need to write verification metadata when exporting trusted keys.
 
 For more details, see the [user manual](userguide/dependency_verification.html#sec:local-keyring).
 
@@ -295,19 +265,13 @@ To ensure future compatibility, the [CodeNarc Plugin](userguide/codenarc_plugin.
 
 You can still explicitly specify a CodeNarc version with the `toolVersion` property on the [CodeNarcExtension](dsl/org.gradle.api.plugins.quality.CodeNarcExtension.html#org.gradle.api.plugins.quality.CodeNarcExtension).
 
-#### Enhanced PMD tasks to execute in parallel by default
+#### Faster PMD analysis with parallel execution by default
 
 The [PMD](userguide/pmd_plugin.html) plugin performs quality checks on your project’s Java source files using a static code analyzer. It now uses the Gradle [worker API](userguide/custom_tasks.html#worker_api) and [JVM toolchains](userguide/toolchains.html#header). This tool now performs analysis via an external worker process, and therefore its tasks may now run in parallel within one project.
 
 In Java projects, this tool will use the same version of Java required by the project. In other types of projects, it will use the same version of Java that is used by the Gradle daemon.
 
 For more details, see the [user manual](userguide/pmd_plugin.html).
-
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
-
--->
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -317,38 +281,40 @@ The following are the features that have been promoted in this Gradle release.
 
 ### Promoted features in the Tooling API
 
-- The `GradleConnector.disconnect()` method is now considered stable.
+The `GradleConnector.disconnect()` method is now considered stable.
 
 ### Promoted features in the antlr plugin
 
-- The `AntlrSourceDirectorySet` interface is now considered stable.
+The `AntlrSourceDirectorySet` interface is now considered stable.
 
 ### Promoted features in the ear plugin
 
-- The `Ear.getAppDirectory()` method is now considered stable.
+The `Ear.getAppDirectory()` method is now considered stable.
 
 ### Promoted features in the eclipse plugin
 
-- The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
+The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
 
 ### Promoted features in the groovy plugin
 
 The following type and method are now considered stable:
+
 - `GroovySourceDirectorySet`
 - `GroovyCompileOptions.getDisabledGlobalASTTransformations()`
 
 ### Promoted features in the scala plugin
 
-- The `ScalaSourceDirectorySet` interface is now considered stable.
+The `ScalaSourceDirectorySet` interface is now considered stable.
 
 ### Promoted features in the war plugin
 
-- The `War.getWebAppDirectory()` method is now considered stable.
+The `War.getWebAppDirectory()` method is now considered stable.
 
 ### Promoted features in the `Settings` API
 
-- The methods `Settings.dependencyResolutionManagement(Action)` and `Settings.getDependencyResolutionManagement()` are now considered stable.
-- All the methods in `DependencyResolutionManagement` are now stable, except the ones for central repository declaration.
+The methods `Settings.dependencyResolutionManagement(Action)` and `Settings.getDependencyResolutionManagement()` are now considered stable.
+
+All the methods in `DependencyResolutionManagement` are now stable, except the ones for central repository declaration.
 
 ## Fixed issues
 
@@ -363,6 +329,6 @@ We love getting contributions from the Gradle community. For information on cont
 ## Reporting problems
 
 If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines.
-If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
+If you're not sure that you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).
