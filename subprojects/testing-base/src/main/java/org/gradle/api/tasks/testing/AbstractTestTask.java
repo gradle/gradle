@@ -53,6 +53,7 @@ import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProc
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.tasks.Internal;
@@ -111,6 +112,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private TestReporter testReporter;
     private boolean ignoreFailures;
     private boolean failFast;
+    private Property<Boolean> failIfNoTest;
 
     public AbstractTestTask() {
         Instantiator instantiator = getInstantiator();
@@ -120,6 +122,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testOutputListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestOutputListener.class);
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
         binaryResultsDirectory = getProject().getObjects().directoryProperty();
+        failIfNoTest = getProject().getObjects().property(Boolean.class).value(false);
 
         reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, this);
         reports.getJunitXml().getRequired().set(true);
@@ -481,8 +484,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private void handleCollectedResults(TestCountLogger testCountLogger) {
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
-        } else if (testCountLogger.getTotalTests() == 0 && shouldFailOnNoMatchingTests()) {
-            throw new TestExecutionException(createNoMatchingTestErrorMessage());
+        } else if (testCountLogger.getTotalTests() == 0) {
+            if (failIfNoTest.get() || shouldFailOnNoMatchingTests()) {
+                throw new TestExecutionException(createNoMatchingTestErrorMessage());
+            } else if (!failIfNoTest.get()) {
+                getLogger().warn("There is no test to run. You can use 'test --failIfNoTest' to fail in this case.");
+            }
         }
     }
 
@@ -564,6 +571,24 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     void setFailFast(boolean failFast) {
         this.failFast = failFast;
+    }
+
+    /**
+     * Indicates if this task will fail if there is no test to run
+     *
+     * @return whether this task will fail if there is no test to run
+     */
+    @Internal
+    Property<Boolean> getFailIfNoTest() {
+        return failIfNoTest;
+    }
+
+    /**
+     * Enables the task to fail when there is no test to run.
+     */
+    void setFailIfNoTest(boolean failIfNoTest) {
+        this.failIfNoTest.set(failIfNoTest);
+        this.failIfNoTest.finalizeValue();
     }
 
     /**
