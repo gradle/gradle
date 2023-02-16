@@ -16,9 +16,11 @@
 
 package org.gradle.caching.http.internal;
 
+import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
 import org.gradle.caching.http.HttpBuildCache;
+import org.gradle.caching.internal.services.NextGenBuildCacheControllerFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.util.GradleVersion;
@@ -27,7 +29,14 @@ public class HttpBuildCacheServiceServices extends AbstractPluginServiceRegistry
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.add(BuildCacheServiceRegistration.class, new DefaultBuildCacheServiceRegistration(HttpBuildCache.class, DefaultHttpBuildCacheServiceFactory.class));
+        registration.addProvider(new Object() {
+            BuildCacheServiceRegistration createHttpBuildCacheServiceRegistration() {
+                Class<? extends BuildCacheServiceFactory<?>> httpCacheServiceFactory = NextGenBuildCacheControllerFactory.isNextGenCachingEnabled()
+                    ? NextGenHttpBuildCacheServiceFactory.class
+                    : DefaultHttpBuildCacheServiceFactory.class;
+                return new DefaultBuildCacheServiceRegistration(HttpBuildCache.class, httpCacheServiceFactory);
+            }
+        });
         registration.add(HttpBuildCacheRequestCustomizer.class, request -> request.addHeader("X-Gradle-Version", GradleVersion.current().getVersion()));
     }
 }

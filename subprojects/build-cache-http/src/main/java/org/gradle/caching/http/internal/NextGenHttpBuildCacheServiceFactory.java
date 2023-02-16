@@ -24,17 +24,17 @@ import javax.inject.Inject;
 import java.net.URI;
 
 /**
- * Build cache factory for HTTP backend.
+ * Build cache factory for HTTP backend for NextGen build cache.
  */
-public class DefaultHttpBuildCacheServiceFactory extends AbstractHttpBuildCacheServiceFactory {
+public class NextGenHttpBuildCacheServiceFactory extends AbstractHttpBuildCacheServiceFactory {
 
     @Inject
-    public DefaultHttpBuildCacheServiceFactory(SslContextFactory sslContextFactory, HttpBuildCacheRequestCustomizer requestCustomizer, HttpClientHelper.Factory httpClientHelperFactory) {
+    public NextGenHttpBuildCacheServiceFactory(SslContextFactory sslContextFactory, HttpBuildCacheRequestCustomizer requestCustomizer, HttpClientHelper.Factory httpClientHelperFactory) {
         super(sslContextFactory, requestCustomizer, httpClientHelperFactory);
     }
 
     @Override
     BuildCacheService doCreateBuildCacheService(HttpClientHelper httpClientHelper, URI noUserInfoUrl, HttpBuildCacheRequestCustomizer requestCustomizer, boolean useExpectContinue) {
-        return new DefaultHttpBuildCacheService(httpClientHelper, noUserInfoUrl, requestCustomizer, useExpectContinue);
+        return new NextGenHttpBuildCacheService(httpClientHelper, noUserInfoUrl, requestCustomizer, useExpectContinue);
     }
 }
