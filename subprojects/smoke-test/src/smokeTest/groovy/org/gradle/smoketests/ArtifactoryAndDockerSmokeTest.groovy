@@ -115,6 +115,11 @@ class ArtifactoryAndDockerSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         then:
         def runner = runner('artifactoryPublish')
+        runner.expectLegacyDeprecationWarning(
+            "The Project.getConvention method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation") // the artifactory plugin is close
         3.times {
             runner.expectLegacyDeprecationWarning(
                 "The org.gradle.util.ConfigureUtil type has been deprecated. " +
