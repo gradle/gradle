@@ -476,17 +476,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 _LDC(binaryClassNameOf(className));
                 _INVOKESTATIC(INSTRUMENTED_TYPE, "execute", instrumentedDescriptor.get());
                 return true;
-            } else if (owner.equals(KOTLIN_IO_FILES_TYPE.getInternalName())) {
-                if (name.equals("readText") && descriptor.equals(RETURN_STRING_FROM_FILE_CHARSET)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "kotlinIoFilesKtReadText", RETURN_STRING_FROM_FILE_CHARSET_STRING);
-                    return true;
-                }
-                if (name.equals("readText$default") && descriptor.equals(RETURN_STRING_FROM_FILE_CHARSET_INT_OBJECT)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "kotlinIoFilesKtReadTextDefault", RETURN_STRING_FROM_FILE_CHARSET_INT_OBJECT_STRING);
-                    return true;
-                }
             } else if (owner.equals(FILES_TYPE.getInternalName())) {
                 if (name.equals("readString") && descriptor.equals(RETURN_STRING_FROM_PATH)) {
                     _LDC(binaryClassNameOf(className));
@@ -525,34 +514,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 if (name.equals("start") && descriptor.equals(RETURN_PROCESS)) {
                     _LDC(binaryClassNameOf(className));
                     _INVOKESTATIC(INSTRUMENTED_TYPE, "start", RETURN_PROCESS_FROM_PROCESS_BUILDER_STRING);
-                    return true;
-                }
-            }
-            if (owner.equals(FILE_TYPE.getInternalName())) {
-                if ((name.equals("exists") || name.equals("isFile") || name.equals("isDirectory"))
-                    && descriptor.equals(RETURN_BOOLEAN)
-                ) {
-                    String instrumentedMethodName =
-                        name.equals("exists") ? "fileExists" :
-                            name.equals("isFile") ? "fileIsFile" :
-                                "fileIsDirectory";
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, instrumentedMethodName, RETURN_BOOLEAN_FROM_FILE_STRING);
-                    return true;
-                }
-
-                if (name.equals("listFiles") &&
-                    (descriptor.equals(RETURN_FILE_ARRAY) ||
-                        descriptor.equals(RETURN_FILE_ARRAY_FROM_FILEFILTER) ||
-                        descriptor.equals(RETURN_FILE_ARRAY_FROM_FILENAMEFILTER))
-                ) {
-                    String instrumentedDescriptor =
-                        descriptor.equals(RETURN_FILE_ARRAY) ? RETURN_FILE_ARRAY_FROM_FILE_STRING  :
-                            descriptor.equals(RETURN_FILE_ARRAY_FROM_FILEFILTER) ? RETURN_FILE_ARRAY_FROM_FILE_FILEFILTER_STRING :
-                                RETURN_FILE_ARRAY_FROM_FILE_FILENAMEFILTER_STRING;
-
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "fileListFiles", instrumentedDescriptor);
                     return true;
                 }
             }
@@ -611,18 +572,18 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         }
 
         private boolean visitINVOKESPECIAL(String owner, String name, String descriptor) {
-            if (owner.equals(FILE_INPUT_STREAM_TYPE.getInternalName()) && name.equals("<init>")) {
-                Optional<String> instrumentedDescriptor = getInstrumentedDescriptorForFileInputStreamConstructor(descriptor);
-                if (instrumentedDescriptor.isPresent()) {
-                    // We are still calling the original constructor instead of replacing it with an instrumented method. The instrumented method is merely a notifier
-                    // there.
-                    _DUP();
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "fileOpened", instrumentedDescriptor.get());
-                    _INVOKESPECIAL(owner, name, descriptor);
-                    return true;
-                }
-            }
+//            if (owner.equals(FILE_INPUT_STREAM_TYPE.getInternalName()) && name.equals("<init>")) {
+//                Optional<String> instrumentedDescriptor = getInstrumentedDescriptorForFileInputStreamConstructor(descriptor);
+//                if (instrumentedDescriptor.isPresent()) {
+//                    // We are still calling the original constructor instead of replacing it with an instrumented method. The instrumented method is merely a notifier
+//                    // there.
+//                    _DUP();
+//                    _LDC(binaryClassNameOf(className));
+//                    _INVOKESTATIC(INSTRUMENTED_TYPE, "fileOpened", instrumentedDescriptor.get());
+//                    _INVOKESPECIAL(owner, name, descriptor);
+//                    return true;
+//                }
+//            }
             return false;
         }
 
