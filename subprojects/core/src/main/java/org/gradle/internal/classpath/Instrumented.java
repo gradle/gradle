@@ -35,7 +35,6 @@ import org.gradle.internal.lazy.Lazy;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
@@ -53,7 +52,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -126,16 +124,11 @@ public class Instrumented {
                 new BooleanGetBooleanInterceptor(),
                 new SystemGetenvInterceptor(),
                 new RuntimeExecInterceptor(),
-                new FileCheckInterceptor.FileExistsInterceptor(),
-                new FileCheckInterceptor.FileIsFileInterceptor(),
-                new FileCheckInterceptor.FileIsDirectoryInterceptor(),
-                new FileListFilesInterceptor(),
                 new FilesReadStringInterceptor(),
                 new FileTextInterceptor(),
                 new ProcessGroovyMethodsExecuteInterceptor(),
                 new ProcessBuilderStartInterceptor(),
-                new ProcessBuilderStartPipelineInterceptor(),
-                new FileInputStreamConstructorInterceptor()
+                new ProcessBuilderStartPipelineInterceptor()
             ),
             getGeneratedCallInterceptors().stream()
         )
@@ -809,72 +802,6 @@ public class Instrumented {
         }
     }
 
-    private static abstract class FileCheckInterceptor extends CallInterceptor {
-        private final BiFunction<File, String, Boolean> invokeWhenIntercepted;
-
-        public FileCheckInterceptor(String methodName, BiFunction<File, String, Boolean> invokeWhenIntercepted) {
-            super(InterceptScope.methodsNamed(methodName));
-            this.invokeWhenIntercepted = invokeWhenIntercepted;
-        }
-
-        @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
-            if (invocation.getArgsCount() == 0) {
-                Object receiver = invocation.getReceiver();
-                if (receiver instanceof File) {
-                    File fileReceiver = (File) receiver;
-                    return invokeWhenIntercepted.apply(fileReceiver, consumer);
-                }
-            }
-            return invocation.callOriginal();
-        }
-
-        static class FileExistsInterceptor extends FileCheckInterceptor {
-            public FileExistsInterceptor() {
-                super("exists", Instrumented::fileExists);
-            }
-        }
-
-        static class FileIsFileInterceptor extends FileCheckInterceptor {
-            public FileIsFileInterceptor() {
-                super("isFile", Instrumented::fileIsFile);
-            }
-        }
-
-        static class FileIsDirectoryInterceptor extends FileCheckInterceptor {
-            public FileIsDirectoryInterceptor() {
-                super("isDirectory", Instrumented::fileIsDirectory);
-            }
-        }
-    }
-
-    private static class FileListFilesInterceptor extends CallInterceptor {
-        public FileListFilesInterceptor() {
-            super(InterceptScope.methodsNamed("listFiles"));
-        }
-
-        @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
-            if (invocation.getArgsCount() <= 1) {
-                Object receiver = invocation.getReceiver();
-                if (receiver instanceof File) {
-                    File fileReceiver = (File) receiver;
-                    if (invocation.getArgsCount() == 0) {
-                        return Instrumented.fileListFiles(fileReceiver, consumer);
-                    } else if (invocation.getArgsCount() == 1) {
-                        Object arg0 = invocation.getArgument(0);
-                        if (arg0 instanceof FileFilter) {
-                            return Instrumented.fileListFiles(fileReceiver, (FileFilter) arg0, consumer);
-                        } else if (arg0 instanceof FilenameFilter) {
-                            return Instrumented.fileListFiles(fileReceiver, (FilenameFilter) arg0, consumer);
-                        }
-                    }
-                }
-            }
-            return invocation.callOriginal();
-        }
-    }
-
     private static class FilesReadStringInterceptor extends ClassBoundCallInterceptor {
         public FilesReadStringInterceptor() {
             super(Files.class, InterceptScope.methodsNamed("readString"));
@@ -1025,33 +952,6 @@ public class Instrumented {
                 return startPipeline((List<ProcessBuilder>) invocation.getArgument(0), consumer);
             }
             return invocation.callOriginal();
-        }
-    }
-
-    /**
-     * The interceptor for {@link FileInputStream#FileInputStream(File)} and {@link FileInputStream#FileInputStream(String)}.
-     */
-    private static class FileInputStreamConstructorInterceptor extends CallInterceptor {
-        public FileInputStreamConstructorInterceptor() {
-            super(InterceptScope.constructorsOf(FileInputStream.class));
-        }
-
-        @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
-            if (invocation.getArgsCount() == 1) {
-                Object argument = invocation.getArgument(0);
-                if (argument instanceof CharSequence) {
-                    String path = convertToString(argument);
-                    fileOpened(path, consumer);
-                    return new FileInputStream(path);
-                } else if (argument instanceof File) {
-                    File file = (File) argument;
-                    fileOpened(file, consumer);
-                    return new FileInputStream(file);
-                }
-            }
-            return invocation.callOriginal();
-
         }
     }
 }

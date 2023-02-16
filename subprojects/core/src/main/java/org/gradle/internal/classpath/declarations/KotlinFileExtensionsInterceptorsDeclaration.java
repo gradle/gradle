@@ -16,39 +16,33 @@
 
 package org.gradle.internal.classpath.declarations;
 
+import kotlin.io.FilesKt;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
-import org.gradle.internal.instrumentation.api.annotations.CallableKind.AfterConstructor;
+import org.gradle.internal.instrumentation.api.annotations.CallableKind.StaticMethod;
 import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
-import org.gradle.internal.instrumentation.api.annotations.ParameterKind.Receiver;
+import org.gradle.internal.instrumentation.api.annotations.ParameterKind.KotlinDefaultMask;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.nio.charset.Charset;
 
+@SuppressWarnings("NewMethodNamingConvention")
 @SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
 @SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME)
-public class FileInputStreamInterceptorsDeclaration {
+public class KotlinFileExtensionsInterceptorsDeclaration {
 
     @InterceptCalls
-    @AfterConstructor
-    public static void interceptFileInputStreamConstructor(
-        @Receiver FileInputStream receiver,
-        File file,
+    @StaticMethod(ofClass = FilesKt.class)
+    public static String intercept_readText(
+        File thisFile,
+        Charset charset,
+        @KotlinDefaultMask int mask,
         @CallerClassName String consumer
-    ) {
-        Instrumented.fileOpened(file, consumer);
-    }
-
-    @InterceptCalls
-    @AfterConstructor
-    public static void interceptFileInputStreamConstructor(
-        @Receiver FileInputStream receiver,
-        String path,
-        @CallerClassName String consumer
-    ) {
-        Instrumented.fileOpened(path, consumer);
+    ) throws Throwable {
+        return mask != 0 ?
+            Instrumented.kotlinIoFilesKtReadTextDefault(thisFile, charset, mask, null, consumer) :
+            Instrumented.kotlinIoFilesKtReadText(thisFile, charset, consumer);
     }
 }
-
