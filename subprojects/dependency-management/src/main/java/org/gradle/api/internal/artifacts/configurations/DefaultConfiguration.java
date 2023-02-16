@@ -923,18 +923,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return resolveToStateOrLater(GRAPH_RESOLVED).getCachedResolverResults();
         }
 
-        ResolveState currentState = currentResolveState.update(initial -> {
-            if (initial.state == UNRESOLVED) {
-                // Traverse graph
-                ResolverResults results = new DefaultResolverResults();
-                resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
-                markReferencedProjectConfigurationsObserved(BUILD_DEPENDENCIES_RESOLVED, results);
-                return new BuildDependenciesResolved(results);
-            } // Otherwise, already have a result, so reuse it
-            return initial;
-        });
-
-        // Otherwise, already have a result, so reuse it
+        ResolveState currentState = currentResolveState.get();
+        if (currentState.state == UNRESOLVED) {
+            // Do not validate that the current thread holds the project lock
+            // in the condition that currentState is not UNRESOLVED
+            currentState = currentResolveState.update(initial -> {
+                if (initial.state == UNRESOLVED) {
+                    // Traverse graph
+                    ResolverResults results = new DefaultResolverResults();
+                    resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
+                    markReferencedProjectConfigurationsObserved(BUILD_DEPENDENCIES_RESOLVED, results);
+                    return new BuildDependenciesResolved(results);
+                } // Otherwise, already have a result, so reuse it
+                return initial;
+            });
+        }// Otherwise, already have a result, so reuse it
         return currentState.getCachedResolverResults();
     }
 
