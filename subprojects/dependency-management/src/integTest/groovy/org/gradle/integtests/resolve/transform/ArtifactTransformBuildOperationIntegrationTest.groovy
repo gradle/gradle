@@ -262,6 +262,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             project(":consumer") {
                 dependencies {
                     implementation project(":producer")
+                    transform project(":producer")
                 }
             }
         """

@@ -184,9 +184,7 @@ class JarProducer extends DefaultTask {
         buildFile << """
             allprojects {
                 configurations {
-                   transform {
-                        extendsFrom implementation
-                    }
+                   transform
                 }
                 dependencies {
                     registerTransform(MakeGreen) {
