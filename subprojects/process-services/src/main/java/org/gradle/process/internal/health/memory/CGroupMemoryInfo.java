@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.health.memory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Files;
 
 import java.io.File;
@@ -28,18 +29,30 @@ public class CGroupMemoryInfo implements OsMemoryInfo {
 
     @Override
     public OsMemoryStatus getOsSnapshot() {
+        String memUsageString = readStringFromFile(new File(CGROUP_MEM_USAGE_FILE));
+        String memTotalString = readStringFromFile(new File(CGROUP_MEM_TOTAL_FILE));
+
+        return getOsSnapshotFromCgroup(memUsageString, memTotalString);
+    }
+
+    private String readStringFromFile(File file) {
+        try {
+            return Files.asCharSource(file, Charset.defaultCharset()).readFirstLine();
+        } catch (IOException e) {
+            throw new UnsupportedOperationException("Unable to read system memory from " + file.getAbsoluteFile(), e);
+        }
+    }
+
+    @VisibleForTesting
+    OsMemoryStatusSnapshot getOsSnapshotFromCgroup(String memUsageString, String memTotalString) {
         long memUsage;
         long memTotal;
         long memAvailable;
 
         try {
-            String memUsageString = Files.asCharSource(new File(CGROUP_MEM_USAGE_FILE), Charset.defaultCharset()).readFirstLine();
-            String memTotalString = Files.asCharSource(new File(CGROUP_MEM_TOTAL_FILE), Charset.defaultCharset()).readFirstLine();
             memUsage = Long.parseLong(memUsageString);
             memTotal = Long.parseLong(memTotalString);
             memAvailable = Math.max(0, memTotal - memUsage);
-        } catch (IOException e) {
-            throw new UnsupportedOperationException("Unable to read system memory", e);
         } catch (NumberFormatException e) {
             throw new UnsupportedOperationException("Unable to read system memory", e);
         }
