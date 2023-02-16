@@ -693,6 +693,13 @@ In case no toolchains are explicitly configured, the toolchain corresponding to 
 
 Similarly, tasks from the Groovy and Scala plugins also rely on toolchains to determine on which JVM they are executed.
 
+==== Scala compilation target
+
+With the toolchain changes described above, Scala compilation tasks are now always provided with a `target` or `release` parameter.
+The exact parameter and value depend on toolchain usage, or not, and Scala version.
+
+See the <<scala_plugin#sec:scala_target,Scala plugin documentation>> for details.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
