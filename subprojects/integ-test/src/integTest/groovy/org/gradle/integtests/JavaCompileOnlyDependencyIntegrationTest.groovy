@@ -100,15 +100,21 @@ dependencies {
 
 task checkCompileClasspath {
     def compileClasspath = configurations.compileClasspath
+    def expectedFiles = provider {
+        [file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}'), file('${normaliseFileSeparators(implementationModule.artifactFile.path)}')] as Set
+    }
     doLast {
-        assert compileClasspath.files == [file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}'), file('${normaliseFileSeparators(implementationModule.artifactFile.path)}')] as Set
+        assert compileClasspath.files == expectedFiles.get()
     }
 }
 
 task checkRuntimeClasspath {
     def runtimeClasspath = configurations.runtimeClasspath
+    def expectedFiles = provider {
+        [file('${normaliseFileSeparators(implementationModule.artifactFile.path)}'), file('${normaliseFileSeparators(runtimeModule.artifactFile.path)}')] as Set
+    }
     doLast {
-        assert runtimeClasspath.files == [file('${normaliseFileSeparators(implementationModule.artifactFile.path)}'), file('${normaliseFileSeparators(runtimeModule.artifactFile.path)}')] as Set
+        assert runtimeClasspath.files == expectedFiles.get()
     }
 }
 """
@@ -146,22 +152,32 @@ dependencies {
 }
 
 task checkImplementation {
+    def implementationClasspath = configurations.implementationClasspath
+    def expectedFiles = provider {
+        [file('${normaliseFileSeparators(shared11.artifactFile.path)}'), file('${normaliseFileSeparators(implementationModule.artifactFile.path)}')] as Set
+    }
     doLast {
-        assert configurations.implementationClasspath.files == [file('${normaliseFileSeparators(shared11.artifactFile.path)}'), file('${normaliseFileSeparators(implementationModule.artifactFile.path)}')] as Set
+        assert implementationClasspath.files == expectedFiles.get()
     }
 }
 
 task checkCompileOnly {
     def compileOnlyClasspath = configurations.compileOnlyClasspath
+    def expectedFiles = provider {
+        [file('${normaliseFileSeparators(shared10.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
+    }
     doLast {
-        assert compileOnlyClasspath.files == [file('${normaliseFileSeparators(shared10.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
+        assert compileOnlyClasspath.files == expectedFiles.get()
     }
 }
 
 task checkCompileClasspath{
     def compileClasspath = configurations.compileClasspath
+    def expectedFiles = provider {
+        [file('${normaliseFileSeparators(shared11.artifactFile.path)}'), file('${normaliseFileSeparators(implementationModule.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
+    }
     doLast {
-        assert compileClasspath.files == [file('${normaliseFileSeparators(shared11.artifactFile.path)}'), file('${normaliseFileSeparators(implementationModule.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
+        assert compileClasspath.files == expectedFiles.get()
     }
 }
 """
