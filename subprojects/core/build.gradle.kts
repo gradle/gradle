@@ -44,6 +44,7 @@ dependencies {
     implementation(project(":worker-processes"))
     implementation(project(":normalization-java"))
     implementation(project(":wrapper-shared"))
+    implementation(project(":internal-instrumentation-api"))
 
     implementation(libs.groovy)
     implementation(libs.groovyAnt)
@@ -182,10 +183,17 @@ dependencies {
         because("Some tests utilise the 'java-gradle-plugin' and with that TestKit")
     }
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
+
+    annotationProcessor(project(":internal-instrumentation-processor"))
+    annotationProcessor(platform(project(":distributions-dependencies")))
 }
 
 strictCompile {
     ignoreRawTypes() // raw types used in public API
+}
+tasks.compileJava {
+    // Without this, javac will complain about unclaimed annotations
+    options.compilerArgs.add("-Xlint:-processing")
 }
 
 packageCycles {
