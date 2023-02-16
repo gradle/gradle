@@ -96,6 +96,9 @@ class ConfigurationCacheRepository(
         override val exists: Boolean
             get() = file.isFile
 
+        override val stateFile: StateFile
+            get() = StateFile(stateType, file)
+
         override fun outputStream(): OutputStream =
             throw UnsupportedOperationException()
 
@@ -125,6 +128,9 @@ class ConfigurationCacheRepository(
     ) : ConfigurationCacheStateFile {
         override val exists: Boolean
             get() = false
+
+        override val stateFile: StateFile
+            get() = StateFile(stateType, file)
 
         override fun outputStream(): OutputStream =
             file.also(onFileAccess).outputStream()

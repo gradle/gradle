@@ -25,6 +25,7 @@ import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.internal.EncryptionAlgorithm
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
@@ -142,6 +143,10 @@ class ConfigurationCacheKeyTest {
                     get() = Hashing.newHasher().hash()
                 override val isEncrypting: Boolean
                     get() = false
+                override val initVectorLength: Int
+                    get() = 0
+                override val encryptionAlgorithm: EncryptionAlgorithm
+                    get() = EncryptionAlgorithm.NONE
             }
         ).string
     }
