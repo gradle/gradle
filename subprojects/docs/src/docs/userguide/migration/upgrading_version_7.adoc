@@ -93,7 +93,7 @@ test {
 }
 ```
 
-=== Removed APIs and features
+=== Removed APIs
 
 ==== Legacy ArtifactTransform API
 
@@ -112,11 +112,6 @@ With Gradle 8.0 you should use Kotlin Gradle Plugin 1.6.10 or later and Android 
 The legacy `AntlrSourceVirtualDirectory` API has been removed.
 This change affects the `antlr` plugin.
 In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
-
-==== `--no-rebuild` command line option
-
-The `--no-rebuild` command line option and its short variant `-a` have been removed.
-They were used to tell Gradle not to rebuild project dependencies and could lead to wrong results.
 
 ==== JvmPluginsHelper
 
