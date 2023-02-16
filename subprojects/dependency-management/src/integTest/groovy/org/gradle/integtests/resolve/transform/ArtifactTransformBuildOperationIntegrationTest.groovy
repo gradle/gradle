@@ -139,21 +139,23 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             ]
         )
 
-        with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
-            details.transformerName == "MakeGreen"
-            details.subjectName == "producer.jar (project :producer)"
-            details.transformationIdentity.nodeType == "ARTIFACT_TRANSFORM"
-            details.transformationIdentity.buildPath == ":"
-            details.transformationIdentity.projectPath == ":consumer"
-            details.transformationIdentity.targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-            details.transformationIdentity.targetVariant.attributes == [color: "green", artifactType: "jar"]
-            details.transformationIdentity.targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-            details.transformationIdentity.artifactName == "producer.jar"
-            details.transformationIdentity.dependenciesConfigurationIdentity == null
-            details.transformType == "MakeGreen"
-            details.sourceAttributes == [color: "blue", artifactType: "jar"]
-            details.fromAttributes == [color: "blue"]
-            details.toAttributes == [color: "green"]
+        with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType).details) {
+            transformerName == "MakeGreen"
+            subjectName == "producer.jar (project :producer)"
+            with(transformationIdentity) {
+                nodeType == "ARTIFACT_TRANSFORM"
+                buildPath == ":"
+                projectPath == ":consumer"
+                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
+                targetVariant.attributes == [color: "green", artifactType: "jar"]
+                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                artifactName == "producer.jar"
+                dependenciesConfigurationIdentity == null
+            }
+            transformType == "MakeGreen"
+            sourceAttributes == [color: "blue", artifactType: "jar"]
+            fromAttributes == [color: "blue"]
+            toAttributes == [color: "green"]
         }
     }
 
@@ -214,39 +216,43 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         def executeTransformationOps = buildOperations.all(ExecuteScheduledTransformationStepBuildOperationType)
         def executeTransformationOp1 = executeTransformationOps[0]
-        with(executeTransformationOp1) {
-            details.transformerName == "MakeColor"
-            details.subjectName == "producer.jar (project :producer)"
-            details.transformationIdentity.nodeType == "ARTIFACT_TRANSFORM"
-            details.transformationIdentity.buildPath == ":"
-            details.transformationIdentity.projectPath == ":consumer"
-            details.transformationIdentity.targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-            details.transformationIdentity.targetVariant.attributes == [color: "red", artifactType: "jar"]
-            details.transformationIdentity.targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-            details.transformationIdentity.artifactName == "producer.jar"
-            details.transformationIdentity.dependenciesConfigurationIdentity == null
-            details.transformType == "MakeColor"
-            details.sourceAttributes == [color: "blue", artifactType: "jar"]
-            details.fromAttributes == [color: "blue"]
-            details.toAttributes == [color: "red"]
+        with(executeTransformationOp1.details) {
+            transformerName == "MakeColor"
+            subjectName == "producer.jar (project :producer)"
+            with(transformationIdentity) {
+                nodeType == "ARTIFACT_TRANSFORM"
+                buildPath == ":"
+                projectPath == ":consumer"
+                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
+                targetVariant.attributes == [color: "red", artifactType: "jar"]
+                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                artifactName == "producer.jar"
+                dependenciesConfigurationIdentity == null
+            }
+            transformType == "MakeColor"
+            sourceAttributes == [color: "blue", artifactType: "jar"]
+            fromAttributes == [color: "blue"]
+            toAttributes == [color: "red"]
         }
 
         def executeTransformationOp2 = executeTransformationOps[1]
-        with(executeTransformationOp2) {
-            details.transformerName == "MakeColor"
-            details.subjectName == "producer.jar (project :producer)"
-            details.transformationIdentity.nodeType == "ARTIFACT_TRANSFORM"
-            details.transformationIdentity.buildPath == ":"
-            details.transformationIdentity.projectPath == ":consumer"
-            details.transformationIdentity.targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-            details.transformationIdentity.targetVariant.attributes == [color: "green", artifactType: "jar"]
-            details.transformationIdentity.targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-            details.transformationIdentity.artifactName == "producer.jar"
-            details.transformationIdentity.dependenciesConfigurationIdentity == null
-            details.transformType == "MakeColor"
-            details.sourceAttributes == [color: "red", artifactType: "jar"]
-            details.fromAttributes == [color: "red"]
-            details.toAttributes == [color: "green"]
+        with(executeTransformationOp2.details) {
+            transformerName == "MakeColor"
+            subjectName == "producer.jar (project :producer)"
+            with(transformationIdentity) {
+                nodeType == "ARTIFACT_TRANSFORM"
+                buildPath == ":"
+                projectPath == ":consumer"
+                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
+                targetVariant.attributes == [color: "green", artifactType: "jar"]
+                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                artifactName == "producer.jar"
+                dependenciesConfigurationIdentity == null
+            }
+            transformType == "MakeColor"
+            sourceAttributes == [color: "red", artifactType: "jar"]
+            fromAttributes == [color: "red"]
+            toAttributes == [color: "green"]
         }
     }
 
@@ -281,7 +287,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         def plannedNodes = buildOperations.only(CalculateTaskGraphBuildOperationType).result.executionPlan as List<PlannedNode>
         plannedNodes.every { KNOWN_NODE_TYPES.contains(it.nodeIdentity.nodeType) }
-        // TODO: why only one node is scheduled?
         plannedNodes.count { it.nodeIdentity.nodeType.toString() == ARTIFACT_TRANSFORM } == 2
 
         checkExecutionPlanMatchingDependencies(
@@ -308,39 +313,43 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         def executeTransformationOps = buildOperations.all(ExecuteScheduledTransformationStepBuildOperationType)
         def executeTransformationOp1 = executeTransformationOps[0]
-        with(executeTransformationOp1) {
-            details.transformerName == "MakeRed"
-            details.subjectName == "producer.jar (project :producer)"
-            details.transformationIdentity.nodeType == "ARTIFACT_TRANSFORM"
-            details.transformationIdentity.buildPath == ":"
-            details.transformationIdentity.projectPath == ":consumer"
-            details.transformationIdentity.targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-            details.transformationIdentity.targetVariant.attributes == [color: "red", artifactType: "jar"]
-            details.transformationIdentity.targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-            details.transformationIdentity.artifactName == "producer.jar"
-            details.transformationIdentity.dependenciesConfigurationIdentity == null
-            details.transformType == "MakeRed"
-            details.sourceAttributes == [color: "blue", artifactType: "jar"]
-            details.fromAttributes == [color: "blue"]
-            details.toAttributes == [color: "red"]
+        with(executeTransformationOp1.details) {
+            transformerName == "MakeRed"
+            subjectName == "producer.jar (project :producer)"
+            with(transformationIdentity) {
+                nodeType == "ARTIFACT_TRANSFORM"
+                buildPath == ":"
+                projectPath == ":consumer"
+                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
+                targetVariant.attributes == [color: "red", artifactType: "jar"]
+                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                artifactName == "producer.jar"
+                dependenciesConfigurationIdentity == null
+            }
+            transformType == "MakeRed"
+            sourceAttributes == [color: "blue", artifactType: "jar"]
+            fromAttributes == [color: "blue"]
+            toAttributes == [color: "red"]
         }
 
         def executeTransformationOp2 = executeTransformationOps[1]
-        with(executeTransformationOp2) {
-            details.transformerName == "MakeGreen"
-            details.subjectName == "producer.jar (project :producer)"
-            details.transformationIdentity.nodeType == "ARTIFACT_TRANSFORM"
-            details.transformationIdentity.buildPath == ":"
-            details.transformationIdentity.projectPath == ":consumer"
-            details.transformationIdentity.targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-            details.transformationIdentity.targetVariant.attributes == [color: "green", artifactType: "jar"]
-            details.transformationIdentity.targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-            details.transformationIdentity.artifactName == "producer.jar"
-            details.transformationIdentity.dependenciesConfigurationIdentity == null
-            details.transformType == "MakeGreen"
-            details.sourceAttributes == [color: "blue", artifactType: "jar"]
-            details.fromAttributes == [color: "blue"]
-            details.toAttributes == [color: "green"]
+        with(executeTransformationOp2.details) {
+            transformerName == "MakeGreen"
+            subjectName == "producer.jar (project :producer)"
+            with(transformationIdentity) {
+                nodeType == "ARTIFACT_TRANSFORM"
+                buildPath == ":"
+                projectPath == ":consumer"
+                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
+                targetVariant.attributes == [color: "green", artifactType: "jar"]
+                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                artifactName == "producer.jar"
+                dependenciesConfigurationIdentity == null
+            }
+            transformType == "MakeGreen"
+            sourceAttributes == [color: "blue", artifactType: "jar"]
+            fromAttributes == [color: "blue"]
+            toAttributes == [color: "green"]
         }
     }
 
@@ -403,21 +412,23 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             ]
         )
 
-        with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
-            details.transformerName == "MakeGreen"
-            details.subjectName == "producer.jar (project :producer)"
-            details.transformationIdentity.nodeType == "ARTIFACT_TRANSFORM"
-            details.transformationIdentity.buildPath == ":"
-            details.transformationIdentity.projectPath == ":consumer"
-            details.transformationIdentity.targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-            details.transformationIdentity.targetVariant.attributes == [color: "green", artifactType: "jar"]
-            details.transformationIdentity.targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-            details.transformationIdentity.artifactName == "producer.jar"
-            details.transformationIdentity.dependenciesConfigurationIdentity == [buildPath: ":", projectPath: ":consumer", name: "resolver"]
-            details.transformType == "MakeGreen"
-            details.sourceAttributes == [color: "blue", artifactType: "jar"]
-            details.fromAttributes == [color: "blue"]
-            details.toAttributes == [color: "green"]
+        with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType).details) {
+            transformerName == "MakeGreen"
+            subjectName == "producer.jar (project :producer)"
+            with(transformationIdentity) {
+                nodeType == "ARTIFACT_TRANSFORM"
+                buildPath == ":"
+                projectPath == ":consumer"
+                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
+                targetVariant.attributes == [color: "green", artifactType: "jar"]
+                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                artifactName == "producer.jar"
+                dependenciesConfigurationIdentity == [buildPath: ":", projectPath: ":consumer", name: "resolver"]
+            }
+            transformType == "MakeGreen"
+            sourceAttributes == [color: "blue", artifactType: "jar"]
+            fromAttributes == [color: "blue"]
+            toAttributes == [color: "green"]
         }
     }
 
@@ -480,39 +491,43 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         def executeTransformationOps = buildOperations.all(ExecuteScheduledTransformationStepBuildOperationType)
         def executeTransformationOp1 = executeTransformationOps[0]
-        with(executeTransformationOp1) {
-            details.transformerName == "MakeRed"
-            details.subjectName == "producer.jar (project :producer)"
-            details.transformationIdentity.nodeType == "ARTIFACT_TRANSFORM"
-            details.transformationIdentity.buildPath == ":"
-            details.transformationIdentity.projectPath == ":consumer"
-            details.transformationIdentity.targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-            details.transformationIdentity.targetVariant.attributes == [color: "red", artifactType: "jar"]
-            details.transformationIdentity.targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-            details.transformationIdentity.artifactName == "producer.jar"
-            details.transformationIdentity.dependenciesConfigurationIdentity == null
-            details.transformType == "MakeRed"
-            details.sourceAttributes == [color: "blue", artifactType: "jar"]
-            details.fromAttributes == [color: "blue"]
-            details.toAttributes == [color: "red"]
+        with(executeTransformationOp1.details) {
+            transformerName == "MakeRed"
+            subjectName == "producer.jar (project :producer)"
+            with(transformationIdentity) {
+                nodeType == "ARTIFACT_TRANSFORM"
+                buildPath == ":"
+                projectPath == ":consumer"
+                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
+                targetVariant.attributes == [color: "red", artifactType: "jar"]
+                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                artifactName == "producer.jar"
+                dependenciesConfigurationIdentity == null
+            }
+            transformType == "MakeRed"
+            sourceAttributes == [color: "blue", artifactType: "jar"]
+            fromAttributes == [color: "blue"]
+            toAttributes == [color: "red"]
         }
 
         def executeTransformationOp2 = executeTransformationOps[1]
-        with(executeTransformationOp2) {
-            details.transformerName == "MakeGreen"
-            details.subjectName == "producer.jar (project :producer)"
-            details.transformationIdentity.nodeType == "ARTIFACT_TRANSFORM"
-            details.transformationIdentity.buildPath == ":"
-            details.transformationIdentity.projectPath == ":consumer"
-            details.transformationIdentity.targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-            details.transformationIdentity.targetVariant.attributes == [color: "green", artifactType: "jar"]
-            details.transformationIdentity.targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-            details.transformationIdentity.artifactName == "producer.jar"
-            details.transformationIdentity.dependenciesConfigurationIdentity == [buildPath: ":", projectPath: ":consumer", name: "resolver"]
-            details.transformType == "MakeGreen"
-            details.sourceAttributes == [color: "red", artifactType: "jar"]
-            details.fromAttributes == [color: "red"]
-            details.toAttributes == [color: "green"]
+        with(executeTransformationOp2.details) {
+            transformerName == "MakeGreen"
+            subjectName == "producer.jar (project :producer)"
+            with(transformationIdentity) {
+                nodeType == "ARTIFACT_TRANSFORM"
+                buildPath == ":"
+                projectPath == ":consumer"
+                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
+                targetVariant.attributes == [color: "green", artifactType: "jar"]
+                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                artifactName == "producer.jar"
+                dependenciesConfigurationIdentity == [buildPath: ":", projectPath: ":consumer", name: "resolver"]
+            }
+            transformType == "MakeGreen"
+            sourceAttributes == [color: "red", artifactType: "jar"]
+            fromAttributes == [color: "red"]
+            toAttributes == [color: "green"]
         }
     }
 
