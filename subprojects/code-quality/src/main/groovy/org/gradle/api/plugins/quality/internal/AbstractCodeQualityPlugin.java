@@ -26,6 +26,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
@@ -96,12 +97,11 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     }
 
     protected void createConfigurations() {
-        Configuration configuration = project.getConfigurations().create(getConfigurationName());
+        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
+        Configuration configuration = configurations.resolvableBucket(getConfigurationName());
         configuration.setVisible(false);
         configuration.setTransitive(true);
         configuration.setDescription("The " + getToolName() + " libraries to be used for this project.");
-        configuration.setCanBeResolved(true);
-        configuration.setCanBeConsumed(false);
 
         // Don't need these things, they're provided by the runtime
         configuration.exclude(excludeProperties("ant", "ant"));
