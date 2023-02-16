@@ -21,17 +21,12 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
 class KryoBackedCodecTest extends AbstractCodecTest {
-    @Override
-    void encodeTo(OutputStream outputStream, Closure<Encoder> closure) {
-        def encoder = new KryoBackedEncoder(outputStream, 10)
-        closure.call(encoder)
-        encoder.flush()
+    protected Encoder createEncoder(OutputStream outputStream) {
+        new KryoBackedEncoder(outputStream, 10)
     }
 
-    @Override
-    void decodeFrom(InputStream inputStream, Closure<Decoder> closure) {
-        def decoder = new KryoBackedDecoder(inputStream, 10)
-        closure.call(decoder)
+    protected Decoder createDecoder(InputStream inputStream) {
+        new KryoBackedDecoder(inputStream, 10)
     }
 
     def "can encode and decode empty byte stream"() {

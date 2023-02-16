@@ -98,4 +98,9 @@ public abstract class AbstractEncoder implements Encoder {
             writeByte((byte) b);
         }
     }
+
+    @Override
+    public long getWritePosition() {
+        return 0;
+    }
 }

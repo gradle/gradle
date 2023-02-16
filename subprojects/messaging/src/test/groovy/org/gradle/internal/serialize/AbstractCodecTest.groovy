@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 import java.nio.CharBuffer
 
-abstract class AbstractCodecTest extends Specification {
+abstract class  AbstractCodecTest extends Specification {
     def "can encode and decode raw bytes using Stream view"() {
         expect:
         def bytes = encode { Encoder encoder ->
@@ -58,6 +58,7 @@ abstract class AbstractCodecTest extends Specification {
         }
 
         then:
+        0 * inputStream._
         0 * inputStream.close()
     }
 
@@ -444,11 +445,40 @@ abstract class AbstractCodecTest extends Specification {
         value                            | _
         ""                               | _
         "all ascii"                      | _
+        "1234567890"                     | _
+        "123456789012345678901234567890" | _
         "\u0000\u0101\u3100"             | _
         "${1 + 2}"                       | _
+        "some string"                    | _
         new StringBuilder("some string") | _
         CharBuffer.wrap("a string")      | _
+        (0..10).join("-")                | _
         (0..1000).join("-")              | _
+    }
+
+
+    def "can encode and decode sequences of different values"() {
+        expect:
+        def bytes = encode { Encoder encoder ->
+            encoder.writeString("foo1")
+            encoder.writeString("foo2")
+            encoder.writeInt(10)
+            encoder.writeString("bar1")
+            encoder.writeString("bar2")
+            encoder.writeBoolean(true)
+            encoder.writeString("baz1")
+            encoder.writeString("baz2")
+        }
+        decode(bytes) { Decoder decoder ->
+            assert decoder.readString() == "foo1"
+            assert decoder.readString() == "foo2"
+            assert decoder.readInt() == 10
+            assert decoder.readString() == "bar1"
+            assert decoder.readString() == "bar2"
+            assert decoder.readBoolean()
+            assert decoder.readString() == "baz1"
+            assert decoder.readString() == "baz2"
+        }
     }
 
     def "decode fails when string cannot be fully read"() {
@@ -495,8 +525,6 @@ abstract class AbstractCodecTest extends Specification {
         new StringBuilder("some string") | _
     }
 
-    abstract void encodeTo(OutputStream outputStream, Closure<Encoder> closure)
-
     byte[] encode(Closure<Encoder> closure) {
         def bytes = new ByteArrayOutputStream()
         encodeTo(bytes, closure)
@@ -513,9 +541,22 @@ abstract class AbstractCodecTest extends Specification {
         return result[0..result.length - 2] as byte[]
     }
 
-    abstract void decodeFrom(InputStream inputStream, Closure<Decoder> closure)
-
     void decode(byte[] bytes, Closure<Decoder> closure) {
         decodeFrom(new ByteArrayInputStream(bytes), closure)
     }
+
+    void encodeTo(OutputStream outputStream, Closure<Encoder> closure) {
+        def encoder = createEncoder(outputStream)
+        closure.call(encoder)
+        encoder.flush()
+    }
+
+    void decodeFrom(InputStream inputStream, Closure<Decoder> closure) {
+        def decoder = createDecoder(inputStream)
+        closure.call(decoder)
+    }
+
+    abstract protected Encoder createEncoder(OutputStream outputStream)
+
+    abstract protected Decoder createDecoder(InputStream inputStream)
 }
