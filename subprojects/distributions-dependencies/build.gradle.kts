@@ -103,6 +103,7 @@ dependencies {
         api(libs.jakartaXmlBind)        { version { strictly("3.0.0") }}
         api(libs.jansi)                 { version { strictly("1.18"); because("2.x changes the API") }}
         api(libs.jatl)                  { version { strictly("0.2.3") }}
+        api(libs.javaPoet)              { version { strictly("1.13.0") } }
         api(libs.jaxbCore)              { version { strictly(jaxbVersion) }}
         api(libs.jaxbImpl)              { version { strictly(jaxbVersion) }}
         api(libs.jcifs)                 { version { strictly("1.3.17") }}
