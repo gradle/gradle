@@ -544,6 +544,24 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     boolean isCanBeResolved();
 
     /**
+     * Configures if a configuration can have dependencies declared upon it.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    void setCanBeDeclaredAgainst(boolean allowed);
+
+    /**
+     * Returns true if it is allowed to declare dependencies upon this configuration.
+     * Defaults to true.
+     * @return true if this configuration can have dependencies declared
+     *
+     * @since 8.1
+     */
+    @Incubating
+    boolean isCanBeDeclaredAgainst();
+
+    /**
      * Tells that this configuration, when resolved, should resolve versions consistently
      * from the resolution result of another resolvable configuration. For example, it's
      * expected that the versions of the runtime classpath are the same as the versions

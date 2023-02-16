@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.function.Function;
 
 public interface DeprecatableConfiguration extends Configuration {
-
     /**
      * @return configurations that should be used to declare dependencies instead of this configuration.
      *         Returns 'null' if this configuration is not deprecated for declaration.
@@ -92,4 +91,11 @@ public interface DeprecatableConfiguration extends Configuration {
         List<String> resolutionAlternatives = getResolutionAlternatives();
         return resolutionAlternatives == null;
     }
+
+    /**
+     * Prevents any calls to methods that change this configuration's allowed usage (e.g. {@link #setCanBeConsumed(boolean)},
+     * {@link #setCanBeResolved(boolean)}, {@link #deprecateForResolution(String...)}) from succeeding; and causes them
+     * to throw an exception.
+     */
+    void preventUsageMutation();
 }
