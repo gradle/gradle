@@ -16,6 +16,10 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
+
 import java.util.jar.JarOutputStream
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -34,7 +38,7 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+        buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
 
         then:
         assertConfigurationCacheStateStored()
@@ -61,7 +65,7 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
 
         when:
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
-        def result = buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+        def result = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
         def md5Before = compiledClassFile.md5Hash
 
         then:
@@ -71,7 +75,12 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
         when:
         fileToChange.replace("computeCurrentVelocity(1000", "computeCurrentVelocity(2000")
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
-        buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+        if (GradleContextualExecuter.notConfigCache) {
+            buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(checkoutDir, agpVersion)
+        } else {
+            buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
+        }
+
         def md5After = compiledClassFile.md5Hash
 
         then:
@@ -107,6 +116,11 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
+        runner.expectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) < VersionNumber.parse("7.4.0"),
+            "The Project.getConvention method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation")
         def result = runner.buildAndFail()
 
         then:
@@ -120,6 +134,13 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         )
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         runner.withArguments(runner.arguments + "--continue")
+        if (GradleContextualExecuter.notConfigCache) {
+            runner.expectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) < VersionNumber.parse("7.4.0"),
+                "The Project.getConvention method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation")
+        }
         result = runner.buildAndFail()
 
         then:

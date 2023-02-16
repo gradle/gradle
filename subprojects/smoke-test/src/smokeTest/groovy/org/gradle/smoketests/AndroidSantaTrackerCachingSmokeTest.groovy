@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.testkit.runner.BuildResult
 
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
@@ -41,7 +42,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
 
         when: 'clean build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(originalDir, homeDir)
-        buildLocationMaybeExpectingWorkerExecutorDeprecation(originalDir, agpVersion)
+        buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(originalDir, agpVersion)
 
         then:
         assertConfigurationCacheStateStored()
@@ -67,7 +68,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
 
         when: 'clean cached build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(relocatedDir, homeDir)
-        BuildResult relocatedResult = buildLocationMaybeExpectingWorkerExecutorDeprecation(relocatedDir, agpVersion)
+        BuildResult relocatedResult = buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(relocatedDir, agpVersion)
 
         then:
         assertConfigurationCacheStateStored()
@@ -85,7 +86,11 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
         when: 'clean cached build, reusing configuration cache when enabled'
         cleanLocation(relocatedDir, agpVersion)
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(relocatedDir, homeDir)
-        buildLocationMaybeExpectingWorkerExecutorDeprecation(relocatedDir, agpVersion)
+        if (GradleContextualExecuter.notConfigCache) {
+            buildLocationMaybeExpectingWorkerExecutorAndConventionDeprecation(relocatedDir, agpVersion)
+        } else {
+            buildLocationMaybeExpectingWorkerExecutorDeprecation(relocatedDir, agpVersion)
+        }
 
         then:
         assertConfigurationCacheStateLoaded()

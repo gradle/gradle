@@ -16,9 +16,12 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+
 class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
@@ -48,15 +51,19 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             """.stripIndent()
 
         when:
-        def result = runner('shadowJar').build()
+        def result = runnerWithExpectedDeprecationWarning('shadowJar').build()
 
         then:
         result.task(':shadowJar').outcome == SUCCESS
         assertConfigurationCacheStateStored()
 
         when:
-        runner('clean').build()
-        result = runner('shadowJar').build()
+        runnerWithExpectedDeprecationWarning('clean').build()
+        if (GradleContextualExecuter.configCache) {
+            result = runner('shadowJar').build()
+        } else {
+            result = runnerWithExpectedDeprecationWarning('shadowJar').build()
+        }
 
         then:
         result.task(':shadowJar').outcome == SUCCESS
@@ -72,4 +79,13 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             'com.github.johnrengelman.shadow': TestedVersions.shadow
         ]
     }
+
+    private def runnerWithExpectedDeprecationWarning(String... tasks) {
+        def smokeTestRunner = runner(tasks)
+        smokeTestRunner.expectLegacyDeprecationWarning("The Project.getConvention method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation")
+        smokeTestRunner
+    }
+
 }
