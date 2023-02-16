@@ -15,8 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -48,10 +50,14 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration>
     implements ConfigurationContainerInternal, ConfigurationsProvider {
+    public static final Logger LOGGER = Logger.getLogger(DefaultConfigurationContainer.class.getName());
+
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
 
     @SuppressWarnings("deprecation")
@@ -62,6 +68,9 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private final DefaultRootComponentMetadataBuilder rootComponentMetadataBuilder;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
+
+    private final boolean warnOnNonRoleBasedCreation = true;
+    private final boolean failOnNonRoleBasedCreation = false;
 
     public DefaultConfigurationContainer(
         Instantiator instantiator,
@@ -172,5 +181,50 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         DefaultConfiguration configuration = newConfiguration(name, this, rootComponentMetadataBuilder, role, lockUsage);
         configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return configuration;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Configuration create(String name) throws InvalidUserDataException {
+        onNonRoleBasedCreation(name);
+        return super.create(name);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Configuration maybeCreate(String name) {
+        onNonRoleBasedCreation(name);
+        return super.maybeCreate(name);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Configuration create(String name, @SuppressWarnings("rawtypes") Closure configureClosure) throws InvalidUserDataException {
+        onNonRoleBasedCreation(name);
+        return super.create(name, configureClosure);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Configuration create(String name, Action<? super Configuration> configureAction) throws InvalidUserDataException {
+        onNonRoleBasedCreation(name);
+        return super.create(name, configureAction);
+    }
+
+    private void onNonRoleBasedCreation(String name) {
+        String msg = String.format("Configuration '%s' created without using the role-based API.", name);
+        if (failOnNonRoleBasedCreation) {
+            throw new RuntimeException(msg);
+        } else if (warnOnNonRoleBasedCreation) {
+            LOGGER.log(Level.WARNING, "*** " + msg + " ***");
+        }
     }
 }
