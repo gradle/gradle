@@ -17,11 +17,13 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScriptExecuter
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -189,6 +191,8 @@ class Main {
         result.assertNormalExitValue()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/21505")
+    @ToBeFixedForConfigurationCache(because = "applicationDefaultJvmArgs")
     def canUseDefaultJvmArgsInRunTask() {
         file("build.gradle") << '''
         applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=value2']
@@ -211,7 +215,6 @@ class Main {
         expect:
         run 'run'
     }
-
 
     def "can customize application name"() {
         file('build.gradle') << '''
