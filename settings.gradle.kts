@@ -151,6 +151,8 @@ include("instrumentation-agent")
 include("kotlin-dsl-plugins")
 
 // Internal utility and verification projects
+include("internal-instrumentation-api")
+include("internal-instrumentation-processor")
 include("docs")
 include("docs-asciidoctor-extensions-base")
 include("docs-asciidoctor-extensions")
