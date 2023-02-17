@@ -38,6 +38,10 @@ public abstract class GroupedNodeFixture {
         return join("\n", nonEmptyOutputs);
     }
 
+    public List<String> getOutputs() {
+        return outputs;
+    }
+
     /**
      * Given some expectedText, assert that the output of this fixture contains it.
      *
