@@ -531,6 +531,144 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
     }
 
+    def "chained transform producing multiple artifacts operations are captured"() {
+        settingsFile << """
+            include 'producer', 'consumer'
+        """
+
+        setupBuildWithColorAttributes()
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform(MakeColor) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'red')
+                        parameters.targetColor.set('red')
+                        parameters.multiplier.set(2)
+                    }
+                    registerTransform(MakeColor) {
+                        from.attribute(color, 'red')
+                        to.attribute(color, 'green')
+                        parameters.targetColor.set('green')
+                        parameters.multiplier.set(1)
+                    }
+                }
+            }
+
+            interface TargetColor extends TransformParameters {
+                @Input
+                Property<String> getTargetColor()
+                @Input
+                Property<Integer> getMultiplier()
+            }
+
+            abstract class MakeColor implements TransformAction<TargetColor> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing [\${input.name}]"
+                    assert input.file
+                    for (def i : 1..parameters.multiplier.get()) {
+                        def output = outputs.file(input.name + "." + parameters.targetColor.get() + "-" + i)
+                        output.text = input.text + "-" + parameters.targetColor.get() + "-" + i
+                    }
+                }
+            }
+        """
+        setupExternalDependency()
+
+        buildFile << """
+            project(":consumer") {
+                dependencies {
+                    implementation project(":producer")
+                }
+            }
+        """
+
+        when:
+        run ":consumer:resolve"
+
+        then:
+        executedAndNotSkipped(":consumer:resolve")
+
+        result.groupedOutput.transform("MakeColor")
+            .assertOutputContains("processing [producer.jar]")
+            .assertOutputContains("processing [producer.jar.red-1]")
+            .assertOutputContains("processing [producer.jar.red-2]")
+
+        result.groupedOutput.task(":consumer:resolve")
+            .assertOutputContains("result = [producer.jar.red-1.green-1, producer.jar.red-2.green-1, test-4.2.jar]")
+
+        def plannedNodes = buildOperations.only(CalculateTaskGraphBuildOperationType).result.executionPlan as List<PlannedNode>
+        plannedNodes.every { KNOWN_NODE_TYPES.contains(it.nodeIdentity.nodeType) }
+        plannedNodes.count { it.nodeIdentity.nodeType.toString() == ARTIFACT_TRANSFORM } == 2
+
+        checkExecutionPlanMatchingDependencies(
+            plannedNodes,
+            [
+                taskMatcher(
+                    "node1", ":producer:producer",
+                    []
+                ),
+                transformMatcher(
+                    "node2", ":consumer", [buildPath: ":", projectPath: ":producer"], [artifactType: "jar", color: "red"],
+                    ["node1"]
+                ),
+                transformMatcher(
+                    "node3", ":consumer", [buildPath: ":", projectPath: ":producer"], [artifactType: "jar", color: "green"],
+                    ["node2"]
+                ),
+                taskMatcher(
+                    "node4", ":consumer:resolve",
+                    ["node3"]
+                ),
+            ]
+        )
+
+        def executeTransformationOps = buildOperations.all(ExecuteScheduledTransformationStepBuildOperationType)
+        def executeTransformationOp1 = executeTransformationOps[0]
+        with(executeTransformationOp1.details) {
+            transformerName == "MakeColor"
+            subjectName == "producer.jar (project :producer)"
+            with(transformationIdentity) {
+                nodeType == "ARTIFACT_TRANSFORM"
+                buildPath == ":"
+                projectPath == ":consumer"
+                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
+                targetVariant.attributes == [color: "red", artifactType: "jar"]
+                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                artifactName == "producer.jar"
+                dependenciesConfigurationIdentity == null
+            }
+            transformType == "MakeColor"
+            sourceAttributes == [color: "blue", artifactType: "jar"]
+            fromAttributes == [color: "blue"]
+            toAttributes == [color: "red"]
+        }
+
+        def executeTransformationOp2 = executeTransformationOps[1]
+        with(executeTransformationOp2.details) {
+            transformerName == "MakeColor"
+            subjectName == "producer.jar (project :producer)"
+            with(transformationIdentity) {
+                nodeType == "ARTIFACT_TRANSFORM"
+                buildPath == ":"
+                projectPath == ":consumer"
+                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
+                targetVariant.attributes == [color: "green", artifactType: "jar"]
+                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                artifactName == "producer.jar"
+                dependenciesConfigurationIdentity == null
+            }
+            transformType == "MakeColor"
+            sourceAttributes == [color: "red", artifactType: "jar"]
+            fromAttributes == [color: "red"]
+            toAttributes == [color: "green"]
+        }
+    }
+
     def checkExecutionPlanMatchingDependencies(List<PlannedNode> plannedNodes, List<NodeMatcher> nodeMatchers) {
         Map<NodeId, List<String>> expectedDependencyPhantomIdsByNodeId = [:]
         Map<NodeId, String> phantomIdByNodeId = [:]
