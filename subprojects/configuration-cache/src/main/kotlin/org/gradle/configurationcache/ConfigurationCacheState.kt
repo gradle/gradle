@@ -89,6 +89,7 @@ enum class StateType(val encryptable: Boolean = false) {
      * Contains the state for the entire build.
      */
     Work(true),
+<<<<<<< HEAD
     /**
      * Contains the model objects sent back to the IDE in response to a TAPI request.
      */
@@ -107,6 +108,14 @@ enum class StateType(val encryptable: Boolean = false) {
      * The index file that points to all of these things
      */
     Entry(false)
+=======
+    Model(true),
+    Entry(true),
+    BuildFingerprint(true),
+    ProjectFingerprint(true),
+    IntermediateModels(true),
+    ProjectMetadata(true)
+>>>>>>> c2d7d30bf52 (Enable encryption for all state files)
 }
 
 
