@@ -64,6 +64,25 @@ class NextGenBuildCacheHttpIntegrationTest extends AbstractIntegrationSpec imple
         skipped ":compileJava"
     }
 
+    def "does http requests for cache entries with 'nextGen' prefix for keys"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        file("src/main/java/Main.java") << """
+            public class Main {}
+        """
+
+        when:
+        runWithCacheNG "compileJava"
+
+        then:
+        executedAndNotSkipped ":compileJava"
+        outputContains("handling http request: GET /nextGen-")
+        outputContains("handling http request: HEAD /nextGen-")
+        outputContains("handling http request: PUT /nextGen-")
+    }
+
     private runWithCacheNG(String... tasks) {
         withBuildCache().run("-D${NextGenBuildCacheControllerFactory.NEXT_GEN_CACHE_SYSTEM_PROPERTY}=true", *tasks)
     }
