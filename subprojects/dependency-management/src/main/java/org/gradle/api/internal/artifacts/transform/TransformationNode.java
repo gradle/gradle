@@ -269,7 +269,6 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         }
     }
 
-
     public ResolvableArtifact getInputArtifact() {
         return artifact;
     }
