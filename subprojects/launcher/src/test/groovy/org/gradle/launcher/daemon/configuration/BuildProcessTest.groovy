@@ -245,26 +245,31 @@ class BuildProcessTest extends Specification {
         !buildProcess.configureForBuild(parametersWithDefaults)
     }
 
-    def "instrumentation agent status is immutable"() {
+    def "instrumentation agent status is considered during matching"() {
         given:
         def desiredParameters = buildParameters([])
-        desiredParameters.setApplyInstrumentationAgent(desiredStatus)
+        desiredParameters.setApplyInstrumentationAgent(desiredInstrumentationStatus)
 
         when:
         def currentAgentStatus = Stub(AgentStatus) {
-            isAgentInstrumentationEnabled() >> currentStatus
+            isAgentInstrumentationEnabled() >> agentApplied
         }
         BuildProcess buildProcess = createBuildProcess(currentAgentStatus)
 
         then:
-        buildProcess.configureForBuild(desiredParameters) == expectedResult
+        buildProcess.configureForBuild(desiredParameters) == expectProcessToBeUsable
 
         where:
-        desiredStatus | currentStatus || expectedResult
-        false         | false         || true
-        false         | true          || true
-        true          | false         || false
-        true          | true          || true
+        desiredInstrumentationStatus | agentApplied || expectProcessToBeUsable
+        // process without the agent applied can be used if no agent instrumentation is requested
+        false                        | false        || true
+        // process with the agent applied can be used if no agent instrumentation is requested.
+        // We expect the code to avoid using the agent in this case
+        false                        | true         || true
+        // process without the agent applied cannot be used if the agent instrumentation is requested
+        true                         | false        || false
+        // process with the agent applied can be used if the agent instrumentation is requested
+        true                         | true         || true
     }
 
     private BuildProcess createBuildProcess(AgentStatus agentStatus) {
