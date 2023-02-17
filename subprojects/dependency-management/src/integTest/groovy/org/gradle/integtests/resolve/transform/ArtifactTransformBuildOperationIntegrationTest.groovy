@@ -29,7 +29,7 @@ import java.util.function.Predicate
 class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture {
 
     @EqualsAndHashCode
-    static class NodeId {
+    static class TypedNodeId {
         String nodeType
         String nodeIdInType
     }
@@ -46,7 +46,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
     }
 
-    static final Set<String> KNOWN_NODE_TYPES = NodeIdentity.NodeType.values().collect { it.name() } as Set<String>
+    static final Set<String> KNOWN_NODE_TYPES = NodeIdentity.NodeType.values()*.name() as Set<String>
     static final String TASK = NodeIdentity.NodeType.TASK.name()
     static final String ARTIFACT_TRANSFORM = NodeIdentity.NodeType.ARTIFACT_TRANSFORM.name()
 
@@ -68,8 +68,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         buildFile << """
             allprojects {
-                group = "colored"
-
                 repositories {
                     maven { url "${mavenRepo.uri}" }
                 }
@@ -670,71 +668,69 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
     }
 
-    def checkExecutionPlanMatchingDependencies(List<PlannedNode> plannedNodes, List<NodeMatcher> nodeMatchers) {
-        Map<NodeId, List<String>> expectedDependencyPhantomIdsByNodeId = [:]
-        Map<NodeId, String> phantomIdByNodeId = [:]
+    void checkExecutionPlanMatchingDependencies(List<PlannedNode> plannedNodes, List<NodeMatcher> nodeMatchers) {
+        Map<TypedNodeId, List<String>> expectedDependencyNodeIdsByTypedNodeId = [:]
+        Map<TypedNodeId, String> nodeIdByTypedNodeId = [:]
 
         for (def plannedNode : plannedNodes) {
             def matchers = nodeMatchers.findAll { it.matchNode(plannedNode) }
             assert matchers.size() == 1, "Expected exactly one matcher for node ${plannedNode.nodeIdentity}, but found ${matchers.size()}"
             def nodeMatcher = matchers[0]
-            def nodeId = getNodeId(plannedNode.nodeIdentity)
-            phantomIdByNodeId[nodeId] = nodeMatcher.nodeId
-            expectedDependencyPhantomIdsByNodeId[nodeId] = nodeMatcher.dependencyNodeIds
+            def nodeId = getTypedNodeId(plannedNode.nodeIdentity)
+            nodeIdByTypedNodeId[nodeId] = nodeMatcher.nodeId
+            expectedDependencyNodeIdsByTypedNodeId[nodeId] = nodeMatcher.dependencyNodeIds
         }
 
         for (def plannedNode : plannedNodes) {
-            def nodeId = getNodeId(plannedNode.nodeIdentity)
-            def expectedDependencyPhantomIds = expectedDependencyPhantomIdsByNodeId[nodeId]
-            assert expectedDependencyPhantomIds != null, "No expected dependencies for node $plannedNode"
+            def typedNodeId = getTypedNodeId(plannedNode.nodeIdentity)
+            def expectedDependencyNodeIds = expectedDependencyNodeIdsByTypedNodeId[typedNodeId]
+            assert expectedDependencyNodeIds != null, "No expected dependencies for node $plannedNode"
 
-            def actualDependencyPhantomIds = plannedNode.nodeDependencies.collect { depIdentity ->
-                def depNodeId = getNodeId(depIdentity)
-                def depPhantomId = phantomIdByNodeId[depNodeId]
-                assert depPhantomId != null, "No phantom id for node $depIdentity"
-                depPhantomId
+            def actualDependencyNodeIds = plannedNode.nodeDependencies.collect { depIdentity ->
+                def depTypedNodeId = getTypedNodeId(depIdentity)
+                def depNodeId = nodeIdByTypedNodeId[depTypedNodeId]
+                assert depNodeId != null, "No node id for node $depIdentity"
+                depNodeId
             }
 
-            assert actualDependencyPhantomIds.toSet() == expectedDependencyPhantomIds.toSet()
+            assert actualDependencyNodeIds ==~ expectedDependencyNodeIds
         }
-
-        return true
     }
 
-    def taskMatcher(String phantomId, String taskIdentityPath, List<String> dependencyPhantomIds) {
+    def taskMatcher(String nodeId, String taskIdentityPath, List<String> dependencyNodeIds) {
         new NodeMatcher(
-            nodeId: phantomId,
+            nodeId: nodeId,
             nodeType: TASK,
             identityPredicate: { joinPaths(it.buildPath, it.taskPath) == taskIdentityPath },
-            dependencyNodeIds: dependencyPhantomIds
+            dependencyNodeIds: dependencyNodeIds
         )
     }
 
     def transformMatcher(
-        String phantomId,
+        String nodeId,
         String consumerIdentityPath,
         Map<String, String> componentId,
         Map<String, String> attributes,
-        List<String> dependencyPhantomIds
+        List<String> dependencyNodeIds
     ) {
         new NodeMatcher(
-            nodeId: phantomId,
+            nodeId: nodeId,
             nodeType: ARTIFACT_TRANSFORM,
             identityPredicate: {
                 joinPaths(it.buildPath, it.projectPath) == consumerIdentityPath &&
                     it.componentId == componentId &&
                     it.targetAttributes == attributes
             },
-            dependencyNodeIds: dependencyPhantomIds
+            dependencyNodeIds: dependencyNodeIds
         )
     }
 
-    def getNodeId(nodeIdentity) {
+    def getTypedNodeId(nodeIdentity) {
         switch (nodeIdentity.nodeType) {
             case TASK:
-                return new NodeId(nodeType: TASK, nodeIdInType: nodeIdentity.taskId.toString())
+                return new TypedNodeId(nodeType: TASK, nodeIdInType: nodeIdentity.taskId.toString())
             case ARTIFACT_TRANSFORM:
-                return new NodeId(nodeType: ARTIFACT_TRANSFORM, nodeIdInType: nodeIdentity.transformationNodeId)
+                return new TypedNodeId(nodeType: ARTIFACT_TRANSFORM, nodeIdInType: nodeIdentity.transformationNodeId)
             default:
                 throw new IllegalArgumentException("Unknown node type: ${nodeIdentity.nodeType}")
         }
