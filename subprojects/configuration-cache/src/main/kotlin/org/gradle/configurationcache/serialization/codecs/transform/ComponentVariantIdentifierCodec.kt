@@ -16,9 +16,10 @@
 
 package org.gradle.configurationcache.serialization.codecs.transform
 
+import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.transform.ComponentVariantIdentifier
-import org.gradle.api.internal.artifacts.transform.TransformationNode
-import org.gradle.api.internal.artifacts.transform.TransformedProjectArtifactSet
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
@@ -30,19 +31,24 @@ import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.writeCollection
 
 
-class TransformedProjectArtifactSetCodec : Codec<TransformedProjectArtifactSet> {
-    override suspend fun WriteContext.encode(value: TransformedProjectArtifactSet) {
+/**
+ * Codec for [ComponentVariantIdentifier] instances.
+ */
+object ComponentVariantIdentifierCodec : Codec<ComponentVariantIdentifier> {
+    override suspend fun WriteContext.encode(value: ComponentVariantIdentifier) {
         encodePreservingSharedIdentityOf(value) {
-            write(value.targetVariant)
-            writeCollection(value.transformedArtifacts)
+            write(value.componentId)
+            write(value.attributes)
+            writeCollection(value.capabilities)
         }
     }
 
-    override suspend fun ReadContext.decode(): TransformedProjectArtifactSet {
+    override suspend fun ReadContext.decode(): ComponentVariantIdentifier {
         return decodePreservingSharedIdentity {
-            val targetVariant = readNonNull<ComponentVariantIdentifier>()
-            val nodes: List<TransformationNode> = readList().uncheckedCast()
-            TransformedProjectArtifactSet(targetVariant, nodes)
+            val componentId = readNonNull<ComponentIdentifier>()
+            val attributes = readNonNull<ImmutableAttributes>()
+            val capabilities: List<Capability> = readList().uncheckedCast()
+            ComponentVariantIdentifier(componentId, attributes, capabilities)
         }
     }
 }

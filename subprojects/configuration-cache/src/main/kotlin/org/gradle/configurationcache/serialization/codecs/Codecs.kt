@@ -43,6 +43,7 @@ import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializ
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.configurationcache.serialization.codecs.transform.CalculateArtifactsCodec
 import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformationNodeCodec
+import org.gradle.configurationcache.serialization.codecs.transform.ComponentVariantIdentifierCodec
 import org.gradle.configurationcache.serialization.codecs.transform.DefaultTransformerCodec
 import org.gradle.configurationcache.serialization.codecs.transform.FinalizeTransformDependenciesNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.InitialTransformationNodeCodec
@@ -149,6 +150,7 @@ class Codecs(
         bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter))
         bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
         bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
+        bind(ComponentVariantIdentifierCodec)
         bind(InitialTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
         bind(ChainedTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
         bind(TransformationStepCodec(inputFingerprinter))
