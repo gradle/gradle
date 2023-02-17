@@ -54,29 +54,27 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
             }
         }
 
-        afterEvaluate {
-            kotlinDslPluginOptions {
-                tasks.withType<KotlinCompile>().configureEach {
-                    it.compilerOptions {
-                        DeprecationLogger.whileDisabled {
-                            @Suppress("DEPRECATION")
-                            if (this@kotlinDslPluginOptions.jvmTarget.isPresent) {
-                                jvmTarget.set(JvmTarget.fromTarget(this@kotlinDslPluginOptions.jvmTarget.get()))
-                            }
+        kotlinDslPluginOptions {
+            tasks.withType<KotlinCompile>().configureEach { kotlinCompile ->
+                kotlinCompile.compilerOptions {
+                    DeprecationLogger.whileDisabled {
+                        @Suppress("DEPRECATION")
+                        if (this@kotlinDslPluginOptions.jvmTarget.isPresent) {
+                            jvmTarget.set(this@kotlinDslPluginOptions.jvmTarget.map { JvmTarget.fromTarget(it) })
                         }
-                        apiVersion.set(KotlinVersion.KOTLIN_1_8)
-                        languageVersion.set(KotlinVersion.KOTLIN_1_8)
-                        freeCompilerArgs.addAll(KotlinDslPluginSupport.kotlinCompilerArgs)
                     }
-                    it.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf(
-                        "-XXLanguage:+DisableCompatibilityModeForNewInference",
-                        "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
-                        "Assign Kotlin compiler plugin is an experimental feature",
-                        // Kotlin 1.8.0 has wrong warning message for assign plugin, remove once we update Kotlin to 1.8.20.
-                        // https://github.com/JetBrains/kotlin/commit/0eb34983cb38064684cfc76dacb8d4460fcc6573
-                        "Lombok Kotlin compiler plugin is an experimental feature",
-                    )))
+                    apiVersion.set(KotlinVersion.KOTLIN_1_8)
+                    languageVersion.set(KotlinVersion.KOTLIN_1_8)
+                    freeCompilerArgs.addAll(KotlinDslPluginSupport.kotlinCompilerArgs)
                 }
+                kotlinCompile.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf(
+                    "-XXLanguage:+DisableCompatibilityModeForNewInference",
+                    "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
+                    "Assign Kotlin compiler plugin is an experimental feature",
+                    // Kotlin 1.8.0 has wrong warning message for assign plugin, remove once we update Kotlin to 1.8.20.
+                    // https://github.com/JetBrains/kotlin/commit/0eb34983cb38064684cfc76dacb8d4460fcc6573
+                    "Lombok Kotlin compiler plugin is an experimental feature",
+                )))
             }
         }
     }
