@@ -363,6 +363,7 @@ class DefaultJavaForkOptionsTest extends Specification {
 
     def "can copy to target options"() {
         JavaForkOptions target = Mock(JavaForkOptions)
+        def targetJvmArgumentProviders = []
 
         given:
         options.executable('executable')
@@ -370,12 +371,14 @@ class DefaultJavaForkOptionsTest extends Specification {
         options.systemProperties(key: 12)
         options.minHeapSize = '64m'
         options.maxHeapSize = '1g'
-        options.jvmArgumentProviders << new CommandLineArgumentProvider() {
+
+        def commandLineArgumentProvider = new CommandLineArgumentProvider() {
             @Override
             Iterable<String> asArguments() {
                 return ['argFromProvider']
             }
         }
+        options.jvmArgumentProviders << commandLineArgumentProvider
 
         when:
         options.copyTo(target)
@@ -389,9 +392,9 @@ class DefaultJavaForkOptionsTest extends Specification {
         1 * target.bootstrapClasspath(_)
         1 * target.setEnableAssertions(false)
         1 * target.getDebugOptions() >> new DefaultJavaDebugOptions()
+        2 * target.jvmArgumentProviders >> targetJvmArgumentProviders
 
-        then:
-        1 * target.jvmArgs(['argFromProvider'])
+        targetJvmArgumentProviders == [commandLineArgumentProvider]
     }
 
     def "defaults are compatible"() {

@@ -103,7 +103,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     @Override
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
         if (jvmArgumentProviders == null) {
-            jvmArgumentProviders = new ArrayList<CommandLineArgumentProvider>();
+            jvmArgumentProviders = new ArrayList<>();
         }
         return jvmArgumentProviders;
     }
@@ -210,9 +210,8 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         super.copyTo(target);
         options.copyTo(target);
         if (jvmArgumentProviders != null) {
-            for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
-                target.jvmArgs(jvmArgumentProvider.asArguments());
-            }
+            target.getJvmArgumentProviders().clear();
+            target.getJvmArgumentProviders().addAll(jvmArgumentProviders);
         }
         return this;
     }

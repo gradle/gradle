@@ -228,7 +228,7 @@ class TestTest extends AbstractConventionTaskTest {
         test.copyTo(javaForkOptions)
 
         then:
-        javaForkOptions.getJvmArgs() == ['First', 'Second']
+        javaForkOptions.jvmArgumentProviders == test.jvmArgumentProviders
     }
 
     def "java version is determined with toolchain if set"() {
