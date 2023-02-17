@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.fixtures.logging;
 
-public class GroupedTransformationFixture extends GroupedNodeFixture {
+public class GroupedTransformationOutputFixture extends GroupedWorkOutputFixture {
     private final String initialSubjectType;
     private final String subject;
     private final String transformer;
 
-    public GroupedTransformationFixture(String initialSubjectType, String subject, String transformer) {
+    public GroupedTransformationOutputFixture(String initialSubjectType, String subject, String transformer) {
         this.initialSubjectType = initialSubjectType;
         this.subject = subject;
         this.transformer = transformer;

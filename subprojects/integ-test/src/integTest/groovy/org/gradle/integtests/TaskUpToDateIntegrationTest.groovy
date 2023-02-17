@@ -321,8 +321,9 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
             task myTask {
                 inputs.dir('inputDir')
                 outputs.file('build/output.txt')
+                def outputFile = file('build/output.txt')
                 doLast {
-                    file('build/output.txt').text = "Hello world"
+                    outputFile.text = "Hello world"
                 }
             }
         """

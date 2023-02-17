@@ -32,11 +32,9 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent;
@@ -65,21 +63,16 @@ import javax.inject.Inject;
 
 import static org.gradle.api.attributes.DocsType.JAVADOC;
 import static org.gradle.api.attributes.DocsType.SOURCES;
-import static org.gradle.api.plugins.JavaPlugin.JAVADOC_ELEMENTS_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.SOURCES_ELEMENTS_CONFIGURATION_NAME;
 
 /**
  * The software component created by the Java plugin. This component owns the consumable configurations which contribute to
- * this component's variants. Additionally, this component also owns the {@link SourceSet#MAIN_SOURCE_SET_NAME main} {@link SourceSet}
- * and transitively any domain objects which are created by the {@link BasePlugin} on the main source set's behalf. This includes the
- * source set's resolvable configurations and buckets, as well as any associated tasks.
- * <p>
- * This component was written assuming it will only be instantiated once, and therefore it hard-codes the names of the
- * domain objects it creates. However, future iterations of this component should allow it to be more generic.
+ * this component's variants. Additionally, this component also owns its base {@link SourceSet} and transitively any domain
+ * objects which are created by the {@link BasePlugin} on the source set's behalf. This includes the source set's resolvable
+ * configurations and buckets, as well as any associated tasks.
  */
 public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent implements JvmSoftwareComponentInternal {
 
-    private static final String SOURCE_ELEMENTS_VARIANT_NAME = "mainSourceElements";
+    private static final String SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX = "SourceElements";
 
     private final Project project;
 
@@ -102,7 +95,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
     @Inject
     public DefaultJvmSoftwareComponent(
         String componentName,
-        JavaPluginExtension javaExtension,
+        String sourceSetName,
         Project project,
         JvmPluginServices jvmPluginServices,
         ObjectFactory objectFactory,
@@ -119,8 +112,8 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         PluginContainer plugins = project.getPlugins();
         ExtensionContainer extensions = project.getExtensions();
 
-        assert project.getPlugins().hasPlugin(JavaBasePlugin.class);
-        this.sourceSet = createMainSourceSet(javaExtension.getSourceSets());
+        JavaPluginExtension javaExtension = getJavaPluginExtension(extensions);
+        this.sourceSet = createSourceSet(sourceSetName, javaExtension.getSourceSets());
 
         this.compileJava = tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
         this.jar = registerJarTask(tasks, sourceSet);
@@ -145,16 +138,24 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", false));
     }
 
-    private SourceSet createMainSourceSet(SourceSetContainer sourceSets) {
-        if (sourceSets.findByName(SourceSet.MAIN_SOURCE_SET_NAME) != null) {
-            throw new GradleException("Cannot create multiple instances of " + this.getClass().getSimpleName() + ".");
+    private static JavaPluginExtension getJavaPluginExtension(ExtensionContainer extensions) {
+        JavaPluginExtension javaExtension = extensions.findByType(JavaPluginExtension.class);
+        if (javaExtension == null) {
+            throw new GradleException("The java-base plugin must be applied in order to create instances of " + DefaultJvmSoftwareComponent.class.getSimpleName() + ".");
+        }
+        return javaExtension;
+    }
+
+    private static SourceSet createSourceSet(String name, SourceSetContainer sourceSets) {
+        if (sourceSets.findByName(name) != null) {
+            throw new GradleException("Cannot create multiple instances of " + DefaultJvmSoftwareComponent.class.getSimpleName() + " with source set name '" + name +"'.");
         }
 
-        return sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
+        return sourceSets.create(name);
     }
 
     private static TaskProvider<Jar> registerJarTask(TaskContainer tasks, SourceSet sourceSet) {
-        return tasks.register(JvmConstants.JAR_TASK_NAME, Jar.class, jar -> {
+        return tasks.register(sourceSet.getJarTaskName(), Jar.class, jar -> {
             jar.setDescription("Assembles a jar archive containing the main classes.");
             jar.setGroup(BasePlugin.BUILD_GROUP);
             jar.from(sourceSet.getOutput());
@@ -218,7 +219,14 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
     }
 
     private Configuration createSourceElements(ConfigurationContainer configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, SourceSet sourceSet) {
-        Configuration variant = configurations.create(SOURCE_ELEMENTS_VARIANT_NAME);
+
+        // TODO: Why are we using this non-standard name? For the `java` component, this
+        // equates to `mainSourceElements` instead of `sourceElements` as one would expect.
+        // Can we change this name without breaking compatibility? Is the variant name part
+        // of the component's API?
+        String variantName = sourceSet.getName() + SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX;
+
+        Configuration variant = configurations.create(variantName);
         variant.setDescription("List of source directories contained in the Main SourceSet.");
         variant.setVisible(false);
         variant.setCanBeResolved(false);
@@ -259,11 +267,11 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
 
     @Override
     public void enableJavadocJarVariant() {
-        if (project.getConfigurations().findByName(JAVADOC_ELEMENTS_CONFIGURATION_NAME) != null) {
+        if (project.getConfigurations().findByName(sourceSet.getJavadocElementsConfigurationName()) != null) {
             return;
         }
         Configuration javadocVariant = JvmPluginsHelper.createDocumentationVariantWithArtifact(
-            JAVADOC_ELEMENTS_CONFIGURATION_NAME,
+            sourceSet.getJavadocElementsConfigurationName(),
             null,
             JAVADOC,
             ImmutableList.of(),
@@ -276,11 +284,11 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
 
     @Override
     public void enableSourcesJarVariant() {
-        if (project.getConfigurations().findByName(SOURCES_ELEMENTS_CONFIGURATION_NAME) != null) {
+        if (project.getConfigurations().findByName(sourceSet.getSourcesElementsConfigurationName()) != null) {
             return;
         }
         Configuration sourcesVariant = JvmPluginsHelper.createDocumentationVariantWithArtifact(
-            SOURCES_ELEMENTS_CONFIGURATION_NAME,
+            sourceSet.getSourcesElementsConfigurationName(),
             null,
             SOURCES,
             ImmutableList.of(),

@@ -147,7 +147,7 @@ class Codecs(
         bind(SerializedLambdaParametersCheckingCodec)
 
         // Dependency management types
-        bind(ArtifactCollectionCodec(fileCollectionFactory, artifactSetConverter))
+        bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter))
         bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
         bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
         bind(ComponentVariantIdentifierCodec)

@@ -771,6 +771,11 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.components
         }
 
+        override fun components(configuration: Action<in SoftwareComponentContainer>) {
+            onAccess()
+            delegate.components(configuration)
+        }
+
         override fun getNormalization(): InputNormalizationHandlerInternal {
             onAccess()
             return delegate.normalization

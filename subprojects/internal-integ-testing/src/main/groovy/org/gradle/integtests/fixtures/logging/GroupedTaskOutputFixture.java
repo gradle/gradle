@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.fixtures.logging;
 
-public class GroupedTaskFixture extends GroupedNodeFixture {
+public class GroupedTaskOutputFixture extends GroupedWorkOutputFixture {
     private final String taskName;
 
     private String taskOutcome;
 
-    public GroupedTaskFixture(String taskName) {
+    public GroupedTaskOutputFixture(String taskName) {
         this.taskName = taskName;
     }
 
