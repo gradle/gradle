@@ -3,7 +3,9 @@ The Gradle team is excited to announce Gradle @version@.
 This is the first patch release for Gradle 8.0.
 
 It fixes the following issues:
-* TODO
+* [#21551](https://github.com/gradle/gradle/issues/21551) Document integration of Scala plugin with toolchains and problems with `target` flag
+* [#23888](https://github.com/gradle/gradle/issues/23888) `--no-rebuild` suddenly gone without new deprecation cycle and without the reason for its undeprecation being void
+* [#23905](https://github.com/gradle/gradle/issues/23905) Gradle 8.0 fails Scala build with isBlank not found in String class error
 
 We recommend users upgrade to @version@ instead of 8.0.
 
