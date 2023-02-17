@@ -28,7 +28,8 @@ import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.VerificationType;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -108,7 +109,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         this.jvmPluginServices = jvmPluginServices;
 
         TaskContainer tasks = project.getTasks();
-        ConfigurationContainer configurations = project.getConfigurations();
+        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
         PluginContainer plugins = project.getPlugins();
         ExtensionContainer extensions = project.getExtensions();
 
@@ -126,8 +127,8 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         this.compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
 
         PublishArtifact jarArtifact = configureArchives(project, jar, tasks, extensions);
-        this.runtimeElements = createRuntimeElements(sourceSet, jarArtifact);
-        this.apiElements = createApiElements(sourceSet, jarArtifact);
+        this.runtimeElements = createRuntimeElements(configurations, sourceSet, jarArtifact);
+        this.apiElements = createApiElements(configurations, sourceSet, jarArtifact);
         createSourceElements(configurations, providerFactory, objectFactory, sourceSet);
 
         JvmPluginsHelper.configureJavaDocTask(null, sourceSet, tasks, javaExtension);
@@ -189,13 +190,20 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         publications.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE);
     }
 
-    private Configuration createRuntimeElements(SourceSet sourceSet, PublishArtifact jarArtifact) {
-        Configuration runtimeElementsConfiguration = jvmPluginServices.createOutgoingElements(sourceSet.getRuntimeElementsConfigurationName(),
-            builder -> builder.fromSourceSet(sourceSet)
-                .providesRuntime()
-                .withDescription("Elements of runtime for main.")
-                .extendsFrom(implementation, runtimeOnly));
-        ((ConfigurationInternal) runtimeElementsConfiguration).setCanBeDeclaredAgainst(false);
+    private Configuration createRuntimeElements(
+        RoleBasedConfigurationContainerInternal configurations,
+        SourceSet sourceSet,
+        PublishArtifact jarArtifact
+    ) {
+        Configuration runtimeElementsConfiguration = configurations.maybeCreateWithRole(
+            sourceSet.getRuntimeElementsConfigurationName(), ConfigurationRoles.INTENDED_CONSUMABLE, false, false);
+
+        runtimeElementsConfiguration.setVisible(false);
+        jvmPluginServices.useDefaultTargetPlatformInference(runtimeElementsConfiguration, compileJava);
+        jvmPluginServices.configureAsRuntimeElements(runtimeElementsConfiguration);
+        runtimeElementsConfiguration.setDescription("Elements of runtime for main.");
+
+        runtimeElementsConfiguration.extendsFrom(implementation, runtimeOnly);
 
         // Configure variants
         addJarArtifactToConfiguration(runtimeElementsConfiguration, jarArtifact);
@@ -205,12 +213,18 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         return runtimeElementsConfiguration;
     }
 
-    private Configuration createApiElements(SourceSet sourceSet, PublishArtifact jarArtifact) {
-        Configuration apiElementsConfiguration = jvmPluginServices.createOutgoingElements(sourceSet.getApiElementsConfigurationName(),
-            builder -> builder.fromSourceSet(sourceSet)
-                .providesApi()
-                .withDescription("API elements for main."));
-        ((ConfigurationInternal) apiElementsConfiguration).setCanBeDeclaredAgainst(false);
+    private Configuration createApiElements(
+        RoleBasedConfigurationContainerInternal configurations,
+        SourceSet sourceSet,
+        PublishArtifact jarArtifact
+    ) {
+        Configuration apiElementsConfiguration = configurations.maybeCreateWithRole(
+            sourceSet.getApiElementsConfigurationName(), ConfigurationRoles.INTENDED_CONSUMABLE, false, false);
+
+        apiElementsConfiguration.setVisible(false);
+        jvmPluginServices.useDefaultTargetPlatformInference(apiElementsConfiguration, compileJava);
+        jvmPluginServices.configureAsApiElements(apiElementsConfiguration);
+        apiElementsConfiguration.setDescription("API elements for main.");
 
         // Configure variants
         addJarArtifactToConfiguration(apiElementsConfiguration, jarArtifact);

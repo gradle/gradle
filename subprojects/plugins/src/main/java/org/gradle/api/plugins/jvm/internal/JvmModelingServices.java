@@ -17,7 +17,6 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.tasks.SourceSet;
 
 /**
@@ -27,14 +26,6 @@ import org.gradle.api.tasks.SourceSet;
 @NonNullApi
 @SuppressWarnings("UnusedReturnValue")
 public interface JvmModelingServices {
-    /**
-     * Creates an outgoing configuration and configures it with reasonable defaults.
-     * @param name the name of the outgoing configurtion
-     * @param configuration the configuration builder, used to describe what the configuration is used for
-     * @return an outgoing (consumable) configuration
-     */
-    Configuration createOutgoingElements(String name, Action<? super OutgoingElementsBuilder> configuration);
-
     /**
      * Creates a generic "java component", using the specified source set and it's corresponding
      * configurations, compile tasks and jar tasks. Based on the provided {@code action}, this
