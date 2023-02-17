@@ -183,6 +183,18 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
     }
 
     /**
+     * Maybe creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
+     * without locking the configuration's allowed usage or verifying that it matches.
+     *
+     * @param name the name of the configuration
+     * @param role the role defining the configuration's allowed usage
+     * @return the matching or new configuration
+     */
+    default Configuration maybeCreateWithRole(String name, ConfigurationRole role) {
+        return maybeCreateWithRole(name, role, false, false);
+    }
+
+    /**
      * If it does not already exist, creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)};
      * if the configuration does already exist, this method will <strong>NOT</strong>> change anything about its allowed,
      * including its role, but <strong>CAN</strong> optionally confirm that the current usage of the configuration
@@ -192,7 +204,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * @param role the role defining the configuration's allowed usage
      * @param lockUsage {@code true} if the configuration's allowed usage should be locked to prevent any changes; {@code false} otherwise
      * @param assertInRole {@code true} if the configuration's current usage should be confirmed to match that specified by the given role
-     * @return the new configuration
+     * @return the matching or new configuration
      */
     default Configuration maybeCreateWithRole(String name, ConfigurationRole role, boolean lockUsage, boolean assertInRole) {
         DeprecatableConfiguration configuration = (DeprecatableConfiguration) findByName(name);

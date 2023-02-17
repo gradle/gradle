@@ -29,6 +29,7 @@ import org.gradle.api.attributes.TestSuiteName;
 import org.gradle.api.attributes.TestSuiteTargetName;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -113,11 +114,10 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
     }
 
     private void addTestResultsVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
-        final Configuration variant = project.getConfigurations().create(TEST_RESULTS_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
+        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
+        final Configuration variant = configurations.consumable(TEST_RESULTS_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
         variant.setDescription("Directory containing binary results of running tests for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
         variant.setVisible(false);
-        variant.setCanBeResolved(false);
-        variant.setCanBeConsumed(true);
 
         final ObjectFactory objects = project.getObjects();
         variant.attributes(attributes -> {

@@ -17,7 +17,6 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
