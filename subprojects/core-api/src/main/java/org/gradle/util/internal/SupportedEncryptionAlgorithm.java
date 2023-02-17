@@ -86,7 +86,6 @@ public enum SupportedEncryptionAlgorithm implements EncryptionAlgorithm {
             Cipher newCipher = Cipher.getInstance(transformation);
             if (initVectorLen > 0) {
                 assert loader != null;
-                System.out.println(String.format("Loading %d bytes", initVectorLen));
                 newCipher.init(Cipher.DECRYPT_MODE, key, getDecryptionParameter(loader));
             } else {
                 newCipher.init(Cipher.DECRYPT_MODE, key);
