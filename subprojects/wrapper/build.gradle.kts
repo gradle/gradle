@@ -47,8 +47,3 @@ val executableJar by tasks.registering(Jar::class) {
 tasks.jar {
     from(executableJar)
 }
-
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
-}

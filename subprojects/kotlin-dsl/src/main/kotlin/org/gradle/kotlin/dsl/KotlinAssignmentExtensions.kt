@@ -21,6 +21,8 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Incubating
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.FileSystemLocationProperty
 import org.gradle.api.provider.HasMultipleValues
@@ -124,6 +126,19 @@ fun <K, V> MapProperty<K, V>.assign(entries: Map<out K?, V?>?) {
 fun <K, V> MapProperty<K, V>.assign(provider: Provider<out Map<out K?, V?>?>) {
     emitIncubatingLogMessage()
     this.set(provider)
+}
+
+
+/**
+ * Sets the ConfigurableFileCollection to contain the source paths of passed collection.
+ * This is the same as calling ConfigurableFileCollection.setFrom(fileCollection).
+ *
+ * @since 8.1
+ */
+@Incubating
+fun ConfigurableFileCollection.assign(fileCollection: FileCollection) {
+    emitIncubatingLogMessage()
+    this.setFrom(fileCollection)
 }
 
 
