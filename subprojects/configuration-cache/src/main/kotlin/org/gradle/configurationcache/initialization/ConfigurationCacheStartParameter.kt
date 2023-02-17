@@ -30,6 +30,7 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.internal.SupportedEncryptionAlgorithm
 import java.io.File
 
 
@@ -56,7 +57,7 @@ class ConfigurationCacheStartParameter(
 
     val keyAlgorithm: String = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.key-alg", "AES")).get()
 
-    val encryptionAlgorithm: String = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.encryption-alg", "AES/CBC/PKCS5PADDING")).get()
+    val encryptionAlgorithm: String = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.AES_ECB_PADDING.transformation)).get()
 
     val initVectorLength: Int = options.getOption(IntegerInternalOption("org.gradle.configuration-cache.internal.init-vector-len", 16)).get()
 
