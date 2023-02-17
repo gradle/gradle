@@ -968,10 +968,10 @@ Support for these features will be added in later Gradle releases.
 The configuration cache has currently no option to hide secrets that are used as inputs.
 It means that they end up in the serialized configuration cache entry.
 
-This means that you should:
+This means that you should either:
 
-* Either secure access to configuration cache entries that may contain secrets
-* Or leverage `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/gradle.properties` for storing secrets.
+* Secure access to configuration cache entries that may contain secrets, or
+* Leverage `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/gradle.properties` for storing secrets.
 The content of that file is not part of the configuration cache, only its fingerprint.
 If you store secrets in that file, care must be taken to protect access to the file content.
 
