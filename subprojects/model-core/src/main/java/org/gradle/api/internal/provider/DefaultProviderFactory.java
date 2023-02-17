@@ -88,6 +88,7 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public Provider<String> environmentVariable(Provider<String> variableName) {
         return of(
+            String.class,
             EnvironmentVariableValueSource.class,
             spec -> spec.getParameters().getVariableName().set(variableName)
         );
@@ -114,6 +115,7 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public Provider<String> systemProperty(Provider<String> propertyName) {
         return of(
+            String.class,
             SystemPropertyValueSource.class,
             spec -> spec.getParameters().getPropertyName().set(propertyName)
         );
@@ -140,6 +142,7 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public Provider<String> gradleProperty(Provider<String> propertyName) {
         return of(
+            String.class,
             GradlePropertyValueSource.class,
             spec -> spec.getParameters().getPropertyName().set(propertyName)
         );
@@ -173,6 +176,7 @@ public class DefaultProviderFactory implements ProviderFactory {
             @Override
             public Provider<String> getAsText() {
                 return of(
+                    String.class,
                     FileTextValueSource.class,
                     spec -> setFileProperty.execute(spec.getParameters().getFile())
                 );
@@ -193,7 +197,11 @@ public class DefaultProviderFactory implements ProviderFactory {
         if (processOutputProviderFactory == null) {
             throw new UnsupportedOperationException();
         }
-        return new DefaultExecOutput(of(ProcessOutputValueSource.class, spec -> processOutputProviderFactory.configureParametersForExec(spec.getParameters(), action)));
+        return new DefaultExecOutput(of(
+            ProcessOutputValueSource.ExecOutputData.class,
+            ProcessOutputValueSource.class,
+            spec -> processOutputProviderFactory.configureParametersForExec(spec.getParameters(), action))
+        );
     }
 
     @Override
@@ -201,7 +209,11 @@ public class DefaultProviderFactory implements ProviderFactory {
         if (processOutputProviderFactory == null) {
             throw new UnsupportedOperationException();
         }
-        return new DefaultExecOutput(of(ProcessOutputValueSource.class, spec -> processOutputProviderFactory.configureParametersForJavaExec(spec.getParameters(), action)));
+        return new DefaultExecOutput(of(
+            ProcessOutputValueSource.ExecOutputData.class,
+            ProcessOutputValueSource.class,
+            spec -> processOutputProviderFactory.configureParametersForJavaExec(spec.getParameters(), action))
+        );
     }
 
     @Override
@@ -210,6 +222,14 @@ public class DefaultProviderFactory implements ProviderFactory {
             throw new UnsupportedOperationException();
         }
         return valueSourceProviderFactory.createProviderOf(valueSourceType, configuration);
+    }
+
+    @Override
+    public <T, P extends ValueSourceParameters> Provider<T> of(Class<T> type, Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configuration) {
+        if (valueSourceProviderFactory == null) {
+            throw new UnsupportedOperationException();
+        }
+        return valueSourceProviderFactory.createProviderOf(type, valueSourceType, configuration);
     }
 
     @Override

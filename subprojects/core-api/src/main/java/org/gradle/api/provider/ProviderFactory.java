@@ -262,6 +262,23 @@ public interface ProviderFactory {
     );
 
     /**
+     * Creates a {@link Provider} whose value is obtained from the given {@link ValueSource}.
+     *
+     * @param type the type of the returned {@link Provider}
+     * @param valueSourceType the type of the {@link ValueSource}
+     * @param configuration action to configure the parameters to the given {@link ValueSource}
+     * @return the provider, never returns null
+     * @since 8.1
+     */
+    @Incubating
+    <T, P extends ValueSourceParameters>
+    Provider<T> of(
+        Class<T> type,
+        Class<? extends ValueSource<T, P>> valueSourceType,
+        Action<? super ValueSourceSpec<P>> configuration
+    );
+
+    /**
      * Creates a {@link Provider} for the given {@link Credentials} type.
      *
      * <p>

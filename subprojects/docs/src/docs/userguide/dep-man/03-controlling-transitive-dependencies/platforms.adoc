@@ -190,6 +190,14 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",fil
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=use_plugin]"]
 ====
 
+The plugin is also accessible in the `dependencies` block and can be declared as a dependency as such:
+
+.Declaring the dependency on a plugin declared in a catalog
+====
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=declare_plugin_dependency]"]
+include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=declare_plugin_dependency]"]
+====
+
 [[sec:multiple]]
 ==== Using multiple catalogs
 

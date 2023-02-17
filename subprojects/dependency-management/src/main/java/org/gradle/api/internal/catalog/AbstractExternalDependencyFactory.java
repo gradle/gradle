@@ -73,6 +73,7 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
     public Provider<MinimalExternalModuleDependency> create(String alias) {
         //noinspection Convert2Lambda
         return providers.of(
+            DependencyModel.class,
             DependencyValueSource.class,
             spec -> spec.getParameters().getDependencyData().set(config.getDependencyData(alias))
         ).map(new Transformer<MinimalExternalModuleDependency, DependencyModel>() {
@@ -171,11 +172,13 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         }
 
         protected Provider<PluginDependency> createPlugin(String name) {
-            return providers.of(PluginDependencyValueSource.class,
+            Provider<PluginDependency> provider = providers.of(PluginDependency.class,
+                PluginDependencyValueSource.class,
                 spec -> spec.parameters(params -> {
                     params.getConfig().set(config);
                     params.getPluginName().set(name);
                 }));
+            return provider;
         }
     }
 }

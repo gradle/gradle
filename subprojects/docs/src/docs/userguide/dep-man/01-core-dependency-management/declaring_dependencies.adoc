@@ -334,6 +334,18 @@ This can be done by utilising <<composite_builds.adoc#defining_composite_builds,
 This allows you, for example, to fix an issue in a library you use in an application by using, and building, a locally patched version instead of the published binary version.
 The details of this are described in the section on <<composite_builds.adoc#defining_composite_builds,composite builds>>.
 
+[[sec:gradle-plugin-dependencies]]
+==== Gradle plugin dependencies
+<<plugins.adoc#plugins, Gradle plugins>> play a crucial role in enhancing the functionality of a project by introducing new tasks, domain objects, and conventions, as well as augmenting core objects and objects from other plugins.
+A dependency on a plugin can be declared using the id and (optionally) the version of the plugin.
+
+====
+include::sample[dir="snippets/plugins/declaringDependencies/kotlin", files="build.gradle.kts[tags=declaring_dependencies_block]"]
+include::sample[dir="snippets/plugins/declaringDependencies/groovy", files="build.gradle[tags=declaring_dependencies_block]"]
+====
+<1> Declaring plugin dependencies in the main dependency block.
+<2> Declaring plugin dependencies in the test-suites block.
+
 [[sub:gradle_distribution_dependencies]]
 === Gradle distribution-specific dependencies
 

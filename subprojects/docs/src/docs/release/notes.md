@@ -13,6 +13,7 @@ We would like to thank the following community members for their contributions t
 [Attila Király](https://github.com/akiraly),
 [Björn Kautler](https://github.com/Vampire),
 [DJtheRedstoner](https://github.com/DJtheRedstoner),
+[Guillermo Mazzola](https://github.com/gmazzo),
 [JayaKrishnan Nair K](https://github.com/jknair0),
 [kackey0-1](https://github.com/kackey0-1),
 [Martin Bonnin](https://github.com/martinbonnin),
@@ -84,6 +85,12 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 TODO - Java lambdas are supported, and unsupported captured values are reported.
 TODO - File collections queried at configuration time are treated as configuration inputs.
 TODO - File system repositories are fully supported including dynamic versions in Maven, Maven local, and Ivy repositories
+
+### Convenient declaration of dependencies on Gradle plugins
+
+Declaring a dependency on a Gradle plugin can now be accomplished using either the plugin's identifier or the version catalog's plugin coordinates, providing greater flexibility and improved ease of use.
+
+More details can be found in the dedicated section of the [Implementing Gradle Plugins](implementing_gradle_plugins.html#[reacting_to_plugins](sec:depending_on_plugins)) user manual chapter.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
+import org.gradle.api.internal.dependencies.PluginDependencyMarkerCoordinates;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -60,6 +61,7 @@ import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
+import org.gradle.plugin.use.PluginDependency;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -181,7 +183,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
             return doAdd(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
         } else if (dependencyNotation instanceof ProviderInternal<?>) {
             ProviderInternal<?> provider = (ProviderInternal<?>) dependencyNotation;
-            if (provider.getType()!=null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
+            if (provider.getType() != null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
                 ExternalModuleDependencyBundle bundle = Cast.uncheckedCast(provider.get());
                 for (MinimalExternalModuleDependency dependency : bundle) {
                     doAddRegularDependency(configuration, dependency, configureClosure);
@@ -328,6 +330,22 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Override
     public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
         transforms.registerTransform(actionType, registrationAction);
+    }
+
+    @Override
+    public String plugin(String id) {
+        return PluginDependencyMarkerCoordinates.pluginNotation(id, null);
+    }
+
+    @Override
+    public String plugin(String id, String version) {
+        return PluginDependencyMarkerCoordinates.pluginNotation(id, version);
+    }
+
+    @Override
+    public Provider<? extends ExternalModuleDependency> plugin(Provider<? extends PluginDependency> provider) {
+        return provider.map((PluginDependency dependency) ->
+            PluginDependencyMarkerCoordinates.getExternalModuleDependency(dependencyFactory, dependency));
     }
 
     @Override

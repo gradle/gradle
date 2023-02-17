@@ -43,6 +43,12 @@ public interface ValueSourceProviderFactory {
         Action<? super ValueSourceSpec<P>> configureAction
     );
 
+    <T, P extends ValueSourceParameters> Provider<T> createProviderOf(
+        Class<T> providerType,
+        Class<? extends ValueSource<T, P>> valueSourceType,
+        Action<? super ValueSourceSpec<P>> configureAction
+    );
+
     void addValueListener(ValueListener listener);
 
     void removeValueListener(ValueListener listener);

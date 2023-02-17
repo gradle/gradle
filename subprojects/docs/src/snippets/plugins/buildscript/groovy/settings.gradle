@@ -1,1 +1,9 @@
 rootProject.name = 'buildscript'
+
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            plugin('jmh', 'me.champeau.jmh').version('0.6.5')
+        }
+    }
+}

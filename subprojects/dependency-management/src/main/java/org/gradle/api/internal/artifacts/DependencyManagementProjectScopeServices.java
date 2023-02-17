@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,13 +79,13 @@ class DependencyManagementProjectScopeServices {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         return new DefaultDependencyFactory(
-                instantiator,
-                DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
-                DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
-                new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
-                capabilityNotationParser,
-                projectDependencyFactory,
-                attributesFactory);
+            instantiator,
+            DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
+            DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
+            new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
+            capabilityNotationParser,
+            projectDependencyFactory,
+            attributesFactory);
     }
 
     private ByUrlCachedExternalResourceIndex prepareArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, ExternalResourceFileStore externalResourceFileStore, ArtifactCacheMetadata artifactCacheMetadata) {

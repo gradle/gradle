@@ -172,5 +172,4 @@ public interface DependencyAdder {
      * @param configuration an action to configure each dependency in the bundle
      */
     <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
-
 }

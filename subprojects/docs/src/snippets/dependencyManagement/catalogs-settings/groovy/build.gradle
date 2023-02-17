@@ -23,6 +23,12 @@ plugins {
 }
 // end::use_plugin[]
 
+// tag::declare_plugin_dependency[]
+dependencies {
+    implementation(libs.plugins.versions)
+}
+// end::declare_plugin_dependency[]
+
 // tag::simple_dependency_use[]
 dependencies {
     implementation(libs.groovy.core)

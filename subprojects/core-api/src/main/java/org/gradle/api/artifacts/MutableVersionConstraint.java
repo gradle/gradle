@@ -107,5 +107,4 @@ public interface MutableVersionConstraint extends VersionConstraint {
      * @since 4.5
      */
     void rejectAll();
-
 }
