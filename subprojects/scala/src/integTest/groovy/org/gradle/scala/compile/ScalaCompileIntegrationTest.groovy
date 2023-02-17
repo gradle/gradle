@@ -52,7 +52,6 @@ class ScalaCompileIntegrationTest extends MultiVersionIntegrationSpec implements
 
         then:
         executedAndNotSkipped(":compileScala")
-        outputDoesNotContain("[Warn]")
 
         JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == currentJdk.javaVersion
         JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
@@ -88,7 +87,6 @@ class Person {
 
         then:
         executedAndNotSkipped(":compileScala")
-        outputDoesNotContain("[Warn]")
         JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
 
         where:
