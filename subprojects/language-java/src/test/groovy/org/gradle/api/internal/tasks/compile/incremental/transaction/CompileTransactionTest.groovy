@@ -30,6 +30,7 @@ import spock.lang.TempDir
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.function.Function
 import java.util.stream.Stream
 
 import static com.google.common.base.Preconditions.checkNotNull
@@ -327,23 +328,27 @@ class CompileTransactionTest extends Specification {
         }
 
         where:
-        originalDir | stagingDir
+        originalDir                    | stagingDir
         "classes"                      | "compile-output"
         "annotation-generated-sources" | "annotation-output"
         "header-sources"               | "header-output"
     }
 
-    def "modifies spec output directories before execution and restores them after execution"() {
+    def "#description modify spec outputs and restores them when incremental compilation after failure is set to #incrementalCompilationAfterFilure"() {
         spec.setDestinationDir(file("classes"))
         spec.getCompileOptions().setAnnotationProcessorGeneratedSourcesDirectory(file("annotation-generated-sources"))
         spec.getCompileOptions().setHeaderOutputDirectory(file("header-sources"))
+        spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(incrementalCompilationAfterFilure)
 
         expect:
-        // Modify output folders before
+        // Check if output folders were modified
         newCompileTransaction().execute {
-            assert spec.getDestinationDir() == fileInTransactionDir("compile-output")
-            assert spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory() == fileInTransactionDir("annotation-output")
-            assert spec.getCompileOptions().getHeaderOutputDirectory() == fileInTransactionDir("header-output")
+            def fileGenerator = incrementalCompilationAfterFilure
+                ? { String fileName -> fileInTransactionDir(fileName) } as Function<String, File>
+                : { String fileName -> file(fileName) } as Function<String, File>
+            assert spec.getDestinationDir() == fileGenerator.apply(destinationDir)
+            assert spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory() == fileGenerator.apply(annotationProcessorDir)
+            assert spec.getCompileOptions().getHeaderOutputDirectory() == fileGenerator.apply(headerDir)
             return DID_WORK
         }
 
@@ -351,6 +356,11 @@ class CompileTransactionTest extends Specification {
         spec.getDestinationDir() == file("classes")
         spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory() == file("annotation-generated-sources")
         spec.getCompileOptions().getHeaderOutputDirectory() == file("header-sources")
+
+        where:
+        description | incrementalCompilationAfterFilure | destinationDir   | annotationProcessorDir         | headerDir
+        "doesn't"   | false                             | "classes"        | "annotation-generated-sources" | "header-sources"
+        "does"      | true                              | "compile-output" | "annotation-output"            | "header-output"
     }
 
     private File fileInTransactionDir(String path) {
