@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,28 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.NotUsedByScanPlugin;
+
+import java.util.Map;
 
 /**
- * @since 5.1
+ * A {@link BuildOperationType} for executing a scheduled transformation step.
+ * <p>
+ * Encompasses the execution of a transformation node.
+ * A transformation node runs only one transformation step, though possibly on multiple files.
  */
-@NotUsedByScanPlugin
 public class ExecuteScheduledTransformationStepBuildOperationType implements BuildOperationType<ExecuteScheduledTransformationStepBuildOperationType.Details, ExecuteScheduledTransformationStepBuildOperationType.Result> {
 
     public interface Details {
+
+        TransformationIdentity getTransformationIdentity();
+
+        Map<String, String> getSourceAttributes();
+
+        Map<String, String> getFromAttributes();
+
+        Map<String, String> getToAttributes();
+
+        Class<?> getTransformType();
 
         /**
          * Returns the display name of the transformer.
@@ -41,8 +54,4 @@ public class ExecuteScheduledTransformationStepBuildOperationType implements Bui
 
     public interface Result {
     }
-
-    static final Result RESULT = new Result() {
-    };
-
 }
