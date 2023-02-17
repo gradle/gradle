@@ -69,8 +69,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final DefaultRootComponentMetadataBuilder rootComponentMetadataBuilder;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
-    private final boolean warnOnNonRoleBasedCreation = true;
-    private final boolean failOnNonRoleBasedCreation = false;
+    private final boolean warnOnNonRoleBasedCreation = false;
+    private final boolean failOnNonRoleBasedCreation = true;
 
     public DefaultConfigurationContainer(
         Instantiator instantiator,

@@ -35,8 +35,9 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -280,7 +281,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         private boolean published;
 
         @Inject
-        public DefaultElementsConfigurationBuilder(String name, JvmPluginServices jvmEcosystemUtilities, ConfigurationContainerInternal configurations, SoftwareComponentContainer components, TaskContainer tasks) {
+        public DefaultElementsConfigurationBuilder(String name, JvmPluginServices jvmEcosystemUtilities, RoleBasedConfigurationContainerInternal configurations, SoftwareComponentContainer components, TaskContainer tasks) {
             super(name, jvmEcosystemUtilities, configurations);
             this.components = components;
             this.tasks = tasks;
@@ -288,13 +289,11 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
         @Override
         Configuration build() {
-            Configuration cnf = configurations.maybeCreate(name);
+            Configuration cnf = configurations.maybeCreateWithRole(name, ConfigurationRoles.INTENDED_CONSUMABLE);
             if (description != null) {
                 cnf.setDescription(description);
             }
             cnf.setVisible(false);
-            cnf.setCanBeConsumed(true);
-            cnf.setCanBeResolved(false);
             Configuration[] extendsFrom = buildExtendsFrom();
             if (extendsFrom != null) {
                 cnf.extendsFrom(extendsFrom);

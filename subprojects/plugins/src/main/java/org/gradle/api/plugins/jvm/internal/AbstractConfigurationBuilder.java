@@ -18,7 +18,7 @@ package org.gradle.api.plugins.jvm.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
@@ -29,14 +29,14 @@ import java.util.List;
 abstract class AbstractConfigurationBuilder<T extends AbstractConfigurationBuilder<T>> {
     final String name;
     final JvmPluginServices jvmEcosystemUtilities;
-    final ConfigurationContainerInternal configurations;
+    final RoleBasedConfigurationContainerInternal configurations;
     String description;
     List<Object> extendsFrom;
     Action<? super JvmEcosystemAttributesDetails> attributesRefiner;
 
     public AbstractConfigurationBuilder(String name,
                                         JvmPluginServices jvmEcosystemUtilities,
-                                        ConfigurationContainerInternal configurations) {
+                                        RoleBasedConfigurationContainerInternal configurations) {
         this.name = name;
         this.jvmEcosystemUtilities = jvmEcosystemUtilities;
         this.configurations = configurations;

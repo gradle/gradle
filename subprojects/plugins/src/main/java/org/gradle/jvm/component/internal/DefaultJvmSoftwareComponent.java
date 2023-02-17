@@ -29,6 +29,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -135,7 +136,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         PublishArtifact jarArtifact = configureArchives(project, jar, tasks, extensions);
         this.runtimeElements = createRuntimeElements(sourceSet, jarArtifact);
         this.apiElements = createApiElements(sourceSet, jarArtifact);
-        createSourceElements(configurations, providerFactory, objectFactory, sourceSet);
+        createSourceElements((RoleBasedConfigurationContainerInternal) configurations, providerFactory, objectFactory, sourceSet);
 
         JvmPluginsHelper.configureJavaDocTask(null, sourceSet, tasks, javaExtension);
         configurePublishing(plugins, extensions, sourceSet);
@@ -217,12 +218,10 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         return apiElementsConfiguration;
     }
 
-    private Configuration createSourceElements(ConfigurationContainer configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, SourceSet sourceSet) {
-        Configuration variant = configurations.create(SOURCE_ELEMENTS_VARIANT_NAME);
+    private Configuration createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, SourceSet sourceSet) {
+        Configuration variant = configurations.consumable(SOURCE_ELEMENTS_VARIANT_NAME);
         variant.setDescription("List of source directories contained in the Main SourceSet.");
         variant.setVisible(false);
-        variant.setCanBeResolved(false);
-        variant.setCanBeConsumed(true);
         variant.extendsFrom(implementation);
 
         variant.attributes(attributes -> {
