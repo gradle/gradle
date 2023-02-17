@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.component.OpaqueComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.capabilities.Capability;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -128,7 +129,11 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
     private TransformationIdentity createIdentity() {
         String consumerBuildPath = transformationStep.getOwningProject().getBuildPath().toString();
         String consumerProjectPath = transformationStep.getOwningProject().getIdentityPath().toString();
-        org.gradle.api.internal.artifacts.ComponentVariantIdentifier targetComponentVariant = convertTargetComponentVariant();
+        ComponentIdentifier componentId = getComponentIdentifier(targetComponentVariant.getComponentId());
+        Map<String, String> targetAttributes = AttributesToMapConverter.convertToMap(targetComponentVariant.getAttributes());
+        List<Capability> capabilities = targetComponentVariant.getCapabilities().stream()
+            .map(TransformationNode::convertCapability)
+            .collect(Collectors.toList());
 
         return new TransformationIdentity() {
             @Override
@@ -142,8 +147,18 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             }
 
             @Override
-            public org.gradle.api.internal.artifacts.ComponentVariantIdentifier getTargetVariant() {
-                return targetComponentVariant;
+            public ComponentIdentifier getComponentId() {
+                return componentId;
+            }
+
+            @Override
+            public Map<String, String> getTargetAttributes() {
+                return targetAttributes;
+            }
+
+            @Override
+            public List<? extends Capability> getCapabilities() {
+                return capabilities;
             }
 
             @Override
@@ -168,56 +183,26 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         };
     }
 
-    private org.gradle.api.internal.artifacts.ComponentVariantIdentifier convertTargetComponentVariant() {
-        ComponentIdentifier componentId = getComponentIdentifier(targetComponentVariant.getComponentId());
-        Map<String, String> targetAttributes = AttributesToMapConverter.convertToMap(targetComponentVariant.getAttributes());
-        List<org.gradle.api.internal.artifacts.ComponentVariantIdentifier.Capability> capabilities = targetComponentVariant.getCapabilities().stream()
-            .map(capability -> new org.gradle.api.internal.artifacts.ComponentVariantIdentifier.Capability() {
-                @Override
-                public String getGroup() {
-                    return capability.getGroup();
-                }
-
-                @Override
-                public String getName() {
-                    return capability.getName();
-                }
-
-                @Override
-                public String getVersion() {
-                    return capability.getVersion();
-                }
-
-                @Override
-                public String toString() {
-                    return getGroup() + ":" + getName() + (getVersion() == null ? "" : (":" + getVersion()));
-                }
-            })
-            .collect(Collectors.toList());
-
-        return new org.gradle.api.internal.artifacts.ComponentVariantIdentifier() {
+    private static Capability convertCapability(org.gradle.api.capabilities.Capability capability) {
+        return new Capability() {
             @Override
-            public ComponentIdentifier getComponentId() {
-                return componentId;
+            public String getGroup() {
+                return capability.getGroup();
             }
 
             @Override
-            public Map<String, String> getAttributes() {
-                return targetAttributes;
+            public String getName() {
+                return capability.getName();
             }
 
             @Override
-            public List<? extends Capability> getCapabilities() {
-                return capabilities;
+            public String getVersion() {
+                return capability.getVersion();
             }
 
             @Override
             public String toString() {
-                return "ComponentVariantIdentifier{"
-                    + "componentId=" + componentId
-                    + ", attributes=" + targetAttributes
-                    + ", capabilities=" + capabilities
-                    + '}';
+                return getGroup() + ":" + getName() + (getVersion() == null ? "" : (":" + getVersion()));
             }
         };
     }

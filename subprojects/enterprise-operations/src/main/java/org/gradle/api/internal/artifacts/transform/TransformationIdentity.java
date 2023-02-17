@@ -16,14 +16,19 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.internal.artifacts.ComponentVariantIdentifier;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity;
+import org.gradle.api.internal.capabilities.Capability;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Identity of a transformation node.
+ * Identity of a transformation node in an execution plan.
+ *
+ * @since 8.1
  */
 public interface TransformationIdentity extends NodeIdentity {
 
@@ -43,18 +48,42 @@ public interface TransformationIdentity extends NodeIdentity {
     String getProjectPath();
 
     /**
-     * Component variant produced by this transformation.
+     * The component identifier of the transformed artifact.
      */
-    ComponentVariantIdentifier getTargetVariant();
+    ComponentIdentifier getComponentId();
 
+    /**
+     * Target attributes of the transformed artifact.
+     * <p>
+     * The attributes include the source attributes of the artifact before the transformation and
+     */
+    Map<String, String> getTargetAttributes();
+
+    /**
+     * Capabilities of the variant of the transformed artifact.
+     * <p>
+     * Artifact transforms can only change attributes, so the capabilities remain unchanged throughout the transformation chain.
+     */
+    List<? extends Capability> getCapabilities();
+
+    /**
+     * Name of the source artifact being transformed.
+     * <p>
+     * This name remains the same throughout the transformation chain.
+     */
     String getArtifactName();
 
     /**
      * Configuration that contains transitive dependencies of the input artifact.
+     * <p>
+     * Present only if the artifact transform implementation declares a dependency on the input artifact dependencies.
      */
     @Nullable
     ConfigurationIdentity getDependenciesConfigurationIdentity();
 
+    /**
+     * An opaque identifier distinguishes between different transformation nodes in case other identity properties are the same.
+     */
     long getTransformationNodeId();
 
 }

@@ -35,10 +35,11 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     static class NodeMatcher {
-        String phantomId
+        // An ephemeral id provided by the test author only to match this id with other nodes via `dependencyNodeIds`
+        String nodeId
         String nodeType
         Predicate<NodeIdentity> identityPredicate
-        List<String> dependencyPhantomIds = []
+        List<String> dependencyNodeIds = []
 
         def matchNode(plannedNode) {
             plannedNode.nodeIdentity.nodeType.toString() == nodeType && identityPredicate.test(plannedNode.nodeIdentity)
@@ -146,9 +147,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                 nodeType == "ARTIFACT_TRANSFORM"
                 buildPath == ":"
                 projectPath == ":consumer"
-                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-                targetVariant.attributes == [color: "green", artifactType: "jar"]
-                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                componentId == [buildPath: ":", projectPath: ":producer"]
+                targetAttributes == [color: "green", artifactType: "jar"]
+                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
                 artifactName == "producer.jar"
                 dependenciesConfigurationIdentity == null
             }
@@ -223,9 +224,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                 nodeType == "ARTIFACT_TRANSFORM"
                 buildPath == ":"
                 projectPath == ":consumer"
-                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-                targetVariant.attributes == [color: "red", artifactType: "jar"]
-                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                componentId == [buildPath: ":", projectPath: ":producer"]
+                targetAttributes == [color: "red", artifactType: "jar"]
+                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
                 artifactName == "producer.jar"
                 dependenciesConfigurationIdentity == null
             }
@@ -243,9 +244,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                 nodeType == "ARTIFACT_TRANSFORM"
                 buildPath == ":"
                 projectPath == ":consumer"
-                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-                targetVariant.attributes == [color: "green", artifactType: "jar"]
-                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                componentId == [buildPath: ":", projectPath: ":producer"]
+                targetAttributes == [color: "green", artifactType: "jar"]
+                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
                 artifactName == "producer.jar"
                 dependenciesConfigurationIdentity == null
             }
@@ -320,9 +321,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                 nodeType == "ARTIFACT_TRANSFORM"
                 buildPath == ":"
                 projectPath == ":consumer"
-                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-                targetVariant.attributes == [color: "red", artifactType: "jar"]
-                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                componentId == [buildPath: ":", projectPath: ":producer"]
+                targetAttributes == [color: "red", artifactType: "jar"]
+                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
                 artifactName == "producer.jar"
                 dependenciesConfigurationIdentity == null
             }
@@ -340,9 +341,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                 nodeType == "ARTIFACT_TRANSFORM"
                 buildPath == ":"
                 projectPath == ":consumer"
-                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-                targetVariant.attributes == [color: "green", artifactType: "jar"]
-                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                componentId == [buildPath: ":", projectPath: ":producer"]
+                targetAttributes == [color: "green", artifactType: "jar"]
+                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
                 artifactName == "producer.jar"
                 dependenciesConfigurationIdentity == null
             }
@@ -419,9 +420,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                 nodeType == "ARTIFACT_TRANSFORM"
                 buildPath == ":"
                 projectPath == ":consumer"
-                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-                targetVariant.attributes == [color: "green", artifactType: "jar"]
-                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                componentId == [buildPath: ":", projectPath: ":producer"]
+                targetAttributes == [color: "green", artifactType: "jar"]
+                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
                 artifactName == "producer.jar"
                 dependenciesConfigurationIdentity == [buildPath: ":", projectPath: ":consumer", name: "resolver"]
             }
@@ -498,9 +499,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                 nodeType == "ARTIFACT_TRANSFORM"
                 buildPath == ":"
                 projectPath == ":consumer"
-                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-                targetVariant.attributes == [color: "red", artifactType: "jar"]
-                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                componentId == [buildPath: ":", projectPath: ":producer"]
+                targetAttributes == [color: "red", artifactType: "jar"]
+                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
                 artifactName == "producer.jar"
                 dependenciesConfigurationIdentity == null
             }
@@ -518,9 +519,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                 nodeType == "ARTIFACT_TRANSFORM"
                 buildPath == ":"
                 projectPath == ":consumer"
-                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-                targetVariant.attributes == [color: "green", artifactType: "jar"]
-                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                componentId == [buildPath: ":", projectPath: ":producer"]
+                targetAttributes == [color: "green", artifactType: "jar"]
+                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
                 artifactName == "producer.jar"
                 dependenciesConfigurationIdentity == [buildPath: ":", projectPath: ":consumer", name: "resolver"]
             }
@@ -636,9 +637,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                 nodeType == "ARTIFACT_TRANSFORM"
                 buildPath == ":"
                 projectPath == ":consumer"
-                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-                targetVariant.attributes == [color: "red", artifactType: "jar"]
-                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                componentId == [buildPath: ":", projectPath: ":producer"]
+                targetAttributes == [color: "red", artifactType: "jar"]
+                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
                 artifactName == "producer.jar"
                 dependenciesConfigurationIdentity == null
             }
@@ -656,9 +657,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                 nodeType == "ARTIFACT_TRANSFORM"
                 buildPath == ":"
                 projectPath == ":consumer"
-                targetVariant.componentId == [buildPath: ":", projectPath: ":producer"]
-                targetVariant.attributes == [color: "green", artifactType: "jar"]
-                targetVariant.capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
+                componentId == [buildPath: ":", projectPath: ":producer"]
+                targetAttributes == [color: "green", artifactType: "jar"]
+                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
                 artifactName == "producer.jar"
                 dependenciesConfigurationIdentity == null
             }
@@ -678,8 +679,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             assert matchers.size() == 1, "Expected exactly one matcher for node ${plannedNode.nodeIdentity}, but found ${matchers.size()}"
             def nodeMatcher = matchers[0]
             def nodeId = getNodeId(plannedNode.nodeIdentity)
-            phantomIdByNodeId[nodeId] = nodeMatcher.phantomId
-            expectedDependencyPhantomIdsByNodeId[nodeId] = nodeMatcher.dependencyPhantomIds
+            phantomIdByNodeId[nodeId] = nodeMatcher.nodeId
+            expectedDependencyPhantomIdsByNodeId[nodeId] = nodeMatcher.dependencyNodeIds
         }
 
         for (def plannedNode : plannedNodes) {
@@ -702,10 +703,10 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
     def taskMatcher(String phantomId, String taskIdentityPath, List<String> dependencyPhantomIds) {
         new NodeMatcher(
-            phantomId: phantomId,
+            nodeId: phantomId,
             nodeType: TASK,
             identityPredicate: { joinPaths(it.buildPath, it.taskPath) == taskIdentityPath },
-            dependencyPhantomIds: dependencyPhantomIds
+            dependencyNodeIds: dependencyPhantomIds
         )
     }
 
@@ -717,14 +718,14 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         List<String> dependencyPhantomIds
     ) {
         new NodeMatcher(
-            phantomId: phantomId,
+            nodeId: phantomId,
             nodeType: ARTIFACT_TRANSFORM,
             identityPredicate: {
                 joinPaths(it.buildPath, it.projectPath) == consumerIdentityPath &&
-                    it.targetVariant.componentId == componentId &&
-                    it.targetVariant.attributes == attributes
+                    it.componentId == componentId &&
+                    it.targetAttributes == attributes
             },
-            dependencyPhantomIds: dependencyPhantomIds
+            dependencyNodeIds: dependencyPhantomIds
         )
     }
 
