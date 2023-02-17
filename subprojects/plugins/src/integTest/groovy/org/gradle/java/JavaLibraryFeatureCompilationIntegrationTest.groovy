@@ -628,7 +628,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
                     assert it.canBeResolved == false
                     assert it.canBeDeclaredAgainst == true
 
-                    assert it.declarationAlternatives == null
+                    assert it.declarationAlternatives == []
                     assert it.resolutionAlternatives == null
                     assert it.consumptionDeprecation == null
                 }

@@ -24,6 +24,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -36,6 +37,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.util.internal.TextUtil;
 
@@ -49,13 +51,13 @@ import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocT
 
 public class DefaultJvmVariantBuilder implements JvmVariantBuilder {
     private final String name;
+    private final SourceSet sourceSet;
     private final JvmPluginServices jvmPluginServices;
     private final RoleBasedConfigurationContainerInternal configurations;
     private final TaskContainer tasks;
     private final SoftwareComponentContainer components;
     private final ProjectInternal project;
     private String displayName;
-    private SourceSet sourceSet;
     private boolean javadocJar;
     private boolean sourcesJar;
     private boolean published;
@@ -168,26 +170,30 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilder {
 
         TaskProvider<Task> jarTask = registerOrGetJarTask(sourceSet, displayName);
         Configuration api = bucket("API", apiConfigurationName, displayName);
-        Configuration apiElements = jvmPluginServices.createOutgoingElements(apiElementsConfigurationName, builder -> {
-            builder.fromSourceSet(sourceSet)
-                .providesApi()
-                .withDescription("API elements for " + displayName)
-                .extendsFrom(api, compileOnlyApi)
-                .withCapabilities(capabilities)
-                .withClassDirectoryVariant()
-                .artifact(jarTask);
-        });
-
         implementation.extendsFrom(api);
 
-        Configuration runtimeElements = jvmPluginServices.createOutgoingElements(runtimeElementsConfigurationName, builder -> {
-            builder.fromSourceSet(sourceSet)
-                .providesRuntime()
-                .withDescription("Runtime elements for " + displayName)
-                .extendsFrom(implementation, runtimeOnly)
-                .withCapabilities(capabilities)
-                .artifact(jarTask);
-        });
+        // A consumable which is deprecated for declaration.
+        ConfigurationRole elementsRole = ConfigurationRole.forUsage(true, false, true, false, false, true);
+        TaskProvider<JavaCompile> compileJava = tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
+
+        Configuration apiElements = configurations.maybeCreateWithRole(apiElementsConfigurationName, elementsRole, false, false);
+        apiElements.setVisible(false);
+        jvmPluginServices.useDefaultTargetPlatformInference(apiElements, compileJava);
+        jvmPluginServices.configureAsApiElements(apiElements);
+        apiElements.setDescription("API elements for " + displayName);
+        apiElements.extendsFrom(api, compileOnlyApi);
+        capabilities.forEach(apiElements.getOutgoing()::capability);
+        jvmPluginServices.configureClassesDirectoryVariant(apiElements, sourceSet);
+        apiElements.getOutgoing().artifact(jarTask);
+
+        Configuration runtimeElements = configurations.maybeCreateWithRole(runtimeElementsConfigurationName, elementsRole, false, false);
+        runtimeElements.setVisible(false);
+        jvmPluginServices.useDefaultTargetPlatformInference(runtimeElements, compileJava);
+        jvmPluginServices.configureAsRuntimeElements(runtimeElements);
+        runtimeElements.setDescription("Runtime elements for " + displayName);
+        runtimeElements.extendsFrom(implementation, runtimeOnly);
+        capabilities.forEach(runtimeElements.getOutgoing()::capability);
+        runtimeElements.getOutgoing().artifact(jarTask);
 
         if (mainSourceSet) {
             // we need to wire the compile only and runtime only to the classpath configurations
