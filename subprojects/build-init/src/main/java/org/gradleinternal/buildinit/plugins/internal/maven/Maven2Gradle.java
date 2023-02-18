@@ -413,10 +413,10 @@ public class Maven2Gradle {
             if (configuration != null) {
                 Xpp3Dom configuredSource = configuration.getChild("source");
                 Xpp3Dom configuredTarget = configuration.getChild("target");
-                if (configuredSource != null && !configuredSource.getValue().trim().isEmpty()) {
+                if (configuredSource != null && configuredSource.getValue() != null && !configuredSource.getValue().trim().isEmpty()) {
                     source = configuredSource.getValue();
                 }
-                if (configuredTarget != null && !configuredTarget.getValue().trim().isEmpty()) {
+                if (configuredTarget != null && configuredTarget.getValue() != null && !configuredTarget.getValue().trim().isEmpty()) {
                     target = configuredTarget.getValue();
                 }
             }
