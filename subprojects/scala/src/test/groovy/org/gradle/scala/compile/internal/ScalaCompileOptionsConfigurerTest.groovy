@@ -81,9 +81,9 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         17            | false             | '2.13.10'           | '-release:17'
         17            | false             | '3.2.1'             | '-release:17'
 
-        17            | true              | '2.13.9'            | '-release:8'
-        17            | true              | '2.13.10'           | '-release:8'
-        17            | true              | '3.2.1'             | '-release:8'
+        17            | true              | '2.13.9'            | '-target:8'
+        17            | true              | '2.13.10'           | '-target:8'
+        17            | true              | '3.2.1'             | '-Xtarget:8'
 
         toolchain = fallbackToolchain ? "$javaToolchain (fallback)" : javaToolchain
     }

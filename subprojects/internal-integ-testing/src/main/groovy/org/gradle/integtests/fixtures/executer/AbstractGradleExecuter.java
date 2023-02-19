@@ -1401,6 +1401,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                 } else if (line.matches(".*w: .* is deprecated\\..*")) {
                     // A kotlinc warning, ignore
                     i++;
+                } else if (line.matches("\\[Warn] :.* is deprecated: .*")) {
+                    // A scalac warning, ignore
+                    i++;
                 } else if (isDeprecationMessageInHelpDescription(line)) {
                     i++;
                 } else if (removeFirstExpectedDeprecationWarning(line)) {
