@@ -85,12 +85,6 @@ TODO - Java lambdas are supported, and unsupported captured values are reported.
 TODO - File collections queried at configuration time are treated as configuration inputs.
 TODO - File system repositories are fully supported including dynamic versions in Maven, Maven local, and Ivy repositories
 
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
-
--->
-
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -115,6 +109,6 @@ We love getting contributions from the Gradle community. For information on cont
 ## Reporting problems
 
 If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines.
-If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
+If you're not sure that you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).

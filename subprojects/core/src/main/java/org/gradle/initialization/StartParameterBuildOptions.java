@@ -56,6 +56,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new DryRunOption());
         options.add(new ContinuousOption());
         options.add(new ContinuousBuildQuietPeriodOption());
+        options.add(new NoProjectDependenciesRebuildOption());
         options.add(new InitScriptOption());
         options.add(new ExcludeTaskOption());
         options.add(new IncludeBuildOption());
@@ -189,6 +190,20 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(int quietPeriodMillis, StartParameterInternal startParameter, Origin origin) {
             startParameter.setContinuousBuildQuietPeriod(Duration.ofMillis(quietPeriodMillis));
+        }
+    }
+
+    public static class NoProjectDependenciesRebuildOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+        private static final String LONG_OPTION = "no-rebuild";
+        private static final String SHORT_OPTION = "a";
+
+        public NoProjectDependenciesRebuildOption() {
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION, "Do not rebuild project dependencies."));
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setBuildProjectDependencies(false);
         }
     }
 
