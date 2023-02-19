@@ -93,7 +93,7 @@ test {
 }
 ```
 
-=== Removed APIs and features
+=== Removed APIs
 
 ==== Legacy ArtifactTransform API
 
@@ -112,11 +112,6 @@ With Gradle 8.0 you should use Kotlin Gradle Plugin 1.6.10 or later and Android 
 The legacy `AntlrSourceVirtualDirectory` API has been removed.
 This change affects the `antlr` plugin.
 In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
-
-==== `--no-rebuild` command line option
-
-The `--no-rebuild` command line option and its short variant `-a` have been removed.
-They were used to tell Gradle not to rebuild project dependencies and could lead to wrong results.
 
 ==== JvmPluginsHelper
 
@@ -697,6 +692,13 @@ If `JavaBasePlugin` is applied, the convention value for tool properties on the 
 In case no toolchains are explicitly configured, the toolchain corresponding to the JVM running Gradle is used.
 
 Similarly, tasks from the Groovy and Scala plugins also rely on toolchains to determine on which JVM they are executed.
+
+==== Scala compilation target
+
+With the toolchain changes described above, Scala compilation tasks are now always provided with a `target` or `release` parameter.
+The exact parameter and value depend on toolchain usage, or not, and Scala version.
+
+See the <<scala_plugin#sec:scala_target,Scala plugin documentation>> for details.
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
