@@ -48,6 +48,8 @@ import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultPluginDependency;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.dependencies.PluginDependencyMarkerCoordinates;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -333,13 +335,14 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @Override
-    public String plugin(String id) {
-        return PluginDependencyMarkerCoordinates.pluginNotation(id, null);
+    public ExternalModuleDependency plugin(String id) {
+        return plugin(id, null);
     }
 
     @Override
-    public String plugin(String id, String version) {
-        return PluginDependencyMarkerCoordinates.pluginNotation(id, version);
+    public ExternalModuleDependency plugin(String id, @Nullable String version) {
+        PluginDependency pluginDependency = new DefaultPluginDependency(id, new DefaultMutableVersionConstraint(version));
+        return PluginDependencyMarkerCoordinates.getExternalModuleDependency(dependencyFactory, pluginDependency);
     }
 
     @Override

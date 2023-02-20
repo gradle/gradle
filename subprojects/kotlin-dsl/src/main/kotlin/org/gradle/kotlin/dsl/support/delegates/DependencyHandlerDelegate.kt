@@ -128,10 +128,10 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
     override fun <T : TransformParameters?> registerTransform(actionType: Class<out TransformAction<T>>, registrationAction: Action<in TransformSpec<T>>) =
         delegate.registerTransform(actionType, registrationAction)
 
-    override fun plugin(id: String): String =
+    override fun plugin(id: String): ExternalModuleDependency =
         delegate.plugin(id)
 
-    override fun plugin(id: String, version: String): String =
+    override fun plugin(id: String, version: String): ExternalModuleDependency =
         delegate.plugin(id, version)
 
     override fun plugin(provider: Provider<out PluginDependency>): Provider<out ExternalModuleDependency> =

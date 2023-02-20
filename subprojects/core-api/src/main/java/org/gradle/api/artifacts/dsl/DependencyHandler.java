@@ -542,28 +542,29 @@ public interface DependencyHandler extends ExtensionAware {
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
     /**
-     * Returns the Maven coordinates string of a Gradle plugin, specified by a plugin identifier.
+     * Creates an {@link ExternalModuleDependency} on a Gradle plugin,
+     * specified by a plugin identifier.
      *
-     * @param id the id of the plugin
-     * @return the plugin Maven coordinates string
+     * @param id the identifier of the plugin
+     * @return the new dependency
      *
      * @since 8.1
      */
     @Incubating
-    String plugin(String id);
+    ExternalModuleDependency plugin(String id);
 
     /**
-     * Returns the Maven coordinates string of a Gradle plugin,
+     * Creates an {@link ExternalModuleDependency} on a Gradle plugin,
      * specified by a plugin identifier and a version.
      *
-     * @param id the id of the plugin
+     * @param id the identifier of the plugin
      * @param version the version of the plugin
-     * @return the plugin Maven coordinates string
+     * @return the new dependency
      *
      * @since 8.1
      */
     @Incubating
-    String plugin(String id, String version);
+    ExternalModuleDependency plugin(String id, String version);
 
     /**
      * Converts the type of the provider from {@link PluginDependency} to {@link ExternalModuleDependency}.

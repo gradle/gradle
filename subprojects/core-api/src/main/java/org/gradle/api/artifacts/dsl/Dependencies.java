@@ -111,9 +111,10 @@ public interface Dependencies {
     }
 
     /**
-     * Creates an {@link ExternalModuleDependency} from an id.
+     * Creates an {@link ExternalModuleDependency} on a Gradle plugin,
+     * specified by a plugin identifier.
      *
-     * @param id the id
+     * @param id the identifier of the plugin
      * @return the new dependency
      * @since 8.1
      */
@@ -122,10 +123,11 @@ public interface Dependencies {
     }
 
     /**
-     * Creates an {@link ExternalModuleDependency} from an id and a version string.
+     * Creates an {@link ExternalModuleDependency} on a Gradle plugin,
+     * specified by a plugin identifier and a version.
      *
-     * @param id the id
-     * @param version the version
+     * @param id the identifier of the plugin
+     * @param version the version of the plugin
      * @return the new dependency
      * @since 8.1
      */
