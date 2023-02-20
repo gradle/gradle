@@ -76,6 +76,11 @@ public class RootBuildCacheControllerRef {
         }
 
         @Override
+        public Optional<String> getCacheSalt() {
+            return delegate.getCacheSalt();
+        }
+
+        @Override
         public void close() {
         }
     }

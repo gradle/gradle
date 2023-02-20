@@ -26,16 +26,23 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.slf4j.Logger;
 
+import javax.annotation.Nullable;
+
 public class DefaultCachingStateFactory implements CachingStateFactory {
     private final Logger logger;
+    private final String cacheSalt;
 
-    public DefaultCachingStateFactory(Logger logger) {
+    public DefaultCachingStateFactory(@Nullable String cacheSalt, Logger logger) {
         this.logger = logger;
+        this.cacheSalt = cacheSalt;
     }
 
     @Override
     public final CachingState createCachingState(BeforeExecutionState beforeExecutionState, ImmutableList<CachingDisabledReason> cachingDisabledReasons) {
-        Hasher cacheKeyHasher = Hashing.newHasher();
+        final Hasher cacheKeyHasher = Hashing.newHasher();
+        if (cacheSalt != null) {
+            cacheKeyHasher.putString(cacheSalt);
+        }
 
         logger.warn("Appending implementation to build cache key: {}",
             beforeExecutionState.getImplementation());
