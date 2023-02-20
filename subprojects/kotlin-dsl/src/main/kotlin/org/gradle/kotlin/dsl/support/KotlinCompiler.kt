@@ -399,6 +399,7 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
     apiVersion = ApiVersion.KOTLIN_1_8,
     analysisFlags = mapOf(
         AnalysisFlags.skipMetadataVersionCheck to true,
+        AnalysisFlags.skipPrereleaseCheck to true,
         JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
     ),
     specificFeatures = mapOf(
