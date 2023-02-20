@@ -53,6 +53,11 @@ public class NoOpBuildCacheController implements BuildCacheController {
     }
 
     @Override
+    public Optional<String> getCacheSalt() {
+        return Optional.empty();
+    }
+
+    @Override
     public void close() {
 
     }

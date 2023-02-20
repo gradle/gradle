@@ -168,6 +168,11 @@ public class DefaultBuildCacheController implements BuildCacheController {
     }
 
     @Override
+    public Optional<String> getCacheSalt() {
+        return Optional.empty();
+    }
+
+    @Override
     public void close() throws IOException {
         if (!closed) {
             closed = true;

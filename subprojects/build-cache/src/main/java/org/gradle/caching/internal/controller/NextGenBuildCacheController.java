@@ -401,6 +401,11 @@ public class NextGenBuildCacheController implements BuildCacheController {
         });
     }
 
+    @Override
+    public Optional<String> getCacheSalt() {
+        return Optional.of("next-gen");
+    }
+
     private static void assertCorrectType(TreeType type, FileSystemLocationSnapshot snapshot) {
         if (snapshot.getType() == FileType.Missing) {
             return;

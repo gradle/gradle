@@ -81,7 +81,8 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
         Logger logger = buildCache.isEmitDebugLogging()
             ? LOGGER
             : NOPLogger.NOP_LOGGER;
-        CachingStateFactory cachingStateFactory = new DefaultCachingStateFactory(logger);
+        String cacheSalt = buildCache.getCacheSalt().orElse(null);
+        CachingStateFactory cachingStateFactory = new DefaultCachingStateFactory(cacheSalt, logger);
 
         ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder = ImmutableList.builder();
         if (!buildCache.isEnabled()) {
