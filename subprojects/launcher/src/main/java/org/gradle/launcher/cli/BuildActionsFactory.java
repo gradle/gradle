@@ -96,7 +96,8 @@ class BuildActionsFactory implements CommandLineActionCreator {
         if (parameters.getDaemonParameters().isForeground()) {
             DaemonParameters daemonParameters = parameters.getDaemonParameters();
             ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
-                UUID.randomUUID().toString(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout(), daemonParameters.getPeriodicCheckInterval(), fileCollectionFactory);
+                UUID.randomUUID().toString(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout(), daemonParameters.getPeriodicCheckInterval(), fileCollectionFactory,
+                daemonParameters.shouldApplyInstrumentationAgent());
             return Actions.toAction(new ForegroundDaemonAction(loggingServices, conf));
         }
         if (parameters.getDaemonParameters().isEnabled()) {
