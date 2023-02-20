@@ -15,9 +15,11 @@
  */
 package org.gradle.process;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -32,6 +34,16 @@ import java.util.List;
  * Specifies the options for executing a Java application.
  */
 public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
+
+    /**
+     * Extra JVM arguments to be to use to launch the JVM for the process.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    @Optional
+    @Input
+    ListProperty<String> getJvmArguments();
 
     /**
      * The name of the main module to be executed if the application should run as a Java module.

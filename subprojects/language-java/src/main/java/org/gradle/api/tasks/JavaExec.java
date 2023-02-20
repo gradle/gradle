@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 
 import org.apache.tools.ant.types.Commandline;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
@@ -160,8 +159,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         File toolchainExecutable = getJavaLauncher().get().getExecutablePath().getAsFile();
         String customExecutable = getExecutable();
         JavaExecutableUtils.validateExecutable(
-                customExecutable, "Toolchain from `executable` property",
-                toolchainExecutable, "toolchain from `javaLauncher` property");
+            customExecutable, "Toolchain from `executable` property",
+            toolchainExecutable, "toolchain from `javaLauncher` property");
     }
 
     /**
@@ -744,13 +743,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     /**
-     * Returns the list of configured extra JVM arguments.
-     *
-     * @return A property of extra JVM arguments.
-     * @since 8.1
+     * {@inheritDoc}
      */
-    @Input
-    @Incubating
+    @Override
     public ListProperty<String> getJvmArguments() {
         return jvmArguments;
     }
