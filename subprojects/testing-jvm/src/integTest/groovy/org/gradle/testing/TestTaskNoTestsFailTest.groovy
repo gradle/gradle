@@ -22,23 +22,6 @@ import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 
 class TestTaskNoTestsFailTest extends AbstractIntegrationSpec {
 
-    def "test --failIfNoTest fails if there is no test"() {
-        buildFile << "apply plugin: 'java'"
-
-        file("src/test/java/NotATest.java") << """
-            public class NotATest {}
-        """
-
-        when:
-        run("test", "--failIfNoTest")
-
-        then:
-        UnexpectedBuildFailure buildFailure = thrown(UnexpectedBuildFailure)
-        Throwable exception = buildFailure.cause.cause.cause
-        exception.class.is(TestExecutionException.class)
-        exception.message.startsWith("No tests found for given includes: ")
-    }
-
     def "test succeeds with warning if there is no test"() {
         buildFile << "apply plugin: 'java'"
 
@@ -47,40 +30,65 @@ class TestTaskNoTestsFailTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning("There is no test to run. You can use 'test --failIfNoTest' to fail in this case.")
+        executer.expectDeprecationWarning("There is no test to run. In 9.0, the behaviour will change to fail in this case. You can use 'test --failIfNoTest' to set the behaviour.")
         succeeds("test")
 
         then:
         noExceptionThrown()
     }
 
-    // These don't work due to the @SkipWhenEmpty annotation on Test::getCandidateClassFiles
+    def "test --failIfNoTest=true fails if there is no test"() {
+        buildFile << "apply plugin: 'java'"
 
-//    def "test --failIfNoTest fails if there is no test file"() {
-//        buildFile << "apply plugin: 'java'"
-//
-//        file("src/test/java/not_a_test.txt")
-//
-//        when:
-//        run("test", "--failIfNoTest")
-//
-//        then:
-//        UnexpectedBuildFailure buildFailure = thrown(UnexpectedBuildFailure)
-//        Throwable exception = buildFailure.cause.cause.cause
-//        exception.class.is(TestExecutionException.class)
-//        exception.message.startsWith("No tests found for given includes: ")
-//    }
+        file("src/test/java/NotATest.java") << """
+            public class NotATest {}
+        """
 
-//    def "test succeeds with warning if there is no test file"() {
-//        buildFile << "apply plugin: 'java'"
-//
-//        file("src/test/java/not_a_test.txt")
-//
-//        when:
-//        executer.expectDeprecationWarning("There is no test to run. You can use 'test --failIfNoTest' to fail in this case.")
-//        succeeds("test")
-//
-//        then:
-//        noExceptionThrown()
-//    }
+        when:
+        run("test", "--failIfNoTest=true")
+
+        then:
+        UnexpectedBuildFailure buildFailure = thrown(UnexpectedBuildFailure)
+        Throwable exception = buildFailure.cause.cause.cause
+        exception.class.is(TestExecutionException.class)
+        exception.message.startsWith("No tests found for given includes: ")
+    }
+
+    def "test --failIfNoTest=false succeeds without warning if there is no test"() {
+        buildFile << "apply plugin: 'java'"
+
+        file("src/test/java/NotATest.java") << """
+            public class NotATest {}
+        """
+
+        when:
+        succeeds("test", "--failIfNoTest=false")
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "test is skipped if there is no test file"() {
+        buildFile << "apply plugin: 'java'"
+
+        file("src/test/java/not_a_test.txt")
+
+        when:
+        succeeds("test")
+
+        then:
+        skipped(":test")
+    }
+
+    def "test --failIfNoTest=false is skipped if there is no test file"() {
+        buildFile << "apply plugin: 'java'"
+
+        file("src/test/java/not_a_test.txt")
+
+        when:
+        succeeds("test", "--failIfNoTest=false")
+
+        then:
+        skipped(":test")
+    }
 }
