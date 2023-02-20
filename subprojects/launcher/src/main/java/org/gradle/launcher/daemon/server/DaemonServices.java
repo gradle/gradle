@@ -83,7 +83,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         this.loggingManager = loggingManager;
 
         addProvider(new DaemonRegistryServices(configuration.getBaseDir()));
-        addProvider(new GlobalScopeServices(!configuration.isSingleUse(), AgentStatus.allowed(), additionalModuleClassPath));
+        addProvider(new GlobalScopeServices(!configuration.isSingleUse(), AgentStatus.of(configuration.isInstrumentationAgentAllowed()), additionalModuleClassPath));
     }
 
     protected DaemonContext createDaemonContext(AgentStatus agentStatus) {
