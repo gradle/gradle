@@ -39,7 +39,7 @@ import spock.lang.Specification
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class DefaultHttpBuildCacheServiceTest extends Specification {
+class HttpBuildCacheServiceTest extends Specification {
     public static final List<Integer> FATAL_HTTP_ERROR_CODES = [
         HttpStatus.SC_USE_PROXY,
         HttpStatus.SC_BAD_REQUEST,
@@ -62,13 +62,13 @@ class DefaultHttpBuildCacheServiceTest extends Specification {
     def key = new DefaultBuildCacheKey(HashCode.fromString("01234567abcdef"))
     private config = TestUtil.newInstance(HttpBuildCache.class)
 
-    DefaultHttpBuildCacheService cacheRef
+    HttpBuildCacheService cacheRef
 
-    DefaultHttpBuildCacheService getCache() {
+    HttpBuildCacheService getCache() {
         if (cacheRef == null) {
             buildCacheDescriber = new NoopBuildCacheDescriber()
             cacheRef = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory(), { it.addHeader("X-Gradle-Version", "3.0") }, httpClientHelperFactory)
-                .createBuildCacheService(this.config, buildCacheDescriber) as DefaultHttpBuildCacheService
+                .createBuildCacheService(this.config, buildCacheDescriber) as HttpBuildCacheService
         }
         cacheRef
     }
@@ -282,7 +282,7 @@ class DefaultHttpBuildCacheServiceTest extends Specification {
 
                 def accept = request.getHeader(HttpHeaders.ACCEPT).split(", ")
                 assert accept.length == 2
-                assert accept[0] == DefaultHttpBuildCacheService.BUILD_CACHE_CONTENT_TYPE
+                assert accept[0] == HttpBuildCacheService.BUILD_CACHE_CONTENT_TYPE
                 assert accept[1] == "*/*"
 
                 response.setStatus(200)
@@ -298,7 +298,7 @@ class DefaultHttpBuildCacheServiceTest extends Specification {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 request.getHeader("X-Gradle-Version") == "3.0"
 
-                assert request.getHeader(HttpHeaders.CONTENT_TYPE) == DefaultHttpBuildCacheService.BUILD_CACHE_CONTENT_TYPE
+                assert request.getHeader(HttpHeaders.CONTENT_TYPE) == HttpBuildCacheService.BUILD_CACHE_CONTENT_TYPE
 
                 response.setStatus(200)
             }

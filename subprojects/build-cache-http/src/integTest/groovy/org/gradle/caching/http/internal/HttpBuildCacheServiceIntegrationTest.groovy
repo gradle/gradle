@@ -26,7 +26,7 @@ import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.test.fixtures.keystore.TestKeyStore
 
 @IntegrationTestTimeout(120)
-class DefaultHttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
+class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
 
     static final String ORIGINAL_HELLO_WORLD = """
             public class Hello {
