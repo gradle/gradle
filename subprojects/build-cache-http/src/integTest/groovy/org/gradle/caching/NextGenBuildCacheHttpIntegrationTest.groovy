@@ -16,13 +16,22 @@
 
 package org.gradle.caching
 
-
+import org.eclipse.jetty.servlet.FilterHolder
 import org.gradle.caching.internal.services.NextGenBuildCacheControllerFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
 import org.junit.Rule
+
+import javax.servlet.DispatcherType
+import javax.servlet.Filter
+import javax.servlet.FilterChain
+import javax.servlet.FilterConfig
+import javax.servlet.ServletException
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
+import javax.servlet.http.HttpServletRequest
 
 class NextGenBuildCacheHttpIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -51,7 +60,7 @@ class NextGenBuildCacheHttpIntegrationTest extends AbstractIntegrationSpec imple
         """
 
         when:
-        runWithCacheNG "compileJava"
+        runWithBuildCacheNG "compileJava"
         then:
         executedAndNotSkipped ":compileJava"
 
@@ -59,12 +68,88 @@ class NextGenBuildCacheHttpIntegrationTest extends AbstractIntegrationSpec imple
         settingsFile << alternativeBuildCache.localCacheConfiguration()
 
         when:
-        runWithCacheNG "clean", "compileJava"
+        runWithBuildCacheNG "clean", "compileJava"
         then:
         skipped ":compileJava"
     }
 
-    private runWithCacheNG(String... tasks) {
+    def "should use different hashes for same artifacts than production build cache"() {
+        def filter = new HashCollectingFilter()
+        httpBuildCacheServer.customHandler.addFilter(new FilterHolder(filter), "/*", EnumSet.of(DispatcherType.REQUEST))
+        buildFile << """
+            plugins {
+                id("base")
+            }
+
+            @CacheableTask
+            abstract class BuildCacheTask extends DefaultTask {
+                @Input
+                abstract Property<String> getInput();
+                @OutputFile
+                abstract RegularFileProperty getOutput();
+
+                @TaskAction
+                void run() {
+                    def file = output.asFile.get()
+                    file.text = input.get()
+                }
+            }
+
+            tasks.register("testBuildCache", BuildCacheTask) {
+                input.set("Hello world")
+                output.set(file("build/build-cache/output.txt"))
+            }
+        """
+
+
+        when:
+        runWithBuildCache "testBuildCache"
+
+        then:
+        executedAndNotSkipped ":testBuildCache"
+        def productionHashes = filter.getAndClearArtifactHashes()
+        !productionHashes.empty
+
+        when:
+        runWithBuildCacheNG "clean", "testBuildCache"
+
+        then:
+        executedAndNotSkipped ":testBuildCache"
+        def ngHashes = filter.getAndClearArtifactHashes()
+        !ngHashes.empty
+        ngHashes.intersect(productionHashes).empty
+    }
+
+    private runWithBuildCache(String... tasks) {
+        withBuildCache().run(tasks)
+    }
+
+    private runWithBuildCacheNG(String... tasks) {
         withBuildCache().run("-D${NextGenBuildCacheControllerFactory.NEXT_GEN_CACHE_SYSTEM_PROPERTY}=true", *tasks)
+    }
+
+    private class HashCollectingFilter implements Filter {
+        private final Set<String> artifactHashes = new LinkedHashSet<>()
+
+        @Override
+        void init(FilterConfig filterConfig) throws ServletException {
+        }
+
+        @Override
+        void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+            def hash = (request as HttpServletRequest).getRequestURI().replace("/", "")
+            artifactHashes.add(hash)
+            chain.doFilter(request, response)
+        }
+
+        @Override
+        void destroy() {
+        }
+
+        Set<String> getAndClearArtifactHashes() {
+            Set<String> artifactHashes = new LinkedHashSet<>(this.artifactHashes)
+            this.artifactHashes.clear()
+            return artifactHashes
+        }
     }
 }
