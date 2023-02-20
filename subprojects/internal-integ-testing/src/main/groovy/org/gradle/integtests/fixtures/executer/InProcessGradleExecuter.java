@@ -238,11 +238,9 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             builder.setExecutable(new File(getJavaHome(), "bin/java"));
             builder.classpath(getExecHandleFactoryClasspath());
             builder.jvmArgs(invocation.launcherJvmArgs);
-            if (isAgentInstrumentationEnabled()) {
-                // Apply the agent to the newly created daemon.
-                for (File agent : cleanup(GLOBAL_SERVICES.get(ModuleRegistry.class).getModule(AgentUtils.AGENT_MODULE_NAME).getClasspath().getAsFiles())) {
-                    builder.jvmArgs("-javaagent:" + agent.getAbsolutePath());
-                }
+            // Apply the agent to the newly created daemon. The feature flag decides if it is going to be used.
+            for (File agent : cleanup(GLOBAL_SERVICES.get(ModuleRegistry.class).getModule(AgentUtils.AGENT_MODULE_NAME).getClasspath().getAsFiles())) {
+                builder.jvmArgs("-javaagent:" + agent.getAbsolutePath());
             }
             builder.environment(invocation.environmentVars);
 
