@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
@@ -81,7 +82,7 @@ public class DependencyVerificationsXmlReader {
             xmlReader.setContentHandler(handler);
             xmlReader.parse(new InputSource(in));
         } catch (Exception e) {
-            throw new InvalidUserDataException("Unable to read dependency verification metadata", e);
+            throw new DependencyVerificationException("Unable to read dependency verification metadata", e);
         } finally {
             try {
                 in.close();
