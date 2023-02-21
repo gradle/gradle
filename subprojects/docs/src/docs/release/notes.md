@@ -21,7 +21,8 @@ We would like to thank the following community members for their contributions t
 [Sebastian Schuberth](https://github.com/sschuberth),
 [valery1707](https://github.com/valery1707),
 [Xin Wang](https://github.com/scaventz),
-[Yanshun Li](https://github.com/Chaoba)
+[Yanshun Li](https://github.com/Chaoba),
+[Thrillpool](https://github.com/Thrillpool)
 
 ## Upgrade instructions
 
