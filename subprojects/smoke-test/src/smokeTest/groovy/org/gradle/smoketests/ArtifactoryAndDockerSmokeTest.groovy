@@ -119,7 +119,7 @@ class ArtifactoryAndDockerSmokeTest extends AbstractPluginValidatingSmokeTest {
             "The Project.getConvention method has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation") // Deprecation reported here: https://github.com/jfrog/project-examples/issues/350
+                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation") // Deprecation reported here: https://github.com/jfrog/build-info/issues/711
         3.times {
             runner.expectLegacyDeprecationWarning(
                 "The org.gradle.util.ConfigureUtil type has been deprecated. " +
