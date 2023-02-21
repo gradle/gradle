@@ -16,9 +16,12 @@
 
 package org.gradle.configurationcache.inputs.undeclared
 
-import groovy.test.NotYetImplemented
+import groovy.transform.CompileStatic
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.ToBeImplemented
 
 import static org.gradle.configurationcache.inputs.undeclared.FileUtils.testFilePath
 import static org.hamcrest.CoreMatchers.containsString
@@ -26,7 +29,7 @@ import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.Matchers.allOf
 
 class UndeclaredFileInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements GroovyPluginImplementation {
-    @NotYetImplemented
+    @ToBeImplemented("reporting multiple consumers per input is not implemented yet")
     def "reports multiple consumers of a single file in #accessKind access"() {
         def configurationCache = newConfigurationCacheFixture()
 
@@ -41,13 +44,12 @@ class UndeclaredFileInputsIntegrationTest extends AbstractConfigurationCacheInte
         then:
         configurationCache.assertStateStored()
         problems.assertResultHasProblems(result) {
+            // TODO when implemented, this assertion should be replaced with the commented one:
+            inputs.expect(allOf(startsWith("Plugin class 'SneakyPluginA': file '${FileUtils.testFileName}'"), containsString(FileUtils.testFileName)))
+            /*
             pluginClasses.forEach {
-                inputs = inputs
-                    .expect(allOf(startsWith("Plugin class '$it':"), containsString(FileUtils.testFileName)))
-                    // These are accessed by the plugin template used in this test:
-                    .expect(startsWith("Plugin class '$it': system property 'INSTANCE'"))
-                    .expect(startsWith("Plugin class '$it': system property 'CLOSURE'"))
-            }
+                inputs = inputs.expect(allOf(startsWith("Plugin class '$it':"), containsString(FileUtils.testFileName))))
+            }*/
         }
 
         where:
@@ -61,8 +63,25 @@ class UndeclaredFileInputsIntegrationTest extends AbstractConfigurationCacheInte
 
     private void applyBuildLogic(BuildInputRead inputRead) {
         pluginClasses.forEach {
-            staticGroovyPlugin(file("buildSrc/src/main/groovy/${it}.groovy"), inputRead, it)
+            groovyPluginReadingValue(file("buildSrc/src/main/groovy/${it}.groovy"), inputRead, it)
         }
         buildFile << pluginClasses.collect { "apply plugin: $it" }.join("\n")
+    }
+
+    private static void groovyPluginReadingValue(TestFile sourceFile, BuildInputRead read, String pluginClassName) {
+        sourceFile << """
+            import ${Project.name}
+            import ${Plugin.name}
+
+            ${read.requiredImports().collect { "import $it" }.join("\n")}
+
+            @${CompileStatic.name}
+            class $pluginClassName implements Plugin<Project> {
+                public void apply(Project project) {
+                    def value = ${read.groovyExpression}
+                    println("apply = " + value)
+                }
+            }
+        """
     }
 }
