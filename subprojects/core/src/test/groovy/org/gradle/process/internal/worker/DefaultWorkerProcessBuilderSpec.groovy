@@ -15,10 +15,14 @@
  */
 package org.gradle.process.internal.worker
 
+import org.gradle.api.JavaVersion
 import org.gradle.internal.id.IdGenerator
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.remote.ConnectionAcceptor
 import org.gradle.internal.remote.MessagingServer
+import org.gradle.internal.remote.ObjectConnection
+import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.process.internal.JavaExecHandleFactory
 import org.gradle.process.internal.health.memory.MemoryManager
@@ -28,19 +32,28 @@ import spock.lang.Specification
 import static org.junit.Assert.assertTrue
 
 class DefaultWorkerProcessBuilderSpec extends Specification {
-    def javaExecHandleBuilder = Mock(JavaExecHandleBuilder)
+    def execHandle = Mock(ExecHandle)
+    def javaExecHandleBuilder = Mock(JavaExecHandleBuilder) {
+        build() >> execHandle
+    }
     def javaExecHandleFactory = new JavaExecHandleFactory() {
         @Override
         JavaExecHandleBuilder newJavaExec() {
             return javaExecHandleBuilder
         }
     }
-    def messagingServer = Mock(MessagingServer)
-    def idGenerator = Mock(IdGenerator)
+    def messagingServer = Mock(MessagingServer) {
+        accept(_) >> Stub(ConnectionAcceptor)
+    }
+    def idGenerator = Mock(IdGenerator) {
+        generateId() >> (1 as Long)
+    }
     def applicationClassesInSystemClassLoaderWorkerImplementationFactory = Mock(ApplicationClassesInSystemClassLoaderWorkerImplementationFactory)
     def outputEventListener = Mock(OutputEventListener)
     def memoryManager = Mock(MemoryManager)
-    def versionDetector = Mock(JvmVersionDetector)
+    def versionDetector = Mock(JvmVersionDetector) {
+        getJavaVersion(_) >> JavaVersion.VERSION_1_9
+    }
     DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder(javaExecHandleFactory,
         messagingServer,
         idGenerator,
@@ -76,5 +89,22 @@ class DefaultWorkerProcessBuilderSpec extends Specification {
 
         then:
         assertTrue(6 == validPathSet.size())
+    }
+
+    def "requests max heap from memory manager at startup"() {
+        when:
+        def process = builder.build()
+
+        then:
+        2 * javaExecHandleBuilder.getMaxHeapSize() >> "1024m"
+
+        when:
+        process.start()
+
+        then:
+        1 * execHandle.start() >> process.delegate.onConnect(Stub(ObjectConnection))
+
+        and:
+        1 * memoryManager.requestFreeMemory(1024*1024*1024)
     }
 }
