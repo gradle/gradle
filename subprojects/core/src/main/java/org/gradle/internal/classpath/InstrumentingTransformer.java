@@ -18,6 +18,7 @@ package org.gradle.internal.classpath;
 
 import kotlin.io.FilesKt;
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
+import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.Action;
@@ -72,7 +73,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 21;
+    private static final int DECORATION_FORMAT = 22;
 
     private static final Type SYSTEM_TYPE = getType(System.class);
     private static final Type STRING_TYPE = getType(String.class);
@@ -133,6 +134,13 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     // readText$default(File, Charset, int, Object) -> kotlinIoFilesKtReadText(File, Charset, String)
     private static final String RETURN_STRING_FROM_FILE_CHARSET_INT_OBJECT = getMethodDescriptor(STRING_TYPE, FILE_TYPE, getType(Charset.class), INT_TYPE, OBJECT_TYPE);
     private static final String RETURN_STRING_FROM_FILE_CHARSET_INT_OBJECT_STRING = getMethodDescriptor(STRING_TYPE, FILE_TYPE, getType(Charset.class), INT_TYPE, OBJECT_TYPE, STRING_TYPE);
+
+    private static final Type RESOURCE_GROOVY_METHODS_TYPE = getType(ResourceGroovyMethods.class);
+    // file.text -(Groovy compiler)-> ResourceGroovyMethods.getText(File) -> groovyFileGetText(File, String)
+    private static final String RETURN_STRING_FROM_FILE = getMethodDescriptor(STRING_TYPE, FILE_TYPE);
+    private static final String RETURN_STRING_FROM_FILE_STRING = getMethodDescriptor(STRING_TYPE, FILE_TYPE, STRING_TYPE);
+    // file.getText(String charset) -(Groovy compiler)-> ResourceGroovyMethods.getText(File, String) -> groovyFileGetText(File, String, String)
+    private static final String RETURN_STRING_FROM_FILE_STRING_STRING = getMethodDescriptor(STRING_TYPE, FILE_TYPE, STRING_TYPE, STRING_TYPE);
 
     private static final Type FILES_TYPE = getType(Files.class);
     // readString(Path) -> filesReadString(Path, String)
@@ -478,6 +486,16 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 if (name.equals("readString") && descriptor.equals(RETURN_STRING_FROM_PATH_CHARSET)) {
                     _LDC(binaryClassNameOf(className));
                     _INVOKESTATIC(INSTRUMENTED_TYPE, "filesReadString", RETURN_STRING_FROM_PATH_CHARSET_STRING);
+                    return true;
+                }
+            } else if (owner.equals(RESOURCE_GROOVY_METHODS_TYPE.getInternalName())) {
+                if (name.equals("getText") && descriptor.equals(RETURN_STRING_FROM_FILE)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyFileGetText", RETURN_STRING_FROM_FILE_STRING);
+                    return true;
+                } else if (name.equals("getText") && descriptor.equals(RETURN_STRING_FROM_FILE_STRING)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyFileGetText", RETURN_STRING_FROM_FILE_STRING_STRING);
                     return true;
                 }
             }
