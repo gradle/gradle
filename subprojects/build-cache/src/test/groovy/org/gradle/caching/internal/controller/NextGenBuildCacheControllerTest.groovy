@@ -98,7 +98,7 @@ class NextGenBuildCacheControllerTest extends Specification {
         def actualSnapshot = controller.createSnapshot(TreeType.FILE, root, manifestEntries)
 
         then:
-        actualSnapshot.empty
+        !actualSnapshot.present
     }
 
     def "can handle missing directory output"() {
