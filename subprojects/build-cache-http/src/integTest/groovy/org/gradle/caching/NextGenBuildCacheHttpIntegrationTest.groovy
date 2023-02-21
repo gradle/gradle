@@ -16,8 +16,6 @@
 
 package org.gradle.caching
 
-
-import org.gradle.caching.internal.services.NextGenBuildCacheControllerFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.TestBuildCache
@@ -51,7 +49,7 @@ class NextGenBuildCacheHttpIntegrationTest extends AbstractIntegrationSpec imple
         """
 
         when:
-        runWithCacheNG "compileJava"
+        runWithBuildCacheNG "compileJava"
         then:
         executedAndNotSkipped ":compileJava"
 
@@ -59,12 +57,61 @@ class NextGenBuildCacheHttpIntegrationTest extends AbstractIntegrationSpec imple
         settingsFile << alternativeBuildCache.localCacheConfiguration()
 
         when:
-        runWithCacheNG "clean", "compileJava"
+        runWithBuildCacheNG "clean", "compileJava"
         then:
         skipped ":compileJava"
     }
 
-    private runWithCacheNG(String... tasks) {
-        withBuildCache().run("-D${NextGenBuildCacheControllerFactory.NEXT_GEN_CACHE_SYSTEM_PROPERTY}=true", *tasks)
+    def "should use different hashes than production build cache for same artifacts"() {
+        buildFile << """
+            plugins {
+                id("base")
+            }
+
+            @CacheableTask
+            abstract class BuildCacheTask extends DefaultTask {
+                @Input
+                abstract Property<String> getInput();
+                @OutputFile
+                abstract RegularFileProperty getOutput();
+
+                @TaskAction
+                void run() {
+                    def file = output.asFile.get()
+                    file.text = input.get()
+                }
+            }
+
+            tasks.register("testBuildCache", BuildCacheTask) {
+                input.set("Hello world")
+                output.set(file("build/build-cache/output.txt"))
+            }
+        """
+
+        when:
+        runWithBuildCache "testBuildCache"
+
+        then:
+        executedAndNotSkipped ":testBuildCache"
+        def productionHashes = httpBuildCacheServer.listCacheFiles()
+        !productionHashes.empty
+
+        when:
+        httpBuildCacheServer.deleteCacheFiles()
+        runWithBuildCacheNG "clean", "testBuildCache"
+
+        then:
+        executedAndNotSkipped ":testBuildCache"
+        def ngHashes = httpBuildCacheServer.listCacheFiles()
+        !ngHashes.empty
+        ngHashes.intersect(productionHashes).empty
+    }
+
+    private runWithBuildCache(String... tasks) {
+        withBuildCache().run(tasks)
+    }
+
+    private runWithBuildCacheNG(String... tasks) {
+        withBuildCacheNg().run(tasks)
     }
 }

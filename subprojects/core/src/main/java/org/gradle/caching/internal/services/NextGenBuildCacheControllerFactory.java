@@ -45,15 +45,10 @@ import java.io.IOException;
 
 public final class NextGenBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<H2BuildCacheService> {
 
-    public static final String NEXT_GEN_CACHE_SYSTEM_PROPERTY = "org.gradle.unsafe.cache.ng";
     private final Deleter deleter;
     private final BuildInvocationScopeId buildInvocationScopeId;
     private final ExecutorFactory executorFactory;
     private final BufferProvider bufferProvider;
-
-    public static boolean isNextGenCachingEnabled() {
-        return Boolean.getBoolean(NEXT_GEN_CACHE_SYSTEM_PROPERTY) == Boolean.TRUE;
-    }
 
     public NextGenBuildCacheControllerFactory(
         StartParameter startParameter,
