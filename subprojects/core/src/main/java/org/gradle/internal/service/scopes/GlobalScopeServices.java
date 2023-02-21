@@ -56,6 +56,7 @@ import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.agents.AgentInitializer;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -307,5 +308,9 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     AgentStatus createAgentStatus() {
         return agentStatus;
+    }
+
+    AgentInitializer createAgentInitializer() {
+        return new AgentInitializer(agentStatus);
     }
 }

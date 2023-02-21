@@ -48,8 +48,8 @@ import org.gradle.internal.InternalListener;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.agents.AgentInitializer;
 import org.gradle.internal.agents.AgentUtils;
-import org.gradle.internal.agents.DefaultClassFileTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
@@ -135,9 +135,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         LoggingManagerInternal loggingManager = GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
         loggingManager.start();
 
-        if (isAgentInstrumentationEnabled()) {
-            DefaultClassFileTransformer.tryInstallInClassLoader(DefaultClassFileTransformer.class.getClassLoader());
-        }
+        GLOBAL_SERVICES.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
     }
 
     public InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {

@@ -20,6 +20,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.agents.AgentInitializer;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -120,6 +121,8 @@ public class DaemonMain extends EntryPoint {
         processEnvironment.maybeDetachProcess();
 
         LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
+
+        daemonServices.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
 
         Daemon daemon = daemonServices.get(Daemon.class);
         daemon.start();

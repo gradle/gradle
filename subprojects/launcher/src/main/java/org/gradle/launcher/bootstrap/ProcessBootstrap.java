@@ -19,7 +19,6 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
-import org.gradle.internal.agents.DefaultClassFileTransformer;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
@@ -55,7 +54,6 @@ public class ProcessBootstrap {
         Thread.currentThread().setContextClassLoader(runtimeClassLoader);
 
         try {
-            DefaultClassFileTransformer.tryInstallInClassLoader(runtimeClassLoader);
             Class<?> mainClass = runtimeClassLoader.loadClass(mainClassName);
             Object entryPoint = mainClass.getConstructor().newInstance();
             Method mainMethod = mainClass.getMethod("run", String[].class);
