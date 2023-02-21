@@ -42,7 +42,6 @@ public abstract class ProjectReportsPlugin implements Plugin<Project> {
         @SuppressWarnings("deprecation")
         final ProjectReportsPluginConvention convention = project.getObjects().newInstance(org.gradle.api.plugins.internal.DefaultProjectReportsPluginConvention.class, project);
 
-        // TODO expose `projectReports` as extension
         DeprecationLogger.whileDisabled(new Runnable() {
             @Override
             public void run() {
