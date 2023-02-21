@@ -28,6 +28,7 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.agents.AgentInitializer;
 import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -145,6 +146,8 @@ class BuildActionsFactory implements CommandLineActionCreator {
             .parent(NativeServices.getInstance())
             .provider(new GlobalScopeServices(startParameter.isContinuous(), AgentStatus.of(daemonParameters.shouldApplyInstrumentationAgent())))
             .build();
+
+        globalServices.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
 
         // Force the user home services to be stopped first, the dependencies between the user home services and the global services are not preserved currently
         return runBuildAndCloseServices(startParameter, daemonParameters, globalServices.get(BuildExecuter.class), globalServices, globalServices.get(GradleUserHomeScopeServiceRegistry.class));
