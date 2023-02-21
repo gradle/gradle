@@ -22,11 +22,13 @@ import java.util.regex.Pattern
 
 /**
  * Removes Scala Zinc compilation time logging from the build-init Scala samples output.
+ * Also removes the potential warning around using `-target` instead of `-release`.
  * */
 class ZincScalaCompilerOutputNormalizer implements OutputNormalizer {
 
     private static final PATTERN = Pattern.compile(
-        "Scala Compiler interface compilation took ([0-9]+ hrs )?([0-9]+ mins )?[0-9.]+ secs\n\n",
+        "(Scala Compiler interface compilation took ([0-9]+ hrs )?([0-9]+ mins )?[0-9.]+ secs\n\n)" +
+            "|(\\[Warn] : -target is deprecated: Use -release instead to compile against the correct platform API.\none warning found\n\n)",
         Pattern.MULTILINE
     )
 
