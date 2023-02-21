@@ -17,6 +17,7 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -58,4 +59,18 @@ public interface FileSystemOperations {
      * @return {@link WorkResult} that can be used to check if delete did any work.
      */
     WorkResult delete(Action<? super DeleteSpec> action);
+
+    /**
+     * Creates and configures file access permissions. For details see {@link FileAccessPermissions}.
+     *
+     * @param directory Specifies if the permissions are being created for regular files or directories.
+     *                  Influences the default value the permissions start out with before the configuration
+     *                  is applied. For details see {@link FileAccessPermissions}.
+     *
+     * @param configureAction The configuration that gets applied to the newly created {@code FileAccessPermissions}.
+     *
+     * @since 8.1 //TODO: 8.2?
+     */
+    @Incubating
+    FileAccessPermissions permissions(boolean directory, Action<? super FileAccessPermissions> configureAction);
 }

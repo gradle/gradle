@@ -15,7 +15,10 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -64,6 +67,24 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      * @param mode the Unix permissions, e.g. {@code 0644}.
      */
     void setMode(int mode);
+
+    /**
+     * Configuration action for specifying file and directory access permissions.
+     * For details see {@link FileAccessPermissions}.
+     *
+     * @since 8.1 //TODO: 8.2?
+     */
+    @Incubating
+    void permissions(Action<? super FileAccessPermissions> configureAction);
+
+    /**
+     * Property for configuring file and directory access permissions.
+     * For details see {@link FileAccessPermissions}.
+     *
+     * @since 8.1 //TODO: 8.2?
+     */
+    @Incubating
+    Property<FileAccessPermissions> getPermissions();
 
     /**
      * The strategy to use if there is already a file at this file's destination.

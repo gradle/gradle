@@ -22,11 +22,14 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.ContentFilterable;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
+import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
 import org.gradle.internal.file.Chmod;
 
 import javax.annotation.Nullable;
@@ -46,6 +49,8 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     private boolean defaultDuplicatesStrategy;
     private RelativePath relativePath;
     private boolean excluded;
+
+    private Property<FileAccessPermissions> permissions;
     private Integer mode;
     private DuplicatesStrategy duplicatesStrategy;
 
@@ -150,6 +155,11 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     @Override
     public int getMode() {
+        if (permissions != null) {
+            permissions.finalizeValue();
+            return permissions.get().toMode();
+        }
+
         if (mode != null) {
             return mode;
         }
@@ -194,6 +204,21 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     @Override
     public void setMode(int mode) {
         this.mode = mode;
+    }
+
+    @Override
+    public void permissions(Action<? super FileAccessPermissions> configureAction) {
+        FileAccessPermissions permissions = objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, fileDetails.isDirectory());
+        configureAction.execute(permissions);
+        getPermissions().set(permissions);
+    }
+
+    @Override
+    public Property<FileAccessPermissions> getPermissions() {
+        if (permissions == null) {
+            permissions = objectFactory.property(FileAccessPermissions.class);
+        }
+        return Cast.uncheckedCast(permissions);
     }
 
     @Override

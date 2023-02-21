@@ -19,15 +19,21 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
+import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.internal.file.copy.DefaultFileAccessPermissions;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.WorkResult;
 
 
 public class DefaultFileSystemOperations implements FileSystemOperations {
 
+    private final ObjectFactory objectFactory;
+
     private final FileOperations fileOperations;
 
-    public DefaultFileSystemOperations(FileOperations fileOperations) {
+    public DefaultFileSystemOperations(ObjectFactory objectFactory, FileOperations fileOperations) {
+        this.objectFactory = objectFactory;
         this.fileOperations = fileOperations;
     }
 
@@ -44,5 +50,12 @@ public class DefaultFileSystemOperations implements FileSystemOperations {
     @Override
     public WorkResult delete(Action<? super DeleteSpec> action) {
         return fileOperations.delete(action);
+    }
+
+    @Override
+    public FileAccessPermissions permissions(boolean directory, Action<? super FileAccessPermissions> configureAction) {
+        FileAccessPermissions permissions = objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, directory);
+        configureAction.execute(permissions);
+        return permissions;
     }
 }
