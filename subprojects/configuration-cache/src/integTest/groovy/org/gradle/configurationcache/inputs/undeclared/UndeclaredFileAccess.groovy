@@ -24,16 +24,23 @@ import java.nio.file.Files
 import java.util.function.Supplier
 
 abstract class UndeclaredFileAccess extends BuildInputRead {
-    final String filePath;
+    final String filePath
 
     UndeclaredFileAccess(String filePath) {
-        this.filePath = filePath;
+        this.filePath = filePath
     }
 
     @Override
     List<String> requiredImports() {
         [
-            File.class, FileFilter.class, FilenameFilter.class, Files.class, StandardCharsets.class, IOException.class, Supplier.class, FileInputStream.class
+            File.class,
+            FileFilter.class,
+            FilenameFilter.class,
+            Files.class,
+            StandardCharsets.class,
+            IOException.class,
+            Supplier.class,
+            FileInputStream.class
         ].collect { it.canonicalName }
     }
 
