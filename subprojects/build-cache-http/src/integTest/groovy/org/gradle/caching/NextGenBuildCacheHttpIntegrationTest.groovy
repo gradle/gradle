@@ -16,22 +16,11 @@
 
 package org.gradle.caching
 
-import org.eclipse.jetty.servlet.FilterHolder
-import org.gradle.caching.internal.services.NextGenBuildCacheControllerFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
 import org.junit.Rule
-
-import javax.servlet.DispatcherType
-import javax.servlet.Filter
-import javax.servlet.FilterChain
-import javax.servlet.FilterConfig
-import javax.servlet.ServletException
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
-import javax.servlet.http.HttpServletRequest
 
 class NextGenBuildCacheHttpIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -73,9 +62,7 @@ class NextGenBuildCacheHttpIntegrationTest extends AbstractIntegrationSpec imple
         skipped ":compileJava"
     }
 
-    def "should use different hashes for same artifacts than production build cache"() {
-        def filter = new HashCollectingFilter()
-        httpBuildCacheServer.customHandler.addFilter(new FilterHolder(filter), "/*", EnumSet.of(DispatcherType.REQUEST))
+    def "should use different hashes than production build cache for same artifacts"() {
         buildFile << """
             plugins {
                 id("base")
@@ -101,21 +88,21 @@ class NextGenBuildCacheHttpIntegrationTest extends AbstractIntegrationSpec imple
             }
         """
 
-
         when:
         runWithBuildCache "testBuildCache"
 
         then:
         executedAndNotSkipped ":testBuildCache"
-        def productionHashes = filter.getAndClearArtifactHashes()
+        def productionHashes = httpBuildCacheServer.listCacheFiles()
         !productionHashes.empty
 
         when:
+        httpBuildCacheServer.deleteCacheFiles()
         runWithBuildCacheNG "clean", "testBuildCache"
 
         then:
         executedAndNotSkipped ":testBuildCache"
-        def ngHashes = filter.getAndClearArtifactHashes()
+        def ngHashes = httpBuildCacheServer.listCacheFiles()
         !ngHashes.empty
         ngHashes.intersect(productionHashes).empty
     }
@@ -125,31 +112,6 @@ class NextGenBuildCacheHttpIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     private runWithBuildCacheNG(String... tasks) {
-        withBuildCache().run("-D${NextGenBuildCacheControllerFactory.NEXT_GEN_CACHE_SYSTEM_PROPERTY}=true", *tasks)
-    }
-
-    private class HashCollectingFilter implements Filter {
-        private final Set<String> artifactHashes = new LinkedHashSet<>()
-
-        @Override
-        void init(FilterConfig filterConfig) throws ServletException {
-        }
-
-        @Override
-        void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-            def hash = (request as HttpServletRequest).getRequestURI().replace("/", "")
-            artifactHashes.add(hash)
-            chain.doFilter(request, response)
-        }
-
-        @Override
-        void destroy() {
-        }
-
-        Set<String> getAndClearArtifactHashes() {
-            Set<String> artifactHashes = new LinkedHashSet<>(this.artifactHashes)
-            this.artifactHashes.clear()
-            return artifactHashes
-        }
+        withBuildCacheNg().run(tasks)
     }
 }

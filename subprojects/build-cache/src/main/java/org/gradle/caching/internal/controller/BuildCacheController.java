@@ -41,6 +41,4 @@ public interface BuildCacheController extends Closeable {
     Optional<BuildCacheLoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity);
 
     void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime);
-
-    Optional<String> getCacheSalt();
 }

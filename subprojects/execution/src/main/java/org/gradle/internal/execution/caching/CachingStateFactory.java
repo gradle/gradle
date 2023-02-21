@@ -19,6 +19,8 @@ package org.gradle.internal.execution.caching;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 
+import javax.annotation.Nullable;
+
 public interface CachingStateFactory {
-    CachingState createCachingState(BeforeExecutionState beforeExecutionState, ImmutableList<CachingDisabledReason> cachingDisabledReasons);
+    CachingState createCachingState(BeforeExecutionState beforeExecutionState, @Nullable String cacheSalt, ImmutableList<CachingDisabledReason> cachingDisabledReasons);
 }

@@ -88,6 +88,8 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NextGenBuildCacheController.class);
 
+    public static final String NEXT_GEN_CACHE_SYSTEM_PROPERTY = "org.gradle.unsafe.cache.ng";
+
     private final BufferProvider bufferProvider;
     private final NextGenBuildCacheAccess cacheAccess;
     private final FileSystemAccess fileSystemAccess;
@@ -401,11 +403,6 @@ public class NextGenBuildCacheController implements BuildCacheController {
         });
     }
 
-    @Override
-    public Optional<String> getCacheSalt() {
-        return Optional.of("next-gen");
-    }
-
     private static void assertCorrectType(TreeType type, FileSystemLocationSnapshot snapshot) {
         if (snapshot.getType() == FileType.Missing) {
             return;
@@ -460,5 +457,9 @@ public class NextGenBuildCacheController implements BuildCacheController {
         }
         FileUtils.forceMkdir(target);
         return true;
+    }
+
+    public static boolean isNextGenCachingEnabled() {
+        return Boolean.getBoolean(NEXT_GEN_CACHE_SYSTEM_PROPERTY) == Boolean.TRUE;
     }
 }

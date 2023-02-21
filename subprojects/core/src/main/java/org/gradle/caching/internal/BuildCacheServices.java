@@ -26,6 +26,7 @@ import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration;
 import org.gradle.caching.internal.controller.BuildCacheController;
+import org.gradle.caching.internal.controller.NextGenBuildCacheController;
 import org.gradle.caching.internal.controller.RootBuildCacheControllerRef;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
@@ -111,7 +112,7 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
             }
 
             BuildCacheServiceRegistration createDirectoryBuildCacheServiceRegistration() {
-                Class<? extends BuildCacheServiceFactory<?>> localCacheServiceFactory = NextGenBuildCacheControllerFactory.isNextGenCachingEnabled()
+                Class<? extends BuildCacheServiceFactory<?>> localCacheServiceFactory = NextGenBuildCacheController.isNextGenCachingEnabled()
                     ? H2BuildCacheServiceFactory.class
                     : DirectoryBuildCacheServiceFactory.class;
                 return new DefaultBuildCacheServiceRegistration(DirectoryBuildCache.class, localCacheServiceFactory);
@@ -197,7 +198,7 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
                 ExecutorFactory executorFactory,
                 BufferProvider bufferProvider
             ) {
-                if (NextGenBuildCacheControllerFactory.isNextGenCachingEnabled()) {
+                if (NextGenBuildCacheController.isNextGenCachingEnabled()) {
                     return new NextGenBuildCacheControllerFactory(
                         startParameter,
                         buildOperationExecutor,

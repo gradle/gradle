@@ -30,15 +30,13 @@ import javax.annotation.Nullable;
 
 public class DefaultCachingStateFactory implements CachingStateFactory {
     private final Logger logger;
-    private final String cacheSalt;
 
-    public DefaultCachingStateFactory(@Nullable String cacheSalt, Logger logger) {
+    public DefaultCachingStateFactory(Logger logger) {
         this.logger = logger;
-        this.cacheSalt = cacheSalt;
     }
 
     @Override
-    public final CachingState createCachingState(BeforeExecutionState beforeExecutionState, ImmutableList<CachingDisabledReason> cachingDisabledReasons) {
+    public final CachingState createCachingState(BeforeExecutionState beforeExecutionState, @Nullable String cacheSalt, ImmutableList<CachingDisabledReason> cachingDisabledReasons) {
         final Hasher cacheKeyHasher = Hashing.newHasher();
         if (cacheSalt != null) {
             cacheKeyHasher.putString(cacheSalt);
