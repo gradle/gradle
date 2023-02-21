@@ -131,6 +131,10 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         return holder;
     }
 
+    public void discardAll() {
+        holder.cachedValue = null;
+    }
+
     private static class MetadataHolder implements MutationValidator {
         private DefaultLocalComponentMetadata cachedValue;
         private final ConfigurationsProvider configurationsProvider;
