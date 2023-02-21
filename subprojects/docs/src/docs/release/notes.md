@@ -3,7 +3,9 @@ This is a backport release, Gradle @version@.
 This is the fourth patch release for Gradle 6.9.
 
 It fixes the following issues:
-* TODO
+* [#23680](https://github.com/gradle/gradle/issues/23680) Dependency graph resolution: Equivalent excludes can cause un-necessary graph mutations [backport 6.x]
+* [#23945](https://github.com/gradle/gradle/issues/23945) Backport trusting only full GPG keys in dependency verification [Backport 6.9.4]
+* [#23950](https://github.com/gradle/gradle/issues/23950) Exclude rule merging: missing optimization [backport 6.x]
 
 Issues fixed in the third patch release:
 * [#19523](https://github.com/gradle/gradle/issues/19523) Fix buffer overflow error in KryoBackedDecoder [Backport 6.x]
