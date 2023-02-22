@@ -79,12 +79,16 @@ class H2BuildCacheServiceTest extends Specification {
         service.close()
 
         expect:
-        new H2BuildCacheService(dbDir.toPath(), 20).load(key, new BuildCacheEntryReader() {
+        def newService = new H2BuildCacheService(dbDir.toPath(), 20)
+        newService.load(key, new BuildCacheEntryReader() {
             @Override
             void readFrom(InputStream input) throws IOException {
                 assert input.text == "Hello world"
             }
         })
+
+        cleanup:
+        newService.close()
     }
 
     def "doesn't write to h2 if the entry with the same key already exists"() {
