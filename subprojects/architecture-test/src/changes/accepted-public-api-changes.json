@@ -9,6 +9,23 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Method org.gradle.api.plugins.quality.Checkstyle.getMaxErrors()",
+            "acceptation": "Upgraded property",
+            "changes": [
+                "Method return type has changed",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Method org.gradle.api.plugins.quality.Checkstyle.setMaxErrors(int)",
+            "acceptation": "Upgraded property",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.compile.CompileOptions",
             "member": "Method org.gradle.api.tasks.compile.CompileOptions.getIncremental()",
             "acceptation": "Upgraded property",
