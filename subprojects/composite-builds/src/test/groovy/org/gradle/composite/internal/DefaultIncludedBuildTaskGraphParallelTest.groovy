@@ -408,6 +408,11 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
+        ExecutionResult<Void> beforeModelDiscarded(boolean failed) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
         ExecutionResult<Void> finishBuild(@Nullable Throwable failure) {
             throw new UnsupportedOperationException()
         }

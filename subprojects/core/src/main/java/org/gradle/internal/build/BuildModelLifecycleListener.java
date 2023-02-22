@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization.internal;
+
+package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 
 @EventScope(Scopes.Build.class)
-public interface InternalBuildFinishedListener {
+public interface BuildModelLifecycleListener {
     /**
-     * Called after all user buildFinished hooks have been executed, but before
-     * services are shutdown.
-     * @param gradle the Gradle instance being finalized
-     * @param failed
+     * Called immediately prior to discarding the build model.
      */
-    default void buildFinished(GradleInternal gradle, boolean failed) {
-
+    default void beforeModelDiscarded(GradleInternal model, boolean buildFailed) {
     }
 }

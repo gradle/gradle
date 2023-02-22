@@ -45,18 +45,6 @@ public class StateTransitionController<T extends StateTransitionController.State
     }
 
     /**
-     * Verifies that the current state is the given state. Ignores any transition in progress and failures of previous operations.
-     *
-     * <p>You should try to not use this method, as it does not provide any thread safety for the code that follows the call.</p>
-     */
-    public void assertInState(T expected) {
-        CurrentState<T> current = state;
-        if (current.state != expected) {
-            throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should be in state " + expected + " but is in " + current.state + ".");
-        }
-    }
-
-    /**
      * Verifies that the current state is not the given state. Ignores any transition in progress and failures of previous operations.
      *
      * <p>You should try to not use this method, as it does not provide any thread safety for the code that follows the call.</p>
@@ -65,17 +53,6 @@ public class StateTransitionController<T extends StateTransitionController.State
         if (state.state == forbidden) {
             throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + ".");
         }
-    }
-
-    public void restart(T target, Runnable action) {
-        synchronizer.withLock(() -> {
-            action.run();
-            state = new InState<>(displayName, target, null);
-        });
-    }
-
-    public boolean isInStateOrLater(T expected) {
-        return state.hasSeenStateIgnoringTransitions(expected);
     }
 
     /**
@@ -156,6 +133,13 @@ public class StateTransitionController<T extends StateTransitionController.State
                 state = current.failed(ExecutionResult.failed(t));
                 throw state.rethrow();
             }
+        });
+    }
+
+    public void restart(T target, Runnable action) {
+        synchronizer.withLock(() -> {
+            action.run();
+            state = new InState<>(displayName, target, null);
         });
     }
 

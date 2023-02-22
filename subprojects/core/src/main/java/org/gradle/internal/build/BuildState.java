@@ -95,7 +95,7 @@ public interface BuildState {
     File getBuildRootDir();
 
     /**
-     * Returns the current state of the mutable model of this build. Try to use {@link #withState(Transformer)} instead.
+     * Returns the current state of the mutable model of this build. Try to avoid using the model directly.
      */
     GradleInternal getMutableModel();
 
@@ -113,4 +113,9 @@ public interface BuildState {
      * Restarts the lifecycle for this build, discarding all present model state.
      */
     void resetLifecycle();
+
+    /**
+     * Runs whatever work is required prior to discarding the model for this build. This can happen at the end of the build or prior to calling {@link #resetLifecycle()}.
+     */
+    ExecutionResult<Void> beforeModelDiscarded(boolean failed);
 }
