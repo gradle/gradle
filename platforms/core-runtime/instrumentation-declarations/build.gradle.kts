@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-project")
 }
 
 description = "Contains declarations for instrumentation of plugins. Adds interceptors, bytecode upgrades etc."
@@ -20,18 +21,12 @@ dependencies {
     compileOnly(project(":model-core"))
     compileOnly(project(":reporting"))
     compileOnly(libs.groovy)
+    // We keep code-quality here, since we would need to separate Groovy and Java sourceset to keep incremental compilation
     compileOnly(project(":code-quality"))
 
-    // Instrumentation dependencies
-    compileOnly(project(":internal-instrumentation-api"))
-    compileOnly(libs.asm)
-    compileOnly(libs.asmUtil)
-    compileOnly(libs.asmTree)
-    annotationProcessor(project(":internal-instrumentation-processor"))
-    annotationProcessor(platform(project(":distributions-dependencies")))
+    // TODO: Logging is inherited from `gradlebuild.instrumented-project` plugin,
+    //  but project health says it should be explicitly defined,
+    //  should we change it to compileOnly in instrumented-project?
+    implementation(projects.logging)
 }
 
-tasks.named<JavaCompile>("compileJava") {
-    // Without this, javac will complain about unclaimed org.gradle.api.NonNullApi annotation
-    options.compilerArgs.add("-Xlint:-processing")
-}
