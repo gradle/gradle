@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.tooling
 
+import org.gradle.api.logging.LogLevel
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -98,10 +99,53 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         stdOut.toString().contains("CONFIGURE SUCCESSFUL")
     }
 
+    def "tooling api uses log level set in arguments over gradle.properties"() {
+        given:
+        propertiesFile << "org.gradle.logging.level=quiet"
+        buildKotlinFile << LogLevel.values()
+            .collect { """logger.${it.name().toLowerCase()}("Hello $it\\n")""" }
+            .join("\n") + """
+System.out.println("\\nCurrent log level property value (org.gradle.logging.level): "  + project.property("org.gradle.logging.level"))
+"""
+
+        when:
+        def stdOut = new ByteArrayOutputStream()
+        toolingApi.withConnection { ProjectConnection connection ->
+            connection.newBuild()
+                .withArguments(arguments)
+                .setStandardOutput(stdOut)
+                .setStandardError(stdOut)
+                .run()
+        }
+
+        then:
+        def output = stdOut.toString()
+
+        LogLevel.values().findAll { it < expectedLevel }.collect {
+            /[\s\S]*Hello $it[\s\S]*/
+        }.every { !output.matches(it)}
+
+        LogLevel.values().findAll { it >= expectedLevel}.collect{
+            /[\s\S]*Hello $it[\s\S]*/
+        }.every { output.matches(it)}
+
+        where:
+        expectedLevel  | arguments
+        LogLevel.QUIET | []
+        LogLevel.INFO  | ["--info"]
+    }
+
+
     def "tooling api uses the wrapper properties to determine which version to use"() {
         projectDir.file('build.gradle').text = """
-wrapper { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
-task check { doLast { assert gradle.gradleVersion == '${otherVersion.version.version}' } }
+wrapper {
+    distributionUrl = '${otherVersion.binDistribution.toURI()}'
+}
+task check {
+    doLast {
+        assert gradle.gradleVersion == '${otherVersion.version.version}'
+    }
+}
 """
         executer.withTasks('wrapper').run()
 
