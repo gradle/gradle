@@ -164,11 +164,11 @@ on two lines -->
 
     def "can declare trusted keys"() {
         when:
-        builder.addTrustedKey("ABCDEF", "g1", null, null, null, false)
-        builder.addTrustedKey("012345", "g2", "m1", null, "file.jar", true)
-        builder.addTrustedKey("ABC123", "g3", "m2", "1.0", null, true)
-        builder.addTrustedKey("456DEF", null, "m3", "1.4", "file.zip", false)
-        builder.addTrustedKey("456DEF", null, "m4", null, "other-file.zip", true)
+        builder.addTrustedKey("A000000000000000000000000000000000000000", "g1", null, null, null, false)
+        builder.addTrustedKey("B000000000000000000000000000000000000000", "g2", "m1", null, "file.jar", true)
+        builder.addTrustedKey("C000000000000000000000000000000000000000", "g3", "m2", "1.0", null, true)
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m3", "1.4", "file.zip", false)
+        builder.addTrustedKey("D000000000000000000000000000000000000000", null, "m4", null, "other-file.zip", true)
         serialize()
 
         then:
@@ -178,13 +178,13 @@ on two lines -->
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
       <trusted-keys>
-         <trusted-key id="012345" group="g2" name="m1" file="file.jar" regex="true"/>
-         <trusted-key id="456DEF">
+         <trusted-key id="A000000000000000000000000000000000000000" group="g1"/>
+         <trusted-key id="B000000000000000000000000000000000000000" group="g2" name="m1" file="file.jar" regex="true"/>
+         <trusted-key id="C000000000000000000000000000000000000000" group="g3" name="m2" version="1.0" regex="true"/>
+         <trusted-key id="D000000000000000000000000000000000000000">
             <trusting name="m3" version="1.4" file="file.zip"/>
             <trusting name="m4" file="other-file.zip" regex="true"/>
          </trusted-key>
-         <trusted-key id="ABC123" group="g3" name="m2" version="1.0" regex="true"/>
-         <trusted-key id="ABCDEF" group="g1"/>
       </trusted-keys>
    </configuration>
    <components/>
