@@ -94,7 +94,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             reports.html.outputLocation.asFile.get() == project.file("build/reports/checkstyle/${sourceSet.name}.html")
             !ignoreFailures
             showViolations
-            maxErrors == 0
+            maxErrors.get() == 0
             maxWarnings == Integer.MAX_VALUE
         }
     }
@@ -171,7 +171,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             reports.html.outputLocation.asFile.get() == project.file("checkstyle-reports/${sourceSet.name}.html")
             ignoreFailures
             showViolations
-            maxErrors == 1
+            maxErrors.get() == 1
             maxWarnings == 1000
         }
     }
