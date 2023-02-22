@@ -163,7 +163,7 @@ class Codecs(
         bind(TransformedExternalArtifactSetCodec())
         bind(CalculateArtifactsCodec(calculatedValueContainerFactory))
         bind(TransformedArtifactCodec(calculatedValueContainerFactory))
-        bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, fileCollectionFactory, calculatedValueContainerFactory))
+        bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, calculatedValueContainerFactory))
         bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
         bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
         bind(FinalizeTransformDependenciesNodeCodec())
