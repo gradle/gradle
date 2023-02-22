@@ -43,7 +43,7 @@ class CheckstyleTest extends Specification {
             reports.sarif.outputType == Report.OutputType.FILE
             !ignoreFailures
             showViolations
-            maxErrors == 0
+            maxErrors.get() == 0
             maxWarnings == Integer.MAX_VALUE
             !minHeapSize.isPresent()
             !maxHeapSize.isPresent()
