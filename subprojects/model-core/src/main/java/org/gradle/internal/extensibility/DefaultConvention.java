@@ -27,6 +27,7 @@ import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -78,6 +79,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             throw new IllegalStateException(
                 format("Could not find any convention object of type %s.", type.getSimpleName()));
         }
+        logConventionDeprecation();
         return value;
     }
 
@@ -95,6 +97,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         if (values.isEmpty()) {
             return null;
         }
+        logConventionDeprecation();
         if (values.size() > 1) {
             throw new IllegalStateException(
                 format("Found multiple convention objects of type %s.", type.getSimpleName()));
@@ -233,6 +236,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             }
             for (Object object : plugins.values()) {
                 if (asDynamicObject(object).hasProperty(name)) {
+                    logConventionDeprecation();
                     return true;
                 }
             }
@@ -266,6 +270,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
                 DynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
                 DynamicInvokeResult result = dynamicObject.tryGetProperty(name);
                 if (result.isFound()) {
+                    logConventionDeprecation();
                     return result;
                 }
             }
@@ -286,6 +291,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
                 BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
                 DynamicInvokeResult result = dynamicObject.trySetProperty(name, value);
                 if (result.isFound()) {
+                    logConventionDeprecation();
                     return result;
                 }
             }
@@ -308,6 +314,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
                 BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
                 DynamicInvokeResult result = dynamicObject.tryInvokeMethod(name, args);
                 if (result.isFound()) {
+                    logConventionDeprecation();
                     return result;
                 }
             }
@@ -329,6 +336,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             for (Object object : plugins.values()) {
                 BeanDynamicObject dynamicObject = asDynamicObject(object);
                 if (dynamicObject.hasMethod(name, args)) {
+                    logConventionDeprecation();
                     return true;
                 }
             }
@@ -369,5 +377,12 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             action = Cast.uncheckedCast(args[0]);
         }
         return extensionsStorage.configureExtension(name, action);
+    }
+
+    private static void logConventionDeprecation() {
+        DeprecationLogger.deprecateType(Convention.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "all_convention_deprecation")
+            .nagUser();
     }
 }
