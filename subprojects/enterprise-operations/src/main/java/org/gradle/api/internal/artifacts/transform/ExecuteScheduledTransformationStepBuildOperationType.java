@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.scan.NotUsedByScanPlugin;
 
 import java.util.Map;
 
@@ -42,12 +43,18 @@ public class ExecuteScheduledTransformationStepBuildOperationType implements Bui
 
         /**
          * Returns the display name of the transformer.
+         *
+         * Not used by build scans but for TAPI events in {@code TransformOperationMapper}.
          */
+        @NotUsedByScanPlugin
         String getTransformerName();
 
         /**
          * Returns the display name of the transformation subject.
+         *
+         * Not used by build scans but for TAPI events in {@code TransformOperationMapper}.
          */
+        @NotUsedByScanPlugin
         String getSubjectName();
 
     }
