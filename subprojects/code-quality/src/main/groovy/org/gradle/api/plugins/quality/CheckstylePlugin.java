@@ -102,7 +102,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
         taskMapping.map("configProperties", (Callable<Map<String, Object>>) () -> extension.getConfigProperties());
         taskMapping.map("ignoreFailures", (Callable<Boolean>) () -> extension.isIgnoreFailures());
         taskMapping.map("showViolations", (Callable<Boolean>) () -> extension.isShowViolations());
-        taskMapping.map("maxErrors", (Callable<Integer>) () -> extension.getMaxErrors());
+        task.getMaxErrors().convention(extension.getMaxErrors());
         taskMapping.map("maxWarnings", (Callable<Integer>) () -> extension.getMaxWarnings());
         task.getConfigDirectory().convention(extension.getConfigDirectory());
         task.getEnableExternalDtdLoad().convention(extension.getEnableExternalDtdLoad());

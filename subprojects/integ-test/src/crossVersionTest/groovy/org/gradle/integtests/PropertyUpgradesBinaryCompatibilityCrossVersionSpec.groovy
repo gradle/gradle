@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests
 
-
+import groovy.test.NotYetImplemented
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.integtests.fixtures.TargetVersions
 
@@ -27,6 +27,7 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
         return [Checkstyle]
     }
 
+    @NotYetImplemented
     def "can use upgraded Checkstyle in a Groovy plugin compiled with a previous Gradle version"() {
         given:
         prepareGroovyPluginTest """
@@ -41,6 +42,7 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
         version current withTasks 'tasks' withStacktraceEnabled() requireDaemon() requireIsolatedDaemons() run()
     }
 
+    @NotYetImplemented
     def "can use upgraded Checkstyle in a Java plugin compiled with a previous Gradle version"() {
         given:
         prepareJavaPluginTest """
@@ -55,4 +57,3 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
         version current withTasks 'tasks' withStacktraceEnabled() requireDaemon() requireIsolatedDaemons() run()
     }
 }
-

@@ -70,7 +70,6 @@ public abstract class Checkstyle extends SourceTask implements VerificationTask,
     private Map<String, Object> configProperties = new LinkedHashMap<String, Object>();
     private final CheckstyleReports reports;
     private boolean ignoreFailures;
-    private int maxErrors;
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
     private final DirectoryProperty configDirectory;
@@ -88,6 +87,7 @@ public abstract class Checkstyle extends SourceTask implements VerificationTask,
         // Set default JavaLauncher to current JVM in case
         // CheckstylePlugin that sets Java launcher convention is not applied
         this.javaLauncher = configureFromCurrentJvmLauncher(getToolchainService(), getObjectFactory());
+        getMaxErrors().convention(0);
     }
 
     private static Property<JavaLauncher> configureFromCurrentJvmLauncher(JavaToolchainService toolchainService, ObjectFactory objectFactory) {
@@ -364,19 +364,7 @@ public abstract class Checkstyle extends SourceTask implements VerificationTask,
      * @since 3.4
      */
     @Input
-    public int getMaxErrors() {
-        return maxErrors;
-    }
-
-    /**
-     * Set the maximum number of errors that are tolerated before breaking the build.
-     *
-     * @param maxErrors number of errors allowed
-     * @since 3.4
-     */
-    public void setMaxErrors(int maxErrors) {
-        this.maxErrors = maxErrors;
-    }
+    public abstract Property<Integer> getMaxErrors();
 
     /**
      * The maximum number of warnings that are tolerated before breaking the build
