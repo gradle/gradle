@@ -1,3 +1,21 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Method org.gradle.api.plugins.quality.Checkstyle.getMaxErrors()",
+            "acceptation": "Checkstyle.maxErrors is upgraded to a Property type",
+            "changes": [
+                "Method return type has changed",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Method org.gradle.api.plugins.quality.Checkstyle.setMaxErrors(int)",
+            "acceptation": "Checkstyle.maxErrors is upgraded to a Property type, setter is not needed anymore",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }
