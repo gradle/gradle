@@ -24,6 +24,7 @@ import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.h2.Driver;
+import org.h2.jdbc.JdbcConnection;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,8 +46,10 @@ public class H2BuildCacheService implements BuildCacheService {
     private static HikariDataSource createHikariDataSource(Path dbPath, int maxPoolSize) {
         HikariConfig hikariConfig = new HikariConfig();
         // RETENTION_TIME=0 prevents uncontrolled DB growth with old pages retention
+        // DB_CLOSE_ON_EXIT=FALSE disables H2's shutdown hook that would close the database on JVM shutdown; since we close database manually in close
+        // DB_CLOSE_DELAY=-1 keeps the database open, even if the last connection to the database is closed; since we close database manually in close
         // We use MODE=MySQL so we can use INSERT IGNORE
-        String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0;MODE=MySQL;INIT=runscript from 'classpath:/h2/schemas/org.gradle.caching.local.internal.H2BuildCacheService.sql'", dbPath.resolve("filestore"));
+        String h2JdbcUrl = String.format("jdbc:h2:file:%s;RETENTION_TIME=0;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1;MODE=MySQL;INIT=runscript from 'classpath:/h2/schemas/org.gradle.caching.local.internal.H2BuildCacheService.sql'", dbPath.resolve("filestore"));
         hikariConfig.setJdbcUrl(h2JdbcUrl);
         hikariConfig.setDriverClassName(Driver.class.getName());
         hikariConfig.setUsername("sa");
@@ -111,6 +114,18 @@ public class H2BuildCacheService implements BuildCacheService {
 
     @Override
     public void close() throws IOException {
+        if (dataSource.isClosed()) {
+            return;
+        }
+        try (Connection conn = dataSource.getConnection().unwrap(JdbcConnection.class)) {
+            // TODO check if there is any performance difference between SHUTDOWN COMPACT and SHUTDOWN for large database
+            // When using just SHUTDOWN the database is also compacted, but only for at most the time defined by the database setting h2.maxCompactTime
+            try (PreparedStatement stmt = conn.prepareStatement("SHUTDOWN COMPACT")) {
+                stmt.execute();
+            }
+        } catch (SQLException e) {
+            throw new IOException(e);
+        }
         dataSource.close();
     }
 }
