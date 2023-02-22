@@ -134,12 +134,12 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
             project(':child2') {
                 apply plugin: 'java'
-                sourceCompatibility = '1.2'
+                java.sourceCompatibility = '1.2'
             }
 
             project(':child3') {
                 apply plugin: 'java'
-                sourceCompatibility = '1.5'
+                java.sourceCompatibility = '1.5'
             }
 
         """
@@ -173,12 +173,12 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
             project(':child2') {
                 apply plugin: 'java'
-                sourceCompatibility = '1.2'
+                java.sourceCompatibility = '1.2'
             }
 
             project(':child3') {
                 apply plugin: 'java'
-                sourceCompatibility = '1.5'
+                java.sourceCompatibility = '1.5'
             }
 
         """

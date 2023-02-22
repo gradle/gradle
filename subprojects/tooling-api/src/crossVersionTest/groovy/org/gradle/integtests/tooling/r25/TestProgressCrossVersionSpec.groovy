@@ -482,7 +482,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
     def goodCode() {
         buildFile << """
             apply plugin: 'java'
-            sourceCompatibility = 1.7
+            java.sourceCompatibility = 1.7
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'

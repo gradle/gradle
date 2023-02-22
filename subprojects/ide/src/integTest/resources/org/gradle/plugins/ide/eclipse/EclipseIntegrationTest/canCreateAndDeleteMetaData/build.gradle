@@ -20,7 +20,7 @@ allprojects {
     group = 'org.gradle'
 
     plugins.withType(JavaBasePlugin) {
-        sourceCompatibility = 1.5
+        java.sourceCompatibility = 1.5
     }
 }
 
