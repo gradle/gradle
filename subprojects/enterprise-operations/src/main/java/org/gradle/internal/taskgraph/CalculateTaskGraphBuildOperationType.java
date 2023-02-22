@@ -66,7 +66,7 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
         String getTaskPath();
 
         /**
-         * @see org.gradle.api.internal.project.taskfactory.TaskIdentity#uniqueId
+         * See {@code org.gradle.api.internal.project.taskfactory.TaskIdentity#uniqueId}.
          */
         long getTaskId();
 
