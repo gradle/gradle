@@ -40,6 +40,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Describables;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
@@ -63,7 +64,6 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     private TextResource config;
     private Map<String, Object> configProperties = new LinkedHashMap<String, Object>();
     private final CheckstyleReports reports;
-    private int maxErrors;
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
 
@@ -77,6 +77,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
         super();
         this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
         getEnableExternalDtdLoad().convention(false);
+        getMaxErrors().convention(0);
     }
 
     /**
@@ -308,20 +309,8 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @since 3.4
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public int getMaxErrors() {
-        return maxErrors;
-    }
-
-    /**
-     * Set the maximum number of errors that are tolerated before breaking the build.
-     *
-     * @param maxErrors number of errors allowed
-     * @since 3.4
-     */
-    public void setMaxErrors(int maxErrors) {
-        this.maxErrors = maxErrors;
-    }
+    @ReplacesEagerProperty(originalType = int.class)
+    public abstract Property<Integer> getMaxErrors();
 
     /**
      * The maximum number of warnings that are tolerated before breaking the build
