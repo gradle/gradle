@@ -2,9 +2,12 @@ plugins {
     id 'java'
 }
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
 version = '1.2.1'
+
+java {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
 
 repositories {
     mavenCentral()

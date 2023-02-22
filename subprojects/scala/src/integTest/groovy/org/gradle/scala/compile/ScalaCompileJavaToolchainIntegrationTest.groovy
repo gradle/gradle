@@ -185,8 +185,8 @@ class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSp
                 def projectSourceCompat = project.java.sourceCompatibility
                 def projectTargetCompat = project.java.targetCompatibility
                 doLast {
-                    logger.lifecycle("project.sourceCompatibility = \$projectSourceCompat")
-                    logger.lifecycle("project.targetCompatibility = \$projectTargetCompat")
+                    logger.lifecycle("project.java.sourceCompatibility = \$projectSourceCompat")
+                    logger.lifecycle("project.java.targetCompatibility = \$projectTargetCompat")
                     logger.lifecycle("task.sourceCompatibility = \$sourceCompatibility")
                     logger.lifecycle("task.targetCompatibility = \$targetCompatibility")
                 }
@@ -200,8 +200,8 @@ class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSp
         executedAndNotSkipped(":compileScala")
         outputDoesNotContain("[Warn]")
 
-        outputContains("project.sourceCompatibility = 11")
-        outputContains("project.targetCompatibility = 11")
+        outputContains("project.java.sourceCompatibility = 11")
+        outputContains("project.java.targetCompatibility = 11")
         outputContains("task.sourceCompatibility = $sourceOut")
         outputContains("task.targetCompatibility = $targetOut")
         JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == JavaVersion.toVersion(targetOut)

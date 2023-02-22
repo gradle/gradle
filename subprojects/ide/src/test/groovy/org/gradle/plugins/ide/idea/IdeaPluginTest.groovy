@@ -124,7 +124,7 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         project.apply(plugin: 'java')
 
         then:
-        project.idea.project.languageLevel.level == new IdeaLanguageLevel(project.sourceCompatibility).level
+        project.idea.project.languageLevel.level == new IdeaLanguageLevel(project.java.sourceCompatibility).level
 
         project.idea.module.scopes == [
                 PROVIDED: [plus: [project.configurations.compileClasspath], minus: []],
@@ -198,9 +198,9 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
 
 
         and:
-        project.sourceCompatibility = JavaVersion.VERSION_1_5
-        childProject.sourceCompatibility = JavaVersion.VERSION_1_6
-        anotherChildProject.sourceCompatibility = JavaVersion.VERSION_1_7
+        project.java.sourceCompatibility = JavaVersion.VERSION_1_5
+        childProject.java.sourceCompatibility = JavaVersion.VERSION_1_6
+        anotherChildProject.java.sourceCompatibility = JavaVersion.VERSION_1_7
 
         then:
         project.idea.project.languageLevel.level == new IdeaLanguageLevel(JavaVersion.VERSION_1_7).level
