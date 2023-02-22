@@ -8,7 +8,6 @@ Method <org.gradle.api.plugins.antlr.AntlrTask.isTraceTreeWalker()> does not hav
 Method <org.gradle.api.plugins.quality.Checkstyle.getConfigFile()> does not have raw return type assignable to org.gradle.api.provider.Property in (Checkstyle.java:0)
 Method <org.gradle.api.plugins.quality.Checkstyle.getConfigProperties()> does not have raw return type assignable to org.gradle.api.provider.Property in (Checkstyle.java:0)
 Method <org.gradle.api.plugins.quality.Checkstyle.getIgnoreFailures()> does not have raw return type assignable to org.gradle.api.provider.Property in (Checkstyle.java:0)
-Method <org.gradle.api.plugins.quality.Checkstyle.getMaxErrors()> does not have raw return type assignable to org.gradle.api.provider.Property in (Checkstyle.java:0)
 Method <org.gradle.api.plugins.quality.Checkstyle.getMaxWarnings()> does not have raw return type assignable to org.gradle.api.provider.Property in (Checkstyle.java:0)
 Method <org.gradle.api.plugins.quality.Checkstyle.getReports()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Checkstyle.java:0)
 Method <org.gradle.api.plugins.quality.Checkstyle.getReports()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Checkstyle.java:0)
