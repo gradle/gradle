@@ -20,6 +20,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.EntryTaskSelector;
@@ -29,7 +30,6 @@ import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.initialization.exception.ExceptionAnalyser;
-import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.Describables;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
@@ -54,7 +54,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
-    private final InternalBuildFinishedListener buildFinishedListener;
+    private final BuildModelLifecycleListener buildModelLifecycleListener;
     private final BuildWorkPreparer workPreparer;
     private final BuildWorkExecutor workExecutor;
     private final BuildToolingModelControllerFactory toolingModelControllerFactory;
@@ -68,7 +68,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         BuildModelController buildModelController,
         ExceptionAnalyser exceptionAnalyser,
         BuildListener buildListener,
-        InternalBuildFinishedListener buildFinishedListener,
+        BuildModelLifecycleListener buildModelLifecycleListener,
         BuildWorkPreparer workPreparer,
         BuildWorkExecutor workExecutor,
         BuildToolingModelControllerFactory toolingModelControllerFactory,
@@ -80,7 +80,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.buildListener = buildListener;
         this.workPreparer = workPreparer;
         this.workExecutor = workExecutor;
-        this.buildFinishedListener = buildFinishedListener;
+        this.buildModelLifecycleListener = buildModelLifecycleListener;
         this.toolingModelControllerFactory = toolingModelControllerFactory;
         this.state = controllerFactory.newController(Describables.of("state of", gradle.getOwner().getDisplayName()), State.Configure);
     }
@@ -118,7 +118,17 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public void resetLifecycle() {
-        state.restart(State.Configure, () -> gradle.resetState());
+        state.restart(State.Configure, () -> {
+            gradle.resetState();
+            for (HoldsProjectState service : gradle.getServices().getAll(HoldsProjectState.class)) {
+                service.discardAll();
+            }
+        });
+    }
+
+    @Override
+    public ExecutionResult<Void> beforeModelDiscarded(boolean failed) {
+        return ExecutionResult.maybeFailing(() -> buildModelLifecycleListener.beforeModelDiscarded(gradle, failed));
     }
 
     @Override
@@ -197,15 +207,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
                 reportableFailure = exceptionAnalyser.transform(stageFailures.getFailures());
             }
             BuildResult buildResult = new BuildResult(hasTasks ? "Build" : "Configure", gradle, reportableFailure);
-            ExecutionResult<Void> finishResult;
-            try {
-                buildListener.buildFinished(buildResult);
-                buildFinishedListener.buildFinished((GradleInternal) buildResult.getGradle(), buildResult.getFailure() != null);
-                finishResult = ExecutionResult.succeeded();
-            } catch (Throwable t) {
-                finishResult = ExecutionResult.failed(t);
-            }
-            return finishResult;
+            return ExecutionResult.maybeFailing(() -> buildListener.buildFinished(buildResult));
         });
     }
 

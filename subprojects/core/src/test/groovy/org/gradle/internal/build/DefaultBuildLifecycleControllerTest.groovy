@@ -24,7 +24,7 @@ import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.initialization.exception.ExceptionAnalyser
-import org.gradle.initialization.internal.InternalBuildFinishedListener
+
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -35,7 +35,8 @@ import java.util.function.Consumer
 import java.util.function.Function
 
 class DefaultBuildLifecycleControllerTest extends Specification {
-    def buildBroadcaster = Mock(BuildListener)
+    def buildListener = Mock(BuildListener)
+    def buildModelLifecycleListener = Mock(BuildModelLifecycleListener)
     def workExecutor = Mock(BuildWorkExecutor)
     def workPreparer = Mock(BuildWorkPreparer)
 
@@ -44,7 +45,6 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
     def buildModelController = Mock(BuildModelController)
     def exceptionAnalyser = Mock(ExceptionAnalyser)
-    def buildFinishedListener = Mock(InternalBuildFinishedListener.class)
     def executionPlan = Mock(ExecutionPlan)
     def finalizedPlan = Mock(FinalizedExecutionPlan)
     def toolingControllerFactory = Mock(BuildToolingModelControllerFactory)
@@ -64,8 +64,8 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     }
 
     DefaultBuildLifecycleController controller() {
-        return new DefaultBuildLifecycleController(gradleMock, buildModelController, exceptionAnalyser, buildBroadcaster,
-            buildFinishedListener, workPreparer, workExecutor, toolingControllerFactory, TestUtil.stateTransitionControllerFactory())
+        return new DefaultBuildLifecycleController(gradleMock, buildModelController, exceptionAnalyser, buildListener,
+            buildModelLifecycleListener, workPreparer, workExecutor, toolingControllerFactory, TestUtil.stateTransitionControllerFactory())
     }
 
     void testCanFinishBuildWhenNothingHasBeenDone() {
@@ -176,7 +176,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         then:
         1 * exceptionAnalyser.transform([failure]) >> transformedException
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
+        1 * buildListener.buildFinished({ it.failure == transformedException })
         finishResult.failures.empty
     }
 
@@ -274,7 +274,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         then:
         1 * exceptionAnalyser.transform([failure]) >> transformedException
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
+        1 * buildListener.buildFinished({ it.failure == transformedException })
         finishResult.failures.empty
     }
 
@@ -319,7 +319,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def finishResult = controller.finishBuild(null)
 
         then:
-        1 * buildBroadcaster.buildFinished({ it.failure == null })
+        1 * buildListener.buildFinished({ it.failure == null })
         finishResult.failures.empty
     }
 
@@ -344,7 +344,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         then:
         1 * exceptionAnalyser.transform([failure]) >> transformedException
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException && it.action == "Build" })
+        1 * buildListener.buildFinished({ it.failure == transformedException && it.action == "Build" })
         finishResult.failures.empty
     }
 
@@ -369,7 +369,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         then:
         1 * exceptionAnalyser.transform([failure]) >> transformedException
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
+        1 * buildListener.buildFinished({ it.failure == transformedException })
         finishResult.failures.empty
     }
 
@@ -396,7 +396,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         then:
         1 * exceptionAnalyser.transform([failure, failure2]) >> transformedException
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException })
+        1 * buildListener.buildFinished({ it.failure == transformedException })
         finishResult.failures.empty
     }
 
@@ -417,7 +417,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         def finishResult = controller.finishBuild(null)
 
         then:
-        1 * buildBroadcaster.buildFinished({ it.failure == null }) >> { throw failure }
+        1 * buildListener.buildFinished({ it.failure == null }) >> { throw failure }
         finishResult.failures == [failure]
     }
 
@@ -447,7 +447,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
 
         then:
         1 * exceptionAnalyser.transform([failure, failure2]) >> transformedException
-        1 * buildBroadcaster.buildFinished({ it.failure == transformedException }) >> { throw failure3 }
+        1 * buildListener.buildFinished({ it.failure == transformedException }) >> { throw failure3 }
         finishResult.failures == [failure3]
     }
 
@@ -532,7 +532,6 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     }
 
     private void expectBuildFinished(String action = "Build") {
-        1 * buildBroadcaster.buildFinished({ it.failure == null && it.action == action })
-        1 * buildFinishedListener.buildFinished(_, false)
+        1 * buildListener.buildFinished({ it.failure == null && it.action == action })
     }
 }
