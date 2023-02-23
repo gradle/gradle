@@ -46,17 +46,17 @@ class GroovyCoverage {
 
     static {
         SUPPORTED_BY_JDK = groovyVersionsSupportedByJdk(JavaVersion.current())
-        SUPPORTS_GROOVYDOC = versionsAbove(SUPPORTED_BY_JDK, "1.6.9")
+        SUPPORTS_GROOVYDOC = versionsNotLessThan(SUPPORTED_BY_JDK, "1.6.9")
         // Indy compilation doesn't work in 2.2.2 and before
-        SUPPORTS_INDY = versionsAbove(SUPPORTED_BY_JDK, "2.3.0")
-        SUPPORTS_TIMESTAMP = versionsAbove(SUPPORTED_BY_JDK, "2.4.6")
-        SUPPORTS_PARAMETERS = versionsAbove(SUPPORTED_BY_JDK, "2.5.0")
-        SUPPORTS_DISABLING_AST_TRANSFORMATIONS = versionsAbove(SUPPORTED_BY_JDK, "2.0.0")
-        SINCE_3_0 = versionsAbove(SUPPORTED_BY_JDK, "3.0.0")
+        SUPPORTS_INDY = versionsNotLessThan(SUPPORTED_BY_JDK, "2.3.0")
+        SUPPORTS_TIMESTAMP = versionsNotLessThan(SUPPORTED_BY_JDK, "2.4.6")
+        SUPPORTS_PARAMETERS = versionsNotLessThan(SUPPORTED_BY_JDK, "2.5.0")
+        SUPPORTS_DISABLING_AST_TRANSFORMATIONS = versionsNotLessThan(SUPPORTED_BY_JDK, "2.0.0")
+        SINCE_3_0 = versionsNotLessThan(SUPPORTED_BY_JDK, "3.0.0")
         CURRENT_STABLE = isCurrentGroovyVersionStable()
             ? GroovySystem.version
-            : versionsBelow(SUPPORTED_BY_JDK, GroovySystem.version).last()
-        MINIMAL_GROOVY_3 = versionsBelow(SINCE_3_0, "4.0.0").first()
+            : versionsNotGreaterThan(SUPPORTED_BY_JDK, GroovySystem.version).last()
+        MINIMAL_GROOVY_3 = versionsNotGreaterThan(SINCE_3_0, "4.0.0").first()
     }
 
     static boolean supportsJavaVersion(String groovyVersion, JavaVersion javaVersion) {
@@ -86,8 +86,10 @@ class GroovyCoverage {
 
         allVersions.addAll(FUTURE)
 
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {
-            return versionsAbove(allVersions, '3.0.0')
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_20)) {
+            return versionsGreaterThan(allVersions, '3.0.13')
+        } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {
+            return versionsNotLessThan(allVersions, '3.0.0')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_14)) {
             return versionsBetween(allVersions, '2.2.2', '2.5.10')
         } else {
@@ -99,12 +101,16 @@ class GroovyCoverage {
         !GroovySystem.version.endsWith("-SNAPSHOT")
     }
 
-    private static Set<String> versionsAbove(Collection<String> versionsToFilter, String threshold) {
+    private static Set<String> versionsNotLessThan(Collection<String> versionsToFilter, String threshold) {
         filterVersions(versionsToFilter, threshold, null)
     }
 
-    private static Set<String> versionsBelow(Collection<String> versionsToFilter, String threshold) {
+    private static Set<String> versionsNotGreaterThan(Collection<String> versionsToFilter, String threshold) {
         filterVersions(versionsToFilter, null, threshold)
+    }
+
+    private static Set<String> versionsGreaterThan(Collection<String> versionsToFilter, String threshold) {
+        filterVersionsStrictly(versionsToFilter, threshold, null)
     }
 
     private static Set<String> versionsBetween(Collection<String> versionsToFilter, String lowerBound, String upperBound) {
@@ -112,15 +118,20 @@ class GroovyCoverage {
     }
 
     private static Set<String> filterVersions(Collection<String> versionsToFilter, @Nullable String lowerBound, @Nullable String upperBound) {
+        def low = lowerBound == null ? null : VersionNumber.parse(lowerBound)
+        def high = upperBound == null ? null : VersionNumber.parse(upperBound)
         versionsToFilter.findAll {
             def version = VersionNumber.parse(it)
-            if (lowerBound != null && version < VersionNumber.parse(lowerBound)) {
-                return false
-            }
-            if (upperBound != null && version > VersionNumber.parse(upperBound)) {
-                return false
-            }
-            return true
+            return (low == null || low <= version) && (high == null || version <= high)
+        }.toSet().asImmutable()
+    }
+
+    private static Set<String> filterVersionsStrictly(Collection<String> versionsToFilter, @Nullable String lowerBound, @Nullable String upperBound) {
+        def low = lowerBound == null ? null : VersionNumber.parse(lowerBound)
+        def high = upperBound == null ? null : VersionNumber.parse(upperBound)
+        versionsToFilter.findAll {
+            def version = VersionNumber.parse(it)
+            return (low == null || low < version) && (high == null || version < high)
         }.toSet().asImmutable()
     }
 }
