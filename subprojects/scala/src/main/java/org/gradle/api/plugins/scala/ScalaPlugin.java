@@ -24,7 +24,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.ScalaSourceDirectorySet;
 import org.gradle.api.tasks.TaskProvider;
@@ -49,7 +49,7 @@ public abstract class ScalaPlugin implements Plugin<Project> {
         project.getPluginManager().apply(ScalaBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);
 
-        JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
+        JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
 
         configureScaladoc(project, component);
 
