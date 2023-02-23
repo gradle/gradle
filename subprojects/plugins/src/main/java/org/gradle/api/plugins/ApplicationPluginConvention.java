@@ -79,8 +79,10 @@ public abstract class ApplicationPluginConvention {
      *     id 'application'
      * }
      *
-     * applicationDistribution.from("some/dir") {
-     *   include "*.txt"
+     * application {
+     *     applicationDistribution.from("some/dir") {
+     *       include "*.txt"
+     *     }
      * }
      * </pre>
      * <p>
