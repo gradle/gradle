@@ -23,7 +23,9 @@ public class BooleanFromCharSequenceNotationConverter implements NotationConvert
     @Override
     public void convert(CharSequence notation, NotationConvertResult<? super Boolean> result) throws TypeConversionException {
         try {
-            result.converted(Boolean.valueOf(notation.toString()));
+            Boolean b = notation.toString().equals("") || Boolean.parseBoolean(notation.toString());
+            result.converted(b);
+//            result.converted(Boolean.valueOf(notation.toString()));
         } catch (Exception e) {
             throw new TypeConversionException(String.format("Cannot convert string value '%s' to a Boolean.", notation), e);
         }
