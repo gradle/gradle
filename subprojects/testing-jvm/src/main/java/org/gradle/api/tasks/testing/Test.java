@@ -493,7 +493,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         forkOptions.setDebug(enabled);
     }
 
-
     /**
      * {@inheritDoc}
      */
@@ -534,7 +533,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Option(option = "failIfNoTest", description = "Sets if task fails when there is no test to run.")
     @Override
-    public void setFailIfNoTest(String failIfNoTest) {
+    public void setFailIfNoTest(Boolean failIfNoTest) {
         super.setFailIfNoTest(failIfNoTest);
     }
 
@@ -546,7 +545,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Input
     @Optional
     @Override
-    public Property<String> getFailIfNoTest() {
+    public Property<Boolean> getFailIfNoTest() {
         return super.getFailIfNoTest();
     }
 

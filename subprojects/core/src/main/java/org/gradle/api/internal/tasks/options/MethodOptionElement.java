@@ -42,7 +42,7 @@ public class MethodOptionElement {
             return AbstractOptionElement.of(optionName, option, setter, optionValueNotationParserFactory);
         }
         if (method.getParameterTypes().length == 0) {
-            return new BooleanOptionElement(optionName, option, setFlagUsingMethod(method));
+            return new BooleanOptionElement(optionName, option, setFlagUsingMethod(method), optionValueNotationParserFactory);
         }
 
         assertCanUseMethodParam(optionName, method);

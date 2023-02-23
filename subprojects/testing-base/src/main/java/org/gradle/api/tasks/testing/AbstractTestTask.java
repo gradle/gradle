@@ -63,7 +63,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationException;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.Cast;
@@ -84,7 +83,6 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -114,7 +112,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private TestReporter testReporter;
     private boolean ignoreFailures;
     private boolean failFast;
-    private final Property<String> failIfNoTest;
+    private final Property<Boolean> failIfNoTest;
 
     public AbstractTestTask() {
         Instantiator instantiator = getInstantiator();
@@ -124,7 +122,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testOutputListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestOutputListener.class);
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
         binaryResultsDirectory = getProject().getObjects().directoryProperty();
-        failIfNoTest = getProject().getObjects().property(String.class).convention((String) null);
+        failIfNoTest = getProject().getObjects().property(Boolean.class).convention((Boolean)null);
 
         reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, this);
         reports.getJunitXml().getRequired().set(true);
@@ -489,7 +487,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         } else if (testCountLogger.getTotalTests() == 0) {
             if (failIfNoTest.getOrNull() == null) {
                 getLogger().warn("There is no test to run. In 9.0, the behaviour will change to fail in this case. You can use 'test --failIfNoTest' to set the behaviour.");
-            } else if (Boolean.parseBoolean(failIfNoTest.get()) || shouldFailOnNoMatchingTests()) {
+            } else if (failIfNoTest.get() || shouldFailOnNoMatchingTests()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
             }
         }
@@ -578,27 +576,18 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     /**
      * Indicates if this task will fail if there is no test to run.
      *
-     * The string value provided can be either "true" or "false"
-     * as per {@link #getFailIfNoTestValues()}.
-     *
      * @return whether this task will fail if there is no test to run
      */
-    @Internal
-    Property<String> getFailIfNoTest() {
+    Property<Boolean> getFailIfNoTest() {
         return failIfNoTest;
     }
 
     /**
      * Sets if the task will fail when there is no test to run.
      */
-    void setFailIfNoTest(String failIfNoTest) {
+    void setFailIfNoTest(Boolean failIfNoTest) {
         this.failIfNoTest.set(failIfNoTest);
         this.failIfNoTest.finalizeValue();
-    }
-
-    @OptionValues("failIfNoTest")
-    List<String> getFailIfNoTestValues() {
-        return Arrays.asList("true", "false");
     }
 
     /**
