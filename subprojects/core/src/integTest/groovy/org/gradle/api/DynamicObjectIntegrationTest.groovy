@@ -17,7 +17,6 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
@@ -66,9 +65,9 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
                 "  }",
                 "}"
         )
-        executer.expectDeprecationWarning("The Project.getConvention method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation")
+
+        expectProjectConventionDeprecationWarnings()
+        expectConventionDeprecationWarnings(2)
 
         expect:
         succeeds("testTask")
@@ -104,10 +103,9 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
                 "  }",
                 "}"
         )
-        executer.expectDeprecationWarning("The Project.getConvention method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation")
 
+        expectProjectConventionDeprecationWarnings()
+        expectConventionDeprecationWarnings()
 
         expect:
         succeeds("testTask")
@@ -126,10 +124,9 @@ class ConventionBean {
     def conventionMethod(String value) { "[$value]" }
 }
 '''
-        executer.expectDeprecationWarning("The Project.getConvention method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation")
 
+        expectProjectConventionDeprecationWarnings()
+        expectConventionDeprecationWarnings(2)
 
         expect:
         succeeds()
@@ -293,6 +290,7 @@ assert 'overridden value' == global
             }
 '''
 
+        expectConventionDeprecationWarnings(7)
 
         expect:
         succeeds("defaultTask")
@@ -463,10 +461,9 @@ assert 'overridden value' == global
             assert prop2(12) == 6
             assert prop3(12) == 24
         """
-        executer.expectDeprecationWarning("The Project.getConvention method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation")
 
+        expectProjectConventionDeprecationWarnings()
+        expectConventionDeprecationWarnings(2)
 
         expect:
         succeeds()
@@ -905,11 +902,9 @@ task print(type: MyTask) {
                 assert e.message == "Could not get unknown property 'p1' for root project 'test' of type \${Project.name}."
             }
         """
-        4.times {
-            executer.expectDeprecationWarning("The Project.getConvention method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation")
-        }
+
+        expectProjectConventionDeprecationWarnings(4)
+        expectConventionDeprecationWarnings()
 
         expect:
         succeeds()
@@ -1067,5 +1062,27 @@ task print(type: MyTask) {
 
         expect:
         succeeds("run")
+    }
+
+    private void expectProjectConventionDeprecationWarnings(int repeated = 1) {
+        repeated.times {
+            executer.expectDocumentedDeprecationWarning(
+                "The Project.getConvention method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#all_convention_deprecation"
+            )
+        }
+    }
+
+    private void expectConventionDeprecationWarnings(int repeated = 1) {
+        repeated.times {
+            executer.expectDocumentedDeprecationWarning(
+                "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#all_convention_deprecation"
+            )
+        }
     }
 }
