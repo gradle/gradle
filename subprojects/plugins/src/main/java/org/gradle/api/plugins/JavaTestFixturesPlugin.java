@@ -20,7 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.internal.JvmModelingServices;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
@@ -65,8 +65,12 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
 
     private void createImplicitTestFixturesDependencies(Project project) {
         DependencyHandler dependencies = project.getDependencies();
+
+        // Test fixtures depend on the project.
         dependencies.add(TEST_FIXTURES_API, dependencies.create(project));
-        SourceSet testSourceSet = JvmPluginsHelper.getDefaultTestSuite(project).getSources();
+
+        // The tests depend on the test fixtures.
+        SourceSet testSourceSet = JavaPluginHelper.getDefaultTestSuite(project).getSources();
         ProjectDependency testDependency = (ProjectDependency) dependencies.add(testSourceSet.getImplementationConfigurationName(), dependencies.create(project));
         testDependency.capabilities(new ProjectTestFixtures(project));
 
