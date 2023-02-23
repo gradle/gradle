@@ -30,5 +30,7 @@ public class BooleanFromCharSequenceNotationConverter implements NotationConvert
     }
 
     @Override
-    public void describe(DiagnosticsVisitor visitor) { visitor.candidate("A Boolean."); }
+    public void describe(DiagnosticsVisitor visitor) {
+        visitor.candidate("A Boolean.");
+    }
 }

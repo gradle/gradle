@@ -30,14 +30,14 @@ class TestTaskNoTestsFailTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning("There is no test to run. In 9.0, the behaviour will change to fail in this case. You can use 'test --failIfNoTest' to set the behaviour.")
+        executer.expectDeprecationWarning("There is no test to run. In 9.0, the behaviour will change to fail in this case. You can use 'test --fail-if-no-test' to set the behaviour.")
         succeeds("test")
 
         then:
         noExceptionThrown()
     }
 
-    def "test --failIfNoTest=true fails if there is no test"() {
+    def "test --fail-if-no-test=true fails if there is no test"() {
         buildFile << "apply plugin: 'java'"
 
         file("src/test/java/NotATest.java") << """
@@ -45,7 +45,7 @@ class TestTaskNoTestsFailTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run("test", "--failIfNoTest=true")
+        run("test", "--fail-if-no-test=true")
 
         then:
         UnexpectedBuildFailure buildFailure = thrown(UnexpectedBuildFailure)
@@ -54,7 +54,7 @@ class TestTaskNoTestsFailTest extends AbstractIntegrationSpec {
         exception.message.startsWith("No tests found for given includes: ")
     }
 
-    def "test --failIfNoTest=false succeeds without warning if there is no test"() {
+    def "test --fail-if-no-test=false succeeds without warning if there is no test"() {
         buildFile << "apply plugin: 'java'"
 
         file("src/test/java/NotATest.java") << """
@@ -62,7 +62,7 @@ class TestTaskNoTestsFailTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds("test", "--failIfNoTest=false")
+        succeeds("test", "--fail-if-no-test=false")
 
         then:
         noExceptionThrown()
@@ -80,13 +80,13 @@ class TestTaskNoTestsFailTest extends AbstractIntegrationSpec {
         skipped(":test")
     }
 
-    def "test --failIfNoTest=false is skipped if there is no test file"() {
+    def "test --fail-if-no-test=false is skipped if there is no test file"() {
         buildFile << "apply plugin: 'java'"
 
         file("src/test/java/not_a_test.txt")
 
         when:
-        succeeds("test", "--failIfNoTest=false")
+        succeeds("test", "--fail-if-no-test=false")
 
         then:
         skipped(":test")

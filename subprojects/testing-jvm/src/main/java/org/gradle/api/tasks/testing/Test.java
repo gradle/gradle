@@ -531,7 +531,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     /**
      * Sets if the task will fail when there is no test to run.
      */
-    @Option(option = "failIfNoTest", description = "Sets if task fails when there is no test to run.")
+    @Option(option = "fail-if-no-test", description = "Sets if task fails when there is no test to run.")
     @Override
     public void setFailIfNoTest(Boolean failIfNoTest) {
         super.setFailIfNoTest(failIfNoTest);

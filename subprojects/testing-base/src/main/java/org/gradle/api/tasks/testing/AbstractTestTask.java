@@ -486,7 +486,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             handleTestFailures();
         } else if (testCountLogger.getTotalTests() == 0) {
             if (failIfNoTest.getOrNull() == null) {
-                getLogger().warn("There is no test to run. In 9.0, the behaviour will change to fail in this case. You can use 'test --failIfNoTest' to set the behaviour.");
+                getLogger().warn("There is no test to run. In 9.0, the behaviour will change to fail in this case. You can use 'test --fail-if-no-test' to set the behaviour.");
             } else if (failIfNoTest.get() || shouldFailOnNoMatchingTests()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
             }
