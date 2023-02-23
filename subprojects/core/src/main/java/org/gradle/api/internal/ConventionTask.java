@@ -19,7 +19,9 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
+import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -44,7 +46,8 @@ public abstract class ConventionTask extends DefaultTask implements IConventionA
     @SuppressWarnings("deprecation")
     public ConventionMapping getConventionMapping() {
         if (conventionMapping == null) {
-            conventionMapping = new ConventionAwareHelper(this, getConvention());
+            Convention convention = DeprecationLogger.whileDisabled(() -> getConvention());
+            conventionMapping = new ConventionAwareHelper(this, convention);
         }
         return conventionMapping;
     }
