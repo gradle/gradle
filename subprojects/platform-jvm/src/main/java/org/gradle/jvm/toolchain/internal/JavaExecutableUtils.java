@@ -48,6 +48,12 @@ public class JavaExecutableUtils {
         return executableFile;
     }
 
+    public static File resolveJavaHomeOfExecutable(String executable) {
+        // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
+        return resolveExecutable(executable).getParentFile().getParentFile();
+    }
+
+
     public static void validateExecutable(@Nullable String executable, String executableDescription, File referenceFile, String referenceDescription) {
         if (executable == null) {
             return;

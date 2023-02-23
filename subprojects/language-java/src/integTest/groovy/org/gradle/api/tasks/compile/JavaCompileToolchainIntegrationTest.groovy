@@ -469,6 +469,55 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         JavaVersion.current()   | "[deprecation] foo() in Foo has been deprecated"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/23990")
+    @Requires(TestPrecondition.JDK11_OR_LATER)
+    def "can compile with a custom compiler executable"() {
+        def jdk = AvailableJavaHomes.getJdk(JavaVersion.current())
+
+        buildFile << """
+            plugins {
+                id("java")
+            }
+
+            configurations {
+                ecj {
+                    canBeConsumed = false
+                    canBeResolved = true
+                }
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                ecj("org.eclipse.jdt:ecj:3.32.0")
+            }
+
+            compileJava {
+                def customJavaLauncher = javaToolchains.launcherFor {
+                    languageVersion.set(JavaLanguageVersion.of(${jdk.javaVersion.majorVersion}))
+                }.get()
+
+                // ECJ does not support generating JNI headers
+                options.headerOutputDirectory.set(provider { null })
+                options.fork = true
+                options.forkOptions.executable = customJavaLauncher.executablePath.asFile.absolutePath
+
+                options.forkOptions.jvmArgumentProviders.add({
+                   ["-cp", configurations.ecj.asPath, "org.eclipse.jdt.internal.compiler.batch.Main"]
+                } as CommandLineArgumentProvider)
+            }
+        """
+
+        when:
+        withInstallations(jdk).run(":compileJava", "--info")
+
+        then:
+        executedAndNotSkipped(":compileJava")
+        outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'")
+        outputContains("Compiling with Java command line compiler '${jdk.javaExecutable.absolutePath}'")
+        classJavaVersion(javaClassFile("Foo.class")) == jdk.javaVersion
+    }
+
     private TestFile configureForkOptionsExecutable(Jvm jdk) {
         buildFile << """
             compileJava {
