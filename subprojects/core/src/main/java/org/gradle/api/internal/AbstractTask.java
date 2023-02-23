@@ -65,6 +65,7 @@ import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -584,6 +585,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     @Deprecated
     public Convention getConvention() {
+        DeprecationLogger.deprecateMethod(AbstractTask.class, "getConvention")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "all_convention_deprecation")
+            .nagUser();
         assertDynamicObject();
         return extensibleDynamicObject.getConvention();
     }

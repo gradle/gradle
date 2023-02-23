@@ -25,6 +25,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.DynamicObject;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -80,7 +81,9 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
     @Override
     public ConventionMapping getConventionMapping() {
         if (conventionMapping == null) {
-            this.conventionMapping = toType(object, IConventionAware.class).getConventionMapping();
+            this.conventionMapping = DeprecationLogger.whileDisabled(() ->
+                toType(object, IConventionAware.class).getConventionMapping()
+            );
         }
         return conventionMapping;
     }
@@ -105,8 +108,8 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
             return type.cast(delegate);
         } else {
             throw new IllegalStateException(
-                    String.format("Cannot create DslObject for '%s' (class: %s) as it does not implement '%s' (it is not a DSL object)",
-                            delegate, delegate.getClass().getSimpleName(), type.getName())
+                String.format("Cannot create DslObject for '%s' (class: %s) as it does not implement '%s' (it is not a DSL object)",
+                    delegate, delegate.getClass().getSimpleName(), type.getName())
             );
         }
     }
