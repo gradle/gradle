@@ -39,13 +39,14 @@ public class JavaExecutableUtils {
                     .undocumented()
                     .nagUser();
         }
-        if (!executableFile.getAbsoluteFile().exists()) {
+        File executableAbsoluteFile = executableFile.getAbsoluteFile();
+        if (!executableAbsoluteFile.exists()) {
             throw new InvalidUserDataException("The configured executable does not exist (" + executableFile.getAbsolutePath() + ")");
         }
-        if (executableFile.getAbsoluteFile().isDirectory()) {
+        if (executableAbsoluteFile.isDirectory()) {
             throw new InvalidUserDataException("The configured executable is a directory (" + executableFile.getAbsolutePath() + ")");
         }
-        return executableFile;
+        return executableAbsoluteFile;
     }
 
     public static File resolveJavaHomeOfExecutable(String executable) {
