@@ -61,6 +61,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public Map<String, Object> getPlugins() {
+        logConventionDeprecation();
         if (plugins == null) {
             plugins = Maps.newLinkedHashMap();
         }
@@ -69,6 +70,10 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
     @Override
     public DynamicObject getExtensionsAsDynamicObject() {
+        // This implementation of Convention doesn't log a deprecation warning
+        // because is mixes both extensions and conventions.
+        // Instead, the returned object logs a deprecation warning when
+        // a convention is actually accessed.
         return extensionsDynamicObject;
     }
 
@@ -79,12 +84,12 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             throw new IllegalStateException(
                 format("Could not find any convention object of type %s.", type.getSimpleName()));
         }
-        logConventionDeprecation();
         return value;
     }
 
     @Override
     public <T> T findPlugin(Class<T> type) throws IllegalStateException {
+        logConventionDeprecation();
         if (plugins == null) {
             return null;
         }
@@ -97,7 +102,6 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         if (values.isEmpty()) {
             return null;
         }
-        logConventionDeprecation();
         if (values.size() > 1) {
             throw new IllegalStateException(
                 format("Found multiple convention objects of type %s.", type.getSimpleName()));
