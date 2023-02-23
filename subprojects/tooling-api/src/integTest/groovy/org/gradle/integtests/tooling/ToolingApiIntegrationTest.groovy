@@ -120,19 +120,23 @@ System.out.println("\\nCurrent log level property value (org.gradle.logging.leve
 
         then:
         def output = stdOut.toString()
-
         LogLevel.values().findAll { it < expectedLevel }.collect {
-            /[\s\S]*Hello $it[\s\S]*/
+            getOutputPattern(it)
         }.every { !output.matches(it)}
 
         LogLevel.values().findAll { it >= expectedLevel}.collect{
-            /[\s\S]*Hello $it[\s\S]*/
+            getOutputPattern(it)
         }.every { output.matches(it)}
 
         where:
         expectedLevel  | arguments
         LogLevel.QUIET | []
         LogLevel.INFO  | ["--info"]
+        LogLevel.INFO  | ["-Dorg.gradle.logging.level=info"]
+    }
+
+    private getOutputPattern(LogLevel it) {
+        /[\s\S]*Hello $it[\s\S]*/
     }
 
 

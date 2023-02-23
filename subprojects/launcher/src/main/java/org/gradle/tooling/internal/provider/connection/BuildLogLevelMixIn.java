@@ -26,14 +26,20 @@ import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.stream.Collectors.toList;
+
 public class BuildLogLevelMixIn {
-    private final ProviderOperationParameters parameters;
+    private final LogLevel logLevel;
 
     public BuildLogLevelMixIn(ProviderOperationParameters parameters) {
-        this.parameters = parameters;
+        this.logLevel = calcBuildLogLevel(parameters);
     }
 
     public LogLevel getBuildLogLevel() {
+        return this.logLevel;
+    }
+
+    private LogLevel calcBuildLogLevel(ProviderOperationParameters parameters) {
         LoggingConfigurationBuildOptions loggingBuildOptions = new LoggingConfigurationBuildOptions();
         CommandLineConverter<LoggingConfiguration> converter = loggingBuildOptions.commandLineConverter();
         CommandLineParser parser = new CommandLineParser().allowUnknownOptions().allowMixedSubcommandsAndOptions();
@@ -41,10 +47,15 @@ public class BuildLogLevelMixIn {
         List<String> arguments = parameters.getArguments();
         ParsedCommandLine parsedCommandLine = parser.parse(arguments == null ? Collections.<String>emptyList() : arguments);
         //configure verbosely only if arguments do not specify any log level.
-        if (parameters.getVerboseLogging() && !parsedCommandLine.hasAnyOption(loggingBuildOptions.getLogLevelOptions())) {
-            return LogLevel.DEBUG;
-        }
 
-        return null;
+        return loggingBuildOptions.getLongLogLevelOptions().stream()
+            .filter(parsedCommandLine::hasOption)
+            .map(LoggingConfigurationBuildOptions.LogLevelOption::parseLogLevel)
+            .collect(toList()).stream().findFirst().orElseGet(() -> {
+                if (parameters.getVerboseLogging()) {
+                    return LogLevel.DEBUG;
+                }
+                return null;
+            });
     }
 }
