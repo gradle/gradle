@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.util.GradleVersion
-import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 
@@ -62,11 +60,10 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         and:
         def runner = useAgpVersion(agpVersion, runner('sourceSets'))
-        runner.expectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) < VersionNumber.parse("7.4.0"),
-            "The Project.getConvention method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation")
+        runner.deprecations(AndroidDeprecations) {
+            expectProjectConventionDeprecationWarning(agpVersion)
+            expectConventionTypeDeprecationWarning(agpVersion)
+        }
 
         when:
         def result = runner.build()
@@ -103,7 +100,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         def result = runner.deprecations(AndroidDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             expectReportDestinationPropertyDeprecation(agpVersion)
-            expectConventionDeprecationWarning(agpVersion)
+            expectProjectConventionDeprecationWarning(agpVersion)
+            expectConventionTypeDeprecationWarning(agpVersion)
         }.build()
 
         then:
@@ -122,7 +120,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result = runner.deprecations(AndroidDeprecations) {
             if (!GradleContextualExecuter.isConfigCache()) {
                 expectReportDestinationPropertyDeprecation(agpVersion)
-                expectConventionDeprecationWarning(agpVersion)
+                expectProjectConventionDeprecationWarning(agpVersion)
+                expectConventionTypeDeprecationWarning(agpVersion)
             }
         }.build()
 
@@ -142,7 +141,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             if (!GradleContextualExecuter.isConfigCache()) {
                 expectReportDestinationPropertyDeprecation(agpVersion)
-                expectConventionDeprecationWarning(agpVersion)
+                expectProjectConventionDeprecationWarning(agpVersion)
+                expectConventionTypeDeprecationWarning(agpVersion)
             }
         }.build()
 
@@ -158,14 +158,16 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'clean re-build'
         def smokeTestRunner = this.runner('clean')
         useAgpVersion(agpVersion, smokeTestRunner).deprecations(AndroidDeprecations) {
-            expectConventionDeprecationWarning(agpVersion)
+            expectProjectConventionDeprecationWarning(agpVersion)
+            expectConventionTypeDeprecationWarning(agpVersion)
         }.build()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner.deprecations(AndroidDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             if (!GradleContextualExecuter.isConfigCache()) {
                 expectReportDestinationPropertyDeprecation(agpVersion)
-                expectConventionDeprecationWarning(agpVersion)
+                expectProjectConventionDeprecationWarning(agpVersion)
+                expectConventionTypeDeprecationWarning(agpVersion)
             }
         }.build()
 
