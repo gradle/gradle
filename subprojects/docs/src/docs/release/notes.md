@@ -4,7 +4,27 @@ The Gradle team is excited to announce Gradle @version@.
 This is the first patch release for Gradle 7.6.
 
 It fixes the following issues:
-* TODO
+* [#19065](https://github.com/gradle/gradle/issues/19065) Platform dependencies not possible in dependency block of test suite plugin
+* [#22688](https://github.com/gradle/gradle/issues/22688) Increased memory usage (with -p option)
+* [#22796](https://github.com/gradle/gradle/issues/22796) Building gradle itself fails during toolchain download: permission denied copying a file within `.gradle/jdks`
+* [#22875](https://github.com/gradle/gradle/issues/22875) Regression with 7.6: @pom artifact in JVM library project is no longer found
+* [#22937](https://github.com/gradle/gradle/issues/22937) Remove safe credentials reference
+* [#22973](https://github.com/gradle/gradle/issues/22973) Kotlin MPP plugin broken with Gradle 7.6 due to signature change in TestResultProcessor
+* [#23016](https://github.com/gradle/gradle/issues/23016) toolchainManagement.jvm.javaRepositories should not expose the full surface of NamedDomainObjectList
+* [#23025](https://github.com/gradle/gradle/issues/23025) Back-port toolchain related fixes to 7.6.1
+* [#23053](https://github.com/gradle/gradle/issues/23053) Auto-provisioning/auto-detection of IBM Semeru toolchains is broken with Gradle 7.6
+* [#23074](https://github.com/gradle/gradle/issues/23074) Docs: Build Lifecycle starts halfway through a point
+* [#23096](https://github.com/gradle/gradle/issues/23096) Classifiers of version catalog are discarded while copied to anothor dependency
+* [#23111](https://github.com/gradle/gradle/issues/23111) Ant closures are broken with Gradle 7.6
+* [#23178](https://github.com/gradle/gradle/issues/23178) Mention the Foojay Toolchain Resolver plugin in the Gradle manual
+* [#23215](https://github.com/gradle/gradle/issues/23215) Gradle 7.6: high memory usage (android project)
+* [#23224](https://github.com/gradle/gradle/issues/23224) Backport to 7.6.1 "Fix for Incremental compilation with modules"
+* [#23294](https://github.com/gradle/gradle/issues/23294) "Unable to make progress running work" together with --continue and failing tasks (Backport to 7.6.1)
+* [#23555](https://github.com/gradle/gradle/issues/23555) Improve Toolchain related deprecation nagging in 7.6
+* [#23894](https://github.com/gradle/gradle/issues/23894) Update EOL policy
+* [#23910](https://github.com/gradle/gradle/issues/23910) Backport trusting only full GPG keys in dependency verification [Backport 7.6.1]
+* [#23941](https://github.com/gradle/gradle/issues/23941) Typo in v7.6 docs about disabling_the_daemon
+* [#23985](https://github.com/gradle/gradle/issues/23985) Resolving of manually created configuration creates a ResolveException
 
 We recommend users upgrade to @version@ instead of 7.6.
 
