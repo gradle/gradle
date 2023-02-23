@@ -193,16 +193,16 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             }
 
             private void generateInvocation(CallInterceptionRequest request, int argCount) {
-                TypeName implementationOwner = TypeUtils.typeName(request.getImplementationOwner());
+                TypeName implementationOwner = TypeUtils.typeName(request.getImplementationInfo().getOwner());
                 result.beginControlFlow("if (invocation.getArgsCount() == $L)", argCount);
                 CodeBlock args = CodeBlock.of(paramVariablesStack.stream().map(it -> "$L").collect(Collectors.joining(", ")), paramVariablesStack.toArray());
                 CodeBlock maybeZeroForKotlinDefault = CodeBlock.of(request.getInterceptedCallable().getParameters().stream().anyMatch(it -> it.getKind() == ParameterKindInfo.KOTLIN_DEFAULT_MASK) ? " 0," : "");
                 if (request.getInterceptedCallable().getKind() == CallableKindInfo.AFTER_CONSTRUCTOR) {
                     result.addStatement("$1T result = new $1T($2L)", TypeUtils.typeName(request.getInterceptedCallable().getOwner()), args);
-                    result.addStatement("$T.$L(result, $L,$L consumer)", implementationOwner, request.getImplementationName(), args, maybeZeroForKotlinDefault);
+                    result.addStatement("$T.$L(result, $L,$L consumer)", implementationOwner, request.getImplementationInfo().getName(), args, maybeZeroForKotlinDefault);
                     result.addStatement("return result");
                 } else {
-                    result.addStatement("return $T.$L($L,$L consumer)", implementationOwner, request.getImplementationName(), args, maybeZeroForKotlinDefault);
+                    result.addStatement("return $T.$L($L,$L consumer)", implementationOwner, request.getImplementationInfo().getName(), args, maybeZeroForKotlinDefault);
                 }
                 result.endControlFlow();
             }

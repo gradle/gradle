@@ -112,7 +112,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     @NotNull
     private static Map<Type, FieldSpec> generateFieldsForImplementationOwners(Collection<CallInterceptionRequest> interceptionRequests) {
         Set<String> knownSimpleNames = new HashSet<>();
-        return interceptionRequests.stream().map(CallInterceptionRequest::getImplementationOwner).distinct()
+        return interceptionRequests.stream().map(it -> it.getImplementationInfo().getOwner()).distinct()
             .collect(Collectors.toMap(Function.identity(), implementationType -> {
                 ClassName implementationClassName = ClassName.bestGuess(implementationType.getClassName());
                 String fieldTypeName = knownSimpleNames.add(implementationClassName.simpleName()) ?
@@ -178,7 +178,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         for (CallInterceptionRequest request : requestsForOwner) {
             CodeBlock.Builder nested = CodeBlock.builder();
             try {
-                generateCodeForRequest(request, implTypeFields.get(request.getImplementationOwner()), nested);
+                generateCodeForRequest(request, implTypeFields.get(request.getImplementationInfo().getOwner()), nested);
             } catch (Failure failure) {
                 onFailure.accept(new FailureInfo(request, failure.reason));
             }
@@ -255,7 +255,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         });
         code.add(")}\n");
 
-        code.add(" * Intercepted by {@link $T#$L(", ClassName.bestGuess(request.getImplementationOwner().getClassName()), request.getImplementationName());
+        code.add(" * Intercepted by {@link $T#$L(", ClassName.bestGuess(request.getImplementationInfo().getOwner().getClassName()), request.getImplementationInfo().getName());
         params.forEach(parameter -> {
             code.add("$T", typeName(parameter.getParameterType()));
             if (parameter != params.get(params.size() - 1)) {
@@ -278,8 +278,8 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     // TODO: move validation earlier?
     private static void generateInterceptedInvocation(CallInterceptionRequest request, FieldSpec implTypeField, CodeBlock.Builder method) {
         CallableInfo callable = request.getInterceptedCallable();
-        String implementationName = request.getImplementationName();
-        String implementationDescriptor = request.getImplementationDescriptor();
+        String implementationName = request.getImplementationInfo().getName();
+        String implementationDescriptor = request.getImplementationInfo().getDescriptor();
 
         if (callable.getKind() == CallableKindInfo.STATIC_METHOD || callable.getKind() == CallableKindInfo.INSTANCE_METHOD) {
             generateNormalInterceptedInvocation(implTypeField, callable, implementationName, implementationDescriptor, method);
@@ -345,8 +345,8 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             throw new IllegalArgumentException("cannot generate invocation for Groovy property");
         }
 
-        String implementationName = request.getImplementationName();
-        String implementationDescriptor = request.getImplementationDescriptor();
+        String implementationName = request.getImplementationInfo().getName();
+        String implementationDescriptor = request.getImplementationInfo().getDescriptor();
 
         method.addStatement("_POP()"); // pops the default method signature marker
         method.addStatement("_LDC($N(className))", binaryClassNameOf);

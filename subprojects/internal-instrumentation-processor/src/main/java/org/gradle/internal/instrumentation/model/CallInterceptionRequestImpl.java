@@ -22,22 +22,16 @@ import java.util.List;
 
 public class CallInterceptionRequestImpl implements CallInterceptionRequest {
     private final CallableInfo interceptedCallable;
-    private final Type implementationOwner;
-    private final String implementationName;
-    private final String implementationDescriptor;
+    private final ImplementationInfo implementationInfo;
     private final RequestExtrasContainer requestExtras;
 
     public CallInterceptionRequestImpl(
         CallableInfo interceptedCallable,
-        Type implementationOwner,
-        String implementationName,
-        String implementationDescriptor,
+        ImplementationInfo implementationInfo,
         List<RequestExtra> requestExtras
     ) {
         this.interceptedCallable = interceptedCallable;
-        this.implementationOwner = implementationOwner;
-        this.implementationName = implementationName;
-        this.implementationDescriptor = implementationDescriptor;
+        this.implementationInfo = implementationInfo;
 
         this.requestExtras = new RequestExtrasContainer();
         requestExtras.forEach(this.requestExtras::add);
@@ -49,18 +43,8 @@ public class CallInterceptionRequestImpl implements CallInterceptionRequest {
     }
 
     @Override
-    public Type getImplementationOwner() {
-        return implementationOwner;
-    }
-
-    @Override
-    public String getImplementationName() {
-        return implementationName;
-    }
-
-    @Override
-    public String getImplementationDescriptor() {
-        return implementationDescriptor;
+    public ImplementationInfo getImplementationInfo() {
+        return implementationInfo;
     }
 
     @Override

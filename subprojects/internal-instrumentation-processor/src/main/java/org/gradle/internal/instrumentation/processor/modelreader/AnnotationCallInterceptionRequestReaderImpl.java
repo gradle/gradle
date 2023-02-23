@@ -24,12 +24,14 @@ import org.gradle.internal.instrumentation.model.CallInterceptionRequestImpl;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableInfoImpl;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
+import org.gradle.internal.instrumentation.model.ImplementationInfoImpl;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfoImpl;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.model.RequestExtra.OriginatingElement;
 import org.gradle.internal.instrumentation.processor.extensibility.AnnotatedMethodReaderExtension;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
 
@@ -71,14 +73,10 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         }
 
         try {
-            Type implementationOwner = extractType(input.getEnclosingElement().asType());
-            String implementationName = input.getSimpleName().toString();
-            String implementationDescriptor = extractMethodDescriptor(input);
-
-            List<RequestExtra> requestExtras = Collections.singletonList(new OriginatingElement(input));
             CallableInfo callableInfo = extractCallableInfo(input);
-
-            return singletonList(new Result.Success(new CallInterceptionRequestImpl(callableInfo, implementationOwner, implementationName, implementationDescriptor, requestExtras)));
+            ImplementationInfoImpl implementationInfo = extractImplementationInfo(input);
+            List<RequestExtra> requestExtras = Collections.singletonList(new OriginatingElement(input));
+            return singletonList(new Result.Success(new CallInterceptionRequestImpl(callableInfo, implementationInfo, requestExtras)));
         } catch (Failure e) {
             return singletonList(new Result.InvalidRequest(e.reason));
         }
@@ -91,6 +89,14 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         Type returnType = extractReturnType(methodElement);
         List<ParameterInfo> parameterInfos = extractParameters(methodElement);
         return new CallableInfoImpl(kindInfo, owner, callableName, returnType, parameterInfos);
+    }
+
+    @NotNull
+    private static ImplementationInfoImpl extractImplementationInfo(ExecutableElement input) {
+        Type implementationOwner = extractType(input.getEnclosingElement().asType());
+        String implementationName = input.getSimpleName().toString();
+        String implementationDescriptor = extractMethodDescriptor(input);
+        return new ImplementationInfoImpl(implementationOwner, implementationName, implementationDescriptor);
     }
 
     private static String getCallableName(ExecutableElement methodElement, CallableKindInfo kindInfo) {

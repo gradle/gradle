@@ -16,8 +16,10 @@
 
 package org.gradle.internal.instrumentation.model;
 
-public interface CallInterceptionRequest {
-    CallableInfo getInterceptedCallable();
-    ImplementationInfo getImplementationInfo();
-    RequestExtrasContainer getRequestExtras();
+import org.objectweb.asm.Type;
+
+public interface ImplementationInfo {
+    Type getOwner();
+    String getName();
+    String getDescriptor();
 }
