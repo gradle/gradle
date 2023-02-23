@@ -18,7 +18,6 @@ package org.gradle.smoketests
 
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -79,11 +78,8 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         when:
         def smokeTestRunner = runner('assembleBootDist', 'check')
         // verified manually: the 3.0.2 version of Spring Boot plugin removed the deprecated API usage
-        smokeTestRunner.expectLegacyDeprecationWarning(
-            "The Project.getConvention method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation")
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
         def buildResult = smokeTestRunner.build()
 
         then:
@@ -92,11 +88,8 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         when:
         smokeTestRunner = runner('bootRun')
-        smokeTestRunner.expectLegacyDeprecationWarning(
-            "The Project.getConvention method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation")
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
         def runResult = smokeTestRunner.build()
 
         then:
