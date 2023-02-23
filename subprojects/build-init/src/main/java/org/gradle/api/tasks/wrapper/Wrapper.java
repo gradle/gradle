@@ -40,8 +40,10 @@ import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.WrapUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.gradle.wrapper.Download;
 import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.Install;
+import org.gradle.wrapper.Logger;
 import org.gradle.wrapper.WrapperExecutor;
 
 import javax.annotation.Nullable;
@@ -107,6 +109,7 @@ public abstract class Wrapper extends DefaultTask {
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
     private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private final DistributionLocator locator = new DistributionLocator();
+    private boolean distributionUrlConfiguredOnCommandLine = false;
 
     public Wrapper() {
         scriptFile = "gradlew";
@@ -130,6 +133,7 @@ public abstract class Wrapper extends DefaultTask {
         Properties existingProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
 
         checkProperties(existingProperties);
+        testDistributionUrl();
         writeProperties(propertiesFile, existingProperties);
         writeWrapperTo(jarFileDestination);
 
@@ -155,6 +159,16 @@ public abstract class Wrapper extends DefaultTask {
             distributionSha256Sum == null &&
             checksumProperty != null) {
             throw new GradleException("gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. Specify one in the wrapped task configuration or with the --gradle-distribution-sha256-sum task option");
+        }
+    }
+
+    private void testDistributionUrl() {
+        if (distributionUrlConfiguredOnCommandLine) {
+            try {
+                new Download(new Logger(true), "gradlew", Download.UNKNOWN_VERSION).sendHeadRequest(getDistributionUrl());
+            } catch (Exception e) {
+                throw new UncheckedIOException("Test of distribution url failed. Please check the values set with --gradle-distribution-url and --gradle-version.", e);
+            }
         }
     }
 
@@ -327,6 +341,7 @@ public abstract class Wrapper extends DefaultTask {
     @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper. " +
         "The following labels are allowed: latest, release-candidate, nightly, and release-nightly.")
     public void setGradleVersion(String gradleVersion) {
+        distributionUrlConfiguredOnCommandLine = true;
         this.gradleVersionResolver.setGradleVersionString(gradleVersion);
     }
 
@@ -396,6 +411,7 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Option(option = "gradle-distribution-url", description = "The URL to download the Gradle distribution from.")
     public void setDistributionUrl(String url) {
+        distributionUrlConfiguredOnCommandLine = true;
         this.distributionUrl = url;
     }
 
