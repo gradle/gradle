@@ -61,17 +61,21 @@ public class JavaExecutableUtils {
         }
 
         File executableFile = resolveExecutable(executable);
-        if (executableFile.equals(referenceFile)) {
+        validateMatchingFiles(executableFile, executableDescription, referenceFile, referenceDescription);
+    }
+
+    public static void validateMatchingFiles(File customFile, String customDescription, File referenceFile, String referenceDescription) {
+        if (customFile.equals(referenceFile)) {
             return;
         }
 
-        File canonicalExecutableFile = canonicalFile(executableFile);
+        File canonicalCustomFile = canonicalFile(customFile);
         File canonicalReferenceFile = canonicalFile(referenceFile);
-        if (canonicalExecutableFile.equals(canonicalReferenceFile)) {
+        if (canonicalCustomFile.equals(canonicalReferenceFile)) {
             return;
         }
 
-        throw new IllegalStateException(executableDescription + " does not match " + referenceDescription + ".");
+        throw new IllegalStateException(customDescription + " does not match " + referenceDescription + ".");
     }
 
     private static File canonicalFile(File file) {
