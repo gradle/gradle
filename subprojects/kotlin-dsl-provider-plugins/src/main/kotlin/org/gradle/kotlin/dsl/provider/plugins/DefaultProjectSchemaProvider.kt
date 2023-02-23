@@ -86,7 +86,8 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
             val plugins: Map<String, Any> = DeprecationLogger.whileDisabled(Factory { target.convention.plugins })!!
             accessibleConventionsSchema(plugins).forEach { (name, type) ->
                 conventions.add(ProjectSchemaEntry(targetType, name, type))
-                collectSchemaOf(plugins[name]!!, type)
+                val plugin = DeprecationLogger.whileDisabled(Factory { plugins[name] })!!
+                collectSchemaOf(plugin, type)
             }
             accessibleContainerSchema(target.tasks.collectionSchema).forEach { schema ->
                 tasks.add(ProjectSchemaEntry(typeOfTaskContainer, schema.name, schema.publicType))
@@ -118,7 +119,9 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
 
 private
 fun accessibleConventionsSchema(plugins: Map<String, Any>) =
-    plugins.filterKeys(::isPublic).mapValues { inferPublicTypeOfConvention(it.value) }
+    DeprecationLogger.whileDisabled(Factory {
+        plugins.filterKeys(::isPublic).mapValues { inferPublicTypeOfConvention(it.value) }
+    })!!
 
 
 private
