@@ -225,7 +225,7 @@ include 'subprojectC'
 allprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
-    targetCompatibility = '1.6'
+    java.targetCompatibility = '1.6'
 }
 
 idea {
@@ -258,7 +258,7 @@ include 'subprojectC'
 allprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
-    targetCompatibility = '1.7'
+    java.targetCompatibility = '1.7'
 }
 
 idea {
@@ -291,11 +291,11 @@ allprojects {
 }
 
 project(':') {
-    targetCompatibility = 1.8
+    java.targetCompatibility = 1.8
 }
 
 project(':subprojectA') {
-    targetCompatibility = 1.7
+    java.targetCompatibility = 1.7
 }
 """
 
@@ -378,19 +378,19 @@ include 'subprojectD'
 configure(project(':subprojectA')) {
     apply plugin: 'java'
     apply plugin: 'idea'
-    targetCompatibility = '1.6'
+    java.targetCompatibility = '1.6'
 }
 
 configure(project(':subprojectB')) {
     apply plugin: 'java'
     apply plugin: 'idea'
-    targetCompatibility = '1.7'
+    java.targetCompatibility = '1.7'
 }
 
 configure(project(':subprojectC')) {
     apply plugin: 'java'
     apply plugin: 'idea'
-    targetCompatibility = '1.8'
+    java.targetCompatibility = '1.8'
 }
 
 configure(project(':subprojectD')) {
