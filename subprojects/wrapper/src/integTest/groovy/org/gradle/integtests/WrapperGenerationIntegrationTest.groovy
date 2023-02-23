@@ -16,6 +16,7 @@
 
 package org.gradle.integtests
 
+import org.gradle.api.UncheckedIOException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -29,7 +30,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     def "generated wrapper scripts use correct line separators"() {
         buildFile << """
             wrapper {
-                distributionUrl = 'http://localhost:8080/gradlew/dist'
+                distributionUrl = 'https://services.gradle.org/distributions'
             }
         """
 
@@ -45,7 +46,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     def "wrapper jar is small"() {
         buildFile << """
             wrapper {
-                distributionUrl = 'http://localhost:8080/gradlew/dist'
+                distributionUrl = 'https://services.gradle.org/distributions'
             }
         """
 
@@ -54,7 +55,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
-        file("gradle/wrapper/gradle-wrapper.jar").length() < 61 * 1024
+        file("gradle/wrapper/gradle-wrapper.jar").length() < 62 * 1024
     }
 
     def "generated wrapper scripts for given version from command-line"() {
@@ -71,7 +72,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(file("second")).withTasks("wrapper").run()
 
         then: "the checksum should be constant (unless there are code changes)"
-        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("ed2c26eba7cfb93cc2b7785d05e534f07b5b48b5e7fc941921cd098628abca58")
+        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("db163900b4008d4556d12cd8dd312dfb5b1efdb63050db5cfec4561eb4eff495")
 
         and:
         file("first/gradle/wrapper/gradle-wrapper.jar").md5Hash == file("second/gradle/wrapper/gradle-wrapper.jar").md5Hash
@@ -121,10 +122,10 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
     def "generated wrapper scripts for given distribution URL from command-line"() {
         when:
-        run "wrapper", "--gradle-distribution-url", "http://localhost:8080/gradlew/dist"
+        run "wrapper", "--gradle-distribution-url", "https://services.gradle.org/distributions"
 
         then:
-        file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=http\\://localhost\\:8080/gradlew/dist")
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=https\\://services.gradle.org/distributions")
     }
 
     def "generated wrapper scripts for given distribution SHA-256 hash sum from command-line"() {
@@ -157,5 +158,37 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
             getValue(Attributes.Name.MANIFEST_VERSION) == '1.0'
             getValue(Attributes.Name.IMPLEMENTATION_TITLE) == 'Gradle Wrapper'
         }
+    }
+
+    def "wrapper task fails if version from command-line does not produce a valid url"() {
+        when:
+        run "wrapper", "--gradle-version", "8.0-RC-5"
+
+        then:
+        Throwable throwable = thrown()
+        def exception = throwable.cause.cause.cause
+        assert exception.class == UncheckedIOException.class
+        assert exception.message == "Test of distribution url failed. Please check the values set with --gradle-distribution-url and --gradle-version."
+
+        def wrappedException = exception.cause
+        assert wrappedException.class == RuntimeException.class
+        assert wrappedException.message == "HEAD request to https://services.gradle.org/distributions/gradle-8.0-RC-5-bin.zip failed: response code (404)"
+        file("gradle/wrapper/gradle-wrapper.properties").assertDoesNotExist()
+    }
+
+    def "wrapper task fails if distribution-url from command-line is not a valid url"() {
+        when:
+        run "wrapper", "--gradle-distribution-url", "https://services.gradle.org/distributions/not-a-valid-url"
+
+        then:
+        Throwable throwable = thrown()
+        def exception = throwable.cause.cause.cause
+        assert exception.class == UncheckedIOException.class
+        assert exception.message == "Test of distribution url failed. Please check the values set with --gradle-distribution-url and --gradle-version."
+
+        def wrappedException = exception.cause
+        assert wrappedException.class == RuntimeException.class
+        assert wrappedException.message == "HEAD request to https://services.gradle.org/distributions/not-a-valid-url failed: response code (404)"
+        file("gradle/wrapper/gradle-wrapper.properties").assertDoesNotExist()
     }
 }
