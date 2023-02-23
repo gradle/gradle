@@ -18,7 +18,6 @@ package org.gradle.internal.instrumentation.model;
 
 import org.objectweb.asm.Type;
 
-import javax.lang.model.element.ExecutableElement;
 import java.util.List;
 
 public class CallInterceptionRequestImpl implements CallInterceptionRequest {
@@ -26,28 +25,22 @@ public class CallInterceptionRequestImpl implements CallInterceptionRequest {
     private final Type implementationOwner;
     private final String implementationName;
     private final String implementationDescriptor;
-    private final List<RequestFlag> requestFlags;
-    private final ExecutableElement originatingElement;
+    private final RequestExtrasContainer requestExtras;
 
     public CallInterceptionRequestImpl(
-        ExecutableElement originatingElement,
         CallableInfo interceptedCallable,
         Type implementationOwner,
         String implementationName,
         String implementationDescriptor,
-        List<RequestFlag> requestFlags
+        List<RequestExtra> requestExtras
     ) {
-        this.originatingElement = originatingElement;
         this.interceptedCallable = interceptedCallable;
         this.implementationOwner = implementationOwner;
         this.implementationName = implementationName;
         this.implementationDescriptor = implementationDescriptor;
-        this.requestFlags = requestFlags;
-    }
 
-    @Override
-    public ExecutableElement getOriginatingElement() {
-        return originatingElement;
+        this.requestExtras = new RequestExtrasContainer();
+        requestExtras.forEach(this.requestExtras::add);
     }
 
     @Override
@@ -71,7 +64,7 @@ public class CallInterceptionRequestImpl implements CallInterceptionRequest {
     }
 
     @Override
-    public List<RequestFlag> getRequestFlags() {
-        return requestFlags;
+    public RequestExtrasContainer getRequestExtras() {
+        return requestExtras;
     }
 }

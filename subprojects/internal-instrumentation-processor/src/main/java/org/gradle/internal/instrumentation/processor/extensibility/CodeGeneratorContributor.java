@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.api.annotations;
+package org.gradle.internal.instrumentation.processor.extensibility;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGenerator;
 
-@Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.TYPE)
-public @interface CallInterceptors {
+public interface CodeGeneratorContributor extends InstrumentationProcessorExtension {
+    InstrumentationCodeGenerator contributeCodeGenerator();
 }
-
-

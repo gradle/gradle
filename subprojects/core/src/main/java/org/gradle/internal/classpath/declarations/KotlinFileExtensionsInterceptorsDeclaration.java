@@ -18,7 +18,6 @@ package org.gradle.internal.classpath.declarations;
 
 import kotlin.io.FilesKt;
 import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.instrumentation.api.annotations.CallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind.StaticMethod;
@@ -30,7 +29,6 @@ import java.io.File;
 import java.nio.charset.Charset;
 
 @SuppressWarnings("NewMethodNamingConvention")
-@CallInterceptors
 @SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
 @SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME)
 public class KotlinFileExtensionsInterceptorsDeclaration {

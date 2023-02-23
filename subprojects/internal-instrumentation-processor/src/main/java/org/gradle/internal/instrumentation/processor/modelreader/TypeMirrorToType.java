@@ -39,22 +39,30 @@ public class TypeMirrorToType extends AbstractTypeVisitor8<Type, Void> {
     @Override
     public Type visitPrimitive(PrimitiveType t, Void unused) {
         TypeKind kind = t.getKind();
-        if (kind == TypeKind.INT)
+        if (kind == TypeKind.INT) {
             return Type.INT_TYPE;
-        if (kind == TypeKind.BYTE)
+        }
+        if (kind == TypeKind.BYTE) {
             return Type.BYTE_TYPE;
-        if (kind == TypeKind.BOOLEAN)
+        }
+        if (kind == TypeKind.BOOLEAN) {
             return Type.BOOLEAN_TYPE;
-        if (kind == TypeKind.DOUBLE)
+        }
+        if (kind == TypeKind.DOUBLE) {
             return Type.DOUBLE_TYPE;
-        if (kind == TypeKind.FLOAT)
+        }
+        if (kind == TypeKind.FLOAT) {
             return Type.FLOAT_TYPE;
-        if (kind == TypeKind.LONG)
+        }
+        if (kind == TypeKind.LONG) {
             return Type.LONG_TYPE;
-        if (kind == TypeKind.SHORT)
+        }
+        if (kind == TypeKind.SHORT) {
             return Type.SHORT_TYPE;
-        if (kind == TypeKind.VOID)
+        }
+        if (kind == TypeKind.VOID) {
             return Type.VOID_TYPE;
+        }
         throw unsupportedType(t);
     }
 

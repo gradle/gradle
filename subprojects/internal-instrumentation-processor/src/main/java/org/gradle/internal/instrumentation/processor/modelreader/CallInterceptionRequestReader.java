@@ -18,8 +18,10 @@ package org.gradle.internal.instrumentation.processor.modelreader;
 
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 
+import java.util.Collection;
+
 public interface CallInterceptionRequestReader<T> {
-    Result readRequest(T input);
+    Collection<Result> readRequest(T input);
 
     interface Result {
         class Success implements Result {
@@ -32,9 +34,6 @@ public interface CallInterceptionRequestReader<T> {
             public CallInterceptionRequest getRequest() {
                 return request;
             }
-        }
-
-        class RequestNotFound implements Result {
         }
 
         class InvalidRequest implements Result {

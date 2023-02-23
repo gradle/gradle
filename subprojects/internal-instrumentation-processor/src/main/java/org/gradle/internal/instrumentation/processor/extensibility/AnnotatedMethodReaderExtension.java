@@ -14,16 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.model;
+package org.gradle.internal.instrumentation.processor.extensibility;
 
-import org.objectweb.asm.Type;
+import org.gradle.internal.instrumentation.processor.modelreader.CallInterceptionRequestReaderFromAnnotatedMethod;
 
-public interface CallInterceptionRequest {
-    CallableInfo getInterceptedCallable();
-
-    Type getImplementationOwner();
-    String getImplementationName();
-    String getImplementationDescriptor();
-
-    RequestExtrasContainer getRequestExtras();
+public interface AnnotatedMethodReaderExtension extends InstrumentationProcessorExtension, CallInterceptionRequestReaderFromAnnotatedMethod {
 }

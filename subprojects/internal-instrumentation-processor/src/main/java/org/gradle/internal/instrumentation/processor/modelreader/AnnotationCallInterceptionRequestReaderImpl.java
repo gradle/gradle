@@ -19,11 +19,7 @@ package org.gradle.internal.instrumentation.processor.modelreader;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instrumentation.api.annotations.CallableDefinition;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
-import org.gradle.internal.instrumentation.api.annotations.InterceptGroovyCalls;
-import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
-import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
-import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequestImpl;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableInfoImpl;
@@ -31,47 +27,47 @@ import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfoImpl;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
-import org.gradle.internal.instrumentation.model.RequestFlag;
+import org.gradle.internal.instrumentation.model.RequestExtra;
+import org.gradle.internal.instrumentation.model.RequestExtra.OriginatingElement;
+import org.gradle.internal.instrumentation.processor.extensibility.AnnotatedMethodReaderExtension;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
 
 import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
-import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.gradle.internal.instrumentation.processor.modelreader.AnnotationUtils.collectMetaAnnotationTypes;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.gradle.internal.instrumentation.processor.modelreader.AnnotationUtils.findAnnotationMirror;
 import static org.gradle.internal.instrumentation.processor.modelreader.AnnotationUtils.findAnnotationValue;
 import static org.gradle.internal.instrumentation.processor.modelreader.TypeUtils.extractMethodDescriptor;
 import static org.gradle.internal.instrumentation.processor.modelreader.TypeUtils.extractReturnType;
 import static org.gradle.internal.instrumentation.processor.modelreader.TypeUtils.extractType;
 
-public class AnnotationCallInterceptionRequestReaderImpl implements AnnotationCallInterceptionRequestReader {
+public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMethodReaderExtension {
 
     @Override
-    public Result readRequest(ExecutableElement input) {
+    public Collection<Result> readRequest(ExecutableElement input) {
         if (input.getKind() != ElementKind.METHOD) {
-            return new Result.RequestNotFound();
+            return emptyList();
         }
 
         if (!input.getModifiers().containsAll(Arrays.asList(Modifier.STATIC, Modifier.PUBLIC))) {
-            return new Result.RequestNotFound();
+            return emptyList();
         }
 
         try {
@@ -79,41 +75,13 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotationCa
             String implementationName = input.getSimpleName().toString();
             String implementationDescriptor = extractMethodDescriptor(input);
 
-            List<RequestFlag> requestFlags = extractRequestFlags(input);
-            if (requestFlags.isEmpty()) {
-                return new Result.InvalidRequest("Found a request with empty flags (no instruction provided on how to intercept the calls)");
-            }
-
+            List<RequestExtra> requestExtras = Collections.singletonList(new OriginatingElement(input));
             CallableInfo callableInfo = extractCallableInfo(input);
 
-            return new Result.Success(new CallInterceptionRequestImpl(input, callableInfo, implementationOwner, implementationName, implementationDescriptor, requestFlags));
+            return singletonList(new Result.Success(new CallInterceptionRequestImpl(callableInfo, implementationOwner, implementationName, implementationDescriptor, requestExtras)));
         } catch (Failure e) {
-            return new Result.InvalidRequest(e.reason);
+            return singletonList(new Result.InvalidRequest(e.reason));
         }
-    }
-
-    private static List<RequestFlag> extractRequestFlags(ExecutableElement methodElement) {
-        Set<TypeElement> metaAnnotations = collectMetaAnnotationTypes(methodElement);
-        List<RequestFlag> results = new ArrayList<>();
-
-        Element classElement = methodElement.getEnclosingElement();
-
-        boolean isInterceptJvmCalls = metaAnnotations.stream().anyMatch(it -> it.asType().toString().equals(InterceptJvmCalls.class.getCanonicalName()));
-        if (isInterceptJvmCalls) {
-            Optional<? extends AnnotationMirror> interceptJvmCallsAnnotation = findAnnotationMirror(classElement, SpecificJvmCallInterceptors.class);
-            Optional<? extends AnnotationValue> generatedClassNameValue = interceptJvmCallsAnnotation.flatMap(annotationMirror -> findAnnotationValue(annotationMirror, "generatedClassName"));
-            String generatedClassName = (String) generatedClassNameValue.orElseThrow(() -> new Failure("missing annotation value")).getValue();
-            results.add(new RequestFlag.InterceptJvmCalls(generatedClassName));
-        }
-        boolean isInterceptGroovyCalls = metaAnnotations.stream().anyMatch(it -> it.asType().toString().equals(InterceptGroovyCalls.class.getCanonicalName()));
-        if (isInterceptGroovyCalls) {
-            Optional<? extends AnnotationMirror> interceptGroovyCallsAnnotation = findAnnotationMirror(classElement, SpecificGroovyCallInterceptors.class);
-            Optional<? extends AnnotationValue> generatedClassNameValue = interceptGroovyCallsAnnotation.flatMap(annotationMirror -> AnnotationUtils.findAnnotationValue(annotationMirror, "generatedClassName"));
-            String generatedClassName = (String) generatedClassNameValue.orElseThrow(() -> new Failure("missing annotation value")).getValue();
-            results.add(new RequestFlag.InterceptGroovyCalls(generatedClassName));
-        }
-        return results;
-
     }
 
     private static CallableInfo extractCallableInfo(ExecutableElement methodElement) {

@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.processor.codegen;
+package org.gradle.internal.instrumentation.processor.codegen.jvmbytecode;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
-import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
+import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
-import org.gradle.internal.instrumentation.model.RequestFlag;
+import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGenerator.GenerationResult.HasFailures.FailureInfo;
+import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassGenerator;
 import org.gradle.internal.instrumentation.utils.LocalVariablesSorterWithDroppedVariables;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.jetbrains.annotations.NotNull;
@@ -59,8 +60,9 @@ import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationClassGenerator {
     @Override
     protected String classNameForRequest(CallInterceptionRequest request) {
-        Optional<RequestFlag> jvmRequestFlag = request.getRequestFlags().stream().filter(flag -> flag instanceof RequestFlag.InterceptJvmCalls).findAny();
-        return jvmRequestFlag.map(flag -> ((RequestFlag.InterceptJvmCalls) flag).getImplementationClassName()).orElse(null);
+        return request.getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
+            .map(RequestExtra.InterceptJvmCalls::getImplementationClassName)
+            .orElse(null);
     }
 
     @Override

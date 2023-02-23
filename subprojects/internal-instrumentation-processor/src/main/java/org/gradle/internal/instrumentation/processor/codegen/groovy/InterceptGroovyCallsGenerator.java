@@ -26,7 +26,7 @@ import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
-import org.gradle.internal.instrumentation.model.RequestFlag;
+import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGenerator.GenerationResult.HasFailures.FailureInfo;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
@@ -41,7 +41,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -53,12 +52,18 @@ import static org.gradle.internal.instrumentation.processor.codegen.groovy.Param
 public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentationClassGenerator {
     @Override
     protected String classNameForRequest(CallInterceptionRequest request) {
-        Optional<RequestFlag> groovyRequestFlag = request.getRequestFlags().stream().filter(flag -> flag instanceof RequestFlag.InterceptGroovyCalls).findAny();
-        return groovyRequestFlag.map(flag -> ((RequestFlag.InterceptGroovyCalls) flag).getImplementationClassName()).orElse(null);
+        return request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class)
+            .map(RequestExtra.InterceptGroovyCalls::getImplementationClassName)
+            .orElse(null);
     }
 
     @Override
-    protected Consumer<TypeSpec.Builder> classContentForClass(String className, Collection<CallInterceptionRequest> requestsClassGroup, Consumer<? super CallInterceptionRequest> onProcessedRequest, Consumer<? super FailureInfo> onFailure) {
+    protected Consumer<TypeSpec.Builder> classContentForClass(
+        String className,
+        Collection<CallInterceptionRequest> requestsClassGroup,
+        Consumer<? super CallInterceptionRequest> onProcessedRequest,
+        Consumer<? super FailureInfo> onFailure
+    ) {
         List<TypeSpec> interceptorTypeSpecs = generateInterceptorClasses(requestsClassGroup);
         MethodSpec getInterceptors = generateGetInterceptorsMethod(interceptorTypeSpecs);
 
@@ -74,7 +79,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         LinkedHashMap<Type, List<CallInterceptionRequest>> constructorRequests = new LinkedHashMap<>();
 
         interceptionRequests.forEach(request -> {
-            if (request.getRequestFlags().stream().anyMatch(it -> it instanceof RequestFlag.InterceptGroovyCalls)) {
+            if (request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class).isPresent()) {
                 CallableInfo callable = request.getInterceptedCallable();
                 if (callable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR) {
                     constructorRequests.computeIfAbsent(request.getInterceptedCallable().getOwner(), key -> new ArrayList<>()).add(request);

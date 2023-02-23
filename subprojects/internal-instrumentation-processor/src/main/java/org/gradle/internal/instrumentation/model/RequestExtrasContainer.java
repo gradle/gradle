@@ -16,14 +16,25 @@
 
 package org.gradle.internal.instrumentation.model;
 
-import org.objectweb.asm.Type;
+import org.gradle.internal.Cast;
 
-public interface CallInterceptionRequest {
-    CallableInfo getInterceptedCallable();
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
-    Type getImplementationOwner();
-    String getImplementationName();
-    String getImplementationDescriptor();
+public class RequestExtrasContainer {
+    private final List<RequestExtra> extras = new ArrayList<>();
 
-    RequestExtrasContainer getRequestExtras();
+    public List<RequestExtra> getAll() {
+        return Collections.unmodifiableList(extras);
+    }
+
+    public <T> Optional<T> getByType(Class<T> type) {
+        return Cast.uncheckedCast(extras.stream().filter(type::isInstance).findFirst());
+    }
+
+    public void add(RequestExtra extra) {
+        extras.add(extra);
+    }
 }

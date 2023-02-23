@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.model;
+package org.gradle.internal.instrumentation.processor.extensibility;
 
-import org.objectweb.asm.Type;
+import java.lang.annotation.Annotation;
+import java.util.Collection;
 
-public interface CallInterceptionRequest {
-    CallableInfo getInterceptedCallable();
-
-    Type getImplementationOwner();
-    String getImplementationName();
-    String getImplementationDescriptor();
-
-    RequestExtrasContainer getRequestExtras();
+public interface ClassLevelAnnotationsContributor extends InstrumentationProcessorExtension {
+    Collection<Class<? extends Annotation>> contributeClassLevelAnnotationTypes();
 }

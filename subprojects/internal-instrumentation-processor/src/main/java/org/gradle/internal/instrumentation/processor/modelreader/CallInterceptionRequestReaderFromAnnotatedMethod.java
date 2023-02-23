@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.model;
+package org.gradle.internal.instrumentation.processor.modelreader;
 
-import org.objectweb.asm.Type;
+import javax.lang.model.element.ExecutableElement;
+import java.util.Collection;
 
-public interface CallInterceptionRequest {
-    CallableInfo getInterceptedCallable();
-
-    Type getImplementationOwner();
-    String getImplementationName();
-    String getImplementationDescriptor();
-
-    RequestExtrasContainer getRequestExtras();
+public interface CallInterceptionRequestReaderFromAnnotatedMethod extends CallInterceptionRequestReader<ExecutableElement> {
+    Collection<Result> readRequest(ExecutableElement input);
 }

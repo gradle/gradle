@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.processor.modelreader;
+package org.gradle.internal.instrumentation.processor.extensibility;
 
-import javax.lang.model.element.ExecutableElement;
+import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 
-public interface AnnotationCallInterceptionRequestReader extends CallInterceptionRequestReader<ExecutableElement> {
-    Result readRequest(ExecutableElement input);
+public interface RequestPostProcessorExtension extends InstrumentationProcessorExtension {
+    CallInterceptionRequest postProcessRequest(CallInterceptionRequest originalRequest);
 }

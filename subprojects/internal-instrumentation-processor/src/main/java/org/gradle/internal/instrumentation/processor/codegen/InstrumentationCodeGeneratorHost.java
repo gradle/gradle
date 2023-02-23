@@ -20,16 +20,20 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.gradle.internal.instrumentation.model.RequestExtra.OriginatingElement;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGenerator.GenerationResult.CanGenerateClasses;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGenerator.GenerationResult.HasFailures;
 
-import javax.annotation.Nullable;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
-import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class InstrumentationCodeGeneratorHost {
     private final Filer filer;
@@ -47,8 +51,7 @@ public class InstrumentationCodeGeneratorHost {
     }
 
     public void generateCodeForRequestedInterceptors(
-        Collection<CallInterceptionRequest> interceptionRequests,
-        Collection<? extends Element> fromElements
+        Collection<CallInterceptionRequest> interceptionRequests
     ) {
         InstrumentationCodeGenerator.GenerationResult result = codeGenerator.generateCodeForRequestedInterceptors(interceptionRequests);
         if (result instanceof CanGenerateClasses) {
@@ -56,8 +59,8 @@ public class InstrumentationCodeGeneratorHost {
                 ClassName className = ClassName.bestGuess(canonicalClassName);
                 TypeSpec.Builder builder = TypeSpec.classBuilder(className);
                 CanGenerateClasses generateType = (CanGenerateClasses) result;
+                getOriginatingElements(generateType).forEach(builder::addOriginatingElement);
                 generateType.buildType(canonicalClassName, builder);
-                fromElements.forEach(builder::addOriginatingElement); // todo more granular
                 TypeSpec generatedType = builder.build();
                 JavaFile javaFile = JavaFile.builder(className.packageName(), generatedType).indent("    ").build();
                 try {
@@ -69,13 +72,21 @@ public class InstrumentationCodeGeneratorHost {
         } else if (result instanceof HasFailures) {
             HasFailures failure = (HasFailures) result;
             failure.getFailureDetails().forEach(details -> {
-                @Nullable CallInterceptionRequest request = details.request;
-                if (request != null) {
-                    messager.printMessage(Diagnostic.Kind.ERROR, details.reason, request.getOriginatingElement());
+                Optional<ExecutableElement> maybeOriginatingElement =
+                    Optional.ofNullable(details.request)
+                        .flatMap(presentRequest -> presentRequest.getRequestExtras().getByType(OriginatingElement.class).map(OriginatingElement::getElement));
+                if (maybeOriginatingElement.isPresent()) {
+                    messager.printMessage(Diagnostic.Kind.ERROR, details.reason, maybeOriginatingElement.get());
                 } else {
                     messager.printMessage(Diagnostic.Kind.ERROR, details.reason);
                 }
             });
         }
+    }
+
+    private static Set<ExecutableElement> getOriginatingElements(CanGenerateClasses result) {
+        return result.getCoveredRequests().stream().map(requests ->
+            requests.getRequestExtras().getByType(OriginatingElement.class).map(OriginatingElement::getElement).orElse(null)
+        ).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 }

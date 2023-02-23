@@ -16,28 +16,42 @@
 
 package org.gradle.internal.instrumentation.model;
 
-public interface RequestFlag {
-    class InterceptJvmCalls implements RequestFlag {
+import javax.lang.model.element.ExecutableElement;
+
+public interface RequestExtra {
+    class InterceptJvmCalls implements RequestExtra {
+        private final String implementationClassName;
+
         public String getImplementationClassName() {
             return implementationClassName;
         }
-
-        String implementationClassName;
 
         public InterceptJvmCalls(String implementationClassName) {
             this.implementationClassName = implementationClassName;
         }
     }
 
-    class InterceptGroovyCalls implements RequestFlag {
+    class InterceptGroovyCalls implements RequestExtra {
+        private final String implementationClassName;
+
         public String getImplementationClassName() {
             return implementationClassName;
         }
 
-        String implementationClassName;
-
         public InterceptGroovyCalls(String implementationClassName) {
             this.implementationClassName = implementationClassName;
+        }
+    }
+
+    class OriginatingElement implements RequestExtra {
+        private final ExecutableElement element;
+
+        public ExecutableElement getElement() {
+            return element;
+        }
+
+        public OriginatingElement(ExecutableElement element) {
+            this.element = element;
         }
     }
 }
