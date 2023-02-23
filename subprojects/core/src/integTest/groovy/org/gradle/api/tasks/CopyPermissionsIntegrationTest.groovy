@@ -121,7 +121,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
             task copy(type: Copy) {
                 from "reference.txt"
                 eachFile {
-		            it.setMode(0755)
+		            it.mode = 0755
 	            }
                 into ("build/tmp")
             }
@@ -326,5 +326,177 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
 
         cleanup:
         unreadableOutput.makeReadable()
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "permissions block overrides mode"() {
+        given:
+        withSourceFiles("r--------")
+        buildScript '''
+            task (copy, type:Copy) {
+               from 'files'
+               into 'dest'
+               eachFile {
+                    mode = 0777
+                    permissions {}
+               }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'copy'
+
+        then:
+        assertDestinationFilePermissions("rw-r--r--")
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "permissions block sets sensible defaults"() {
+        given:
+        withSourceFiles("r--------")
+        buildScript '''
+            task (copy, type:Copy) {
+               from 'files'
+               into 'dest'
+               eachFile {
+                    permissions {}
+               }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'copy'
+
+        then:
+        assertDestinationFilePermissions("rw-r--r--")
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "permissions block can customize permissions (Groovy DSL)"() {
+        given:
+        withSourceFiles("r--------")
+        buildScript '''
+            task (copy, type:Copy) {
+               from 'files'
+               into 'dest'
+               eachFile {
+                    permissions {
+                        all {
+                            read = true
+                            write = true
+                            execute = true
+                        }
+                        user {
+                            write = false
+                        }
+                        user.execute = false
+                        group.write = false
+                        other {
+                            execute = false
+                        }
+                    }
+               }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'copy'
+
+        then:
+        assertDestinationFilePermissions("r--r-xrw-")
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "permissions block can customize permissions (Kotlin DSL)"() {
+        given:
+        withSourceFiles("r--------")
+
+        buildFile.delete()
+        buildKotlinFile.text = '''
+            tasks.register<Copy>("copy") {
+               from("files")
+               into("dest")
+               eachFile {
+                    permissions {
+                        all {
+                            read.set(true)
+                            write.set(true)
+                            execute.set(true)
+                        }
+                        user {
+                            write.set(false)
+                        }
+                        user.execute.set(false)
+                        group.write.set(false)
+                        other {
+                            execute.set(false)
+                        }
+                    }
+               }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'copy'
+
+        then:
+        assertDestinationFilePermissions("r--r-xrw-")
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "permissions can be created via factory"() {
+        given:
+        withSourceFiles("r--------")
+        buildScript '''
+            def p = project.services.get(FileSystemOperations).permissions(true) {
+                all {
+                    read = true
+                    write = true
+                    execute = true
+                }
+                user {
+                    write = false
+                }
+                user.execute = false
+                group.write = false
+                other {
+                    execute = false
+                }
+            }
+
+            task (copy, type:Copy) {
+               from 'files'
+               into 'dest'
+               eachFile {
+                    permissions.set(p)
+               }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'copy'
+
+        then:
+        assertDestinationFilePermissions("r--r-xrw-")
+    }
+
+    private def withSourceFiles(String permissions) {
+        file("files/sub/a.txt").createFile().setPermissions(permissions)
+        file("files/sub/dir/b.txt").createFile().setPermissions(permissions)
+        file("files/c.txt").createFile().setPermissions(permissions)
+        file("files/sub/empty").createDir().setPermissions(permissions)
+    }
+
+    private def assertDestinationFilePermissions(String permissions) {
+        file('dest').assertHasDescendants(
+            'sub/a.txt',
+            'sub/dir/b.txt',
+            'c.txt',
+            'sub/empty'
+        )
+        assert file("dest/sub/a.txt").permissions == permissions
+        file("dest/sub/dir/b.txt").permissions == permissions
+        file("dest/c.txt").permissions == permissions
+        file("dest/sub/empty").permissions == "r--------" // eachFile doesn't cover directories
     }
 }
