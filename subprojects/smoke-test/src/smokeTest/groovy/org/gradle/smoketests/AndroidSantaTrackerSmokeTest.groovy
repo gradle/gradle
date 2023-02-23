@@ -17,8 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.GradleVersion
-import org.gradle.util.internal.VersionNumber
 
 import java.util.jar.JarOutputStream
 
@@ -116,11 +114,10 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
-        runner.expectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) < VersionNumber.parse("7.4.0"),
-            "The Project.getConvention method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation")
+        runner.deprecations(SantaTrackerDeprecations) {
+            expectProjectConventionDeprecationWarning(agpVersion)
+            expectConventionTypeDeprecationWarning(agpVersion)
+        }
         def result = runner.buildAndFail()
 
         then:
@@ -135,11 +132,10 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         runner.withArguments(runner.arguments + "--continue")
         if (GradleContextualExecuter.notConfigCache) {
-            runner.expectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) < VersionNumber.parse("7.4.0"),
-                "The Project.getConvention method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation")
+            runner.deprecations(SantaTrackerDeprecations) {
+                expectProjectConventionDeprecationWarning(agpVersion)
+                expectConventionTypeDeprecationWarning(agpVersion)
+            }
         }
         result = runner.buildAndFail()
 
