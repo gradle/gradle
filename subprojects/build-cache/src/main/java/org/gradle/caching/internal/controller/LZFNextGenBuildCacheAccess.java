@@ -16,10 +16,8 @@
 
 package org.gradle.caching.internal.controller;
 
-import com.ning.compress.lzf.LZFCompressingInputStream;
 import com.ning.compress.lzf.LZFInputStream;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
+import com.ning.compress.lzf.LZFOutputStream;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.file.BufferProvider;
@@ -54,28 +52,22 @@ public class LZFNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     public <T> void store(Map<BuildCacheKey, T> entries, StoreHandler<T> handler) {
         delegate.store(entries, payload -> {
             BuildCacheEntryWriter delegateWriter = handler.handle(payload);
-            // TODO Make this more performant for large files
-            UnsynchronizedByteArrayOutputStream compressedOut = new UnsynchronizedByteArrayOutputStream((int) (delegateWriter.getSize() * 1.2));
-            try (InputStream compressedIn = new LZFCompressingInputStream(delegateWriter.openStream())) {
-                IOUtils.copyLarge(compressedIn, compressedOut, bufferProvider.getBuffer());
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-
             return new BuildCacheEntryWriter() {
                 @Override
                 public InputStream openStream() {
-                    return compressedOut.toInputStream();
+                    return null;
                 }
 
                 @Override
                 public void writeTo(OutputStream output) throws IOException {
-                    compressedOut.writeTo(output);
+                    try (LZFOutputStream compressed = new LZFOutputStream(output)) {
+                        delegateWriter.writeTo(compressed);
+                    }
                 }
 
                 @Override
                 public long getSize() {
-                    return compressedOut.size();
+                    return delegateWriter.getSize();
                 }
             };
         });

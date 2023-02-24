@@ -18,8 +18,6 @@ package org.gradle.caching.internal.controller;
 
 import com.github.luben.zstd.ZstdInputStream;
 import com.github.luben.zstd.ZstdOutputStream;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.file.BufferProvider;
@@ -54,30 +52,22 @@ public class ZstdNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     public <T> void store(Map<BuildCacheKey, T> entries, StoreHandler<T> handler) {
         delegate.store(entries, payload -> {
             BuildCacheEntryWriter delegateWriter = handler.handle(payload);
-            // TODO Make this more performant for large files
-            UnsynchronizedByteArrayOutputStream compressed = new UnsynchronizedByteArrayOutputStream((int) (delegateWriter.getSize() * 1.2));
-            try (ZstdOutputStream zipOutput = new ZstdOutputStream(compressed)) {
-                try (InputStream delegateInput = delegateWriter.openStream()) {
-                    IOUtils.copyLarge(delegateInput, zipOutput, bufferProvider.getBuffer());
-                }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-
             return new BuildCacheEntryWriter() {
                 @Override
                 public InputStream openStream() {
-                    return compressed.toInputStream();
+                    return null;
                 }
 
                 @Override
                 public void writeTo(OutputStream output) throws IOException {
-                    compressed.writeTo(output);
+                    try (ZstdOutputStream compressed = new ZstdOutputStream(output)) {
+                        delegateWriter.writeTo(compressed);
+                    }
                 }
 
                 @Override
                 public long getSize() {
-                    return compressed.size();
+                    return delegateWriter.getSize();
                 }
             };
         });

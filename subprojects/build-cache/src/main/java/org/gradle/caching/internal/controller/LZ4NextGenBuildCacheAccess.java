@@ -16,10 +16,8 @@
 
 package org.gradle.caching.internal.controller;
 
-import org.apache.commons.compress.compressors.lz4.FramedLZ4CompressorInputStream;
-import org.apache.commons.compress.compressors.lz4.FramedLZ4CompressorOutputStream;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
+import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorInputStream;
+import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorOutputStream;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.file.BufferProvider;
@@ -42,7 +40,7 @@ public class LZ4NextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     @Override
     public <T> void load(Map<BuildCacheKey, T> entries, LoadHandler<T> handler) {
         delegate.load(entries, (inputStream, payload) -> {
-            try (FramedLZ4CompressorInputStream lzfInput = new FramedLZ4CompressorInputStream(inputStream)) {
+            try (BlockLZ4CompressorInputStream lzfInput = new BlockLZ4CompressorInputStream(inputStream)) {
                 handler.handle(lzfInput, payload);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -54,30 +52,22 @@ public class LZ4NextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     public <T> void store(Map<BuildCacheKey, T> entries, StoreHandler<T> handler) {
         delegate.store(entries, payload -> {
             BuildCacheEntryWriter delegateWriter = handler.handle(payload);
-            // TODO Make this more performant for large files
-            UnsynchronizedByteArrayOutputStream compressed = new UnsynchronizedByteArrayOutputStream((int) (delegateWriter.getSize() * 1.2));
-            try (FramedLZ4CompressorOutputStream zipOutput = new FramedLZ4CompressorOutputStream(compressed)) {
-                try (InputStream delegateInput = delegateWriter.openStream()) {
-                    IOUtils.copyLarge(delegateInput, zipOutput, bufferProvider.getBuffer());
-                }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-
             return new BuildCacheEntryWriter() {
                 @Override
                 public InputStream openStream() {
-                    return compressed.toInputStream();
+                    return null;
                 }
 
                 @Override
                 public void writeTo(OutputStream output) throws IOException {
-                    compressed.writeTo(output);
+                    try (BlockLZ4CompressorOutputStream compressed = new BlockLZ4CompressorOutputStream(output)) {
+                        delegateWriter.writeTo(compressed);
+                    }
                 }
 
                 @Override
                 public long getSize() {
-                    return compressed.size();
+                    return delegateWriter.getSize();
                 }
             };
         });

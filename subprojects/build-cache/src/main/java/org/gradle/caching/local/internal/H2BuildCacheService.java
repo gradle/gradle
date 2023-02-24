@@ -27,6 +27,7 @@ import org.h2.Driver;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.sql.Blob;
 import java.sql.Connection;
@@ -97,12 +98,14 @@ public class H2BuildCacheService implements BuildCacheService {
     public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("insert ignore into filestore.catalog(entry_key, entry_size, entry_content) values (?, ?, ?)")) {
-                try (InputStream input = writer.openStream()) {
-                    stmt.setString(1, key.getHashCode());
-                    stmt.setLong(2, writer.getSize());
-                    stmt.setBinaryStream(3, input);
-                    stmt.executeUpdate();
+                stmt.setString(1, key.getHashCode());
+                Blob blob = conn.createBlob();
+                try (OutputStream output = blob.setBinaryStream(1)) {
+                    writer.writeTo(output);
                 }
+                stmt.setLong(2, blob.length());
+                stmt.setBlob(3, blob);
+                stmt.executeUpdate();
             }
         } catch (SQLException | IOException e) {
             throw new BuildCacheException("storing " + key, e);

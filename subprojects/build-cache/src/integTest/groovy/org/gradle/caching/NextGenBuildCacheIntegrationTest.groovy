@@ -63,9 +63,9 @@ class NextGenBuildCacheIntegrationTest extends AbstractIntegrationSpec implement
 
         where:
         algorithm | property
+        "lzf"     | "org.gradle.unsafe.cache.ng.lzf"
         "lz4"     | "org.gradle.unsafe.cache.ng.lz4"
         "zstd"    | "org.gradle.unsafe.cache.ng.zstd"
-        "lzf"     | "org.gradle.unsafe.cache.ng.lzf"
     }
 
     def "empty output directory is cached properly"() {
