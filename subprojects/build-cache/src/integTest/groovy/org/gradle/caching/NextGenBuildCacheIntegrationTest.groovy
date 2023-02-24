@@ -42,6 +42,32 @@ class NextGenBuildCacheIntegrationTest extends AbstractIntegrationSpec implement
         skipped ":compileJava"
     }
 
+    def "cache works with #algorithm compression"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        file("src/main/java/Main.java") << """
+            public class Main {}
+        """
+
+        when:
+        runWithCacheNG "compileJava", "-D$property=true"
+        then:
+        executedAndNotSkipped ":compileJava"
+
+        when:
+        runWithCacheNG "clean", "compileJava", "-D$property=true"
+        then:
+        skipped ":compileJava"
+
+        where:
+        algorithm | property
+        "lz4"     | "org.gradle.unsafe.cache.ng.lz4"
+        "zstd"    | "org.gradle.unsafe.cache.ng.zstd"
+        "lzf"     | "org.gradle.unsafe.cache.ng.lzf"
+    }
+
     def "empty output directory is cached properly"() {
         given:
         buildFile << """

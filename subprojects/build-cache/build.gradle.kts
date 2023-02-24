@@ -24,6 +24,13 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.inject)
+    implementation("com.github.luben:zstd-jni:1.5.4-1") {
+        because("Used in BuildCacheNG")
+    }
+
+    implementation("org.apache.commons:commons-compress") {
+        because("Used in BuildCacheNG")
+    }
     implementation("com.ning:compress-lzf:1.1.2") {
         because("Used in BuildCacheNG")
     }

@@ -27,10 +27,12 @@ import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.DefaultNextGenBuildCacheAccess;
 import org.gradle.caching.internal.controller.GZipNextGenBuildCacheAccess;
+import org.gradle.caching.internal.controller.LZ4NextGenBuildCacheAccess;
 import org.gradle.caching.internal.controller.LZFNextGenBuildCacheAccess;
 import org.gradle.caching.internal.controller.NextGenBuildCacheAccess;
 import org.gradle.caching.internal.controller.NextGenBuildCacheController;
 import org.gradle.caching.internal.controller.NextGenBuildCacheHandler;
+import org.gradle.caching.internal.controller.ZstdNextGenBuildCacheAccess;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.H2BuildCacheService;
@@ -85,9 +87,16 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         NextGenBuildCacheHandler local = resolveService(localDescribedService);
         NextGenBuildCacheHandler remote = resolveService(remoteDescribedService);
 
-        NextGenBuildCacheAccess cacheAccess = NextGenBuildCacheController.isNextGenCachingWithLZFEnabled()
-            ? new LZFNextGenBuildCacheAccess(new DefaultNextGenBuildCacheAccess(local, remote, bufferProvider, executorFactory), bufferProvider)
-            : new GZipNextGenBuildCacheAccess(new DefaultNextGenBuildCacheAccess(local, remote, bufferProvider, executorFactory), bufferProvider);
+        NextGenBuildCacheAccess cacheAccess;
+        if (Boolean.getBoolean("org.gradle.unsafe.cache.ng.lzf") == Boolean.TRUE) {
+            cacheAccess = new LZFNextGenBuildCacheAccess(new DefaultNextGenBuildCacheAccess(local, remote, bufferProvider, executorFactory), bufferProvider);
+        } else if (Boolean.getBoolean("org.gradle.unsafe.cache.ng.lz4") == Boolean.TRUE) {
+            cacheAccess = new LZ4NextGenBuildCacheAccess(new DefaultNextGenBuildCacheAccess(local, remote, bufferProvider, executorFactory), bufferProvider);
+        } else if (Boolean.getBoolean("org.gradle.unsafe.cache.ng.zstd") == Boolean.TRUE) {
+            cacheAccess = new ZstdNextGenBuildCacheAccess(new DefaultNextGenBuildCacheAccess(local, remote, bufferProvider, executorFactory), bufferProvider);
+        } else {
+            cacheAccess = new GZipNextGenBuildCacheAccess(new DefaultNextGenBuildCacheAccess(local, remote, bufferProvider, executorFactory), bufferProvider);
+        }
         return new NextGenBuildCacheController(
             buildInvocationScopeId.getId().asString(),
             deleter,
