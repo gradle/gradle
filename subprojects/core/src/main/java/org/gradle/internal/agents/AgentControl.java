@@ -35,8 +35,10 @@ import java.lang.reflect.Method;
  * <p>
  * It is possible to have an agent in the classpath without actually applying it, so checking for the availability of the class is not enough.
  */
-public class AgentControl {
+class AgentControl {
     private static final String INSTRUMENTATION_AGENT_CLASS_NAME = "org.gradle.instrumentation.agent.Agent";
+
+    private AgentControl() {}
 
     /**
      * Checks if the instrumentation agent class is applied to the current JVM.

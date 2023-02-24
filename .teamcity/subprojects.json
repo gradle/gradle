@@ -367,7 +367,7 @@
     "dirName": "instrumentation-agent",
     "name": "instrumentation-agent",
     "unitTests": false,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

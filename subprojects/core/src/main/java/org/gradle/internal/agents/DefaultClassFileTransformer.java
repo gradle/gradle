@@ -16,14 +16,11 @@
 
 package org.gradle.internal.agents;
 
-import org.gradle.internal.UncheckedException;
-
 import java.lang.instrument.ClassFileTransformer;
-import java.lang.reflect.Method;
 import java.security.ProtectionDomain;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DefaultClassFileTransformer implements ClassFileTransformer {
+class DefaultClassFileTransformer implements ClassFileTransformer {
     private static final AtomicBoolean INSTALLED = new AtomicBoolean();
 
     @Override
@@ -42,24 +39,11 @@ public class DefaultClassFileTransformer implements ClassFileTransformer {
         }
     }
 
-    @SuppressWarnings("unused")  // Used reflectively
     public static boolean tryInstall() {
         // Installing the same transformer multiple times is very problematic, so additional correctness check is worth it.
         if (!INSTALLED.compareAndSet(false, true)) {
             throw new IllegalStateException("The transformer is already installed in " + DefaultClassFileTransformer.class.getClassLoader());
         }
         return AgentControl.installTransformer(new DefaultClassFileTransformer());
-    }
-
-    public static boolean tryInstallInClassLoader(ClassLoader classLoader) {
-        // Potentially reload this class in the provided class loader.
-        try {
-            Class<?> transformer = classLoader.loadClass(DefaultClassFileTransformer.class.getName());
-            Method tryInstall = transformer.getMethod("tryInstall");
-            tryInstall.setAccessible(true);
-            return (Boolean) tryInstall.invoke(null);
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
     }
 }
