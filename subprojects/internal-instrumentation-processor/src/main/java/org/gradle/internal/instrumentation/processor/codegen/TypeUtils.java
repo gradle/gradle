@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instrumentation.processor.codegen;
 
+import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import org.objectweb.asm.Type;
@@ -51,6 +52,9 @@ public class TypeUtils {
         }
         if (type.equals(Type.DOUBLE_TYPE)) {
             return ClassName.DOUBLE;
+        }
+        if (type.getSort() == Type.ARRAY) {
+            return ArrayTypeName.of(typeName(type.getElementType()));
         }
         return ClassName.bestGuess(type.getClassName());
     }

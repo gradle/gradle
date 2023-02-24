@@ -78,7 +78,7 @@ public class TypeMirrorToType extends AbstractTypeVisitor8<Type, Void> {
 
     @Override
     public Type visitArray(ArrayType t, Void unused) {
-        return Type.getType(visit(t.getComponentType(), null).getDescriptor() + "]");
+        return Type.getObjectType("[" + visit(t.getComponentType(), null).getDescriptor());
     }
 
     @Override
