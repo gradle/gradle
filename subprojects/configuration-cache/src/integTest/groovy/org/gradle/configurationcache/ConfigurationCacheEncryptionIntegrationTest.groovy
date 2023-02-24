@@ -16,90 +16,133 @@
 
 package org.gradle.configurationcache
 
-
+import groovy.transform.EqualsAndHashCode
+import groovy.transform.ToString
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+import javax.crypto.KeyGenerator
+import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Path
 import java.security.KeyStore
 import java.util.stream.Stream
 
+import static org.gradle.configurationcache.EnvironmentKeySource.GRADLE_ENCRYPTION_KEY_ENV_VAR
+import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
+
 class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    File keyStorePath
+    TestFile keyStoreFolder
+    TestFile keyStorePath
     String keyStorePassword
     String keyPassword
+    String encryptionKey
 
     def setup() {
-        keyStorePath = new TestFile(testDirectory, "test.keystore")
+        keyStoreFolder = new TestFile(testDirectory, "keystores")
+        keyStorePath = new TestFile(keyStoreFolder, "test.keystore")
         keyStorePassword = "gradle-keystore-pwd"
         keyPassword = "gradle-key-pwd"
+        encryptionKey = Base64.encoder.encodeToString(KeyGenerator.getInstance("AES").generateKey().encoded)
     }
 
-    def "configuration cache can be loaded without errors if encryption is #status, #encryptionAlg, #initVectorLength"() {
+    def "configuration cache can be loaded without errors if encryption is #status, #encryptionTransformation, useEnvVar = #useEnvVar"() {
         given:
         def additionalOpts = [
-            "-Dorg.gradle.configuration-cache.internal.key-alg=${keyAlg}",
-            "-Dorg.gradle.configuration-cache.internal.init-vector-len=${initVectorLength}",
-            "-Dorg.gradle.configuration-cache.internal.encryption-alg=${encryptionAlg}"
+            "-Dorg.gradle.configuration-cache.internal.encryption-alg=${encryptionTransformation}"
         ]
+        def additionalEnvVars = useEnvVar ? [(GRADLE_ENCRYPTION_KEY_ENV_VAR): encryptionKey] : [:]
         def configurationCache = newConfigurationCacheFixture()
-        runWithEncryption(status, ["help"], additionalOpts)
+        runWithEncryption(status, ["help"], additionalOpts, additionalEnvVars)
 
         when:
-        runWithEncryption(status, ["help"], additionalOpts)
+        runWithEncryption(status, ["help"], additionalOpts, additionalEnvVars)
 
         then:
         configurationCache.assertStateLoaded()
 
         where:
-        status      | keyAlg        | encryptionAlg             | initVectorLength
-        false       | ""            | ""                        | 0
-        true        | "AES"         | "AES/ECB/PKCS5PADDING"    | 0
-        true        | "AES"         | "AES/CBC/PKCS5PADDING"    | 16
+        status      | encryptionTransformation  | useEnvVar
+        false       | ""                        | true
+        true        | "AES/ECB/PKCS5PADDING"    | true
+        true        | "AES/CBC/PKCS5PADDING"    | true
+        false       | ""                        | false
+        true        | "AES/ECB/PKCS5PADDING"    | false
+        true        | "AES/CBC/PKCS5PADDING"    | false
     }
 
-    def "configuration cache is #encrypted if enabled=#status"() {
+    def "configuration cache is #encrypted if strategy=#strategy"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         buildFile """
-            @groovy.transform.EqualsAndHashCode
+            @${EqualsAndHashCode.name}
+            @${ToString.name}
             class SensitiveData {
-                Object sensitiveField
+                String sensitiveField
             }
             class SensitiveTask extends DefaultTask {
                 @Internal
                 List<Object> values = new ArrayList()
+                @Input
+                final Property<String> sensitiveInput1 = project.objects.property(String).convention("sensitive_convention")
+                @Input
+                final Property<String> sensitiveInput2 = project.objects.property(String).convention(sensitiveInput1)
             }
             tasks.register("useSensitive", SensitiveTask) {
-                it.values += ["sensitive_value1", new SensitiveData(sensitiveField: "sensitive_value2") ]
-                def propertyValue = project["sensitive_property_name"]
-                assert propertyValue != null
-                it.values += propertyValue
+                it.values += [
+                    "sensitive_value1",
+                    new SensitiveData(sensitiveField: "sensitive_value2"),
+                    sensitive_property_name,
+                    sensitive_property_name2,
+                    System.getenv("SENSITIVE_ENV_VAR_NAME")
+                ]
+                it.sensitiveInput2.set("sensitive_value3")
             }
             tasks.withType(SensitiveTask).configureEach {
                 doLast {
                     println("Running \${name}")
-                    assert it.values == ["sensitive_value1", new SensitiveData(sensitiveField: "sensitive_value2"), "sensitive_property_value" ]
+                    assert it.values == [
+                        "sensitive_value1",
+                        new SensitiveData(sensitiveField: "sensitive_value2"),
+                        "sensitive_property_value",
+                        "sensitive_property_value2",
+                        "sensitive_env_var_value"
+                    ]
+                    assert it.sensitiveInput1.get() == "sensitive_convention"
+                    assert it.sensitiveInput2.get() == "sensitive_value3"
                 }
             }
         """
-
+        def enabled = strategy.encrypted
         when:
-        runWithEncryption(status, ["useSensitive"], ["-Psensitive_property_name=sensitive_property_value"])
+        runWithEncryption(strategy, ["useSensitive"], ["-Psensitive_property_name=sensitive_property_value"], [
+            (ENV_PROJECT_PROPERTIES_PREFIX + 'sensitive_property_name2'): 'sensitive_property_value2',
+            "SENSITIVE_ENV_VAR_NAME": 'sensitive_env_var_value'
+        ])
 
         then:
         configurationCache.assertStateStored()
         def cacheDir = new File(this.testDirectory, ".gradle/configuration-cache")
-        isFoundInDirectory(cacheDir, "sensitive_property_name".getBytes()) == !status
-        isFoundInDirectory(cacheDir, "sensitive_property_value".getBytes()) == !status
-        isFoundInDirectory(cacheDir, "sensitive_value1".getBytes()) == !status
-        isFoundInDirectory(cacheDir, "sensitive_value2".getBytes()) == !status
-
+        isFoundInDirectory(cacheDir, "sensitive_property_name".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_property_value".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_property_name2".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_property_value2".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_value1".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_value2".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_env_var_value".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_value3".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive_convention".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "sensitive".getBytes()) == !enabled
+        isFoundInDirectory(cacheDir, "SENSITIVE".getBytes()) == !enabled
         where:
-        encrypted       |   status
-        "encrypted"     |   true
-        "unencrypted"   |   false
+        encrypted       |   strategy
+        "encrypted"     |   EncryptionStrategy.Encoding
+        "encrypted"     |   EncryptionStrategy.Streams
+        "unencrypted"   |   EncryptionStrategy.None
     }
 
     private boolean isFoundInDirectory(File startDir, byte[] toFind) {
@@ -124,7 +167,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         outputContains("Calculating task graph as no configuration cache is available for tasks: help")
     }
 
-    def "new configuration cache entry if was not encryted but encryption is on"() {
+    def "new configuration cache entry if was not encrypted but encryption is on"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         runWithEncryption(false)
@@ -136,6 +179,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         configurationCache.assertStateStored()
         outputContains("Calculating task graph as no configuration cache is available for tasks: help")
     }
+
     def "new configuration cache entry if keystore password is incorrect"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
@@ -183,15 +227,66 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         outputContains("Calculating task graph as no configuration cache is available for tasks: help")
     }
 
-    void runWithEncryption(boolean enabled, List<String> tasks = ["help"], List<String> additionalArgs = []) {
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "encryption disabled if keystore cannot be created"() {
+        def fs = NativeServicesTestFixture.instance.get(FileSystem)
+        assert keyStoreFolder.mkdir()
+        fs.chmod(keyStoreFolder, 0444)
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        runWithEncryption(true)
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Encryption was requested but could not be enabled")
+        outputContains("Calculating task graph as no configuration cache is available for tasks: help")
+
+        cleanup:
+        fs.chmod(keyStoreFolder, 0666)
+    }
+
+    def "encryption disabled if key in env var is invalid"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        def invalidEncryptionKey = Base64.encoder.encodeToString("some random key".getBytes(StandardCharsets.UTF_8))
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        runWithEncryption(true, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_VAR): invalidEncryptionKey])
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Encryption was requested but could not be enabled")
+        outputContains("Calculating task graph as no configuration cache is available for tasks: help")
+    }
+
+    void runWithEncryption(
+        boolean enabled,
+        List<String> tasks = ["help"],
+        List<String> additionalArgs = [],
+        Map<String, String> additionalVars = [:]
+    ) {
+        runWithEncryption(enabled ? EncryptionStrategy.Encoding : EncryptionStrategy.None, tasks, additionalArgs, additionalVars)
+    }
+
+    void runWithEncryption(
+        EncryptionStrategy strategy,
+        List<String> tasks = ["help"],
+        List<String> additionalArgs = [],
+        Map<String, String> additionalVars = [:]
+    ) {
         def args = [
             '-s',
-            "-Dorg.gradle.configuration-cache.internal.encrypted=$enabled",
+            "-Dorg.gradle.configuration-cache.internal.encryption-strategy=${strategy.id}",
             "-Dorg.gradle.configuration-cache.internal.key-store-path=${keyStorePath}",
             "-Dorg.gradle.configuration-cache.internal.key-store-password=${keyStorePassword}",
             "-Dorg.gradle.configuration-cache.internal.key-password=${keyPassword}"
         ]
         def allArgs = tasks.toList() + args + additionalArgs.toList()
+        executer.withEnvironmentVars(additionalVars)
         configurationCacheRun(*(allArgs.collect(Object::toString)))
     }
 

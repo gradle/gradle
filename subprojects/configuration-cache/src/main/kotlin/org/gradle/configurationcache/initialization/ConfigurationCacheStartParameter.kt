@@ -18,6 +18,7 @@ package org.gradle.configurationcache.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.configurationcache.EncryptionStrategy
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
@@ -45,7 +46,7 @@ class ConfigurationCacheStartParameter(
 
     val taskExecutionAccessPreStable: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")).get()
 
-    val encryptedCache: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.encrypted", true)).get()
+    val encryptionStrategy: Int = options.getOption(IntegerInternalOption("org.gradle.configuration-cache.internal.encryption-strategy", EncryptionStrategy.Encoding.id)).get()
 
     val keystorePath: String? = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.key-store-path", null)).get()
 
@@ -55,11 +56,7 @@ class ConfigurationCacheStartParameter(
 
     val keyPassword: String = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.key-password", "")).get()
 
-    val keyAlgorithm: String = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.key-alg", "AES")).get()
-
     val encryptionAlgorithm: String = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.AES_ECB_PADDING.transformation)).get()
-
-    val initVectorLength: Int = options.getOption(IntegerInternalOption("org.gradle.configuration-cache.internal.init-vector-len", 16)).get()
 
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
