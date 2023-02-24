@@ -42,8 +42,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasCallerClassName;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.PARAMETER;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER_AS_CLASS;
@@ -192,14 +195,20 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             private void generateInvocation(CallInterceptionRequest request, int argCount) {
                 TypeName implementationOwner = TypeUtils.typeName(request.getImplementationInfo().getOwner());
                 result.beginControlFlow("if (invocation.getArgsCount() == $L)", argCount);
-                CodeBlock args = CodeBlock.of(paramVariablesStack.stream().map(it -> "$L").collect(Collectors.joining(", ")), paramVariablesStack.toArray());
-                CodeBlock maybeZeroForKotlinDefault = CodeBlock.of(request.getInterceptedCallable().getParameters().stream().anyMatch(it -> it.getKind() == ParameterKindInfo.KOTLIN_DEFAULT_MASK) ? " 0," : "");
+
+                boolean hasKotlinDefaultMask = request.getInterceptedCallable().getParameters().stream().anyMatch(it -> it.getKind() == ParameterKindInfo.KOTLIN_DEFAULT_MASK);
+                boolean hasCallerClassName = hasCallerClassName(request.getInterceptedCallable());
+                Stream<CodeBlock> maybeZeroForKotlinDefault = hasKotlinDefaultMask ? Stream.of(CodeBlock.of("0")) : Stream.empty();
+                Stream<CodeBlock> maybeCallerClassName = hasCallerClassName ? Stream.of(CodeBlock.of("consumer")) : Stream.empty();
+                CodeBlock argsCode = Stream.of(paramVariablesStack.stream(), maybeZeroForKotlinDefault, maybeCallerClassName).flatMap(Function.identity()).collect(CodeBlock.joining(", "));
+
                 if (request.getInterceptedCallable().getKind() == CallableKindInfo.AFTER_CONSTRUCTOR) {
-                    result.addStatement("$1T result = new $1T($2L)", TypeUtils.typeName(request.getInterceptedCallable().getOwner()), args);
-                    result.addStatement("$T.$L(result, $L,$L consumer)", implementationOwner, request.getImplementationInfo().getName(), args, maybeZeroForKotlinDefault);
+                    result.addStatement("$1T result = new $1T($2L)", TypeUtils.typeName(request.getInterceptedCallable().getOwner()), paramVariablesStack.stream().collect(CodeBlock.joining(", ")));
+                    CodeBlock interceptorArgs = CodeBlock.join(Arrays.asList(CodeBlock.of("result"), argsCode), ", ");
+                    result.addStatement("$T.$L($L)", implementationOwner, request.getImplementationInfo().getName(), interceptorArgs);
                     result.addStatement("return result");
                 } else {
-                    result.addStatement("return $T.$L($L,$L consumer)", implementationOwner, request.getImplementationInfo().getName(), args, maybeZeroForKotlinDefault);
+                    result.addStatement("return $T.$L($L)", implementationOwner, request.getImplementationInfo().getName(), argsCode);
                 }
                 result.endControlFlow();
             }
