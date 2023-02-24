@@ -30,7 +30,6 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.api.internal.cache.StringInterner;
@@ -61,7 +60,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -70,6 +68,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -359,16 +358,8 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
             cacheAccess.store(manifestIndex, manifestEntry -> new BuildCacheEntryWriter() {
                 @Override
-                public InputStream openStream() throws IOException {
-                    // TODO Replace with "Files.newInputStream()" as it seems to be more efficient
-                    //      Might be a good idea to pass `root` as `Path` instead of `File` then
-                    //noinspection IOStreamConstructor
-                    return new FileInputStream(new File(root, manifestEntry.getRelativePath()));
-                }
-
-                @Override
                 public void writeTo(OutputStream output) throws IOException {
-                    try (InputStream input = openStream()) {
+                    try (InputStream input = Files.newInputStream(new File(root, manifestEntry.getRelativePath()).toPath())) {
                         IOUtils.copyLarge(input, output, bufferProvider.getBuffer());
                     }
                 }
@@ -385,11 +376,6 @@ public class NextGenBuildCacheController implements BuildCacheController {
             byte[] bytes = manifestJson.getBytes(StandardCharsets.UTF_8);
 
             return new BuildCacheEntryWriter() {
-                @Override
-                public InputStream openStream() {
-                    return new UnsynchronizedByteArrayInputStream(bytes);
-                }
-
                 @Override
                 public void writeTo(OutputStream output) throws IOException {
                     output.write(bytes);

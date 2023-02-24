@@ -16,14 +16,10 @@
 
 package org.gradle.caching.internal.controller;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.internal.file.BufferProvider;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.util.Map;
@@ -32,11 +28,9 @@ import java.util.zip.GZIPOutputStream;
 
 public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     private final NextGenBuildCacheAccess delegate;
-    private final BufferProvider bufferProvider;
 
-    public GZipNextGenBuildCacheAccess(NextGenBuildCacheAccess delegate, BufferProvider bufferProvider) {
+    public GZipNextGenBuildCacheAccess(NextGenBuildCacheAccess delegate) {
         this.delegate = delegate;
-        this.bufferProvider = bufferProvider;
     }
 
     @Override
@@ -54,30 +48,19 @@ public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     public <T> void store(Map<BuildCacheKey, T> entries, StoreHandler<T> handler) {
         delegate.store(entries, payload -> {
             BuildCacheEntryWriter delegateWriter = handler.handle(payload);
-            // TODO Make this more performant for large files
-            UnsynchronizedByteArrayOutputStream compressed = new UnsynchronizedByteArrayOutputStream((int) (delegateWriter.getSize() * 1.2));
-            try (GZIPOutputStream zipOutput = new GZIPOutputStream(compressed)) {
-                try (InputStream delegateInput = delegateWriter.openStream()) {
-                    IOUtils.copyLarge(delegateInput, zipOutput, bufferProvider.getBuffer());
-                }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
 
             return new BuildCacheEntryWriter() {
                 @Override
-                public InputStream openStream() {
-                    return compressed.toInputStream();
-                }
-
-                @Override
                 public void writeTo(OutputStream output) throws IOException {
-                    compressed.writeTo(output);
+                    try (GZIPOutputStream zipOutput = new GZIPOutputStream(output)) {
+                        delegateWriter.writeTo(zipOutput);
+                    }
                 }
 
                 @Override
                 public long getSize() {
-                    return compressed.size();
+                    // TODO check if we can return compressed size
+                    return delegateWriter.getSize();
                 }
             };
         });

@@ -95,8 +95,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
                     remote,
                     bufferProvider,
                     executorFactory
-                ),
-                bufferProvider
+                )
             )
         );
     }

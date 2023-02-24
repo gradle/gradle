@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -164,11 +163,6 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 if (local.canStore()) {
                     local.store(key, new BuildCacheEntryWriter() {
                         @Override
-                        public InputStream openStream() {
-                            return data.toInputStream();
-                        }
-
-                        @Override
                         public void writeTo(OutputStream output) throws IOException {
                             data.writeTo(output);
                         }
@@ -213,8 +207,15 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             LOGGER.warn("Storing {} in remote (size: {})", key, data.size());
             remote.store(key, new BuildCacheEntryWriter() {
                 @Override
-                public InputStream openStream() {
-                    return data.toInputStream();
+                public void writeTo(OutputStream output) throws IOException {
+                    Closer closer = Closer.create();
+                    closer.register(data);
+                    closer.register(output);
+                    try {
+                        data.writeTo(output);
+                    } finally {
+                        closer.close();
+                    }
                 }
 
                 @Override

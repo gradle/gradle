@@ -16,11 +16,7 @@
 
 package org.gradle.caching;
 
-import com.google.common.io.ByteStreams;
-import org.gradle.api.Incubating;
-
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -29,13 +25,6 @@ import java.io.OutputStream;
  * @since 3.3
  */
 public interface BuildCacheEntryWriter {
-    /**
-     * Opens a stream to read the contents to be written to cache.
-     *
-     * @throws IOException when an I/O error occurs while opening the stream.
-     */
-    @Incubating
-    InputStream openStream() throws IOException;
 
     /**
      * Writes a build cache entry to the given stream.
@@ -45,13 +34,7 @@ public interface BuildCacheEntryWriter {
      * @param output output stream to write build cache entry to
      * @throws IOException when an I/O error occurs when writing the cache entry to the given output stream
      */
-    default void writeTo(OutputStream output) throws IOException {
-        try (InputStream input = openStream()) {
-            ByteStreams.copy(input, output);
-        } finally {
-            output.close();
-        }
-    }
+    void writeTo(OutputStream output) throws IOException;
 
     /**
      * Returns the size of the build cache entry to be written.
