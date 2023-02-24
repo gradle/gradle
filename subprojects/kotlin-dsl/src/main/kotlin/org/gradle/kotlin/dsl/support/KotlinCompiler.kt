@@ -75,7 +75,6 @@ import org.jetbrains.kotlin.resolve.extensions.AssignResolutionAltererExtension
 
 import org.jetbrains.kotlin.assignment.plugin.CliAssignPluginResolutionAltererExtension
 import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentContainerContributor
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.USE_FAST_JAR_FILE_SYSTEM
 import org.jetbrains.kotlin.samWithReceiver.CliSamWithReceiverComponentContributor
 
 import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
@@ -379,7 +378,6 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, jvmTarget: Java
         put(JDK_HOME, File(System.getProperty("java.home")))
         put(IR, true)
         put(SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
-        put(USE_FAST_JAR_FILE_SYSTEM, true)
         addJvmSdkRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettings)
         put(CommonConfigurationKeys.ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS, true)
@@ -536,13 +534,6 @@ class LoggingMessageCollector(
     private val pathTranslation: (String) -> String
 ) : MessageCollector {
 
-    companion object {
-        private
-        val silencedMessages = listOf(
-            "Using new faster version of JAR FS: it should make your build faster, but the new implementation is experimental"
-        )
-    }
-
     val errors = arrayListOf<ScriptCompilationError>()
 
     override fun hasErrors() = errors.isNotEmpty()
@@ -550,10 +541,6 @@ class LoggingMessageCollector(
     override fun clear() = errors.clear()
 
     override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageSourceLocation?) {
-
-        if (message in silencedMessages) {
-            return
-        }
 
         fun msg() =
             location?.run {
