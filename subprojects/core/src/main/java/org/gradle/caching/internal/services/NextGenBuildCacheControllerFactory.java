@@ -94,6 +94,8 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
             cacheAccess = new LZ4NextGenBuildCacheAccess(new DefaultNextGenBuildCacheAccess(local, remote, bufferProvider, executorFactory), bufferProvider);
         } else if (Boolean.getBoolean("org.gradle.unsafe.cache.ng.zstd") == Boolean.TRUE) {
             cacheAccess = new ZstdNextGenBuildCacheAccess(new DefaultNextGenBuildCacheAccess(local, remote, bufferProvider, executorFactory), bufferProvider);
+        } else if (Boolean.getBoolean("org.gradle.unsafe.cache.ng.nocompression") == Boolean.TRUE) {
+            cacheAccess = new DefaultNextGenBuildCacheAccess(local, remote, bufferProvider, executorFactory);
         } else {
             cacheAccess = new GZipNextGenBuildCacheAccess(new DefaultNextGenBuildCacheAccess(local, remote, bufferProvider, executorFactory), bufferProvider);
         }

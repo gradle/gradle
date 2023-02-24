@@ -24,7 +24,7 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.inject)
-    implementation("com.github.luben:zstd-jni:1.5.4-1") {
+    implementation("io.airlift:aircompressor:0.21") {
         because("Used in BuildCacheNG")
     }
 

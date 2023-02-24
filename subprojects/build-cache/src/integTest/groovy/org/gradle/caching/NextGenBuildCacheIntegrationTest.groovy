@@ -62,10 +62,12 @@ class NextGenBuildCacheIntegrationTest extends AbstractIntegrationSpec implement
         skipped ":compileJava"
 
         where:
-        algorithm | property
-        "lzf"     | "org.gradle.unsafe.cache.ng.lzf"
-        "lz4"     | "org.gradle.unsafe.cache.ng.lz4"
-        "zstd"    | "org.gradle.unsafe.cache.ng.zstd"
+        algorithm       | property
+        "nocompression" | "org.gradle.unsafe.cache.ng.nocompression"
+        "gzip"          | "org.gradle.unsafe.cache.ng.gzip"
+        "lzf"           | "org.gradle.unsafe.cache.ng.lzf"
+        "lz4"           | "org.gradle.unsafe.cache.ng.lz4"
+        "zstd"          | "org.gradle.unsafe.cache.ng.zstd"
     }
 
     def "empty output directory is cached properly"() {

@@ -16,8 +16,8 @@
 
 package org.gradle.caching.internal.controller;
 
-import com.github.luben.zstd.ZstdInputStream;
-import com.github.luben.zstd.ZstdOutputStream;
+import org.apache.commons.compress.compressors.zstandard.ZstdCompressorInputStream;
+import org.apache.commons.compress.compressors.zstandard.ZstdCompressorOutputStream;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.file.BufferProvider;
@@ -40,7 +40,7 @@ public class ZstdNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     @Override
     public <T> void load(Map<BuildCacheKey, T> entries, LoadHandler<T> handler) {
         delegate.load(entries, (inputStream, payload) -> {
-            try (ZstdInputStream lzfInput = new ZstdInputStream(inputStream)) {
+            try (ZstdCompressorInputStream lzfInput = new ZstdCompressorInputStream(inputStream)) {
                 handler.handle(lzfInput, payload);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -60,7 +60,7 @@ public class ZstdNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
                 @Override
                 public void writeTo(OutputStream output) throws IOException {
-                    try (ZstdOutputStream compressed = new ZstdOutputStream(output)) {
+                    try (ZstdCompressorOutputStream compressed = new ZstdCompressorOutputStream(output)) {
                         delegateWriter.writeTo(compressed);
                     }
                 }
