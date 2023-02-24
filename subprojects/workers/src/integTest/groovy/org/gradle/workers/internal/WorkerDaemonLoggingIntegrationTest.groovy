@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorIntegrationSpec {
@@ -68,7 +67,6 @@ class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorInt
         operation.progress.size() == 1000
     }
 
-    @Ignore("test is flaky and blocks 7.6.1 release")
     def "log messages are still delivered to the build process after a worker action runs"() {
         def lastOutput = ""
         def startFile = file("start")

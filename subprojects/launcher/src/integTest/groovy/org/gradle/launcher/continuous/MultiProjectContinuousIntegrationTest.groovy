@@ -134,7 +134,6 @@ class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegratio
     }
 
     // here to put more stress on parallel execution
-    @Ignore("test is flaky and blocks 7.6.1 release")
     def "reasonable sized multi-project"() {
         given:
         def extraProjectNames = (0..100).collect { "project$it" }
