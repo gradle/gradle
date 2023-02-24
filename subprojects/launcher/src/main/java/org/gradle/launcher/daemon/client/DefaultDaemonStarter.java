@@ -21,6 +21,7 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.agents.AgentUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -77,19 +78,15 @@ public class DefaultDaemonStarter implements DaemonStarter {
         ModuleRegistry registry = new DefaultModuleRegistry(gradleInstallation);
         ClassPath classpath;
         List<File> searchClassPath;
-        ClassPath agentClasspath;
+
         if (gradleInstallation == null) {
             // When not running from a Gradle distro, need runtime impl for launcher plus the search path to look for other modules
             classpath = registry.getModule("gradle-launcher").getAllRequiredModulesClasspath();
             searchClassPath = registry.getAdditionalClassPath().getAsFiles();
-            // TODO(mlopatkin) This disables agent-based instrumentation when starting the daemon from e.g. embedded Gradle runner.
-            //  There should be a backup plan to find the agent jar, e.g. load it from the resources.
-            agentClasspath = ClassPath.EMPTY;
         } else {
             // When running from a Gradle distro, only need launcher jar. The daemon can find everything from there.
             classpath = registry.getModule("gradle-launcher").getImplementationClasspath();
             searchClassPath = Collections.emptyList();
-            agentClasspath = registry.getModule("gradle-instrumentation-agent").getImplementationClasspath();
         }
         if (classpath.isEmpty()) {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
@@ -110,6 +107,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             daemonArgs.add(JvmOptions.getDebugArgument(true, true, "5005"));
         }
 
+        ClassPath agentClasspath = registry.getModule(AgentUtils.AGENT_MODULE_NAME).getImplementationClasspath();
         if (daemonParameters.shouldApplyInstrumentationAgent()) {
             if (agentClasspath.isEmpty()) {
                 throw new IllegalStateException("Cannot find the agent JAR");
