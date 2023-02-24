@@ -46,13 +46,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.instrumentation.processor.codegen.SignatureUtils.hasCallerClassName;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 
@@ -317,7 +317,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             // The new local variable is out of scope now, drop it to maintain the stack frame correctness:
             code.addStatement("$1N.dropLocal(var$2L)", LOCAL_VARIABLES_SORTER_FIELD, i);
         }
-        code.addStatement("$N(className)", loadBinaryClassName);
+        maybeGenerateLoadBinaryClassNameCall(code, callable);
         code.addStatement("_INVOKESTATIC($N, $S, $S)", implOwnerField, implementationName, implementationDescriptor);
     }
 
@@ -332,7 +332,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             code.add("// The interceptor expects a Kotlin default mask, add a zero argument:\n");
             code.addStatement("_ICONST_0()");
         }
-        code.addStatement("_LDC($N(className))", binaryClassNameOf);
+        maybeGenerateLoadBinaryClassNameCall(code, callable);
         code.addStatement("_INVOKESTATIC($N, $S, $S)", ownerTypeField, implementationName, implementationDescriptor);
     }
 
@@ -346,7 +346,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         String implementationDescriptor = request.getImplementationInfo().getDescriptor();
 
         method.addStatement("_POP()"); // pops the default method signature marker
-        method.addStatement("_LDC($N(className))", binaryClassNameOf);
+        maybeGenerateLoadBinaryClassNameCall(method, interceptedCallable);
         method.addStatement("_INVOKESTATIC($N, $S, $S)", ownerTypeField, implementationName, implementationDescriptor);
     }
 
@@ -355,25 +355,36 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             throw new Failure("Groovy property access cannot be intercepted in JVM calls");
         }
 
-        Optional<ParameterInfo> maybeCallerClassNameParam = callable.getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.CALLER_CLASS_NAME).findFirst();
-        if (!maybeCallerClassNameParam.isPresent()) {
-            throw new Failure("The interceptor should have a @" + ParameterKind.CallerClassName.class.getSimpleName() + " parameter");
-        }
-        if (callable.getParameters().indexOf(maybeCallerClassNameParam.get()) != callable.getParameters().size() - 1) {
-            throw new Failure("The interceptor's caller class name parameter should go last");
+        boolean hasCallerClassName = hasCallerClassName(callable);
+        if (hasCallerClassName) {
+            if (callable.getParameters().get(callable.getParameters().size() - 1).getKind() != ParameterKindInfo.CALLER_CLASS_NAME) {
+                throw new Failure("The interceptor's @" + ParameterKind.CallerClassName.class.getSimpleName() + " parameter should go last");
+            }
+            if (callable.getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.CALLER_CLASS_NAME).count() > 1) {
+                throw new Failure("An interceptor may not have more than one @" + ParameterKind.CallerClassName.class.getSimpleName() + " parameter");
+            }
         }
 
         if (callable.getParameters().stream().anyMatch(it -> it.getKind() == ParameterKindInfo.KOTLIN_DEFAULT_MASK)) {
             // TODO support @AfterConstructor with Kotlin default mask? Kotlin constructors have a special DefaultConstructorMarker as the last argument
             if (callable.getKind() != CallableKindInfo.STATIC_METHOD && callable.getKind() != CallableKindInfo.INSTANCE_METHOD) {
                 throw new Failure(
-                    "Only @" + CallableKind.StaticMethod.class.getSimpleName() + " or " + CallableKind.InstanceMethod.class.getSimpleName() + " can use Kotlin default parameters"
+                    "Only @" + CallableKind.StaticMethod.class.getSimpleName() + " or @" + CallableKind.InstanceMethod.class.getSimpleName() + " can use Kotlin default parameters"
                 );
             }
 
-            if (callable.getParameters().get(callable.getParameters().size() - 2).getKind() != ParameterKindInfo.KOTLIN_DEFAULT_MASK) {
-                throw new Failure("@" + ParameterKind.KotlinDefaultMask.class.getSimpleName() + " should be the second to last parameter");
+            int expectedKotlinDefaultMaskIndex = callable.getParameters().size() - (hasCallerClassName ? 2 : 1);
+            if (callable.getParameters().get(expectedKotlinDefaultMaskIndex).getKind() != ParameterKindInfo.KOTLIN_DEFAULT_MASK) {
+                throw new Failure(
+                    "@" + ParameterKind.KotlinDefaultMask.class.getSimpleName() + " should be the last parameter of may be followed only by @" + ParameterKind.CallerClassName.class.getSimpleName()
+                );
             }
+        }
+    }
+
+    private static void maybeGenerateLoadBinaryClassNameCall(CodeBlock.Builder code, CallableInfo callableInfo) {
+        if (hasCallerClassName(callableInfo)) {
+            code.addStatement("$N(className)", LOAD_BINARY_CLASS_NAME);
         }
     }
 
