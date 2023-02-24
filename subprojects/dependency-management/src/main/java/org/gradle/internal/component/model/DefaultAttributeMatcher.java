@@ -23,10 +23,10 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Cast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,10 +36,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * An {@link AttributeMatcher}, which optimizes for the case of only comparing 0 or 1 candidates and delegates to {@link MultipleCandidateMatcher} for all other cases.
+ * An {@link AttributeMatcher}, which optimizes for the case of only comparing 0 or 1 candidates
+ * and delegates to {@link MultipleCandidateMatcher} for all other cases.
  */
-public class ComponentAttributeMatcher implements AttributeMatcher {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ComponentAttributeMatcher.class);
+public class DefaultAttributeMatcher implements AttributeMatcher {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultAttributeMatcher.class);
 
     private final AttributeSelectionSchema schema;
 
@@ -50,7 +52,7 @@ public class ComponentAttributeMatcher implements AttributeMatcher {
      */
     private final ConcurrentMap<CachedQuery, int[]> cachedQueries = new ConcurrentHashMap<>();
 
-    public ComponentAttributeMatcher(AttributeSelectionSchema schema) {
+    public DefaultAttributeMatcher(AttributeSelectionSchema schema) {
         this.schema = schema;
     }
 
@@ -115,17 +117,8 @@ public class ComponentAttributeMatcher implements AttributeMatcher {
 
     @Override
     public <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, AttributeMatchingExplanationBuilder explanationBuilder) {
-        return matches(candidates, requested, null, explanationBuilder);
-    }
-
-    @Override
-    public <T extends HasAttributes, E extends T> List<T> matches(Collection<E> candidates, AttributeContainerInternal requested, @Nullable T fallback, AttributeMatchingExplanationBuilder explanationBuilder) {
         if (candidates.size() == 0) {
-            if (fallback != null && isMatching((AttributeContainerInternal) fallback.getAttributes(), requested)) {
-                explanationBuilder.selectedFallbackConfiguration(requested, fallback);
-                return ImmutableList.of(fallback);
-            }
-            explanationBuilder.noCandidates(requested, fallback);
+            explanationBuilder.noCandidates(requested);
             return ImmutableList.of();
         }
 
@@ -140,7 +133,7 @@ public class ComponentAttributeMatcher implements AttributeMatcher {
         }
 
         ImmutableAttributes requestedAttributes = requested.asImmutable();
-        List<E> candidateList = (candidates instanceof List) ? (List<E>) candidates : ImmutableList.copyOf(candidates);
+        List<T> candidateList = (candidates instanceof List) ? Cast.uncheckedCast(candidates) : ImmutableList.copyOf(candidates);
 
         // Often times, collections of candidates will themselves differ even though their attributes are the same.
         // Disambiguating two different candidate lists which map to the same attribute lists in reality performs
@@ -151,7 +144,7 @@ public class ComponentAttributeMatcher implements AttributeMatcher {
         CachedQuery query = CachedQuery.from(requestedAttributes, candidateList);
         int[] indices = cachedQueries.compute(query, (key, value) -> {
             if (value == null || !explanationBuilder.canSkipExplanation()) {
-                int[] matches = new MultipleCandidateMatcher<T>(schema, candidateList, requestedAttributes, explanationBuilder).getMatches();
+                int[] matches = new MultipleCandidateMatcher<>(schema, candidateList, requestedAttributes, explanationBuilder).getMatches();
                 LOGGER.debug("Selected matches {} from candidates {} for {}", Ints.asList(matches), candidateList, requested);
                 return matches;
             }
@@ -172,7 +165,7 @@ public class ComponentAttributeMatcher implements AttributeMatcher {
             this.hashCode = computeHashCode(requestedAttributes, candidates);
         }
 
-        private int computeHashCode(ImmutableAttributes requestedAttributes, ImmutableAttributes[] candidates) {
+        private static int computeHashCode(ImmutableAttributes requestedAttributes, ImmutableAttributes[] candidates) {
             int hash = requestedAttributes.hashCode();
             for (ImmutableAttributes candidate : candidates) {
                 hash = 31 * hash + candidate.hashCode();
