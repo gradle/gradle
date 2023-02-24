@@ -1,4 +1,7 @@
-<img src="gradle.png" width="350px" alt="Gradle Logo" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./gradle-white-primary.png" width="350px">
+  <img alt="Gradle" src="./gradle-dark-green-primary.png" width="350px">
+</picture>
 
 [![Revved up by Gradle Enterprise](https://img.shields.io/badge/Revved%20up%20by-Gradle%20Enterprise-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.gradle.org/scans)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4898/badge)](https://bestpractices.coreinfrastructure.org/projects/4898)
@@ -49,4 +52,3 @@ Enjoy first-class Gradle support in your IDE of choice.
 If you're looking to contribute to Gradle or provide a patch/pull request, you can find more info [here](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md).
 
 This project adheres to the [Gradle Code of Conduct](https://gradle.org/conduct/). By participating, you are expected to uphold this code.
-
