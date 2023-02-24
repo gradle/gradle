@@ -24,6 +24,9 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.inject)
+    implementation("com.ning:compress-lzf:1.1.2") {
+        because("Used in BuildCacheNG")
+    }
     implementation(libs.h2Database) {
         because("Used in BuildCacheNG")
     }
