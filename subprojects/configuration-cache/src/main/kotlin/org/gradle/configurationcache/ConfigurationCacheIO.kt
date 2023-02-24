@@ -167,7 +167,7 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultReadContext.(ConfigurationCacheState) -> T
     ): T {
-        return withReadContextFor(stateFile.stateType, encryptionService.inputStream(stateFile)) { codecs ->
+        return withReadContextFor(stateFile.stateType, encryptionService.inputStream(stateFile.stateType, stateFile::inputStream)) { codecs ->
             ConfigurationCacheState(codecs, stateFile, eventEmitter, host).run {
                 action(this)
             }
@@ -208,7 +208,7 @@ class ConfigurationCacheIO internal constructor(
 
     internal
     fun writerContextFor(stateFile: ConfigurationCacheStateStore.StateFile, profile: String): Pair<DefaultWriteContext, Codecs> =
-        encryptionService.encoder(stateFile.stateType, stateFile.file::outputStream).let { encoder ->
+        encryptionService.encoder(stateFile.stateType, { encryptionService.outputStream(stateFile.stateType, stateFile.file::outputStream) }).let { encoder ->
             writeContextFor(
                 encoder,
                 loggingTracerFor(profile, encoder),

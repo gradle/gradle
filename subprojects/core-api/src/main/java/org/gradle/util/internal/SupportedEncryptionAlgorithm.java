@@ -17,7 +17,6 @@
 package org.gradle.util.internal;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
@@ -32,25 +31,25 @@ import java.util.Arrays;
 public enum SupportedEncryptionAlgorithm implements EncryptionAlgorithm {
     AES_CBC_PADDING("AES/CBC/PKCS5PADDING", "AES", 16),
     AES_ECB_PADDING("AES/ECB/PKCS5PADDING", "AES", 0);
-    private String transformation;
-    private int initVectorLen;
-    private String algorithm;
+    private final String transformation;
+    private final int initVectorLength;
+    private final String algorithm;
 
-    SupportedEncryptionAlgorithm(String transformation, String algorithm, int initVectorLen) {
+    SupportedEncryptionAlgorithm(String transformation, String algorithm, int initVectorLength) {
         this.transformation = transformation;
         this.algorithm = algorithm;
-        this.initVectorLen = initVectorLen;
+        this.initVectorLength = initVectorLength;
     }
-    protected AlgorithmParameterSpec getDecryptionParameter(IVLoader ivLoader) throws IOException {
-        assert initVectorLen > 0;
-        byte[] initVector = new byte[initVectorLen];
+    private AlgorithmParameterSpec getDecryptionParameter(IVLoader ivLoader) throws IOException {
+        assert initVectorLength > 0;
+        byte[] initVector = new byte[initVectorLength];
         ivLoader.load(initVector);
         return createParameter(initVector);
     }
 
-    protected AlgorithmParameterSpec getEncryptionParameter(byte[] initVector, IVCollector ivCollector) throws IOException {
+    private AlgorithmParameterSpec getEncryptionParameter(byte[] initVector, IVCollector ivCollector) throws IOException {
         assert initVector != null;
-        assert initVector.length == initVectorLen;
+        assert initVector.length == initVectorLength;
         ivCollector.collect(initVector);
         return createParameter(initVector);
     }
@@ -61,7 +60,7 @@ public enum SupportedEncryptionAlgorithm implements EncryptionAlgorithm {
     }
 
     @Nonnull
-    protected AlgorithmParameterSpec createParameter(@Nonnull byte[] initVector) {
+    private static AlgorithmParameterSpec createParameter(@Nonnull byte[] initVector) {
         return new IvParameterSpec(initVector);
     }
 
@@ -69,7 +68,7 @@ public enum SupportedEncryptionAlgorithm implements EncryptionAlgorithm {
         try {
             Cipher newCipher = Cipher.getInstance(transformation);
             newCipher.init(Cipher.ENCRYPT_MODE, key);
-            if (initVectorLen > 0) {
+            if (initVectorLength > 0) {
                 assert collector != null;
                 byte[] iv = newCipher.getIV();
                 assert iv != null;
@@ -84,7 +83,7 @@ public enum SupportedEncryptionAlgorithm implements EncryptionAlgorithm {
     private Cipher decryptingCipher(SecretKey key, IVLoader loader) throws EncryptionException {
         try {
             Cipher newCipher = Cipher.getInstance(transformation);
-            if (initVectorLen > 0) {
+            if (initVectorLength > 0) {
                 assert loader != null;
                 newCipher.init(Cipher.DECRYPT_MODE, key, getDecryptionParameter(loader));
             } else {
@@ -126,12 +125,12 @@ public enum SupportedEncryptionAlgorithm implements EncryptionAlgorithm {
         };
     }
 
-    @Nullable
+    @Nonnull
     public static EncryptionAlgorithm byTransformation(String transformation) {
         return Arrays.stream(values())
             .filter(it -> it.transformation.equals(transformation))
             .findFirst()
             .map(it -> (EncryptionAlgorithm) it)
-            .orElse(null);
+            .orElse(SupportedEncryptionAlgorithm.NONE);
     }
 }
