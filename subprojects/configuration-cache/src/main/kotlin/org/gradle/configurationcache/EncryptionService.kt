@@ -39,6 +39,7 @@ import javax.crypto.CipherInputStream
 import javax.crypto.CipherOutputStream
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+import javax.crypto.spec.SecretKeySpec
 
 
 /**
@@ -48,8 +49,17 @@ internal
 interface EncryptionConfiguration {
     val isEncrypting: Boolean
     val encryptionKeyHashCode: HashCode
-    val initVectorLength: Int
     val encryptionAlgorithm: EncryptionAlgorithm
+}
+
+
+enum class EncryptionStrategy(val id: Int, val encrypted: Boolean) {
+    None(0, false), Streams(1, true), Encoding(2, true);
+
+    companion object {
+        fun forId(encryptionStrategyId: Int): EncryptionStrategy =
+            values().find { it.id == encryptionStrategyId } ?: None
+    }
 }
 
 
@@ -59,15 +69,7 @@ interface EncryptionConfiguration {
 internal
 interface EncryptionService : EncryptionConfiguration {
     fun outputStream(stateType: StateType, output: () -> OutputStream): OutputStream
-    fun outputStream(stateFile: ConfigurationCacheStateFile): OutputStream =
-        outputStream(stateFile.stateType, stateFile::outputStream)
-    fun outputStream(stateFile: ConfigurationCacheStateStore.StateFile): OutputStream =
-        outputStream(stateFile.stateType, stateFile.file::outputStream)
     fun inputStream(stateType: StateType, input: () -> InputStream): InputStream
-    fun inputStream(stateFile: ConfigurationCacheStateFile): InputStream =
-        inputStream(stateFile.stateType, stateFile::inputStream)
-    fun inputStream(stateFile: ConfigurationCacheStateStore.StateFile): InputStream =
-        inputStream(stateFile.stateType, stateFile.file::inputStream)
     fun encoder(stateType: StateType, output: () -> OutputStream): Encoder
     fun decoder(stateType: StateType, input: () -> InputStream): Decoder
 }
@@ -76,72 +78,166 @@ interface EncryptionService : EncryptionConfiguration {
 @ServiceScope(Scopes.BuildTree::class)
 internal
 class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) : EncryptionService {
-    private
-    val keyStorePath: File = startParameter.keystorePath
-        ?.let { File(it) } ?: File(startParameter.gradleUserHomeDir, "gradle.keystore")
 
     private
-    val keyStorePassword: String? = startParameter.keystorePassword
+    val encryptionStrategy: EncryptionStrategy = EncryptionStrategy.forId(startParameter.encryptionStrategy)
 
     private
-    val keyPassword: String = startParameter.keyPassword
+    val encryptingRequested: Boolean = encryptionStrategy.encrypted
 
     private
-    val keyAlias: String = startParameter.keyAlias
-
-    private
-    val keyAlgorithm: String = startParameter.keyAlgorithm
-
-    private
-    val keyProtection =
-        PasswordProtection(keyPassword.toCharArray())
-
-    private
-    val encryptingRequested: Boolean = startParameter.encryptedCache
-
-    private
-    val secretKey: SecretKey? by lazy { if (encryptingRequested) computeSecretKey() else null }
+    val secretKey: SecretKey? by lazy {
+        if (keySource == null) {
+            null
+        } else
+            try {
+                keySource!!.getKey().also {
+                    // acquire a cipher just to validate the key
+                    encryptionAlgorithm.newSession(it).encryptingCipher({})
+                }
+            } catch (e: Exception) {
+                logger.warn("Encryption was requested but could not be enabled", e)
+                null
+            }
+    }
 
     private
     val shouldEncrypt: Boolean by lazy { encryptingRequested && secretKey != null }
 
     override
     val encryptionAlgorithm: EncryptionAlgorithm by lazy {
-        SupportedEncryptionAlgorithm.byTransformation(startParameter.encryptionAlgorithm)!!
-    }
-
-    override
-    val initVectorLength: Int = startParameter.initVectorLength
-
-    init {
-        if (encryptingRequested) {
-            logger.info("""Configuration cache encryption requested
-                - algorithm: ${encryptionAlgorithm.transformation}
-                - keystore at: $keyStorePath
-                - key algorithm: $keyAlgorithm
-                - key alias: $keyAlias""".trimMargin()
-            )
-            if (!isEncrypting) {
-                logger.warn("Configuration cache encryption requested but not enabled")
-            }
-        }
+        SupportedEncryptionAlgorithm.byTransformation(startParameter.encryptionAlgorithm)
     }
 
     private
-    fun computeSecretKey(): SecretKey? {
+    val keySource: SecretKeySource? by lazy {
+        if (encryptingRequested)
+            sourceKeyFromEnvironment()
+                ?: sourceKeyFromKeyStore(startParameter)
+        else
+            null
+    }
+
+    override val isEncrypting: Boolean
+        get() = shouldEncrypt
+
+    override val encryptionKeyHashCode: HashCode by lazy {
+        secretKey?.let {
+            Hashing.sha512().newHasher().apply {
+                putBytes(it.encoded)
+                putString(encryptionAlgorithm.transformation)
+            }.hash()
+        } ?: Hashing.newHasher().hash()
+    }
+
+    override fun encoder(stateType: StateType, output: () -> OutputStream): Encoder =
+        if (shouldEncryptEncoding(stateType))
+            EncryptingEncoder(output.invoke(), encryptionAlgorithm.newSession(secretKey))
+        else
+            KryoBackedEncoder(output.invoke())
+
+    override fun decoder(stateType: StateType, input: () -> InputStream): Decoder =
+        if (shouldEncryptEncoding(stateType))
+            DecryptingDecoder(input.invoke(), encryptionAlgorithm.newSession(secretKey))
+        else
+            KryoBackedDecoder(input.invoke())
+
+    private
+    fun shouldEncryptEncoding(stateType: StateType) =
+        encryptionStrategy == EncryptionStrategy.Encoding && isStateEncryptable(stateType)
+
+    private
+    fun shouldEncryptStreams(stateType: StateType) =
+        encryptionStrategy == EncryptionStrategy.Streams && isStateEncryptable(stateType)
+
+    private
+    fun isStateEncryptable(stateType: StateType) = shouldEncrypt && stateType.encryptable
+
+    override fun outputStream(stateType: StateType, output: () -> OutputStream): OutputStream =
+        if (shouldEncryptStreams(stateType))
+            encryptingOutputStream(output.invoke())
+        else
+            output.invoke()
+
+    override fun inputStream(stateType: StateType, input: () -> InputStream): InputStream =
+        if (shouldEncryptStreams(stateType))
+            decryptingInputStream(input.invoke())
+        else
+            input.invoke()
+
+    private
+    fun decryptingInputStream(inputStream: InputStream): InputStream {
+        val cipher = encryptionAlgorithm.newSession(secretKey).decryptingCipher(inputStream::read)
+        return CipherInputStream(inputStream, cipher)
+    }
+
+    private
+    fun encryptingOutputStream(outputStream: OutputStream): OutputStream {
+        val cipher = encryptionAlgorithm.newSession(secretKey).encryptingCipher(outputStream::write)
+        return CipherOutputStream(outputStream, cipher)
+    }
+
+    private
+    fun sourceKeyFromKeyStore(startParameter: ConfigurationCacheStartParameter): SecretKeySource =
+        KeyStoreKeySource.fromKeyStore(
+            encryptionAlgorithm = encryptionAlgorithm.algorithm,
+            keyStorePath = startParameter.keystorePath?.let { File(it) }
+                ?: File(startParameter.gradleUserHomeDir, "gradle.keystore"),
+            keyAlias = startParameter.keyAlias,
+            keyStorePassword = startParameter.keystorePassword,
+            keyPassword = startParameter.keyPassword
+        )
+
+    private
+    fun sourceKeyFromEnvironment(): SecretKeySource? =
+        EnvironmentKeySource.fromEnvironment(encryptionAlgorithm.algorithm)
+}
+
+
+interface SecretKeySource {
+    fun getKey(): SecretKey
+}
+
+
+class EnvironmentKeySource(algorithm: String, keyAsBase64: String) : SecretKeySource {
+    val secretKey: SecretKey = Base64.getDecoder().decode(keyAsBase64).let { keyAsBytes ->
+        SecretKeySpec(keyAsBytes, algorithm)
+    }
+    companion object {
+        const val GRADLE_ENCRYPTION_KEY_ENV_VAR = "GRADLE_CC_ENCRYPTION_KEY"
+        fun fromEnvironment(algorithm: String, envVarName: String = GRADLE_ENCRYPTION_KEY_ENV_VAR): SecretKeySource? =
+            System.getenv(envVarName)?.let {
+                EnvironmentKeySource(algorithm, it)
+            }
+    }
+
+    override fun getKey(): SecretKey = secretKey
+}
+
+
+class KeyStoreKeySource(
+    private val encryptionAlgorithm: String,
+    private val keyStorePath: File,
+    private val keyAlias: String,
+    private val keyStorePassword: String?,
+    keyPassword: String
+) : SecretKeySource {
+
+    private
+    val keyProtection =
+        PasswordProtection(keyPassword.toCharArray())
+
+    override fun getKey(): SecretKey = computeSecretKey()
+
+    private
+    fun computeSecretKey(): SecretKey {
         val ks = KeyStore.getInstance(KeyStore.getDefaultType())
         val key: SecretKey
         val alias = keyAlias
         if (keyStorePath.isFile) {
             logger.info("Loading keystore from $keyStorePath")
             keyStorePath.inputStream().use { fis ->
-                try {
-                    ks.load(fis, keyStorePassword?.toCharArray())
-                } catch (e: Exception) {
-                    // could not load, store password is wrong
-                    logger.warn("Keystore exists, but cannot be loaded, encryption will not be enabled", e)
-                    return@computeSecretKey null
-                }
+                ks.load(fis, keyStorePassword?.toCharArray())
             }
             val entry = ks.getEntry(alias, keyProtection) as KeyStore.SecretKeyEntry?
             if (entry != null) {
@@ -163,71 +259,23 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
 
     private
     fun generateKey(ks: KeyStore, alias: String): SecretKey {
-        val newKey = KeyGenerator.getInstance(keyAlgorithm).generateKey()!!
+        val newKey = KeyGenerator.getInstance(encryptionAlgorithm).generateKey()!!
         logger.info("Generated key")
         val entry = KeyStore.SecretKeyEntry(newKey)
         ks.setEntry(alias, entry, keyProtection)
+        keyStorePath.parentFile.mkdirs()
         keyStorePath.outputStream().use { fos -> ks.store(fos, keyStorePassword?.toCharArray()) }
         return newKey
     }
 
-    override val isEncrypting: Boolean
-        get() = shouldEncrypt
-
-    override val encryptionKeyHashCode: HashCode by lazy {
-        secretKey?.let {
-            Hashing.sha512().newHasher().apply {
-                putBytes(it.encoded)
-                putString(it.format)
-                putString(it.algorithm)
-                putInt(initVectorLength)
-            }.hash()
-        } ?: Hashing.newHasher().hash()
-    }
-
-    override fun encoder(stateType: StateType, output: () -> OutputStream): Encoder =
-        if (isEncryptable(stateType))
-            EncryptingEncoder(output.invoke(), encryptionAlgorithm.newSession(secretKey))
-        else
-            KryoBackedEncoder(output.invoke())
-
-    override fun decoder(stateType: StateType, input: () -> InputStream): Decoder =
-        if (isEncryptable(stateType))
-            DecryptingDecoder(input.invoke(), encryptionAlgorithm.newSession(secretKey))
-        else
-            KryoBackedDecoder(input.invoke())
-
-    private
-    fun isEncryptable(stateType: StateType) = shouldEncrypt && stateType.encryptable
-
-    override fun outputStream(stateType: StateType, output: () -> OutputStream): OutputStream =
-//        if (isEncryptable(stateType))
-//            encryptingOutputStream(output.invoke())
-//        else
-        output.invoke()
-
-    override fun inputStream(stateType: StateType, input: () -> InputStream): InputStream =
-//        if (isEncryptable(stateType))
-//            decryptingInputStream(input.invoke())
-//        else
-        input.invoke()
-
-    private
-    fun decryptingInputStream(inputStream: InputStream): InputStream {
-        val cipher = encryptionAlgorithm.newSession(secretKey).decryptingCipher(inputStream::read)
-        return CipherInputStream(inputStream, cipher)
-    }
-
-    private
-    fun encryptingOutputStream(outputStream: OutputStream): OutputStream {
-        val cipher = encryptionAlgorithm.newSession(secretKey).encryptingCipher(outputStream::write)
-        return CipherOutputStream(outputStream, cipher)
+    companion object {
+        fun fromKeyStore(
+            encryptionAlgorithm: String,
+            keyStorePath: File,
+            keyAlias: String,
+            keyStorePassword: String?,
+            keyPassword: String
+        ): SecretKeySource =
+            KeyStoreKeySource(encryptionAlgorithm, keyStorePath, keyAlias, keyStorePassword, keyPassword)
     }
 }
-
-
-private
-fun SecretKey.asString(): String =
-    String(Base64.getEncoder().encode(encoded)) + " $algorithm/$format"
-
-

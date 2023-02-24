@@ -25,15 +25,28 @@ import java.io.IOException;
  */
 public interface EncryptionAlgorithm {
     String getTransformation();
+
     String getAlgorithm();
+
+    /**
+     * Creates an encryption/decryption session with this algorithm and the given key.
+     *
+     * @param key the key to use
+     * @return a new encryption/decryption session
+     */
     Session newSession(SecretKey key);
+
     interface IVLoader {
         void load(byte[] toLoad) throws IOException;
     }
+
     interface IVCollector {
         void collect(byte[] toCollect) throws IOException;
     }
 
+    /**
+     * Combines an algorithm and a key, and allows obtaining encryption/decryption ciphers according to those.
+     */
     interface Session {
         SecretKey getKey();
         EncryptionAlgorithm getAlgorithm();

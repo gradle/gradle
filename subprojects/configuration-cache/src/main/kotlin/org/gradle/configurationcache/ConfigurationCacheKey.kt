@@ -76,7 +76,6 @@ class ConfigurationCacheKey(
         putBuildScan()
         putBoolean(encryptionConfiguration.isEncrypting)
         putHash(encryptionConfiguration.encryptionKeyHashCode)
-        putHash(encryptionConfiguration.encryptionKeyHashCode)
     }
 
     private

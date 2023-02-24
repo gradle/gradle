@@ -143,8 +143,6 @@ class ConfigurationCacheKeyTest {
                     get() = Hashing.newHasher().hash()
                 override val isEncrypting: Boolean
                     get() = false
-                override val initVectorLength: Int
-                    get() = 0
                 override val encryptionAlgorithm: EncryptionAlgorithm
                     get() = EncryptionAlgorithm.NONE
             }
