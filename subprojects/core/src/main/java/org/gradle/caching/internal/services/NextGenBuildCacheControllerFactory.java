@@ -26,7 +26,9 @@ import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.DefaultNextGenBuildCacheAccess;
+import org.gradle.caching.internal.controller.GZipNextGenBuildCacheAccess;
 import org.gradle.caching.internal.controller.LZFNextGenBuildCacheAccess;
+import org.gradle.caching.internal.controller.NextGenBuildCacheAccess;
 import org.gradle.caching.internal.controller.NextGenBuildCacheController;
 import org.gradle.caching.internal.controller.NextGenBuildCacheHandler;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
@@ -83,23 +85,19 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         NextGenBuildCacheHandler local = resolveService(localDescribedService);
         NextGenBuildCacheHandler remote = resolveService(remoteDescribedService);
 
+        NextGenBuildCacheAccess cacheAccess = NextGenBuildCacheController.isNextGenCachingWithLZFEnabled()
+            ? new LZFNextGenBuildCacheAccess(new DefaultNextGenBuildCacheAccess(local, remote, bufferProvider, executorFactory), bufferProvider)
+            : new GZipNextGenBuildCacheAccess(new DefaultNextGenBuildCacheAccess(local, remote, bufferProvider, executorFactory), bufferProvider);
         return new NextGenBuildCacheController(
             buildInvocationScopeId.getId().asString(),
             deleter,
             fileSystemAccess,
             bufferProvider,
             stringInterner,
-            new LZFNextGenBuildCacheAccess(
-                new DefaultNextGenBuildCacheAccess(
-                    local,
-                    remote,
-                    bufferProvider,
-                    executorFactory
-                ),
-                bufferProvider
-            )
+            cacheAccess
         );
     }
+
 
     private static NextGenBuildCacheHandler resolveService(@Nullable DescribedBuildCacheService<? extends BuildCache, ? extends BuildCacheService> describedService) {
         return describedService != null && describedService.config.isEnabled()

@@ -89,6 +89,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
     private static final Logger LOGGER = LoggerFactory.getLogger(NextGenBuildCacheController.class);
 
     public static final String NEXT_GEN_CACHE_SYSTEM_PROPERTY = "org.gradle.unsafe.cache.ng";
+    public static final String NEXT_GEN_CACHE_WITH_LZF_SYSTEM_PROPERTY = "org.gradle.unsafe.cache.ng.lzf";
 
     private final BufferProvider bufferProvider;
     private final NextGenBuildCacheAccess cacheAccess;
@@ -461,5 +462,9 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
     public static boolean isNextGenCachingEnabled() {
         return Boolean.getBoolean(NEXT_GEN_CACHE_SYSTEM_PROPERTY) == Boolean.TRUE;
+    }
+
+    public static boolean isNextGenCachingWithLZFEnabled() {
+        return Boolean.getBoolean(NEXT_GEN_CACHE_WITH_LZF_SYSTEM_PROPERTY) == Boolean.TRUE;
     }
 }
