@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.caching.AsyncBuildCacheService;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.internal.controller.BuildCacheController;
@@ -62,7 +63,7 @@ public class LegacyBuildCacheControllerFactory extends AbstractBuildCacheControl
     @Override
     protected BuildCacheController doCreateController(
         @Nullable DescribedBuildCacheService<DirectoryBuildCache, DirectoryBuildCacheService> localDescribedService,
-        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService
+        @Nullable DescribedBuildCacheService<BuildCache, AsyncBuildCacheService> remoteDescribedService
     ) {
         BuildCacheServicesConfiguration config = toConfiguration(
             localDescribedService,
@@ -88,7 +89,7 @@ public class LegacyBuildCacheControllerFactory extends AbstractBuildCacheControl
 
     private static BuildCacheServicesConfiguration toConfiguration(
         @Nullable DescribedBuildCacheService<DirectoryBuildCache, DirectoryBuildCacheService> local,
-        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remote
+        @Nullable DescribedBuildCacheService<BuildCache, AsyncBuildCacheService> remote
     ) {
         boolean localPush = local != null && local.config.isPush();
         boolean remotePush = remote != null && remote.config.isPush();

@@ -82,11 +82,11 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
     }
 
     protected void loadInner(String description, BuildCacheKey key, LoadTarget loadTarget) {
-        service.load(key, loadTarget);
+        service.loadAsync(key, loadTarget);
     }
 
     protected void loadInner(BuildCacheKey key, BuildCacheEntryReader entryReader) {
-        service.load(key, entryReader);
+        service.loadAsync(key, entryReader);
     }
 
     private Optional<BuildCacheLoadResult> maybeUnpack(LoadTarget loadTarget, Function<File, BuildCacheLoadResult> unpackFunction) {

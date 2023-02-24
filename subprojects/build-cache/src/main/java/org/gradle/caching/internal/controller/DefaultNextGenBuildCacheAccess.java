@@ -44,14 +44,14 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     private static final CompletableFuture<?>[] EMPTY_COMPLETABLE_FUTURE_ARRAY = new CompletableFuture<?>[0];
 
     private final NextGenBuildCacheHandler local;
-    private final NextGenBuildCacheHandler remote;
+    private final AsyncNextGenBuildCacheHandler remote;
     private final BufferProvider bufferProvider;
     private final ManagedThreadPoolExecutor remoteProcessor;
     private final ConcurrencyCounter counter;
 
     public DefaultNextGenBuildCacheAccess(
         NextGenBuildCacheHandler local,
-        NextGenBuildCacheHandler remote,
+        AsyncNextGenBuildCacheHandler remote,
         BufferProvider bufferProvider,
         ExecutorFactory executorFactory
     ) {
@@ -66,6 +66,8 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     @Override
     public <T> void load(Map<BuildCacheKey, T> entries, LoadHandler<T> handler) {
         List<CompletableFuture<Void>> remoteDownloads = new ArrayList<>();
+
+
         entries.forEach((key, payload) -> {
             boolean foundLocally = local.canLoad() && local.load(key, input -> handler.handle(input, payload));
             if (!foundLocally && remote.canLoad()) {
@@ -85,6 +87,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 return;
             }
             if (!local.contains(key)) {
+                //FIXME could be async?
                 local.store(key, handler.handle(payload));
             }
             // TODO Add error handling

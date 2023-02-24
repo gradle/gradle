@@ -18,12 +18,14 @@ package org.gradle.caching.internal.services;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.caching.AsyncBuildCacheService;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.configuration.BuildCache;
+import org.gradle.caching.internal.controller.AsyncNextGenBuildCacheHandler;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.DefaultNextGenBuildCacheAccess;
 import org.gradle.caching.internal.controller.GZipNextGenBuildCacheAccess;
@@ -42,6 +44,7 @@ import org.gradle.util.internal.IncubationLogger;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
 public final class NextGenBuildCacheControllerFactory extends AbstractBuildCacheControllerFactory<H2BuildCacheService> {
 
@@ -76,12 +79,12 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
     @Override
     protected BuildCacheController doCreateController(
         @Nullable DescribedBuildCacheService<DirectoryBuildCache, H2BuildCacheService> localDescribedService,
-        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService
+        @Nullable DescribedBuildCacheService<BuildCache, AsyncBuildCacheService> remoteDescribedService
     ) {
         IncubationLogger.incubatingFeatureUsed("Next generation build cache");
 
         NextGenBuildCacheHandler local = resolveService(localDescribedService);
-        NextGenBuildCacheHandler remote = resolveService(remoteDescribedService);
+        AsyncNextGenBuildCacheHandler remote = resolveRemoteService(remoteDescribedService);
 
         return new NextGenBuildCacheController(
             buildInvocationScopeId.getId().asString(),
@@ -105,6 +108,12 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         return describedService != null && describedService.config.isEnabled()
             ? new DefaultNextGenBuildCacheHandler(describedService.service, describedService.config.isPush())
             : DISABLED_BUILD_CACHE_HANDLER;
+    }
+
+    private static AsyncNextGenBuildCacheHandler resolveRemoteService(@Nullable DescribedBuildCacheService<? extends BuildCache, ? extends AsyncBuildCacheService> describedService) {
+        return describedService != null && describedService.config.isEnabled()
+            ? new AsyncDefaultNextGenBuildCacheHandler(describedService.service, describedService.config.isPush())
+            : DISABLED_ASYNC_BUILD_CACHE_HANDLER;
     }
 
     private static final NextGenBuildCacheHandler DISABLED_BUILD_CACHE_HANDLER = new NextGenBuildCacheHandler() {
@@ -137,6 +146,81 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         }
     };
 
+    private static final AsyncNextGenBuildCacheHandler DISABLED_ASYNC_BUILD_CACHE_HANDLER = new AsyncNextGenBuildCacheHandler() {
+        @Override
+        public boolean canLoad() {
+            return false;
+        }
+
+        @Override
+        public boolean canStore() {
+            return false;
+        }
+
+        @Override
+        public CompletableFuture<Boolean> contains(BuildCacheKey key) {
+            return null;
+        }
+
+        @Override
+        public CompletableFuture<Boolean> load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+            return null;
+        }
+
+        @Override
+        public CompletableFuture<Void> store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+            return null;
+        }
+
+        @Override
+        public void close() throws IOException {
+
+        }
+    }
+
+
+
+    private static class AsyncDefaultNextGenBuildCacheHandler implements AsyncNextGenBuildCacheHandler {
+        private final AsyncBuildCacheService service;
+        private final boolean pushEnabled;
+
+        public AsyncDefaultNextGenBuildCacheHandler(AsyncBuildCacheService service, boolean pushEnabled) {
+            this.service = service;
+            this.pushEnabled = pushEnabled;
+        }
+
+        @Override
+        public boolean canLoad() {
+            return false;
+        }
+
+        @Override
+        public boolean canStore() {
+            return false;
+        }
+
+        @Override
+        public CompletableFuture<Boolean> contains(BuildCacheKey key) {
+            return null;
+        }
+
+        @Override
+        public CompletableFuture<Boolean> load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+            return null;
+        }
+
+        @Override
+        public CompletableFuture<Void> store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+            return null;
+        }
+
+        @Override
+        public void close() throws IOException {
+
+        }
+    }
+
+
     private static class DefaultNextGenBuildCacheHandler implements NextGenBuildCacheHandler {
         private final BuildCacheService service;
         private final boolean pushEnabled;
@@ -163,7 +247,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
 
         @Override
         public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-            return service.load(key, reader);
+            return service.loadAsync(key, reader);
         }
 
         @Override

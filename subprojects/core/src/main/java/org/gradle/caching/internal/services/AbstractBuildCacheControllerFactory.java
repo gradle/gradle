@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.caching.AsyncBuildCacheService;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
@@ -81,7 +82,7 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
 
     abstract protected BuildCacheController doCreateController(
         @Nullable DescribedBuildCacheService<DirectoryBuildCache, L> localDescribedService,
-        @Nullable DescribedBuildCacheService<BuildCache, BuildCacheService> remoteDescribedService
+        @Nullable DescribedBuildCacheService<BuildCache, AsyncBuildCacheService> remoteDescribedService
     );
 
     @Override
