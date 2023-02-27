@@ -56,14 +56,12 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
         Configuration dependenciesConfiguration = createDependenciesConfiguration((ProjectInternal) project);
         CatalogExtensionInternal extension = createExtension(project, dependenciesConfiguration);
         TaskProvider<TomlFileGenerator> generator = createGenerator(project, extension);
-        createPublication(project, generator);
+        createPublication((ProjectInternal) project, generator);
     }
 
-    private void createPublication(Project project, TaskProvider<TomlFileGenerator> generator) {
-        Configuration exported = project.getConfigurations().create(VERSION_CATALOG_ELEMENTS, cnf -> {
+    private void createPublication(ProjectInternal project, TaskProvider<TomlFileGenerator> generator) {
+        Configuration exported = project.getConfigurations().createWithRole(VERSION_CATALOG_ELEMENTS, ConfigurationRoles.INTENDED_CONSUMABLE, cnf -> {
             cnf.setDescription("Artifacts for the version catalog");
-            cnf.setCanBeConsumed(true);
-            cnf.setCanBeResolved(false);
             cnf.getOutgoing().artifact(generator);
             cnf.attributes(attrs -> {
                 attrs.attribute(Category.CATEGORY_ATTRIBUTE, project.getObjects().named(Category.class, Category.REGULAR_PLATFORM));
