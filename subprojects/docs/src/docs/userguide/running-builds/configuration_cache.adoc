@@ -7,11 +7,6 @@
 // ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-configuration-cache-*"
 // ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-value-providers-*"
 
-[NOTE]
-====
-The configuration cache is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
-====
-
 [[config_cache:intro]]
 == Introduction
 
@@ -26,7 +21,7 @@ In other words, the configuration cache saves the output of the configuration ph
 
 [IMPORTANT]
 ====
-This feature is currently *_incubating_* and not enabled by default. This feature has the following limitations:
+This feature is currently not enabled by default. This feature has the following limitations:
 
 - The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress.
 - Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>.
@@ -85,6 +80,7 @@ Apart from skipping the configuration phase, the configuration cache provides so
 [[config_cache:in_action]]
 === Configuration caching in action
 
+// TODO-RC redo demo so it no longer shows as incubating
 image::configuration-cache/running-help.gif[]
 
 [[config_cache:usage]]
@@ -136,11 +132,11 @@ To enable the cache at build time, use the `configuration-cache` flag:
 ❯ gradle --configuration-cache
 ----
 
-You can also enable the cache persistently in a `gradle.properties` file using the `org.gradle.unsafe.configuration-cache` property:
+You can also enable the cache persistently in a `gradle.properties` file using the `org.gradle.configuration-cache` property:
 
 [source,properties]
 ----
-org.gradle.unsafe.configuration-cache=true
+org.gradle.configuration-cache=true
 ----
 
 If enabled in a `gradle.properties` file, you can override that setting and disable the cache at build time with the `no-configuration-cache` flag:
@@ -165,7 +161,7 @@ or in a `gradle.properties` file:
 
 [source,properties]
 ----
-org.gradle.unsafe.configuration-cache-problems=warn
+org.gradle.configuration-cache-problems=warn
 ----
 
 [[config_cache:usage:max_problems]]
@@ -176,14 +172,14 @@ When configuration cache problems are turned into warnings, Gradle will fail the
 This can be adjusted by specifying an allowed maximum number of problems on the command line:
 
 ----
-❯ gradle -Dorg.gradle.unsafe.configuration-cache.max-problems=5
+❯ gradle -Dorg.gradle.configuration-cache.max-problems=5
 ----
 
 or in a `gradle.properties` file:
 
 [source,properties]
 ----
-org.gradle.unsafe.configuration-cache.max-problems=5
+org.gradle.configuration-cache.max-problems=5
 ----
 
 [[config_cache:usage:invalidate]]
@@ -286,7 +282,7 @@ Select `Templates > Gradle` and add the necessary system properties to the `VM o
 For example to enable the configuration cache, turning problems into warnings, add the following:
 
 ----
--Dorg.gradle.unsafe.configuration-cache=true -Dorg.gradle.unsafe.configuration-cache-problems=warn
+-Dorg.gradle.configuration-cache=true -Dorg.gradle.configuration-cache-problems=warn
 ----
 
 You can also choose to only enable it for a given run configuration.
@@ -309,8 +305,8 @@ To enable it globally, go to `Preferences > Gradle`.
 You can use the properties described above as system properties.
 For example to enable the configuration cache, turning problems into warnings, add the following JVM arguments:
 
-* `-Dorg.gradle.unsafe.configuration-cache=true`
-* `-Dorg.gradle.unsafe.configuration-cache-problems=warn`
+* `-Dorg.gradle.configuration-cache=true`
+* `-Dorg.gradle.configuration-cache-problems=warn`
 
 To enable it for a given run configuration, go to `Run configurations...`, find the one you want to change, go to `Project Settings`, tick the `Override project settings` checkbox and add the same system properties as a `JVM argument`.
 
