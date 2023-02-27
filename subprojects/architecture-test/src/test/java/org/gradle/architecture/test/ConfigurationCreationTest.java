@@ -22,6 +22,16 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 
+/**
+ * This test ensures that only the role-based API is used to create configurations in Gradle core plugins.
+ * <p>
+ * It is important to maintain this usage, because the role-based API will allow us to (eventually) split
+ * the implementation of configurations into separate classes per role.
+ * <p>
+ * This should include every public call path into {@code DefaultConfgurationContainer#doCreate(String)} that does
+ * <strong>NOT</strong> begin with a call from a method in {@code RoleBasedConfigurationContainerInternal}
+ * (these are mostly methods in {@code AbstractNamedDomainObjectContainer}).
+ */
 @AnalyzeClasses(packages = "org.gradle")
 public class ConfigurationCreationTest {
     @ArchTest
