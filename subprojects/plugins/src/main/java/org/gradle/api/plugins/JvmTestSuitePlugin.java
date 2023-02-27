@@ -30,7 +30,7 @@ import org.gradle.api.attributes.TestSuiteTargetName;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
@@ -83,14 +83,14 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "test_task_default_classpath")
                     .nagUser();
-                return JvmPluginsHelper.getDefaultTestSuite(project).getSources().getOutput().getClassesDirs();
+                return JavaPluginHelper.getDefaultTestSuite(project).getSources().getOutput().getClassesDirs();
             });
             test.getConventionMapping().map("classpath", () -> {
                 DeprecationLogger.deprecate("Configuring the test classpath by default for standalone Test tasks")
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "test_task_default_classpath")
                     .nagUser();
-                return JvmPluginsHelper.getDefaultTestSuite(project).getSources().getRuntimeClasspath();
+                return JavaPluginHelper.getDefaultTestSuite(project).getSources().getRuntimeClasspath();
             });
             test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
         });

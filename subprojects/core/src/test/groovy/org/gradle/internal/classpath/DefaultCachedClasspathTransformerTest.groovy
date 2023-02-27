@@ -20,12 +20,13 @@ import org.gradle.api.Action
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.GlobalCacheLocations
+import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.Pair
+import org.gradle.internal.agents.AgentStatus
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.hash.Hasher
@@ -70,6 +71,10 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     def fileSystemAccess = TestFiles.fileSystemAccess()
     def globalCacheLocations = Stub(GlobalCacheLocations)
     def fileLockManager = Stub(FileLockManager)
+    def agentStatus = Stub(AgentStatus) {
+        // TODO(mlopatkin) Invent a way to test this with agent-based instrumentation
+        isAgentInstrumentationEnabled() >> false
+    }
     URLClassLoader testClassLoader = null
 
     @Subject
@@ -82,7 +87,8 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         fileSystemAccess,
         executorFactory,
         globalCacheLocations,
-        fileLockManager
+        fileLockManager,
+        agentStatus
     )
 
     def cleanup() {
