@@ -69,7 +69,7 @@ public interface FileSystemOperations {
      *
      * @param configureAction The configuration that gets applied to the newly created {@code FileAccessPermissions}.
      *
-     * @since 8.1 //TODO: 8.2?
+     * @since 8.1
      */
     @Incubating
     FileAccessPermissions permissions(boolean directory, Action<? super FileAccessPermissions> configureAction);

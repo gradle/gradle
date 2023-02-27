@@ -26,6 +26,10 @@ import javax.inject.Inject;
 
 public class DefaultFileAccessPermissions implements FileAccessPermissions {
 
+    public static int getDefaultMode(boolean isDirectory) {
+        return isDirectory ? FileSystem.DEFAULT_DIR_MODE : FileSystem.DEFAULT_FILE_MODE;
+    }
+
     private final DefaultFileAccessPermission user;
 
     private final DefaultFileAccessPermission group;
@@ -33,8 +37,7 @@ public class DefaultFileAccessPermissions implements FileAccessPermissions {
     private final DefaultFileAccessPermission other;
 
     @Inject
-    public DefaultFileAccessPermissions(ObjectFactory objectFactory, boolean isDirectory) {
-        int mode = isDirectory ? FileSystem.DEFAULT_DIR_MODE : FileSystem.DEFAULT_FILE_MODE;
+    public DefaultFileAccessPermissions(ObjectFactory objectFactory, int mode) {
         this.user = objectFactory.newInstance(DefaultFileAccessPermission.class, getUserMask(mode));
         this.group = objectFactory.newInstance(DefaultFileAccessPermission.class, getGroupMask(mode));
         this.other = objectFactory.newInstance(DefaultFileAccessPermission.class, getOtherMask(mode));

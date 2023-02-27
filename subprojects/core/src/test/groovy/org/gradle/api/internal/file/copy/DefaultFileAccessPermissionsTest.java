@@ -26,7 +26,7 @@ public class DefaultFileAccessPermissionsTest {
 
     @Test
     public void directoryInitializedWithSensibleDefaults() {
-        DefaultFileAccessPermissions permissions = new DefaultFileAccessPermissions(TestUtil.objectFactory(), true);
+        DefaultFileAccessPermissions permissions = new DefaultFileAccessPermissions(TestUtil.objectFactory(), DefaultFileAccessPermissions.getDefaultMode(true));
         assertPermissions(permissions.getUser(), true, true, true);
         assertPermissions(permissions.getGroup(), true, false, true);
         assertPermissions(permissions.getOther(), true, false, true);
@@ -35,7 +35,7 @@ public class DefaultFileAccessPermissionsTest {
 
     @Test
     public void fileInitializedWithSensibleDefaults() {
-        DefaultFileAccessPermissions permissions = new DefaultFileAccessPermissions(TestUtil.objectFactory(), false);
+        DefaultFileAccessPermissions permissions = new DefaultFileAccessPermissions(TestUtil.objectFactory(), DefaultFileAccessPermissions.getDefaultMode(false));
         assertPermissions(permissions.getUser(), true, true, false);
         assertPermissions(permissions.getGroup(), true, false, false);
         assertPermissions(permissions.getOther(), true, false, false);

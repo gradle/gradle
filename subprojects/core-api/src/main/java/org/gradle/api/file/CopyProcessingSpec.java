@@ -18,7 +18,9 @@ package org.gradle.api.file;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
+import org.gradle.api.provider.Property;
 
 import javax.annotation.Nullable;
 import java.util.regex.Pattern;
@@ -121,6 +123,42 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @return this
      */
     CopyProcessingSpec setDirMode(@Nullable Integer mode);
+
+    /**
+     * Property for configuring file access permissions.
+     * For details see {@link FileAccessPermissions}.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    Property<FileAccessPermissions> getFilePermissions();
+
+    /**
+     * Configuration action for specifying file access permissions.
+     * For details see {@link FileAccessPermissions}.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    CopyProcessingSpec filePermissions(Action<? super FileAccessPermissions> configureAction);
+
+    /**
+     * Property for configuring directory access permissions.
+     * For details see {@link FileAccessPermissions}.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    Property<FileAccessPermissions> getDirPermissions();
+
+    /**
+     * Configuration action for specifying directory access permissions.
+     * For details see {@link FileAccessPermissions}.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    CopyProcessingSpec dirPermissions(Action<? super FileAccessPermissions> configureAction);
 
     /**
      * Adds an action to be applied to each file as it is about to be copied into its destination. The action can change

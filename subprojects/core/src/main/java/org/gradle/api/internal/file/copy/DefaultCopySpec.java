@@ -29,6 +29,7 @@ import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
+import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
@@ -38,6 +39,9 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.pattern.PatternMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -60,6 +64,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 @NonExtensible
@@ -68,15 +73,16 @@ public class DefaultCopySpec implements CopySpecInternal {
     protected final Factory<PatternSet> patternSetFactory;
     protected final FileCollectionFactory fileCollectionFactory;
     protected final Instantiator instantiator;
+    private final ObjectFactory objectFactory;
     private final ConfigurableFileCollection sourcePaths;
-    private Object destDir;
     private final PatternSet patternSet;
     private final List<CopySpecInternal> childSpecs = new LinkedList<>();
     private final List<CopySpecInternal> childSpecsInAdditionOrder = new LinkedList<>();
     private final List<Action<? super FileCopyDetails>> copyActions = new LinkedList<>();
+    private final Property<FileAccessPermissions> dirPermissions;
+    private final Property<FileAccessPermissions> filePermissions;
+    private Object destDir;
     private boolean hasCustomActions;
-    private Integer dirMode;
-    private Integer fileMode;
     private Boolean caseSensitive;
     private Boolean includeEmptyDirs;
     private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
@@ -85,20 +91,23 @@ public class DefaultCopySpec implements CopySpecInternal {
     private PatternFilterable preserve = new PatternSet();
 
     @Inject
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory) {
-        this(fileCollectionFactory, instantiator, patternSetFactory, patternSetFactory.create());
+    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory) {
+        this(fileCollectionFactory, objectFactory, instantiator, patternSetFactory, patternSetFactory.create());
     }
 
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, PatternSet patternSet) {
+    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, PatternSet patternSet) {
         this.sourcePaths = fileCollectionFactory.configurableFiles();
         this.fileCollectionFactory = fileCollectionFactory;
+        this.objectFactory = objectFactory;
         this.instantiator = instantiator;
         this.patternSetFactory = patternSetFactory;
         this.patternSet = patternSet;
+        this.filePermissions = objectFactory.property(FileAccessPermissions.class);
+        this.dirPermissions = objectFactory.property(FileAccessPermissions.class);
     }
 
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
-        this(fileCollectionFactory, instantiator, patternSetFactory, patternSet);
+    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
+        this(fileCollectionFactory, objectFactory, instantiator, patternSetFactory, patternSet);
         sourcePaths.from(source);
         destDir = destPath;
         this.copyActions.addAll(copyActions);
@@ -166,14 +175,14 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     protected CopySpecInternal addChildAtPosition(int position) {
-        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, instantiator, patternSetFactory, buildRootResolver());
+        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, objectFactory, instantiator, patternSetFactory, buildRootResolver());
         addChildSpec(position, child);
         return child;
     }
 
     @Override
     public CopySpecInternal addChild() {
-        DefaultCopySpec child = new SingleParentCopySpec(fileCollectionFactory, instantiator, patternSetFactory, buildRootResolver());
+        DefaultCopySpec child = new SingleParentCopySpec(fileCollectionFactory, objectFactory, instantiator, patternSetFactory, buildRootResolver());
         addChildSpec(child);
         return child;
     }
@@ -466,13 +475,39 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopyProcessingSpec setDirMode(@Nullable Integer mode) {
-        dirMode = mode;
+        dirPermissions.set(mode == null ? null : objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, mode));
         return this;
     }
 
     @Override
     public CopyProcessingSpec setFileMode(@Nullable Integer mode) {
-        fileMode = mode;
+        filePermissions.set(mode == null ? null : objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, mode));
+        return this;
+    }
+
+    @Override
+    public Property<FileAccessPermissions> getFilePermissions() {
+        return filePermissions;
+    }
+
+    @Override
+    public CopyProcessingSpec filePermissions(Action<? super FileAccessPermissions> configureAction) {
+        DefaultFileAccessPermissions permissions = objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, DefaultFileAccessPermissions.getDefaultMode(false));
+        configureAction.execute(permissions);
+        filePermissions.set(permissions);
+        return this;
+    }
+
+    @Override
+    public Property<FileAccessPermissions> getDirPermissions() {
+        return dirPermissions;
+    }
+
+    @Override
+    public CopyProcessingSpec dirPermissions(Action<? super FileAccessPermissions> configureAction) {
+        DefaultFileAccessPermissions permissions = objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, DefaultFileAccessPermissions.getDefaultMode(true));
+        configureAction.execute(permissions);
+        dirPermissions.set(permissions);
         return this;
     }
 
@@ -722,24 +757,35 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Override
         public Integer getFileMode() {
-            if (fileMode != null) {
-                return fileMode;
-            }
-            if (parentResolver != null) {
-                return parentResolver.getFileMode();
-            }
-            return null;
+            return getMode(getFilePermissions());
         }
 
         @Override
         public Integer getDirMode() {
-            if (dirMode != null) {
-                return dirMode;
+            return getMode(getDirPermissions());
+        }
+
+        @Nullable
+        private Integer getMode(Provider<FileAccessPermissions> permissions) {
+            return permissions.isPresent() ? permissions.get().toMode() : null;
+        }
+
+        @Override
+        public Provider<FileAccessPermissions> getFilePermissions() {
+            return getPermissions(filePermissions, CopySpecResolver::getFilePermissions);
+        }
+
+        @Override
+        public Provider<FileAccessPermissions> getDirPermissions() {
+            return getPermissions(dirPermissions, CopySpecResolver::getDirPermissions);
+        }
+
+        private Provider<FileAccessPermissions> getPermissions(Property<FileAccessPermissions> property, Function<CopySpecResolver, Provider<FileAccessPermissions>> parentMapper) {
+            if (property.isPresent() || parentResolver == null) {
+                property.finalizeValueOnRead();
+                return property;
             }
-            if (parentResolver != null) {
-                return parentResolver.getDirMode();
-            }
-            return null;
+            return parentMapper.apply(parentResolver);
         }
 
         @Override

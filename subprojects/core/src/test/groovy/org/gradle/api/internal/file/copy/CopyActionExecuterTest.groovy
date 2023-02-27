@@ -37,7 +37,7 @@ class CopyActionExecuterTest extends WorkspaceTest {
 
         def resolver = TestFiles.resolver(testDirectory)
         def fileCollectionFactory = TestFiles.fileCollectionFactory(testDirectory)
-        def copySpec = new DestinationRootCopySpec(resolver, new DefaultCopySpec(fileCollectionFactory, TestUtil.instantiatorFactory().decorateLenient(), TestFiles.patternSetFactory))
+        def copySpec = new DestinationRootCopySpec(resolver, new DefaultCopySpec(fileCollectionFactory, TestUtil.objectFactory(), TestUtil.instantiatorFactory().decorateLenient(), TestFiles.patternSetFactory))
         copySpec.with {
             into "out"
             from "a", {

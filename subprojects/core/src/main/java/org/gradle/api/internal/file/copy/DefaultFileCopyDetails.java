@@ -208,7 +208,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     @Override
     public void permissions(Action<? super FileAccessPermissions> configureAction) {
-        FileAccessPermissions permissions = objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, fileDetails.isDirectory());
+        FileAccessPermissions permissions = objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, DefaultFileAccessPermissions.getDefaultMode(fileDetails.isDirectory()));
         configureAction.execute(permissions);
         getPermissions().set(permissions);
     }

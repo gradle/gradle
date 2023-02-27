@@ -20,9 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
+import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
@@ -40,6 +42,7 @@ import org.gradle.api.internal.file.copy.CopySpecResolver;
 import org.gradle.api.internal.file.copy.CopySpecSource;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -563,6 +566,40 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     public AbstractCopyTask setFileMode(@Nullable Integer mode) {
         getMainSpec().setFileMode(mode);
         return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Internal
+    public Property<FileAccessPermissions> getFilePermissions() {
+        return getMainSpec().getFilePermissions();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CopyProcessingSpec filePermissions(Action<? super FileAccessPermissions> configureAction) {
+        return getMainSpec().filePermissions(configureAction);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Internal
+    public Property<FileAccessPermissions> getDirPermissions() {
+        return getMainSpec().getDirPermissions();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CopyProcessingSpec dirPermissions(Action<? super FileAccessPermissions> configureAction) {
+        return getMainSpec().dirPermissions(configureAction);
     }
 
     /**

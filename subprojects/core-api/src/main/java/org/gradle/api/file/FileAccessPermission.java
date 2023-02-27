@@ -30,7 +30,7 @@ import org.gradle.api.provider.Property;
  *     a traverse permission; for example, a user must have 'execute' access to the 'bin' directory in order to execute the 'ls' or 'cd' commands.</li>
  * </ul>
  *
- * @since 8.1 //TODO: 8.2?
+ * @since 8.1
  */
 @Incubating
 public interface FileAccessPermission {

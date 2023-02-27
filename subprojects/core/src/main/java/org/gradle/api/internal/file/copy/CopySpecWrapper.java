@@ -25,9 +25,11 @@ import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
+import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SyncSpec;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -291,6 +293,16 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
+    public Property<FileAccessPermissions> getFilePermissions() {
+        return delegate.getFilePermissions();
+    }
+
+    @Override
+    public CopyProcessingSpec filePermissions(Action<? super FileAccessPermissions> configureAction) {
+        return delegate.filePermissions(configureAction);
+    }
+
+    @Override
     public Integer getDirMode() {
         return delegate.getDirMode();
     }
@@ -299,6 +311,16 @@ public class CopySpecWrapper implements SyncSpec {
     public CopyProcessingSpec setDirMode(@Nullable Integer mode) {
         delegate.setDirMode(mode);
         return this;
+    }
+
+    @Override
+    public Property<FileAccessPermissions> getDirPermissions() {
+        return delegate.getDirPermissions();
+    }
+
+    @Override
+    public CopyProcessingSpec dirPermissions(Action<? super FileAccessPermissions> configureAction) {
+        return delegate.dirPermissions(configureAction);
     }
 
     @Override

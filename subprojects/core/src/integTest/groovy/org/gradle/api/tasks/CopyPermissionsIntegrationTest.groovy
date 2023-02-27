@@ -444,10 +444,10 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "permissions can be created via factory"() {
+    def "permissions can be created via factory (#description)"(String description, String setting) {
         given:
         withSourceFiles("r--------")
-        buildScript '''
+        buildScript """
             def p = project.services.get(FileSystemOperations).permissions(true) {
                 all {
                     read = true
@@ -467,17 +467,25 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
             task (copy, type:Copy) {
                from 'files'
                into 'dest'
-               eachFile {
-                    permissions.set(p)
-               }
+               ${setting}
             }
-        '''.stripIndent()
+        """.stripIndent()
 
         when:
         run 'copy'
 
         then:
         assertDestinationFilePermissions("r--r-xrw-")
+
+        where:
+        description         | setting
+        "permissions"       | """
+                                eachFile {
+                                    permissions.set(p)
+                                }
+                              """
+        "file mode"         | "fileMode = p.toMode()"
+        "file permissions"  | "filePermissions.set(p)"
     }
 
     private def withSourceFiles(String permissions) {

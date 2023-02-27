@@ -33,6 +33,7 @@ class DefaultCopySpecResolutionTest extends Specification {
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
     def fileResolver = TestFiles.resolver(testDir.testDirectory)
     def fileCollectionFactory = TestFiles.fileCollectionFactory(testDir.testDirectory)
+    def objectFactory = TestUtil.objectFactory()
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def patternSetFactory = TestFiles.patternSetFactory
     private final DefaultCopySpec parentSpec = copySpec()
@@ -315,7 +316,7 @@ class DefaultCopySpecResolutionTest extends Specification {
     }
 
     private DefaultCopySpec copySpec() {
-        return new DefaultCopySpec(fileCollectionFactory, instantiator, patternSetFactory)
+        return new DefaultCopySpec(fileCollectionFactory, objectFactory, instantiator, patternSetFactory)
     }
 }
 
