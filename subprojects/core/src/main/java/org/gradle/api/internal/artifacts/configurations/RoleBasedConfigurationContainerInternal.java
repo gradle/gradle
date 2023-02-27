@@ -26,6 +26,8 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 /**
  * Extends {@link ConfigurationContainer} with methods that can use {@link ConfigurationRole}s to
  * define the allowed usage of a configuration at creation time.
+ * <p>
+ * This is an internal API, and is not yet intended for use outside of the Gradle build.
  */
 public interface RoleBasedConfigurationContainerInternal extends ConfigurationContainer {
     /**
