@@ -534,7 +534,7 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         then:
         with(new DefaultTestExecutionResult(testDirectory).testClass("PoisonTest")) {
             assertTestPassed("passingTest")
-            assertTestFailed("testWithUnserializableException", containsString("java.lang.IllegalStateException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but there was a failure while transmitting the exception back to the build process"))
+            assertTestFailed("testWithUnserializableException", containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
             assertTestFailed("normalFailingTest", containsString("AssertionError"))
         }
     }
