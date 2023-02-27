@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations
 
 import groovy.test.NotYetImplemented
+import org.gradle.api.Action
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -61,7 +62,9 @@ class DefaultConfigurationContainerTest extends Specification {
     private DependencyLockingProvider lockingProvider = Mock(DependencyLockingProvider)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
     private DocumentationRegistry documentationRegistry = Mock(DocumentationRegistry)
-    private CollectionCallbackActionDecorator callbackActionDecorator = Mock()
+    private CollectionCallbackActionDecorator callbackActionDecorator = Mock(CollectionCallbackActionDecorator) {
+        decorate(_ as Action) >> { it[0] }
+    }
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
