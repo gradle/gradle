@@ -51,7 +51,7 @@ class LogLevelConfigCrossVersionSpec
         LogLevel.LIFECYCLE  | ["-Dorg.gradle.logging.level=info"]
     }
 
-    @ToolingApiVersion("<8.1")
+    @ToolingApiVersion(">=7.0 <8.1")
     @TargetGradleVersion('>=8.1')
     def "tooling api uses log level set in arguments over gradle properties TAPI < 8.1"() {
         given:
