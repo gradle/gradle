@@ -18,6 +18,8 @@ package org.gradle.testing.junitplatform
 
 import org.gradle.api.internal.tasks.testing.junit.JUnitSupport
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testing.fixture.JUnitPlatformTestFixture
 import spock.lang.Issue
 import spock.lang.Timeout
 
@@ -25,7 +27,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 import static org.hamcrest.CoreMatchers.containsString
 
-class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
+class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec implements JUnitPlatformTestFixture {
 
     def 'can work with junit-platform-runner'() {
         given:
@@ -354,7 +356,7 @@ public class StaticInnerTest {
         then:
         with(new DefaultTestExecutionResult(testDirectory)) {
             (1..numTestClasses).every { classNumber ->
-                testClass("org.gradle.Test$classNumber").assertTestCount(1, 0, 0)
+                it.testClass("org.gradle.Test$classNumber").assertTestCount(1, 0, 0)
             }
         }
     }
@@ -396,5 +398,48 @@ public class StaticInnerTest {
         scenario       | extraArgs
         "w/o filters"  | []
         "with filters" | ['--tests', 'JUnitJupiterTest']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23602")
+    def "handles unserializable exception thrown from test"() {
+        given:
+        testClass("PoisonTest").with {
+            withAdditionalContent("""
+                private static class WriteReplacer implements java.io.Serializable {
+                    private Object readResolve() {
+                        return new RuntimeException();
+                    }
+                }
+
+                private static class UnserializableException extends RuntimeException {
+                    private Object writeReplace() {
+                        return new WriteReplacer();
+                    }
+                }
+            """)
+            testMethod("passingTest")
+            testMethod("testWithUnserializableException").customContent("""
+                if (true) {
+                    throw new UnserializableException();
+                }
+            """)
+            testMethod("normalFailingTest").shouldFail()
+        }
+        writeTestClassFiles()
+
+        when:
+        fails("test")
+
+        then:
+        with(new DefaultTestExecutionResult(testDirectory).testClass("PoisonTest")) {
+            assertTestPassed("passingTest")
+            assertTestFailed("testWithUnserializableException", containsString("java.lang.IllegalStateException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but there was a failure while transmitting the exception back to the build process"))
+            assertTestFailed("normalFailingTest", containsString("AssertionFailedError"))
+        }
+    }
+
+    @Override
+    TestFile getProjectDir() {
+        return testDirectory
     }
 }

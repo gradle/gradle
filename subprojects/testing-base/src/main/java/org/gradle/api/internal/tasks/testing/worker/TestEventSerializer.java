@@ -171,7 +171,6 @@ public class TestEventSerializer {
 
         @Override
         public DefaultTestFailure read(Decoder decoder) throws Exception {
-            Throwable rawFailure = throwableSerializer.read(decoder);
             String message = decoder.readNullableString();
             String className = decoder.readString();
             String stacktrace = decoder.readString();
@@ -183,12 +182,19 @@ public class TestEventSerializer {
             for (int i = 0; i < numOfCauses; i++) {
                 causes.add(read(decoder));
             }
+
+            String rawFailureName = decoder.readString();
+            Throwable rawFailure;
+            try {
+               rawFailure = throwableSerializer.read(decoder);
+            } catch(Exception e) {
+                rawFailure = new IllegalStateException("An exception of type " + rawFailureName + " was thrown by the test, but there was a failure while transmitting the exception back to the build process", e);
+            }
             return new DefaultTestFailure(rawFailure, new DefaultTestFailureDetails(message, className, stacktrace, isAssertionFailure, expected, actual), causes);
         }
 
         @Override
         public void write(Encoder encoder, DefaultTestFailure value) throws Exception {
-            throwableSerializer.write(encoder, value.getRawFailure());
             encoder.writeNullableString(value.getDetails().getMessage());
             encoder.writeString(value.getDetails().getClassName());
             encoder.writeString(value.getDetails().getStacktrace());
@@ -199,6 +205,9 @@ public class TestEventSerializer {
             for (TestFailure cause : value.getCauses()) {
                 write(encoder, (DefaultTestFailure) cause);
             }
+            Throwable rawFailure = value.getRawFailure();
+            encoder.writeString(rawFailure.getClass().getName());
+            throwableSerializer.write(encoder, value.getRawFailure());
         }
     }
 
