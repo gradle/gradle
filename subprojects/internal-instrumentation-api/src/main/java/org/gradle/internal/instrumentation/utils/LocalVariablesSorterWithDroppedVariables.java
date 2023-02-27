@@ -59,7 +59,7 @@ public class LocalVariablesSorterWithDroppedVariables extends MethodVisitor {
     }
 
     public void dropLocal(int index) {
-        if (index > droppingVisitor.isVariableDropped.length) {
+        if (index >= droppingVisitor.isVariableDropped.length) {
             droppingVisitor.isVariableDropped = Arrays.copyOf(droppingVisitor.isVariableDropped, Integer.max(index + 1, droppingVisitor.isVariableDropped.length * 2));
         }
         droppingVisitor.isVariableDropped[index] = true;
