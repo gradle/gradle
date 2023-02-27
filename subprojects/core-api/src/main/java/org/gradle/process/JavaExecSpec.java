@@ -23,6 +23,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -38,11 +39,13 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     /**
      * Extra JVM arguments to be to use to launch the JVM for the process.
      *
+     * Must be used to set a convention for JVM arguments.
+     *
      * @since 8.1
      */
     @Incubating
     @Optional
-    @Input
+    @Internal
     ListProperty<String> getJvmArguments();
 
     /**

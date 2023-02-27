@@ -192,7 +192,6 @@ class Main {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21505")
-    @ToBeFixedForConfigurationCache(because = "applicationDefaultJvmArgs")
     def canUseDefaultJvmArgsInRunTask() {
         file("build.gradle") << '''
         applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=value2']

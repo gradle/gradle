@@ -127,9 +127,11 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         mainClass = objectFactory.property(String.class);
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         execResult = objectFactory.property(ExecResult.class);
-        jvmArguments = objectFactory.listProperty(String.class);
-
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
+        Provider<Iterable<String>> jvmArgumentsConvention = getProviderFactory()
+            .provider(() -> getConventionMapping().getConventionValue(null, "jvmArgs", false));
+        jvmArguments = objectFactory.listProperty(String.class).convention(jvmArgumentsConvention);
+
         javaExecSpec.getMainClass().convention(mainClass);
         javaExecSpec.getMainModule().convention(mainModule);
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
@@ -146,6 +148,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @TaskAction
     public void exec() {
         validateExecutableMatchesToolchain();
+
         javaExecSpec.setJvmArgs(jvmArguments.get());
         JavaExecAction javaExecAction = getExecActionFactory().newJavaExecAction();
         javaExecSpec.copyTo(javaExecAction);
