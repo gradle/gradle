@@ -83,6 +83,7 @@ trait JUnitPlatformTestFixture {
         final TestFile projectDir
 
         Set<TestMethod> methods = [] as LinkedHashSet
+        String additionalContent = ""
         boolean disabled
 
         TestClass(String name, TestFile projectDir) {
@@ -108,6 +109,11 @@ trait JUnitPlatformTestFixture {
             return this
         }
 
+        TestClass withAdditionalContent(String content) {
+            additionalContent = content
+            return this
+        }
+
         TestClass writeContents() {
             def classFile = projectDir.createFile("src/test/java/${name}.java")
             classFile.parentFile.mkdirs()
@@ -121,6 +127,7 @@ trait JUnitPlatformTestFixture {
                 ${disabled ? "@Disabled"  : ""}
                 public class ${name} {
                     ${methodContents}
+                    ${additionalContent}
                 }
             """.stripIndent()
             return this
