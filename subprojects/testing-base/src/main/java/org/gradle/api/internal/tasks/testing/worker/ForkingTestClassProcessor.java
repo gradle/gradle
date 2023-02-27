@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.remote.ObjectConnection;
+import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.process.JavaForkOptions;
@@ -109,7 +110,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     }
 
     RemoteTestClassProcessor forkProcess() {
-        WorkerProcessBuilder builder = workerFactory.create(new TestWorker(processorFactory));
+        WorkerProcessBuilder builder = workerFactory.create(createTestWorker(processorFactory));
         builder.setBaseName("Gradle Test Executor");
         builder.setImplementationClasspath(getTestWorkerImplementationClasspath());
         builder.applicationClasspath(classPath);
@@ -122,12 +123,20 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         workerProcess.start();
 
         ObjectConnection connection = workerProcess.getConnection();
-        connection.useParameterSerializers(TestEventSerializer.create());
+        connection.useParameterSerializers(createParameterSerializers());
         connection.addIncoming(TestResultProcessor.class, resultProcessor);
         RemoteTestClassProcessor remoteProcessor = connection.addOutgoing(RemoteTestClassProcessor.class);
         connection.connect();
         remoteProcessor.startProcessing();
         return remoteProcessor;
+    }
+
+    protected TestWorker createTestWorker(WorkerTestClassProcessorFactory processorFactory) {
+        return new TestWorker(processorFactory);
+    }
+
+    protected SerializerRegistry createParameterSerializers() {
+        return TestEventSerializer.create();
     }
 
     List<URL> getTestWorkerImplementationClasspath() {

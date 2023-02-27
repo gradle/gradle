@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.detection;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -40,6 +41,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.process.JavaForkOptions;
+import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
@@ -114,7 +117,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             @Override
             public TestClassProcessor create() {
-                return new ForkingTestClassProcessor(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(),
+                return createTestClassProcesor(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(),
                     classpath, modulePath, testFramework.getWorkerConfigurationAction(), moduleRegistry, documentationRegistry);
             }
         };
@@ -142,6 +145,21 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         }
 
         new TestMainAction(detector, processor, testResultProcessor, workerLeaseService, clock, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getIdentityPath()).run();
+    }
+
+    protected TestClassProcessor createTestClassProcesor(
+        WorkerLeaseService workerLeaseService,
+        WorkerProcessFactory workerProcessFactory,
+        WorkerTestClassProcessorFactory workerTestClassProcessorFactory,
+        JavaForkOptions javaForkOptions,
+        List<File> classpath,
+        List<File> modulePath,
+        Action<WorkerProcessBuilder> workerProcessBuilderConfigurationAction,
+        ModuleRegistry moduleRegistry,
+        DocumentationRegistry documentationRegistry
+    ) {
+        return new ForkingTestClassProcessor(workerLeaseService, workerProcessFactory, workerTestClassProcessorFactory, javaForkOptions,
+            classpath, modulePath, workerProcessBuilderConfigurationAction, moduleRegistry, documentationRegistry);
     }
 
     @Override

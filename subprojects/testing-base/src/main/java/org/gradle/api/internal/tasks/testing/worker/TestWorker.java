@@ -33,6 +33,7 @@ import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.remote.ObjectConnection;
+import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
@@ -144,10 +145,14 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         processor = proxy.getSource();
 
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
-        serverConnection.useParameterSerializers(TestEventSerializer.create());
+        serverConnection.useParameterSerializers(createParameterSerializers());
         this.resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
         serverConnection.addIncoming(RemoteTestClassProcessor.class, this);
         serverConnection.connect();
+    }
+
+    protected SerializerRegistry createParameterSerializers() {
+        return TestEventSerializer.create();
     }
 
     @Override
