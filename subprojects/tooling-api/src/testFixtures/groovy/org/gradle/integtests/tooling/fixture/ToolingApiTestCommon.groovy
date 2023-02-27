@@ -17,46 +17,24 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.ProjectConnection
 
-class ToolingApiTestCommon extends AbstractIntegrationSpec {
+class ToolingApiTestCommon {
 
     public static final String LOG_LEVEL_TEST_SCRIPT = LogLevel.values()
         .collect { """logger.${it.name().toLowerCase()}("Hello $it\\n")""" }
-        .join("\n") + """
-if(project.hasProperty("org.gradle.logging.level")){
-    System.out.println("\\nCurrent log level property value (org.gradle.logging.level): "  + project.property("org.gradle.logging.level"))
-}
-else {
-    System.out.println("\\\\nNo property org.gradle.logging.level set")
-}
-
-task emptyTask(){}
+        .join("\n") +
+        """
+        if(project.hasProperty("org.gradle.logging.level")){
+            System.out.println("\\nCurrent log level property value (org.gradle.logging.level): "  + project.property("org.gradle.logging.level"))
+        }
+        else {
+            System.out.println("\\\\nNo property org.gradle.logging.level set")
+        }
 """
-    final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
-    final GradleDistribution otherVersion = new ReleasedVersionDistributions().mostRecentRelease
 
-    TestFile projectDir
-//
-    def setup() {
-        projectDir = temporaryFolder.testDirectory
-        // When adding support for a new JDK version, the previous release might not work with it yet.
-//        Assume.assumeTrue(otherVersion.worksWith(Jvm.current()))
-
-        settingsFile.touch()
-    }
-
-    void setupLoggingTest() {
-        propertiesFile << "org.gradle.logging.level=quiet"
-        buildFile << LOG_LEVEL_TEST_SCRIPT
-    }
-
-    static getOutputPattern(LogLevel it) {
-        /[\s\S]*Hello $it[\s\S]*/
+    static getOutputPattern(LogLevel logLevel) {
+        /[\s\S]*Hello $logLevel[\s\S]*/
     }
 
     static validateLogs(Object stdOut, LogLevel expectedLevel) {
@@ -78,7 +56,6 @@ task emptyTask(){}
                 .withArguments(arguments)
                 .setStandardOutput(stdOut)
                 .setStandardError(stdOut)
-                .forTasks("emptyTask")
                 .run()
         }
         stdOut
