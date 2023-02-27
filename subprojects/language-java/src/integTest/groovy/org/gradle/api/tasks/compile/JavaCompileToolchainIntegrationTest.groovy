@@ -473,10 +473,17 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
     @Requires(TestPrecondition.JDK11_OR_LATER)
     def "can compile with a custom compiler executable"() {
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.current())
+        def otherJdk = AvailableJavaHomes.differentVersion
 
         buildFile << """
             plugins {
                 id("java")
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${otherJdk.javaVersion.majorVersion})
+                }
             }
 
             configurations {
@@ -489,7 +496,23 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
             ${mavenCentralRepository()}
 
             dependencies {
-                ecj("org.eclipse.jdt:ecj:3.32.0")
+                def changed = providers.gradleProperty("changed").isPresent()
+                ecj(!changed ? "org.eclipse.jdt:ecj:3.31.0" : "org.eclipse.jdt:ecj:3.32.0")
+            }
+
+            // Make sure the provider is up-to-date only if the ECJ classpath does not change
+            class EcjClasspathProvider implements CommandLineArgumentProvider {
+                @Classpath
+                final FileCollection ecjClasspath
+
+                EcjClasspathProvider(FileCollection ecjClasspath) {
+                    this.ecjClasspath = ecjClasspath
+                }
+
+                @Override
+                List<String> asArguments() {
+                    return ["-cp", ecjClasspath.asPath, "org.eclipse.jdt.internal.compiler.batch.Main"]
+                 }
             }
 
             compileJava {
@@ -501,21 +524,33 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
                 options.headerOutputDirectory.set(provider { null })
                 options.fork = true
                 options.forkOptions.executable = customJavaLauncher.executablePath.asFile.absolutePath
-
-                options.forkOptions.jvmArgumentProviders.add({
-                   ["-cp", configurations.ecj.asPath, "org.eclipse.jdt.internal.compiler.batch.Main"]
-                } as CommandLineArgumentProvider)
+                options.forkOptions.jvmArgumentProviders.add(new EcjClasspathProvider(configurations.ecj))
             }
         """
 
         when:
-        withInstallations(jdk).run(":compileJava", "--info")
-
+        withInstallations(jdk, otherJdk).run(":compileJava", "--info")
         then:
         executedAndNotSkipped(":compileJava")
         outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'")
         outputContains("Compiling with Java command line compiler '${jdk.javaExecutable.absolutePath}'")
         classJavaVersion(javaClassFile("Foo.class")) == jdk.javaVersion
+
+        // Test up-to-date checks
+        when:
+        withInstallations(jdk, otherJdk).run(":compileJava")
+        then:
+        skipped(":compileJava")
+
+        when:
+        withInstallations(jdk, otherJdk).run(":compileJava", "-Pchanged")
+        then:
+        executedAndNotSkipped(":compileJava")
+
+        when:
+        withInstallations(jdk, otherJdk).run(":compileJava", "-Pchanged")
+        then:
+        skipped(":compileJava")
     }
 
     private TestFile configureForkOptionsExecutable(Jvm jdk) {
