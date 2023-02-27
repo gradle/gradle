@@ -57,7 +57,7 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
             public class Application {
                 public static void main(String[] args) {
                     SpringApplication.run(Application.class, args);
-                    System.out.println(System.getProperty("FOO"));
+                    System.out.println("FOO: " + System.getProperty("FOO"));
                 }
             }
         """.stripIndent()
@@ -87,7 +87,7 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         then:
         runResult.task(':bootRun').outcome == SUCCESS
-        runResult.output.contains("42")
+        runResult.output.contains("FOO: 42")
     }
 
     @Override

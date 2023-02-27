@@ -149,7 +149,11 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     public void exec() {
         validateExecutableMatchesToolchain();
 
-        javaExecSpec.setJvmArgs(jvmArguments.get());
+        List<String> jvmArgs = jvmArguments.getOrNull();
+        if (jvmArgs != null) {
+            javaExecSpec.setJvmArgs(jvmArgs);
+        }
+
         JavaExecAction javaExecAction = getExecActionFactory().newJavaExecAction();
         javaExecSpec.copyTo(javaExecAction);
         String effectiveExecutable = getJavaLauncher().get().getExecutablePath().toString();
@@ -222,10 +226,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec jvmArgs(Iterable<?> arguments) {
-        jvmArguments.empty();
         for (Object arg : arguments) {
             jvmArguments.add(arg.toString());
-
         }
         return this;
     }
@@ -235,10 +237,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec jvmArgs(Object... arguments) {
-        jvmArguments.empty();
         for (Object arg : arguments) {
             jvmArguments.add(arg.toString());
-
         }
         return this;
     }
