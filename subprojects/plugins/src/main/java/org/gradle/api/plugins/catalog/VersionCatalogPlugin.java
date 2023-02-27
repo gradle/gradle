@@ -22,6 +22,8 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.catalog.internal.DefaultVersionCatalogPluginExtension;
 import org.gradle.api.plugins.catalog.internal.CatalogExtensionInternal;
@@ -51,7 +53,7 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        Configuration dependenciesConfiguration = createDependenciesConfiguration(project);
+        Configuration dependenciesConfiguration = createDependenciesConfiguration((ProjectInternal) project);
         CatalogExtensionInternal extension = createExtension(project, dependenciesConfiguration);
         TaskProvider<TomlFileGenerator> generator = createGenerator(project, extension);
         createPublication(project, generator);
@@ -73,8 +75,8 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
         versionCatalog.addVariantsFromConfiguration(exported, new JavaConfigurationVariantMapping("compile", true));
     }
 
-    private Configuration createDependenciesConfiguration(Project project) {
-        return project.getConfigurations().create(GRADLE_PLATFORM_DEPENDENCIES, cnf -> {
+    private Configuration createDependenciesConfiguration(ProjectInternal project) {
+        return project.getConfigurations().createWithRole(GRADLE_PLATFORM_DEPENDENCIES, ConfigurationRoles.INTENDED_BUCKET, cnf -> {
             cnf.setVisible(false);
             cnf.setCanBeConsumed(false);
             cnf.setCanBeResolved(false);
