@@ -58,7 +58,8 @@ More details can be found in the [Gradle Wrapper](userguide/gradle_wrapper.html#
 
 #### Experimental Property assignment for Kotlin scripts
 
-It's now possible to use experimental Property assignment for Kotlin scripts. This reduces the verbosity of Kotlin DSL when recommended Property types are used in tasks and extensions.
+It's now possible to use experimental Property assignment for Kotlin scripts.
+This reduces the verbosity of Kotlin DSL when recommended [lazy property types](userguide/lazy_configuration.html#lazy_properties) are used in tasks and extensions.
 
 ```kotlin
 interface Extension {
@@ -66,14 +67,17 @@ interface Extension {
 }
 
 extension {
-    // Old way, via `.set()` method call (still supported)
+    // Old way, with `.set()` method call (still supported)
     description.set("Hello Property")
-    // Gradle 8.1+ with Kotlin assignment enabled
+    // Gradle 8.1+ with Property assignment enabled
     description = "Hello Property"
 }
 ```
 
-You can enable Kotlin assignment by adding `systemProp.org.gradle.unsafe.kotlin.assignment=true` to the `gradle.properties` file. For IntelliJ IDEA support that property has to be set in the project root `gradle.properties` file (also for included builds). Additionally, when value of the property is changed, project has to be reopened in the IntelliJ.
+You can enable Kotlin assignment by adding `systemProp.org.gradle.unsafe.kotlin.assignment=true` to the `gradle.properties` file. 
+For IntelliJ IDEA support that property has to be set in the project root `gradle.properties` file (also for all included builds). 
+Additionally, when value of the property is changed, project has to be reopened in the IntelliJ.
+For more information, see [Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:assignment).
 
 <!--
 
