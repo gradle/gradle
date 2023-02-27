@@ -18,7 +18,6 @@ package org.gradle.internal.instrumentation.processor.codegen;
 
 import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,7 +60,6 @@ public abstract class RequestGroupingInstrumentationClassGenerator implements In
         }
     }
 
-    @NotNull
     private static GenerationResult.CanGenerateClasses successResult(Set<CallInterceptionRequest> processedRequests, Map<String, Consumer<TypeSpec.Builder>> classContentByName) {
         return new GenerationResult.CanGenerateClasses() {
             @Override

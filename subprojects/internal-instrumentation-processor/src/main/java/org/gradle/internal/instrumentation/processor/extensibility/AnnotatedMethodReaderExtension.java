@@ -16,7 +16,7 @@
 
 package org.gradle.internal.instrumentation.processor.extensibility;
 
-import org.gradle.internal.instrumentation.processor.modelreader.CallInterceptionRequestReaderFromAnnotatedMethod;
+import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReaderFromAnnotatedMethod;
 
 public interface AnnotatedMethodReaderExtension extends InstrumentationProcessorExtension, CallInterceptionRequestReaderFromAnnotatedMethod {
 }

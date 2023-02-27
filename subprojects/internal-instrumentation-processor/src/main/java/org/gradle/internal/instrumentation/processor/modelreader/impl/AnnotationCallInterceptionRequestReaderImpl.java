@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.processor.modelreader;
+package org.gradle.internal.instrumentation.processor.modelreader.impl;
 
 import org.gradle.internal.Cast;
 import org.gradle.internal.instrumentation.api.annotations.CallableDefinition;
@@ -31,10 +31,10 @@ import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.model.RequestExtra.OriginatingElement;
 import org.gradle.internal.instrumentation.processor.extensibility.AnnotatedMethodReaderExtension;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -54,11 +54,11 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.gradle.internal.instrumentation.processor.modelreader.AnnotationUtils.findAnnotationMirror;
-import static org.gradle.internal.instrumentation.processor.modelreader.AnnotationUtils.findAnnotationValue;
-import static org.gradle.internal.instrumentation.processor.modelreader.TypeUtils.extractMethodDescriptor;
-import static org.gradle.internal.instrumentation.processor.modelreader.TypeUtils.extractReturnType;
-import static org.gradle.internal.instrumentation.processor.modelreader.TypeUtils.extractType;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils.findAnnotationMirror;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils.findAnnotationValue;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractMethodDescriptor;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractReturnType;
+import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
 
 public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMethodReaderExtension {
 
@@ -91,7 +91,7 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         return new CallableInfoImpl(kindInfo, owner, callableName, returnType, parameterInfos);
     }
 
-    @NotNull
+    @Nonnull
     private static ImplementationInfoImpl extractImplementationInfo(ExecutableElement input) {
         Type implementationOwner = extractType(input.getEnclosingElement().asType());
         String implementationName = input.getSimpleName().toString();
@@ -140,7 +140,7 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
     }
 
     private static CallableKindInfo extractCallableKind(ExecutableElement methodElement) {
-        List<Annotation> kindAnnotations = Stream.of(callableKindAnnotationClasses)
+        List<Annotation> kindAnnotations = Stream.of(CALLABLE_KIND_ANNOTATION_CLASSES)
             .map(methodElement::getAnnotation)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
@@ -148,7 +148,7 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         if (kindAnnotations.size() > 1) {
             throw new Failure("More than one callable kind annotations present: " + kindAnnotations);
         } else if (kindAnnotations.size() == 0) {
-            throw new Failure("No callable kind annotation specified, expected one of " + Arrays.stream(callableKindAnnotationClasses).map(Class::getSimpleName).collect(Collectors.joining(", ")));
+            throw new Failure("No callable kind annotation specified, expected one of " + Arrays.stream(CALLABLE_KIND_ANNOTATION_CLASSES).map(Class::getSimpleName).collect(Collectors.joining(", ")));
         } else {
             return CallableKindInfo.fromAnnotation(kindAnnotations.get(0));
         }
@@ -167,7 +167,7 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
     }
 
     private static ParameterKindInfo extractParameterKind(VariableElement parameterElement) {
-        List<Annotation> kindAnnotations = Stream.of(parameterKindAnnotationClasses)
+        List<Annotation> kindAnnotations = Stream.of(PARAMETER_KIND_ANNOTATION_CLASSES)
             .map(parameterElement::getAnnotation)
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
@@ -217,14 +217,14 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         }
     }
 
-    private static final Class<? extends Annotation>[] callableKindAnnotationClasses = Cast.uncheckedNonnullCast(Stream.of(
+    private static final Class<? extends Annotation>[] CALLABLE_KIND_ANNOTATION_CLASSES = Cast.uncheckedNonnullCast(Stream.of(
         CallableKind.InstanceMethod.class,
         CallableKind.StaticMethod.class,
         CallableKind.AfterConstructor.class,
         CallableKind.GroovyProperty.class
     ).toArray(Class[]::new));
 
-    private static final Class<? extends Annotation>[] parameterKindAnnotationClasses = Cast.uncheckedNonnullCast(Stream.of(
+    private static final Class<? extends Annotation>[] PARAMETER_KIND_ANNOTATION_CLASSES = Cast.uncheckedNonnullCast(Stream.of(
         ParameterKind.Receiver.class,
         ParameterKind.CallerClassName.class,
         ParameterKind.KotlinDefaultMask.class

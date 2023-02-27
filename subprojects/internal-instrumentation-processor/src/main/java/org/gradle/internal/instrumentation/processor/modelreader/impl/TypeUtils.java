@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.processor.modelreader;
+package org.gradle.internal.instrumentation.processor.modelreader.impl;
 
 import org.objectweb.asm.Type;
 

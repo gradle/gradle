@@ -26,7 +26,7 @@ import org.gradle.internal.instrumentation.processor.codegen.jvmbytecode.Interce
 import org.gradle.internal.instrumentation.processor.extensibility.ClassLevelAnnotationsContributor;
 import org.gradle.internal.instrumentation.processor.extensibility.CodeGeneratorContributor;
 import org.gradle.internal.instrumentation.processor.extensibility.InstrumentationProcessorExtension;
-import org.gradle.internal.instrumentation.processor.modelreader.AnnotationCallInterceptionRequestReaderImpl;
+import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationCallInterceptionRequestReaderImpl;
 
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
@@ -34,7 +34,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
-public class InstrumentationProcessor extends AbstractInstrumentationProcessor {
+public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrumentationProcessor {
 
     @Override
     protected Collection<InstrumentationProcessorExtension> getExtensions() {

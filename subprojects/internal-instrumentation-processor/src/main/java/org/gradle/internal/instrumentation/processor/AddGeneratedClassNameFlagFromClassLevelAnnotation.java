@@ -20,7 +20,7 @@ import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.model.RequestExtra.OriginatingElement;
 import org.gradle.internal.instrumentation.processor.extensibility.RequestPostProcessorExtension;
-import org.gradle.internal.instrumentation.processor.modelreader.AnnotationUtils;
+import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
 
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;

@@ -20,9 +20,9 @@ import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -67,7 +67,7 @@ class SignatureTree {
         current.leaf = request;
     }
 
-    @NotNull
+    @Nonnull
     private static List<ParameterMatchEntry> parameterMatchEntries(CallableInfo callable) {
         return Stream.of(
             callable.getKind() == CallableKindInfo.STATIC_METHOD || callable.getKind() == AFTER_CONSTRUCTOR

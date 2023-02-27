@@ -16,8 +16,6 @@
 
 package org.gradle.internal.instrumentation.model;
 
-import org.objectweb.asm.Type;
-
 import java.util.List;
 
 public class CallInterceptionRequestImpl implements CallInterceptionRequest {

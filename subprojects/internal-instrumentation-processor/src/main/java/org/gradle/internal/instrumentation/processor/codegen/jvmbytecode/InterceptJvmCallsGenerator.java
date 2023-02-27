@@ -34,7 +34,6 @@ import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCode
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassGenerator;
 import org.gradle.internal.instrumentation.utils.LocalVariablesSorterWithDroppedVariables;
 import org.gradle.model.internal.asm.MethodVisitorScope;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -83,10 +82,10 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             builder.addMethod(constructor)
                 // generic stuff not related to the content:
                 .addSuperinterface(JvmBytecodeCallInterceptor.class)
-                .addMethod(binaryClassNameOf)
-                .addMethod(loadBinaryClassName)
-                .addField(localVariablesSorterField)
-                .addField(unmappedMv)
+                .addMethod(BINARY_CLASS_NAME_OF)
+                .addMethod(LOAD_BINARY_CLASS_NAME)
+                .addField(LOCAL_VARIABLES_SORTER_FIELD)
+                .addField(UNMAPPED_METHOD_VISITOR_FIELD)
                 .superclass(MethodVisitorScope.class)
                 // actual content:
                 .addMethod(visitMethodInsnBuilder.build())
@@ -109,7 +108,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         visitMethodInsnBuilder.addCode(code.build());
     }
 
-    @NotNull
     private static Map<Type, FieldSpec> generateFieldsForImplementationOwners(Collection<CallInterceptionRequest> interceptionRequests) {
         Set<String> knownSimpleNames = new HashSet<>();
         return interceptionRequests.stream().map(it -> it.getImplementationInfo().getOwner()).distinct()
@@ -129,11 +127,10 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         .addParameter(MethodVisitor.class, "unmappedMethodVisitor")
         .addParameter(LocalVariablesSorterWithDroppedVariables.class, "localVariablesSorter")
         .addStatement("super(localVariablesSorter)")
-        .addStatement("this.$N = localVariablesSorter", localVariablesSorterField)
-        .addStatement("this.$N = unmappedMethodVisitor", unmappedMv)
+        .addStatement("this.$N = localVariablesSorter", LOCAL_VARIABLES_SORTER_FIELD)
+        .addStatement("this.$N = unmappedMethodVisitor", UNMAPPED_METHOD_VISITOR_FIELD)
         .build();
 
-    @NotNull
     private static MethodSpec.Builder getVisitMethodInsnBuilder() {
         return MethodSpec.methodBuilder("visitMethodInsn")
             .addAnnotation(Override.class)
@@ -147,24 +144,24 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .addParameter(boolean.class, "isInterface");
     }
 
-    private static final MethodSpec binaryClassNameOf = MethodSpec.methodBuilder("binaryClassNameOf")
+    private static final MethodSpec BINARY_CLASS_NAME_OF = MethodSpec.methodBuilder("binaryClassNameOf")
         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
         .returns(String.class)
         .addParameter(String.class, "className")
         .addStatement("return $T.getObjectType(className).getClassName()", Type.class)
         .build();
 
-    private static final MethodSpec loadBinaryClassName = MethodSpec.methodBuilder("loadOwnerBinaryClassName")
+    private static final MethodSpec LOAD_BINARY_CLASS_NAME = MethodSpec.methodBuilder("loadOwnerBinaryClassName")
         .addModifiers(Modifier.PRIVATE)
         .returns(void.class)
         .addParameter(String.class, "className")
-        .addStatement("_LDC($N(className))", binaryClassNameOf)
+        .addStatement("_LDC($N(className))", BINARY_CLASS_NAME_OF)
         .build();
 
-    private static final FieldSpec localVariablesSorterField = FieldSpec.builder(LocalVariablesSorterWithDroppedVariables.class, "localVariablesSorter", Modifier.PRIVATE, Modifier.FINAL).build();
-    private static final FieldSpec unmappedMv =
+    private static final FieldSpec LOCAL_VARIABLES_SORTER_FIELD = FieldSpec.builder(LocalVariablesSorterWithDroppedVariables.class, "localVariablesSorter", Modifier.PRIVATE, Modifier.FINAL).build();
+    private static final FieldSpec UNMAPPED_METHOD_VISITOR_FIELD =
         FieldSpec.builder(MethodVisitor.class, "unmappedMethodVisitor", Modifier.PRIVATE, Modifier.FINAL)
-            .addJavadoc("This is the method visitor that does not map the local variables with the {@link $N} and can thus use the newly introduced variables.", localVariablesSorterField).build();
+            .addJavadoc("This is the method visitor that does not map the local variables with the {@link $N} and can thus use the newly introduced variables.", LOCAL_VARIABLES_SORTER_FIELD).build();
 
     private static void generateCodeForOwner(
         Type owner,
@@ -305,20 +302,20 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         Type[] params = Type.getArgumentTypes(standardCallableDescriptor(callable));
         for (int i = params.length - 1; i >= 0; i--) {
             code.addStatement("$1T type$2L = $1T.getType($3T.class)", Type.class, i, typeName(params[i]));
-            code.addStatement("int var$1L = $2N.newLocal(type$1L)", i, localVariablesSorterField);
-            code.addStatement("$1N.visitVarInsn(type$2L.getOpcode($3T.ISTORE), var$2L)", unmappedMv, i, Opcodes.class);
+            code.addStatement("int var$1L = $2N.newLocal(type$1L)", i, LOCAL_VARIABLES_SORTER_FIELD);
+            code.addStatement("$1N.visitVarInsn(type$2L.getOpcode($3T.ISTORE), var$2L)", UNMAPPED_METHOD_VISITOR_FIELD, i, Opcodes.class);
         }
         // Duplicate the receiver without storing it into a local variable, then prepare the arguments for the original invocation:
         code.addStatement("_DUP()");
         for (int i = 0; i < params.length; i++) {
-            code.addStatement("$1N.visitVarInsn(type$2L.getOpcode($3T.ILOAD), var$2L)", unmappedMv, i, Opcodes.class);
+            code.addStatement("$1N.visitVarInsn(type$2L.getOpcode($3T.ILOAD), var$2L)", UNMAPPED_METHOD_VISITOR_FIELD, i, Opcodes.class);
         }
         // Put the arguments to the stack again, for the "interceptor" invocation:
         code.addStatement("_INVOKESPECIAL(owner, name, descriptor)");
         for (int i = 0; i < params.length; i++) {
-            code.addStatement("$1N.visitVarInsn(type$2L.getOpcode($3T.ILOAD), var$2L)", unmappedMv, i, Opcodes.class);
+            code.addStatement("$1N.visitVarInsn(type$2L.getOpcode($3T.ILOAD), var$2L)", UNMAPPED_METHOD_VISITOR_FIELD, i, Opcodes.class);
             // The new local variable is out of scope now, drop it to maintain the stack frame correctness:
-            code.addStatement("$1N.dropLocal(var$2L)", localVariablesSorterField, i);
+            code.addStatement("$1N.dropLocal(var$2L)", LOCAL_VARIABLES_SORTER_FIELD, i);
         }
         maybeGenerateLoadBinaryClassNameCall(code, callable);
         code.addStatement("_INVOKESTATIC($N, $S, $S)", implOwnerField, implementationName, implementationDescriptor);
@@ -387,7 +384,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
     private static void maybeGenerateLoadBinaryClassNameCall(CodeBlock.Builder code, CallableInfo callableInfo) {
         if (hasCallerClassName(callableInfo)) {
-            code.addStatement("$N(className)", loadBinaryClassName);
+            code.addStatement("$N(className)", LOAD_BINARY_CLASS_NAME);
         }
     }
 
@@ -417,6 +414,8 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     private static class Failure extends RuntimeException {
         final String reason;
 
-        private Failure(String reason) {this.reason = reason;}
+        private Failure(String reason) {
+            this.reason = reason;
+        }
     }
 }

@@ -31,7 +31,6 @@ import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCode
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
 import org.gradle.util.internal.TextUtil;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Type;
 
 import javax.lang.model.element.Modifier;
@@ -125,10 +124,9 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         return result;
     }
 
-    @NotNull
     private static TypeSpec.Builder generateInterceptorClass(String className, CodeBlock scopes, SignatureTree signatureTree) {
         TypeSpec.Builder generatedClass = TypeSpec.classBuilder(className)
-            .superclass(callInterceptorClass)
+            .superclass(CALL_INTERCEPTOR_CLASS)
             .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
 
         MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).addStatement("super($L)", scopes).build();
@@ -138,7 +136,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             .addModifiers(Modifier.PROTECTED)
             .returns(Object.class)
             .addAnnotation(Override.class)
-            .addParameter(invocationClass, "invocation")
+            .addParameter(INVOCATION_CLASS, "invocation")
             .addParameter(String.class, "consumer")
             .addException(Throwable.class)
             .addCode(generateCodeFromInterceptorSignatureTree(signatureTree))
@@ -149,23 +147,22 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
     }
 
     private static CodeBlock constructorScopeArg(TypeName constructedType) {
-        return CodeBlock.of("$1T.constructorsOf($2T.class)", interceptedScopeClass, constructedType);
+        return CodeBlock.of("$1T.constructorsOf($2T.class)", INTERCEPTED_SCOPE_CLASS, constructedType);
     }
 
-    @NotNull
     private static CodeBlock namedCallableScopesArgs(String name, List<CallInterceptionRequest> requests) {
         List<CallableKindInfo> callableKinds = requests.stream().map(it -> it.getInterceptedCallable().getKind()).distinct().collect(Collectors.toList());
         CodeBlock.Builder scopes = CodeBlock.builder();
         boolean isFirstScope = true;
         if (callableKinds.contains(CallableKindInfo.GROOVY_PROPERTY)) {
-            scopes.add("$1T.readsOfPropertiesNamed($2S), $1T.methodsNamed($3S)", callInterceptorClass, name, "get" + TextUtil.capitalize(name));
+            scopes.add("$1T.readsOfPropertiesNamed($2S), $1T.methodsNamed($3S)", CALL_INTERCEPTOR_CLASS, name, "get" + TextUtil.capitalize(name));
             isFirstScope = false;
         }
         if (callableKinds.contains(CallableKindInfo.STATIC_METHOD) | callableKinds.contains(CallableKindInfo.INSTANCE_METHOD)) {
             if (!isFirstScope) {
                 scopes.add(", ");
             }
-            scopes.add(CodeBlock.of("$T.methodsNamed($S)", interceptedScopeClass, name));
+            scopes.add(CodeBlock.of("$T.methodsNamed($S)", INTERCEPTED_SCOPE_CLASS, name));
         }
         return scopes.build();
     }
@@ -247,9 +244,9 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         return result.build();
     }
 
-    private static final ClassName callInterceptorClass = ClassName.bestGuess("org.gradle.internal.classpath.intercept.CallInterceptor");
-    private static final ClassName interceptedScopeClass = ClassName.bestGuess("org.gradle.internal.classpath.intercept.InterceptScope");
-    private static final ClassName invocationClass = ClassName.bestGuess("org.gradle.internal.classpath.intercept.Invocation");
+    private static final ClassName CALL_INTERCEPTOR_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.CallInterceptor");
+    private static final ClassName INTERCEPTED_SCOPE_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.InterceptScope");
+    private static final ClassName INVOCATION_CLASS = ClassName.bestGuess("org.gradle.internal.classpath.intercept.Invocation");
 
     private static MethodSpec generateGetInterceptorsMethod(List<TypeSpec> interceptorTypes) {
         MethodSpec.Builder method = MethodSpec.methodBuilder("getCallInterceptors")
