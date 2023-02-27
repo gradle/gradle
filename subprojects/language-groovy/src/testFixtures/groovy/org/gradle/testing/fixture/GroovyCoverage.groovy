@@ -56,7 +56,7 @@ class GroovyCoverage {
         CURRENT_STABLE = isCurrentGroovyVersionStable()
             ? GroovySystem.version
             : versionsAtMost(SUPPORTED_BY_JDK, GroovySystem.version).last()
-        MINIMAL_GROOVY_3 = versionsAtMost(SINCE_3_0, "4.0.0").first()
+        MINIMAL_GROOVY_3 = versionsBelow(SINCE_3_0, "4.0.0").first()
     }
 
     static boolean supportsJavaVersion(String groovyVersion, JavaVersion javaVersion) {
@@ -111,6 +111,10 @@ class GroovyCoverage {
 
     private static Set<String> versionsAbove(Collection<String> versionsToFilter, String fromVersion) {
         versionsBetweenExclusive(versionsToFilter, fromVersion, null)
+    }
+
+    private static Set<String> versionsBelow(Collection<String> versionsToFilter, String toVersion) {
+        versionsBetweenExclusive(versionsToFilter, null, toVersion)
     }
 
     private static Set<String> versionsBetweenInclusive(Collection<String> versionsToFilter, @Nullable String from, @Nullable String to) {
