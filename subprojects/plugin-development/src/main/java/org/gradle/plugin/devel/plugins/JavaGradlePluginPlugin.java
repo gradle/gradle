@@ -34,13 +34,13 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInter
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaLibraryPlugin;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.Copy;
@@ -91,7 +91,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 @NonNullApi
 public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
-    static final String API_CONFIGURATION = JavaPlugin.API_CONFIGURATION_NAME;
+    static final String API_CONFIGURATION = JvmConstants.API_CONFIGURATION_NAME;
     static final String JAR_TASK = "jar";
     static final String PROCESS_RESOURCES_TASK = "processResources";
     static final String GRADLE_PLUGINS = "gradle-plugins";
@@ -178,8 +178,8 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     private GradlePluginDevelopmentExtension createExtension(Project project) {
-        SourceSet defaultPluginSourceSet = JvmPluginsHelper.getJavaComponent(project).getSourceSet();
-        SourceSet defaultTestSourceSet = JvmPluginsHelper.getDefaultTestSuite(project).getSources();
+        SourceSet defaultPluginSourceSet = JavaPluginHelper.getJavaComponent(project).getSourceSet();
+        SourceSet defaultTestSourceSet = JavaPluginHelper.getDefaultTestSuite(project).getSources();
         return project.getExtensions().create(EXTENSION_NAME, GradlePluginDevelopmentExtension.class, project, defaultPluginSourceSet, defaultTestSourceSet);
     }
 
