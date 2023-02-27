@@ -470,10 +470,12 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23990")
-    @Requires(TestPrecondition.JDK11_OR_LATER)
     def "can compile with a custom compiler executable"() {
-        def jdk = AvailableJavaHomes.getJdk(JavaVersion.current())
-        def otherJdk = AvailableJavaHomes.differentVersion
+        def otherJdk = AvailableJavaHomes.getJdk(JavaVersion.current())
+        def jdk = AvailableJavaHomes.getDifferentVersion {
+            def v = it.languageVersion.majorVersion.toInteger()
+            11 <= v && v <= 18 // Java versions supported by ECJ releases used in the test
+        }
 
         buildFile << """
             plugins {
