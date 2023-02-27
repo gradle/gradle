@@ -50,6 +50,8 @@ dependencies {
     manifestClasspath(project(":core"))
     manifestClasspath(project(":persistent-cache"))
 
+    agentsClasspath(project(":instrumentation-agent"))
+
     testImplementation(project(":internal-integ-testing"))
     testImplementation(project(":native"))
     testImplementation(project(":cli"))

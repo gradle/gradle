@@ -25,12 +25,13 @@ import groovy.lang.MetaClassRegistry;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.internal.provider.PropertyInternal;
+import org.gradle.api.internal.provider.support.LazyGroovySupport;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -436,7 +437,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type META_CLASS_REGISTRY_TYPE = getType(MetaClassRegistry.class);
         private static final Type OBJECT_ARRAY_TYPE = getType(Object[].class);
         private static final Type ACTION_TYPE = getType(Action.class);
-        private static final Type PROPERTY_INTERNAL_TYPE = getType(PropertyInternal.class);
+        private static final Type LAZY_GROOVY_SUPPORT_TYPE = getType(LazyGroovySupport.class);
+        private static final Type FILE_COLLECTION_TYPE = getType(FileCollection.class);
         private static final Type MANAGED_TYPE = getType(Managed.class);
         private static final Type EXTENSION_CONTAINER_TYPE = getType(ExtensionContainer.class);
         private static final Type DESCRIBABLE_TYPE = getType(Describable.class);
@@ -451,12 +453,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_STRING = getMethodDescriptor(STRING_TYPE);
         private static final String RETURN_DESCRIBABLE = getMethodDescriptor(DESCRIBABLE_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
+        private static final String RETURN_VOID_FROM_OBJECT_ARRAY = getMethodDescriptor(Type.VOID_TYPE, OBJECT_ARRAY_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT_CLASS_DYNAMIC_OBJECT_SERVICE_LOOKUP = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, CLASS_TYPE, DYNAMIC_OBJECT_TYPE, SERVICE_LOOKUP_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING_OBJECT_BOOLEAN = getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, STRING_TYPE, BOOLEAN_TYPE);
         private static final String RETURN_CLASS = getMethodDescriptor(CLASS_TYPE);
         private static final String RETURN_BOOLEAN = getMethodDescriptor(BOOLEAN_TYPE);
         private static final String RETURN_VOID = getMethodDescriptor(Type.VOID_TYPE);
         private static final String RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION = getMethodDescriptor(Type.VOID_TYPE, CONVENTION_AWARE_TYPE, CONVENTION_TYPE);
+        private static final String RETURN_VOID_FROM_FILE_COLLECTION = getMethodDescriptor(Type.VOID_TYPE, FILE_COLLECTION_TYPE);
         private static final String RETURN_CONVENTION = getMethodDescriptor(CONVENTION_TYPE);
         private static final String RETURN_CONVENTION_MAPPING = getMethodDescriptor(CONVENTION_MAPPING_TYPE);
         private static final String RETURN_OBJECT = getMethodDescriptor(OBJECT_TYPE);
@@ -929,20 +933,20 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addPropertySetterOverloads(PropertyMetadata property, MethodMetadata getter) {
+        public void addLazyGroovySupportSetterOverloads(PropertyMetadata property, MethodMetadata getter) {
             if (!mixInDsl) {
                 return;
             }
 
             // GENERATE public void set<Name>(Object p) {
-            //    ((PropertyInternal)<getter>()).setFromAnyValue(p);
+            //    ((LazyGroovySupport)<getter>()).setFromAnyValue(p);
             // }
             addSetter(getSetterName(property.getName()), RETURN_VOID_FROM_OBJECT, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
                 _INVOKEVIRTUAL(generatedType, getter.getName(), getMethodDescriptor(getType(getter.getReturnType())));
-                _CHECKCAST(PROPERTY_INTERNAL_TYPE);
+                _CHECKCAST(LAZY_GROOVY_SUPPORT_TYPE);
                 _ALOAD(1);
-                _INVOKEINTERFACE(PROPERTY_INTERNAL_TYPE, "setFromAnyValue", ClassBuilderImpl.RETURN_VOID_FROM_OBJECT);
+                _INVOKEINTERFACE(LAZY_GROOVY_SUPPORT_TYPE, "setFromAnyValue", ClassBuilderImpl.RETURN_VOID_FROM_OBJECT);
             }});
         }
 
@@ -1959,7 +1963,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addPropertySetterOverloads(PropertyMetadata property, MethodMetadata getter) {
+        public void addLazyGroovySupportSetterOverloads(PropertyMetadata property, MethodMetadata getter) {
         }
 
         @Override

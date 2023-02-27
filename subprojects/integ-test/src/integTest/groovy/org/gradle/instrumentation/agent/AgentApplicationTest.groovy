@@ -19,14 +19,20 @@ package org.gradle.instrumentation.agent
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.agents.AgentControl
+import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.internal.agents.AgentStatus
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
+import org.gradle.util.TestPrecondition
 import spock.lang.Requires
 
+import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
+
+// This test doesn't live in :instrumentation-agent to avoid the latter being implicitly added to
+// the test runtime classpath as part of the main source set's output.
+// It is important to have the agent appended to the classpath of all integration tests.
 class AgentApplicationTest extends AbstractIntegrationSpec {
-    def "agent is disabled by default"() {
+    def "agent is enabled by default"() {
         given:
         withDumpAgentStatusTask()
 
@@ -34,7 +40,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         succeeds()
 
         then:
-        agentWasNotApplied()
+        agentWasApplied()
     }
 
     def "agent is not applied if disabled in the command-line"() {
@@ -49,7 +55,6 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         agentWasNotApplied()
     }
 
-    @Requires(value = { GradleContextualExecuter.daemon }, reason = "Agent injection is not implemented for non-daemon and embedded modes")
     def "agent is applied to the daemon process running the build"() {
         given:
         withAgent()
@@ -62,7 +67,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         agentWasApplied()
     }
 
-    @Requires(value = { (GradleContextualExecuter.daemon && GradleContextualExecuter.configCache) }, reason = "Agent injection is not implemented for non-daemon and embedded modes")
+    @Requires(value = { GradleContextualExecuter.configCache }, reason = "Tests the configuration cache behavior")
     def "keeping agent status does not invalidate the configuration cache"() {
         def configurationCache = new ConfigurationCacheFixture(this)
         given:
@@ -87,7 +92,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         agentStatus << [true, false]
     }
 
-    @Requires(value = { (GradleContextualExecuter.daemon && GradleContextualExecuter.configCache) }, reason = "Agent injection is not implemented for non-daemon and embedded modes")
+    @Requires(value = { GradleContextualExecuter.configCache }, reason = "Tests the configuration cache behavior")
     def "changing agent status invalidates the configuration cache"() {
         def configurationCache = new ConfigurationCacheFixture(this)
         given:
@@ -145,13 +150,59 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         false              | true                || false
     }
 
+    @Requires(value = { GradleContextualExecuter.embedded }, reason = "Tests the embedded distribution")
+    def "daemon spawned from embedded runner has agent enabled"() {
+        given:
+        executer.tap {
+            // Force a separate daemon spawned by the InProcessGradleExecuter
+            requireDaemon()
+            requireIsolatedDaemons()
+        }
+        withAgent()
+        withDumpAgentStatusTask()
+
+        when:
+        succeeds()
+
+        then:
+        agentWasApplied()
+    }
+
+    @Requires(value = { TestPrecondition.JDK8_OR_EARLIER.fulfilled }, reason = "Java 9 and above needs --add-opens to make environment variable mutation work")
+    def "foreground daemon respects the feature flag"() {
+        given:
+        executer.tap {
+            requireDaemon()
+            requireIsolatedDaemons()
+        }
+
+        def foregroundDaemon = startAForegroundDaemon(agentStatus)
+        withAgentApplied(agentStatus)
+        withDumpAgentStatusTask()
+
+        when:
+        succeeds()
+
+        then:
+        // Only one (the foreground one) daemon should be present
+        daemons.getRegistry().getAll().size() == 1
+        agentStatusWas(agentStatus)
+
+        cleanup:
+        foregroundDaemon?.abort()
+
+        where:
+        agentStatus << [true, false]
+    }
+
     private void withDumpAgentStatusTask() {
         buildFile("""
-            import ${AgentControl.name}
+            import ${AgentStatus.name}
 
             tasks.register('hello') {
                 doLast {
-                    println("agent applied = \${AgentControl.isInstrumentationAgentApplied()}")
+                    def status = services.get(AgentStatus).isAgentInstrumentationEnabled()
+                    println("agent applied = \${status}")
                 }
             }
 
@@ -161,9 +212,9 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
 
     private void withDumpAgentStatusAtConfiguration() {
         buildFile("""
-            import ${AgentControl.name}
+            import ${AgentStatus.name}
 
-            def status = AgentControl.isInstrumentationAgentApplied()
+            def status = services.get(AgentStatus).isAgentInstrumentationEnabled()
             tasks.register('hello') {
                 doLast {
                     println("agent applied = \$status")
@@ -198,7 +249,18 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         withAgentApplied(false)
     }
 
-    DaemonsFixture getDaemons() {
+    DaemonLogsAnalyzer getDaemons() {
         new DaemonLogsAnalyzer(executer.daemonBaseDir)
+    }
+
+    GradleHandle startAForegroundDaemon(Boolean shouldApplyAgent = null) {
+        int currentSize = daemons.getRegistry().getAll().size()
+        if (shouldApplyAgent != null) {
+            withAgentApplied(shouldApplyAgent)
+        }
+        def daemon = executer.noExtraLogging().withArgument("--foreground").start()
+        // Wait for foreground daemon to be ready
+        poll() { assert daemons.getRegistry().getAll().size() == (currentSize + 1) }
+        return daemon
     }
 }

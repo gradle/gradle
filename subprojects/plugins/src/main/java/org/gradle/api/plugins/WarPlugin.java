@@ -31,7 +31,8 @@ import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultWarPluginConvention;
-import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -50,11 +51,19 @@ public abstract class WarPlugin implements Plugin<Project> {
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
     public static final String WAR_TASK_NAME = "war";
+
+    /**
+     * Task group for web application related tasks.
+     *
+     * @deprecated This constant scheduled for removal in Gradle 9.0
+     */
+    @Deprecated
     public static final String WEB_APP_GROUP = "web application";
 
     private final ObjectFactory objectFactory;
     private final ImmutableAttributesFactory attributesFactory;
 
+    private Project project;
     private JvmSoftwareComponentInternal component;
 
     @Inject
@@ -66,7 +75,8 @@ public abstract class WarPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
-        this.component = JvmPluginsHelper.getJavaComponent(project);
+        this.project = project;
+        this.component = JavaPluginHelper.getJavaComponent(project);
 
         final WarPluginConvention pluginConvention = objectFactory.newInstance(DefaultWarPluginConvention.class, project);
         project.getConvention().getPlugins().put("war", pluginConvention);
@@ -118,7 +128,9 @@ public abstract class WarPlugin implements Plugin<Project> {
         component.getImplementationConfiguration().extendsFrom(providedCompileConfiguration);
         component.getRuntimeClasspathConfiguration().extendsFrom(providedRuntimeConfiguration);
         component.getRuntimeElementsConfiguration().extendsFrom(providedRuntimeConfiguration);
-        configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
+
+        JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
+        configurationContainer.getByName(defaultTestSuite.getSources().getRuntimeClasspathConfigurationName()).extendsFrom(providedRuntimeConfiguration);
     }
 
     private void configureComponent(Project project, PublishArtifact warArtifact) {

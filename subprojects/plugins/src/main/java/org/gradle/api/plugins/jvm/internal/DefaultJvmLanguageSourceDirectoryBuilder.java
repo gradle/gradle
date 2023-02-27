@@ -20,8 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
@@ -105,7 +105,7 @@ public class DefaultJvmLanguageSourceDirectoryBuilder implements JvmLanguageSour
             sourceSet.getAllJava().source(langSrcDir);
         }
         sourceSet.getAllSource().source(langSrcDir);
-        project.getTasks().named(JavaPlugin.CLASSES_TASK_NAME).configure(classes ->
+        project.getTasks().named(JvmConstants.CLASSES_TASK_NAME).configure(classes ->
             classes.dependsOn(compileTask));
     }
 }

@@ -40,12 +40,14 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.WarPlugin;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
@@ -361,24 +363,18 @@ public abstract class IdeaPlugin extends IdePlugin {
     }
 
     private void configureIdeaModuleForJava(final Project project) {
-        project.getTasks().withType(GenerateIdeaModule.class).configureEach(new Action<GenerateIdeaModule>() {
-            @Override
-            public void execute(GenerateIdeaModule ideaModule) {
-                // Dependencies
-                ideaModule.dependsOn(new Callable<FileCollection>() {
-                    @Override
-                    public FileCollection call() {
-                        SourceSetContainer sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-                        return sourceSets.getByName("main").getOutput().getDirs().plus(sourceSets.getByName("test").getOutput().getDirs());
-                    }
+        JvmSoftwareComponentInternal javaComponent = JavaPluginHelper.getJavaComponent(project);
+        JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
 
-                });
-            }
-
+        project.getTasks().withType(GenerateIdeaModule.class).configureEach(ideaModule -> {
+            // Dependencies
+            ideaModule.dependsOn((Callable<FileCollection>) () ->
+                javaComponent.getMainOutput().getDirs().plus(defaultTestSuite.getSources().getOutput().getDirs())
+            );
         });
 
         // Defaults
-        setupScopes(project);
+        setupScopes(javaComponent, defaultTestSuite);
 
         // Convention
         ConventionMapping convention = ((IConventionAware) ideaModel.getModule()).getConventionMapping();
@@ -430,7 +426,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         });
     }
 
-    private void setupScopes(Project project) {
+    private void setupScopes(JvmSoftwareComponentInternal javaComponent, JvmTestSuite defaultTestSuite) {
         Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
             Map<String, Collection<Configuration>> plusMinus = Maps.newLinkedHashMap();
@@ -439,17 +435,16 @@ public abstract class IdeaPlugin extends IdePlugin {
             scopes.put(scope.name(), plusMinus);
         }
 
-        ConfigurationContainer configurations = project.getConfigurations();
-
         Collection<Configuration> provided = scopes.get(GeneratedIdeaScope.PROVIDED.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
-        provided.add(configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME));
+        provided.add(javaComponent.getCompileClasspathConfiguration());
 
         Collection<Configuration> runtime = scopes.get(GeneratedIdeaScope.RUNTIME.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
-        runtime.add(configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        runtime.add(javaComponent.getRuntimeClasspathConfiguration());
 
+        ConfigurationContainer configurations = project.getConfigurations();
         Collection<Configuration> test = scopes.get(GeneratedIdeaScope.TEST.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
-        test.add(configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME));
-        test.add(configurations.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        test.add(configurations.getByName(defaultTestSuite.getSources().getCompileClasspathConfigurationName()));
+        test.add(configurations.getByName(defaultTestSuite.getSources().getRuntimeClasspathConfigurationName()));
 
         ideaModel.getModule().setScopes(scopes);
     }

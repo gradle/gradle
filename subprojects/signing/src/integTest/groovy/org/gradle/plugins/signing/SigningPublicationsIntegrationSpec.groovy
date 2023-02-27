@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.signing
 
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
@@ -303,7 +304,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("$artifactId-${version}.module.asc").assertExists()
     }
 
-    def "publishes signature files for Ivy publication"() {
+    def "publishes signature files for Ivy publication with #layout pattern layout"() {
         given:
         buildFile << """
             apply plugin: 'ivy-publish'
@@ -328,10 +329,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 repositories {
                     ivy {
                         url "file://\$buildDir/ivyRepo/"
-                        patternLayout {
-                            artifact "[artifact]-[revision](-[classifier])(.[ext])"
-                            ivy "[artifact]-[revision](-[classifier])(.[ext])"
-                        }
+                        $declaration
                     }
                 }
             }
@@ -347,19 +345,57 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
         then:
         executedAndNotSkipped(":publishIvyJavaPublicationToIvyRepository")
+        expectedFiles(this).forEach { it.assertExists() }
+        unexpectedFiles(this).forEach { it.assertDoesNotExist() }
 
-        and:
-        ivyRepoFile(jarFileName).assertExists()
-        ivyRepoFile("${jarFileName}.asc").assertExists()
-        ivyRepoFile("ivy-${version}.xml").assertExists()
-        ivyRepoFile("ivy-${version}.xml.asc").assertExists()
-        ivyRepoFile("$artifactId-${version}-source.jar").assertExists()
-        ivyRepoFile("$artifactId-${version}-source.jar.asc").assertExists()
-        ivyRepoFile("$artifactId-${version}.module").assertDoesNotExist()
-        ivyRepoFile("$artifactId-${version}.module.asc").assertDoesNotExist()
+        where:
+        layout     | declaration | expectedFiles                               | unexpectedFiles
+        "standard" | ""          | this.&expectedFilesIvyPublishStandardLayout | { [] }
+        "custom"   | """
+                     patternLayout {
+                       artifact "[artifact]-[revision](-[classifier])(.[ext])"
+                       ivy "[artifact]-[revision](-[classifier])(.[ext])"
+                     }"""
 
-        and:
-        outputContains "Publication of Gradle Module Metadata is disabled because you have configured an Ivy repository with a non-standard layout"
+
+                                 | this.&expectedFilesIvyPublishCustomLayout   | this.&unexpectedFilesIvyPublishCustomLayout
+    }
+
+    private static List<TestFile> expectedFilesIvyPublishStandardLayout(SigningPublicationsIntegrationSpec spec) {
+
+        def standardIvyRepoFile = { String... path ->
+            spec.file("build", "ivyRepo", "sign", *path)
+        }
+
+        [
+            standardIvyRepoFile(spec.artifactId, spec.version, spec.jarFileName),
+            standardIvyRepoFile(spec.artifactId, spec.version, "${spec.jarFileName}.asc"),
+            standardIvyRepoFile(spec.artifactId, spec.version, "${spec.jarFileName}.asc"),
+            standardIvyRepoFile(spec.artifactId, spec.version, "ivy-${spec.version}.xml"),
+            standardIvyRepoFile(spec.artifactId, spec.version, "ivy-${spec.version}.xml.asc"),
+            standardIvyRepoFile(spec.artifactId, spec.version, "$spec.artifactId-${spec.version}-source.jar"),
+            standardIvyRepoFile(spec.artifactId, spec.version, "$spec.artifactId-${spec.version}-source.jar.asc"),
+            standardIvyRepoFile(spec.artifactId, spec.version, "$spec.artifactId-${spec.version}.module"),
+            standardIvyRepoFile(spec.artifactId, spec.version, "$spec.artifactId-${spec.version}.module.asc")
+        ]
+    }
+
+    private static List<TestFile> expectedFilesIvyPublishCustomLayout(SigningPublicationsIntegrationSpec spec) {
+        [
+            spec.ivyRepoFile(spec.jarFileName),
+            spec.ivyRepoFile("${spec.jarFileName}.asc"),
+            spec.ivyRepoFile("ivy-${spec.version}.xml"),
+            spec.ivyRepoFile("ivy-${spec.version}.xml.asc"),
+            spec.ivyRepoFile("$spec.artifactId-${spec.version}-source.jar"),
+            spec.ivyRepoFile("$spec.artifactId-${spec.version}-source.jar.asc")
+        ]
+    }
+
+    private static List<TestFile> unexpectedFilesIvyPublishCustomLayout(SigningPublicationsIntegrationSpec spec) {
+        [
+            spec.ivyRepoFile("$spec.artifactId-${spec.version}.module"),
+            spec.ivyRepoFile("$spec.artifactId-${spec.version}.module.asc")
+        ]
     }
 
     def "sign task takes into account configuration changes"() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures.logging;
 
-import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.logging.comparison.ExhaustiveLinesSearcher;
 
 import java.util.ArrayList;
@@ -26,49 +25,36 @@ import java.util.List;
 import static org.gradle.util.internal.CollectionUtils.filter;
 import static org.gradle.util.internal.CollectionUtils.join;
 
-public class GroupedTaskFixture {
-    private final String taskName;
+/**
+ * Collects the output entries produced by a work item such as a task or a transformation,
+ * and allows assertions to be made about the output.
+ *
+ * @see GroupedOutputFixture
+ */
+public abstract class GroupedWorkOutputFixture {
 
-    private String taskOutcome;
+    private final List<String> outputs = new ArrayList<>(1);
 
-    private final List<String> outputs = new ArrayList<String>(1);
-
-    public GroupedTaskFixture(String taskName) {
-        this.taskName = taskName;
-    }
-
-    protected void addOutput(String output) {
+    /**
+     * Adds an output entry to the group.
+     */
+    public void addOutput(String output) {
         outputs.add(output);
     }
 
-    public void setOutcome(String taskOutcome) {
-        if (this.taskOutcome != null) {
-            throw new AssertionError(taskName + " task's outcome is set twice!");
-        }
-        this.taskOutcome = taskOutcome;
-    }
-
-    public String getOutcome(){
-        return taskOutcome;
-    }
-
-    public String getName() {
-        return taskName;
-    }
-
+    /**
+     * Returns concatenated non-empty output entries.
+     */
     public String getOutput() {
-        List<String> nonEmptyOutputs = filter(outputs, new Spec<String>() {
-            @Override
-            public boolean isSatisfiedBy(String string) {
-                return !string.equals("");
-            }
-        });
+        List<String> nonEmptyOutputs = filter(outputs, string -> !string.equals(""));
         return join("\n", nonEmptyOutputs);
     }
 
-    @Override
-    public String toString() {
-        return "Output for task: " + taskName + (null != taskOutcome ? " (" + taskOutcome + ")" : "");
+    /**
+     * Returns all output entries.
+     */
+    public List<String> getOutputs() {
+        return outputs;
     }
 
     /**
@@ -77,7 +63,7 @@ public class GroupedTaskFixture {
      * @param expectedText the expected lines of expectedText
      * @return this fixture
      */
-    public GroupedTaskFixture assertOutputContains(String expectedText) {
+    public GroupedWorkOutputFixture assertOutputContains(String expectedText) {
         return assertOutputContains(ComparisonFailureFormat.LINEWISE, expectedText);
     }
 
@@ -90,7 +76,7 @@ public class GroupedTaskFixture {
      * @param expectedText the expected lines of expectedText
      * @return this fixture
      */
-    public GroupedTaskFixture assertOutputContains(ComparisonFailureFormat assertionFailureFormat, String expectedText) {
+    public GroupedWorkOutputFixture assertOutputContains(ComparisonFailureFormat assertionFailureFormat, String expectedText) {
         switch (assertionFailureFormat) {
             case LINEWISE:
                 return assertOutputContainsUsingSearcher(expectedText, ExhaustiveLinesSearcher.useLcsDiff());
@@ -111,7 +97,7 @@ public class GroupedTaskFixture {
      * @param searcher      the searcher to use to find the expected sequence of lines in the actual output
      * @return this fixture
      */
-    private GroupedTaskFixture assertOutputContainsUsingSearcher(String expectedText, ExhaustiveLinesSearcher searcher) {
+    private GroupedWorkOutputFixture assertOutputContainsUsingSearcher(String expectedText, ExhaustiveLinesSearcher searcher) {
         List<String> actualLines = Arrays.asList(getOutput().split("\\R"));
         List<String> expectedLines = Arrays.asList(expectedText.split("\\R"));
         searcher.assertLinesContainedIn(expectedLines, actualLines);
@@ -132,4 +118,5 @@ public class GroupedTaskFixture {
          */
         UNIFIED
     }
+
 }

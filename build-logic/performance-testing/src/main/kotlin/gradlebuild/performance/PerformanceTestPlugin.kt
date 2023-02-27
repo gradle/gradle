@@ -17,7 +17,7 @@
 package gradlebuild.performance
 
 import com.google.common.annotations.VisibleForTesting
-import com.gradle.enterprise.gradleplugin.testretry.retry
+import com.gradle.enterprise.gradleplugin.testretry.TestRetryExtension
 import gradlebuild.basics.BuildEnvironment.isIntel
 import gradlebuild.basics.BuildEnvironment.isLinux
 import gradlebuild.basics.BuildEnvironment.isMacOsX
@@ -435,9 +435,7 @@ class PerformanceTestExtension(
                 mustRunAfter(currentlyRegisteredTestProjects)
                 testSpecificConfigurator(this)
 
-                retry {
-                    maxRetries = 0
-                }
+                extensions.findByType<TestRetryExtension>()?.maxRetries = 0
             }
         )
 
@@ -448,9 +446,7 @@ class PerformanceTestExtension(
                 description = "Runs performance tests on $testProject - supposed to be used on CI"
                 channel = "commits$channelSuffix"
 
-                retry {
-                    maxRetries = 1
-                }
+                extensions.findByType<TestRetryExtension>()?.maxRetries = 1
 
                 if (project.includePerformanceTestScenarios) {
                     val scenariosFromFile = project.loadScenariosFromFile(testProject)

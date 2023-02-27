@@ -17,6 +17,7 @@
 package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.BoundTransformationStep
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
@@ -41,9 +42,9 @@ sealed class TransformStepSpec(val transformation: TransformationStep) {
         }
     }
 
-    class FileDependencies(transformation: TransformationStep, val files: FileCollection) : TransformStepSpec(transformation) {
+    class FileDependencies(transformation: TransformationStep, val files: FileCollection, val configurationIdentity: ConfigurationIdentity) : TransformStepSpec(transformation) {
         override fun recreate(): TransformUpstreamDependencies {
-            return FixedUpstreamDependencies(DefaultArtifactTransformDependencies(files))
+            return FixedUpstreamDependencies(DefaultArtifactTransformDependencies(files), configurationIdentity)
         }
     }
 }
@@ -55,6 +56,7 @@ object TransformStepSpecCodec : Codec<TransformStepSpec> {
         if (value is TransformStepSpec.FileDependencies) {
             writeBoolean(true)
             write(value.files)
+            write(value.configurationIdentity)
         } else {
             writeBoolean(false)
         }
@@ -63,7 +65,7 @@ object TransformStepSpecCodec : Codec<TransformStepSpec> {
     override suspend fun ReadContext.decode(): TransformStepSpec {
         val transformation = readNonNull<TransformationStep>()
         return if (readBoolean()) {
-            return TransformStepSpec.FileDependencies(transformation, read() as FileCollection)
+            return TransformStepSpec.FileDependencies(transformation, read() as FileCollection, read() as ConfigurationIdentity)
         } else {
             TransformStepSpec.NoDependencies(transformation)
         }
@@ -83,14 +85,19 @@ fun unpackTransformationStep(node: TransformationNode): TransformStepSpec {
 
 fun unpackTransformationStep(transformation: TransformationStep, upstreamDependencies: TransformUpstreamDependencies): TransformStepSpec {
     return if (transformation.requiresDependencies()) {
-        TransformStepSpec.FileDependencies(transformation, upstreamDependencies.selectedArtifacts())
+        TransformStepSpec.FileDependencies(transformation, upstreamDependencies.selectedArtifacts(), upstreamDependencies.configurationIdentity!!)
     } else {
         TransformStepSpec.NoDependencies(transformation)
     }
 }
 
 
-class FixedUpstreamDependencies(private val dependencies: ArtifactTransformDependencies) : TransformUpstreamDependencies {
+class FixedUpstreamDependencies(private val dependencies: ArtifactTransformDependencies, private val configurationIdentity: ConfigurationIdentity) : TransformUpstreamDependencies {
+
+    override fun getConfigurationIdentity(): ConfigurationIdentity {
+        return configurationIdentity
+    }
+
     override fun visitDependencies(context: TaskDependencyResolveContext) {
         throw IllegalStateException("Should not be called")
     }

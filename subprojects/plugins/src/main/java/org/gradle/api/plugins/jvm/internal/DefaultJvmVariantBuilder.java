@@ -27,8 +27,8 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.plugins.BasePlugin;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
@@ -216,8 +216,8 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
             configurations.getByName(sourceSet.getCompileClasspathConfigurationName()).extendsFrom(implementation, compileOnly);
             configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()).extendsFrom(implementation, runtimeOnly);
             // and we also want the feature dependencies to be available on the test classpath
-            configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation, compileOnlyApi);
-            configurations.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation, runtimeOnly);
+            configurations.getByName(JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation, compileOnlyApi);
+            configurations.getByName(JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation, runtimeOnly);
         }
 
         // TODO: #23495 Investigate the implications of using this class without

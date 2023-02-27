@@ -28,6 +28,8 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.agents.AgentInitializer;
+import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -95,7 +97,8 @@ class BuildActionsFactory implements CommandLineActionCreator {
         if (parameters.getDaemonParameters().isForeground()) {
             DaemonParameters daemonParameters = parameters.getDaemonParameters();
             ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
-                UUID.randomUUID().toString(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout(), daemonParameters.getPeriodicCheckInterval(), fileCollectionFactory);
+                UUID.randomUUID().toString(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout(), daemonParameters.getPeriodicCheckInterval(), fileCollectionFactory,
+                daemonParameters.shouldApplyInstrumentationAgent());
             return Actions.toAction(new ForegroundDaemonAction(loggingServices, conf));
         }
         if (parameters.getDaemonParameters().isEnabled()) {
@@ -141,8 +144,10 @@ class BuildActionsFactory implements CommandLineActionCreator {
             .displayName("Global services")
             .parent(loggingServices)
             .parent(NativeServices.getInstance())
-            .provider(new GlobalScopeServices(startParameter.isContinuous()))
+            .provider(new GlobalScopeServices(startParameter.isContinuous(), AgentStatus.of(daemonParameters.shouldApplyInstrumentationAgent())))
             .build();
+
+        globalServices.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
 
         // Force the user home services to be stopped first, the dependencies between the user home services and the global services are not preserved currently
         return runBuildAndCloseServices(startParameter, daemonParameters, globalServices.get(BuildExecuter.class), globalServices, globalServices.get(GradleUserHomeScopeServiceRegistry.class));
@@ -172,7 +177,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         if (usingDaemon) {
             builder.parent(basicServices);
         } else {
-            builder.provider(new GlobalScopeServices(false));
+            builder.provider(new GlobalScopeServices(false, AgentStatus.disabled()));
         }
         return builder.provider(new DaemonClientGlobalServices()).build();
     }
