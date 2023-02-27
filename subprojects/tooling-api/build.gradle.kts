@@ -87,7 +87,3 @@ integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
 
 apply(from = "buildship.gradle")
-
-// TODO(mlopatkin) Remove this when agent is on by default
-// TAPI doesn't know about the feature flag to enable the instrumentation agent, so all daemons started in this build have to be agentless too to meet test expectations.
-extra["org.gradle.integtest.agent.allowed"] = "false"

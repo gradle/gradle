@@ -837,7 +837,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     public static boolean isAgentInstrumentationEnabled() {
-        return Boolean.getBoolean(ALLOW_INSTRUMENTATION_AGENT_SYSPROP);
+        return Boolean.parseBoolean(System.getProperty(ALLOW_INSTRUMENTATION_AGENT_SYSPROP, "true"));
     }
 
     @Override
