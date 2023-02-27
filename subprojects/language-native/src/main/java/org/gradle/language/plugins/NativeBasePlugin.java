@@ -38,6 +38,7 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.transform.UnzipTransform;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -339,9 +340,8 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         components.withType(ConfigurableComponentWithLinkUsage.class, component -> {
             Names names = component.getNames();
 
-            Configuration linkElements = configurations.create(names.withSuffix("linkElements"));
+            Configuration linkElements = ((RoleBasedConfigurationContainerInternal) configurations).consumable(names.withSuffix("linkElements"));
             linkElements.extendsFrom(component.getImplementationDependencies());
-            linkElements.setCanBeResolved(false);
             AttributeContainer attributes = component.getLinkAttributes();
             copyAttributesTo(attributes, linkElements);
 
@@ -355,9 +355,8 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         components.withType(ConfigurableComponentWithRuntimeUsage.class, component -> {
             Names names = component.getNames();
 
-            Configuration runtimeElements = configurations.create(names.withSuffix("runtimeElements"));
+            Configuration runtimeElements = ((RoleBasedConfigurationContainerInternal) configurations).consumable(names.withSuffix("runtimeElements"));
             runtimeElements.extendsFrom(component.getImplementationDependencies());
-            runtimeElements.setCanBeResolved(false);
 
             AttributeContainer attributes = component.getRuntimeAttributes();
             copyAttributesTo(attributes, runtimeElements);
