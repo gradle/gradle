@@ -34,18 +34,19 @@ class BuildLogLevelMixInTest extends Specification {
         mixin.getBuildLogLevel() == logLevel
 
         where:
-        args                       | verbose | logLevel
-        ['-i']                     | false   | LogLevel.INFO
-        ['no log level arguments'] | false   | null
-        null                       | false   | null
-        ['-q']                     | false   | LogLevel.QUIET
-        ['-w']                     | false   | LogLevel.WARN
-        ['foo', '--info', 'bar']   | false   | LogLevel.INFO
-        ['-i', 'foo', 'bar']       | false   | LogLevel.INFO
-        ['foo', 'bar', '-i']       | false   | LogLevel.INFO
-        ['-q']                     | true    | LogLevel.QUIET
-        ['no log level arguments'] | true    | LogLevel.DEBUG
-        null                       | true    | LogLevel.DEBUG
+        args                                | verbose | logLevel
+        ['-i']                              | false   | LogLevel.INFO
+        ['no log level arguments']          | false   | null
+        null                                | false   | null
+        ['-q']                              | false   | LogLevel.QUIET
+        ['-w']                              | false   | LogLevel.WARN
+        ['foo', '--info', 'bar']            | false   | LogLevel.INFO
+        ['-i', 'foo', 'bar']                | false   | LogLevel.INFO
+        ['foo', 'bar', '-i']                | false   | LogLevel.INFO
+        ['-Dorg.gradle.logging.level=info'] | false   | LogLevel.INFO
+        ['-q']                              | true    | LogLevel.QUIET
+        ['no log level arguments']          | true    | LogLevel.DEBUG
+        null                                | true    | LogLevel.DEBUG
 
     }
 }
