@@ -19,7 +19,6 @@ package org.gradle.initialization.buildsrc;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -81,7 +80,7 @@ public class BuildSrcBuildListenerFactory {
         @Override
         public void applyTasksTo(Context context, ExecutionPlan plan) {
             rootProjectState.applyToMutableState(rootProject -> {
-                classpathConfiguration = ((RoleBasedConfigurationContainerInternal)rootProject.getConfigurations()).resolvableBucket("buildScriptClasspath");
+                classpathConfiguration = rootProject.getConfigurations().resolvableBucket("buildScriptClasspath");
                 resolver.prepareClassPath(classpathConfiguration, rootProject.getDependencies());
                 classpathConfiguration.getDependencies().add(rootProject.getDependencies().create(rootProject));
                 plan.addEntryTasks(TaskDependencyUtil.getDependenciesForInternalUse(classpathConfiguration.getBuildDependencies(), null));

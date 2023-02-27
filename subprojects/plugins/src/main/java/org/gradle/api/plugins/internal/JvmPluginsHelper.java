@@ -31,6 +31,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileTreeInternal;
@@ -149,10 +150,8 @@ public class JvmPluginsHelper {
         Object artifactSource,
         ProjectInternal project
     ) {
-        Configuration variant = project.getConfigurations().maybeCreate(variantName);
+        Configuration variant = project.getConfigurations().maybeCreateWithRole(variantName, ConfigurationRoles.INTENDED_CONSUMABLE);
         variant.setVisible(false);
-        variant.setCanBeResolved(false);
-        variant.setCanBeConsumed(true);
         variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
 
         ObjectFactory objectFactory = project.getObjects();
