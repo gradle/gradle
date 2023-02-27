@@ -18,8 +18,6 @@ package org.gradle.testing.junitplatform
 
 import org.gradle.api.internal.tasks.testing.junit.JUnitSupport
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testing.fixture.JUnitPlatformTestFixture
 import spock.lang.Issue
 import spock.lang.Timeout
 
@@ -27,7 +25,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 import static org.hamcrest.CoreMatchers.containsString
 
-class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec implements JUnitPlatformTestFixture {
+class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
 
     def 'can work with junit-platform-runner'() {
         given:
@@ -356,7 +354,7 @@ public class StaticInnerTest {
         then:
         with(new DefaultTestExecutionResult(testDirectory)) {
             (1..numTestClasses).every { classNumber ->
-                it.testClass("org.gradle.Test$classNumber").assertTestCount(1, 0, 0)
+                testClass("org.gradle.Test$classNumber").assertTestCount(1, 0, 0)
             }
         }
     }
@@ -403,8 +401,23 @@ public class StaticInnerTest {
     @Issue("https://github.com/gradle/gradle/issues/23602")
     def "handles unserializable exception thrown from test"() {
         given:
-        testClass("PoisonTest").with {
-            withAdditionalContent("""
+        file('src/test/java/PoisonTest.java') << """
+            import org.junit.jupiter.api.Test;
+
+            public class PoisonTest {
+                @Test
+                public void passingTest() { }
+
+                @Test
+                public void testWithUnserializableException() {
+                    throw new UnserializableException();
+                }
+
+                @Test
+                public void normalFailingTest() {
+                    assert false;
+                }
+
                 private static class WriteReplacer implements java.io.Serializable {
                     private Object readResolve() {
                         return new RuntimeException();
@@ -416,16 +429,8 @@ public class StaticInnerTest {
                         return new WriteReplacer();
                     }
                 }
-            """)
-            testMethod("passingTest")
-            testMethod("testWithUnserializableException").customContent("""
-                if (true) {
-                    throw new UnserializableException();
-                }
-            """)
-            testMethod("normalFailingTest").shouldFail()
-        }
-        writeTestClassFiles()
+            }
+        """
 
         when:
         fails("test")
@@ -434,12 +439,7 @@ public class StaticInnerTest {
         with(new DefaultTestExecutionResult(testDirectory).testClass("PoisonTest")) {
             assertTestPassed("passingTest")
             assertTestFailed("testWithUnserializableException", containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
-            assertTestFailed("normalFailingTest", containsString("AssertionFailedError"))
+            assertTestFailed("normalFailingTest", containsString("AssertionError"))
         }
-    }
-
-    @Override
-    TestFile getProjectDir() {
-        return testDirectory
     }
 }
