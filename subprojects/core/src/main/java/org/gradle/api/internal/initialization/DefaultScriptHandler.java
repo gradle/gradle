@@ -25,6 +25,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -57,7 +58,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private ClassPath resolvedClasspath;
     private RepositoryHandler repositoryHandler;
     private DependencyHandler dependencyHandler;
-    private ConfigurationContainer configContainer;
+    private RoleBasedConfigurationContainerInternal configContainer;
     private Configuration classpathConfiguration;
     private DynamicObject dynamicObject;
 
@@ -124,13 +125,13 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private void defineConfiguration() {
         // Defer creation and resolution of configuration until required. Short-circuit when script does not require classpath
         if (configContainer == null) {
-            configContainer = dependencyResolutionServices.getConfigurationContainer();
+            configContainer = (RoleBasedConfigurationContainerInternal) dependencyResolutionServices.getConfigurationContainer();
         }
         if (dependencyHandler == null) {
             dependencyHandler = dependencyResolutionServices.getDependencyHandler();
         }
         if (classpathConfiguration == null) {
-            classpathConfiguration = configContainer.create(CLASSPATH_CONFIGURATION);
+            classpathConfiguration = configContainer.resolvableBucket(CLASSPATH_CONFIGURATION);
             scriptClassPathResolver.prepareClassPath(classpathConfiguration, dependencyHandler);
         }
     }
