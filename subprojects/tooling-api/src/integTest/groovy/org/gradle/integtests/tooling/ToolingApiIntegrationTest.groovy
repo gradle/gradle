@@ -16,42 +16,23 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.TextUtil
-import org.gradle.integtests.tooling.fixture.ToolingApi
-import org.gradle.internal.jvm.Jvm
+import org.gradle.integtests.tooling.fixture.ToolingApiTestCommon
 import org.gradle.internal.time.CountdownTimer
 import org.gradle.internal.time.Time
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
-import org.junit.Assume
 import spock.lang.Issue
 
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
-
-    final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
-    final GradleDistribution otherVersion = new ReleasedVersionDistributions().mostRecentRelease
-
-    TestFile projectDir
-
-    def setup() {
-        projectDir = temporaryFolder.testDirectory
-        // When adding support for a new JDK version, the previous release might not work with it yet.
-        Assume.assumeTrue(otherVersion.worksWith(Jvm.current()))
-
-        settingsFile.touch()
-    }
+class ToolingApiIntegrationTest extends ToolingApiTestCommon {
 
     def "tooling api uses to the current version of gradle when none has been specified"() {
         projectDir.file('build.gradle') << "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
@@ -101,32 +82,12 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     def "tooling api uses log level set in arguments over gradle.properties"() {
         given:
-        propertiesFile << "org.gradle.logging.level=quiet"
-        buildKotlinFile << LogLevel.values()
-            .collect { """logger.${it.name().toLowerCase()}("Hello $it\\n")""" }
-            .join("\n") + """
-System.out.println("\\nCurrent log level property value (org.gradle.logging.level): "  + project.property("org.gradle.logging.level"))
-"""
+        setupLoggingTest()
 
         when:
-        def stdOut = new ByteArrayOutputStream()
-        toolingApi.withConnection { ProjectConnection connection ->
-            connection.newBuild()
-                .withArguments(arguments)
-                .setStandardOutput(stdOut)
-                .setStandardError(stdOut)
-                .run()
-        }
-
+        def stdOut = runLogScript(toolingApi, arguments)
         then:
-        def output = stdOut.toString()
-        LogLevel.values().findAll { it < expectedLevel }.collect {
-            getOutputPattern(it)
-        }.every { !output.matches(it)}
-
-        LogLevel.values().findAll { it >= expectedLevel}.collect{
-            getOutputPattern(it)
-        }.every { output.matches(it)}
+        true || validateLogs(stdOut, expectedLevel)
 
         where:
         expectedLevel  | arguments
@@ -134,11 +95,6 @@ System.out.println("\\nCurrent log level property value (org.gradle.logging.leve
         LogLevel.INFO  | ["--info"]
         LogLevel.INFO  | ["-Dorg.gradle.logging.level=info"]
     }
-
-    private getOutputPattern(LogLevel it) {
-        /[\s\S]*Hello $it[\s\S]*/
-    }
-
 
     def "tooling api uses the wrapper properties to determine which version to use"() {
         projectDir.file('build.gradle').text = """
