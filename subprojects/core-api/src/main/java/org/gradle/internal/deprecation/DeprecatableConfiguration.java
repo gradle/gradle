@@ -16,14 +16,30 @@
 
 package org.gradle.internal.deprecation;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * This internal interface extends {@link Configuration} adding functionality to allow plugins to deprecate
+ * configurations.
+ * <p>
+ * This interface also contains a few methods unrelated to deprecation, but which need to be available to
+ * other gradle subprojects.  These methods include:
+ * <ul>
+ *     <li>{@link #preventUsageMutation()}</li>
+ *     <li>{@link #setCanBeDeclaredAgainst(boolean)}</li>
+ *     <li>{@link #isCanBeDeclaredAgainst()}</li>
+ * </ul>
+ * These methods would be better suited for the base {@link Configuration} interface, or the (inaccessible from this project)
+ * {@link org.gradle.api.internal.artifacts.configurations.ConfigurationInternal ConfigurationInternal}
+ * interface, but we want to hide them from the public API.
+ */
+@SuppressWarnings("JavadocReference")
 public interface DeprecatableConfiguration extends Configuration {
-
     /**
      * @return configurations that should be used to declare dependencies instead of this configuration.
      *         Returns 'null' if this configuration is not deprecated for declaration.
@@ -92,4 +108,29 @@ public interface DeprecatableConfiguration extends Configuration {
         List<String> resolutionAlternatives = getResolutionAlternatives();
         return resolutionAlternatives == null;
     }
+
+    /**
+     * Prevents any calls to methods that change this configuration's allowed usage (e.g. {@link #setCanBeConsumed(boolean)},
+     * {@link #setCanBeResolved(boolean)}, {@link #deprecateForResolution(String...)}) from succeeding; and causes them
+     * to throw an exception.
+     */
+    void preventUsageMutation();
+
+    /**
+     * Configures if a configuration can have dependencies declared upon it.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    void setCanBeDeclaredAgainst(boolean allowed);
+
+    /**
+     * Returns true if it is allowed to declare dependencies upon this configuration.
+     * Defaults to true.
+     * @return true if this configuration can have dependencies declared
+     *
+     * @since 8.1
+     */
+    @Incubating
+    boolean isCanBeDeclaredAgainst();
 }
