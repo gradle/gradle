@@ -97,7 +97,7 @@ trait JavaToolchainFixture {
      * Returns the Java version from the compiled class bytecode.
      */
     JavaVersion classJavaVersion(File classFile) {
-        assert classFile.exists(), "Class file ${classFile} does not exist"
+        assert classFile.exists()
         return JavaVersion.forClass(classFile.bytes)
     }
 }
