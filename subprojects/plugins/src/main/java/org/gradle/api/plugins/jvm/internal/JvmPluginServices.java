@@ -17,6 +17,6 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.internal.project.ProjectInternal;
 
-public interface JvmPluginServices extends JvmEcosystemUtilities, JvmModelingServices {
+public interface JvmPluginServices extends JvmEcosystemUtilities {
     void inject(ProjectInternal project);
 }
