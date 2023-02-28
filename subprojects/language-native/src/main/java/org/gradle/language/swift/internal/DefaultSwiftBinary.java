@@ -88,7 +88,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
 
         // TODO - reduce duplication with C++ binary
         RoleBasedConfigurationContainerInternal rbConfigurations = (RoleBasedConfigurationContainerInternal) configurations;
-        importPathConfiguration = rbConfigurations.resolvable(names.withPrefix("swiftCompile"));
+        importPathConfiguration = rbConfigurations.resolvableBucket(names.withPrefix("swiftCompile"));
         importPathConfiguration.extendsFrom(getImplementationDependencies());
         importPathConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
         importPathConfiguration.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
@@ -96,7 +96,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         importPathConfiguration.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
         importPathConfiguration.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
 
-        Configuration nativeLink = rbConfigurations.resolvable(names.withPrefix("nativeLink"));
+        Configuration nativeLink = rbConfigurations.resolvableBucket(names.withPrefix("nativeLink"));
         nativeLink.extendsFrom(getImplementationDependencies());
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.NATIVE_LINK));
         nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
