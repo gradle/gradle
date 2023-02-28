@@ -27,7 +27,7 @@ import org.gradle.api.Action;
  * <p>
  * It is important to maintain this condition, because the role-based API will allow us to (eventually) split
  * the implementation of configurations into separate classes per role.  If new configurations are created using
- * the existing public API, the may be used in non-idiomatic ways that will make this difficult.
+ * the existing public API, they may be used in non-idiomatic ways that will make this difficult.
  * <p>
  * This test will ensure that call into {@code DefaultConfgurationContainer#doCreate(String)} in non-test code
  * begins with a call from a method in {@code RoleBasedConfigurationContainerInternal}.
