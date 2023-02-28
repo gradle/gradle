@@ -45,6 +45,7 @@ dependencies {
     implementation(project(":normalization-java"))
     implementation(project(":wrapper-shared"))
     implementation(project(":internal-instrumentation-api"))
+    compileOnly(project(":code-quality-stubs"))
 
     implementation(libs.groovy)
     implementation(libs.groovyAnt)

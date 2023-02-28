@@ -19,7 +19,7 @@ import groovy.test.NotYetImplemented
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.integtests.fixtures.TargetVersions
 
-@TargetVersions("8.0.1")
+@TargetVersions("8.0")
 class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec {
 
     @Override
@@ -30,6 +30,7 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
     @NotYetImplemented
     def "can use upgraded Checkstyle in a Groovy plugin compiled with a previous Gradle version"() {
         given:
+        testDirectory.file("gradle.properties") << "\norg.gradle.unsafe.configuration-cache=true\n"
         prepareGroovyPluginTest """
             project.tasks.register("myCheckstyle", Checkstyle) {
                 maxErrors = 1
@@ -42,13 +43,13 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
         version current withTasks 'tasks' withStacktraceEnabled() requireDaemon() requireIsolatedDaemons() run()
     }
 
-    @NotYetImplemented
     def "can use upgraded Checkstyle in a Java plugin compiled with a previous Gradle version"() {
         given:
         prepareJavaPluginTest """
             project.getTasks().register("myCheckstyle", Checkstyle.class, it -> {
                 it.setMaxErrors(1);
                 int currentMaxErrors = it.getMaxErrors();
+                assert currentMaxErrors == 1;
             });
         """
 
