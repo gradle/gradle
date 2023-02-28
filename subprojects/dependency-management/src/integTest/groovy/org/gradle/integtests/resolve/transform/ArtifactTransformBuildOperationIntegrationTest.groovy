@@ -725,6 +725,86 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
     }
 
+    def "failing transform"() {
+        settingsFile << """
+            include 'producer', 'consumer'
+        """
+
+        setupBuildWithColorAttributes()
+        setupExternalDependency()
+
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform(MakeGreen) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'green')
+                    }
+                }
+            }
+
+            project(":consumer") {
+                dependencies {
+                    implementation project(":producer")
+                }
+            }
+
+            abstract class MakeGreen implements TransformAction<org.gradle.api.artifacts.transform.TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing [\${input.name}]"
+                    throw new IllegalStateException("failed making green: \${input.name}")
+                }
+            }
+        """
+
+        when:
+        runAndFail ":consumer:resolve"
+
+        then:
+        failureCauseContains("failed making green: producer.jar")
+
+        result.groupedOutput.transform("MakeGreen", "producer.jar (project :producer)")
+            .assertOutputContains("processing [producer.jar]")
+
+
+        def plannedNodes = getPlannedNodes(1)
+
+        def expectedTransformId1 = new TransformationIdentityWithoutId([
+            buildPath: ":",
+            projectPath: ":consumer",
+            componentId: [buildPath: ":", projectPath: ":producer"],
+            targetAttributes: [color: "green", artifactType: "jar"],
+            capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
+            artifactName: "producer.jar",
+            dependenciesConfigurationIdentity: null,
+        ])
+
+        checkExecutionPlanMatchingDependencies(
+            plannedNodes,
+            [
+                taskMatcher("node1", ":producer:producer", []),
+                transformMatcher("node2", expectedTransformId1, ["node1"]),
+                taskMatcher("node3", ":consumer:resolve", ["node2"]),
+            ]
+        )
+
+        def executeTransformationOp = getExecuteTransformOperations(1, true).first()
+        executeTransformationOp.failure.startsWith("org.gradle.api.internal.artifacts.transform.TransformException: Execution failed for MakeGreen:")
+
+        with(executeTransformationOp.details) {
+            matchTransformationIdentity(transformationIdentity, expectedTransformId1)
+            transformType == "MakeGreen"
+            sourceAttributes == [color: "blue", artifactType: "jar"]
+
+            transformerName == "MakeGreen"
+            subjectName == "producer.jar (project :producer)"
+        }
+    }
+
     void checkExecutionPlanMatchingDependencies(List<PlannedNode> plannedNodes, List<NodeMatcher> nodeMatchers) {
         Map<TypedNodeId, List<String>> expectedDependencyNodeIdsByTypedNodeId = [:]
         Map<TypedNodeId, String> nodeIdByTypedNodeId = [:]
@@ -811,9 +891,9 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         return plannedNodes
     }
 
-    def getExecuteTransformOperations(int expectOperationsCount) {
+    def getExecuteTransformOperations(int expectOperationsCount, boolean expectFailure = false) {
         def operations = buildOperations.all(ExecuteScheduledTransformationStepBuildOperationType)
-        assert operations.every { it.failure == null }
+        assert operations.every { (it.failure != null) == expectFailure }
         assert operations.size() == expectOperationsCount
         // Sort to guarantee the stable order for details checks
         return operations.toSorted { it.details.transformationIdentity.transformationNodeId }
