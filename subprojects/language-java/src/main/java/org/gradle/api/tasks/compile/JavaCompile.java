@@ -75,8 +75,6 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static com.google.common.base.Preconditions.checkState;
-
 /**
  * Compiles Java source files.
  *
@@ -258,19 +256,26 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
 
         JavaCompiler javaCompilerTool = getJavaCompiler().get();
         File toolchainJavaHome = javaCompilerTool.getMetadata().getInstallationPath().getAsFile();
-        File toolchainExecutable = javaCompilerTool.getExecutablePath().getAsFile();
 
         ForkOptions forkOptions = getOptions().getForkOptions();
         File customJavaHome = forkOptions.getJavaHome();
-        checkState(
-            customJavaHome == null || customJavaHome.equals(toolchainJavaHome),
-            "Toolchain from `javaHome` property on `ForkOptions` does not match toolchain from `javaCompiler` property"
-        );
+        if (customJavaHome != null) {
+            JavaExecutableUtils.validateMatchingFiles(
+                customJavaHome, "Toolchain from `javaHome` property on `ForkOptions`",
+                toolchainJavaHome, "toolchain from `javaCompiler` property"
+            );
+        }
 
         String customExecutablePath = forkOptions.getExecutable();
-        JavaExecutableUtils.validateExecutable(
-                customExecutablePath, "Toolchain from `executable` property on `ForkOptions`",
-                toolchainExecutable, "toolchain from `javaCompiler` property");
+        if (customExecutablePath != null) {
+            // We do not match the custom executable against the compiler executable from the toolchain (javac),
+            // because the custom executable can be set to the path of another tool in the toolchain such as a launcher (java).
+            File customExecutableJavaHome = JavaExecutableUtils.resolveJavaHomeOfExecutable(customExecutablePath);
+            JavaExecutableUtils.validateMatchingFiles(
+                customExecutableJavaHome, "Toolchain from `executable` property on `ForkOptions`",
+                toolchainJavaHome, "toolchain from `javaCompiler` property"
+            );
+        }
     }
 
     private boolean isToolchainCompatibleWithJava8() {
