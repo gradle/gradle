@@ -35,10 +35,6 @@ public class ExecuteScheduledTransformationStepBuildOperationType implements Bui
 
         Map<String, String> getSourceAttributes();
 
-        Map<String, String> getFromAttributes();
-
-        Map<String, String> getToAttributes();
-
         Class<?> getTransformType();
 
         /**
