@@ -153,8 +153,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             }
             transformType == "MakeGreen"
             sourceAttributes == [color: "blue", artifactType: "jar"]
-            fromAttributes == [color: "blue"]
-            toAttributes == [color: "green"]
         }
     }
 
@@ -230,8 +228,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             }
             transformType == "MakeColor"
             sourceAttributes == [color: "blue", artifactType: "jar"]
-            fromAttributes == [color: "blue"]
-            toAttributes == [color: "red"]
         }
 
         def executeTransformationOp2 = executeTransformationOps[1]
@@ -250,8 +246,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             }
             transformType == "MakeColor"
             sourceAttributes == [color: "red", artifactType: "jar"]
-            fromAttributes == [color: "red"]
-            toAttributes == [color: "green"]
         }
     }
 
@@ -327,8 +321,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             }
             transformType == "MakeRed"
             sourceAttributes == [color: "blue", artifactType: "jar"]
-            fromAttributes == [color: "blue"]
-            toAttributes == [color: "red"]
         }
 
         def executeTransformationOp2 = executeTransformationOps[1]
@@ -347,8 +339,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             }
             transformType == "MakeGreen"
             sourceAttributes == [color: "blue", artifactType: "jar"]
-            fromAttributes == [color: "blue"]
-            toAttributes == [color: "green"]
         }
     }
 
@@ -426,8 +416,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             }
             transformType == "MakeGreen"
             sourceAttributes == [color: "blue", artifactType: "jar"]
-            fromAttributes == [color: "blue"]
-            toAttributes == [color: "green"]
         }
     }
 
@@ -505,8 +493,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             }
             transformType == "MakeRed"
             sourceAttributes == [color: "blue", artifactType: "jar"]
-            fromAttributes == [color: "blue"]
-            toAttributes == [color: "red"]
         }
 
         def executeTransformationOp2 = executeTransformationOps[1]
@@ -525,8 +511,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             }
             transformType == "MakeGreen"
             sourceAttributes == [color: "red", artifactType: "jar"]
-            fromAttributes == [color: "red"]
-            toAttributes == [color: "green"]
         }
     }
 
@@ -643,8 +627,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             }
             transformType == "MakeColor"
             sourceAttributes == [color: "blue", artifactType: "jar"]
-            fromAttributes == [color: "blue"]
-            toAttributes == [color: "red"]
         }
 
         def executeTransformationOp2 = executeTransformationOps[1]
@@ -663,8 +645,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             }
             transformType == "MakeColor"
             sourceAttributes == [color: "red", artifactType: "jar"]
-            fromAttributes == [color: "red"]
-            toAttributes == [color: "green"]
         }
     }
 

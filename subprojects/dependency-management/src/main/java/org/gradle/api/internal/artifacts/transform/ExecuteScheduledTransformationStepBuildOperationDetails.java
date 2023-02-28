@@ -48,16 +48,6 @@ public class ExecuteScheduledTransformationStepBuildOperationDetails implements 
     }
 
     @Override
-    public Map<String, String> getFromAttributes() {
-        return AttributesToMapConverter.convertToMap(transformationNode.getTransformationStep().getFromAttributes());
-    }
-
-    @Override
-    public Map<String, String> getToAttributes() {
-        return AttributesToMapConverter.convertToMap(transformationNode.getTransformationStep().getToAttributes());
-    }
-
-    @Override
     public Class<?> getTransformType() {
         return transformationNode.getTransformationStep().getTransformer().getImplementationClass();
     }
@@ -77,8 +67,6 @@ public class ExecuteScheduledTransformationStepBuildOperationDetails implements 
         ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
         builder.put("transformationIdentity", getTransformationIdentity());
         builder.put("sourceAttributes", getSourceAttributes());
-        builder.put("fromAttributes", getFromAttributes());
-        builder.put("toAttributes", getToAttributes());
         builder.put("transformType", getTransformType());
         builder.put("transformerName", transformerName);
         builder.put("subjectName", subjectName);
