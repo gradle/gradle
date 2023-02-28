@@ -17,9 +17,9 @@
 package org.gradle.api.internal.project
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.util.TestUtil.createChildProject
@@ -54,7 +54,7 @@ class NewDefaultProjectTest extends AbstractProjectBuilderSpec {
 
     void "delegates to configuration container"() {
         Closure cl = {}
-        def container = Mock(ConfigurationContainer)
+        def container = Mock(RoleBasedConfigurationContainerInternal)
         project.configurationContainer = container
 
         when:

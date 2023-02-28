@@ -583,7 +583,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public RoleBasedConfigurationContainerInternal getConfigurations() {
         if (configurationContainer == null) {
-            configurationContainer = (RoleBasedConfigurationContainerInternal) services.get(ConfigurationContainer.class);
+            configurationContainer = services.get(RoleBasedConfigurationContainerInternal.class);
         }
         return configurationContainer;
     }
