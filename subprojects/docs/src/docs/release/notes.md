@@ -258,10 +258,10 @@ For more details, see the [user manual](userguide/dependency_verification.html#s
 
 #### Nested composite builds work in more cases
 
-It is common that builds have an included `build-logic` build for build logic.
-That caused problems when using such build as an included build.
+It is common to use an included `build-logic` build instead of `buildSrc`.
+Now it is possible to have a composite build including multiple projects that use `build-logic`.
 
-For example, take the following nested included build:
+For example, take the following setup:
 
 ```
 .
@@ -286,15 +286,14 @@ includeBuild("../included-build")
 includeBuild("build-logic")
 ```
 
-This build works in Gradle 8 since it uses the directory hierarchy to assign paths to nested included builds.
-You can run tasks in the different included builds by using e.g.:
+Before Gradle 8, this build failed due to a path conflict for `:build-logic`.
+It works now since the directory hierarchy is used to assign paths to nested included builds.
+You can run tasks in the different `build-logic` builds by using e.g.:
 
 ```
 ./gradlew :build-logic:test
 ./gradlew :included-build:build-logic:test
 ```
-
-Before Gradle 8, running such a build failed due to an included build path conflict.
 
 <a name="code-quality"></a>
 ### Code quality plugin improvements
