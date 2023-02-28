@@ -125,7 +125,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         plugins.setTransitive(false);
         jvmEcosystemUtilities.configureAsRuntimeClasspath(plugins);
 
-        Configuration zinc = project.getConfigurations().resolvable(ZINC_CONFIGURATION_NAME);
+        Configuration zinc = project.getConfigurations().resolvableBucket(ZINC_CONFIGURATION_NAME);
         zinc.setVisible(false);
         zinc.setDescription("The Zinc incremental compiler to be used for this Scala project.");
 
