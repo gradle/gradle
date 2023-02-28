@@ -183,8 +183,8 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
     }
 
     /**
-     * Maybe creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * without locking the configuration's allowed usage or verifying that it matches.
+     * Runs the same proces as {@link #maybeCreateWithRole(String, ConfigurationRole, boolean, boolean)}, without locking the configuration's allowed usage
+     * or asserting that an existing matching configuration's usage matches the given role.
      *
      * @param name the name of the configuration
      * @param role the role defining the configuration's allowed usage
@@ -196,8 +196,8 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
 
     /**
      * If it does not already exist, creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)};
-     * if the configuration does already exist, this method will <strong>NOT</strong>> change anything about its allowed,
-     * including its role, but <strong>CAN</strong> optionally confirm that the current usage of the configuration
+     * if the configuration does already exist, this method will <strong>NOT</strong>> change anything about its allowed usage or its role,
+     * but <strong>CAN</strong> optionally confirm that the current usage of the configuration
      * matches the given role and/or prevent any further changes to the configuration's allowed usage.
      *
      * @param name the name of the configuration

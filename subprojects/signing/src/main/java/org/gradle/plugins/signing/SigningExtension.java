@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
@@ -155,7 +156,7 @@ public abstract class SigningExtension {
      * Provides the configuration that signature artifacts are added to. Called once during construction.
      */
     protected Configuration getDefaultConfiguration() {
-        final RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
+        final RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
         final Configuration configuration = configurations.findByName(DEFAULT_CONFIGURATION_NAME);
         return configuration != null
             ? configuration

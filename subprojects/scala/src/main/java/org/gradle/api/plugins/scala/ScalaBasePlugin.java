@@ -203,9 +203,9 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         return scalaSourceSet.getScala();
     }
 
-    private static Configuration createIncrementalAnalysisConfigurationFor(ConfigurationContainer configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
+    private static Configuration createIncrementalAnalysisConfigurationFor(RoleBasedConfigurationContainerInternal configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
         Configuration classpath = configurations.getByName(sourceSet.getImplementationConfigurationName());
-        Configuration incrementalAnalysis = ((RoleBasedConfigurationContainerInternal) configurations).resolvable("incrementalScalaAnalysisFor" + sourceSet.getName());
+        Configuration incrementalAnalysis = configurations.resolvable("incrementalScalaAnalysisFor" + sourceSet.getName());
         incrementalAnalysis.setVisible(false);
         incrementalAnalysis.setDescription("Incremental compilation analysis files for " + ((DefaultSourceSet) sourceSet).getDisplayName());
         incrementalAnalysis.extendsFrom(classpath);

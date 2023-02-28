@@ -114,8 +114,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     @Override
     protected void createConfigurations() {
         super.createConfigurations();
-        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
-        configurations.createWithRole(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, ConfigurationRoles.INTENDED_BUCKET, additionalAuxDepsConfiguration -> {
+        project.getConfigurations().createWithRole(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION, ConfigurationRoles.INTENDED_BUCKET, additionalAuxDepsConfiguration -> {
             additionalAuxDepsConfiguration.setDescription("The additional libraries that are available for type resolution during analysis");
             additionalAuxDepsConfiguration.setVisible(false);
         });
@@ -205,7 +204,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         task.setDescription("Run PMD analysis for " + sourceSet.getName() + " classes");
         task.setSource(sourceSet.getAllJava());
         ConventionMapping taskMapping = task.getConventionMapping();
-        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
+        RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
 
         Configuration compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
         Configuration pmdAdditionalAuxDepsConfiguration = configurations.getByName(PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION);

@@ -83,7 +83,7 @@ public abstract class EarPlugin implements Plugin<Project> {
         earPluginConvention.setLibDirName(DEFAULT_LIB_DIR_NAME);
         earPluginConvention.setAppDirName("src/main/application");
 
-        configureConfigurations(project);
+        configureConfigurations((ProjectInternal) project);
 
         PluginContainer plugins = project.getPlugins();
         setupEarTask(project, earPluginConvention, plugins);
@@ -166,11 +166,11 @@ public abstract class EarPlugin implements Plugin<Project> {
         });
     }
 
-    private void configureConfigurations(final Project project) {
+    private void configureConfigurations(final ProjectInternal project) {
         // Currently 'deploy' and 'earlib' are both _resolvable_ and _consumable_.
         // In the future, it would be good to split these so that the attributes can differ.
         // Then 'jvmPluginServices.configureAsRuntimeClasspath()' may be used to configure the resolving configurations.
-        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
+        RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
         Configuration moduleConfiguration = configurations.createWithRole(DEPLOY_CONFIGURATION_NAME, ConfigurationRoles.LEGACY).setVisible(false)
             .setTransitive(false).setDescription("Classpath for deployable modules, not transitive.");
         jvmPluginServices.configureAttributes(moduleConfiguration, details -> details.library().runtimeUsage().withExternalDependencies());

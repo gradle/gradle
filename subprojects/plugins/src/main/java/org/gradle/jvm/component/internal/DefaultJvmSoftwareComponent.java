@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
@@ -109,7 +108,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         this.jvmPluginServices = jvmPluginServices;
 
         TaskContainer tasks = project.getTasks();
-        ConfigurationContainer configurations = project.getConfigurations();
+        RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
         PluginContainer plugins = project.getPlugins();
         ExtensionContainer extensions = project.getExtensions();
 
@@ -129,7 +128,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         PublishArtifact jarArtifact = configureArchives(project, jar, tasks, extensions);
         this.runtimeElements = createRuntimeElements(sourceSet, jarArtifact);
         this.apiElements = createApiElements(sourceSet, jarArtifact);
-        createSourceElements((RoleBasedConfigurationContainerInternal) configurations, providerFactory, objectFactory, sourceSet);
+        createSourceElements(configurations, providerFactory, objectFactory, sourceSet);
 
         JvmPluginsHelper.configureJavaDocTask(null, sourceSet, tasks, javaExtension);
         configurePublishing(plugins, extensions, sourceSet);

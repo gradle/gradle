@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
@@ -84,7 +85,7 @@ public abstract class SwiftLibraryPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
-        final RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
+        final RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
         final ObjectFactory objectFactory = project.getObjects();
         final ProviderFactory providers = project.getProviders();
 

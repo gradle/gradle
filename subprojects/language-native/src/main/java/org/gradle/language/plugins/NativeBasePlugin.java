@@ -40,6 +40,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.transform.UnzipTransform;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Provider;
@@ -151,7 +152,7 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         addHeaderZipTransform(dependencyHandler, objects);
 
         // Add outgoing configurations and publications
-        final ConfigurationContainer configurations = project.getConfigurations();
+        final RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
 
         project.getDependencies().getAttributesSchema().attribute(LINKAGE_ATTRIBUTE).getDisambiguationRules().add(LinkageSelectionRule.class);
 
@@ -336,11 +337,11 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void addOutgoingConfigurationForLinkUsage(SoftwareComponentContainer components, final ConfigurationContainer configurations) {
+    private void addOutgoingConfigurationForLinkUsage(SoftwareComponentContainer components, final RoleBasedConfigurationContainerInternal configurations) {
         components.withType(ConfigurableComponentWithLinkUsage.class, component -> {
             Names names = component.getNames();
 
-            Configuration linkElements = ((RoleBasedConfigurationContainerInternal) configurations).consumable(names.withSuffix("linkElements"));
+            Configuration linkElements = configurations.consumable(names.withSuffix("linkElements"));
             linkElements.extendsFrom(component.getImplementationDependencies());
             AttributeContainer attributes = component.getLinkAttributes();
             copyAttributesTo(attributes, linkElements);
@@ -351,11 +352,11 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void addOutgoingConfigurationForRuntimeUsage(SoftwareComponentContainer components, final ConfigurationContainer configurations) {
+    private void addOutgoingConfigurationForRuntimeUsage(SoftwareComponentContainer components, final RoleBasedConfigurationContainerInternal configurations) {
         components.withType(ConfigurableComponentWithRuntimeUsage.class, component -> {
             Names names = component.getNames();
 
-            Configuration runtimeElements = ((RoleBasedConfigurationContainerInternal) configurations).consumable(names.withSuffix("runtimeElements"));
+            Configuration runtimeElements = configurations.consumable(names.withSuffix("runtimeElements"));
             runtimeElements.extendsFrom(component.getImplementationDependencies());
 
             AttributeContainer attributes = component.getRuntimeAttributes();

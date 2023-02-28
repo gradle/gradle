@@ -31,6 +31,7 @@ import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -65,7 +66,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         project.getPluginManager().apply("jvm-ecosystem");
         project.getPluginManager().apply("jacoco");
 
-        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
+        RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
         Configuration jacocoAggregation = configurations.bucket(JACOCO_AGGREGATION_CONFIGURATION_NAME);
         jacocoAggregation.setDescription("Collects project dependencies for purposes of JaCoCo coverage report aggregation");
         jacocoAggregation.setVisible(false);
