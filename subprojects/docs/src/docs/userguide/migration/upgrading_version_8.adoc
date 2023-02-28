@@ -105,14 +105,15 @@ Starting in Gradle 9.0, this method will be removed without replacement.
 
 By default, when applying the link:java_plugin.html[`java`] plugin, the `testClassesDirs`
 and `classpath` of all `Test` tasks have the same convention. Unless otherwise changed,
-the default behavior is to use the tests from the default `test` link:jvm_test_suite_plugin.html[`TestSuite`].
+the default behavior is to execute the tests from the default `test` link:jvm_test_suite_plugin.html[`TestSuite`] 
+by configuring the task with the `classpath` and `testClassesDirs` from the `test` suite.
 This behavior will be removed in Gradle 9.0.
 
 While this existing default behavior is correct for the use case of executing the default unit
-test suite under a different environment, it is not fit for the use case of executing
-a separate set of tests entirely.
+test suite under a different environment, it does not support the use case of executing
+an entirely separate set of tests.
 
-If the current default behavior is desired, use the following code to avoid the deprecation warning in 8.1
+If you wish to continue including these tests, use the following code to avoid the deprecation warning in 8.1
 and prepare for the behavior change in 9.0. Alternatively, consider migrating to test suites.
 
 ====

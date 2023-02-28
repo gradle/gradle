@@ -101,7 +101,7 @@ public class LoggingTest {
 
     def "merges report with duplicated classes and methods"() {
         given:
-        ignoreWhenJupiter()
+        ignoreWhenJUnitPlatform()
         buildFile << """
 $junitSetup
 def test = tasks.named('test', Test)
