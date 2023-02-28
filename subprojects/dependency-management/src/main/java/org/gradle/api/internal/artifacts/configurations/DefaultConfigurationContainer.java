@@ -50,8 +50,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration>
-        implements ConfigurationContainerInternal, ConfigurationsProvider {
+public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration> implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
 
     @SuppressWarnings("deprecation")
@@ -64,19 +63,19 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
     public DefaultConfigurationContainer(
-            Instantiator instantiator,
-            DependencySubstitutionRules globalDependencySubstitutionRules,
-            VcsMappingsStore vcsMappingsStore,
-            ComponentIdentifierFactory componentIdentifierFactory,
-            ImmutableAttributesFactory attributesFactory,
-            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-            ComponentSelectorConverter componentSelectorConverter,
-            DependencyLockingProvider dependencyLockingProvider,
-            CollectionCallbackActionDecorator callbackDecorator,
-            NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
-            ObjectFactory objectFactory,
-            DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
-            DefaultConfigurationFactory defaultConfigurationFactory
+        Instantiator instantiator,
+        DependencySubstitutionRules globalDependencySubstitutionRules,
+        VcsMappingsStore vcsMappingsStore,
+        ComponentIdentifierFactory componentIdentifierFactory,
+        ImmutableAttributesFactory attributesFactory,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        ComponentSelectorConverter componentSelectorConverter,
+        DependencyLockingProvider dependencyLockingProvider,
+        CollectionCallbackActionDecorator callbackDecorator,
+        NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
+        ObjectFactory objectFactory,
+        DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
+        DefaultConfigurationFactory defaultConfigurationFactory
     ) {
         super(Configuration.class, instantiator, new Configuration.Namer(), callbackDecorator);
         NotationParser<Object, Capability> dependencyCapabilityNotationParser = new CapabilityNotationParserFactory(false).create();
