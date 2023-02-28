@@ -19,7 +19,7 @@ package org.gradle.integtests
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.integtests.fixtures.TargetVersions
 
-@TargetVersions("8.0.1")
+@TargetVersions("8.0")
 class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec {
 
     @Override
@@ -32,7 +32,9 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
         prepareGroovyPluginTest """
             project.tasks.register("myCheckstyle", Checkstyle) {
                 maxErrors = 1
-                int currentMaxErrors = maxErrors
+                // int currentMaxErrors = maxErrors doesn't work yet
+                int currentMaxErrors = it.maxErrors
+                assert currentMaxErrors == 1
             }
         """
 
@@ -47,6 +49,7 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
             project.getTasks().register("myCheckstyle", Checkstyle.class, it -> {
                 it.setMaxErrors(1);
                 int currentMaxErrors = it.getMaxErrors();
+                assert currentMaxErrors == 1;
             });
         """
 
