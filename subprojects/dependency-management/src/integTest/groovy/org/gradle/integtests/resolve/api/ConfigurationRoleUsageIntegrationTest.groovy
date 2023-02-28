@@ -89,31 +89,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         assertUsageLockedFailure('custom')
     }
 
-    def "can prevent usage mutation of roleless configuration #configuration added by java plugin meant for consumption"() {
-        given:
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-            configurations {
-                $configuration {
-                    assert canBeConsumed == true
-                    preventUsageMutation()
-                    canBeConsumed = false
-                }
-            }
-        """
-
-        expect:
-        fails 'help'
-
-        and:
-        assertUsageLockedFailure(configuration, 'Intended Consumable')
-
-        where:
-        configuration << ['runtimeElements', 'apiElements']
-    }
-
     def "can prevent usage mutation of roleless configuration #configuration added by java plugin meant for resolution"() {
         given:
         buildFile << """
@@ -241,6 +216,31 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         'bucket'                | "bucket('custom')"                || false       | false         | true              | false                 | false                 | false
         'deprecated consumable' | "deprecatedConsumable('custom')"  || true        | true          | true              | false                 | true                  | true
         'deprecated resolvable' | "deprecatedResolvable('custom')"  || true        | true          | true              | true                  | false                 | true
+    }
+
+    def "can prevent usage mutation of role-based configuration #configuration added by java plugin meant for consumption"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            configurations {
+                $configuration {
+                    assert canBeConsumed == true
+                    preventUsageMutation()
+                    canBeConsumed = false
+                }
+            }
+        """
+
+        expect:
+        fails 'help'
+
+        and:
+        assertUsageLockedFailure(configuration, 'Intended Consumable')
+
+        where:
+        configuration << ['runtimeElements', 'apiElements']
     }
 
     def "can prevent usage mutation of role-based configuration #role"() {
