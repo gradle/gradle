@@ -426,8 +426,13 @@ class ConfigurationCacheFingerprintWriter(
             }
 
             else -> {
-                sink().write(ValueSource(obtainedValue.uncheckedCast()))
+                // Custom ValueSource implementations may fail to serialize here.
+                // Writing with explicit trace helps to avoid attributing these failures to "Gradle runtime".
+                // TODO(mlopatkin): can we do even better and pinpoint the exact stacktrace in case of failure?
+                val trace = locationFor(null)
+                sink().write(ValueSource(obtainedValue.uncheckedCast()), trace)
                 reportUniqueValueSourceInput(
+                    trace,
                     displayName = when (source) {
                         is Describable -> source.displayName
                         else -> null
@@ -572,16 +577,16 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun reportUniqueValueSourceInput(displayName: String?, typeName: String) {
+    fun reportUniqueValueSourceInput(trace: PropertyTrace, displayName: String?, typeName: String) {
         // We assume different types won't ever produce identical display names
         if (reportedValueSources.add(displayName ?: typeName)) {
-            reportValueSourceInput(displayName, typeName)
+            reportValueSourceInput(trace, displayName, typeName)
         }
     }
 
     private
-    fun reportValueSourceInput(displayName: String?, typeName: String) {
-        reportInput(consumer = null, documentationSection = null) {
+    fun reportValueSourceInput(trace: PropertyTrace, displayName: String?, typeName: String) {
+        reportInput(trace, documentationSection = null) {
             text("value from custom source ")
             reference(typeName)
             displayName?.let {
@@ -718,9 +723,18 @@ class ConfigurationCacheFingerprintWriter(
         documentationSection: DocumentationSection?,
         messageBuilder: StructuredMessage.Builder.() -> Unit
     ) {
+        reportInput(locationFor(consumer), documentationSection, messageBuilder)
+    }
+
+    private
+    fun reportInput(
+        trace: PropertyTrace,
+        documentationSection: DocumentationSection?,
+        messageBuilder: StructuredMessage.Builder.() -> Unit
+    ) {
         host.reportInput(
             PropertyProblem(
-                locationFor(consumer),
+                trace,
                 StructuredMessage.build(messageBuilder),
                 null,
                 documentationSection = documentationSection
@@ -787,7 +801,7 @@ class ConfigurationCacheFingerprintWriter(
             }
         }
 
-        abstract fun write(value: ConfigurationCacheFingerprint)
+        abstract fun write(value: ConfigurationCacheFingerprint, trace: PropertyTrace? = null)
 
         fun inputFile(file: File) =
             InputFile(
@@ -804,8 +818,8 @@ class ConfigurationCacheFingerprintWriter(
         host: Host,
         private val writer: ScopedFingerprintWriter<ConfigurationCacheFingerprint>
     ) : Sink(host) {
-        override fun write(value: ConfigurationCacheFingerprint) {
-            writer.write(value)
+        override fun write(value: ConfigurationCacheFingerprint, trace: PropertyTrace?) {
+            writer.write(value, trace)
         }
 
         fun initScripts(initScripts: List<File>) {
@@ -824,8 +838,8 @@ class ConfigurationCacheFingerprintWriter(
         private val project: Path,
         private val writer: ScopedFingerprintWriter<ProjectSpecificFingerprint>
     ) : Sink(host) {
-        override fun write(value: ConfigurationCacheFingerprint) {
-            writer.write(ProjectSpecificFingerprint.ProjectFingerprint(project, value))
+        override fun write(value: ConfigurationCacheFingerprint, trace: PropertyTrace?) {
+            writer.write(ProjectSpecificFingerprint.ProjectFingerprint(project, value), trace)
         }
     }
 
