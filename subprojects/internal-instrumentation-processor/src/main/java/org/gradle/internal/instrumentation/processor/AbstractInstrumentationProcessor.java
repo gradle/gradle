@@ -17,6 +17,7 @@
 package org.gradle.internal.instrumentation.processor;
 
 import org.gradle.internal.Cast;
+import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.processor.codegen.CompositeInstrumentationCodeGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGeneratorHost;
@@ -26,6 +27,7 @@ import org.gradle.internal.instrumentation.processor.extensibility.CodeGenerator
 import org.gradle.internal.instrumentation.processor.extensibility.InstrumentationProcessorExtension;
 import org.gradle.internal.instrumentation.processor.extensibility.RequestPostProcessorExtension;
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader;
+import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.processing.AbstractProcessor;
@@ -33,10 +35,13 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -46,6 +51,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -73,9 +79,33 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        Set<? extends Element> annotatedTypes = getSupportedAnnotations().stream().flatMap(annotation -> roundEnv.getElementsAnnotatedWith(annotation).stream()).collect(Collectors.toSet());
+        Set<? extends Element> annotatedTypes = getSupportedAnnotations().stream()
+            .flatMap(annotation -> roundEnv.getElementsAnnotatedWith(annotation).stream())
+            .collect(Collectors.toSet());
+        annotatedTypes = findActualTypesToVisit(annotatedTypes);
         collectAndProcessRequests(annotatedTypes);
         return true;
+    }
+
+    private Set<? extends Element> findActualTypesToVisit(Set<? extends Element> annotatedTypes) {
+        return annotatedTypes.stream()
+            .flatMap(it -> findActualTypesToVisit(it).stream())
+            .collect(Collectors.toSet());
+    }
+
+    private Set<Element> findActualTypesToVisit(Element typeElement) {
+        Optional<? extends AnnotationMirror> annotationMirror = AnnotationUtils.findAnnotationMirror(typeElement, VisitForInstrumentation.class);
+        if (!annotationMirror.isPresent()) {
+            return Collections.singleton(typeElement);
+        }
+
+        @SuppressWarnings("unchecked")
+        List<AnnotationValue> values = (List<AnnotationValue>) AnnotationUtils.findAnnotationValue(annotationMirror.get(), "value")
+            .orElseThrow(() -> new IllegalStateException("missing annotation value"))
+            .getValue();
+        return values.stream()
+            .map(v -> processingEnv.getTypeUtils().asElement((TypeMirror) v.getValue()))
+            .collect(Collectors.toSet());
     }
 
     private <T extends InstrumentationProcessorExtension> Collection<T> getExtensionsByType(Class<T> type) {

@@ -50,6 +50,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Supplier;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
@@ -317,17 +318,21 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         private final InstrumentingVisitor owner;
         private final String className;
         private final Lazy<MethodNode> asNode;
-
-        private final JvmBytecodeCallInterceptor generatedInterceptor;
+        private final List<JvmBytecodeCallInterceptor> generatedInterceptors;
 
         public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
             this.asNode = asNode;
+            generatedInterceptors = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAMES.stream()
+                .map(className -> newInterceptor(className, methodVisitor))
+                .collect(toImmutableList());
+        }
 
+        private static JvmBytecodeCallInterceptor newInterceptor(String className, MethodVisitor methodVisitor) {
             try {
-                generatedInterceptor = (JvmBytecodeCallInterceptor) Class.forName(InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
+                return (JvmBytecodeCallInterceptor) Class.forName(className)
                     .getConstructor(MethodVisitor.class)
                     .newInstance(methodVisitor);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
@@ -347,8 +352,10 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return;
             }
 
-            if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface, asNode)) {
-                return;
+            for (JvmBytecodeCallInterceptor generatedInterceptor : generatedInterceptors) {
+                if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface, asNode)) {
+                    return;
+                }
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         }
