@@ -20,6 +20,7 @@ import groovy.transform.EqualsAndHashCode
 import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode
 import org.gradle.internal.taskgraph.NodeIdentity
@@ -44,6 +45,16 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def matchNode(plannedNode) {
             plannedNode.nodeIdentity.nodeType.toString() == nodeType && identityPredicate.test(plannedNode.nodeIdentity)
         }
+    }
+
+    static class TransformationIdentityWithoutId {
+        String buildPath
+        String projectPath
+        Map<String, String> componentId
+        Map<String, String> targetAttributes
+        List<Map<String, String>> capabilities
+        String artifactName
+        Map<String, String> dependenciesConfigurationIdentity
     }
 
     static final Set<String> KNOWN_NODE_TYPES = NodeIdentity.NodeType.values()*.name() as Set<String>
@@ -116,45 +127,39 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         result.groupedOutput.task(":consumer:resolve")
             .assertOutputContains("result = [producer.jar.green, test-4.2.jar]")
 
-        def plannedNodes = buildOperations.only(CalculateTaskGraphBuildOperationType).result.executionPlan as List<PlannedNode>
-        plannedNodes.every { KNOWN_NODE_TYPES.contains(it.nodeIdentity.nodeType) }
-        plannedNodes.count { it.nodeIdentity.nodeType.toString() == ARTIFACT_TRANSFORM } == 1
+        List<PlannedNode> plannedNodes = getPlannedNodes(1)
+
+        def expectedTransformId = new TransformationIdentityWithoutId([
+            buildPath: ":",
+            projectPath: ":consumer",
+            componentId: [buildPath: ":", projectPath: ":producer"],
+            targetAttributes: [color: "green", artifactType: "jar"],
+            capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
+            artifactName: "producer.jar",
+            dependenciesConfigurationIdentity: null,
+        ])
 
         checkExecutionPlanMatchingDependencies(
             plannedNodes,
             [
-                taskMatcher(
-                    "node1", ":producer:producer",
-                    []
-                ),
-                transformMatcher(
-                    "node2", ":consumer", [buildPath: ":", projectPath: ":producer"], [artifactType: "jar", color: "green"],
-                    ["node1"]
-                ),
-                taskMatcher(
-                    "node3", ":consumer:resolve",
-                    ["node2"]
-                ),
+                taskMatcher("node1", ":producer:producer", []),
+                transformMatcher("node2", expectedTransformId, ["node1"]),
+                taskMatcher("node3", ":consumer:resolve", ["node2"]),
             ]
         )
 
-        with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType).details) {
-            transformerName == "MakeGreen"
-            subjectName == "producer.jar (project :producer)"
-            with(transformationIdentity) {
-                nodeType == "ARTIFACT_TRANSFORM"
-                buildPath == ":"
-                projectPath == ":consumer"
-                componentId == [buildPath: ":", projectPath: ":producer"]
-                targetAttributes == [color: "green", artifactType: "jar"]
-                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-                artifactName == "producer.jar"
-                dependenciesConfigurationIdentity == null
-            }
+        List<BuildOperationRecord> executeTransformationOps = getExecuteTransformOperations(1)
+
+        with(executeTransformationOps[0].details) {
+            matchTransformationIdentity(transformationIdentity, expectedTransformId)
             transformType == "MakeGreen"
             sourceAttributes == [color: "blue", artifactType: "jar"]
+
+            transformerName == "MakeGreen"
+            subjectName == "producer.jar (project :producer)"
         }
     }
+
 
     def "chained transform operations are captured"() {
         settingsFile << """
@@ -185,67 +190,55 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         result.groupedOutput.task(":consumer:resolve")
             .assertOutputContains("result = [producer.jar.red.green, test-4.2.jar]")
 
-        def plannedNodes = buildOperations.only(CalculateTaskGraphBuildOperationType).result.executionPlan as List<PlannedNode>
-        plannedNodes.every { KNOWN_NODE_TYPES.contains(it.nodeIdentity.nodeType) }
-        plannedNodes.count { it.nodeIdentity.nodeType.toString() == ARTIFACT_TRANSFORM } == 2
+        def plannedNodes = getPlannedNodes(2)
+
+        def expectedTransformId1 = new TransformationIdentityWithoutId([
+            buildPath: ":",
+            projectPath: ":consumer",
+            componentId: [buildPath: ":", projectPath: ":producer"],
+            targetAttributes: [color: "red", artifactType: "jar"],
+            capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
+            artifactName: "producer.jar",
+            dependenciesConfigurationIdentity: null,
+        ])
+
+        def expectedTransformId2 = new TransformationIdentityWithoutId([
+            buildPath: ":",
+            projectPath: ":consumer",
+            componentId: [buildPath: ":", projectPath: ":producer"],
+            targetAttributes: [color: "green", artifactType: "jar"],
+            capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
+            artifactName: "producer.jar",
+            dependenciesConfigurationIdentity: null,
+        ])
 
         checkExecutionPlanMatchingDependencies(
             plannedNodes,
             [
-                taskMatcher(
-                    "node1", ":producer:producer",
-                    []
-                ),
-                transformMatcher(
-                    "node2", ":consumer", [buildPath: ":", projectPath: ":producer"], [artifactType: "jar", color: "red"],
-                    ["node1"]
-                ),
-                transformMatcher(
-                    "node3", ":consumer", [buildPath: ":", projectPath: ":producer"], [artifactType: "jar", color: "green"],
-                    ["node2"]
-                ),
-                taskMatcher(
-                    "node4", ":consumer:resolve",
-                    ["node3"]
-                ),
+                taskMatcher("node1", ":producer:producer", []),
+                transformMatcher("node2", expectedTransformId1, ["node1"]),
+                transformMatcher("node3", expectedTransformId2, ["node2"]),
+                taskMatcher("node4", ":consumer:resolve", ["node3"]),
             ]
         )
 
-        def executeTransformationOps = buildOperations.all(ExecuteScheduledTransformationStepBuildOperationType)
-        def executeTransformationOp1 = executeTransformationOps[0]
-        with(executeTransformationOp1.details) {
-            transformerName == "MakeColor"
-            subjectName == "producer.jar (project :producer)"
-            with(transformationIdentity) {
-                nodeType == "ARTIFACT_TRANSFORM"
-                buildPath == ":"
-                projectPath == ":consumer"
-                componentId == [buildPath: ":", projectPath: ":producer"]
-                targetAttributes == [color: "red", artifactType: "jar"]
-                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-                artifactName == "producer.jar"
-                dependenciesConfigurationIdentity == null
-            }
+        def executeTransformationOps = getExecuteTransformOperations(2)
+        with(executeTransformationOps[0].details) {
+            matchTransformationIdentity(transformationIdentity, expectedTransformId1)
             transformType == "MakeColor"
             sourceAttributes == [color: "blue", artifactType: "jar"]
-        }
 
-        def executeTransformationOp2 = executeTransformationOps[1]
-        with(executeTransformationOp2.details) {
             transformerName == "MakeColor"
             subjectName == "producer.jar (project :producer)"
-            with(transformationIdentity) {
-                nodeType == "ARTIFACT_TRANSFORM"
-                buildPath == ":"
-                projectPath == ":consumer"
-                componentId == [buildPath: ":", projectPath: ":producer"]
-                targetAttributes == [color: "green", artifactType: "jar"]
-                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-                artifactName == "producer.jar"
-                dependenciesConfigurationIdentity == null
-            }
+        }
+
+        with(executeTransformationOps[1].details) {
+            matchTransformationIdentity(transformationIdentity, expectedTransformId2)
             transformType == "MakeColor"
             sourceAttributes == [color: "red", artifactType: "jar"]
+
+            transformerName == "MakeColor"
+            subjectName == "producer.jar (project :producer)"
         }
     }
 
@@ -278,67 +271,56 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         result.groupedOutput.task(":consumer:resolve")
             .assertOutputContains("result = [producer.jar.green, test-4.2.jar]")
 
-        def plannedNodes = buildOperations.only(CalculateTaskGraphBuildOperationType).result.executionPlan as List<PlannedNode>
-        plannedNodes.every { KNOWN_NODE_TYPES.contains(it.nodeIdentity.nodeType) }
-        plannedNodes.count { it.nodeIdentity.nodeType.toString() == ARTIFACT_TRANSFORM } == 2
+        def plannedNodes = getPlannedNodes(2)
+
+        def expectedTransformId1 = new TransformationIdentityWithoutId([
+            buildPath: ":",
+            projectPath: ":consumer",
+            componentId: [buildPath: ":", projectPath: ":producer"],
+            targetAttributes: [color: "red", artifactType: "jar"],
+            capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
+            artifactName: "producer.jar",
+            dependenciesConfigurationIdentity: null,
+        ])
+
+        def expectedTransformId2 = new TransformationIdentityWithoutId([
+            buildPath: ":",
+            projectPath: ":consumer",
+            componentId: [buildPath: ":", projectPath: ":producer"],
+            targetAttributes: [color: "green", artifactType: "jar"],
+            capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
+            artifactName: "producer.jar",
+            dependenciesConfigurationIdentity: null,
+        ])
 
         checkExecutionPlanMatchingDependencies(
             plannedNodes,
             [
-                taskMatcher(
-                    "node1", ":producer:producer",
-                    []
-                ),
-                transformMatcher(
-                    "node2", ":consumer", [buildPath: ":", projectPath: ":producer"], [artifactType: "jar", color: "red"],
-                    ["node1"]
-                ),
-                transformMatcher(
-                    "node3", ":consumer", [buildPath: ":", projectPath: ":producer"], [artifactType: "jar", color: "green"],
-                    ["node1", "node2"]
-                ),
-                taskMatcher(
-                    "node4", ":consumer:resolve",
-                    ["node3"]
-                ),
+                taskMatcher("node1", ":producer:producer", []),
+                transformMatcher("node2", expectedTransformId1, ["node1"]),
+                transformMatcher("node3", expectedTransformId2, ["node1", "node2"]),
+                taskMatcher("node4", ":consumer:resolve", ["node3"]),
             ]
         )
 
-        def executeTransformationOps = buildOperations.all(ExecuteScheduledTransformationStepBuildOperationType)
-        def executeTransformationOp1 = executeTransformationOps[0]
-        with(executeTransformationOp1.details) {
-            transformerName == "MakeRed"
-            subjectName == "producer.jar (project :producer)"
-            with(transformationIdentity) {
-                nodeType == "ARTIFACT_TRANSFORM"
-                buildPath == ":"
-                projectPath == ":consumer"
-                componentId == [buildPath: ":", projectPath: ":producer"]
-                targetAttributes == [color: "red", artifactType: "jar"]
-                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-                artifactName == "producer.jar"
-                dependenciesConfigurationIdentity == null
-            }
+        def executeTransformationOps = getExecuteTransformOperations(2)
+
+        with(executeTransformationOps[0].details) {
+            matchTransformationIdentity(transformationIdentity, expectedTransformId1)
             transformType == "MakeRed"
             sourceAttributes == [color: "blue", artifactType: "jar"]
+
+            transformerName == "MakeRed"
+            subjectName == "producer.jar (project :producer)"
         }
 
-        def executeTransformationOp2 = executeTransformationOps[1]
-        with(executeTransformationOp2.details) {
-            transformerName == "MakeGreen"
-            subjectName == "producer.jar (project :producer)"
-            with(transformationIdentity) {
-                nodeType == "ARTIFACT_TRANSFORM"
-                buildPath == ":"
-                projectPath == ":consumer"
-                componentId == [buildPath: ":", projectPath: ":producer"]
-                targetAttributes == [color: "green", artifactType: "jar"]
-                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-                artifactName == "producer.jar"
-                dependenciesConfigurationIdentity == null
-            }
+        with(executeTransformationOps[1].details) {
+            matchTransformationIdentity(transformationIdentity, expectedTransformId2)
             transformType == "MakeGreen"
             sourceAttributes == [color: "blue", artifactType: "jar"]
+
+            transformerName == "MakeGreen"
+            subjectName == "producer.jar (project :producer)"
         }
     }
 
@@ -379,43 +361,34 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         result.groupedOutput.task(":consumer:resolve")
             .assertOutputContains("result = [producer.jar.green, test-4.2.jar]")
 
-        def plannedNodes = buildOperations.only(CalculateTaskGraphBuildOperationType).result.executionPlan as List<PlannedNode>
-        plannedNodes.every { KNOWN_NODE_TYPES.contains(it.nodeIdentity.nodeType) }
-        plannedNodes.count { it.nodeIdentity.nodeType.toString() == ARTIFACT_TRANSFORM } == 1
+        def plannedNodes = getPlannedNodes(1)
+
+        def expectedTransformId1 = new TransformationIdentityWithoutId([
+            buildPath: ":",
+            projectPath: ":consumer",
+            componentId: [buildPath: ":", projectPath: ":producer"],
+            targetAttributes: [color: "green", artifactType: "jar"],
+            capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
+            artifactName: "producer.jar",
+            dependenciesConfigurationIdentity: [buildPath: ":", projectPath: ":consumer", name: "resolver"],
+        ])
 
         checkExecutionPlanMatchingDependencies(
             plannedNodes,
             [
-                taskMatcher(
-                    "node1", ":producer:producer",
-                    []
-                ),
-                transformMatcher(
-                    "node2", ":consumer", [buildPath: ":", projectPath: ":producer"], [artifactType: "jar", color: "green"],
-                    ["node1"]
-                ),
-                taskMatcher(
-                    "node3", ":consumer:resolve",
-                    ["node2"]
-                ),
+                taskMatcher("node1", ":producer:producer", []),
+                transformMatcher("node2", expectedTransformId1, ["node1"]),
+                taskMatcher("node3", ":consumer:resolve", ["node2"]),
             ]
         )
 
         with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType).details) {
-            transformerName == "MakeGreen"
-            subjectName == "producer.jar (project :producer)"
-            with(transformationIdentity) {
-                nodeType == "ARTIFACT_TRANSFORM"
-                buildPath == ":"
-                projectPath == ":consumer"
-                componentId == [buildPath: ":", projectPath: ":producer"]
-                targetAttributes == [color: "green", artifactType: "jar"]
-                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-                artifactName == "producer.jar"
-                dependenciesConfigurationIdentity == [buildPath: ":", projectPath: ":consumer", name: "resolver"]
-            }
+            matchTransformationIdentity(transformationIdentity, expectedTransformId1)
             transformType == "MakeGreen"
             sourceAttributes == [color: "blue", artifactType: "jar"]
+
+            transformerName == "MakeGreen"
+            subjectName == "producer.jar (project :producer)"
         }
     }
 
@@ -450,67 +423,55 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         result.groupedOutput.task(":consumer:resolve")
             .assertOutputContains("result = [producer.jar.red.green, test-4.2.jar]")
 
-        def plannedNodes = buildOperations.only(CalculateTaskGraphBuildOperationType).result.executionPlan as List<PlannedNode>
-        plannedNodes.every { KNOWN_NODE_TYPES.contains(it.nodeIdentity.nodeType) }
-        plannedNodes.count { it.nodeIdentity.nodeType.toString() == ARTIFACT_TRANSFORM } == 2
+        def plannedNodes = getPlannedNodes(2)
+
+        def expectedTransformId1 = new TransformationIdentityWithoutId([
+            buildPath: ":",
+            projectPath: ":consumer",
+            componentId: [buildPath: ":", projectPath: ":producer"],
+            targetAttributes: [color: "red", artifactType: "jar"],
+            capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
+            artifactName: "producer.jar",
+            dependenciesConfigurationIdentity: null,
+        ])
+
+        def expectedTransformId2 = new TransformationIdentityWithoutId([
+            buildPath: ":",
+            projectPath: ":consumer",
+            componentId: [buildPath: ":", projectPath: ":producer"],
+            targetAttributes: [color: "green", artifactType: "jar"],
+            capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
+            artifactName: "producer.jar",
+            dependenciesConfigurationIdentity: [buildPath: ":", projectPath: ":consumer", name: "resolver"],
+        ])
 
         checkExecutionPlanMatchingDependencies(
             plannedNodes,
             [
-                taskMatcher(
-                    "node1", ":producer:producer",
-                    []
-                ),
-                transformMatcher(
-                    "node2", ":consumer", [buildPath: ":", projectPath: ":producer"], [artifactType: "jar", color: "red"],
-                    ["node1"]
-                ),
-                transformMatcher(
-                    "node3", ":consumer", [buildPath: ":", projectPath: ":producer"], [artifactType: "jar", color: "green"],
-                    ["node2"]
-                ),
-                taskMatcher(
-                    "node4", ":consumer:resolve",
-                    ["node3"]
-                ),
+                taskMatcher("node1", ":producer:producer", []),
+                transformMatcher("node2", expectedTransformId1, ["node1"]),
+                transformMatcher("node3", expectedTransformId2, ["node2"]),
+                taskMatcher("node4", ":consumer:resolve", ["node3"]),
             ]
         )
 
-        def executeTransformationOps = buildOperations.all(ExecuteScheduledTransformationStepBuildOperationType)
-        def executeTransformationOp1 = executeTransformationOps[0]
-        with(executeTransformationOp1.details) {
-            transformerName == "MakeRed"
-            subjectName == "producer.jar (project :producer)"
-            with(transformationIdentity) {
-                nodeType == "ARTIFACT_TRANSFORM"
-                buildPath == ":"
-                projectPath == ":consumer"
-                componentId == [buildPath: ":", projectPath: ":producer"]
-                targetAttributes == [color: "red", artifactType: "jar"]
-                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-                artifactName == "producer.jar"
-                dependenciesConfigurationIdentity == null
-            }
+        def executeTransformationOps = getExecuteTransformOperations(2)
+        with(executeTransformationOps[0].details) {
+            matchTransformationIdentity(transformationIdentity, expectedTransformId1)
             transformType == "MakeRed"
             sourceAttributes == [color: "blue", artifactType: "jar"]
+
+            transformerName == "MakeRed"
+            subjectName == "producer.jar (project :producer)"
         }
 
-        def executeTransformationOp2 = executeTransformationOps[1]
-        with(executeTransformationOp2.details) {
-            transformerName == "MakeGreen"
-            subjectName == "producer.jar (project :producer)"
-            with(transformationIdentity) {
-                nodeType == "ARTIFACT_TRANSFORM"
-                buildPath == ":"
-                projectPath == ":consumer"
-                componentId == [buildPath: ":", projectPath: ":producer"]
-                targetAttributes == [color: "green", artifactType: "jar"]
-                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-                artifactName == "producer.jar"
-                dependenciesConfigurationIdentity == [buildPath: ":", projectPath: ":consumer", name: "resolver"]
-            }
+        with(executeTransformationOps[1].details) {
+            matchTransformationIdentity(transformationIdentity, expectedTransformId2)
             transformType == "MakeGreen"
             sourceAttributes == [color: "red", artifactType: "jar"]
+
+            transformerName == "MakeGreen"
+            subjectName == "producer.jar (project :producer)"
         }
     }
 
@@ -584,67 +545,55 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         result.groupedOutput.task(":consumer:resolve")
             .assertOutputContains("result = [producer.jar.red-1.green-1, producer.jar.red-2.green-1, test-4.2.jar]")
 
-        def plannedNodes = buildOperations.only(CalculateTaskGraphBuildOperationType).result.executionPlan as List<PlannedNode>
-        plannedNodes.every { KNOWN_NODE_TYPES.contains(it.nodeIdentity.nodeType) }
-        plannedNodes.count { it.nodeIdentity.nodeType.toString() == ARTIFACT_TRANSFORM } == 2
+        def plannedNodes = getPlannedNodes(2)
+
+        def expectedTransformId1 = new TransformationIdentityWithoutId([
+            buildPath: ":",
+            projectPath: ":consumer",
+            componentId: [buildPath: ":", projectPath: ":producer"],
+            targetAttributes: [color: "red", artifactType: "jar"],
+            capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
+            artifactName: "producer.jar",
+            dependenciesConfigurationIdentity: null,
+        ])
+
+        def expectedTransformId2 = new TransformationIdentityWithoutId([
+            buildPath: ":",
+            projectPath: ":consumer",
+            componentId: [buildPath: ":", projectPath: ":producer"],
+            targetAttributes: [color: "green", artifactType: "jar"],
+            capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
+            artifactName: "producer.jar",
+            dependenciesConfigurationIdentity: null,
+        ])
 
         checkExecutionPlanMatchingDependencies(
             plannedNodes,
             [
-                taskMatcher(
-                    "node1", ":producer:producer",
-                    []
-                ),
-                transformMatcher(
-                    "node2", ":consumer", [buildPath: ":", projectPath: ":producer"], [artifactType: "jar", color: "red"],
-                    ["node1"]
-                ),
-                transformMatcher(
-                    "node3", ":consumer", [buildPath: ":", projectPath: ":producer"], [artifactType: "jar", color: "green"],
-                    ["node2"]
-                ),
-                taskMatcher(
-                    "node4", ":consumer:resolve",
-                    ["node3"]
-                ),
+                taskMatcher("node1", ":producer:producer", []),
+                transformMatcher("node2", expectedTransformId1, ["node1"]),
+                transformMatcher("node3", expectedTransformId2, ["node2"]),
+                taskMatcher("node4", ":consumer:resolve", ["node3"]),
             ]
         )
 
-        def executeTransformationOps = buildOperations.all(ExecuteScheduledTransformationStepBuildOperationType)
-        def executeTransformationOp1 = executeTransformationOps[0]
-        with(executeTransformationOp1.details) {
-            transformerName == "MakeColor"
-            subjectName == "producer.jar (project :producer)"
-            with(transformationIdentity) {
-                nodeType == "ARTIFACT_TRANSFORM"
-                buildPath == ":"
-                projectPath == ":consumer"
-                componentId == [buildPath: ":", projectPath: ":producer"]
-                targetAttributes == [color: "red", artifactType: "jar"]
-                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-                artifactName == "producer.jar"
-                dependenciesConfigurationIdentity == null
-            }
+        def executeTransformationOps = getExecuteTransformOperations(2)
+        with(executeTransformationOps[0].details) {
+            matchTransformationIdentity(transformationIdentity, expectedTransformId1)
             transformType == "MakeColor"
             sourceAttributes == [color: "blue", artifactType: "jar"]
-        }
 
-        def executeTransformationOp2 = executeTransformationOps[1]
-        with(executeTransformationOp2.details) {
             transformerName == "MakeColor"
             subjectName == "producer.jar (project :producer)"
-            with(transformationIdentity) {
-                nodeType == "ARTIFACT_TRANSFORM"
-                buildPath == ":"
-                projectPath == ":consumer"
-                componentId == [buildPath: ":", projectPath: ":producer"]
-                targetAttributes == [color: "green", artifactType: "jar"]
-                capabilities == [[group: "colored", name: "producer", version: "unspecified"]]
-                artifactName == "producer.jar"
-                dependenciesConfigurationIdentity == null
-            }
+        }
+
+        with(executeTransformationOps[1].details) {
+            matchTransformationIdentity(transformationIdentity, expectedTransformId2)
             transformType == "MakeColor"
             sourceAttributes == [color: "red", artifactType: "jar"]
+
+            transformerName == "MakeColor"
+            subjectName == "producer.jar (project :producer)"
         }
     }
 
@@ -688,19 +637,13 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
     def transformMatcher(
         String nodeId,
-        String consumerIdentityPath,
-        Map<String, String> componentId,
-        Map<String, String> attributes,
+        TransformationIdentityWithoutId transformationIdentity,
         List<String> dependencyNodeIds
     ) {
         new NodeMatcher(
             nodeId: nodeId,
             nodeType: ARTIFACT_TRANSFORM,
-            identityPredicate: {
-                joinPaths(it.buildPath, it.projectPath) == consumerIdentityPath &&
-                    it.componentId == componentId &&
-                    it.targetAttributes == attributes
-            },
+            identityPredicate: { matchTransformationIdentity(it, transformationIdentity) },
             dependencyNodeIds: dependencyNodeIds
         )
     }
@@ -720,5 +663,30 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         paths.inject("") { acc, path ->
             acc + (acc.endsWith(":") && path.startsWith(":") ? path.substring(1) : path)
         }
+    }
+
+    boolean matchTransformationIdentity(actual, TransformationIdentityWithoutId expected) {
+        actual.nodeType.toString() == ARTIFACT_TRANSFORM &&
+            actual.buildPath == expected.buildPath &&
+            actual.projectPath == expected.projectPath &&
+            actual.componentId == expected.componentId &&
+            actual.targetAttributes == expected.targetAttributes &&
+            actual.capabilities == expected.capabilities &&
+            actual.artifactName == expected.artifactName &&
+            actual.dependenciesConfigurationIdentity == expected.dependenciesConfigurationIdentity
+    }
+
+    def getPlannedNodes(int transformNodeCount) {
+        def plannedNodes = buildOperations.only(CalculateTaskGraphBuildOperationType).result.executionPlan as List<PlannedNode>
+        assert plannedNodes.every { KNOWN_NODE_TYPES.contains(it.nodeIdentity.nodeType) }
+        assert plannedNodes.count { it.nodeIdentity.nodeType.toString() == ARTIFACT_TRANSFORM } == transformNodeCount
+        return plannedNodes
+    }
+
+    def getExecuteTransformOperations(int expectOperationsCount) {
+        def operations = buildOperations.all(ExecuteScheduledTransformationStepBuildOperationType)
+        assert operations.every { it.failure == null }
+        assert operations.size() == expectOperationsCount
+        return operations
     }
 }
