@@ -2639,11 +2639,24 @@ Found the following transforms:
         outputContains("After transformer FileSizer on lib.jar (project :lib)")
 
         and:
-        with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
-            it.failure == null
-            displayName == "Transform lib.jar (project :lib) with FileSizer"
-            details.transformerName == "FileSizer"
-            details.subjectName == "lib.jar (project :lib)"
+        def executeTransformationOp = buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)
+        executeTransformationOp.failure == null
+        executeTransformationOp.displayName == "Transform lib.jar (project :lib) with FileSizer"
+        with(executeTransformationOp.details) {
+            transformerName == "FileSizer"
+            subjectName == "lib.jar (project :lib)"
+            with(transformationIdentity) {
+                nodeType == "ARTIFACT_TRANSFORM"
+                buildPath == ":"
+                projectPath == ":app"
+                componentId == [buildPath: ":", projectPath: ":lib"]
+                targetAttributes == [artifactType: "size", usage: "api"]
+                capabilities == [[group: "root", name: "lib", version: "unspecified"]]
+                artifactName == "lib.jar"
+                dependenciesConfigurationIdentity == null
+            }
+            transformType == "FileSizer"
+            sourceAttributes == [artifactType: "jar", usage: "api"]
         }
     }
 
@@ -2699,10 +2712,24 @@ Found the following transforms:
         outputContains("After transformer BrokenTransform on lib.jar (project :lib)")
 
         and:
-        with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
-            displayName == "Transform lib.jar (project :lib) with BrokenTransform"
-            details.transformerName == "BrokenTransform"
-            details.subjectName == "lib.jar (project :lib)"
+        def executeTransformationOp = buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)
+        executeTransformationOp.failure != null
+        executeTransformationOp.displayName == "Transform lib.jar (project :lib) with BrokenTransform"
+        with(executeTransformationOp.details) {
+            transformerName == "BrokenTransform"
+            subjectName == "lib.jar (project :lib)"
+            with(transformationIdentity) {
+                nodeType == "ARTIFACT_TRANSFORM"
+                buildPath == ":"
+                projectPath == ":app"
+                componentId == [buildPath: ":", projectPath: ":lib"]
+                targetAttributes == [artifactType: "size", usage: "api"]
+                capabilities == [[group: "root", name: "lib", version: "unspecified"]]
+                artifactName == "lib.jar"
+                dependenciesConfigurationIdentity == null
+            }
+            transformType == "BrokenTransform"
+            sourceAttributes == [artifactType: "jar", usage: "api"]
         }
     }
 
