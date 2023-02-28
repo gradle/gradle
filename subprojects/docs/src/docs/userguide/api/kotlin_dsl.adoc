@@ -718,6 +718,11 @@ include::sample[dir="snippets/kotlinDsl/assignment/kotlin",files="build.gradle.k
 <2> Set value with Property assignment with `=` operator
 <3> Property assignment also supports lazy values
 
+[CAUTION]
+====
+Enabling Kotlin Property assignment will fail your build if `allWarningsAsErrors` feature is enabled for the Kotlin compiler for build logic, since the Kotlin compiler plugin is still experimental.
+====
+
 === How Property assignment works?
 
 Property assignment is implemented via a Kotlin compiler plugin, and it works similarly to operator overloads that are natively supported by the Kotlin language, e.g. `+=`.

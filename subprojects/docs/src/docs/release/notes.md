@@ -74,9 +74,13 @@ extension {
 }
 ```
 
-You can enable Kotlin assignment by adding `systemProp.org.gradle.unsafe.kotlin.assignment=true` to the `gradle.properties` file. 
-For IntelliJ IDEA support that property has to be set in the project root `gradle.properties` file (also for all included builds). 
+You can enable Kotlin assignment by adding `systemProp.org.gradle.unsafe.kotlin.assignment=true` to the `gradle.properties` file.
+For IntelliJ IDEA support that property has to be set in the project root `gradle.properties` file (also for all included builds).
 Additionally, when the property's value is changed, the project has to be reopened in IntelliJ.
+Property assignment is supported from IntelliJ 2022.3 and from Android Studio Giraffe.
+
+Enabling this feature will fail your build if `allWarningsAsErrors` feature is enabled for Kotlin compiler for build logic.
+
 For more information, see [Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:assignment).
 
 <!--
