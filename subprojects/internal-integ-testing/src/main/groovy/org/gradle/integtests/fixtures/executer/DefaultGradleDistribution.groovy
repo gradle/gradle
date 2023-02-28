@@ -321,6 +321,11 @@ class DefaultGradleDistribution implements GradleDistribution {
         return stdout;
     }
 
+    @Override
+    boolean isSupportsKotlinScript() {
+        return isSameOrNewer("5.0"); // see compatibility matrix https://docs.gradle.org/8.0/userguide/compatibility.html
+    }
+
     protected boolean isSameOrNewer(String otherVersion) {
         return isVersion(otherVersion) || version.compareTo(GradleVersion.version(otherVersion)) > 0;
     }
