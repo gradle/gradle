@@ -29,8 +29,8 @@ import org.gradle.api.Action;
  * the implementation of configurations into separate classes per role.  If new configurations are created using
  * the existing public API, they may be used in non-idiomatic ways that will make this difficult.
  * <p>
- * This test will ensure that call into {@code DefaultConfgurationContainer#doCreate(String)} in non-test code
- * begins with a call from a method in {@code RoleBasedConfigurationContainerInternal}.
+ * This test will ensure that calls into {@code DefaultConfgurationContainer#doCreate(String)} in non-test code
+ * begin with a call from a method in {@code RoleBasedConfigurationContainerInternal}.
  * (The banned alternate {@code create} methods are defined in {@code ConfigurationContainer} and
  * implemented in {@code AbstractNamedDomainObjectContainer}.)
  */
