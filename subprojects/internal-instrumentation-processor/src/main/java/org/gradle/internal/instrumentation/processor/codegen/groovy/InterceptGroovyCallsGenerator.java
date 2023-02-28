@@ -207,6 +207,9 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
                     CodeBlock interceptorArgs = CodeBlock.join(Arrays.asList(CodeBlock.of("result"), argsCode), ", ");
                     result.addStatement("$T.$L($L)", implementationOwner, request.getImplementationInfo().getName(), interceptorArgs);
                     result.addStatement("return result");
+                } else if (request.getInterceptedCallable().getReturnType() == Type.VOID_TYPE) {
+                    result.addStatement("$T.$L($L)", implementationOwner, request.getImplementationInfo().getName(), argsCode);
+                    result.addStatement("return null");
                 } else {
                     result.addStatement("return $T.$L($L)", implementationOwner, request.getImplementationInfo().getName(), argsCode);
                 }
@@ -222,7 +225,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
                 TypeName entryChildType = TypeUtils.typeName(entry.type);
                 CodeBlock matchExpr = entry.kind == RECEIVER_AS_CLASS ?
                     CodeBlock.of("$L.equals($T.class)", argExpr, entryChildType) :
-                    CodeBlock.of("$L instanceof $T", argExpr, entryChildType);
+                    CodeBlock.of("$L instanceof $T", argExpr, entryChildType.box());
                 result.beginControlFlow("if ($L)", matchExpr);
                 boolean shouldPopParameter = false;
                 if (entry.kind != RECEIVER_AS_CLASS) {
