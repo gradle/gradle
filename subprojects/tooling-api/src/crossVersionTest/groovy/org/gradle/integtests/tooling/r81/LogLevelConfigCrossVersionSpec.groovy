@@ -25,10 +25,9 @@ import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.LOG_LEV
 import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.runLogScript
 import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.validateLogs
 
-class LogLevelConfigCrossVersionSpec
-    extends ToolingApiSpecification {
+class LogLevelConfigCrossVersionSpec extends ToolingApiSpecification {
 
-    def setupLoggingTest() {
+    def setup() {
         propertiesFile << "org.gradle.logging.level=quiet"
         buildFile << LOG_LEVEL_TEST_SCRIPT
     }
@@ -36,8 +35,6 @@ class LogLevelConfigCrossVersionSpec
     @ToolingApiVersion('>=8.1')
     @TargetGradleVersion('>=3.0 <=8.0')
     def "tooling api uses log level set in arguments over gradle properties TAPI >= 8.1"() {
-        given:
-        setupLoggingTest()
         when:
         def stdOut = runLogScript(toolingApi, arguments)
 
@@ -54,8 +51,6 @@ class LogLevelConfigCrossVersionSpec
     @ToolingApiVersion(">=7.0 <8.1")
     @TargetGradleVersion('>=8.1')
     def "tooling api uses log level set in arguments over gradle properties TAPI < 8.1"() {
-        given:
-        setupLoggingTest()
         when:
         def stdOut = runLogScript(toolingApi, arguments)
 
@@ -68,5 +63,4 @@ class LogLevelConfigCrossVersionSpec
         LogLevel.INFO  | ["--info"]
         LogLevel.INFO  | ["-Dorg.gradle.logging.level=info"]
     }
-
 }
