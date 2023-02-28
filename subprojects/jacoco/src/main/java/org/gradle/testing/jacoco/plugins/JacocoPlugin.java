@@ -76,7 +76,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     private static final String COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX = "coverageDataElementsFor";
 
     private final Instantiator instantiator;
-    private Project project;
+    private ProjectInternal project;
 
     @Inject
     public JacocoPlugin(Instantiator instantiator) {
@@ -86,10 +86,9 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);
-        this.project = project;
+        this.project = (ProjectInternal) project;
         addJacocoConfigurations();
-        ProjectInternal projectInternal = (ProjectInternal) project;
-        JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar.class, projectInternal.getServices().get(FileOperations.class));
+        JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar.class, this.project.getServices().get(FileOperations.class));
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
         extension.setToolVersion(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
@@ -110,15 +109,14 @@ public abstract class JacocoPlugin implements Plugin<Project> {
 
             testSuites.withType(JvmTestSuite.class).configureEach(suite -> {
                 suite.getTargets().configureEach(target -> {
-                    createCoverageDataVariant(project, suite, target);
+                    createCoverageDataVariant((ProjectInternal) project, suite, target);
                 });
             });
         });
     }
 
-    private void createCoverageDataVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
-        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
-        final Configuration variant = configurations.consumable(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
+    private void createCoverageDataVariant(ProjectInternal project, JvmTestSuite suite, JvmTestSuiteTarget target) {
+        final Configuration variant = project.getConfigurations().consumable(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
         variant.setDescription("Binary data file containing results of Jacoco test coverage reporting for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
         variant.setVisible(false);
 
@@ -141,7 +139,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
      * Creates the configurations used by plugin.
      */
     private void addJacocoConfigurations() {
-        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
+        RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
         Configuration agentConf = configurations.resolvableBucket(AGENT_CONFIGURATION_NAME);
         agentConf.setVisible(false);
         agentConf.setTransitive(true);
