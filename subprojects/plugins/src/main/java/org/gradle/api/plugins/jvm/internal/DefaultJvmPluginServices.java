@@ -91,7 +91,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     @Override
-    public <T> void configureAsCompileClasspath(HasConfigurableAttributes<T> configuration) {
+    public void configureAsCompileClasspath(HasConfigurableAttributes<?> configuration) {
         configureAttributes(
             configuration,
             details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM()
@@ -99,7 +99,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     @Override
-    public <T> void configureAsRuntimeClasspath(HasConfigurableAttributes<T> configuration) {
+    public void configureAsRuntimeClasspath(HasConfigurableAttributes<?> configuration) {
         configureAttributes(
             configuration,
             details -> details.library().runtimeUsage().asJar().withExternalDependencies().preferStandardJVM()
@@ -107,7 +107,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     @Override
-    public void configureAsApiElements(Configuration configuration) {
+    public void configureAsApiElements(HasConfigurableAttributes<?> configuration) {
         configureAttributes(
             configuration,
             details -> details.library().apiUsage().asJar().withExternalDependencies()
@@ -115,7 +115,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     @Override
-    public void configureAsRuntimeElements(Configuration configuration) {
+    public void configureAsRuntimeElements(HasConfigurableAttributes<?> configuration) {
         configureAttributes(
             configuration,
             details -> details.library().runtimeUsage().asJar().withExternalDependencies()

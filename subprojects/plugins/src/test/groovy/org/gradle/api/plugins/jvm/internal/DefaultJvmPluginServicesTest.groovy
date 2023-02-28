@@ -58,7 +58,7 @@ import static org.gradle.util.AttributeTestUtil.named
 
 class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
-    def configuresCompileClasspath() {
+    def "configures compileClasspath"() {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
         def attrs = Mock(HasConfigurableAttributes)
         Action[] action = new Action[1]
@@ -99,7 +99,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         ]
     }
 
-    def configuresRuntimeClasspath() {
+    def "configures runtimeClasspath"() {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
         def attrs = Mock(HasConfigurableAttributes)
 
@@ -118,7 +118,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         ]
     }
 
-    def configuresApiElements() {
+    def "configures apiElements"() {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
         def attrs = Mock(Configuration)
 
@@ -137,7 +137,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
     }
 
-    def configuresRuntimeElements() {
+    def "configures runtimeElements"() {
         def mutable = AttributeTestUtil.attributesFactory().mutable()
         def attrs = Mock(Configuration)
 
