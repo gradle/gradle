@@ -256,6 +256,48 @@ You can now use the `export-keys` flag to export all already trusted keys:
 
 For more details, see the [user manual](userguide/dependency_verification.html#sec:local-keyring).
 
+#### Nested composite builds work in more cases
+
+It is common to use an included `build-logic` build instead of `buildSrc`, especially for [structuring larger projects](userguide/structuring_software_products.html#an_example)
+Now it is possible to have a composite build including multiple projects that use `build-logic`.
+
+For example, take the following setup:
+
+```
+.
+├── rootBuild
+│   ├── settings.gradle.kts
+│   └── build-logic
+│       └── settings.gradle
+└── included-build
+    ├── settings.gradle.kts
+    └── build-logic
+        └── settings.gradle.kts
+```
+
+```groovy
+// rootBuild/settings.gradle
+includeBuild("build-logic")
+includeBuild("../included-build")
+```
+
+```groovy
+// included-build/settings.gradle
+includeBuild("build-logic")
+```
+
+Before Gradle 8, this build failed due to a path conflict for `:build-logic`.
+It works now since the directory hierarchy is used to assign paths to nested included builds.
+You can run tasks in the different `build-logic` builds by using e.g.:
+
+```
+./gradlew :build-logic:test
+./gradlew :included-build:build-logic:test
+```
+
+For more details see the user manual on [composite builds](userguide/composite_builds.html) and [build logic](userguide/sharing_build_logic_between_subprojects.html#sec:convention_plugins).
+Visit the [upgrading guide](userguide/upgrading_version_7.html#changes_to_paths_of_included_builds) to learn about the changes to build paths for included builds.
+
 <a name="code-quality"></a>
 ### Code quality plugin improvements
 
