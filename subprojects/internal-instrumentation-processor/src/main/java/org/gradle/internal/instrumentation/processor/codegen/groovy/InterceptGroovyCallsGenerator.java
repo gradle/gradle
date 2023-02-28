@@ -195,25 +195,36 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             private void generateInvocation(CallInterceptionRequest request, int argCount) {
                 TypeName implementationOwner = TypeUtils.typeName(request.getImplementationInfo().getOwner());
                 result.beginControlFlow("if (invocation.getArgsCount() == $L)", argCount);
+                CodeBlock argsCode = prepareInvocationArgs(request);
+                emitInvocationCode(request, implementationOwner, argsCode);
+                result.endControlFlow();
+            }
 
+            private CodeBlock prepareInvocationArgs(CallInterceptionRequest request) {
                 boolean hasKotlinDefaultMask = request.getInterceptedCallable().getParameters().stream().anyMatch(it -> it.getKind() == ParameterKindInfo.KOTLIN_DEFAULT_MASK);
                 boolean hasCallerClassName = hasCallerClassName(request.getInterceptedCallable());
                 Stream<CodeBlock> maybeZeroForKotlinDefault = hasKotlinDefaultMask ? Stream.of(CodeBlock.of("0")) : Stream.empty();
                 Stream<CodeBlock> maybeCallerClassName = hasCallerClassName ? Stream.of(CodeBlock.of("consumer")) : Stream.empty();
-                CodeBlock argsCode = Stream.of(paramVariablesStack.stream(), maybeZeroForKotlinDefault, maybeCallerClassName).flatMap(Function.identity()).collect(CodeBlock.joining(", "));
+                return Stream.of(
+                    paramVariablesStack.stream(),
+                    maybeZeroForKotlinDefault,
+                    maybeCallerClassName
+                ).flatMap(Function.identity()).collect(CodeBlock.joining(", "));
+            }
 
+            private void emitInvocationCode(CallInterceptionRequest request, TypeName implementationOwner, CodeBlock argsCode) {
+                String implementationName = request.getImplementationInfo().getName();
                 if (request.getInterceptedCallable().getKind() == CallableKindInfo.AFTER_CONSTRUCTOR) {
                     result.addStatement("$1T result = new $1T($2L)", TypeUtils.typeName(request.getInterceptedCallable().getOwner()), paramVariablesStack.stream().collect(CodeBlock.joining(", ")));
                     CodeBlock interceptorArgs = CodeBlock.join(Arrays.asList(CodeBlock.of("result"), argsCode), ", ");
-                    result.addStatement("$T.$L($L)", implementationOwner, request.getImplementationInfo().getName(), interceptorArgs);
+                    result.addStatement("$T.$L($L)", implementationOwner, implementationName, interceptorArgs);
                     result.addStatement("return result");
                 } else if (request.getInterceptedCallable().getReturnType() == Type.VOID_TYPE) {
-                    result.addStatement("$T.$L($L)", implementationOwner, request.getImplementationInfo().getName(), argsCode);
+                    result.addStatement("$T.$L($L)", implementationOwner, implementationName, argsCode);
                     result.addStatement("return null");
                 } else {
-                    result.addStatement("return $T.$L($L)", implementationOwner, request.getImplementationInfo().getName(), argsCode);
+                    result.addStatement("return $T.$L($L)", implementationOwner, implementationName, argsCode);
                 }
-                result.endControlFlow();
             }
 
             private void generateChecksAndVisitSubtree(int argCount, ParameterMatchEntry entry, SignatureTree child, int paramIndex) {
