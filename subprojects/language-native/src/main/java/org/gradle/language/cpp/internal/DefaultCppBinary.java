@@ -66,7 +66,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
 
         // TODO - reduce duplication with Swift binary
 
-        includePathConfiguration = configurations.resolvable(names.withPrefix("cppCompile"));
+        includePathConfiguration = configurations.resolvableBucket(names.withPrefix("cppCompile"));
         includePathConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
         includePathConfiguration.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
         includePathConfiguration.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
@@ -74,7 +74,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         includePathConfiguration.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
         includePathConfiguration.extendsFrom(getImplementationDependencies());
 
-        Configuration nativeLink = configurations.resolvable(names.withPrefix("nativeLink"));
+        Configuration nativeLink = configurations.resolvableBucket(names.withPrefix("nativeLink"));
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_LINK));
         nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
         nativeLink.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
