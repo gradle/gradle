@@ -39,14 +39,21 @@ public class JavaExecutableUtils {
                     .undocumented()
                     .nagUser();
         }
-        if (!executableFile.getAbsoluteFile().exists()) {
+        File executableAbsoluteFile = executableFile.getAbsoluteFile();
+        if (!executableAbsoluteFile.exists()) {
             throw new InvalidUserDataException("The configured executable does not exist (" + executableFile.getAbsolutePath() + ")");
         }
-        if (executableFile.getAbsoluteFile().isDirectory()) {
+        if (executableAbsoluteFile.isDirectory()) {
             throw new InvalidUserDataException("The configured executable is a directory (" + executableFile.getAbsolutePath() + ")");
         }
-        return executableFile;
+        return executableAbsoluteFile;
     }
+
+    public static File resolveJavaHomeOfExecutable(String executable) {
+        // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
+        return resolveExecutable(executable).getParentFile().getParentFile();
+    }
+
 
     public static void validateExecutable(@Nullable String executable, String executableDescription, File referenceFile, String referenceDescription) {
         if (executable == null) {
@@ -54,17 +61,21 @@ public class JavaExecutableUtils {
         }
 
         File executableFile = resolveExecutable(executable);
-        if (executableFile.equals(referenceFile)) {
+        validateMatchingFiles(executableFile, executableDescription, referenceFile, referenceDescription);
+    }
+
+    public static void validateMatchingFiles(File customFile, String customDescription, File referenceFile, String referenceDescription) {
+        if (customFile.equals(referenceFile)) {
             return;
         }
 
-        File canonicalExecutableFile = canonicalFile(executableFile);
+        File canonicalCustomFile = canonicalFile(customFile);
         File canonicalReferenceFile = canonicalFile(referenceFile);
-        if (canonicalExecutableFile.equals(canonicalReferenceFile)) {
+        if (canonicalCustomFile.equals(canonicalReferenceFile)) {
             return;
         }
 
-        throw new IllegalStateException(executableDescription + " does not match " + referenceDescription + ".");
+        throw new IllegalStateException(customDescription + " does not match " + referenceDescription + ".");
     }
 
     private static File canonicalFile(File file) {
