@@ -227,7 +227,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         // of the component's API?
         String variantName = sourceSet.getName() + SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX;
 
-        Configuration variant = configurations.consumable(SOURCE_ELEMENTS_VARIANT_NAME);
+        Configuration variant = configurations.consumable(variantName);
         variant.setDescription("List of source directories contained in the Main SourceSet.");
         variant.setVisible(false);
         variant.extendsFrom(implementation);
