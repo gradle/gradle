@@ -48,7 +48,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
     final GradleDistribution otherVersion = new ReleasedVersionDistributions().mostRecentRelease
 
     TestFile projectDir
-//
+
     def setup() {
         projectDir = temporaryFolder.testDirectory
         // When adding support for a new JDK version, the previous release might not work with it yet.
@@ -64,7 +64,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
 
     def "tooling api uses to the current version of gradle when none has been specified"() {
-        projectDir.file('build.gradle') << "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
+        buildFile << "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
 
         when:
         GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
@@ -74,7 +74,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "tooling api output reports 'CONFIGURE SUCCESSFUL' for model requests"() {
-        projectDir.file('build.gradle') << "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
+        buildFile << "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
 
         when:
         def stdOut = new ByteArrayOutputStream()
@@ -126,7 +126,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "tooling api uses the wrapper properties to determine which version to use"() {
-        projectDir.file('build.gradle').text = """
+        buildFile << """
         wrapper {
             distributionUrl = '${otherVersion.binDistribution.toURI()}'
         }
@@ -148,8 +148,8 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "tooling api searches up from the project directory to find the wrapper properties"() {
-        projectDir.file('settings.gradle') << "include 'child'"
-        projectDir.file('build.gradle') << """
+        settingsFile << "include 'child'"
+        buildFile << """
         wrapper { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
         allprojects {
             task check { doLast { assert gradle.gradleVersion == '${otherVersion.version.version}' } }
@@ -171,7 +171,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can specify a gradle installation to use"() {
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
+        buildFile << "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
         toolingApi.withConnector { connector ->
@@ -184,7 +184,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can specify a gradle distribution to use"() {
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
+        buildFile << "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
         toolingApi.withConnector { connector ->
@@ -197,7 +197,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can specify a gradle version to use"() {
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
+        buildFile << "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
         toolingApi.withConnector { GradleConnector connector ->
@@ -212,7 +212,6 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-2419")
     def "tooling API does not hold JVM open"() {
         given:
-        def buildFile = projectDir.file("build.gradle")
         def startTimeoutMs = 90000
         def stateChangeTimeoutMs = 15000
         def stopTimeoutMs = 10000
