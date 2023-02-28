@@ -156,7 +156,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
             run.setClasspath(runtimeClasspath);
             run.getMainModule().set(pluginExtension.getMainModule());
             run.getMainClass().set(pluginExtension.getMainClass());
-            run.getJvmArguments().convention(pluginExtension.getApplicationDefaultJvmArgs());
+            run.getJvmArguments().convention(project.provider(pluginExtension::getApplicationDefaultJvmArgs));
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             run.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
