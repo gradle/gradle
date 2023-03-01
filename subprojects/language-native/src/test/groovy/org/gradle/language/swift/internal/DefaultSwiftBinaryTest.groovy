@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.provider.Provider
 import org.gradle.language.cpp.internal.NativeVariantIdentity
@@ -50,7 +51,7 @@ class DefaultSwiftBinaryTest extends Specification {
     def setup() {
         _ * configurations.resolvableBucket("swiftCompileDebug") >> compile
         _ * configurations.resolvableBucket("nativeLinkDebug") >> link
-        _ * configurations.resolvable("nativeRuntimeDebug") >> runtime
+        _ * configurations.createWithRole('nativeRuntimeDebug', ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE) >> runtime
 
         binary = new DefaultSwiftBinary(Names.of("mainDebug"), project.objects, project.taskDependencyFactory, Stub(Provider), false, Stub(FileCollection), configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
     }
