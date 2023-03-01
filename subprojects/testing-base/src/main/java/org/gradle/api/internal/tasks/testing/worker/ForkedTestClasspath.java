@@ -17,20 +17,29 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.File;
 import java.net.URL;
 
 /**
- * The classpath of a forked test process.
+ * The classpath of a forked test process, which includes both the application and implementation classpaths.
+ * User-defined classes are loaded by and executed in the context of the application classloader. This classloader
+ * contains classes from the {@code testRuntimeClasspath}. The implementation classpath includes classes required
+ * by Gradle's test framework integrations.
+ *
+ * <p>In some cases, classes from the application classpath may be accessed by the implementation classpath. These
+ * are specified by {@link WorkerProcessBuilder#sharedPackages}, but should likely be tracked in this class as well.</p>
+ *
+ * <p>This classpath is intended to be consumed by the {@link ForkingTestClassProcessor}.</p>
  */
-public class TestClasspath {
+public class ForkedTestClasspath {
     private final ImmutableList<File> applicationClasspath;
     private final ImmutableList<File> applicationModulepath;
     private final ImmutableList<URL> implementationClasspath;
     public final ImmutableList<URL> implementationModulepath;
 
-    public TestClasspath(
+    public ForkedTestClasspath(
         ImmutableList<File> applicationClasspath,
         ImmutableList<File> applicationModulepath,
         ImmutableList<URL> implementationClasspath,

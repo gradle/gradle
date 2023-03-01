@@ -38,7 +38,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final WorkerProcessFactory workerFactory;
     private final WorkerTestClassProcessorFactory processorFactory;
     private final JavaForkOptions options;
-    private final TestClasspath classpath;
+    private final ForkedTestClasspath classpath;
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final Lock lock = new ReentrantLock();
     private final WorkerThreadRegistry workerThreadRegistry;
@@ -54,7 +54,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         WorkerProcessFactory workerFactory,
         WorkerTestClassProcessorFactory processorFactory,
         JavaForkOptions options,
-        TestClasspath classpath,
+        ForkedTestClasspath classpath,
         Action<WorkerProcessBuilder> buildConfigAction,
         DocumentationRegistry documentationRegistry
     ) {

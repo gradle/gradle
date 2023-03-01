@@ -78,7 +78,7 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     @Override
-    public List<String> getTestWorkerApplicationModules() {
+    public List<String> getWorkerApplicationModulepathModuleNames() {
         return ImmutableList.of("junit-platform-engine", "junit-platform-launcher", "junit-platform-commons");
     }
 

@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.worker.TestClasspath;
+import org.gradle.api.internal.tasks.testing.worker.ForkedTestClasspath;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
@@ -36,25 +36,27 @@ import java.util.function.Function;
  * Constructs the application and implementation classpaths for a test process,
  * while also optionally loading test framework implementation dependencies from
  * the distribution.
+ *
+ * @see ForkedTestClasspath
  */
-public class TestClasspathFactory {
+public class ForkedTestClasspathFactory {
 
-    private static final Logger LOGGER = Logging.getLogger(TestClasspathFactory.class);
+    private static final Logger LOGGER = Logging.getLogger(ForkedTestClasspathFactory.class);
 
     private final ModuleRegistry moduleRegistry;
 
-    public TestClasspathFactory(ModuleRegistry moduleRegistry) {
+    public ForkedTestClasspathFactory(ModuleRegistry moduleRegistry) {
         this.moduleRegistry = moduleRegistry;
     }
 
-    public TestClasspath create(
+    public ForkedTestClasspath create(
         Iterable<? extends File> classpath,
         Iterable<? extends File> modulepath,
         TestFramework testFramework,
         boolean isModule
     ) {
         if (!testFramework.getUseDistributionDependencies()) {
-            return new TestClasspath(
+            return new ForkedTestClasspath(
                 ImmutableList.copyOf(classpath), ImmutableList.copyOf(modulepath),
                 withImplementation(ImmutableList.of()), ImmutableList.of()
             );
@@ -68,24 +70,24 @@ public class TestClasspathFactory {
         // TODO: Deprecate loading framework implementation modules from the distribution.
 
         if (isModule) {
-            return new TestClasspath(
-                pathWithAdditionalJars(classpath, testFramework.getTestWorkerApplicationClasses()),
-                pathWithAdditionalJars(modulepath, testFramework.getTestWorkerApplicationModules()),
-                withImplementation(loadDistributionUrls(testFramework.getTestWorkerImplementationClasses())),
-                loadDistributionUrls(testFramework.getTestWorkerImplementationModules())
+            return new ForkedTestClasspath(
+                pathWithAdditionalJars(classpath, testFramework.getWorkerApplicationClasspathModuleNames()),
+                pathWithAdditionalJars(modulepath, testFramework.getWorkerApplicationModulepathModuleNames()),
+                withImplementation(loadDistributionUrls(testFramework.getWorkerImplementationClasspathModuleNames())),
+                loadDistributionUrls(testFramework.getWorkerImplementationModulepathModuleNames())
             );
         } else {
             // For non-module tests, add all additional distribution jars to the classpath.
             List<String> additionalApplicationClasspath = ImmutableList.<String>builder()
-                .addAll(testFramework.getTestWorkerApplicationClasses())
-                .addAll(testFramework.getTestWorkerApplicationModules())
+                .addAll(testFramework.getWorkerApplicationClasspathModuleNames())
+                .addAll(testFramework.getWorkerApplicationModulepathModuleNames())
                 .build();
             List<String> additionalImplementationClasspath = ImmutableList.<String>builder()
-                .addAll(testFramework.getTestWorkerImplementationClasses())
-                .addAll(testFramework.getTestWorkerImplementationModules())
+                .addAll(testFramework.getWorkerImplementationClasspathModuleNames())
+                .addAll(testFramework.getWorkerImplementationModulepathModuleNames())
                 .build();
 
-            return new TestClasspath(
+            return new ForkedTestClasspath(
                 pathWithAdditionalJars(classpath, additionalApplicationClasspath),
                 ImmutableList.copyOf(modulepath),
                 withImplementation(loadDistributionUrls(additionalImplementationClasspath)),

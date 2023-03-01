@@ -32,7 +32,7 @@ import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassPr
 import org.gradle.api.internal.tasks.testing.processors.RunPreviousFailedFirstTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.worker.TestClasspath;
+import org.gradle.api.internal.tasks.testing.worker.ForkedTestClasspath;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
@@ -53,7 +53,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
 
     private final WorkerProcessFactory workerFactory;
     private final ActorFactory actorFactory;
-    private final TestClasspathFactory testClasspathFactory;
+    private final ForkedTestClasspathFactory testClasspathFactory;
     private final WorkerLeaseService workerLeaseService;
     private final int maxWorkerCount;
     private final Clock clock;
@@ -68,7 +68,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     ) {
         this.workerFactory = workerFactory;
         this.actorFactory = actorFactory;
-        this.testClasspathFactory = new TestClasspathFactory(moduleRegistry);
+        this.testClasspathFactory = new ForkedTestClasspathFactory(moduleRegistry);
         this.workerLeaseService = workerLeaseService;
         this.maxWorkerCount = maxWorkerCount;
         this.clock = clock;
@@ -81,7 +81,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final TestFramework testFramework = testExecutionSpec.getTestFramework();
         final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
 
-        TestClasspath classpath = testClasspathFactory.create(
+        ForkedTestClasspath classpath = testClasspathFactory.create(
             testExecutionSpec.getClasspath(), testExecutionSpec.getModulePath(),
             testFramework, testExecutionSpec.getTestIsModule()
         );
