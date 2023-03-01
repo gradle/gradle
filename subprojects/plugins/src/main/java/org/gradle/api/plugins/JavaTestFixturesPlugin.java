@@ -54,10 +54,11 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().withPlugin("java", plugin -> {
-            jvmEcosystemUtilities.createJvmVariant(TEST_FIXTURES_FEATURE_NAME, builder ->
-                builder
-                    .exposesApi()
-                    .published()
+            JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
+            SourceSet testFixturesSourceSet = extension.getSourceSets().maybeCreate(TEST_FIXTURES_FEATURE_NAME);
+
+            jvmEcosystemUtilities.createJvmVariant(TEST_FIXTURES_FEATURE_NAME, testFixturesSourceSet, builder ->
+                builder.published()
             );
             createImplicitTestFixturesDependencies(project);
         });
