@@ -481,8 +481,12 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             }
         '''
 
-        expect:
+        when:
+        executer.expectDocumentedDeprecationWarning("Configuring the test classpath by default for standalone Test tasks has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_default_classpath")
+        executer.expectDocumentedDeprecationWarning("Configuring the test classes dirs by default for standalone Test tasks has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_default_classpath")
         succeeds("mytest")
+
+        then:
         def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'build/test-results/mytest')
         unitTestResults.assertTestClassesExecuted('example.UnitTest')
     }

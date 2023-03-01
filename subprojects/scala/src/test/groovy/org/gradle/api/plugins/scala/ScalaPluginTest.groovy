@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.scala
 
 import org.gradle.api.file.FileCollectionMatchers
+import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
@@ -26,7 +27,7 @@ import org.gradle.util.TestUtil
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.internal.WrapUtil.toLinkedSet
-import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
 
 class ScalaPluginTest extends AbstractProjectBuilderSpec {
@@ -66,7 +67,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         task.description == 'Compiles the main Scala source.'
         task.classpath.files as List == [mainSourceSet.java.destinationDirectory.get().asFile]
         task.source as List == mainSourceSet.scala  as List
-        task dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME)
+        task dependsOn(JvmConstants.COMPILE_JAVA_TASK_NAME)
 
         def testTask = project.tasks['compileTestScala']
         def testSourceSet = project.sourceSets.test
@@ -79,7 +80,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
             testSourceSet.java.destinationDirectory.get().asFile,
         ]
         testTask.source as List == testSourceSet.scala as List
-        testTask dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME, 'compileScala')
+        testTask dependsOn(JvmConstants.COMPILE_TEST_JAVA_TASK_NAME, JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME, 'compileScala')
     }
 
     def "compile dependency to java compilation can be turned off by changing the compile task classpath"() {
@@ -94,7 +95,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         task  instanceof ScalaCompile
         task.classpath.files as List == []
         task.source as List == mainSourceSet.scala  as List
-        task not(dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME))
+        task not(dependsOn(JvmConstants.COMPILE_JAVA_TASK_NAME))
 
         def testTask = project.tasks['compileTestScala']
         testTask.setClasspath(project.sourceSets.test.compileClasspath)
@@ -107,8 +108,8 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
             mainSourceSet.output.resourcesDir
         ]
         testTask.source as List == testSourceSet.scala as List
-        testTask dependsOn(JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME, 'compileScala')
-        testTask not(dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME))
+        testTask dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME, 'compileScala')
+        testTask not(dependsOn(JvmConstants.COMPILE_TEST_JAVA_TASK_NAME))
     }
 
     def dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
@@ -116,11 +117,11 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         scalaPlugin.apply(project)
 
         then:
-        def task = project.tasks[JavaPlugin.CLASSES_TASK_NAME]
-        task dependsOn('compileScala', JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
+        def task = project.tasks[JvmConstants.CLASSES_TASK_NAME]
+        task dependsOn('compileScala', JvmConstants.COMPILE_JAVA_TASK_NAME, JvmConstants.PROCESS_RESOURCES_TASK_NAME)
 
-        def testTask = project.tasks[JavaPlugin.TEST_CLASSES_TASK_NAME]
-        testTask dependsOn('compileTestScala', JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, 'processTestResources')
+        def testTask = project.tasks[JvmConstants.TEST_CLASSES_TASK_NAME]
+        testTask dependsOn('compileTestScala', JvmConstants.COMPILE_TEST_JAVA_TASK_NAME, 'processTestResources')
     }
 
     def addsScalaDocTasksToTheProject() {
@@ -130,7 +131,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
         task instanceof ScalaDoc
-        task dependsOn(JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME, 'compileScala')
+        task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME, 'compileScala')
         task.destinationDir == project.file("$project.docsDir/scaladoc")
         task.source as List == project.sourceSets.main.scala as List // We take sources of main
         assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
@@ -143,7 +144,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def task = project.task('otherScaladoc', type: ScalaDoc)
-        task dependsOn(JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME, 'compileScala')
+        task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME, 'compileScala')
         assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
     }
 }

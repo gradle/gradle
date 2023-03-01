@@ -30,13 +30,14 @@ import org.gradle.api.attributes.TestSuiteTargetName;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 import org.gradle.util.internal.TextUtil;
@@ -73,14 +74,24 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
         ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
         testSuites.registerBinding(JvmTestSuite.class, DefaultJvmTestSuite.class);
 
-        // TODO: Deprecate this behavior?
-        // Why would any Test task created need to use the test source set's classes?
         project.getTasks().withType(Test.class).configureEach(test -> {
             // The test task may have already been created but the test sourceSet may not exist yet.
             // So defer looking up the java extension and sourceSet until the convention mapping is resolved.
             // See https://github.com/gradle/gradle/issues/18622
-            test.getConventionMapping().map("testClassesDirs", () -> JvmPluginsHelper.getDefaultTestSuite(project).getSources().getOutput().getClassesDirs());
-            test.getConventionMapping().map("classpath", () -> JvmPluginsHelper.getDefaultTestSuite(project).getSources().getRuntimeClasspath());
+            test.getConventionMapping().map("testClassesDirs", () -> {
+                DeprecationLogger.deprecate("Configuring the test classes dirs by default for standalone Test tasks")
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "test_task_default_classpath")
+                    .nagUser();
+                return JavaPluginHelper.getDefaultTestSuite(project).getSources().getOutput().getClassesDirs();
+            });
+            test.getConventionMapping().map("classpath", () -> {
+                DeprecationLogger.deprecate("Configuring the test classpath by default for standalone Test tasks")
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "test_task_default_classpath")
+                    .nagUser();
+                return JavaPluginHelper.getDefaultTestSuite(project).getSources().getRuntimeClasspath();
+            });
             test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
         });
 

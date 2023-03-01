@@ -100,6 +100,47 @@ intended for internal use and was never intended to be used as part of the publi
 
 Starting in Gradle 9.0, this method will be removed without replacement.
 
+[[test_task_default_classpath]]
+==== Relying on Test task default testClassesDirs and classpath
+
+By default, when applying the `JavaPlugin`, standalone `Test` tasks are configured such that their `testClassesDirs`
+and `classpath` mirror the corresponding values in the default `test` `TestSuite`. This behavior will be removed
+in Gradle 9.0.
+
+For most use cases, this existing default behavior is unnecessary, since most standalone test
+tasks are used to model separate test suites and thus run a separate set of tests than those
+of the default test task. For more information on how to properly configure a standalone test task
+to compile and run against a separate set of tests, see link:https://docs.gradle.org/current/userguide/java_testing.html#sec:configuring_java_integration_tests[Configuring integration tests].
+
+However, this existing default behavior can be restored for a given
+test named `myTestTask` with the following code:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.named<Test>("myTestTask") {
+    testClassesDirs = tasks.test.get().testClassesDirs
+    classpath = tasks.test.get().classpath
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.myTestTask {
+    testClassesDirs = tasks.test.testClassesDirs
+    classpath = tasks.test.classpath
+}
+----
+=====
+====
+
+
 [[gmm_modification_after_publication_populated]]
 ==== Modifying Gradle Module Metadata after a publication has been populated
 

@@ -68,14 +68,14 @@ public final class FinalizeBuildCacheConfigurationBuildOperationType implements 
             /**
              * The class name of the DSL configuration type.
              *
-             * e.g. {@link org.gradle.caching.local.DirectoryBuildCache}
+             * E.g. {@code org.gradle.caching.local.DirectoryBuildCache}.
              */
             String getClassName();
 
             /**
              * The human friendly description of the type (e.g. "HTTP", "directory")
              *
-             * @see org.gradle.caching.BuildCacheServiceFactory.Describer#type(String)
+             * See {@code org.gradle.caching.BuildCacheServiceFactory.Describer#type(String)}.
              */
             String getType();
 
@@ -89,7 +89,7 @@ public final class FinalizeBuildCacheConfigurationBuildOperationType implements 
              * No null values or keys.
              * Ordered by key lexicographically.
              *
-             * @see org.gradle.caching.BuildCacheServiceFactory.Describer#config(String, String)
+             * See {@code org.gradle.caching.BuildCacheServiceFactory.Describer#config(String, String)}.
              */
             Map<String, String> getConfig();
 

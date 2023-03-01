@@ -202,6 +202,11 @@ public final class JvmConstants {
      */
     public static final String JAVA_COMPONENT_NAME = "java";
 
+    /**
+     * Task group name for documentation-related tasks.
+     */
+    public static final String DOCUMENTATION_GROUP = "documentation";
+
     private JvmConstants() {
         // Private to prevent instantiation.
     }

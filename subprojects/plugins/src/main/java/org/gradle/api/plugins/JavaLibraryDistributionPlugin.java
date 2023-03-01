@@ -21,7 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 
 /**
@@ -37,7 +37,7 @@ public abstract class JavaLibraryDistributionPlugin implements Plugin<Project> {
 
         DistributionContainer distributionContainer = (DistributionContainer)project.getExtensions().getByName("distributions");
         distributionContainer.named(DistributionPlugin.MAIN_DISTRIBUTION_NAME).configure(dist -> {
-            JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
+            JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
             CopySpec childSpec = project.copySpec();
             childSpec.from(component.getMainJarTask());
             childSpec.from(project.file("src/dist"));
