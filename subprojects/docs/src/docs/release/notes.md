@@ -20,6 +20,7 @@ We would like to thank the following community members for their contributions t
 [Dzmitry Neviadomski](https://github.com/nevack),
 [Eliezer Graber](https://github.com/eygraber),
 [Fedor Ihnatkevich](https://github.com/Jeffset),
+[Gabriel Feo](https://github.com/gabrielfeo)
 [Gabriel Rodriguez](https://github.com/gabrielrodriguez2746),
 [Guruprasad Bagade](https://github.com/prasad-333),
 [Herbert von Broeuschmeul](https://github.com/HvB),
@@ -133,6 +134,10 @@ You can now use the `export-keys` flag to export all already trusted keys:
 ```
 
 For more information, see [Exporting keys](userguide/dependency_verification.html#sec:local-keyring).
+
+#### Build Init plugin incubating option changes
+
+When using the `init` task with the `--incubating` option, [parallel project execution](userguide/multi_project_configuration_and_execution.html#sec:parallel_execution) and [task output caching](userguide/build_cache.html) will be enabled for the generated project (by creating a `gradle.properties` file and setting the appropriate flags in it). 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
