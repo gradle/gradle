@@ -75,6 +75,10 @@ dependencies {
         because("The Groovy compiler inspects the dependencies at compile time")
     }
 
+    compileOnly(libs.futureKotlin("stdlib")) {
+        because("it needs to forward calls from instrumented code to the Kotlin standard library")
+    }
+
     testImplementation(project(":platform-jvm"))
     testImplementation(project(":testing-base"))
     testImplementation(project(":platform-native"))
@@ -114,6 +118,9 @@ dependencies {
     }
     testFixturesApi(project(":resources")) {
         because("test fixtures expose file resource types")
+    }
+    testFixturesApi(testFixtures(project(":persistent-cache"))) {
+        because("test fixtures expose cross-build cache factory")
     }
     testFixturesApi(project(":process-services")) {
         because("test fixtures expose exec handler types")
@@ -193,5 +200,10 @@ tasks.compileTestGroovy {
     groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
-testFilesCleanup.reportOnly.set(true)
+integTest.usesJavadocCodeSnippets = true
+testFilesCleanup.reportOnly = true
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}

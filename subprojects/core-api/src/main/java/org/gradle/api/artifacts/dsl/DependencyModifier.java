@@ -27,22 +27,36 @@ import org.gradle.api.provider.ProviderConvertible;
 import javax.inject.Inject;
 
 /**
- * Universal APIs that are available for all {@code dependencies} blocks.
+ * A {@code DependencyModifier} defines how to modify a dependency inside a custom {@code dependencies} block to select a different variant.
  *
- * This API is <strong>incubating</strong> and is likely to change until it's made stable.
- * These methods are not intended to be implemented by end users or plugin authors.
+ * @apiNote
+ * Gradle has specific extensions to make explicit calls to {@code modify(...)} unnecessary from the DSL.
+ * <ul>
+ * <li>For Groovy DSL, we create {@code call(...)} equivalents for all the {@code modify(...)} methods.</li>
+ * <li>For Kotlin DSL, we create {@code invoke(...)} equivalents for all the {@code modify(...)} methods.</li>
+ * </ul>
+ *
+ * @implSpec The default implementation of all methods should not be overridden except {@link #modify(ModuleDependency)}. This method must be implemented.
+ *
+ * @implNote All other implementations of {@code modify(...)} delegate to {@link #modify(ModuleDependency)}.
+ * <p>
+ * Changes to this interface may require changes to the
+ * {@link org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule extension module for Groovy DSL} or
+ * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL}.
  *
  * @since 8.0
  */
 @Incubating
 @NonExtensible
+@SuppressWarnings("JavadocReference")
 public interface DependencyModifier {
     /**
      * A dependency factory is used to convert supported dependency notations into {@link org.gradle.api.artifacts.Dependency} instances.
      *
      * @return a dependency factory
+     * @implSpec Do not implement this method. Gradle generates the implementation automatically.
+     *
      * @see DependencyFactory
-     * Do not implement this method.
      */
     @Inject
     DependencyFactory getDependencyFactory();
@@ -53,7 +67,6 @@ public interface DependencyModifier {
      * @param dependencyNotation the dependency notation
      * @return the modified dependency
      * @see DependencyFactory#create(CharSequence)
-     * Do not implement this method.
      */
     default ExternalModuleDependency modify(CharSequence dependencyNotation) {
         return modify(getDependencyFactory().create(dependencyNotation));
@@ -64,7 +77,6 @@ public interface DependencyModifier {
      *
      * @param providerConvertibleToDependency the provider
      * @return a provider to the modified dependency
-     * Do not implement this method.
      */
     default Provider<? extends MinimalExternalModuleDependency> modify(ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
         return providerConvertibleToDependency.asProvider().map(this::modify);
@@ -75,7 +87,6 @@ public interface DependencyModifier {
      *
      * @param providerToDependency the provider
      * @return a provider to the modified dependency
-     * Do not implement this method.
      */
     default <D extends ModuleDependency> Provider<D> modify(Provider<D> providerToDependency) {
         return providerToDependency.map(this::modify);
@@ -88,7 +99,7 @@ public interface DependencyModifier {
      * @param dependency the dependency to modify
      * @return the modified dependency
      * @param <D> the type of the {@link ModuleDependency}
-     * Implement this method.
+     * @implSpec This method must be implemented.
      */
     <D extends ModuleDependency> D modify(D dependency);
 }

@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -45,7 +46,7 @@ import java.io.File;
 import java.util.Map;
 
 @ServiceScope(Scopes.BuildTree.class)
-public class ProjectArtifactResolver implements ArtifactResolver {
+public class ProjectArtifactResolver implements ArtifactResolver, HoldsProjectState {
     private final Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts = Maps.newConcurrentMap();
     private final ProjectStateRegistry projectStateRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
@@ -64,7 +65,7 @@ public class ProjectArtifactResolver implements ArtifactResolver {
     public void resolveArtifact(ModuleVersionIdentifier ownerId, ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
         // NOTE: This isn't thread-safe because we're not locking around allResolvedArtifacts to ensure we're not inserting multiple resolvableArtifacts for
         // the same artifact id.
-        // 
+        //
         // This should be replaced by a computeIfAbsent(...) to be thread-safe and ensure there's only ever one DefaultResolvableArtifact created for a single id.
         // This is not thread-safe because of lock juggling that happens for project state. When calculating the dependencies for an IDEA model, we can easily
         // deadlock when there are multiple projects that need to be locked at the same time.
@@ -91,6 +92,11 @@ public class ProjectArtifactResolver implements ArtifactResolver {
         ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getComponentId();
         ProjectState projectState = projectStateRegistry.stateFor(projectId);
         return new ResolvingCalculator(projectState, projectArtifact);
+    }
+
+    @Override
+    public void discardAll() {
+        allResolvedArtifacts.clear();
     }
 
     private static class ResolvingCalculator implements ValueCalculator<File> {

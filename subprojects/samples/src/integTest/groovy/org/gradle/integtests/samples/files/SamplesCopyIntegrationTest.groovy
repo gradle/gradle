@@ -18,8 +18,11 @@ package org.gradle.integtests.samples.files
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -67,8 +70,6 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         given:
         def dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
-        def reportsDir = dslDir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
 
         when:
         succeeds('copyReport3')
@@ -236,6 +237,141 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dslDir.file('build/toArchive/metrics/plot.pdf').isFile()
         dslDir.file('build/toArchive/numbers-~16').isFile()
 
+        where:
+        dsl << ['groovy', 'kotlin']
+    }
+
+    @UsesSample("files/copy")
+    def "can use copy task with #dsl dsl"() {
+        given:
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+
+        when:
+        succeeds('copyTask')
+
+        then:
+        def outputDir = dslDir.file("build/explodedWar")
+        outputDir.file('web.xml').isFile()
+        outputDir.file('index-staging.html').isFile()
+        outputDir.file('products/gradle-staging.html').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
+    }
+
+    @UsesSample("files/copy")
+    def "can use copy task with patterns with #dsl dsl"() {
+        given:
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+
+        when:
+        succeeds('copyTaskWithPatterns')
+
+        then:
+        def outputDir = dslDir.file("build/explodedWar")
+        outputDir.file('web.xml').assertDoesNotExist()
+        outputDir.file('index-staging.html').isFile()
+        outputDir.file('products/gradle-staging.html').isFile()
+        outputDir.file('draft.html').assertDoesNotExist()
+
+        where:
+        dsl << ['groovy', 'kotlin']
+    }
+
+    @UsesSample("files/copy")
+    def "can use copy task with multiple from clauses with #dsl dsl"() {
+        given:
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+
+        when:
+        succeeds('anotherCopyTask')
+
+        then:
+        def outputDir = dslDir.file("some-dir")
+        outputDir.file('web.xml').isFile()
+        outputDir.file('index-staging.html').isFile()
+        outputDir.file('products/gradle-staging.html').isFile()
+        outputDir.file('asset1.txt').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
+    }
+
+    @UsesSample("files/copy")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/22536")
+    def "can use copy method in task with #dsl dsl"() {
+        given:
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+
+        when:
+        succeeds('copyMethod')
+
+        then:
+        def outputDir = dslDir.file("build/explodedWar")
+        outputDir.file('web.xml').assertDoesNotExist()
+        outputDir.file('index-staging.html').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
+    }
+
+    @UsesSample("files/copy")
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/22536")
+    def "can use copy method in task with outputs with #dsl dsl"() {
+        given:
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+
+        when:
+        succeeds('copyMethodWithExplicitDependencies')
+
+        then:
+        def outputDir = dslDir.file("some-dir")
+        outputDir.file('web.xml').isFile()
+        outputDir.file('index-staging.html').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
+    }
+
+    @UsesSample("files/copy")
+    @IgnoreIf({ TestPrecondition.CASE_INSENSITIVE_FS.fulfilled })
+    def "can use copy task with rename with #dsl dsl"() {
+        given:
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+
+        when:
+        succeeds('rename')
+
+        then:
+        def outputDir = dslDir.file("build/explodedWar")
+        outputDir.file('WEB.XML').isFile()
+        outputDir.file('index.html').assertDoesNotExist()
+        outputDir.file('index-staging.html').assertDoesNotExist()
+        outputDir.file('INDEX-STAGING.HTML').assertDoesNotExist()
+        outputDir.file('INDEX.HTML').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
+    }
+
+    @UsesSample("files/copy")
+    def "can use copy task with filter with #dsl dsl"() {
+        given:
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+
+        when:
+        succeeds('filter')
+
+        then:
+        def outputDir = dslDir.file("build/explodedWar")
+        outputDir.file("index-staging.html").text.contains(String.format("[Copyright 2009]%n[Version 2.3.1]"))
         where:
         dsl << ['groovy', 'kotlin']
     }

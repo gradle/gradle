@@ -121,6 +121,11 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact, Resolv
     }
 
     @Override
+    public IvyArtifactName getArtifactName() {
+        return artifact;
+    }
+
+    @Override
     public String getName() {
         return artifact.getName();
     }

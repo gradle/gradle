@@ -24,7 +24,7 @@ import spock.lang.Issue
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 
-class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
+class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "some/thing/App.java"
     public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.java"
@@ -86,7 +86,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixture.assertHasTestSuite("test")
 
         when:
-        succeeds('test')
+        run('test')
         then:
         assertTestPassed("some.thing.AppTest", "appHasAGreeting")
 

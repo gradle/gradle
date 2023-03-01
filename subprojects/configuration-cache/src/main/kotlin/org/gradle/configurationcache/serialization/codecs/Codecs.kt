@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.flow.FlowProviders
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
@@ -42,6 +43,7 @@ import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializ
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.configurationcache.serialization.codecs.transform.CalculateArtifactsCodec
 import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformationNodeCodec
+import org.gradle.configurationcache.serialization.codecs.transform.ComponentVariantIdentifierCodec
 import org.gradle.configurationcache.serialization.codecs.transform.DefaultTransformerCodec
 import org.gradle.configurationcache.serialization.codecs.transform.FinalizeTransformDependenciesNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.InitialTransformationNodeCodec
@@ -113,7 +115,8 @@ class Codecs(
     includedTaskGraph: BuildTreeWorkGraphController,
     buildStateRegistry: BuildStateRegistry,
     documentationRegistry: DocumentationRegistry,
-    javaSerializationEncodingLookup: JavaSerializationEncodingLookup
+    javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
+    flowProviders: FlowProviders,
 ) {
     private
     val userTypesBindings = Bindings.of {
@@ -123,13 +126,13 @@ class Codecs(
         baseTypes()
 
         bind(HASHCODE_SERIALIZER)
-        bind(BrokenValueCodec)
 
         providerTypes(
             propertyFactory,
             filePropertyFactory,
             valueSourceProviderFactory,
-            buildStateRegistry
+            buildStateRegistry,
+            flowProviders
         )
 
         bind(ListenerBroadcastCodec(listenerManager))
@@ -141,11 +144,13 @@ class Codecs(
 
         bind(ClosureCodec)
         bind(GroovyMetaClassCodec)
+        bind(SerializedLambdaParametersCheckingCodec)
 
         // Dependency management types
-        bind(ArtifactCollectionCodec(fileCollectionFactory, artifactSetConverter))
+        bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter))
         bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
         bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
+        bind(ComponentVariantIdentifierCodec)
         bind(InitialTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
         bind(ChainedTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
         bind(TransformationStepCodec(inputFingerprinter))
@@ -158,7 +163,7 @@ class Codecs(
         bind(TransformedExternalArtifactSetCodec())
         bind(CalculateArtifactsCodec(calculatedValueContainerFactory))
         bind(TransformedArtifactCodec(calculatedValueContainerFactory))
-        bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, fileCollectionFactory, calculatedValueContainerFactory))
+        bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, calculatedValueContainerFactory))
         bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
         bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
         bind(FinalizeTransformDependenciesNodeCodec())
@@ -210,7 +215,7 @@ class Codecs(
     val internalTypesBindings = Bindings.of {
         baseTypes()
 
-        providerTypes(propertyFactory, filePropertyFactory, valueSourceProviderFactory, buildStateRegistry)
+        providerTypes(propertyFactory, filePropertyFactory, valueSourceProviderFactory, buildStateRegistry, flowProviders)
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory)
 
         bind(TaskInAnotherBuildCodec(includedTaskGraph))
@@ -234,9 +239,10 @@ class Codecs(
         propertyFactory: PropertyFactory,
         filePropertyFactory: FilePropertyFactory,
         valueSourceProviderFactory: ValueSourceProviderFactory,
-        buildStateRegistry: BuildStateRegistry
+        buildStateRegistry: BuildStateRegistry,
+        flowProviders: FlowProviders
     ) {
-        val nestedCodec = FixedValueReplacingProviderCodec(valueSourceProviderFactory, buildStateRegistry)
+        val nestedCodec = FixedValueReplacingProviderCodec(valueSourceProviderFactory, buildStateRegistry, flowProviders)
         bind(ListPropertyCodec(propertyFactory, nestedCodec))
         bind(SetPropertyCodec(propertyFactory, nestedCodec))
         bind(MapPropertyCodec(propertyFactory, nestedCodec))
@@ -290,13 +296,13 @@ class Codecs(
         bind(copyOnWriteArrayListCodec)
         bind(ImmutableListCodec)
 
-        // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
+        // Only serialize certain Set implementations for now, as some custom types extend Set (e.g. DomainObjectContainer)
         bind(HashSetCodec)
         bind(treeSetCodec)
         bind(copyOnWriteArraySetCodec)
         bind(ImmutableSetCodec)
 
-        // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
+        // Only serialize certain Map implementations for now, as some custom types extend Map (e.g. DefaultManifest)
         bind(linkedHashMapCodec)
         bind(hashMapCodec)
         bind(treeMapCodec)

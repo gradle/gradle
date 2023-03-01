@@ -443,12 +443,11 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 org:a:1 -> org:b:1""")
 
         when:
-        resolve.config = "conf"
-        resolve.expectDefaultConfiguration("runtime")
-        resolve.prepare()
+        resolve.prepare("conf")
         run "checkDeps"
 
         then:
+        resolve.expectDefaultConfiguration("runtime")
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:a:1", "org:b:1") {

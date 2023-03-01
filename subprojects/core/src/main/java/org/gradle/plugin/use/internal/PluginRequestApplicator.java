@@ -22,6 +22,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.service.scopes.StatefulListener;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
@@ -41,6 +42,7 @@ public interface PluginRequestApplicator {
     void applyPlugins(PluginRequests requests, ScriptHandlerInternal scriptHandler, @Nullable PluginManagerInternal target, ClassLoaderScope classLoaderScope);
 
     @EventScope(Scopes.Build.class)
+    @StatefulListener
     interface PluginApplicationListener {
 
         void pluginApplied(PluginRequestInternal pluginRequest);

@@ -63,7 +63,7 @@ class ConfigurationCacheCrossVersionTest extends CrossVersionIntegrationSpec {
         runPrevious()
 
         then:
-        previousFixture.assertStateStored()
+        previousFixture.assertStateStored(previous.loadsFromConfigurationCacheAfterStore)
 
         when:
         runCurrent()
@@ -84,6 +84,6 @@ class ConfigurationCacheCrossVersionTest extends CrossVersionIntegrationSpec {
         runPrevious()
 
         then:
-        previousFixture.assertStateStored()
+        previousFixture.assertStateStored(previous.loadsFromConfigurationCacheAfterStore)
     }
 }

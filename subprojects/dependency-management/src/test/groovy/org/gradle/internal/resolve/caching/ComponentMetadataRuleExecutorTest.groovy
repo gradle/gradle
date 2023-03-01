@@ -32,9 +32,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorH
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.PersistentIndexedCache
+import org.gradle.cache.IndexedCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
-import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
@@ -61,14 +61,14 @@ import java.time.Duration
 class ComponentMetadataRuleExecutorTest extends Specification {
     @Subject
     ComponentMetadataRuleExecutor executor
-    GlobalScopedCache cacheRepository
+    GlobalScopedCacheBuilderFactory cacheBuilderFactory
     DefaultInMemoryCacheDecoratorFactory cacheDecoratorFactory
     ValueSnapshotter valueSnapshotter
     long time = 0
     BuildCommencedTimeProvider timeProvider = Stub(BuildCommencedTimeProvider) {
         getCurrentTime() >> { time }
     }
-    PersistentIndexedCache<ValueSnapshot, CrossBuildCachingRuleExecutor.CachedEntry<ModuleComponentResolveMetadata>> store = Mock()
+    IndexedCache<ValueSnapshot, CrossBuildCachingRuleExecutor.CachedEntry<ModuleComponentResolveMetadata>> store = Mock()
     Serializer<ModuleComponentResolveMetadata> serializer
     InstantiatingAction<ComponentMetadataContext> rule
     Transformer<ModuleComponentResolveMetadata, ComponentMetadataContext> detailsToResult
@@ -83,22 +83,22 @@ class ComponentMetadataRuleExecutorTest extends Specification {
             withLockOptions(_) >> { cacheBuilder }
             open() >> {
                 Mock(PersistentCache) {
-                    createCache(_) >> {
+                    createIndexedCache(_) >> {
                         store
                     }
                 }
             }
         }
-        cacheRepository = Mock()
+        cacheBuilderFactory = Mock()
         cacheDecoratorFactory = Mock()
-        cacheRepository.cache(_) >> cacheBuilder
+        cacheBuilderFactory.createCacheBuilder(_) >> cacheBuilder
         cacheDecoratorFactory.decorator(_, _) >> Mock(CacheDecorator)
         valueSnapshotter = Mock()
         serializer = Mock()
         cachePolicy = Mock()
         detailsToResult = Mock()
         onCacheMiss = Mock()
-        executor = new ComponentMetadataRuleExecutor(cacheRepository, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer)
+        executor = new ComponentMetadataRuleExecutor(cacheBuilderFactory, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer)
     }
 
     // Tests --refresh-dependencies behavior

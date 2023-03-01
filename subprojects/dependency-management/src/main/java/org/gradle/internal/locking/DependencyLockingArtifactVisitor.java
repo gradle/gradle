@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
-import org.gradle.internal.component.local.model.RootConfigurationMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 
 import java.util.Collections;
@@ -59,8 +58,7 @@ public class DependencyLockingArtifactVisitor implements ValidatingArtifactsVisi
 
     @Override
     public void startArtifacts(RootGraphNode root) {
-        RootConfigurationMetadata metadata = root.getMetadata();
-        dependencyLockingState = metadata.getDependencyLockingState();
+        dependencyLockingState = dependencyLockingProvider.loadLockState(configurationName);
         if (dependencyLockingState.mustValidateLockState()) {
             Set<ModuleComponentIdentifier> lockedModules = dependencyLockingState.getLockedDependencies();
             modulesToBeLocked = Maps.newHashMapWithExpectedSize(lockedModules.size());

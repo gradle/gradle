@@ -21,16 +21,19 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.TextUtil
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-import static org.gradle.testing.fixture.JUnitCoverage.*
+import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_VINTAGE_JUPITER
+import static org.gradle.testing.fixture.JUnitCoverage.getNEWEST
 import static org.hamcrest.CoreMatchers.equalTo
-
 /**
  * General tests for the JVM testing infrastructure that don't deserve their own test class.
  */
@@ -422,6 +425,26 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
         executedAndNotSkipped ":test"
         output.contains("FirstTest > test PASSED")
         !output.contains("SecondTest > test PASSED")
+    }
+
+    def "emits deprecation warning if executable specified as relative path"() {
+        given:
+        def executable = TextUtil.normaliseFileSeparators(Jvm.current().javaExecutable.toString())
+
+        buildFile << """
+            apply plugin:'java'
+            test {
+                executable = new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString()
+            }
+        """
+        when:
+        executer.expectDeprecationWarning("Configuring a Java executable via a relative path. " +
+                "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
+                "Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against. " +
+                "Configure an absolute path to a Java executable instead.")
+
+        then:
+        succeeds("test")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2661")

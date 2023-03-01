@@ -16,18 +16,20 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.internal.time.TimestampSuppliers
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.cache.internal.SingleDepthFilesFinder
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.internal.streams.DefaultValueStore
 import org.gradle.cache.internal.streams.ValueStore
-import org.gradle.cache.scopes.BuildTreeScopedCache
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
 import org.gradle.configurationcache.extensions.toDefaultLowerCase
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.internal.Factory
@@ -47,7 +49,7 @@ import java.nio.file.StandardCopyOption
 @ServiceScope(Scopes.BuildTree::class)
 internal
 class ConfigurationCacheRepository(
-    cacheRepository: BuildTreeScopedCache,
+    cacheBuilderFactory: BuildTreeScopedCacheBuilderFactory,
     cleanupActionDecorator: CleanupActionDecorator,
     private val fileAccessTimeJournal: FileAccessTimeJournal,
     private val fileSystem: FileSystem
@@ -200,8 +202,8 @@ class ConfigurationCacheRepository(
     val cleanupMaxAgeDays = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES
 
     private
-    val cache = cacheRepository
-        .crossVersionCache("configuration-cache")
+    val cache = cacheBuilderFactory
+        .createCrossVersionCacheBuilder("configuration-cache")
         .withDisplayName("Configuration Cache")
         .withOnDemandLockMode() // Don't need to lock anything until we use the caches
         .withLruCacheCleanup(cleanupActionDecorator)
@@ -213,12 +215,14 @@ class ConfigurationCacheRepository(
 
     private
     fun CacheBuilder.withLruCacheCleanup(cleanupActionDecorator: CleanupActionDecorator): CacheBuilder =
-        withCleanup(
-            cleanupActionDecorator.decorate(
-                LeastRecentlyUsedCacheCleanup(
-                    SingleDepthFilesFinder(cleanupDepth),
-                    fileAccessTimeJournal,
-                    { cleanupMaxAgeDays }
+        withCleanupStrategy(
+            DefaultCacheCleanupStrategy.from(
+                cleanupActionDecorator.decorate(
+                    LeastRecentlyUsedCacheCleanup(
+                        SingleDepthFilesFinder(cleanupDepth),
+                        fileAccessTimeJournal,
+                        TimestampSuppliers.daysAgo(cleanupMaxAgeDays)
+                    )
                 )
             )
         )

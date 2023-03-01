@@ -62,15 +62,13 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
     DefaultJvmPluginServices services = new DefaultJvmPluginServices(
         configurations,
         TestUtil.objectFactory(),
+        TestUtil.providerFactory(),
         tasks,
         softwareComponents,
         TestUtil.instantiatorFactory().decorateScheme().instantiator()
     )
 
     def setup() {
-        services.inject(
-            project,
-            sourceSets
-        )
+        services.inject(project)
     }
 }

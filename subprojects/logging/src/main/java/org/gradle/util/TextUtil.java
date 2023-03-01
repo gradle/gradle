@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
  * <p>
  * Plugins should prefer external frameworks over this class.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public class TextUtil {

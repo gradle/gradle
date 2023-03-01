@@ -106,6 +106,8 @@ public class LoggingTest {
 $junitSetup
 def test = tasks.named('test', Test)
 test.configure {
+    classpath = tasks.test.classpath
+    testClassesDirs = tasks.test.testClassesDirs
     ignoreFailures true
     useJUnit {
         excludeCategories 'org.gradle.testing.SuperClassTests'
@@ -114,6 +116,8 @@ test.configure {
 }
 
 def superTest = tasks.register('superTest', Test) {
+    classpath = tasks.test.classpath
+    testClassesDirs = tasks.test.testClassesDirs
     ignoreFailures true
     systemProperty 'category', 'super'
     useJUnit {
@@ -122,6 +126,8 @@ def superTest = tasks.register('superTest', Test) {
 }
 
 def subTest = tasks.register('subTest', Test) {
+    classpath = tasks.test.classpath
+    testClassesDirs = tasks.test.testClassesDirs
     ignoreFailures true
     systemProperty 'category', 'sub'
     useJUnit {
@@ -208,6 +214,7 @@ public class SubClassTests extends SuperClassTests {
 
             def otherTests = tasks.register('otherTests', Test) {
                 binaryResultsDirectory = file("bin")
+                classpath = files('blahClasspath')
                 testClassesDirs = files("blah")
             }
 
@@ -238,6 +245,7 @@ public class SubClassTests extends SuperClassTests {
              $junitSetup
             tasks.register('otherTests', Test) {
                 binaryResultsDirectory = file("bin")
+                classpath = files('blahClasspath')
                 testClassesDirs = files("blah")
             }
             tasks.register('testReport', TestReport) {
@@ -590,6 +598,7 @@ public class SubClassTests extends SuperClassTests {
             // Need a second test task to reportOn
             tasks.register('otherTests', Test) {
                 binaryResultsDirectory = file('otherBin')
+                classpath = files('otherClasspath')
                 testClassesDirs = files('otherClasses')
             }
             tasks.register('testReport', TestReport) {

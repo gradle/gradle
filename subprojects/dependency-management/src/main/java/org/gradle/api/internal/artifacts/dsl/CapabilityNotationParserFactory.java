@@ -19,20 +19,21 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class CapabilityNotationParserFactory implements Factory<NotationParser<Object, Capability>> {
-    private final static NotationParser<Object, Capability> STRICT_CONVERTER = createSingletonConverter(true);
-    private final static NotationParser<Object, Capability> LENIENT_CONVERTER = createSingletonConverter(false);
+    private final static CapabilityNotationParser STRICT_CONVERTER = createSingletonConverter(true);
+    private final static CapabilityNotationParser LENIENT_CONVERTER = createSingletonConverter(false);
 
     private final boolean versionIsRequired;
 
@@ -40,16 +41,27 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
         this.versionIsRequired = versionIsRequired;
     }
 
-    private static NotationParser<Object, Capability> createSingletonConverter(boolean strict) {
-        return NotationParserBuilder.toType(Capability.class)
+    private static CapabilityNotationParser createSingletonConverter(boolean strict) {
+        NotationParser<Object, Capability> parser = NotationParserBuilder.toType(Capability.class)
             .converter(new StringNotationParser(strict))
             .converter(strict ? new StrictCapabilityMapNotationParser() : new LenientCapabilityMapNotationParser())
             .toComposite();
+        return new CapabilityNotationParser() {
+            @Override
+            public Capability parseNotation(Object notation) throws TypeConversionException {
+                return parser.parseNotation(notation);
+            }
+
+            @Override
+            public void describe(DiagnosticsVisitor visitor) {
+                parser.describe(visitor);
+            }
+        };
     }
 
     @Nonnull
     @Override
-    public NotationParser<Object, Capability> create() {
+    public CapabilityNotationParser create() {
         // Currently the converter is stateless, doesn't need any external context, so for performance we return a singleton
         return versionIsRequired ? STRICT_CONVERTER : LENIENT_CONVERTER;
     }
@@ -77,7 +89,7 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
                 }
             }
             String version = parts.length == 3 ? parts[2] : null;
-            return new ImmutableCapability(parts[0], parts[1], version);
+            return new DefaultImmutableCapability(parts[0], parts[1], version);
         }
 
         private static void reportInvalidNotation(String notation) {
@@ -96,7 +108,7 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
         protected Capability parseMap(@MapKey("group") String group,
                                       @MapKey("name") String name,
                                       @MapKey("version") String version) {
-            return new ImmutableCapability(group, name, version);
+            return new DefaultImmutableCapability(group, name, version);
         }
     }
 
@@ -109,7 +121,7 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
         protected Capability parseMap(@MapKey("group") String group,
                                       @MapKey("name") String name,
                                       @MapKey("version") @Nullable String version) {
-            return new ImmutableCapability(group, name, version);
+            return new DefaultImmutableCapability(group, name, version);
         }
     }
 }

@@ -1,3 +1,4 @@
+import gradlebuild.capitalize
 import gradlebuild.incubation.tasks.IncubatingApiAggregateReportTask
 
 plugins {
@@ -14,13 +15,13 @@ val reports by configurations.creating {
 val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("allIncubationReports") {
     group = "verification"
     reports.from(resolver("txt"))
-    htmlReportFile.set(project.layout.buildDirectory.file("reports/incubation/all-incubating.html"))
+    htmlReportFile = project.layout.buildDirectory.file("reports/incubation/all-incubating.html")
 }
 
 tasks.register<Zip>("allIncubationReportsZip") {
     group = "verification"
-    destinationDirectory.set(layout.buildDirectory.dir("reports/incubation"))
-    archiveBaseName.set("incubating-apis")
+    destinationDirectory = layout.buildDirectory.dir("reports/incubation")
+    archiveBaseName = "incubating-apis"
     from(allIncubationReports.get().htmlReportFile)
     from(resolver("html"))
 }

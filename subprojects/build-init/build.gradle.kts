@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":file-collections"))
     implementation(project(":dependency-management"))
     implementation(project(":platform-base"))
+    implementation(project(":platform-jvm"))
     implementation(project(":platform-native"))
     implementation(project(":plugins"))
     implementation(project(":resources"))
@@ -27,6 +28,7 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
     implementation(libs.guava)
+    implementation(libs.gson)
     implementation(libs.commonsLang)
     implementation(libs.inject)
     implementation(libs.maven3SettingsBuilder)
@@ -58,4 +60,8 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+}
+
+packageCycles {
+    excludePatterns.add("org/gradle/api/tasks/wrapper/internal/*")
 }

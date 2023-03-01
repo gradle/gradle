@@ -85,7 +85,6 @@ public class ReleaseNotesTransformer extends FilterReader {
 
         wrapH2InSectionTopic(document);
         addAnchorsForHeadings(document);
-        document.body().prepend("<h3 class='releaseinfo'>Version @version@</h3>");
         document.body().prepend("<h1>Gradle Release Notes</h1>");
         addTOC(document);
         wrapContentInContainer(document);
@@ -160,13 +159,32 @@ public class ReleaseNotesTransformer extends FilterReader {
         tocSection.append("<h2>Table Of Contents</h2>");
         Element toc = tocSection.append("<ul class='toc'/>").children().last();
 
-        for (Element topic : document.body().select(".topic")) {
-            Element topicHeading = topic.select("h2").first();
-            String name = topicHeading.text();
-            String anchor = topicHeading.attr("id");
-            toc.append("<li><a/></li>").children().last().select("a").first().text(name).attr("href", "#" + anchor);
+        for (Element topic : document.body().select("h2")) {
+            String name = topic.text();
+            String anchor = topic.attr("id");
+            //Table of Content is repeated from above's h2 but this would put it in the wrong location. So print everything not starting with Tale
+            if(!name.startsWith("Table")){
+                toc.append("<li class=\"mainTopic\"><a/></li>").children().last().select("a").first().text(name).attr("href", "#" + anchor);
+            }
+
+            //If the heading is listed under the h2 starting with new then create an h3 indent in the TOC
+            if (name.startsWith("New")){
+                for (Element subTopic : document.body().select("h3")){
+                    String subname = subTopic.text();
+                    String subanchor = subTopic.attr("id");
+                    //Once we move to the next section go back to the normal indent
+                    if(subname.startsWith("Promoted")){
+                        break;
+                    }
+                    toc.append("<li class=\"subTopic\"><a/></li>").children().last().select("a").first().text(subname).attr("href", "#" + subanchor);
+
+                }
+
+            }
+            
         }
     }
+    
 
     private void addAnchorsForHeadings(Document document) {
         // add anchors for all of the headings

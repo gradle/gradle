@@ -16,6 +16,7 @@
 package org.gradle.api.component;
 
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 
 /**
@@ -30,19 +31,23 @@ public interface AdhocComponentWithVariants extends SoftwareComponent {
 
     /**
      * Declares an additional variant to publish, corresponding to an additional feature.
+     * <p>
+     * This can be used to determine if the variant should be published or not, and to configure various options specific to the publishing format.
      *
      * @param outgoingConfiguration the configuration corresponding to the variant to use as source of dependencies and artifacts
-     * @param action the action to execute in order to determine if a configuration variant should be published or not
+     * @param action action executed to configure the variant prior to publishing
      */
     void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action);
 
     /**
      * Further configure previously declared variants.
+     * <p>
+     * The action can be used to determine if the variant should be published or not, and to configure various options specific to the publishing
+     * format.  Note that if multiple actions are added, they are executed in the order they were added.
      *
-     * @param outgoingConfiguration the configuration corresponding to the variant to use as source of dependencies and artifacts
-     * @param action the action to execute in order to determine if a configuration variant should be published or not
-     *
-     * @since 6.0
+     * @param outgoingConfiguration the configuration corresponding to the variant to configure with a given action
+     * @param action an additional action to be executed to configure the variant prior to publishing
+     * @throws InvalidUserDataException if the specified variant was not already added to this component
      */
     void withVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action);
 

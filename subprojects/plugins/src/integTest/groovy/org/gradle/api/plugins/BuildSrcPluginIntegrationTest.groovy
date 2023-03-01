@@ -187,8 +187,7 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         then:
-        succeeds "help"
-        outputContains("Task :buildSrc:subInBuildSrc:compileJava")
+        succeeds ":buildSrc:subInBuildSrc:assemble"
     }
 
     private void writeBuildSrcPlugin(String location, String className) {

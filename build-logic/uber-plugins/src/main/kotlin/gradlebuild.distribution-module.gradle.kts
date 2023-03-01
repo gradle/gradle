@@ -17,6 +17,5 @@
 // Common configuration for everything that belongs to the Gradle distribution
 plugins {
     id("gradlebuild.java-library")
-    id("gradlebuild.api-parameter-names-index")
     id("gradlebuild.task-properties-validation")
 }

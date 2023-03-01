@@ -139,7 +139,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         then:
         taskGraphCalculations.size() == 3
         taskGraphCalculations[0].details.buildPath == ":buildSrc"
-        taskGraphCalculations[0].result.requestedTaskPaths == [":build"]
+        taskGraphCalculations[0].result.requestedTaskPaths == [":jar"]
         taskGraphCalculations[1].details.buildPath == ":"
         taskGraphCalculations[1].result.requestedTaskPaths == [":build"]
         taskGraphCalculations[2].details.buildPath == ":b"

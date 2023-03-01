@@ -24,9 +24,10 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.11.4") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.12.3") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("gradlebuild.internal.cc-experiment")
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
 }
 
 includeBuild("build-logic-commons")
@@ -144,12 +145,15 @@ include("enterprise-logging")
 include("enterprise-workers")
 include("build-operations")
 include("problems")
+include("instrumentation-agent")
 
 // Plugin portal projects
 include("kotlin-dsl-plugins")
 
 // Internal utility and verification projects
 include("docs")
+include("docs-asciidoctor-extensions-base")
+include("docs-asciidoctor-extensions")
 include("samples")
 include("architecture-test")
 include("internal-testing")
@@ -187,6 +191,6 @@ gradle.settingsEvaluated {
     }
 
     if (!JavaVersion.current().isJava11) {
-        throw GradleException("This build requires JDK 11. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck'.")
+        throw GradleException("This build requires JDK 11. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck=true'.")
     }
 }

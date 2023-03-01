@@ -21,12 +21,11 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.plugins.quality.CodeNarcReports;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.workers.WorkParameters;
 
 /**
  * Parameters used to configure a {@link CodeNarcAction}.
  */
-public interface CodeNarcActionParameters extends WorkParameters {
+public interface CodeNarcActionParameters extends AntWorkParameters {
 
     ConfigurableFileCollection getCompilationClasspath();
 

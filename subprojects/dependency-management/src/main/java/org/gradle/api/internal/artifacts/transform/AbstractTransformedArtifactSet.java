@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * Transformed artifact set that performs the transformation itself when visited.
  */
-public abstract class AbstractTransformedArtifactSet implements ResolvedArtifactSet, FileCollectionInternal.Source {
+public abstract class AbstractTransformedArtifactSet implements TransformedArtifactSet, FileCollectionInternal.Source {
     private final CalculatedValueContainer<ImmutableList<ResolvedArtifactSet.Artifacts>, CalculateArtifacts> result;
 
     public AbstractTransformedArtifactSet(
@@ -76,6 +76,7 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         // Calculate the artifacts now
         result.finalizeIfNotAlready();
         for (Artifacts artifacts : result.get()) {
+            artifacts.prepareForVisitingIfNotAlready();
             visitor.visitArtifacts(artifacts);
         }
         // Need to fire an "end collection" event. Should clean this up so it is not necessary

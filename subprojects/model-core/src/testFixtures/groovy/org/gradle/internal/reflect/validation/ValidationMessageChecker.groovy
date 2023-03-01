@@ -426,8 +426,8 @@ trait ValidationMessageChecker {
 
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
                                                                    String message,
-                                                                   String docId = 'more_about_tasks',
-                                                                   String section = 'sec:up_to_date_checks') {
+                                                                   String docId = "incremental_build",
+                                                                   String section = "") {
         String asSingleLine = convertToSingleLine(message)
         String deprecationMessage = asSingleLine + (asSingleLine.endsWith(" ") ? '' : ' ') +
             "This behavior has been deprecated. " +

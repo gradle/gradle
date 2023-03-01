@@ -38,7 +38,7 @@ import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.plugins.PublishingPlugin;
-import org.gradle.internal.component.external.model.DefaultShadowedCapability;
+import org.gradle.internal.component.external.model.ShadowedImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 
 import javax.inject.Inject;
@@ -117,7 +117,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
 
     private void createConfigurations(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
-        Capability enforcedCapability = new DefaultShadowedCapability(new ProjectDerivedCapability(project), "-derived-enforced-platform");
+        Capability enforcedCapability = new ShadowedImmutableCapability(new ProjectDerivedCapability(project), "-derived-enforced-platform");
 
         Configuration api = configurations.create(API_CONFIGURATION_NAME, AS_BUCKET);
         Configuration apiElements = createConsumableApi(project, configurations, api, API_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM);

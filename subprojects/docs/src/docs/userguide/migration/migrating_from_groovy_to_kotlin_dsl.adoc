@@ -163,8 +163,8 @@ Just like with the Groovy DSL, there are two ways to apply Gradle plugins:
 Here's an example using the declarative `plugins {}` block:
 
 ====
-include::sample[dir="snippets/kotlinDsl/applying-plugins-declarative/groovy",files="build.gradle[tags=script]"]
 include::sample[dir="snippets/kotlinDsl/applying-plugins-declarative/kotlin",files="build.gradle.kts[tags=script]"]
+include::sample[dir="snippets/kotlinDsl/applying-plugins-declarative/groovy",files="build.gradle[tags=script]"]
 ====
 
 The Kotlin DSL provides property extensions for all <<plugin_reference#plugin_reference,Gradle core plugins>>,
@@ -177,8 +177,8 @@ type-safe and will be autocompleted by your IDE.
 You can also use the imperative `apply` syntax, but then non-core plugins must be included on the classpath of the build script:
 
 ====
-include::sample[dir="snippets/kotlinDsl/applying-plugins-imperative/groovy",files="build.gradle[tags=script]"]
 include::sample[dir="snippets/kotlinDsl/applying-plugins-imperative/kotlin",files="build.gradle.kts[tags=script]"]
+include::sample[dir="snippets/kotlinDsl/applying-plugins-imperative/groovy",files="build.gradle[tags=script]"]
 ====
 
 [NOTE]
@@ -198,16 +198,16 @@ Many plugins come with extensions to configure them. If those plugins are applie
 The following sample shows how this works for the Jacoco Plugin.
 
 ====
-include::sample[dir="snippets/kotlinDsl/configuring-plugins-declaratively-applied/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/kotlinDsl/configuring-plugins-declaratively-applied/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/kotlinDsl/configuring-plugins-declaratively-applied/groovy",files="build.gradle[]"]
 ====
 
 By contrast, if you use the imperative `apply()` function to apply a plugin, then you will have to use the `configure<T>()` function to configure that plugin.
 The following sample shows how this works for the Checkstyle Plugin by explicitly declaring the plugin's extension class — `CheckstyleExtension` — in the `configure<T>()` function:
 
 ====
-include::sample[dir="snippets/kotlinDsl/configuring-plugins-imperatively-applied/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/kotlinDsl/configuring-plugins-imperatively-applied/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/kotlinDsl/configuring-plugins-imperatively-applied/groovy",files="build.gradle[]"]
 ====
 
 Again, we strongly recommend that you apply plugins declaratively via the `plugins {}` block.
@@ -265,8 +265,8 @@ The syntax for configuring tasks is where the Groovy and Kotlin DSLs start to di
 
 .In Kotlin, Tasks are namespaced into the `tasks` container
 ====
-include::sample[dir="snippets/kotlinDsl/configuring-tasks-basics/groovy",files="build.gradle[tags=namespace]"]
 include::sample[dir="snippets/kotlinDsl/configuring-tasks-basics/kotlin",files="build.gradle.kts[tags=namespace]"]
+include::sample[dir="snippets/kotlinDsl/configuring-tasks-basics/groovy",files="build.gradle[tags=namespace]"]
 ====
 
 Note that in Kotlin the `tasks.jar {}` notation leverage the configuration avoidance API and defer the configuration of the `jar` task.
@@ -275,8 +275,8 @@ If the type-safe task accessor `tasks.jar` isn't available, see the <<#configuri
 
 .Using the `tasks` container API
 ====
-include::sample[dir="snippets/kotlinDsl/configuring-tasks-basics/groovy",files="build.gradle[tags=using-api]"]
 include::sample[dir="snippets/kotlinDsl/configuring-tasks-basics/kotlin",files="build.gradle.kts[tags=using-api]"]
+include::sample[dir="snippets/kotlinDsl/configuring-tasks-basics/groovy",files="build.gradle[tags=using-api]"]
 ====
 
 Note that since Kotlin is a statically typed language, it is necessary to specify the type of the task explicitly. Otherwise, the script will not compile because the inferred type will be `Task`, not `Jar`, and the `archiveName` property is specific to the `Jar` task type.
@@ -285,8 +285,8 @@ If configuration avoidance is getting in your way migrating and you want to eage
 
 .Using the `tasks` container API for eager configuration
 ====
-include::sample[dir="snippets/kotlinDsl/configuring-tasks-basics/groovy",files="build.gradle[tags=using-eager-api]"]
 include::sample[dir="snippets/kotlinDsl/configuring-tasks-basics/kotlin",files="build.gradle.kts[tags=using-eager-api]"]
+include::sample[dir="snippets/kotlinDsl/configuring-tasks-basics/groovy",files="build.gradle[tags=using-eager-api]"]
 ====
 
 Working with containers in the Gradle Kotlin DSL is <<kotlin_dsl.adoc#kotdsl:containers,documented in detail here>>.
@@ -310,8 +310,8 @@ Let's bring all this together by running through a quick worked example that con
 
 .Configuring Spring Boot using type-safe accessors
 ====
-include::sample[dir="snippets/kotlinDsl/configuring-tasks-spring-boot/groovy",files="build.gradle[tags=accessors]"]
 include::sample[dir="snippets/kotlinDsl/configuring-tasks-spring-boot/kotlin",files="build.gradle.kts[tags=accessors]"]
+include::sample[dir="snippets/kotlinDsl/configuring-tasks-spring-boot/groovy",files="build.gradle[tags=accessors]"]
 ====
 
 This is pretty self explanatory.
@@ -343,8 +343,8 @@ Here's the resulting build script, complete with imports:
 
 .Configuring Spring Boot using the API
 ====
-include::sample[dir="snippets/kotlinDsl/configuring-tasks-spring-boot/groovy",files="build.gradle[tags=lazy]"]
 include::sample[dir="snippets/kotlinDsl/configuring-tasks-spring-boot/kotlin",files="build.gradle.kts[tags=lazy]"]
+include::sample[dir="snippets/kotlinDsl/configuring-tasks-spring-boot/groovy",files="build.gradle[tags=lazy]"]
 ====
 
 
@@ -354,8 +354,8 @@ Creating tasks can be done using the script top-level function named `task(...)`
 
 .Using the top-level `tasks(...)` function
 ====
-include::sample[dir="snippets/kotlinDsl/creating-tasks-project/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/kotlinDsl/creating-tasks-project/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/kotlinDsl/creating-tasks-project/groovy",files="build.gradle[]"]
 ====
 
 Note that the above eagerly configures the created task with both Groovy and Kotlin DSLs.
@@ -364,14 +364,14 @@ Registering or creating tasks can also be done on the `tasks` container, respect
 
 .Using the configuration avoidance API & DSL
 ====
-include::sample[dir="snippets/kotlinDsl/creating-tasks-lazy/groovy",files="build.gradle[tags=container-api]"]
 include::sample[dir="snippets/kotlinDsl/creating-tasks-lazy/kotlin",files="build.gradle.kts[tags=container-api]"]
+include::sample[dir="snippets/kotlinDsl/creating-tasks-lazy/groovy",files="build.gradle[tags=container-api]"]
 ====
 
 .Using the eager API & DSL
 ====
-include::sample[dir="snippets/kotlinDsl/creating-tasks-eager/groovy",files="build.gradle[tags=container-api]"]
 include::sample[dir="snippets/kotlinDsl/creating-tasks-eager/kotlin",files="build.gradle.kts[tags=container-api]"]
+include::sample[dir="snippets/kotlinDsl/creating-tasks-eager/groovy",files="build.gradle[tags=container-api]"]
 ====
 
 The samples above create untyped, ad-hoc tasks, but you will more commonly want to create tasks of a specific type.
@@ -380,14 +380,14 @@ Here's an example that creates a new task of type `Zip`:
 
 .Using the configuration avoidance API & DSL
 ====
-include::sample[dir="snippets/kotlinDsl/creating-tasks-lazy/groovy",files="build.gradle[tags=typed-container-api]"]
 include::sample[dir="snippets/kotlinDsl/creating-tasks-lazy/kotlin",files="build.gradle.kts[tags=typed-container-api]"]
+include::sample[dir="snippets/kotlinDsl/creating-tasks-lazy/groovy",files="build.gradle[tags=typed-container-api]"]
 ====
 
 .Using the eager API & DSL
 ====
-include::sample[dir="snippets/kotlinDsl/creating-tasks-eager/groovy",files="build.gradle[tags=typed-container-api]"]
 include::sample[dir="snippets/kotlinDsl/creating-tasks-eager/kotlin",files="build.gradle.kts[tags=typed-container-api]"]
+include::sample[dir="snippets/kotlinDsl/creating-tasks-eager/groovy",files="build.gradle[tags=typed-container-api]"]
 ====
 
 
@@ -397,8 +397,8 @@ include::sample[dir="snippets/kotlinDsl/creating-tasks-eager/kotlin",files="buil
 Declaring dependencies in existing configurations is similar to the way it's done in Groovy build scripts, as you can see in this example:
 
 ====
-include::sample[dir="snippets/kotlinDsl/configurations-and-dependencies-declarative/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/kotlinDsl/configurations-and-dependencies-declarative/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/kotlinDsl/configurations-and-dependencies-declarative/groovy",files="build.gradle[]"]
 ====
 
 Each configuration contributed by an applied plugin is also available as a member of the `configurations` container, so you can reference it just like any other configuration.
@@ -414,8 +414,8 @@ You can also use the `:kotlinDslAccessorsReport` task, which prints the Kotlin c
 Note that if you do not use the `plugins {}` block to apply your plugins, then you won't be able to configure the dependency configurations provided by those plugins in the usual way. Instead, you will have to use string literals for the configuration names, which means you won't get IDE support:
 
 ====
-include::sample[dir="snippets/kotlinDsl/configurations-and-dependencies-imperative/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/kotlinDsl/configurations-and-dependencies-imperative/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/kotlinDsl/configurations-and-dependencies-imperative/groovy",files="build.gradle[]"]
 ====
 
 This is just one more reason to use the `plugins {}` block whenever you can!
@@ -429,8 +429,8 @@ The following example declares two new configurations:
  * `integTestImplementation`, which is configured to extend the `testImplementation` configuration and to which we add a different dependency
 
 ====
-include::sample[dir="snippets/kotlinDsl/configurations-and-dependencies-custom/groovy",files="build.gradle[tags=custom]"]
 include::sample[dir="snippets/kotlinDsl/configurations-and-dependencies-custom/kotlin",files="build.gradle.kts[tags=delegated-properties]"]
+include::sample[dir="snippets/kotlinDsl/configurations-and-dependencies-custom/groovy",files="build.gradle[tags=custom]"]
 ====
 
 Note that we can only use the `db(...)` and `integTestImplementation(...)` notation within the `dependencies {}` block in the above example because both configurations are declared as delegated properties beforehand via the `creating()` method.
@@ -479,10 +479,10 @@ Utilizing the <<organizing_gradle_projects.adoc#sec:build_sources,_buildSrc_ pro
 
 Depending on your build structure you might be interested in the following user manual chapters:
 
-* The <<writing_build_scripts#writing_build_scripts>> chapter demonstrates the use of `apply(from = "")` to modularize build scripts.
-* The <<multi_project_builds#multi_project_builds>> chapter demonstrates various multi-project build structures.
-* The <<custom_plugins#custom_plugins>> and <<kotlin_dsl#kotlin_dsl>> chapters demonstrate how to develop custom Gradle plugins.
-* The <<composite_builds#composite_builds>> chapter demonstrates how to use Composite Builds.
+* The <<writing_build_scripts#writing_build_scripts,Writing Build Scripts>> chapter demonstrates the use of `apply(from = "")` to modularize build scripts.
+* The <<multi_project_builds#multi_project_builds,Multi-project Builds>> chapter demonstrates various multi-project build structures.
+* The <<custom_plugins#custom_plugins,Developing Custom Gradle Plugins>> and <<kotlin_dsl#kotlin_dsl,Gradle Kotlin DSL Primer>> chapters demonstrate how to develop custom Gradle plugins.
+* The <<composite_builds#composite_builds,Composing builds>> chapter demonstrates how to use Composite Builds.
 
 
 [[interop]]

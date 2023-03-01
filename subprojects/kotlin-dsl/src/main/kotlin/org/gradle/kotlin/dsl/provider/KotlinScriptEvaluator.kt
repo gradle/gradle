@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.provider
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -50,7 +51,7 @@ import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.snapshot.ValueSnapshot
-import org.gradle.kotlin.dsl.accessors.PluginAccessorClassPathGenerator
+import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.execution.CompiledScript
 import org.gradle.kotlin.dsl.execution.EvalOption
@@ -144,16 +145,20 @@ class StandardKotlinScriptEvaluator(
     }
 
     private
+    val jvmTarget: JavaVersion =
+        JavaVersion.current()
+
+    private
     val interpreter by lazy {
-        Interpreter(InterpreterHost())
+        Interpreter(InterpreterHost(jvmTarget))
     }
 
-    inner class InterpreterHost : Interpreter.Host {
+    inner class InterpreterHost(override val jvmTarget: JavaVersion) : Interpreter.Host {
 
-        override fun pluginAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
+        override fun stage1BlocksAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             (scriptHost.target as? ProjectInternal)?.let {
-                val pluginAccessorClassPathGenerator = it.serviceOf<PluginAccessorClassPathGenerator>()
-                pluginAccessorClassPathGenerator.pluginSpecBuildersClassPath(it).bin
+                val stage1BlocksAccessorClassPathGenerator = it.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
+                stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(it).bin
             } ?: ClassPath.EMPTY
 
         override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
@@ -233,16 +238,15 @@ class StandardKotlinScriptEvaluator(
 
         override fun cachedDirFor(
             scriptHost: KotlinScriptHost<*>,
-            templateId: String,
-            sourceHash: HashCode,
+            programId: ProgramId,
             compilationClassPath: ClassPath,
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
         ): File = try {
             executionEngineFor(scriptHost).createRequest(
                 CompileKotlinScript(
-                    templateId,
-                    sourceHash,
+                    jvmTarget,
+                    programId,
                     compilationClassPath,
                     accessorsClassPath,
                     initializer,
@@ -331,8 +335,8 @@ class StandardKotlinScriptEvaluator(
 
 internal
 class CompileKotlinScript(
-    private val templateId: String,
-    private val sourceHash: HashCode,
+    private val jvmTarget: JavaVersion,
+    private val programId: ProgramId,
     private val compilationClassPath: ClassPath,
     private val accessorsClassPath: ClassPath,
     private val compileTo: (File) -> Unit,
@@ -342,13 +346,25 @@ class CompileKotlinScript(
     private val inputFingerprinter: InputFingerprinter
 ) : UnitOfWork {
 
+    companion object {
+        const val ASSIGNMENT_OVERLOAD_ENABLED = "assignmentOverloadEnabled"
+        const val JVM_TARGET = "jvmTarget"
+        const val TEMPLATE_ID = "templateId"
+        const val SOURCE_HASH = "sourceHash"
+        const val COMPILATION_CLASS_PATH = "compilationClassPath"
+        const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
+        val IDENTITY_HASH__PROPERTIES = listOf(ASSIGNMENT_OVERLOAD_ENABLED, JVM_TARGET, TEMPLATE_ID, SOURCE_HASH, COMPILATION_CLASS_PATH, ACCESSORS_CLASS_PATH)
+    }
+
     override fun visitIdentityInputs(
         visitor: InputVisitor
     ) {
-        visitor.visitInputProperty("templateId") { templateId }
-        visitor.visitInputProperty("sourceHash") { sourceHash }
-        visitor.visitClassPathProperty("compilationClassPath", compilationClassPath)
-        visitor.visitClassPathProperty("accessorsClassPath", accessorsClassPath)
+        visitor.visitInputProperty(ASSIGNMENT_OVERLOAD_ENABLED) { programId.assignmentOverloadEnabled }
+        visitor.visitInputProperty(JVM_TARGET) { jvmTarget.majorVersion }
+        visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
+        visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
+        visitor.visitClassPathProperty(COMPILATION_CLASS_PATH, compilationClassPath)
+        visitor.visitClassPathProperty(ACCESSORS_CLASS_PATH, accessorsClassPath)
     }
 
     override fun visitOutputs(
@@ -368,7 +384,7 @@ class CompileKotlinScript(
         identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>
     ): UnitOfWork.Identity {
         val identityHash = newHasher().let { hasher ->
-            listOf("templateId", "sourceHash", "compilationClassPath", "accessorsClassPath").forEach {
+            IDENTITY_HASH__PROPERTIES.forEach {
                 requireNotNull(identityInputs[it]).appendToHasher(hasher)
             }
             hasher.hash().toString()
@@ -390,7 +406,7 @@ class CompileKotlinScript(
         }
 
     override fun getDisplayName(): String =
-        "Kotlin DSL script compilation ($templateId)"
+        "Kotlin DSL script compilation (${programId.templateId})"
 
     override fun loadAlreadyProducedOutput(workspace: File): Any =
         classesDir(workspace)

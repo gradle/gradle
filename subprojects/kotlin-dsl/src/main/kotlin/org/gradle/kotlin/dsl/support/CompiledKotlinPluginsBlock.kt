@@ -18,17 +18,21 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugin.use.PluginDependenciesSpec
 
 
 /**
- * Base class for `plugins` block evaluation.
+ * Base class for `plugins` block evaluation for any target.
  */
-open class CompiledKotlinPluginsBlock(val pluginDependencies: PluginDependenciesSpec) {
+open class CompiledKotlinPluginsBlock(
+    private val host: KotlinScriptHost<ExtensionAware>,
+    private val pluginDependencies: PluginDependenciesSpec,
+) {
 
-    inline fun plugins(configuration: PluginDependenciesSpec.() -> Unit) {
-        pluginDependencies.configuration()
+    fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
+        PluginDependenciesSpecScopeInternal(host.objectFactory, pluginDependencies).configuration()
     }
 }
 
@@ -51,7 +55,7 @@ open class CompiledKotlinSettingsPluginManagementBlock(
      * @see [Project.buildscript]
      */
     open fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        buildscript.configureWith(block)
+        ScriptHandlerScope(buildscript).block()
     }
 
     open fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
@@ -67,7 +71,7 @@ open class CompiledKotlinSettingsPluginManagementBlock(
  */
 @ImplicitReceiver(Project::class)
 open class CompiledKotlinBuildscriptAndPluginsBlock(
-    host: KotlinScriptHost<Project>,
+    private val host: KotlinScriptHost<Project>,
     private val pluginDependencies: PluginDependenciesSpec
 ) : CompiledKotlinBuildScript(host) {
 
@@ -77,10 +81,10 @@ open class CompiledKotlinBuildscriptAndPluginsBlock(
      * @see [Project.buildscript]
      */
     override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        buildscript.configureWith(block)
+        ScriptHandlerScopeInternal(host.target, buildscript).block()
     }
 
-    override fun plugins(block: PluginDependenciesSpec.() -> Unit) {
-        pluginDependencies.block()
+    override fun plugins(block: PluginDependenciesSpecScope.() -> Unit) {
+        PluginDependenciesSpecScopeInternal(host.objectFactory, pluginDependencies).block()
     }
 }

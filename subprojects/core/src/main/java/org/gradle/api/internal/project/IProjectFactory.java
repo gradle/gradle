@@ -19,6 +19,7 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
@@ -28,5 +29,13 @@ import javax.annotation.Nullable;
  */
 @ServiceScope(Scopes.Build.class)
 public interface IProjectFactory {
-    ProjectInternal createProject(GradleInternal gradle, ProjectDescriptor projectDescriptor, ProjectState owner, @Nullable ProjectInternal parent, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope);
+    ProjectInternal createProject(
+        GradleInternal gradle,
+        ProjectDescriptor projectDescriptor,
+        ProjectState owner,
+        @Nullable ProjectInternal parent,
+        ServiceRegistryFactory serviceRegistryFactory,
+        ClassLoaderScope selfClassLoaderScope,
+        ClassLoaderScope baseClassLoaderScope
+    );
 }
