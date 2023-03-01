@@ -152,7 +152,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
         CodeBlock.Builder scopes = CodeBlock.builder();
         boolean isFirstScope = true;
         if (callableKinds.contains(CallableKindInfo.GROOVY_PROPERTY)) {
-            scopes.add("$1T.readsOfPropertiesNamed($2S), $1T.methodsNamed($3S)", CALL_INTERCEPTOR_CLASS, name, "get" + TextUtil.capitalize(name));
+            scopes.add("$1T.readsOfPropertiesNamed($2S), $1T.methodsNamed($3S)", INTERCEPTED_SCOPE_CLASS, name, "get" + TextUtil.capitalize(name));
             isFirstScope = false;
         }
         if (callableKinds.contains(CallableKindInfo.STATIC_METHOD) | callableKinds.contains(CallableKindInfo.INSTANCE_METHOD)) {
