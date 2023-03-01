@@ -1094,3 +1094,13 @@ include::sample[dir="snippets/configurationCache/topLevel/kotlin",files="build.g
 <2> Define the variable in a smaller scope.
 
 See link:{gradle-issues}22879[gradle/gradle#22879].
+
+[[config_cache:not_yet_implemented:build_services_in_fingerprint]]
+=== Using build services to invalidate the configuration cache
+
+Currently, it is not possible to use a `BuildServiceProvider` or provider derived of it with `map` or `flatMap` as a parameter for the `ValueSource`, if the value of the `ValueSource` is accessed at configuration time.
+The same applies such `ValueSource` is obtained in a task that executes as part of configuration phase, for example tasks of the `buildSrc` build or included builds contributing plugins.
+Note that using a `@ServiceReference` or storing `BuildServiceProvider` in an `@Internal`-annotated property of a task is safe.
+Generally speaking, this limitation makes it impossible to use a `BuildService` to invalidate the configuration cache.
+
+See link:{gradle-issues}24085[gradle/gradle#24085].
