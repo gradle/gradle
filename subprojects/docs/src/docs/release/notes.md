@@ -97,6 +97,15 @@ ADD RELEASE FEATURES ABOVE
 
 -->
 
+## Tooling API improvements
+
+- [Build launched via TAPI ignores logger level settings of target build](https://github.com/gradle/gradle/issues/19340)
+
+  `org.gradle.logging.loglevel` settings in `gradle.properties` are now recognized when a build is executed with the Tooling API.
+  This was a problem caused executions triggered from within the IDE to ignore loglevel settings in `gradle.properties`. 
+  A workaround had to be implemented. This workaround can be avoid from 8.1 onwards.  
+
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -110,10 +119,9 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
-- [Build launched via TAPI ignores logger level settings of target build](https://github.com/gradle/gradle/issues/19340) 
-  
-  `org.gradle.logging.loglevel` settings in `gradle.properties` are now recognized when a build is executed with the Tooling API
-
+<!--
+This section will be populated automatically
+-->
 
 ## Known issues
 
