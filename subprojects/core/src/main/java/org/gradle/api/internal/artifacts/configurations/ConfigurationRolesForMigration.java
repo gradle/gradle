@@ -16,12 +16,19 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.base.Preconditions;
+
 /**
  * The roles here are all meant to be temporary roles used for migration only, to be removed in Gradle 9.0.
  * <p>
  * While we currently (Gradle 8.x) have to support the legacy behavior of configurations, we want to encode
  * the knowledge of what the minimally required intended behavior is, so that we easily migrate to the
  * {@link #eventualRole} in Gradle 9.0.
+ * <p>
+ * This is meant to only support <strong>narrowing migrations</strong>, that restrict usage that was previously
+ * allowed.  The migrations should transition from an intended role in the {@link ConfigurationRoles} enum to
+ * another intended role in the {@link ConfigurationRoles} enum.  This is <strong>not</strong> meant to support
+ * general-case migrations from any usage pattern to any other.
  */
 public enum ConfigurationRolesForMigration implements ConfigurationRole {
     @Deprecated
@@ -44,19 +51,21 @@ public enum ConfigurationRolesForMigration implements ConfigurationRole {
     private final ConfigurationRole initialRole;
     private final ConfigurationRole eventualRole;
 
-    ConfigurationRolesForMigration(ConfigurationRole initialRole, ConfigurationRole eventualRole) {
+    ConfigurationRolesForMigration(ConfigurationRoles initialRole, ConfigurationRoles eventualRole) {
+        Preconditions.checkArgument(!initialRole.isConsumptionDeprecated() && !initialRole.isResolutionDeprecated() && !initialRole.isDeclarationAgainstDeprecated(), "The initial role must not contain deprecated usages.");
+
         this.consumable = initialRole.isConsumable();
         this.resolvable = initialRole.isResolvable();
         this.declarableAgainst = initialRole.isDeclarableAgainst();
 
         /*
-         * For each usage, we'll use the deprecation status from the initial role if it is deprecated.  If it is NOT initially
-         * deprecated, but the usage will change from allowed -> disallowed when migrating from the initial role to the
-         * eventual role, then we'll also want to mark the usage as deprecated.
+         * Since we're assuming strictly narrowing usage from a non-deprecated initial role, for each usage we want this migration
+         * role to deprecate a usage iff that usage will change from allowed -> disallowed when migrating from the initial role to the
+         * eventual role.
          */
-        this.consumptionDeprecated = initialRole.isConsumptionDeprecated() || (initialRole.isConsumable() && !eventualRole.isConsumable());
-        this.resolutionDeprecated = initialRole.isResolutionDeprecated() || (initialRole.isResolvable() && !eventualRole.isResolvable());
-        this.declarationAgainstDeprecated = initialRole.isDeclarationAgainstDeprecated() || (initialRole.isDeclarableAgainst() && !eventualRole.isDeclarableAgainst());
+        this.consumptionDeprecated = initialRole.isConsumable() && !eventualRole.isConsumable();
+        this.resolutionDeprecated = initialRole.isResolvable() && !eventualRole.isResolvable();
+        this.declarationAgainstDeprecated = initialRole.isDeclarableAgainst() && !eventualRole.isDeclarableAgainst();
 
         this.initialRole = initialRole;
         this.eventualRole = eventualRole;
