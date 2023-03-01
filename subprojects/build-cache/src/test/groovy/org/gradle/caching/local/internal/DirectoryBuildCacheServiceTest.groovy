@@ -52,11 +52,6 @@ class DirectoryBuildCacheServiceTest extends Specification {
         when:
         service.store(key, new BuildCacheEntryWriter() {
             @Override
-            InputStream openStream() throws IOException {
-                throw new UnsupportedOperationException()
-            }
-
-            @Override
             void writeTo(OutputStream output) throws IOException {
                 // Check that partial result file is created inside the cache directory
                 def cacheDirFiles = cacheDir.listFiles()
@@ -112,11 +107,6 @@ class DirectoryBuildCacheServiceTest extends Specification {
 
         when:
         service.store(key, new BuildCacheEntryWriter() {
-            @Override
-            InputStream openStream() throws IOException {
-                throw new UnsupportedOperationException()
-            }
-
             @Override
             void writeTo(OutputStream output) throws IOException {
                 output.write("foo".getBytes())

@@ -82,19 +82,6 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
     }
 
     @Override
-    public boolean contains(BuildCacheKey key) {
-        // We need to lock other processes out here because garbage collection can be under way in another process
-        return persistentCache.withFileLock(() -> {
-            lock.readLock().lock();
-            try {
-                return fileStore.get(key.getHashCode()) != null;
-            } finally {
-                lock.readLock().unlock();
-            }
-        });
-    }
-
-    @Override
     public boolean load(final BuildCacheKey key, final BuildCacheEntryReader reader) throws BuildCacheException {
         LoadAction loadAction = new LoadAction(reader);
         loadLocally(key, loadAction);
