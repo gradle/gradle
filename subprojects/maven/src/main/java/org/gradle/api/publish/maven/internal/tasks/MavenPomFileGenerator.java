@@ -271,13 +271,15 @@ public class MavenPomFileGenerator {
         addDependencyManagement((MavenDependencyInternal) dependency, "import");
     }
 
+    public void addOptionalRuntimeDependency(MavenDependencyInternal optionalDependency) {
+        addDependency(optionalDependency, "runtime", true);
+    }
+
     public void addRuntimeDependency(MavenDependencyInternal dependency) {
         addDependency(dependency, "runtime");
     }
 
-    public void addOptionalDependency(MavenDependencyInternal optionalDependency) {
-        // For Maven we don't really know if an optional dependency is required for runtime or compile
-        // so we use the safest: compile
+    public void addOptionalApiDependency(MavenDependencyInternal optionalDependency) {
         addDependency(optionalDependency, "compile", true);
     }
 

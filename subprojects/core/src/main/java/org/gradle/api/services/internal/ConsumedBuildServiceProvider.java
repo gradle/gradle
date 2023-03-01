@@ -17,6 +17,7 @@
 package org.gradle.api.services.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistration;
@@ -24,6 +25,7 @@ import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.service.ServiceRegistry;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -34,7 +36,7 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     private final String serviceName;
     private final Class<T> serviceType;
     private final BuildIdentifier buildIdentifier;
-    private volatile BuildServiceProvider<T, BuildServiceParameters> resolvedProvider;
+    private volatile RegisteredBuildServiceProvider<T, BuildServiceParameters> resolvedProvider;
 
     public ConsumedBuildServiceProvider(
         BuildIdentifier buildIdentifier,
@@ -50,7 +52,7 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-        BuildServiceProvider<T, ?> resolvedProvider = resolve();
+        RegisteredBuildServiceProvider<T, ?> resolvedProvider = resolve();
         if (resolvedProvider == null) {
             return Value.missing();
         }
@@ -58,10 +60,10 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     }
 
     @Nullable
-    private BuildServiceProvider<T, BuildServiceParameters> resolve() {
+    private RegisteredBuildServiceProvider<T, BuildServiceParameters> resolve() {
         if (resolvedProvider == null) {
             BuildServiceRegistry buildServiceRegistry = internalServices.get(BuildServiceRegistry.class);
-            BuildServiceRegistration<?, ?> registration = ((BuildServiceRegistryInternal) buildServiceRegistry).findByName(serviceName);
+            BuildServiceRegistration<?, ?> registration = ((BuildServiceRegistryInternal) buildServiceRegistry).findRegistration(this.getType(), this.getName());
             if (registration == null) {
                 return null;
             }
@@ -71,7 +73,7 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
         return resolvedProvider;
     }
 
-    @Nullable
+    @Nonnull
     @Override
     public Class<T> getType() {
         return serviceType;
@@ -90,5 +92,16 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     public BuildServiceDetails<T, BuildServiceParameters> getServiceDetails() {
         BuildServiceProvider<T, BuildServiceParameters> resolvedProvider = resolve();
         return resolvedProvider != null ? resolvedProvider.getServiceDetails() : new BuildServiceDetails<>(buildIdentifier, serviceName, serviceType);
+    }
+
+    @Override
+    public ProviderInternal<T> withFinalValue(ValueConsumer consumer) {
+        RegisteredBuildServiceProvider<T, BuildServiceParameters> resolved = resolve();
+        return resolved != null ? resolved.withFinalValue(consumer) : super.withFinalValue(consumer);
+    }
+
+    @Override
+    public boolean calculatePresence(ValueConsumer consumer) {
+        return resolve() != null;
     }
 }

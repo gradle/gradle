@@ -39,7 +39,7 @@ import org.gradle.internal.HasInternalProtocol;
 public interface MavenPom {
 
     /**
-     * Returns the packaging for the publication represented by this POM.
+     * Returns the packaging (for example: jar, war) for the publication represented by this POM.
      */
     String getPackaging();
 
@@ -56,21 +56,21 @@ public interface MavenPom {
     Property<String> getName();
 
     /**
-     * The description for the publication represented by this POM.
+     * A short, human-readable description for the publication represented by this POM.
      *
      * @since 4.8
      */
     Property<String> getDescription();
 
     /**
-     * The URL for the publication represented by this POM.
+     * The URL of the home page for the project producing the publication represented by this POM.
      *
      * @since 4.8
      */
     Property<String> getUrl();
 
     /**
-     * The year of the inception for the publication represented by this POM.
+     * The year the project producing the publication represented by this POM was first created.
      *
      * @since 4.8
      */

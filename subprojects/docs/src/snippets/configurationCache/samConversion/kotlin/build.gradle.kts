@@ -15,7 +15,7 @@
  */
 
 plugins {
-    kotlin("jvm") version "1.7.10"
+    kotlin("jvm") version "1.8.10"
 }
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -26,6 +26,6 @@ repositories {
 
 // tag::configure[]
 tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions.freeCompilerArgs += "-Xsam-conversions=class"
+    compilerOptions.freeCompilerArgs.add("-Xsam-conversions=class")
 }
 // tag::configure[]

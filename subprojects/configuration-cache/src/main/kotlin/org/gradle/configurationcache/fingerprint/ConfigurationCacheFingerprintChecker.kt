@@ -22,13 +22,16 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.configurationcache.CheckedFingerprint
+import org.gradle.configurationcache.extensions.fileSystemEntryType
 import org.gradle.configurationcache.extensions.filterKeysByPrefix
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.ReadContext
+import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.util.NumberUtil.ordinal
 import org.gradle.util.Path
 import java.io.File
+import java.net.URI
 import java.util.function.Consumer
 
 
@@ -45,11 +48,14 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val invalidateCoupledProjects: Boolean
+        val instrumentationAgentUsed: Boolean
         fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
+        fun hashCodeOfDirectoryContent(file: File): HashCode?
         fun displayNameOf(fileOrDirectory: File): String
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
+        fun isRemoteScriptUpToDate(uri: URI): Boolean
     }
 
     suspend fun ReadContext.checkBuildScopedFingerprint(): CheckedFingerprint {
@@ -152,6 +158,22 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     return "file '${displayNameOf(file)}' has changed"
                 }
             }
+            is ConfigurationCacheFingerprint.DirectoryChildren -> input.run {
+                if (hasDirectoryChanged(file, hash)) {
+                    return "directory '${displayNameOf(file)}' has changed"
+                }
+            }
+            is ConfigurationCacheFingerprint.InputFileSystemEntry -> input.run {
+                val newType = fileSystemEntryType(file)
+                if (newType != fileType) {
+                    val prefix = "the file system entry '${displayNameOf(file)}'"
+                    return when {
+                        newType == FileType.Missing -> return "$prefix has been removed"
+                        fileType == FileType.Missing -> return "$prefix has been created"
+                        else -> "$prefix has changed"
+                    }
+                }
+            }
             is ConfigurationCacheFingerprint.ValueSource -> input.run {
                 val reason = checkFingerprintValueIsUpToDate(obtainedValue)
                 if (reason != null) return reason
@@ -175,6 +197,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     return reason
                 }
             }
+            is ConfigurationCacheFingerprint.RemoteScript -> input.run {
+                if (!host.isRemoteScriptUpToDate(uri)) {
+                    return "remote script $uri has changed"
+                }
+            }
             is ConfigurationCacheFingerprint.GradleEnvironment -> input.run {
                 if (host.gradleUserHomeDir != gradleUserHomeDir) {
                     return "Gradle user home directory has changed"
@@ -184,6 +211,13 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
                 if (host.startParameterProperties != startParameterProperties) {
                     return "the set of Gradle properties has changed"
+                }
+                if (host.instrumentationAgentUsed != instrumentationAgentUsed) {
+                    val statusChangeString = when (instrumentationAgentUsed) {
+                        true -> "is no longer available"
+                        false -> "is now applied"
+                    }
+                    return "the instrumentation Java agent $statusChangeString"
                 }
             }
             is ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy -> input.run {
@@ -258,11 +292,15 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     }
 
     private
-    fun hasFileChanged(file: File, originalHash: HashCode?) =
+    fun hasFileChanged(file: File, originalHash: HashCode) =
         !isUpToDate(file, originalHash)
 
     private
-    fun isUpToDate(file: File, originalHash: HashCode?) =
+    fun hasDirectoryChanged(file: File, originalHash: HashCode?) =
+        host.hashCodeOfDirectoryContent(file) != originalHash
+
+    private
+    fun isUpToDate(file: File, originalHash: HashCode) =
         host.hashCodeOf(file) == originalHash
 
     private

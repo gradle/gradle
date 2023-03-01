@@ -42,8 +42,7 @@ class JvmVariantBuilderIntegrationTest extends AbstractIntegrationSpec {
 
             ${mavenCentralRepository()}
 
-            jvm.createJvmVariant("integTest") {
-            }
+            jvm.createJvmVariant("integTest", sourceSets.create("integTest")) {}
 
             configurations {
                 integTestImplementation.extendsFrom(testImplementation)
@@ -84,16 +83,15 @@ class JvmVariantBuilderIntegrationTest extends AbstractIntegrationSpec {
      * similar to "test fixtures" but where the fixtures are only
      * available to integration tests
      */
-    @Unroll("can register integration test fixtures (exposeApi=#exposeApi, published=#published, javadocs=#javadocs, sources=#sources)")
+    @Unroll("can register integration test fixtures (published=#published, javadocs=#javadocs, sources=#sources)")
     def "can register integration test fixtures"() {
         buildFile << """
             sourceSets {
                 integTestFixtures
             }
-            jvm.createJvmVariant("integTestFixtures") {
+            jvm.createJvmVariant("integTestFixtures", sourceSets.integTestFixtures) {
                 distinctCapability()
                 withDisplayName("Integration test fixtures")
-                if ($exposeApi) { exposesApi() }
                 if ($published) { published() }
                 if ($javadocs) { withJavadocJar() }
                 if ($sources) { withSourcesJar() }
@@ -133,21 +131,13 @@ class JvmVariantBuilderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ":compileIntegTestFixturesJava", ":compileIntegTestJava"
-        if (exposeApi) {
-            notExecuted ":integTestFixturesJar"
-        } else {
-            executedAndNotSkipped ":integTestFixturesJar"
-        }
+        notExecuted ":integTestFixturesJar"
 
         when:
         succeeds ":integTest"
 
         then:
-        if (exposeApi) {
-            executedAndNotSkipped ":integTestFixturesJar"
-        } else {
-            skipped ":integTestFixturesJar"
-        }
+        executedAndNotSkipped ":integTestFixturesJar"
 
         when:
         succeeds ':publishMavenPublicationToMavenRepository'
@@ -179,12 +169,10 @@ class JvmVariantBuilderIntegrationTest extends AbstractIntegrationSpec {
                 file("mylib-1.4-integ-test-fixtures.jar")
                 noMoreDependencies()
             }
-            if (exposeApi) {
-                md.variant('integTestFixturesApiElements') {
-                    capability('com.acme', 'mylib-integ-test-fixtures', '1.4')
-                    file("mylib-1.4-integ-test-fixtures.jar")
-                    noMoreDependencies()
-                }
+            md.variant('integTestFixturesApiElements') {
+                capability('com.acme', 'mylib-integ-test-fixtures', '1.4')
+                file("mylib-1.4-integ-test-fixtures.jar")
+                noMoreDependencies()
             }
             if (javadocs) {
                 md.variant('integTestFixturesJavadocElements') {
@@ -203,14 +191,11 @@ class JvmVariantBuilderIntegrationTest extends AbstractIntegrationSpec {
         }
 
         where:
-        exposeApi | published | javadocs | sources
-        false     | false     | false    | false
-        true      | false     | false    | false
-        false     | true      | false    | false
-        true      | true      | false    | false
-        false     | true      | true     | false
-        false     | true      | false    | true
-        false     | true      | true     | true
-
+        published | javadocs | sources
+        false     | false    | false
+        true      | false    | false
+        true      | true     | false
+        true      | false    | true
+        true      | true     | true
     }
 }

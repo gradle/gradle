@@ -21,8 +21,11 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
+import org.gradle.internal.Factory
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
+import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
@@ -32,9 +35,12 @@ import java.io.File
 class ConfigurationCacheStartParameter(
     private val buildLayout: BuildLayout,
     private val startParameter: StartParameterInternal,
-    options: InternalOptions
+    options: InternalOptions,
+    modelParameters: BuildModelParameters
 ) {
-    val loadAfterStore = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.load-after-store")).get()
+    val loadAfterStore: Boolean = !modelParameters.isRequiresBuildModel && options.getOption(InternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)).get()
+
+    val taskExecutionAccessPreStable: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")).get()
 
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
@@ -68,7 +74,7 @@ class ConfigurationCacheStartParameter(
 
     @Suppress("DEPRECATION")
     val settingsFile: File?
-        get() = startParameter.settingsFile
+        get() = DeprecationLogger.whileDisabled(Factory { startParameter.settingsFile })
 
     val rootDirectory: File
         get() = buildLayout.rootDirectory
@@ -84,6 +90,9 @@ class ConfigurationCacheStartParameter(
 
     val isUpdateDependencyLocks
         get() = startParameter.lockedDependenciesToUpdate.isNotEmpty()
+
+    val isWriteDependencyVerifications
+        get() = startParameter.writeDependencyVerifications.isNotEmpty()
 
     val requestedTaskNames: List<String> by unsafeLazy {
         startParameter.taskNames

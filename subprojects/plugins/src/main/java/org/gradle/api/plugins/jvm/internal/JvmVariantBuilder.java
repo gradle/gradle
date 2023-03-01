@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins.jvm.internal;
 
-import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -24,24 +24,12 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @HasInternalProtocol
 public interface JvmVariantBuilder {
-    /**
-     * If this method is called, this allows using an existing source set instead
-     * of relying on automatic creation of a source set
-     * @param sourceSet the existing source set to use
-     */
-    JvmVariantBuilder usingSourceSet(SourceSet sourceSet);
 
     /**
      * Sets a display name for this component
      * @param displayName the display name
      */
     JvmVariantBuilder withDisplayName(String displayName);
-
-    /**
-     * Tells that this component exposes an API, in which case a configuration
-     * to declare API dependencies will be automatically created.
-     */
-    JvmVariantBuilder exposesApi();
 
     /**
      * Tells that this component should build a javadoc jar too
@@ -55,11 +43,10 @@ public interface JvmVariantBuilder {
 
     /**
      * Explicitly declares a capability provided by this component
-     * @param group the capability group
-     * @param name the capability name
-     * @param version the capability version
+     *
+     * @param capability the capability this component provides
      */
-    JvmVariantBuilder capability(String group, String name, String version);
+    JvmVariantBuilder capability(Capability capability);
 
     /**
      * Tells that this component is not the main component and corresponds to a different "thing"

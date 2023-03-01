@@ -1,0 +1,2 @@
+1 problem was found storing the configuration cache.
+- Task `:listFiles` of type `org.gradle.api.DefaultTask`: cannot serialize Gradle script object references as these are not supported with the configuration cache.

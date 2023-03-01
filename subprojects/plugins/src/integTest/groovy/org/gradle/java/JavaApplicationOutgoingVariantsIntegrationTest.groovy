@@ -56,10 +56,16 @@ project(':consumer') {
     dependencies { consume project(':java') }
     task resolve {
         inputs.files configurations.consume
+        def fileNames = provider {
+            configurations.consume.files.collect { it.name }
+        }
+        def incomingArtifacts = provider {
+            configurations.consume.incoming.artifacts.collect { "\$it.id \$it.variant.attributes" }
+        }
         doLast {
-            println "files: " + configurations.consume.files.collect { it.name }
-            configurations.consume.incoming.artifacts.each {
-                println "\$it.id \$it.variant.attributes"
+            println "files: " + fileNames.get()
+            incomingArtifacts.get().each {
+                println it
             }
         }
     }
@@ -109,15 +115,12 @@ project(':consumer') {
         """)
     }
 
-    def "provides API classes variant - requestViewAttribute: #requestViewAttribute"() {
+    def "provides API classes variant"() {
         buildFile << """
             project(':consumer') {
                 apply plugin: 'jvm-ecosystem'
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
                 configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
-                if ($requestViewAttribute) {
-                    configurations.consume.attributes.attribute(CompileView.VIEW_ATTRIBUTE, objects.named(CompileView, CompileView.JAVA_API))
-                }
             }
         """
 
@@ -128,41 +131,8 @@ project(':consumer') {
         result.assertTasksExecuted(":other-java:compileJava", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
         assertResolveOutput("""
             files: [java.jar]
-            java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-api, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
+            java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
         """)
-
-        where:
-        requestViewAttribute << [true, false]
-    }
-
-    def "provides compile JAR variant - requestJarAttribute: #requestJarAttribute"() {
-        buildFile << """
-            project(':consumer') {
-                apply plugin: 'jvm-ecosystem'
-                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-                configurations.consume.attributes.attribute(CompileView.VIEW_ATTRIBUTE, objects.named(CompileView, CompileView.JAVA_INTERNAL))
-                if ($requestJarAttribute) {
-                    configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
-                }
-            }
-        """
-
-        when:
-        resolve()
-
-        then:
-        result.assertTasksExecuted(":java:classes", ":java:compileJava", ":java:jar", ":java:processResources", ":other-java:classes", ":other-java:compileJava", ":other-java:jar", ":other-java:processResources", ":consumer:resolve")
-        assertResolveOutput("""
-            files: [java.jar, file-dep.jar, compile-only-1.0.jar, other-java.jar, implementation-1.0.jar]
-            java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-internal, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
-            file-dep.jar {artifactType=jar, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
-            compile-only-1.0.jar (test:compile-only:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-internal, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
-            other-java.jar (project :other-java) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-internal, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
-            implementation-1.0.jar (test:implementation:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-internal, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
-        """)
-
-        where:
-        requestJarAttribute << [true, false]
     }
 
     def "provides runtime jar variant - requestJarAttribute: #requestJarAttribute"() {
@@ -273,9 +243,9 @@ project(':consumer') {
     void assertResolveOutput(String output) {
         result.groupedOutput.task(":consumer:resolve").assertOutputContains(
             Arrays.stream(output.split("\n"))
-                  .map(String::trim)
-                  .filter(it -> !it.isEmpty())
-                  .collect(Collectors.joining(System.lineSeparator()))
+                .map(String::trim)
+                .filter(it -> !it.isEmpty())
+                .collect(Collectors.joining(System.lineSeparator()))
         )
     }
 }

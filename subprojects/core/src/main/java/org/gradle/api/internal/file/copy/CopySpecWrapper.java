@@ -39,8 +39,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
-
 /**
  * Wraps another CopySpec impl, only exposing the CopySpec API.
  *
@@ -211,11 +209,7 @@ public class CopySpecWrapper implements SyncSpec {
 
     @Override
     public CopySpec rename(final Closure closure) {
-        delegate.rename(transformer(s -> {
-            Object res = closure.call(s);
-            //noinspection ConstantConditions
-            return res == null ? null : res.toString();
-        }));
+        delegate.rename(new ClosureBackedTransformer(closure));
         return this;
     }
 

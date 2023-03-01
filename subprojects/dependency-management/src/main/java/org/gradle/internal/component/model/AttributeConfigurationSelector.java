@@ -36,9 +36,9 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.NoMatchingCapabilitiesException;
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
+import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.component.external.model.ShadowedCapability;
-import org.gradle.internal.component.external.model.ShadowedCapabilityOnly;
+import org.gradle.api.internal.capabilities.ShadowedCapability;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -168,10 +168,6 @@ public abstract class AttributeConfigurationSelector {
         return builder.build();
     }
 
-    private static boolean isShadowedCapabilityOnly(CapabilitiesMetadata capabilitiesMetadata) {
-        return capabilitiesMetadata instanceof ShadowedCapabilityOnly;
-    }
-
     /**
      * Determines if a producer variant provides all the requested capabilities. When doing so it does
      * NOT consider capability versions, as they will be used later in the engine during conflict resolution.
@@ -206,7 +202,7 @@ public abstract class AttributeConfigurationSelector {
     }
 
     private static MatchResult containsImplicitCapability(CapabilitiesMetadata capabilitiesMetadata, Collection<? extends Capability> capabilities, String group, String name) {
-        if (fastContainsImplicitCapability(capabilitiesMetadata, capabilities)) {
+        if (fastContainsImplicitCapability((CapabilitiesMetadataInternal) capabilitiesMetadata, capabilities)) {
             // An empty capability list means that it's an implicit capability only
             return MatchResult.EXACT_MATCH;
         }
@@ -220,8 +216,8 @@ public abstract class AttributeConfigurationSelector {
         return MatchResult.NO_MATCH;
     }
 
-    private static boolean fastContainsImplicitCapability(CapabilitiesMetadata capabilitiesMetadata, Collection<? extends Capability> capabilities) {
-        return capabilities.isEmpty() || isShadowedCapabilityOnly(capabilitiesMetadata);
+    private static boolean fastContainsImplicitCapability(CapabilitiesMetadataInternal capabilitiesMetadata, Collection<? extends Capability> capabilities) {
+        return capabilities.isEmpty() || capabilitiesMetadata.isShadowedCapabilityOnly();
     }
 
     private static Capability unwrap(Capability capability) {

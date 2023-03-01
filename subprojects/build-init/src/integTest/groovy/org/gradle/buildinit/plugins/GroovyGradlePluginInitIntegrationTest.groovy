@@ -135,4 +135,24 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/23298")
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs builds in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
+    def "running TestKit functional test in test source set succeeds"() {
+        given:
+        run('init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id)
+
+        // Copy functional test contents into default source set test
+        def projectTest = subprojectDir.file('src/test/groovy/some/thing/SomeThingPluginTest.groovy')
+        projectTest.text = subprojectDir.file('src/functionalTest/groovy/some/thing/SomeThingPluginFunctionalTest.groovy').text
+
+        when:
+        run('check')
+
+        then:
+        assertTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
 }

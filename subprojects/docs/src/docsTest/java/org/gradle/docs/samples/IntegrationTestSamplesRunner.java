@@ -15,10 +15,14 @@
  */
 package org.gradle.docs.samples;
 
+import org.gradle.api.GradleException;
 import org.gradle.exemplar.executor.CommandExecutor;
 import org.gradle.exemplar.executor.ExecutionMetadata;
 import org.gradle.exemplar.model.Command;
+import org.gradle.exemplar.model.Sample;
 import org.gradle.exemplar.test.runner.SamplesRunner;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 
 import javax.annotation.Nullable;
@@ -45,5 +49,23 @@ class IntegrationTestSamplesRunner extends SamplesRunner {
             throw new IllegalStateException(String.format("'%s' property is required", SAMPLES_DIR_PROPERTY));
         }
         return Paths.get(samplesDir).toFile();
+    }
+
+    @Override
+    protected void runChild(final Sample sample, final RunNotifier notifier) {
+        super.runChild(sample, new RunNotifier() {
+            @Override
+            public void fireTestFailure(Failure failure) {
+                String extraParameter = "configCache".equals(System.getProperty("org.gradle.integtest.executer")) ?
+                    "-PenableConfigurationCacheForDocsTests=true" : "";
+                notifier.fireTestFailure(new Failure(failure.getDescription(), new GradleException(
+                    "Sample test run failed.\nTo understand how docsTest works, See:\n" +
+                        "  https://github.com/gradle/gradle/blob/master/subprojects/docs/README.md#testing-samples-and-snippets\n" +
+                        "To reproduce this failure, run:\n" +
+                        "  ./gradlew docs:docsTest --tests '*" + sample.getId() + "*' " + extraParameter,
+                    failure.getException()
+                )));
+            }
+        });
     }
 }

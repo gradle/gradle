@@ -18,11 +18,36 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
-public interface JavaToolchainInstantiationResult {
+public class JavaToolchainInstantiationResult {
 
-    JvmInstallationMetadata metadata();
+    private final InstallationLocation javaHome;
 
-    Optional<JavaToolchain> toolchain();
+    private final JvmInstallationMetadata metadata;
+
+    private final Optional<JavaToolchain> toolchain;
+
+    public JavaToolchainInstantiationResult(InstallationLocation javaHome, JvmInstallationMetadata metadata) {
+        this(javaHome, metadata, null);
+    }
+
+    public JavaToolchainInstantiationResult(InstallationLocation javaHome, JvmInstallationMetadata metadata, @Nullable JavaToolchain toolchain) {
+        this.javaHome = javaHome;
+        this.metadata = metadata;
+        this.toolchain = Optional.ofNullable(toolchain);
+    }
+
+    public InstallationLocation getJavaHome() {
+        return javaHome;
+    }
+
+    public JvmInstallationMetadata getMetadata() {
+        return metadata;
+    }
+
+    public Optional<JavaToolchain> getToolchain() {
+        return toolchain;
+    }
 }

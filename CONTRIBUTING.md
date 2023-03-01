@@ -110,6 +110,11 @@ If you need to check on [CI](http://builds.gradle.org/) status as an external co
 
 ## Useful tips
 
+### How Gradle Works
+
+We have [a series of blog](https://blog.gradle.org/how-gradle-works-1) that explains how Gradle works.
+This may help you better understand and contribute to Gradle.
+
 ### Debugging Gradle
 
 You can debug Gradle by adding `-Dorg.gradle.debug=true` to the command-line. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
@@ -136,7 +141,7 @@ Then force push your branch:
 
 ### Java Toolchain
 
-The Gradle build uses [Java Toolchain](userguide/toolchains.html) support to compile and execute tests across multiple versions of Java.
+The Gradle build uses [Java Toolchain](https://docs.gradle.org/current/userguide/toolchains.html) support to compile and execute tests across multiple versions of Java.
 
 Available JDKs on your machine are automatically detected and wired for the various compile and test tasks.
 

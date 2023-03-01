@@ -16,32 +16,22 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.internal.component.BuildableJavaComponent
-import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InspectsConfigurationReport
 import spock.lang.Issue
 
 class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport {
 
-    def appliesBasePluginsAndAddsConventionObject() {
+    def "main component is java component"() {
         given:
         buildFile << """
             apply plugin: 'java'
 
             task expect {
-
-                def component = project.services.get(${ComponentRegistry.canonicalName}).mainComponent
-                assert component instanceof ${BuildableJavaComponent.canonicalName}
-                assert component.runtimeClasspath != null
-                assert component.compileDependencies == project.configurations.compileClasspath
-
-                def buildTasks = component.buildTasks as List
-                doLast {
-                    assert buildTasks == [ JavaBasePlugin.BUILD_TASK_NAME ]
-                }
+                assert project.components.mainComponent.get() == components.java
             }
         """
+
         expect:
         succeeds "expect"
     }
@@ -131,11 +121,13 @@ Artifacts
                 sourceElements project
             }
 
-            def expectedResolvedFiles = [project.file("src/main/resources"), project.file("src/main/java")]
-
             def testResolve = tasks.register('testResolve') {
+                def expectedResolvedFiles = [project.file("src/main/resources"), project.file("src/main/java")]
+                def resolvedConfigFiles = provider {
+                    sourceElementsConfig.getResolvedConfiguration().files
+                }
                 doLast {
-                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll(expectedResolvedFiles)
+                    assert resolvedConfigFiles.get().containsAll(expectedResolvedFiles)
                 }
             }
             """.stripIndent()
@@ -222,8 +214,11 @@ Artifacts
                                          project(':subB').file("src/main/java")]
 
             def testResolve = tasks.register('testResolve') {
+                def actual = provider {
+                    sourceElementsConfig.getResolvedConfiguration().getFiles()
+                }
                 doLast {
-                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll(expectedResolvedFiles)
+                    assert actual.get().containsAll(expectedResolvedFiles)
                 }
             }
             """.stripIndent()
@@ -492,9 +487,10 @@ Artifacts
                 config project(":")
             }
             tasks.register("consumeRuntimeClasses") {
-                dependsOn configurations.config
+                def config = configurations.config
+                dependsOn config
                 doLast {
-                    assert configurations.config.files*.name.contains("custom")
+                    assert config.files*.name.contains("custom")
                 }
             }
         """

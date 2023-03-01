@@ -19,6 +19,7 @@ package org.gradle.internal.properties.annotations;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -32,12 +33,10 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -53,7 +52,6 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final TypeAnnotationMetadataStore typeAnnotationMetadataStore;
     private final PropertyTypeResolver propertyTypeResolver;
     private final String displayName;
-    private final Function<Class<?>, TypeMetadata> typeMetadataFactory = this::createTypeMetadata;
 
     public DefaultTypeMetadataStore(
         Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers,
@@ -82,7 +80,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
     @Override
     public <T> TypeMetadata getTypeMetadata(Class<T> type) {
-        return cache.get(type, typeMetadataFactory);
+        return cache.get(type, this::createTypeMetadata);
     }
 
     private <T> TypeMetadata createTypeMetadata(Class<T> type) {
@@ -258,8 +256,14 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         @Override
-        public Method getGetterMethod() {
-            return annotationMetadata.getMethod();
+        public TypeToken<?> getDeclaredType() {
+            return annotationMetadata.getDeclaredType();
+        }
+
+        @Nullable
+        @Override
+        public Object getPropertyValue(Object object) {
+            return annotationMetadata.getPropertyValue(object);
         }
 
         @Override

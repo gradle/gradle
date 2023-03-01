@@ -435,6 +435,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter copyTo(GradleExecuter executer);
 
     /**
+     * Where possible, starts the Gradle build process in debug mode with the provided options.
+     */
+    GradleExecuter startBuildProcessInDebugger(Action<JavaDebugOptionsInternal> action);
+
+    /**
      * Where possible, starts the Gradle build process in suspended debug mode.
      */
     GradleExecuter startBuildProcessInDebugger(boolean flag);
@@ -454,6 +459,11 @@ public interface GradleExecuter extends Stoppable {
      * Starts the launcher JVM (daemon client) in suspended debug mode
      */
     GradleExecuter startLauncherInDebugger(boolean debugLauncher);
+
+    /**
+     * Starts the launcher JVM (daemon client) in debug mode with the provided options
+     */
+    GradleExecuter startLauncherInDebugger(Action<JavaDebugOptionsInternal> action);
 
     boolean isDebugLauncher();
 

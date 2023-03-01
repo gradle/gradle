@@ -71,11 +71,11 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
             root(":", ":test:") {
                 module('org:foo:1.0') {
                     variant('runtime', ['org.gradle.status': FeaturesResolveIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
-                    artifact group: 'org', module: 'foo', version: '1.0'
+                    artifact()
                 }
                 module('org:foo:1.0') {
                     variant('feature1', ['org.gradle.status': FeaturesResolveIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
-                    artifact group: 'org', module: 'foo', version: '1.0', classifier: 'feat1'
+                    artifact classifier: 'feat1'
                 }
             }
         }
@@ -179,12 +179,12 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
             root(":", ":test:") {
                 module('org:foo:1.0') {
                     variant('runtime', ['org.gradle.status': FeaturesResolveIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
-                    artifact group: 'org', module: 'foo', version: '1.0'
+                    artifact()
                 }
                 module('org:foo:1.0') {
                     variant('v2', ['org.gradle.status': FeaturesResolveIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
-                    artifact group: 'org', module: 'foo', version: '1.0', classifier: 'feat1'
-                    artifact group: 'org', module: 'foo', version: '1.0', classifier: 'feat3'
+                    artifact classifier: 'feat1'
+                    artifact classifier: 'feat3'
                 }
             }
         }

@@ -24,8 +24,8 @@ plugins {
 val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
 val generateSources by tasks.registering(GenerateKotlinDslPluginsExtensions::class) {
-    outputDir.set(generatedSourcesDir)
-    kotlinDslPluginsVersion.set(project.version)
+    outputDir = generatedSourcesDir
+    kotlinDslPluginsVersion = project.version
 }
 
 sourceSets.main {

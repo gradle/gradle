@@ -27,7 +27,7 @@ public class ZipSlip {
      * Checks the entry name for zip-slip vulnerable sequences.
      *
      * <b>IMPLEMENTATION NOTE</b>
-     * We do it this way instead of the way recommended in https://snyk.io/research/zip-slip-vulnerability
+     * We do it this way instead of the way recommended in <a href="https://snyk.io/research/zip-slip-vulnerability"></a>
      * for performance reasons, calling {@link File#getCanonicalPath()} is too expensive.
      *
      * @throws IllegalArgumentException if the entry contains vulnerable sequences

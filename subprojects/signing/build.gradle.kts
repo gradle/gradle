@@ -12,7 +12,8 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":file-collections"))
-    implementation(project(":plugins"))
+    implementation(project(":functional"))
+    implementation(project(":platform-base"))
     implementation(project(":dependency-management"))
     implementation(project(":publish"))
     implementation(project(":maven"))
@@ -41,4 +42,4 @@ packageCycles {
     excludePatterns.add("org/gradle/plugins/signing/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true

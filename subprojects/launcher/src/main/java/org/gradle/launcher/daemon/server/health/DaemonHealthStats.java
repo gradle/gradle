@@ -28,6 +28,8 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 
+import java.util.Locale;
+
 import static java.lang.String.format;
 
 public class DaemonHealthStats implements Stoppable {
@@ -73,29 +75,15 @@ public class DaemonHealthStats implements Stoppable {
     }
 
     /**
-     * elegant description of daemon's health
+     * Elegant description of daemon's health
      */
-    String getHealthInfo() {
-        int nextBuildNum = runningStats.getBuildCount() + 1;
-        if (nextBuildNum == 1) {
-            return getFirstBuildHealthInfo();
-        } else {
-            return getBuildHealthInfo(nextBuildNum);
-        }
-    }
-
-    private String getFirstBuildHealthInfo() {
-        return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(Runtime.getRuntime().maxMemory()));
-    }
-
-    private String getBuildHealthInfo(int nextBuildNum) {
-
-        StringBuilder message = new StringBuilder(format("Starting %s build in daemon ", NumberUtil.ordinal(nextBuildNum)));
+    public String getHealthInfo() {
+        StringBuilder message = new StringBuilder();
         message.append(format("[uptime: %s, performance: %s%%", runningStats.getPrettyUpTime(), getCurrentPerformance()));
 
         GarbageCollectionStats heapStats = gcMonitor.getHeapStats();
         if (heapStats.isValid()) {
-            message.append(format(", GC rate: %.2f/s", heapStats.getGcRate()));
+            message.append(format(Locale.ENGLISH, ", GC rate: %.2f/s", heapStats.getGcRate()));
             message.append(format(", heap usage: %s%% of %s", heapStats.getUsedPercent(), NumberUtil.formatBytes(heapStats.getMaxSizeInBytes())));
         }
 

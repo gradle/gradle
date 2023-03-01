@@ -77,16 +77,19 @@ public interface CacheConfigurations {
     CacheResourceConfiguration getCreatedResources();
 
     /**
-     * Represents the configuration of a given type of cache resource.
-     *
-     * @since 8.0
+     * Returns the cache cleanup settings that apply to all caches.
      */
-    @HasInternalProtocol
-    @Incubating
-    interface CacheResourceConfiguration {
-        /**
-         * Configures the maximum number of days an unused entry will be retained in the cache.
-         */
-        Property<Integer> getRemoveUnusedEntriesAfterDays();
-    }
+    Property<Cleanup> getCleanup();
+
+    /**
+     * Configures how caches should be marked, if at all.
+     *
+     * <p>
+     * By default, caches are marked using {@link MarkingStrategy#CACHEDIR_TAG}.
+     * </p>
+     *
+     * @since 8.1
+     */
+    Property<MarkingStrategy> getMarkingStrategy();
+
 }

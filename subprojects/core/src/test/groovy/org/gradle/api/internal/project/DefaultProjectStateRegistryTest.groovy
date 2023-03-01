@@ -95,14 +95,14 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         def rootProject = project(":")
         def rootState = registry.stateFor(projectId(":"))
 
-        1 * projectFactory.createProject(_, _, rootState, _, _, _) >> rootProject
+        1 * projectFactory.createProject(_, _, rootState, _, _, _, _) >> rootProject
 
         rootState.createMutableModel(Stub(ClassLoaderScope), Stub(ClassLoaderScope))
 
         def project = project("p1")
         def state = registry.stateFor(projectId("p1"))
 
-        1 * projectFactory.createProject(_, _, state, _, _, _) >> project
+        1 * projectFactory.createProject(_, _, state, _, _, _, _) >> project
 
         state.createMutableModel(Stub(ClassLoaderScope), Stub(ClassLoaderScope))
 
@@ -692,13 +692,13 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         def rootProject = project(':')
         def rootState = registry.stateFor(projectId(':'))
 
-        1 * projectFactory.createProject(_, _, rootState, _, _, _) >> rootProject
+        1 * projectFactory.createProject(_, _, rootState, _, _, _, _) >> rootProject
 
         rootState.createMutableModel(Stub(ClassLoaderScope), Stub(ClassLoaderScope))
     }
 
     void createProject(ProjectState state, ProjectInternal project) {
-        1 * projectFactory.createProject(_, _, state, _, _, _) >> project
+        1 * projectFactory.createProject(_, _, state, _, _, _, _) >> project
 
         state.createMutableModel(Stub(ClassLoaderScope), Stub(ClassLoaderScope))
     }
@@ -718,9 +718,8 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     BuildState build(String... projects) {
         def descriptors = new DefaultProjectDescriptorRegistry()
         def root = new DefaultProjectDescriptor(null, "root", null, descriptors, null)
-        descriptors.addProject(root)
         projects.each {
-            descriptors.addProject(new DefaultProjectDescriptor(root, it, null, descriptors, null))
+            new DefaultProjectDescriptor(root, it, null, descriptors, null)
         }
 
         def settings = Stub(SettingsInternal)

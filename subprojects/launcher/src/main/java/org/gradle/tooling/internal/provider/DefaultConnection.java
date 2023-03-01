@@ -66,7 +66,7 @@ import java.util.List;
 
 @SuppressWarnings("deprecation")
 public class DefaultConnection implements ConnectionVersion4,
-    ConfigurableConnection, org.gradle.tooling.internal.protocol.ModelBuilder, org.gradle.tooling.internal.protocol.InternalBuildActionExecutor, InternalCancellableConnection, InternalParameterAcceptingConnection,
+    ConfigurableConnection, InternalCancellableConnection, InternalParameterAcceptingConnection,
     StoppableConnection, InternalTestExecutionConnection, InternalPhasedActionConnection, InternalInvalidatableVirtualFileSystemConnection, InternalStopWhenIdleConnection {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
@@ -139,15 +139,6 @@ public class DefaultConnection implements ConnectionVersion4,
         CompositeStoppable.stoppable(services).stop();
     }
 
-
-    /**
-     * This is used by consumers 1.6-rc-1 to 2.0
-     */
-    @Override
-    public BuildResult<?> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        throw unsupportedConnectionException();
-    }
-
     /**
      * This is used by consumers 2.1-rc-1 and later
      */
@@ -157,14 +148,6 @@ public class DefaultConnection implements ConnectionVersion4,
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object result = connection.run(modelIdentifier.getName(), buildCancellationToken, providerParameters);
         return new ProviderBuildResult<>(result);
-    }
-
-    /**
-     * This is used by consumers 1.8-rc-1 to 2.0
-     */
-    @Override
-    public <T> BuildResult<T> run(org.gradle.tooling.internal.protocol.InternalBuildAction<T> action, BuildParameters operationParameters) throws org.gradle.tooling.internal.protocol.BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
-        throw unsupportedConnectionException();
     }
 
     /**

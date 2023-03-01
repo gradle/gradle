@@ -42,6 +42,12 @@ abstract class AbstractAcceptedApiChangesMaintenanceTask : DefaultTask() {
         return json.acceptedApiChanges!!
     }
 
+    /**
+     * Sorts the given list of [AcceptedApiChange]s by type and member.
+     * <p>
+     * This sort ought to remain consistent with the sort used by the [EnrichedReportRenderer].
+     */
+    @Suppress("KDocUnresolvedReference")
     protected
     fun sortChanges(originalChanges: List<AcceptedApiChange>) = originalChanges.toMutableList().sortedBy { it.type + '#' + it.member }
 

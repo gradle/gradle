@@ -43,7 +43,7 @@ public interface BuildWorkGraphController {
     BuildWorkGraph newWorkGraph();
 
     /**
-     * Discards all work state.
+     * Discards all work state, discarding any cached models and other state
      */
     void resetState();
 }

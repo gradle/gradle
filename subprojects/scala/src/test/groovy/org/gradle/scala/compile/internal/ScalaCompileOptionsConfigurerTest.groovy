@@ -16,13 +16,10 @@
 
 package org.gradle.scala.compile.internal
 
-import org.gradle.api.file.Directory
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
-import org.gradle.api.tasks.ScalaRuntime
 import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer
-import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.internal.JavaToolchain
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -30,42 +27,65 @@ import spock.lang.Subject
 @Subject(ScalaCompileOptionsConfigurer)
 class ScalaCompileOptionsConfigurerTest extends Specification {
 
-    private final ScalaRuntime scalaRuntime = Mock(ScalaRuntime)
-    private final VersionParser versionParser = new VersionParser()
-
-    def 'configuring target jvm for JVM #javaVersion and Scala #scalaLibraryVersion results in #expectedTarget'() {
+    def 'using Java #toolchain and Scala #scalaLibraryVersion results in #expectedTarget'() {
         given:
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
-        File scalaLibrary = new File("scala-library-${scalaLibraryVersion}.jar")
+        scalaCompileOptions.additionalParameters = ["-some-other-flag"].asImmutable()
+        def isScala3 = scalaLibraryVersion.startsWith("3.")
+        File scalaLibrary = new File(isScala3 ? "scala3-library_3-${scalaLibraryVersion}.jar" : "scala-library-${scalaLibraryVersion}.jar")
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(javaVersion), classpath, versionParser)
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(javaToolchain, fallbackToolchain), classpath)
 
         then:
-        !scalaCompileOptions.additionalParameters.empty
-        scalaCompileOptions.additionalParameters.find { it == expectedTarget }
+        scalaCompileOptions.additionalParameters.last() == expectedTarget
 
         where:
-        javaVersion | scalaLibraryVersion | expectedTarget
-        6           | '2.10.0'            | '-target:jvm-1.6'
-        7           | '2.10.0'            | '-target:jvm-1.7'
-        6           | '2.11.0'            | '-target:jvm-1.6'
-        7           | '2.11.0'            | '-target:jvm-1.7'
-        8           | '2.10.0'            | '-target:jvm-1.8'
-        8           | '2.11.0'            | '-target:jvm-1.8'
-        8           | '2.11.12'           | '-target:jvm-1.8'
-        8           | '2.12.0'            | '-target:jvm-1.8'
-        8           | '2.12.14'           | '-target:jvm-1.8'
-        8           | '2.13.0'            | '-target:jvm-1.8'
-        11          | '2.11.12'           | '-target:jvm-1.11'
-        11          | '2.12.0'            | '-target:jvm-1.11'
-        11          | '2.12.14'           | '-target:jvm-1.11'
-        11          | '2.13.0'            | '-target:jvm-1.11'
-        8           | '2.13.1'            | '-target:8'
-        9           | '2.13.1'            | '-target:9'
-        11          | '2.13.1'            | '-target:11'
-        17          | '2.13.1'            | '-target:17'
+        javaToolchain | fallbackToolchain | scalaLibraryVersion | expectedTarget
+        6             | false             | '2.10.0'            | '-target:jvm-1.6'
+        7             | false             | '2.10.0'            | '-target:jvm-1.7'
+        6             | false             | '2.11.0'            | '-target:jvm-1.6'
+        7             | false             | '2.11.0'            | '-target:jvm-1.7'
+
+        8             | false             | '2.10.0'            | '-target:jvm-1.8'
+        8             | false             | '2.11.0'            | '-target:jvm-1.8'
+        8             | false             | '2.11.12'           | '-target:jvm-1.8'
+        8             | false             | '2.12.0'            | '-target:jvm-1.8'
+        8             | false             | '2.12.14'           | '-target:jvm-1.8'
+        8             | false             | '2.13.0'            | '-target:jvm-1.8'
+        8             | true              | '2.13.0'            | '-target:jvm-1.8'
+
+        11            | true              | '2.11.12'           | '-target:jvm-1.8'
+        11            | true              | '2.12.0'            | '-target:jvm-1.8'
+        11            | true              | '2.12.14'           | '-target:jvm-1.8'
+        11            | true              | '2.13.0'            | '-target:jvm-1.8'
+
+        11            | false             | '2.11.12'           | '-target:jvm-1.11'
+        11            | false             | '2.12.0'            | '-target:jvm-1.11'
+        11            | false             | '2.12.14'           | '-target:jvm-1.11'
+        11            | false             | '2.13.0'            | '-target:jvm-1.11'
+
+        8             | false             | '2.13.1'            | '-target:8'
+        9             | false             | '2.13.1'            | '-target:9'
+        11            | false             | '2.13.1'            | '-target:11'
+        17            | false             | '2.13.1'            | '-target:17'
+        17            | false             | '2.13.2'            | '-target:17'
+
+        8             | true              | '2.13.1'            | '-target:8'
+        11            | true              | '2.13.1'            | '-target:8'
+        17            | true              | '2.13.1'            | '-target:8'
+        17            | true              | '2.13.2'            | '-target:8'
+
+        17            | false             | '2.13.9'            | '-release:17'
+        17            | false             | '2.13.10'           | '-release:17'
+        17            | false             | '3.2.1'             | '-release:17'
+
+        17            | true              | '2.13.9'            | '-target:8'
+        17            | true              | '2.13.10'           | '-target:8'
+        17            | true              | '3.2.1'             | '-Xtarget:8'
+
+        toolchain = fallbackToolchain ? "$javaToolchain (fallback)" : javaToolchain
     }
 
     def 'does not configure target jvm if toolchain is not present'() {
@@ -75,7 +95,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, null, classpath, getVersionParser())
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, null, classpath)
 
         then:
         !scalaCompileOptions.additionalParameters
@@ -88,7 +108,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8), classpath, getVersionParser())
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8, false), classpath)
 
         then:
         !scalaCompileOptions.additionalParameters
@@ -100,42 +120,44 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         ]
     }
 
-    def 'does not configure target jvm if scala compiler already has a target'() {
+    def 'does not configure target jvm if scala compiler already has a configured target via #targetFlagName flag'() {
         given:
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
-        scalaCompileOptions.additionalParameters = ['-target:8']
+        scalaCompileOptions.additionalParameters = targetFlagParts.toList()
         Set<File> classpath = [new File("scala-library-2.13.1.jar")]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8), classpath, getVersionParser())
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(17, false), classpath)
 
         then:
-        scalaCompileOptions.additionalParameters
-        scalaCompileOptions.additionalParameters.find { it == '-target:8' }
-        !scalaCompileOptions.additionalParameters.find { it == '-target:17' }
+        scalaCompileOptions.additionalParameters.find { it == targetFlagParts[0] }
+        scalaCompileOptions.additionalParameters.find { it.contains("17") } == null
+
+        where:
+        targetFlagParts                          | _
+        ['-target:8']                            | _
+        ['--target:8']                           | _
+        ['-target', '8']                         | _
+        ['-release:8']                           | _
+        ['--release:8']                          | _
+        ['-release', '8']                        | _
+        ['--release', '8']                       | _
+        ['-java-output-version:8']               | _
+        ['-java-output-version', '8']            | _
+        ['-Xtarget:8']                           | _
+        ['-Xtarget', '8']                        | _
+        ['--Xtarget:8']                          | _
+        ['--Xtarget', '8']                       | _
+        ['-Xunchecked-java-output-version:8']    | _
+        ['-Xunchecked-java-output-version', '8'] | _
+
+        targetFlagName = targetFlagParts[0]
     }
 
-    private static JavaInstallationMetadata createToolchain(Integer javaVersion) {
-        new JavaInstallationMetadata() {
-            @Override
-            JavaLanguageVersion getLanguageVersion() {
-                return JavaLanguageVersion.of(javaVersion)
-            }
-
-            @Override
-            String getJavaRuntimeVersion() { return null }
-
-            @Override
-            String getJvmVersion() { return null }
-
-            @Override
-            String getVendor() { return null }
-
-            @Override
-            Directory getInstallationPath() { return null }
-
-            @Override
-            boolean isCurrentJvm() { return false }
+    private JavaToolchain createToolchain(int javaVersion, boolean isFallback) {
+        return Mock(JavaToolchain) {
+            getLanguageVersion() >> JavaLanguageVersion.of(javaVersion)
+            isFallbackToolchain() >> isFallback
         }
     }
 }

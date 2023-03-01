@@ -18,5 +18,10 @@ package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 
+import java.io.File;
+
 public interface ScalaJavaJointCompileSpec extends ScalaCompileSpec, JavaCompileSpec {
+
+    File getJavaExecutable();
+
 }

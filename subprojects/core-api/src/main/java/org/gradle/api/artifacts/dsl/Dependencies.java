@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.attributes.CompileView;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.annotation.Nullable;
@@ -29,35 +28,35 @@ import javax.inject.Inject;
 /**
  * Universal APIs that are available for all {@code dependencies} blocks.
  *
- * This API is <strong>incubating</strong> and is likely to change until it's made stable.
- * These methods are not intended to be implemented by end users or plugin authors.
+ * @apiNote This interface is intended to be used to mix-in DSL methods for {@code dependencies} blocks.
+ * @implSpec The default implementation of all methods should not be overridden.
+ * @implNote
+ * Changes to this interface may require changes to the
+ * {@link org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule extension module for Groovy DSL} or
+ * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL}.
+ *
  * @since 7.6
  */
 @Incubating
+@SuppressWarnings("JavadocReference")
 public interface Dependencies {
-
     /**
      * A dependency factory is used to convert supported dependency notations into {@link org.gradle.api.artifacts.Dependency} instances.
      *
      * @return a dependency factory
+     * @implSpec Do not implement this method. Gradle generates the implementation automatically.
+     *
      * @see DependencyFactory
      */
     @Inject
     DependencyFactory getDependencyFactory();
 
     /**
-     * Injected service to create named objects.
-     *
-     * @return injected service
-     */
-    @Inject
-    ObjectFactory getObjectFactory();
-
-    /**
      * The current project. You need to use {@link #project()} or {@link #project(String)} to add a {@link ProjectDependency}.
      *
      * @return current project
      *
+     * @implSpec Do not implement this method. Gradle generates the implementation automatically.
      * @since 8.0
      */
     @Inject
@@ -87,23 +86,6 @@ public interface Dependencies {
     }
 
     /**
-     * Create a dependency on the current project's internal view. During compile-time, this dependency will
-     * resolve the current project's implementation in addition to its API. During runtime, this dependency
-     * behaves as a usual project dependency.
-     *
-     * @return the current project, including implementation details, as a dependency
-     *
-     * @since 8.0
-     */
-    default ProjectDependency projectInternalView() {
-        ProjectDependency currentProject = project();
-        currentProject.attributes(attrs -> {
-            attrs.attribute(CompileView.VIEW_ATTRIBUTE, getObjectFactory().named(CompileView.class, CompileView.JAVA_INTERNAL));
-        });
-        return currentProject;
-    }
-
-    /**
      * Create an {@link ExternalModuleDependency} from the given notation.
      *
      * @param dependencyNotation dependency to add
@@ -125,4 +107,13 @@ public interface Dependencies {
     default ExternalModuleDependency module(@Nullable String group, String name, @Nullable String version) {
         return getDependencyFactory().create(group, name, version);
     }
+
+    /**
+     * Injected service to create named objects.
+     *
+     * @return injected service
+     * @implSpec Do not implement this method. Gradle generates the implementation automatically.
+     */
+    @Inject
+    ObjectFactory getObjectFactory();
 }

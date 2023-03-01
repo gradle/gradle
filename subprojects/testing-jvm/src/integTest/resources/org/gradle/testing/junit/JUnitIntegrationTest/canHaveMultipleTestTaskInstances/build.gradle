@@ -1,11 +1,12 @@
 apply plugin: 'java'
 
-test {
-    include '**/*Test1.*'
+sourceSets {
+    test2
 }
 
 task test2(type: Test) {
-    include '**/*Test2.*'
+    classpath = sourceSets.test2.runtimeClasspath
+    testClassesDirs = sourceSets.test2.output.classesDirs
 }
 
 check {
@@ -18,4 +19,5 @@ repositories {
 
 dependencies {
     testImplementation 'junit:junit:4.13'
+    test2Implementation 'junit:junit:4.13'
 }

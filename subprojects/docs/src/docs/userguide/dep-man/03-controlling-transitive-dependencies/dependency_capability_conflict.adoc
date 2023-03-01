@@ -34,8 +34,8 @@ Because each component has an implicit capability corresponding to its GAV coord
 
 .Conflict resolution by capability
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=fix_asm]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=fix_asm]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=fix_asm]"]
 ====
 
 Now the build is going to _fail_ whenever the two components are found in the same dependency graph.
@@ -63,8 +63,8 @@ Now we can solve the conflict by automatically choosing the component which has 
 
 .Conflict resolution by capability versioning
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=use_highest_asm]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=use_highest_asm]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=use_highest_asm]"]
 ====
 
 However, fixing by choosing the highest capability version conflict resolution is not always suitable.
@@ -74,8 +74,8 @@ In this case, we can fix it by explicitly selecting slf4j as the winner:
 
 .Substitute log4j with slf4j
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=use_slf4j]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=use_slf4j]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=use_slf4j]"]
 ====
 
 Note that this approach works also well if you have multiple _Slf4j bindings_ on the classpath:

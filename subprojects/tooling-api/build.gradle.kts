@@ -15,9 +15,9 @@ tasks.named<Jar>("sourcesJar") {
 
 shadedJar {
     shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
-    keepPackages.set(listOf("org.gradle.tooling"))
-    unshadedPackages.set(listOf("org.gradle", "org.slf4j", "sun.misc"))
-    ignoredPackages.set(setOf("org.gradle.tooling.provider.model"))
+    keepPackages = listOf("org.gradle.tooling")
+    unshadedPackages = listOf("org.gradle", "org.slf4j", "sun.misc")
+    ignoredPackages = setOf("org.gradle.tooling.provider.model")
 }
 
 dependencies {
@@ -83,8 +83,7 @@ packageCycles {
     excludePatterns.add("org/gradle/tooling/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
-testFilesCleanup.reportOnly.set(true)
+integTest.usesJavadocCodeSnippets = true
+testFilesCleanup.reportOnly = true
 
 apply(from = "buildship.gradle")
-

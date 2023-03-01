@@ -33,6 +33,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.ComponentWithCoordinates;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
@@ -42,7 +43,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
@@ -120,7 +120,7 @@ class ModuleMetadataSpecBuilder {
 
     private List<ModuleMetadataSpec.Variant> variants() {
         ArrayList<ModuleMetadataSpec.Variant> variants = new ArrayList<>();
-        for (UsageContext variant : component.getUsages()) {
+        for (SoftwareComponentVariant variant : component.getUsages()) {
             checkVariant(variant);
             variants.add(
                 new ModuleMetadataSpec.LocalVariant(
@@ -138,7 +138,7 @@ class ModuleMetadataSpecBuilder {
                 ModuleVersionIdentifier childCoordinates = coordinatesOf(childComponent);
                 assert childCoordinates != null;
                 if (childComponent instanceof SoftwareComponentInternal) {
-                    for (UsageContext variant : ((SoftwareComponentInternal) childComponent).getUsages()) {
+                    for (SoftwareComponentVariant variant : ((SoftwareComponentInternal) childComponent).getUsages()) {
                         checkVariant(variant);
                         variants.add(
                             new ModuleMetadataSpec.RemoteVariant(
@@ -155,7 +155,7 @@ class ModuleMetadataSpecBuilder {
         return variants;
     }
 
-    private List<ModuleMetadataSpec.Artifact> artifactsOf(UsageContext variant) {
+    private List<ModuleMetadataSpec.Artifact> artifactsOf(SoftwareComponentVariant variant) {
         if (variant.getArtifacts().isEmpty()) {
             return emptyList();
         }
@@ -341,7 +341,7 @@ class ModuleMetadataSpecBuilder {
         );
     }
 
-    private List<ModuleMetadataSpec.Dependency> dependenciesOf(UsageContext variant) {
+    private List<ModuleMetadataSpec.Dependency> dependenciesOf(SoftwareComponentVariant variant) {
         if (variant.getDependencies().isEmpty()) {
             return emptyList();
         }
@@ -374,7 +374,7 @@ class ModuleMetadataSpecBuilder {
         return dependencies;
     }
 
-    private List<ModuleMetadataSpec.DependencyConstraint> dependencyConstraintsFor(UsageContext variant) {
+    private List<ModuleMetadataSpec.DependencyConstraint> dependencyConstraintsFor(SoftwareComponentVariant variant) {
         if (variant.getDependencyConstraints().isEmpty()) {
             return emptyList();
         }
@@ -486,11 +486,11 @@ class ModuleMetadataSpecBuilder {
         }
     }
 
-    private void checkVariant(UsageContext usageContext) {
+    private void checkVariant(SoftwareComponentVariant variant) {
         checker.registerVariant(
-            usageContext.getName(),
-            usageContext.getAttributes(),
-            usageContext.getCapabilities()
+            variant.getName(),
+            variant.getAttributes(),
+            variant.getCapabilities()
         );
     }
 
@@ -529,14 +529,14 @@ class ModuleMetadataSpecBuilder {
         return projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
     }
 
-    private VariantVersionMappingStrategyInternal versionMappingStrategyFor(UsageContext variant) {
+    private VariantVersionMappingStrategyInternal versionMappingStrategyFor(SoftwareComponentVariant variant) {
         VersionMappingStrategyInternal versionMappingStrategy = publication.getVersionMappingStrategy();
         return versionMappingStrategy != null
             ? versionMappingStrategy.findStrategyForVariant(immutableAttributesOf(variant))
             : null;
     }
 
-    private ImmutableAttributes immutableAttributesOf(UsageContext variant) {
+    private ImmutableAttributes immutableAttributesOf(SoftwareComponentVariant variant) {
         return ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
     }
 

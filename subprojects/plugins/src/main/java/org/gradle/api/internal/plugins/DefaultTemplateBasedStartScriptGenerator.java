@@ -29,7 +29,12 @@ import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator;
 import org.gradle.util.internal.TextUtil;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.Map;
 
 public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedScriptGenerator {
@@ -67,17 +72,14 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
     }
 
     private String generateStartScriptContentFromTemplate(final Map<String, String> binding) {
-        return IoUtils.get(getTemplate().asReader(), new Transformer<String, Reader>() {
-            @Override
-            public String transform(Reader reader) {
-                try {
-                    SimpleTemplateEngine engine = new SimpleTemplateEngine();
-                    Template template = engine.createTemplate(reader);
-                    String output = template.make(binding).toString();
-                    return TextUtil.convertLineSeparators(output, lineSeparator);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+        return IoUtils.get(getTemplate().asReader(), reader -> {
+            try {
+                SimpleTemplateEngine engine = new SimpleTemplateEngine();
+                Template template = engine.createTemplate(reader);
+                String output = template.make(binding).toString();
+                return TextUtil.convertLineSeparators(output, lineSeparator);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
         });
     }

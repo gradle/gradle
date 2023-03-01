@@ -683,7 +683,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
 
-            configurations.compileClasspath.files.forEach {
+            configurations.compileClasspath.get().files.forEach {
                 println(org.gradle.util.internal.TextUtil.normaliseFileSeparators(it.path))
             }
             """
@@ -811,6 +811,31 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             rootTasks,
             containsString("kotlinDslAccessorsReport")
         )
+    }
+
+    @Test
+    fun `accessor to extension of jvm type is inaccessible and typed Any`() {
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            import java.security.MessageDigest
+            extensions.add(MessageDigest::class, "javaTypeExtension", MessageDigest.getInstance("MD5"))
+        """)
+        withBuildScript("""
+            plugins {
+                id("my-plugin")
+            }
+
+            inline fun <reified T> typeOf(t: T) = T::class.simpleName
+
+            javaTypeExtension {
+                println("Type of `javaTypeExtension` receiver is " + typeOf(this@javaTypeExtension))
+                println("`javaTypeExtension` is MessageDigest? " + (this is java.security.MessageDigest))
+            }
+        """)
+
+        val result = build("help")
+        assertThat(result.output, containsString("Type of `javaTypeExtension` receiver is Any"))
+        assertThat(result.output, containsString("`javaTypeExtension` is MessageDigest? true"))
     }
 
     @Test
@@ -1166,7 +1191,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 val integTest by registering {
                     java.srcDir(file("src/integTest/java"))
                     resources.srcDir(file("src/integTest/resources"))
-                    compileClasspath += sourceSets.main.get().output + configurations.testRuntimeClasspath
+                    compileClasspath += sourceSets.main.get().output + configurations.testRuntimeClasspath.get()
                     runtimeClasspath += output + compileClasspath
                 }
             }
@@ -1225,7 +1250,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         withFile(
             "buildSrc/src/main/kotlin/my-plugin.gradle.kts",
             """
-            (dependencies as ExtensionAware).extensions.create<Mine>("mine")
+            dependencies.extensions.create<Mine>("mine")
             """
         )
 
@@ -1286,7 +1311,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access project extension of nested type compiled to Java 11`() {
 
-        assumeJava11()
+        assumeJava11OrHigher()
 
         withFolders {
             "buildSrc" {

@@ -210,7 +210,7 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
             root(':', ':test:') {
                 module("org:foo:1.0") {
                     module("org:bar:1.0") {
-                        artifact([:])
+                        artifact()
                         artifact(classifier: 'classy')
                     }
                 }

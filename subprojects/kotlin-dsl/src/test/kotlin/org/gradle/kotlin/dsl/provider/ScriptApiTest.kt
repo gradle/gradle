@@ -37,19 +37,64 @@ class ScriptApiTest {
 
     @Test
     fun `IDE build script template implements script api`() =
-        assertScriptApiOf<KotlinBuildScript>()
+        assertScriptApiOf<KotlinProjectScriptTemplate>()
 
     @Test
     fun `IDE settings script template implements script api`() =
-        assertScriptApiOf<KotlinSettingsScript>()
-
-    @Test
-    fun `IDE settings script template implements Settings#enableFeaturePreview`() =
-        assert(KotlinSettingsScript::class.implements(Settings::enableFeaturePreview))
+        assertScriptApiOf<KotlinSettingsScriptTemplate>()
 
     @Test
     fun `IDE init script template implements script api`() =
+        assertScriptApiOf<KotlinGradleScriptTemplate>()
+
+    @Test
+    fun `legacy IDE build script template implements script api`() =
+        @Suppress("deprecation")
+        assertScriptApiOf<KotlinBuildScript>()
+
+    @Test
+    fun `legacy IDE settings script template implements script api`() =
+        @Suppress("deprecation")
+        assertScriptApiOf<KotlinSettingsScript>()
+
+    @Test
+    fun `legacy IDE init script template implements script api`() =
+        @Suppress("deprecation")
         assertScriptApiOf<KotlinInitScript>()
+
+    @Test
+    fun `IDE build script template is backwards compatible`() {
+        @Suppress("deprecation")
+        assertThat(
+            KotlinBuildScript::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
+                KotlinProjectScriptTemplate::class
+            ),
+            equalTo(emptyList())
+        )
+    }
+
+
+    @Test
+    fun `IDE settings script template is backwards compatible`() {
+        @Suppress("deprecation")
+        assertThat(
+            KotlinSettingsScript::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
+                KotlinSettingsScriptTemplate::class
+            ),
+            equalTo(emptyList())
+        )
+    }
+
+    @Test
+    fun `IDE init script template is backwards compatible`() {
+        @Suppress("deprecation")
+        assertThat(
+            KotlinInitScript::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
+                KotlinGradleScriptTemplate::class
+            ),
+            equalTo(emptyList())
+        )
+    }
 
     @Test
     fun `compiled init script template implements script api`() =

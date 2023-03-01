@@ -23,7 +23,6 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
 
     def module = ivyRepo.module("org.gradle.test", "ivyPublish", "2.4")
 
-    @ToBeFixedForConfigurationCache
     void "can publish custom artifacts"() {
         given:
         createBuildScripts("""
@@ -76,7 +75,6 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure custom artifacts when creating"() {
         given:
         createBuildScripts("""
@@ -136,7 +134,6 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish custom file artifacts with map notation"() {
         given:
         createBuildScripts("""
@@ -181,7 +178,6 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can set custom artifacts to override component artifacts"() {
         given:
         createBuildScripts("""
@@ -207,7 +203,6 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         module.parsedIvy.artifacts.collect({"${it.name}.${it.ext}"}) as Set == ["ivyPublish.txt", "ivyPublish.html", "ivyPublish.jar"] as Set
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure custom artifacts post creation"() {
         given:
         createBuildScripts("""
@@ -241,7 +236,6 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish artifact with no extension"() {
         given:
         file("no-extension") << "some content"
@@ -271,7 +265,6 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish artifact with classifier"() {
         given:
         createBuildScripts("""
@@ -300,7 +293,6 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can add custom configurations"() {
         given:
         createBuildScripts("""
@@ -330,7 +322,6 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         ivy.configurations["custom"].extend == ["runtime", "base"] as Set
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports failure publishing when validation fails"() {
         given:
         file("a-directory.dir").createDir()
@@ -351,7 +342,6 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         failure.assertHasCause("Invalid publication 'ivy': artifact file is a directory")
     }
 
-    @ToBeFixedForConfigurationCache
     def "cannot publish when artifact does not exist"() {
         given:
         createBuildScripts("""
@@ -367,7 +357,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         then:
         failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
-        failure.assertHasCause("Invalid publication 'ivy': artifact file does not exist: '${file('no-exist')}'")
+        failure.assertHasCause("Could not read '${file('no-exist')}' as it does not exist.")
     }
 
     def "reports failure to convert artifact notation"() {
@@ -394,8 +384,6 @@ The following types/formats are supported:
   - Anything that can be converted to a file, as per Project.file()""")
     }
 
-
-    @ToBeFixedForConfigurationCache
     def "artifact coordinates are evaluated lazily"() {
         given:
         createBuildScripts("""
@@ -424,6 +412,7 @@ The following types/formats are supported:
 
             task customDocsTask {
                 ext.outputFile = file('customDocs.html')
+                def outputFile = outputFile
                 doLast {
                     outputFile << '<html/>'
                 }
@@ -433,6 +422,7 @@ The following types/formats are supported:
                 ext.outputFile = project.objects.fileProperty()
                 outputs.file(outputFile)
                 outputFile.set(file('regularFile-1.0.reg'))
+                def outputFile = outputFile
                 doLast {
                     outputFile.get().getAsFile() << 'foo'
                 }

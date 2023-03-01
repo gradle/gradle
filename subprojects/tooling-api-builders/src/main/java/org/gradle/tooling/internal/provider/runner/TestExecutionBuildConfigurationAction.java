@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
@@ -138,12 +137,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     private List<Test> configureBuildForTestTasks(Context context, TestExecutionRequestAction testExecutionRequest) {
         final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
 
-        final List<String> testTaskPaths = CollectionUtils.collect(testDescriptors, new Transformer<String, InternalTestDescriptor>() {
-            @Override
-            public String transform(InternalTestDescriptor testDescriptor) {
-                return ((DefaultTestDescriptor) testDescriptor).getTaskPath();
-            }
-        });
+        final List<String> testTaskPaths = CollectionUtils.collect(testDescriptors, testDescriptor -> ((DefaultTestDescriptor) testDescriptor).getTaskPath());
 
         List<Test> testTasksToRun = new ArrayList<>();
         for (final String testTaskPath : testTaskPaths) {

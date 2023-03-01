@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality.codenarc
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -23,12 +24,14 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 
 /**
  * Tests to ensure toolchains specified by the {@code CodeNarcPlugin} and
  * {@code CodeNarc} tasks behave as expected.
  */
-@TargetCoverage({ CodeNarcCoverage.getSupportedVersionsByJdk() })
+@TargetCoverage({ CodeNarcCoverage.ALL })
 class CodeNarcPluginToolchainsIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
 
     def setup() {
@@ -37,9 +40,12 @@ class CodeNarcPluginToolchainsIntegrationTest extends MultiVersionIntegrationSpe
 
     def "uses jdk from toolchains set through java plugin"() {
         given:
+        def jdk = setupExecutorForToolchains()
+        assumeToolchainJdkIsCompatibleWithCodeNarcVersion(jdk.javaVersion)
+
+        and:
         goodCode()
         writeRuleFile()
-        def jdk = setupExecutorForToolchains()
         writeBuildFileWithToolchainsFromJavaPlugin(jdk)
 
         when:
@@ -51,9 +57,12 @@ class CodeNarcPluginToolchainsIntegrationTest extends MultiVersionIntegrationSpe
 
     def "uses jdk from toolchains set through codenarc task"() {
         given:
+        def jdk = setupExecutorForToolchains()
+        assumeToolchainJdkIsCompatibleWithCodeNarcVersion(jdk.javaVersion)
+
+        and:
         goodCode()
         writeRuleFile()
-        def jdk = setupExecutorForToolchains()
         writeBuildFileWithToolchainsFromCodeNarcTask(jdk)
 
         when:
@@ -64,6 +73,8 @@ class CodeNarcPluginToolchainsIntegrationTest extends MultiVersionIntegrationSpe
     }
 
     def "uses current jdk if not specified otherwise"() {
+        assumeToolchainJdkIsCompatibleWithCodeNarcVersion(JavaVersion.current())
+
         given:
         goodCode()
         writeRuleFile()
@@ -77,6 +88,8 @@ class CodeNarcPluginToolchainsIntegrationTest extends MultiVersionIntegrationSpe
     }
 
     def "uses current jdk if codenarc plugin is not applied"() {
+        assumeToolchainJdkIsCompatibleWithCodeNarcVersion(JavaVersion.current())
+
         given:
         goodCode()
         writeRuleFile()
@@ -109,6 +122,10 @@ class CodeNarcPluginToolchainsIntegrationTest extends MultiVersionIntegrationSpe
 
         then:
         outputContains("Running codenarc with toolchain '${Jvm.current().javaHome.absolutePath}'.")
+    }
+
+    private void assumeToolchainJdkIsCompatibleWithCodeNarcVersion(JavaVersion javaVersion) {
+        Assume.assumeTrue(versionNumber in CodeNarcCoverage.getSupportedVersionsByJdk(javaVersion).collect { VersionNumber.parse(it) })
     }
 
     Jvm setupExecutorForToolchains() {

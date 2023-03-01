@@ -219,7 +219,7 @@ If what you really wanted to say is that the actual file path is an input, then 
 
 This error indicates that a property annotated with `@ServiceReference` has a type that does not implement the `link:{javadocPath}/org/gradle/api/services/BuildService.html[BuildService]` interface.
 
-Properties annotated with `link:{javadocPath}/org/gradle/api/tasks/ServiceReference.html[@ServiceReference]` are meant to hold references to <<build_services#build_services,shared build services>>.
+Properties annotated with `link:{javadocPath}/org/gradle/api/services/ServiceReference.html[@ServiceReference]` are meant to hold references to <<build_services#build_services,shared build services>>.
 
 [[implicit_dependency]]
 == Implicit dependencies between tasks
@@ -283,8 +283,8 @@ If the file isn't produced by another task, you may want to make sure that it ex
 If what you want to declare is that it doesn't matter that the file exists or not when the task is executed, you can use `@InputFiles` that won't fail for non-existing inputs:
 
 ====
-include::sample[dir="snippets/tasks/customTaskWithMissingFileProperty/groovy",files="build.gradle[tags=task]"]
 include::sample[dir="snippets/tasks/customTaskWithMissingFileProperty/kotlin",files="build.gradle.kts[tags=task]"]
+include::sample[dir="snippets/tasks/customTaskWithMissingFileProperty/groovy",files="build.gradle[tags=task]"]
 ====
 
 [[unexpected_input_file_type]]
@@ -388,4 +388,4 @@ To fix this, look at the error message which indicates the list of possible solu
 
 Please find below the list of unsupported value type and links to respective sections of the user manual:
 
-`ResolvedArtifactResult`:: <<more_about_tasks#sec:task_input_using_dependency_resolution_results, Using dependency resolution results as task inputs>>
+`ResolvedArtifactResult`:: <<incremental_build#sec:task_input_using_dependency_resolution_results, Using dependency resolution results as task inputs>>

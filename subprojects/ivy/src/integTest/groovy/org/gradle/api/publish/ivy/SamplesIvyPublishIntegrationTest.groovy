@@ -17,7 +17,6 @@ package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
@@ -27,7 +26,6 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     public final Sample sampleProject = new Sample(temporaryFolder)
 
     @UsesSample("ivy-publish/quickstart")
-    @ToBeFixedForConfigurationCache
     def "quickstart sample with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -48,7 +46,6 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("ivy-publish/java-multi-project")
-    @ToBeFixedForConfigurationCache
     def "java-multi-project sample with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -86,7 +83,6 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("ivy-publish/descriptor-customization")
-    @ToBeFixedForConfigurationCache
     def "descriptor-customization sample with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -116,7 +112,6 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("ivy-publish/conditional-publishing/groovy")
-    @ToBeFixedForConfigurationCache
     def conditionalPublishing() {
         given:
         sample sampleProject
@@ -143,7 +138,6 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("ivy-publish/conditional-publishing")
-    @ToBeFixedForConfigurationCache
     def shorthandPublishToExternalRepository() {
         given:
         inDirectory(sampleProject.dir.file('groovy'))
@@ -158,7 +152,6 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("ivy-publish/conditional-publishing")
-    @ToBeFixedForConfigurationCache
     def shorthandPublishToInternalRepository() {
         given:
         inDirectory(sampleProject.dir.file('groovy'))
@@ -173,7 +166,6 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("ivy-publish/publish-artifact/groovy")
-    @ToBeFixedForConfigurationCache
     def publishesRpmArtifact() {
         given:
         sample sampleProject
@@ -194,7 +186,6 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("ivy-publish/distribution")
-    @ToBeFixedForConfigurationCache
     def "publishes distribution archives with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)

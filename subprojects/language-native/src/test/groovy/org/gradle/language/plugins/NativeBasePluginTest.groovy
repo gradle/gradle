@@ -411,29 +411,29 @@ class NativeBasePluginTest extends Specification {
     }
 
     def "adds Maven publications for component with main publication"() {
-        def usage1 = Stub(UsageContext)
+        def variant1 = Stub(UsageContext)
         def artifact1 = Stub(PublishArtifact)
         artifact1.getFile() >> projectDir.file("artifact1")
-        usage1.artifacts >> [artifact1]
-        def variant1 = Stub(PublishableVariant)
-        variant1.name >> "debug"
-        variant1.usages >> [usage1]
-        variant1.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_debug", "1.2")
+        variant1.artifacts >> [artifact1]
+        def publishableVariant1 = Stub(PublishableVariant)
+        publishableVariant1.name >> "debug"
+        publishableVariant1.usages >> [variant1]
+        publishableVariant1.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_debug", "1.2")
 
-        def usage2 = Stub(UsageContext)
+        def variant2 = Stub(UsageContext)
         def artifact2 = Stub(PublishArtifact)
         artifact2.getFile() >> projectDir.file("artifact1")
-        usage2.artifacts >> [artifact2]
-        def variant2 = Stub(PublishableVariant)
-        variant2.name >> "release"
-        variant2.usages >> [usage2]
-        variant2.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_release", "1.2")
+        variant2.artifacts >> [artifact2]
+        def publishableVariant2 = Stub(PublishableVariant)
+        publishableVariant2.name >> "release"
+        publishableVariant2.usages >> [variant2]
+        publishableVariant2.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_release", "1.2")
 
         def doNotPublish = Stub(SoftwareComponentInternal)
 
         def mainVariant = Stub(TestVariant)
         mainVariant.name >> "main"
-        mainVariant.variants >> [variant1, variant2, doNotPublish]
+        mainVariant.variants >> [publishableVariant1, publishableVariant2, doNotPublish]
 
         def component = Stub(PublicationAwareComponent)
         component.mainPublication >> mainVariant

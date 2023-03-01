@@ -43,11 +43,6 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
     }
 
     @Override
-    public boolean calculatePresence(ValueConsumer consumer) {
-        return true;
-    }
-
-    @Override
     public boolean isImmutable() {
         return true;
     }
@@ -77,6 +72,10 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
 
     public abstract String getName();
 
+    @Override
+    @Nonnull
+    public abstract Class<T> getType();
+
     /**
      * Returns the identifier for the build that owns this service.
      */
@@ -88,20 +87,28 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
      * This method does not distinguish between consumed/registered providers.
      */
     public static boolean isSameService(Provider<? extends BuildService<?>> thisProvider, Provider<? extends BuildService<?>> anotherProvider) {
-        if (!(thisProvider instanceof BuildServiceProvider && anotherProvider instanceof BuildServiceProvider)) {
-            return false;
-        }
         if (thisProvider == anotherProvider) {
             return true;
         }
-        BuildServiceProvider thisBuildServiceProvider = (BuildServiceProvider) thisProvider;
-        BuildServiceProvider otherBuildServiceProvider = (BuildServiceProvider) anotherProvider;
-        if (!thisBuildServiceProvider.getName().equals(otherBuildServiceProvider.getName())) {
+        if (!(thisProvider instanceof BuildServiceProvider && anotherProvider instanceof BuildServiceProvider)) {
             return false;
         }
-        if (thisBuildServiceProvider.getType() != otherBuildServiceProvider.getType()) {
+        BuildServiceProvider thisBuildServiceProvider = (BuildServiceProvider) thisProvider;
+        BuildServiceProvider otherBuildServiceProvider = (BuildServiceProvider) anotherProvider;
+        String thisName = thisBuildServiceProvider.getName();
+        String otherName = otherBuildServiceProvider.getName();
+        if (!thisName.isEmpty() && !otherName.isEmpty() && !thisName.equals(otherName)) {
+            return false;
+        }
+        if (!isCompatibleServiceType(thisBuildServiceProvider, otherBuildServiceProvider)) {
             return false;
         }
         return thisBuildServiceProvider.getBuildIdentifier().equals(otherBuildServiceProvider.getBuildIdentifier());
+    }
+
+    private static boolean isCompatibleServiceType(BuildServiceProvider thisBuildServiceProvider, BuildServiceProvider otherBuildServiceProvider) {
+        Class<?> otherType = otherBuildServiceProvider.getType();
+        Class<?> thisType = thisBuildServiceProvider.getType();
+        return otherType.isAssignableFrom(Cast.uncheckedCast(thisType));
     }
 }

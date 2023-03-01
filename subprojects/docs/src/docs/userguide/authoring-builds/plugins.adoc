@@ -85,16 +85,16 @@ To apply a core plugin, the short name can be used:
 
 .Applying a core plugin
 ====
-include::sample[dir="snippets/plugins/dsl/groovy", files="build.gradle[tags=use-plugin]"]
 include::sample[dir="snippets/plugins/dsl/kotlin", files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/plugins/dsl/groovy", files="build.gradle[tags=use-plugin]"]
 ====
 
 To apply a community plugin from the portal, the fully qualified plugin id must be used:
 
 .Applying a community plugin
 ====
-include::sample[dir="snippets/plugins/dsl/groovy", files="build.gradle[tags=use-community-plugin]"]
 include::sample[dir="snippets/plugins/dsl/kotlin", files="build.gradle.kts[tags=use-community-plugin]"]
+include::sample[dir="snippets/plugins/dsl/groovy", files="build.gradle[tags=use-community-plugin]"]
 ====
 
 See link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[PluginDependenciesSpec] for more information on using the Plugin DSL.
@@ -123,20 +123,6 @@ The form is:
 ====
 [.multi-language-sample]
 =====
-.build.gradle
-[source,groovy]
-----
-plugins {
-    id «plugin id»                                            // <1>
-    id «plugin id» version «plugin version» [apply «false»]   // <2>
-}
-----
-<1> for core Gradle plugins or plugins already available to the build script
-<2> for binary Gradle plugins that need to be resolved
-=====
-
-[.multi-language-sample]
-=====
 .build.gradle.kts
 [source,kotlin]
 ----
@@ -150,15 +136,30 @@ plugins {
 <2> for core Gradle plugins or plugins already available to the build script
 <3> for binary Gradle plugins that need to be resolved
 =====
-====
 
-[.multi-language-text.lang-groovy]
-Where `«plugin id»` and `«plugin version»` must be constant, literal, strings and the `apply` statement with a `boolean` can be used to disable the default behavior of applying the plugin immediately (e.g. you want to apply it only in `subprojects`). No other statements are allowed; their presence will cause a compilation error.
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id «plugin id»                                            // <1>
+    id «plugin id» version «plugin version» [apply «false»]   // <2>
+}
+----
+<1> for core Gradle plugins or plugins already available to the build script
+<2> for binary Gradle plugins that need to be resolved
+=====
+====
 
 [.multi-language-text.lang-kotlin]
 Where `«plugin id»`, in case `#1` is a static Kotlin extension property, named after the core plugin ID ; and in cases `#2` and `#3` is a string.
 `«plugin version»` is also a string.
 The `apply` statement with a `boolean` can be used to disable the default behavior of applying the plugin immediately (e.g. you want to apply it only in `subprojects`).
+
+[.multi-language-text.lang-groovy]
+Where `«plugin id»` and `«plugin version»` must be constant, literal, strings and the `apply` statement with a `boolean` can be used to disable the default behavior of applying the plugin immediately (e.g. you want to apply it only in `subprojects`). No other statements are allowed; their presence will cause a compilation error.
+
 
 See <<#sec:plugin_version_management,plugin version management>> if you want to use a variable to define a plugin version.
 
@@ -183,8 +184,8 @@ and then use the `plugins {}` block without the version in subprojects' build sc
 
 .Applying plugins only on certain subprojects
 ====
-include::sample[dir="snippets/plugins/multiproject/groovy", files="settings.gradle[tags=include-subprojects];build.gradle[tags=plugins-on-subprojects];hello-a/build.gradle[];hello-b/build.gradle[];goodbye-c/build.gradle[]"]
 include::sample[dir="snippets/plugins/multiproject/kotlin", files="settings.gradle.kts[tags=include-subprojects];build.gradle.kts[tags=plugins-on-subprojects];hello-a/build.gradle.kts[];hello-b/build.gradle.kts[];goodbye-c/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/multiproject/groovy", files="settings.gradle[tags=include-subprojects];build.gradle[tags=plugins-on-subprojects];hello-a/build.gradle[];hello-b/build.gradle[];goodbye-c/build.gradle[]"]
 ====
 
 Even better - you can encapsulate the versions of external plugins by composing the build logic
@@ -197,16 +198,16 @@ You can apply plugins that reside in a project's _buildSrc_ directory as long as
 
 .Defining a buildSrc plugin with an ID
 ====
-include::sample[dir="snippets/plugins/dslWithBuildSrc/groovy", files="buildSrc/build.gradle[tags=main-block]"]
 include::sample[dir="snippets/plugins/dslWithBuildSrc/kotlin", files="buildSrc/build.gradle.kts[tags=main-block]"]
+include::sample[dir="snippets/plugins/dslWithBuildSrc/groovy", files="buildSrc/build.gradle[tags=main-block]"]
 ====
 
 The plugin can then be applied by ID as normal:
 
 .Applying a plugin from buildSrc
 ====
-include::sample[dir="snippets/plugins/dslWithBuildSrc/groovy", files="build.gradle[tags=use-plugin]"]
 include::sample[dir="snippets/plugins/dslWithBuildSrc/kotlin", files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/plugins/dslWithBuildSrc/groovy", files="build.gradle[tags=use-plugin]"]
 ====
 
 
@@ -218,8 +219,8 @@ The `pluginManagement {}` block may only appear in either the `settings.gradle` 
 
 .Configuring pluginManagement per-project and globally
 ====
-include::sample[dir="snippets/plugins/pluginManagement/groovy", files="settings.gradle[];init.gradle[]"]
 include::sample[dir="snippets/plugins/pluginManagement/kotlin", files="settings.gradle.kts[];init.gradle.kts[]"]
+include::sample[dir="snippets/plugins/pluginManagement/groovy", files="settings.gradle[];init.gradle[]"]
 ====
 
 
@@ -232,8 +233,8 @@ To specify custom plugin repositories, use the `repositories {}` block inside `p
 
 .Example: Using plugins from custom plugin repositories.
 ====
-include::sample[dir="snippets/plugins/consuming/groovy", files="settings.gradle[tags=custom-plugin-repositories]"]
 include::sample[dir="snippets/plugins/consuming/kotlin", files="settings.gradle.kts[tags=custom-plugin-repositories]"]
+include::sample[dir="snippets/plugins/consuming/groovy", files="settings.gradle[tags=custom-plugin-repositories]"]
 ====
 
 This tells Gradle to first look in the Maven repository at `../maven-repo` when resolving plugins and then to check the Gradle Plugin Portal if the plugins are not found in the Maven repository. If you don't want the Gradle Plugin Portal to be searched, omit the `gradlePluginPortal()` line. Finally, the Ivy repository at `../ivy-repo` will be checked.
@@ -247,8 +248,8 @@ One benefit of setting plugin versions this way is that the `pluginManagement.pl
 
 .Example: Managing plugin versions via `pluginManagement`.
 ====
-include::sample[dir="snippets/plugins/pluginVersions/groovy", files="settings.gradle[tags=configure-plugin-version];build.gradle;gradle.properties"]
 include::sample[dir="snippets/plugins/pluginVersions/kotlin", files="settings.gradle.kts[tags=configure-plugin-version];build.gradle.kts;gradle.properties"]
+include::sample[dir="snippets/plugins/pluginVersions/groovy", files="settings.gradle[tags=configure-plugin-version];build.gradle;gradle.properties"]
 ====
 
 The plugin version is loaded from `gradle.properties` and configured in the settings script, allowing the plugin to be added to any project without specifying the version.
@@ -262,8 +263,8 @@ To add resolution rules, use the `resolutionStrategy {}` inside the `pluginManag
 
 .Plugin resolution strategy.
 ====
-include::sample[dir="snippets/plugins/resolutionRules/groovy", files="settings.gradle[tags=plugin-resolution-strategy]"]
 include::sample[dir="snippets/plugins/resolutionRules/kotlin", files="settings.gradle.kts[tags=plugin-resolution-strategy]"]
+include::sample[dir="snippets/plugins/resolutionRules/groovy", files="settings.gradle[tags=plugin-resolution-strategy]"]
 ====
 
 This tells Gradle to use the specified plugin implementation artifact instead of using its built-in default mapping from plugin ID to Maven/Ivy coordinates.
@@ -281,8 +282,8 @@ For example, the following complete sample from the `sample-plugins` project sho
 
 .Complete Plugin Publishing Sample
 ====
-include::sample[dir="snippets/plugins/publishing/groovy", files="build.gradle[tags=complete-plugin-publishing]"]
 include::sample[dir="snippets/plugins/publishing/kotlin", files="build.gradle.kts[tags=complete-plugin-publishing]"]
+include::sample[dir="snippets/plugins/publishing/groovy", files="build.gradle[tags=complete-plugin-publishing]"]
 ====
 
 Running `gradle publish` in the sample directory creates the following Maven repository layout (the Ivy layout is similar):
@@ -301,8 +302,8 @@ With the introduction of the <<#sec:plugins_block,plugins DSL>>, users should ha
 
 .Applying a binary plugin
 ====
-include::sample[dir="snippets/java/quickstart/groovy", files="build.gradle[tags=use-plugin-legacy]"]
 include::sample[dir="snippets/java/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin-legacy]"]
+include::sample[dir="snippets/java/quickstart/groovy", files="build.gradle[tags=use-plugin-legacy]"]
 ====
 
 Plugins can be applied using a _plugin id_. In the above case, we are using the short name ‘`java`’ to apply the link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin].
@@ -311,17 +312,17 @@ Rather than using a plugin id, plugins can also be applied by simply specifying 
 
 .Applying a binary plugin by type
 ====
-include::sample[dir="snippets/tutorial/pluginIntro/groovy", files="build.gradle[tags=apply-by-type]"]
 include::sample[dir="snippets/tutorial/pluginIntro/kotlin", files="build.gradle.kts[tags=apply-by-type]"]
+include::sample[dir="snippets/tutorial/pluginIntro/groovy", files="build.gradle[tags=apply-by-type]"]
 ====
 
 The `JavaPlugin` symbol in the above sample refers to the link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin]. This class does not strictly need to be imported as the `org.gradle.api.plugins` package is automatically imported in all build scripts (see <<writing_build_scripts.adoc#script-default-imports,Default imports>>).
 
-[.multi-language-text.lang-groovy]
-Furthermore, it is not necessary to append `.class` to identify a class literal in Groovy as it is in Java.
-
 [.multi-language-text.lang-kotlin]
 Furthermore, one need to append the `::class` suffix to identify a class literal in Kotlin instead of `.class` in Java.
+
+[.multi-language-text.lang-groovy]
+Furthermore, it is not necessary to append `.class` to identify a class literal in Groovy as it is in Java.
 
 [[sec:applying_plugins_buildscript]]
 ==== Applying plugins with the buildscript block
@@ -330,8 +331,8 @@ Binary plugins that have been published as external jar files can be added to a 
 
 .Applying a plugin with the buildscript block
 ====
-include::sample[dir="snippets/plugins/buildscript/groovy", files="build.gradle[tags=buildscript_block]"]
 include::sample[dir="snippets/plugins/buildscript/kotlin", files="build.gradle.kts[tags=buildscript_block]"]
+include::sample[dir="snippets/plugins/buildscript/groovy", files="build.gradle[tags=buildscript_block]"]
 ====
 
 [[sec:script_plugins]]
@@ -339,8 +340,8 @@ include::sample[dir="snippets/plugins/buildscript/kotlin", files="build.gradle.k
 
 .Applying a script plugin
 ====
-include::sample[dir="snippets/organizingGradleProjects/configureProjectUsingScript/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/organizingGradleProjects/configureProjectUsingScript/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/organizingGradleProjects/configureProjectUsingScript/groovy", files="build.gradle[]"]
 ====
 
 Script plugins are automatically resolved and can be applied from a script on the local filesystem or at a remote location. Filesystem locations are relative to the project directory, while remote script locations are specified with an HTTP URL. Multiple script plugins (of either form) can be applied to a given target.

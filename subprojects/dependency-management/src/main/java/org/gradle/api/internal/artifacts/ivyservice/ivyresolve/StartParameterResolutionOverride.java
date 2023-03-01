@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.Depe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.writer.WriteDependencyVerificationFile;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
-import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
+import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.signatures.BuildTreeDefinedKeys;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.component.ArtifactType;
@@ -56,6 +56,7 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ReadableContent;
+import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.service.scopes.Scopes;
@@ -97,20 +98,23 @@ public class StartParameterResolutionOverride {
         return original;
     }
 
-    public DependencyVerificationOverride dependencyVerificationOverride(BuildOperationExecutor buildOperationExecutor,
-                                                                         ChecksumService checksumService,
-                                                                         SignatureVerificationServiceFactory signatureVerificationServiceFactory,
-                                                                         DocumentationRegistry documentationRegistry,
-                                                                         BuildCommencedTimeProvider timeProvider,
-                                                                         Factory<GradleProperties> gradlePropertiesFactory) {
+    public DependencyVerificationOverride dependencyVerificationOverride(
+        BuildOperationExecutor buildOperationExecutor,
+        ChecksumService checksumService,
+        SignatureVerificationServiceFactory signatureVerificationServiceFactory,
+        DocumentationRegistry documentationRegistry,
+        BuildCommencedTimeProvider timeProvider,
+        Factory<GradleProperties> gradlePropertiesFactory,
+        FileResourceListener fileResourceListener
+    ) {
         List<String> checksums = startParameter.getWriteDependencyVerifications();
+        File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
+        fileResourceListener.fileObserved(verificationsFile);
         if (!checksums.isEmpty() || startParameter.isExportKeys()) {
-            File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
             return DisablingVerificationOverride.of(
                 new WriteDependencyVerificationFile(verificationsFile, keyRing.get(), buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys())
             );
         } else {
-            File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
             if (verificationsFile.exists()) {
                 if (startParameter.getDependencyVerificationMode() == DependencyVerificationMode.OFF) {
                     return DependencyVerificationOverride.NO_VERIFICATION;
@@ -118,7 +122,7 @@ public class StartParameterResolutionOverride {
                 try {
                     File sessionReportDir = computeReportDirectory(timeProvider);
                     return DisablingVerificationOverride.of(
-                        new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, keyRing.get(), checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry, sessionReportDir, gradlePropertiesFactory)
+                        new ChecksumAndSignatureVerificationOverride(buildOperationExecutor, startParameter.getGradleUserHomeDir(), verificationsFile, keyRing.get(), checksumService, signatureVerificationServiceFactory, startParameter.getDependencyVerificationMode(), documentationRegistry, sessionReportDir, gradlePropertiesFactory, fileResourceListener)
                     );
                 } catch (Exception e) {
                     return new FailureVerificationOverride(e);

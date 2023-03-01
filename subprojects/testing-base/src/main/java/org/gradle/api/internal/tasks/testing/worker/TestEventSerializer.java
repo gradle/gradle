@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
+import org.gradle.api.internal.tasks.testing.TestFailureSerializationException;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
@@ -38,6 +39,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -171,7 +173,6 @@ public class TestEventSerializer {
 
         @Override
         public DefaultTestFailure read(Decoder decoder) throws Exception {
-            Throwable rawFailure = throwableSerializer.read(decoder);
             String message = decoder.readNullableString();
             String className = decoder.readString();
             String stacktrace = decoder.readString();
@@ -183,12 +184,28 @@ public class TestEventSerializer {
             for (int i = 0; i < numOfCauses; i++) {
                 causes.add(read(decoder));
             }
+
+            Throwable rawFailure = readThrowableCatchingFailure(decoder);
             return new DefaultTestFailure(rawFailure, new DefaultTestFailureDetails(message, className, stacktrace, isAssertionFailure, expected, actual), causes);
+        }
+
+        /**
+         * In the event that the exception thrown from the test cannot be successfully recreated, we capture the error
+         * and put that in the test failure so that we pass on to the user whatever information we can about the test failure.
+         */
+        private Throwable readThrowableCatchingFailure(Decoder decoder) throws IOException {
+            String rawFailureName = decoder.readString();
+            Throwable rawFailure;
+            try {
+               rawFailure = throwableSerializer.read(decoder);
+            } catch(Exception e) {
+                rawFailure = new TestFailureSerializationException("An exception of type " + rawFailureName + " was thrown by the test, but Gradle was unable to recreate the exception in the build process", e);
+            }
+            return rawFailure;
         }
 
         @Override
         public void write(Encoder encoder, DefaultTestFailure value) throws Exception {
-            throwableSerializer.write(encoder, value.getRawFailure());
             encoder.writeNullableString(value.getDetails().getMessage());
             encoder.writeString(value.getDetails().getClassName());
             encoder.writeString(value.getDetails().getStacktrace());
@@ -199,6 +216,16 @@ public class TestEventSerializer {
             for (TestFailure cause : value.getCauses()) {
                 write(encoder, (DefaultTestFailure) cause);
             }
+            writeThrowableWithType(encoder, value, value.getRawFailure());
+        }
+
+        /**
+         * Serializes the exception thrown by the test and also writes the exception type so that if there is a failure recreating the exception, we can at least
+         * provide the user with some information about what type of exception was thrown.
+         */
+        private void writeThrowableWithType(Encoder encoder, DefaultTestFailure value, Throwable rawFailure) throws Exception {
+            encoder.writeString(rawFailure.getClass().getName());
+            throwableSerializer.write(encoder, value.getRawFailure());
         }
     }
 

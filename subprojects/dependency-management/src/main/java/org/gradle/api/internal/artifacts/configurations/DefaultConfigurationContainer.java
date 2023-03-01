@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
@@ -53,6 +54,10 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
 
+    @SuppressWarnings("deprecation")
+    private static final ConfigurationRole DEFAULT_ROLE_TO_CREATE = ConfigurationRoles.LEGACY;
+    private static final boolean DEFAULT_LOCK_USAGE_AT_CREATION = false;
+
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
     private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private final DefaultRootComponentMetadataBuilder rootComponentMetadataBuilder;
@@ -81,13 +86,13 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         };
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(this);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
+        this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.discardAll());
+        this.whenObjectRemoved(x -> rootComponentMetadataBuilder.discardAll());
     }
 
     @Override
     protected Configuration doCreate(String name) {
-        DefaultConfiguration configuration = newConfiguration(name, this, rootComponentMetadataBuilder);
-        configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
-        return configuration;
+        return doCreate(name, DEFAULT_ROLE_TO_CREATE, DEFAULT_LOCK_USAGE_AT_CREATION);
     }
 
     @Override
@@ -114,7 +119,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     public ConfigurationInternal detachedConfiguration(Dependency... dependencies) {
         String name = nextDetachedConfigurationName();
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
-        DefaultConfiguration detachedConfiguration = newConfiguration(name, detachedConfigurationsProvider, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider));
+        @SuppressWarnings("deprecation")
+        DefaultConfiguration detachedConfiguration = newConfiguration(name, detachedConfigurationsProvider, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), ConfigurationRoles.LEGACY, false);
         copyAllTo(detachedConfiguration, dependencies);
         detachedConfigurationsProvider.setTheOnlyConfiguration(detachedConfiguration);
         return detachedConfiguration;
@@ -131,8 +137,12 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         }
     }
 
-    private DefaultConfiguration newConfiguration(String name, ConfigurationsProvider detachedConfigurationsProvider, RootComponentMetadataBuilder componentMetadataBuilder) {
-        return defaultConfigurationFactory.create(name, detachedConfigurationsProvider, resolutionStrategyFactory, componentMetadataBuilder);
+    private DefaultConfiguration newConfiguration(String name,
+                                                  ConfigurationsProvider detachedConfigurationsProvider,
+                                                  RootComponentMetadataBuilder componentMetadataBuilder,
+                                                  ConfigurationRole role,
+                                                  boolean lockUsage) {
+        return defaultConfigurationFactory.create(name, detachedConfigurationsProvider, resolutionStrategyFactory, componentMetadataBuilder, role, lockUsage);
     }
 
     /**
@@ -150,4 +160,19 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return reply.toString();
     }
 
+    @Override
+    public Configuration createWithRole(String name, ConfigurationRole role, boolean lockUsage, Action<? super Configuration> configureAction) {
+        assertMutable("createWithRole(String, ConfigurationRole, boolean, Action)");
+        assertCanAdd(name);
+        ConfigurationInternal object = doCreate(name, role, lockUsage);
+        add(object);
+        configureAction.execute(object);
+        return object;
+    }
+
+    private ConfigurationInternal doCreate(String name, ConfigurationRole role, boolean lockUsage) {
+        DefaultConfiguration configuration = newConfiguration(name, this, rootComponentMetadataBuilder, role, lockUsage);
+        configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
+        return configuration;
+    }
 }

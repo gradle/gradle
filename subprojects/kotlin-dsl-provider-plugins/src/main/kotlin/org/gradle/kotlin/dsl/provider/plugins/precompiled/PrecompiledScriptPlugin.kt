@@ -16,6 +16,7 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled
 
 
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
@@ -24,14 +25,17 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
+import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 
 import org.gradle.util.internal.TextUtil.convertLineSeparatorsToUnix
+import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.NameUtils
 
 import java.io.File
+import java.util.Locale
 
 
 internal
@@ -67,6 +71,19 @@ data class PrecompiledScriptPlugin(internal val scriptFile: File) {
     private
     val fileNameWithoutScriptExtension by lazy {
         scriptFileName.removeSuffix(scriptExtension)
+            .also(::validateFileNameWithoutScriptExtension)
+    }
+
+    private
+    fun validateFileNameWithoutScriptExtension(fileNameWithoutScriptExtension: String) {
+        if (fileNameWithoutScriptExtension.isEmpty()) {
+            val scriptTypeMessage = when (scriptType) {
+                KotlinScriptType.INIT -> "<plugin-id>.init.gradle.kts"
+                KotlinScriptType.SETTINGS -> "<plugin-id>.settings.gradle.kts"
+                KotlinScriptType.PROJECT -> TODO("This should not happen, please report an issue.")
+            }
+            throw GradleException("Precompiled script '${normaliseFileSeparators(scriptFile.absolutePath)}' file name is invalid, please rename it to '$scriptTypeMessage'.")
+        }
     }
 
     val targetType by lazy {
@@ -129,6 +146,7 @@ fun packageNameOf(code: String): String? =
                 skipWhiteSpaceAndComments()
                 parseQualifiedName()
             }
+
             else -> null
         }
     }
@@ -160,12 +178,12 @@ fun scriptClassNameForFile(file: File) =
 
 private
 fun CharSequence.kebabCaseToPascalCase() =
-    kebabCaseToCamelCase().capitalize()
+    kebabCaseToCamelCase().uppercaseFirstChar()
 
 
 private
 fun CharSequence.kebabCaseToCamelCase() =
-    replace("-[a-z]".toRegex()) { it.value.drop(1).toUpperCase() }
+    replace("-[a-z]".toRegex()) { it.value.drop(1).uppercase(Locale.US) }
 
 
 private

@@ -38,7 +38,7 @@ import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 
 import org.gradle.kotlin.dsl.provider.fileCollectionOf
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
-import org.gradle.kotlin.dsl.support.configureWith
+import org.gradle.kotlin.dsl.support.ScriptHandlerScopeInternal
 import org.gradle.kotlin.dsl.support.invalidPluginsCall
 
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -51,7 +51,7 @@ import kotlin.reflect.KProperty
  * Configures the build script classpath for this project.
  */
 fun Project.buildscript(action: ScriptHandlerScope.() -> Unit): Unit =
-    project.buildscript.configureWith(action)
+    ScriptHandlerScopeInternal(project, buildscript).action()
 
 
 /**

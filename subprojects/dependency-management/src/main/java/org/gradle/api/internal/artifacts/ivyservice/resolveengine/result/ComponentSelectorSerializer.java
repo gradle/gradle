@@ -31,7 +31,7 @@ import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -39,12 +39,17 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.util.Path;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A serializer for {@link ComponentSelector} that is not thread-safe and not reusable.
+ */
+@NotThreadSafe
 public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSelector> {
     private final OptimizingAttributeContainerSerializer attributeContainerSerializer;
     private final BuildIdentifierSerializer buildIdentifierSerializer;
@@ -113,7 +118,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         }
         ImmutableList.Builder<Capability> builder = ImmutableList.builderWithExpectedSize(size);
         for (int i = 0; i < size; i++) {
-            builder.add(new ImmutableCapability(decoder.readString(), decoder.readString(), decoder.readNullableString()));
+            builder.add(new DefaultImmutableCapability(decoder.readString(), decoder.readString(), decoder.readNullableString()));
         }
         return builder.build();
     }
