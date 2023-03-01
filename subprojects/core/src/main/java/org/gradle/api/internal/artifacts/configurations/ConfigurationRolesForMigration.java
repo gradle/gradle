@@ -49,6 +49,11 @@ public enum ConfigurationRolesForMigration implements ConfigurationRole {
         this.resolvable = initialRole.isResolvable();
         this.declarableAgainst = initialRole.isDeclarableAgainst();
 
+        /*
+         * For each usage, we'll use the deprecation status from the initial role if it is deprecated.  If it is NOT initially
+         * deprecated, but the usage will change from allowed -> disallowed when migrating from the initial role to the
+         * eventual role, then we'll also want to mark the usage as deprecated.
+         */
         this.consumptionDeprecated = initialRole.isConsumptionDeprecated() || (initialRole.isConsumable() && !eventualRole.isConsumable());
         this.resolutionDeprecated = initialRole.isResolutionDeprecated() || (initialRole.isResolvable() && !eventualRole.isResolvable());
         this.declarationAgainstDeprecated = initialRole.isDeclarationAgainstDeprecated() || (initialRole.isDeclarableAgainst() && !eventualRole.isDeclarableAgainst());
