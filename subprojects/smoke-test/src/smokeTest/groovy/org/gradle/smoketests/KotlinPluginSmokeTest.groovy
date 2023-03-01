@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.GradleVersion
@@ -146,7 +145,6 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [KGP_NO_CC_ITERATION_MATCHER])
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
 
         assumeFalse(kotlinVersion.startsWith("1.3."))
@@ -185,9 +183,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         when:
         result = runner(false, versionNumber, 'build')
             .deprecations(KotlinDeprecations) {
-                if (GradleContextualExecuter.isNotConfigCache()) {
-                    expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
-                }
+                expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
             }.build()
 
         then:

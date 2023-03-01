@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
@@ -395,7 +394,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21368")
-    @UnsupportedWithConfigurationCache(iterationMatchers = [".*('1\\.6\\.|'1\\.7\\.).*"])
     def "emits toolchain usages when configuring toolchains for #kotlinPlugin Kotlin plugin '#kotlinPluginVersion'"() {
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
@@ -438,18 +436,21 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
-            if (GradleContextualExecuter.isConfigCache()) {
+            def destinationDirWarning = "The AbstractCompile.destinationDir property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Please use the destinationDirectory property instead. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring"
+            executer.beforeExecute {
                 executer.expectDocumentedDeprecationWarning(wrapUtilWarning)
-            } else {
-                executer.beforeExecute {
-                    executer.expectDocumentedDeprecationWarning(wrapUtilWarning)
-                }
             }
-            executer.expectDocumentedDeprecationWarning(
-                "The AbstractCompile.destinationDir property has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Please use the destinationDirectory property instead. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
+            if (GradleContextualExecuter.isConfigCache()) {
+                executer.beforeExecute {
+                    executer.expectDocumentedDeprecationWarning(destinationDirWarning)
+                }
+            } else {
+                executer.expectDocumentedDeprecationWarning(destinationDirWarning)
+            }
         }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         def eventsOnCompile = toolchainEvents(":compileKotlin")
