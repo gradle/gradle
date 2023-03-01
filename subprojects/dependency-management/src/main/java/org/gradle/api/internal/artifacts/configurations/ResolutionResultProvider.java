@@ -22,6 +22,7 @@ package org.gradle.api.internal.artifacts.configurations;
  * @param <T>
  */
 public interface ResolutionResultProvider<T> {
+
     /**
      * Returns the value available at execution graph calculation time. Note that the value may change between when the execution graph is calculated and
      * when the final value is calculated. For example, only project dependencies may be included in a dependency graph that is used to calculate the task

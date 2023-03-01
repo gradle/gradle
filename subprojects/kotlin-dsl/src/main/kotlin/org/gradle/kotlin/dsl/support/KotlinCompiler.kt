@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
+import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment
 
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
@@ -90,14 +91,12 @@ import java.io.OutputStream
 import java.io.PrintStream
 
 import kotlin.reflect.KClass
-import kotlin.script.experimental.api.KotlinType
 
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.defaultImports
 import kotlin.script.experimental.api.hostConfiguration
 import kotlin.script.experimental.api.implicitReceivers
-import kotlin.script.experimental.api.providedProperties
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.host.configurationDependencies
 import kotlin.script.experimental.host.getScriptingClass
@@ -129,7 +128,6 @@ fun scriptDefinitionFromTemplate(
     template: KClass<out Any>,
     implicitImports: List<String>,
     implicitReceiver: KClass<*>? = null,
-    injectedProperties: Map<String, KotlinType> = mapOf(),
     classPath: List<File> = listOf()
 ): ScriptDefinition {
     val hostConfiguration = ScriptingHostConfiguration {
@@ -145,7 +143,6 @@ fun scriptDefinitionFromTemplate(
             implicitReceiver?.let {
                 implicitReceivers(it)
             }
-            providedProperties(injectedProperties)
         },
         evaluationConfiguration = null
     )
@@ -402,6 +399,7 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
     apiVersion = ApiVersion.KOTLIN_1_8,
     analysisFlags = mapOf(
         AnalysisFlags.skipMetadataVersionCheck to true,
+        AnalysisFlags.skipPrereleaseCheck to true,
         JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
     ),
     specificFeatures = mapOf(
@@ -549,7 +547,7 @@ class LoggingMessageCollector(
                 path.let(pathTranslation).let { path ->
                     when {
                         line >= 0 && column >= 0 -> compilerMessageFor(path, line, column, message)
-                        else -> "$path: $message"
+                        else -> "${clickableFileUrlFor(path)}: $message"
                     }
                 }
             } ?: message
@@ -564,8 +562,8 @@ class LoggingMessageCollector(
             }
 
             in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
-            CompilerMessageSeverity.STRONG_WARNING -> log.info { taggedMsg() }
-            CompilerMessageSeverity.WARNING -> log.info { taggedMsg() }
+            CompilerMessageSeverity.STRONG_WARNING -> log.warn { taggedMsg() }
+            CompilerMessageSeverity.WARNING -> log.warn { taggedMsg() }
             CompilerMessageSeverity.INFO -> log.info { msg() }
             else -> log.debug { taggedMsg() }
         }
@@ -575,4 +573,9 @@ class LoggingMessageCollector(
 
 internal
 fun compilerMessageFor(path: String, line: Int, column: Int, message: String) =
-    "$path:$line:$column: $message"
+    "${clickableFileUrlFor(path)}:$line:$column: $message"
+
+
+private
+fun clickableFileUrlFor(path: String): String =
+    ConsoleRenderer().asClickableFileUrl(File(path))

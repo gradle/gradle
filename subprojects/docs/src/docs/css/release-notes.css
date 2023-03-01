@@ -8,17 +8,15 @@
   list-style-type: none;
 }
 
-
-
-
-li.subTopic :before {
+#fixed-issues-list li:before,
+.topic ul li:before {
   color: #02303A;
   content: '\002022';
   font: 0.9em bold sans-serif;
-  margin-left: 3em;
+  margin-left: -1em;
   margin-right: 0.4em;
 }
-#fixed-issues-list li:before,
+
 li.mainTopic :before {
   color: #02303A;
   content: '\002022';
@@ -27,16 +25,26 @@ li.mainTopic :before {
   margin-right: 0.4em;
 }
 
+li.subTopic :before {
+  color: #02303A;
+  content: '\002022';
+  font: 0.9em bold sans-serif;
+  margin-left: 3em;
+  margin-right: 0.4em;
+}
+
+h4 {
+  margin-top: 1rem;
+  font-size: 1.0625rem;
+  font-style: italic;
+}
 
 pre {
     overflow: auto;
 }
 
-
-h4{
-  margin-top: 1rem;
-  font-size: 1.0625rem;
-  font-style: italic;
+ul.toc-sub {
+  margin-bottom: 0;
 }
 
 button.display-toggle {

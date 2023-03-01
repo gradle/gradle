@@ -43,11 +43,6 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
     }
 
     @Override
-    public boolean calculatePresence(ValueConsumer consumer) {
-        return true;
-    }
-
-    @Override
     public boolean isImmutable() {
         return true;
     }
@@ -76,6 +71,10 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
     public abstract BuildServiceDetails<T, P> getServiceDetails();
 
     public abstract String getName();
+
+    @Override
+    @Nonnull
+    public abstract Class<T> getType();
 
     /**
      * Returns the identifier for the build that owns this service.

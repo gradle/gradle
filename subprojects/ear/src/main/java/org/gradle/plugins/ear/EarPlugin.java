@@ -30,8 +30,8 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.PluginContainer;
-import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
@@ -92,7 +92,7 @@ public abstract class EarPlugin implements Plugin<Project> {
 
     private void wireEarTaskConventionsWithJavaPluginApplied(final Project project, PluginContainer plugins) {
         plugins.withType(JavaPlugin.class, javaPlugin -> {
-            final JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
+            final JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
             project.getTasks().withType(Ear.class).configureEach(task -> {
                 task.dependsOn((Callable<FileCollection>) () ->
                     component.getSourceSet().getRuntimeClasspath()
@@ -111,7 +111,7 @@ public abstract class EarPlugin implements Plugin<Project> {
             task.getGenerateDeploymentDescriptor().convention(convention.getGenerateDeploymentDescriptor());
 
             plugins.withType(JavaPlugin.class, javaPlugin -> {
-                final JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
+                final JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
                     component.getSourceSet().getResources().srcDir(task.getAppDirectory());
             });
         });

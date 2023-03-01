@@ -126,7 +126,7 @@ public class HttpClientHelper implements Closeable {
                     "See: %s",
                 getConfidenceNote(sslException),
                 String.join(", ", HttpClientConfigurer.supportedTlsVersions()),
-                documentationRegistry.getDocumentationFor("build_environment", "gradle_system_properties")
+                documentationRegistry.getDocumentationFor("build_environment", "sec:gradle_system_properties")
             );
             return new HttpRequestException(message, cause);
         }

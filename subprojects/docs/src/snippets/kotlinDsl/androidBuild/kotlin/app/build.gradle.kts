@@ -5,7 +5,6 @@ plugins {
     id("com.android.application")
 // end::android[]
     kotlin("android")
-    kotlin("android.extensions")
 // tag::android[]
 }
 

@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
+import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPlugin;
@@ -60,7 +61,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
 
         antlrConfiguration.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar")));
 
-        Configuration apiConfiguration = project.getConfigurations().getByName(JavaPlugin.API_CONFIGURATION_NAME);
+        Configuration apiConfiguration = project.getConfigurations().getByName(JvmConstants.API_CONFIGURATION_NAME);
         apiConfiguration.extendsFrom(antlrConfiguration);
 
         // Wire the antlr configuration into all antlr tasks

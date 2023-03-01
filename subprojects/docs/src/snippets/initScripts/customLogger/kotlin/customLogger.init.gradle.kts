@@ -1,5 +1,6 @@
 useLogger(CustomEventLogger())
 
+@Suppress("deprecation")
 class CustomEventLogger() : BuildAdapter(), TaskExecutionListener {
 
     override fun beforeExecute(task: Task) {

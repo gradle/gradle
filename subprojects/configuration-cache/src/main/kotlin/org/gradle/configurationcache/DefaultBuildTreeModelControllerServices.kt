@@ -28,7 +28,8 @@ import org.gradle.configurationcache.problems.DefaultProblemFactory
 import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
-import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
+import org.gradle.configurationcache.services.VintageEnvironmentChangeTracker
 import org.gradle.execution.selection.BuildTaskSelector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.DefaultInternalOptions
@@ -108,11 +109,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         registration.add(BuildModelParameters::class.java, modelParameters)
         registration.add(BuildActionModelRequirements::class.java, requirements)
         if (modelParameters.isConfigurationCache) {
-            registration.add(EnvironmentChangeTracker::class.java)
             registration.add(ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)
             registration.add(ConfigurationCacheStartParameter::class.java)
             registration.add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             registration.add(ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
+            registration.add(ConfigurationCacheEnvironmentChangeTracker::class.java)
             registration.add(DefaultConfigurationCacheProblemsListener::class.java)
             registration.add(DefaultProblemFactory::class.java)
             registration.add(ConfigurationCacheProblems::class.java)
@@ -124,6 +125,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         } else {
             registration.add(VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(VintageBuildTreeLifecycleControllerFactory::class.java)
+            registration.add(VintageEnvironmentChangeTracker::class.java)
             registration.addProvider(VintageBuildTreeProvider())
         }
     }

@@ -27,6 +27,7 @@ import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
+import spock.lang.Ignore
 
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
 
@@ -196,6 +197,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         'none' | 'none' | '11'      | '11'
     }
 
+    @Ignore("https://github.com/gradle/gradle-private/issues/3729")
     def "can compile source and run tests using Java #javaVersion for Groovy "() {
         def jdk = AvailableJavaHomes.getJdk(javaVersion)
         Assume.assumeTrue(jdk != null)

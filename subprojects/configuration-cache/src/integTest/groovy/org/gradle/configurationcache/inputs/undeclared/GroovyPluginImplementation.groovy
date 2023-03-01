@@ -73,6 +73,8 @@ trait GroovyPluginImplementation {
             import ${Project.name}
             import ${Plugin.name}
 
+            ${read.requiredImports().collect { "import $it" }.join("\n")}
+
             @${CompileStatic.name}
             class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {

@@ -34,6 +34,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.util.internal.TextUtil
+import java.io.File
 import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 
@@ -47,6 +48,13 @@ abstract class GradleStartScriptGenerator : DefaultTask() {
     @get:Input
     val launcherJarName: String
         get() = launcherJar.singleFile.name
+
+    @get:Internal
+    abstract val agentJars: ConfigurableFileCollection
+
+    @get:Input
+    val agentJarNames: List<String>
+        get() = agentJars.files.map { it.name }
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.NONE)
@@ -75,8 +83,14 @@ abstract class GradleStartScriptGenerator : DefaultTask() {
         generator.setClasspath(listOf("lib/$launcherJarName"))
         generator.setAppNameSystemProperty("org.gradle.appname")
         generator.setDefaultJvmOpts(listOf("-Xmx64m", "-Xms64m"))
-        generator.generateUnixScript(startScriptsDir.file("gradle").get().asFile)
-        generator.generateWindowsScript(startScriptsDir.file("gradle.bat").get().asFile)
+
+        val unixScriptFile = startScriptsDir.file("gradle").get().asFile
+        generator.generateUnixScript(unixScriptFile)
+        unixScriptFile.injectAgentOptions(TextUtil.getUnixLineSeparator())
+
+        val windowsScriptFile = startScriptsDir.file("gradle.bat").get().asFile
+        generator.generateWindowsScript(windowsScriptFile)
+        windowsScriptFile.injectAgentOptions(TextUtil.getWindowsLineSeparator())
     }
 
     private
@@ -92,4 +106,45 @@ abstract class GradleStartScriptGenerator : DefaultTask() {
         StartScriptTemplateBindingFactory.windows(),
         FileCollectionBackedTextResource(temporaryFileProvider, windowsScriptTemplate, StandardCharsets.UTF_8)
     )
+
+    /**
+     * Modifies the start script injecting -javaagent flags. The start script file is updated in-place by appending Java agent switches to 'DEFAULT_JVM_OPTS' variable declaration.
+     */
+    private
+    fun File.injectAgentOptions(separator: String) {
+        if (agentJarNames.isEmpty()) {
+            return
+        }
+        var replacementsCount = 0
+        // readLines eats EOLs, so we need to use postfix to make sure the last line ends with EOL too.
+        writeBytes(readLines().joinToString(separator = separator, postfix = separator) { line ->
+            when {
+                // We assume that the declaration is not empty.
+                line.startsWith("DEFAULT_JVM_OPTS='") && line.endsWith('\'') -> {
+                    ++replacementsCount
+                    // Use shell's string concatenation: '...'"..." glues contents of quoted and double-quoted strings together.
+                    // The result would be something like DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'" \"-javaagent:$APP_HOME/lib/agents/foobar.jar\""
+                    line + getAgentOptions("\$APP_HOME").joinToString(separator = " ", prefix = "\" ", postfix = "\"") {
+                        // Wrap the agent switch in double quotes, as the expanded APP_HOME may contain spaces.
+                        // The joined line is enclosed in double quotes too, so double quotes here must be escaped.
+                        "\\\"$it\\\""
+                    }
+                }
+
+                line.startsWith("set DEFAULT_JVM_OPTS=") -> {
+                    ++replacementsCount
+                    // The result would be something like set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" "-javaagent:%APP_HOME%/lib/agents/foobar.jar"
+                    line + getAgentOptions("%APP_HOME%").joinToString(separator = " ", prefix = " \"", postfix = "\"")
+                }
+
+                else -> line
+            }
+        }.toByteArray(StandardCharsets.UTF_8))
+        if (replacementsCount != 1) {
+            throw IllegalArgumentException("The script file produced by the default start script doesn't match expected layout")
+        }
+    }
+
+    private
+    fun getAgentOptions(appHomeVar: String) = agentJarNames.map { "-javaagent:$appHomeVar/lib/agents/$it" }
 }

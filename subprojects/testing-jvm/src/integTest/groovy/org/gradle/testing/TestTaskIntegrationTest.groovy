@@ -379,11 +379,18 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """apply plugin: 'java'
 
             ${mavenCentralRepository()}
+
+            sourceSets {
+                customTest
+            }
+
             dependencies {
-                testImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
+                customTestImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
             }
 
             tasks.create('customTest', Test) {
+                classpath = sourceSets.customTest.runtimeClasspath
+                testClassesDirs = sourceSets.customTest.output.classesDirs
                 options {
                     excludeCategories = ["Slow"]
                 }

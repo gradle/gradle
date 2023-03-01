@@ -16,11 +16,9 @@
 
 package org.gradle.smoketests
 
-import org.gradle.internal.reflect.validation.Severity
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import spock.lang.Issue
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
@@ -92,23 +90,5 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         [
             'org.springframework.boot': Versions.of(TestedVersions.springBoot)
         ]
-    }
-
-    @Override
-    void configureValidation(String pluginId, String version) {
-        Map<String, Severity> messages = [:]
-
-        validatePlugins {
-            onPlugin(pluginId) {
-                messages[incorrectUseOfInputAnnotation {
-                    type'org.springframework.boot.gradle.tasks.bundling.BootBuildImage'
-                    property 'archiveFile'
-                    propertyType 'RegularFileProperty'
-                    includeLink()
-                }] = ERROR
-
-                failsWith messages
-            }
-        }
     }
 }

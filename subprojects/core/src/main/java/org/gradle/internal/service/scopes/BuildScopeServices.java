@@ -27,6 +27,7 @@ import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.Module;
@@ -108,6 +109,7 @@ import org.gradle.execution.plan.OrdinalGroupFactory;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.execution.plan.TaskNodeDependencyResolver;
 import org.gradle.execution.plan.TaskNodeFactory;
+import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.execution.plan.WorkNodeDependencyResolver;
 import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
@@ -130,6 +132,7 @@ import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
 import org.gradle.initialization.DefaultToolchainManagement;
 import org.gradle.initialization.Environment;
+import org.gradle.initialization.EnvironmentChangeTracker;
 import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.IGradlePropertiesLoader;
@@ -355,12 +358,15 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected IGradlePropertiesLoader createGradlePropertiesLoader(
-        Environment environment
+        Environment environment,
+        EnvironmentChangeTracker environmentChangeTracker,
+        GradleInternal gradleInternal
     ) {
         return new DefaultGradlePropertiesLoader(
             (StartParameterInternal) get(StartParameter.class),
-            environment
-        );
+            environment,
+            environmentChangeTracker,
+            gradleInternal);
     }
 
     protected ValueSourceProviderFactory createValueSourceProviderFactory(
@@ -554,12 +560,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             buildOperationExecutor);
     }
 
-    protected BuildWorkPreparer createWorkPreparer(BuildOperationExecutor buildOperationExecutor, ExecutionPlanFactory executionPlanFactory) {
+    protected BuildWorkPreparer createWorkPreparer(BuildOperationExecutor buildOperationExecutor, ExecutionPlanFactory executionPlanFactory, List<ToPlannedNodeConverter> converters) {
         return new BuildOperationFiringBuildWorkPreparer(
             buildOperationExecutor,
             new DefaultBuildWorkPreparer(
                 executionPlanFactory
-            ));
+            ),
+            converters
+        );
     }
 
     protected BuildTaskSelector.BuildSpecificSelector createTaskSelector(BuildTaskSelector selector, BuildState build) {

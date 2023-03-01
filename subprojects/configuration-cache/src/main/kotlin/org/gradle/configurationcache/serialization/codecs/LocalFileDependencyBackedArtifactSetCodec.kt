@@ -29,6 +29,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
+import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
@@ -75,7 +76,6 @@ import org.gradle.internal.reflect.Instantiator
 class LocalFileDependencyBackedArtifactSetCodec(
     private val instantiator: Instantiator,
     private val attributesFactory: ImmutableAttributesFactory,
-    private val fileCollectionFactory: FileCollectionFactory,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory
 ) : Codec<LocalFileDependencyBackedArtifactSet> {
     override suspend fun WriteContext.encode(value: LocalFileDependencyBackedArtifactSet) {
@@ -154,7 +154,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
         } else {
             val matchingOnArtifactFormat = readBoolean()
             val transforms = readNonNull<Map<ImmutableAttributes, MappingSpec>>()
-            FixedVariantSelector(matchingOnArtifactFormat, transforms, fileCollectionFactory, NoOpTransformedVariantFactory)
+            FixedVariantSelector(matchingOnArtifactFormat, transforms, NoOpTransformedVariantFactory)
         }
         return LocalFileDependencyBackedArtifactSet(FixedFileMetadata(componentId, files), filter, selector, artifactTypeRegistry, calculatedValueContainerFactory)
     }
@@ -266,7 +266,6 @@ private
 class FixedVariantSelector(
     private val matchingOnArtifactFormat: Boolean,
     private val transforms: Map<ImmutableAttributes, MappingSpec>,
-    private val fileCollectionFactory: FileCollectionFactory,
     private val transformedVariantFactory: TransformedVariantFactory
 ) : VariantSelector {
     override fun getRequestedAttributes() = throw UnsupportedOperationException("Should not be called")
@@ -285,7 +284,7 @@ class FixedVariantSelector(
             }
 
             is IdentityMapping -> variant.artifacts
-            is TransformMapping -> factory.asTransformed(variant, spec, EmptyDependenciesResolverFactory(fileCollectionFactory), transformedVariantFactory)
+            is TransformMapping -> factory.asTransformed(variant, spec, EmptyDependenciesResolverFactory(), transformedVariantFactory)
         }
     }
 }
@@ -322,7 +321,12 @@ class FixedFileMetadata(
 
 
 private
-class EmptyDependenciesResolverFactory(private val fileCollectionFactory: FileCollectionFactory) : ExtraExecutionGraphDependenciesResolverFactory, TransformUpstreamDependenciesResolver, TransformUpstreamDependencies {
+class EmptyDependenciesResolverFactory : ExtraExecutionGraphDependenciesResolverFactory, TransformUpstreamDependenciesResolver, TransformUpstreamDependencies {
+
+    override fun getConfigurationIdentity(): ConfigurationIdentity? {
+        return null
+    }
+
     override fun create(componentIdentifier: ComponentIdentifier, transformation: Transformation): TransformUpstreamDependenciesResolver {
         return this
     }

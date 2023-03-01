@@ -50,12 +50,12 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
         StartParameter startParameter = buildDefinition.getStartParameter();
 
         @SuppressWarnings("deprecation")
-        File customSettingsFile = startParameter.getSettingsFile();
+        File customSettingsFile = DeprecationLogger.whileDisabled(startParameter::getSettingsFile);
         if (customSettingsFile != null) {
             logFileDeprecationWarning(DeprecationLogger.deprecateAction("Specifying custom settings file location"));
         }
         @SuppressWarnings("deprecation")
-        File customBuildFile = startParameter.getBuildFile();
+        File customBuildFile = DeprecationLogger.whileDisabled(startParameter::getBuildFile);
         if (customBuildFile != null) {
             logFileDeprecationWarning(DeprecationLogger.deprecateAction("Specifying custom build file location"));
         }

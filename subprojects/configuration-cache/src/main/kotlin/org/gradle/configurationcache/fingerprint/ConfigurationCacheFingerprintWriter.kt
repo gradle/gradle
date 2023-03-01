@@ -61,7 +61,7 @@ import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
-import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceListener
 import org.gradle.internal.buildoption.FeatureFlag
@@ -91,7 +91,7 @@ class ConfigurationCacheFingerprintWriter(
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val taskExecutionTracker: TaskExecutionTracker,
-    private val environmentChangeTracker: EnvironmentChangeTracker,
+    private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
 ) : ValueSourceProviderFactory.ValueListener,
     ValueSourceProviderFactory.ComputationListener,
@@ -291,7 +291,16 @@ class ConfigurationCacheFingerprintWriter(
             // as a fixed value.
             return
         }
-        sink().systemPropertyRead(key, value)
+        val propertyValue =
+            if (isSystemPropertyLoaded(key)) {
+                // Loaded values of the system properties are loaded from gradle.properties but never mutated.
+                // Thus, as a configuration input is an old value of property at load moment.
+                environmentChangeTracker.getLoadedPropertyOldValue(key)
+            } else {
+                value
+            }
+
+        sink().systemPropertyRead(key, propertyValue)
         reportUniqueSystemPropertyInput(key, consumer)
     }
 
@@ -427,6 +436,11 @@ class ConfigurationCacheFingerprintWriter(
                 )
             }
         }
+    }
+
+    private
+    fun isSystemPropertyLoaded(key: String): Boolean {
+        return environmentChangeTracker.isSystemPropertyLoaded(key)
     }
 
     private
@@ -609,7 +623,7 @@ class ConfigurationCacheFingerprintWriter(
     private
     fun reportDirectoryContentInput(directory: File, consumer: String?) {
         reportInput(consumer, null) {
-            text("directory content")
+            text("directory content ")
             reference(host.displayNameOf(directory))
         }
     }
@@ -617,7 +631,7 @@ class ConfigurationCacheFingerprintWriter(
     private
     fun reportFileSystemEntryInput(file: File, consumer: String?) {
         reportInput(consumer, null) {
-            text("file system entry")
+            text("file system entry ")
             reference(host.displayNameOf(file))
         }
     }
