@@ -1443,13 +1443,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
          * Changes to a configuration's allowed usage contain the string "deprecated" and thus will trigger
          * false positive identification as Deprecation warnings by the logic in {@link #validate(String, String)};
          * this method is used to filter out those false positives.
+         * <p>
+         * The check for the "this behavior..." string ensures that deprecation warnings in this regard, as opposed
+         * to log messages, are not filtered out.
          *
          * @param line the output line to check
          * @return {@code true} if the line is a configuration allowed usage changing info log message; {@code false} otherwise
          */
         private boolean isConfigurationAllowedUsageChangingInfoLogMessage(String line) {
             String msgPrefix = "Allowed usage is changing for configuration";
-            return line.startsWith(msgPrefix) || line.contains("[org.gradle.api.internal.artifacts.configurations.DefaultConfiguration] " + msgPrefix);
+            return (line.startsWith(msgPrefix) || line.contains("[org.gradle.api.internal.artifacts.configurations.DefaultConfiguration] " + msgPrefix))
+                    && !line.contains("This behavior has been deprecated.");
         }
 
         private boolean removeFirstExpectedDeprecationWarning(String line) {
