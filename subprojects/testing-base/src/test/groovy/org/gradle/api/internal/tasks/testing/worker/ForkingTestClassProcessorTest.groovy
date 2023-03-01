@@ -72,7 +72,7 @@ class ForkingTestClassProcessorTest extends Specification {
         def appModulepath = ImmutableList.of(new File("mod.jar"))
         def implClasspath = ImmutableList.of(new URL("file://cls.jar"))
         def implModulepath = ImmutableList.of(new URL("file://mod.jar"))
-        def processor = newProcessor(new TestClasspath(
+        def processor = newProcessor(new ForkedTestClasspath(
             appClasspath, appModulepath, implClasspath, implModulepath
         ))
 
@@ -124,7 +124,7 @@ class ForkingTestClassProcessorTest extends Specification {
     }
 
     def newProcessor(
-        TestClasspath classpath = new TestClasspath(ImmutableList.of(), ImmutableList.of(), ImmutableList.of(), ImmutableList.of())
+            ForkedTestClasspath classpath = new ForkedTestClasspath(ImmutableList.of(), ImmutableList.of(), ImmutableList.of(), ImmutableList.of())
     ) {
         return new ForkingTestClassProcessor(
             workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestClassProcessorFactory),

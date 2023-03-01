@@ -24,9 +24,9 @@ import org.gradle.internal.classpath.ClassPath
 import spock.lang.Specification
 
 /**
- * Tests {@link TestClasspathFactory}.
+ * Tests {@link ForkedTestClasspathFactory}.
  */
-class TestClasspathFactoryTest extends Specification {
+class ForkedTestClasspathFactoryTest extends Specification {
 
     // The number of internal and external implementation jars loaded from the distribution regardless of framework.
     private static final int NUM_INTERNAL_JARS = 19
@@ -37,7 +37,7 @@ class TestClasspathFactoryTest extends Specification {
         getExternalModule(_) >> { module(it[0], true) }
     }
 
-    TestClasspathFactory underTest = new TestClasspathFactory(moduleRegistry)
+    ForkedTestClasspathFactory underTest = new ForkedTestClasspathFactory(moduleRegistry)
 
     def "creates a limited implementation classpath"() {
         when:
@@ -104,10 +104,10 @@ class TestClasspathFactoryTest extends Specification {
     ) {
         return Mock(TestFramework) {
             getUseDistributionDependencies() >> useDependencies
-            getTestWorkerApplicationClasses() >> appClasses
-            getTestWorkerApplicationModules() >> appModules
-            getTestWorkerImplementationClasses() >> implClasses
-            getTestWorkerImplementationModules() >> implModules
+            getWorkerApplicationClasspathModuleNames() >> appClasses
+            getWorkerApplicationModulepathModuleNames() >> appModules
+            getWorkerImplementationClasspathModuleNames() >> implClasses
+            getWorkerImplementationModulepathModuleNames() >> implModules
         }
     }
 }
