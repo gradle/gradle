@@ -77,8 +77,6 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
     private Configuration createDependenciesConfiguration(ProjectInternal project) {
         return project.getConfigurations().createWithRole(GRADLE_PLATFORM_DEPENDENCIES, ConfigurationRoles.INTENDED_BUCKET, cnf -> {
             cnf.setVisible(false);
-            cnf.setCanBeConsumed(false);
-            cnf.setCanBeResolved(false);
         });
     }
 
