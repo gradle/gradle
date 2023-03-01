@@ -476,12 +476,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         eventsOnTest = toolchainEvents(":test")
 
         then:
-        if (isKotlin1dot6 && Jvm.current().javaVersion.java8 && GradleContextualExecuter.configCache) {
-            // For Kotlin 1.6 the compilation is not up-to-date with configuration caching when running on Java 8
-            executedAndNotSkipped(":compileKotlin")
-        } else {
-            skipped(":compileKotlin", ":test")
-        }
+        skipped(":compileKotlin", ":test")
         assertToolchainUsages(eventsOnCompile, jdkMetadata, "JavaLauncher")
         assertToolchainUsages(eventsOnTest, jdkMetadata, "JavaLauncher")
 
