@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -31,11 +30,7 @@ import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
-import org.gradle.util.internal.CollectionUtils;
 
-import java.io.File;
-import java.net.URL;
-import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -43,10 +38,8 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final WorkerProcessFactory workerFactory;
     private final WorkerTestClassProcessorFactory processorFactory;
     private final JavaForkOptions options;
-    private final Iterable<File> classPath;
-    private final Iterable<File> modulePath;
+    private final TestClasspath classpath;
     private final Action<WorkerProcessBuilder> buildConfigAction;
-    private final ModuleRegistry moduleRegistry;
     private final Lock lock = new ReentrantLock();
     private final WorkerThreadRegistry workerThreadRegistry;
     private RemoteTestClassProcessor remoteProcessor;
@@ -61,20 +54,16 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         WorkerProcessFactory workerFactory,
         WorkerTestClassProcessorFactory processorFactory,
         JavaForkOptions options,
-        Iterable<File> classPath,
-        Iterable<File> modulePath,
+        TestClasspath classpath,
         Action<WorkerProcessBuilder> buildConfigAction,
-        ModuleRegistry moduleRegistry,
         DocumentationRegistry documentationRegistry
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
         this.options = options;
-        this.classPath = classPath;
-        this.modulePath = modulePath;
+        this.classpath = classpath;
         this.buildConfigAction = buildConfigAction;
-        this.moduleRegistry = moduleRegistry;
         this.documentationRegistry = documentationRegistry;
     }
 
@@ -111,9 +100,10 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     RemoteTestClassProcessor forkProcess() {
         WorkerProcessBuilder builder = workerFactory.create(new TestWorker(processorFactory));
         builder.setBaseName("Gradle Test Executor");
-        builder.setImplementationClasspath(getTestWorkerImplementationClasspath());
-        builder.applicationClasspath(classPath);
-        builder.applicationModulePath(modulePath);
+        builder.setImplementationClasspath(classpath.getImplementationClasspath());
+        builder.setImplementationModulePath(classpath.getImplementationModulepath());
+        builder.applicationClasspath(classpath.getApplicationClasspath());
+        builder.applicationModulePath(classpath.getApplicationModulepath());
         options.copyTo(builder.getJavaCommand());
         builder.getJavaCommand().jvmArgs("-Dorg.gradle.native=false");
         buildConfigAction.execute(builder);
@@ -128,36 +118,6 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         connection.connect();
         remoteProcessor.startProcessing();
         return remoteProcessor;
-    }
-
-    List<URL> getTestWorkerImplementationClasspath() {
-        return CollectionUtils.flattenCollections(URL.class,
-            moduleRegistry.getModule("gradle-core-api").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-worker-processes").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-core").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-logging").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-logging-api").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-messaging").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-files").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-file-temp").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-hashing").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-base-services").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-enterprise-logging").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-enterprise-workers").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-cli").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-native").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-testing-base").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-testing-jvm-infrastructure").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-testing-junit-platform").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-process-services").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getModule("gradle-build-operations").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("slf4j-api").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("jul-to-slf4j").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("native-platform").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("kryo").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("commons-lang").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("javax.inject").getImplementationClasspath().getAsURLs()
-        );
     }
 
     @Override
