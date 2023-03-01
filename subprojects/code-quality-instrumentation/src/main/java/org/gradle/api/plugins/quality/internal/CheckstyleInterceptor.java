@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath.declarations;
+package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.classpath.declarations.InterceptorDeclaration;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
+import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 
 import java.lang.reflect.InvocationTargetException;
 
 @SuppressWarnings("NewMethodNamingConvention")
-@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
-//@SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME)
+@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CODE_QUALITY)
+@SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CODE_QUALITY)
 public class CheckstyleInterceptor {
 
     @InterceptCalls

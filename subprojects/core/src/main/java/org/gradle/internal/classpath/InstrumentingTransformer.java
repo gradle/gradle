@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
@@ -355,16 +356,20 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static class InstrumentingMethodVisitor extends MethodVisitorScope {
         private final InstrumentingVisitor owner;
         private final String className;
-
-        private final JvmBytecodeCallInterceptor generatedInterceptor;
+        private final List<JvmBytecodeCallInterceptor> generatedInterceptors;
 
         public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor originalMethodVisitor, LocalVariablesSorterWithDroppedVariables localVariablesSorter) {
             super(localVariablesSorter);
             this.owner = owner;
             this.className = owner.className;
+            generatedInterceptors = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAMES.stream()
+                .map(className -> newInterceptor(className, originalMethodVisitor, localVariablesSorter))
+                .collect(toImmutableList());
+        }
 
+        private static JvmBytecodeCallInterceptor newInterceptor(String className, MethodVisitor originalMethodVisitor, LocalVariablesSorterWithDroppedVariables localVariablesSorter) {
             try {
-                generatedInterceptor = (JvmBytecodeCallInterceptor) Class.forName(InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
+                return (JvmBytecodeCallInterceptor) Class.forName(className)
                     .getConstructor(MethodVisitor.class, LocalVariablesSorterWithDroppedVariables.class)
                     .newInstance(originalMethodVisitor, localVariablesSorter);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
@@ -383,8 +388,10 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             if (opcode == INVOKESPECIAL && visitINVOKESPECIAL(owner, name, descriptor)) {
                 return;
             }
-            if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface)) {
-                return;
+            for (JvmBytecodeCallInterceptor generatedInterceptor : generatedInterceptors) {
+                if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface)) {
+                    return;
+                }
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         }

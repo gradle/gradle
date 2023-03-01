@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.internal.classpath.InstrumentedUtil.findStaticOrThrowError;
 import static org.gradle.internal.classpath.InstrumentedUtil.kotlinDefaultMethodType;
 
@@ -136,8 +137,14 @@ public class Instrumented {
     );
 
     private static Iterable<CallInterceptor> getGeneratedCallInterceptors() {
+        return InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAMES.stream()
+            .flatMap(className -> getGeneratedCallInterceptorsFor(className).stream())
+            .collect(toImmutableList());
+    }
+
+    private static List<CallInterceptor> getGeneratedCallInterceptorsFor(String className) {
         try {
-            Class<?> generatedClass = Class.forName(InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME);
+            Class<?> generatedClass = Class.forName(className);
             Method callInterceptorsGetter = generatedClass.getDeclaredMethod("getCallInterceptors");
             return Cast.uncheckedCast(callInterceptorsGetter.invoke(null));
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
