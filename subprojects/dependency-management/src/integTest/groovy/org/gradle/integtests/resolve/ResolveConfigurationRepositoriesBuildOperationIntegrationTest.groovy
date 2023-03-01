@@ -37,7 +37,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         buildFile << """
             apply plugin: 'java'
             ${repoBlock.replaceAll('<<URL>>', mavenHttpRepo.uri.toString())}
-            task resolve { doLast { configurations.compileClasspath.resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
         if (deprecationWarning) {
             executer.expectDocumentedDeprecationWarning(deprecationWarning)
@@ -66,7 +69,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         'flat-dir'             | flatDirRepoBlock()            | expectedFlatDirRepo()            | null
         'local maven'          | mavenLocalRepoBlock()         | expectedMavenLocalRepo()         | null
         'maven central'        | mavenCentralRepoBlock()       | expectedMavenCentralRepo()       | null
-        'jcenter'              | jcenterRepoBlock()            | expectedJcenterRepo()            | "The RepositoryHandler.jcenter() method has been deprecated. This is scheduled to be removed in Gradle 8.0. JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#jcenter_deprecation"
+        'jcenter'              | jcenterRepoBlock()            | expectedJcenterRepo()            | "The RepositoryHandler.jcenter() method has been deprecated. This is scheduled to be removed in Gradle 9.0. JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#jcenter_deprecation"
         'google'               | googleRepoBlock()             | expectedGoogleRepo()             | null
         'gradle plugin portal' | gradlePluginPortalRepoBlock() | expectedGradlePluginPortalRepo() | null
     }
@@ -161,7 +164,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             }
             apply plugin: 'org.example.plugin2'
             repositories { maven { url = '$mavenRepo.uri' } }
-            task resolve { doLast { configurations.compileClasspath.resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -182,7 +188,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             allprojects {
                 apply plugin: 'java'
                 ${mavenCentralRepoBlock()}
-                task resolve { doLast { configurations.compileClasspath.resolve() } }
+                task resolve {
+                    def files = configurations.compileClasspath
+                    doLast { files.files }
+                }
             }
         """
 
@@ -214,7 +223,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     }
                 }
             }
-            task resolve { doLast { configurations.compileClasspath. resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -245,7 +257,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     name = 'custom repo'
                 }
             }
-            task resolve { doLast { configurations.compileClasspath. resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -282,7 +297,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     }
                 }
             }
-            task resolve { doLast { configurations.compileClasspath. resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -324,7 +342,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     ${definition}
                 }
             }
-            task resolve { doLast { configurations.compileClasspath.resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -386,7 +407,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     dirs 'lib1', 'lib2'
                 }
             }
-            task resolve { doLast { configurations.compileClasspath. resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:

@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
 
 /**
@@ -54,7 +55,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
 
     private DefaultGradleProject buildHierarchy(Project project) {
         List<DefaultGradleProject> children = new ArrayList<DefaultGradleProject>();
-        for (Project child : project.getChildProjects().values()) {
+        for (Project child : getChildProjectsForInternalUse(project)) {
             children.add(buildHierarchy(child));
         }
 

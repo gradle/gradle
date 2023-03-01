@@ -21,19 +21,18 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
-import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -112,13 +111,15 @@ import java.util.Map;
  * </pre>
  */
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
-public class JavaExec extends ConventionTask implements JavaExecSpec {
+public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
+
     private final DefaultJavaExecSpec javaExecSpec;
     private final Property<String> mainModule;
     private final Property<String> mainClass;
     private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
     private final Property<JavaLauncher> javaLauncher;
+    private final ListProperty<String> jvmArguments;
 
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -126,43 +127,47 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         mainClass = objectFactory.property(String.class);
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         execResult = objectFactory.property(ExecResult.class);
-
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
-        javaExecSpec.getMainClass().convention(
-            getMainClass().orElse(
-                Providers.changing(
-                    // go through 'main' to keep this compatible with existing convention mappings
-                    () -> DeprecationLogger.whileDisabled(this::getMain)
-                )
-            )
-        );
+        Provider<Iterable<String>> jvmArgumentsConvention = getProviderFactory()
+            .provider(() -> getConventionMapping().getConventionValue(null, "jvmArgs", false));
+        jvmArguments = objectFactory.listProperty(String.class).convention(jvmArgumentsConvention);
+
+        javaExecSpec.getMainClass().convention(mainClass);
         javaExecSpec.getMainModule().convention(mainModule);
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
-        javaLauncher = objectFactory.property(JavaLauncher.class);
-    }
 
-    @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ExecActionFactory getExecActionFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ProviderFactory getProviderFactory() {
-        throw new UnsupportedOperationException();
+        JavaToolchainService javaToolchainService = getJavaToolchainService();
+        Provider<JavaLauncher> javaLauncherConvention = getProviderFactory()
+            .provider(() -> JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(this, objectFactory))
+            .flatMap(javaToolchainService::launcherFor)
+            .orElse(javaToolchainService.launcherFor(it -> {}));
+        javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaLauncherConvention);
+        javaLauncher.finalizeValueOnRead();
     }
 
     @TaskAction
     public void exec() {
-        setJvmArgs(getJvmArgs()); // convention mapping for 'jvmArgs'
+        validateExecutableMatchesToolchain();
+
+        List<String> jvmArgs = jvmArguments.getOrNull();
+        if (jvmArgs != null) {
+            javaExecSpec.setJvmArgs(jvmArgs);
+        }
+
         JavaExecAction javaExecAction = getExecActionFactory().newJavaExecAction();
         javaExecSpec.copyTo(javaExecAction);
-        javaExecAction.setExecutable(getEffectiveExecutable());
+        String effectiveExecutable = getJavaLauncher().get().getExecutablePath().toString();
+        javaExecAction.setExecutable(effectiveExecutable);
+
         execResult.set(javaExecAction.execute());
+    }
+
+    private void validateExecutableMatchesToolchain() {
+        File toolchainExecutable = getJavaLauncher().get().getExecutablePath().getAsFile();
+        String customExecutable = getExecutable();
+        JavaExecutableUtils.validateExecutable(
+            customExecutable, "Toolchain from `executable` property",
+            toolchainExecutable, "toolchain from `javaLauncher` property");
     }
 
     /**
@@ -194,7 +199,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public List<String> getJvmArgs() {
-        return javaExecSpec.getJvmArgs();
+        return jvmArguments.getOrNull();
     }
 
     /**
@@ -202,7 +207,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setJvmArgs(List<String> arguments) {
-        javaExecSpec.setJvmArgs(arguments);
+        jvmArguments.set(arguments);
     }
 
     /**
@@ -210,7 +215,8 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setJvmArgs(Iterable<?> arguments) {
-        javaExecSpec.setJvmArgs(arguments);
+        jvmArguments.empty();
+        jvmArgs(arguments);
     }
 
     /**
@@ -218,7 +224,9 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec jvmArgs(Iterable<?> arguments) {
-        javaExecSpec.jvmArgs(arguments);
+        for (Object arg : arguments) {
+            jvmArguments.add(arg.toString());
+        }
         return this;
     }
 
@@ -227,7 +235,9 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec jvmArgs(Object... arguments) {
-        javaExecSpec.jvmArgs(arguments);
+        for (Object arg : arguments) {
+            jvmArguments.add(arg.toString());
+        }
         return this;
     }
 
@@ -371,11 +381,17 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         javaExecSpec.setDebug(enabled);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public JavaDebugOptions getDebugOptions() {
         return javaExecSpec.getDebugOptions();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
         javaExecSpec.debugOptions(action);
@@ -396,38 +412,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     public Property<String> getMainClass() {
         return mainClass;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Deprecated
-    @ReplacedBy("mainClass")
-    public String getMain() {
-        DeprecationLogger.deprecateProperty(JavaExec.class, "main")
-            .replaceWith("mainClass")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        return getMainClass().getOrNull();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Deprecated
-    public JavaExec setMain(String mainClassName) {
-        DeprecationLogger.deprecateProperty(JavaExec.class, "main")
-            .replaceWith("mainClass")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        getMainClass().set(mainClassName);
-        return this;
     }
 
     /**
@@ -548,13 +532,13 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     /**
-     * Returns the version of the Java executable specified by {@link #getExecutable()}.
+     * Returns the version of the Java executable specified by {@link #getJavaLauncher()}.
      *
      * @since 5.2
      */
     @Input
     public JavaVersion getJavaVersion() {
-        return getServices().get(JvmVersionDetector.class).getJavaVersion(getEffectiveExecutable());
+        return JavaVersion.toVersion(getJavaLauncher().get().getMetadata().getLanguageVersion().asInt());
     }
 
     /**
@@ -760,6 +744,14 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ListProperty<String> getJvmArguments() {
+        return jvmArguments;
+    }
+
+    /**
      * Returns the result for the command run by this task. The provider has no value if this task has not been executed yet.
      *
      * @return A provider of the result.
@@ -776,20 +768,27 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * @since 6.7
      */
     @Nested
-    @Optional
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }
 
-    private String getEffectiveExecutable() {
-        if (javaLauncher.isPresent()) {
-            return javaLauncher.get().getExecutablePath().toString();
-        }
-        final String executable = getExecutable();
-        if (executable != null) {
-            return executable;
-        }
-        return Jvm.current().getJavaExecutable().getAbsolutePath();
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected ExecActionFactory getExecActionFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaToolchainService getJavaToolchainService() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ProviderFactory getProviderFactory() {
+        throw new UnsupportedOperationException();
+    }
 }

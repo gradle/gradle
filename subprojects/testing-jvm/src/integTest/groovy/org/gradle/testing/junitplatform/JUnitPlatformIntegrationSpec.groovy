@@ -41,4 +41,17 @@ class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec {
             $script
         """)
     }
+
+    void createSimpleJupiterTest() {
+        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
+            package org.gradle;
+
+            import org.junit.jupiter.api.Test;
+
+            public class JUnitJupiterTest {
+                @Test
+                public void ok() { }
+            }
+            '''
+    }
 }

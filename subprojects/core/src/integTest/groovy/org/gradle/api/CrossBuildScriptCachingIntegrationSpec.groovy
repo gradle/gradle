@@ -58,7 +58,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'module1.gradle'(this.simpleBuild())
             }
-            'settings.gradle'(settingsWithBuildScriptsUseProjectName('core', 'module1'))
+            'settings.gradle'(this.settingsWithBuildScriptsUseProjectName('core', 'module1'))
         }
 
         when:
@@ -84,7 +84,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'module1.gradle'(this.simpleBuild())
             }
-            'settings.gradle'(settingsWithBuildScriptsUseProjectName('core', 'module1'))
+            'settings.gradle'(this.settingsWithBuildScriptsUseProjectName('core', 'module1'))
         }
 
         when:
@@ -112,7 +112,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'build.gradle'(this.simpleBuild())
             }
-            'settings.gradle'(settings('core', 'module1'))
+            'settings.gradle'(this.settings('core', 'module1'))
         }
 
         when:
@@ -125,7 +125,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasScript(":core", scripts)
         hasScript(":module1", scripts)
         eachScriptIsUnique(scripts)
-        scriptCacheSize() == 4 // classpath and body for for settings and for the 2 identical scripts
+        scriptCacheSize() == 4 // classpath and body for settings and for the 2 identical scripts
     }
 
     def "can have two build files with different contents and same file name"() {
@@ -137,7 +137,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'build.gradle'(this.simpleBuild('// different contents'))
             }
-            'settings.gradle'(settings('core', 'module1'))
+            'settings.gradle'(this.settings('core', 'module1'))
         }
 
         when:
@@ -162,7 +162,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'build.gradle'(this.simpleBuild())
             }
-            'settings.gradle'(settings('core', 'module1'))
+            'settings.gradle'(this.settings('core', 'module1'))
         }
         run 'help'
         def before = scriptDetails()
@@ -186,7 +186,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'build.gradle'(this.simpleBuild())
             }
-            'settings.gradle'(settings('core', 'module1'))
+            'settings.gradle'(this.settings('core', 'module1'))
         }
         run 'help'
         def before = scriptDetails()
@@ -239,7 +239,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module2 {
                 'module2.gradle'(this.taskThrowingError())
             }
-            'settings.gradle'(settingsWithBuildScriptsUseProjectName('module1', 'module2'))
+            'settings.gradle'(this.settingsWithBuildScriptsUseProjectName('module1', 'module2'))
         }
 
         when:
@@ -292,7 +292,6 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         scriptCacheSize() == 4 // classpath + body for each build script
     }
 
-    @ToBeFixedForConfigurationCache(because = "remote scripts skipped")
     def "caches scripts applied from remote locations when remote script changes"() {
         server.start()
 
@@ -300,8 +299,6 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         root {
             'build.gradle'(this.applyFromRemote(server))
         }
-        def buildHash
-        def sharedHash
         server.expect(server.get("shared.gradle").send("""
             ${instrument('"shared"')}
             println 'Echo 0'
@@ -626,8 +623,8 @@ task fastTask { }
                     }
                 }
             }
-            'build.gradle'(simpleBuild('''apply from:'main.gradle' '''))
-            'main.gradle'(simpleBuild('''
+            'build.gradle'(this.simpleBuild('''apply from:'main.gradle' '''))
+            'main.gradle'(this.simpleBuild('''
                 task success {
                     doLast {
                         println 'ok'

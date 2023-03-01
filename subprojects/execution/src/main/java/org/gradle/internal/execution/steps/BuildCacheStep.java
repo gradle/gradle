@@ -18,15 +18,14 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.file.FileCollection;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
+import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterExecutionState;
@@ -91,32 +90,18 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                         cacheHit.getResultingSnapshots(),
                         originMetadata,
                         true);
-                    return (AfterExecutionResult) new AfterExecutionResult() {
+                    Try<Execution> execution = Try.successful(new Execution() {
                         @Override
-                        public Try<ExecutionResult> getExecutionResult() {
-                            return Try.successful(new ExecutionResult() {
-                                @Override
-                                public ExecutionOutcome getOutcome() {
-                                    return ExecutionOutcome.FROM_CACHE;
-                                }
-
-                                @Override
-                                public Object getOutput() {
-                                    return work.loadRestoredOutput(context.getWorkspace());
-                                }
-                            });
+                        public ExecutionOutcome getOutcome() {
+                            return ExecutionOutcome.FROM_CACHE;
                         }
 
                         @Override
-                        public Duration getDuration() {
-                            return originMetadata.getExecutionTime();
+                        public Object getOutput() {
+                            return work.loadAlreadyProducedOutput(context.getWorkspace());
                         }
-
-                        @Override
-                        public Optional<AfterExecutionState> getAfterExecutionState() {
-                            return Optional.of(afterExecutionState);
-                        }
-                    };
+                    });
+                    return new AfterExecutionResult(originMetadata.getExecutionTime(), execution, afterExecutionState);
                 })
                 .orElseGet(() -> executeAndStoreInCache(cacheableWork, cacheKey, context))
             )
@@ -152,7 +137,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                 cacheableWork.getDisplayName(), cacheKey.getHashCode());
         }
         AfterExecutionResult result = executeWithoutCache(cacheableWork.work, context);
-        result.getExecutionResult().ifSuccessfulOrElse(
+        result.getExecution().ifSuccessfulOrElse(
             executionResult -> result.getAfterExecutionState()
                 .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime())),
             failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
@@ -211,8 +196,8 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
         public void visitOutputTrees(CacheableTreeVisitor visitor) {
             work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
                 @Override
-                public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
-                    visitor.visitOutputTree(propertyName, type, root);
+                public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+                    visitor.visitOutputTree(propertyName, type, value.getValue());
                 }
             });
         }

@@ -31,10 +31,10 @@ import org.gradle.internal.buildevents.BuildStartedTime
 import org.gradle.internal.buildtree.BuildActionRunner
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
+import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
+import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.service.scopes.DefaultFileChangeListeners
 import org.gradle.internal.service.scopes.DefaultWorkInputListeners
 import org.gradle.internal.service.scopes.Scope
@@ -53,6 +53,8 @@ import spock.util.concurrent.PollingConditions
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
+
+import static org.gradle.internal.properties.InputBehavior.PRIMARY
 
 @RedirectStdIn
 class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
@@ -383,14 +385,14 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     private void declareInput(File file) {
-        def valueSupplier = Stub(InputFingerprinter.FileValueSupplier) {
+        def valueSupplier = Stub(UnitOfWork.InputFileValueSupplier) {
             getFiles() >> TestFiles.fixed(file)
         }
         inputListeners.broadcastFileSystemInputsOf(Stub(UnitOfWork) {
             visitRegularInputs(_ as InputVisitor) >> { InputVisitor visitor ->
-                visitor.visitInputFileProperty("test", InputFingerprinter.InputPropertyType.PRIMARY, valueSupplier)
+                visitor.visitInputFileProperty("test", PRIMARY, valueSupplier)
             }
-        }, EnumSet.allOf(InputFingerprinter.InputPropertyType))
+        }, EnumSet.allOf(InputBehavior))
     }
 
     private ContinuousBuildActionExecutor executer() {

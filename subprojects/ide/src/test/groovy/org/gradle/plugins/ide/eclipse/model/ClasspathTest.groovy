@@ -34,6 +34,7 @@ public class ClasspathTest extends Specification {
     final projectDependency = [customEntries[0]]
     final jreContainer = [customEntries[1]]
     final outputLocation = [customEntries[6]]
+    final srcFolder = [customEntries[3]]
 
     final allDependencies = [customEntries[0], customEntries[2], customEntries[4]]
 
@@ -55,15 +56,26 @@ public class ClasspathTest extends Specification {
     }
 
     def "configure overwrites output location, dependencies and jre container and appends all other entries"() {
-        def constructorEntries = [createSomeLibrary()]
-
         when:
         classpath.load(customClasspathReader)
-        def newEntries = constructorEntries + projectDependency + jreContainer + outputLocation
+        def newEntries = [createSomeLibrary()] + projectDependency + jreContainer + outputLocation
         classpath.configure(newEntries)
 
         then:
         def entriesToBeKept = customEntries - allDependencies - jreContainer - outputLocation
+        classpath.entries == entriesToBeKept + newEntries
+    }
+
+    def "configure overwrites output location, dependencies, source folder and jre container and appends all other entries"() {
+        when:
+        classpath.load(customClasspathReader)
+
+        def newSource = new SourceFolder("src", "bin4")
+        def newEntries = [createSomeLibrary()] + projectDependency + jreContainer + outputLocation + [newSource]
+        classpath.configure(newEntries)
+
+        then:
+        def entriesToBeKept = customEntries - allDependencies - jreContainer - outputLocation - srcFolder
         classpath.entries == entriesToBeKept + newEntries
     }
 
@@ -88,6 +100,21 @@ public class ClasspathTest extends Specification {
         then:
         classpath == other
     }
+
+    def "toXml contains custom values 2"() {
+        def constructorEntries = [createSomeLibrary()]
+
+        when:
+        classpath.load(customClasspathReader)
+        classpath.configure(constructorEntries)
+        def xml = getToXmlReader()
+        def other = new Classpath(new XmlTransformer(), fileReferenceFactory)
+        other.load(xml)
+
+        then:
+        classpath == other
+    }
+
 
     def "create file reference from string"() {
         when:

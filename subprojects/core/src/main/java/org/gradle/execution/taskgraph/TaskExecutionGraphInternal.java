@@ -17,30 +17,34 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.internal.build.ExecutionResult;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
+
+    /**
+     * Find a task with the given path in the task graph.
+     * @param path the path of the task to find in the task graph
+     * @return the task with the given path if it is present in the task graph, null otherwise
+     */
+    @Nullable Task findTask(String path);
+
     /**
      * Attaches the work that this graph will run. Fires events and no further tasks should be added.
      */
-    void populate(ExecutionPlan plan);
+    void populate(FinalizedExecutionPlan plan);
 
     /**
-     * Executes the given work. Discards the contents of this graph when completed. Should call {@link #populate(ExecutionPlan)} prior to
+     * Executes the given work. Discards the contents of this graph when completed. Should call {@link #populate)} prior to
      * calling this method.
      */
-    ExecutionResult<Void> execute(ExecutionPlan plan);
-
-    /**
-     * Sets whether execution should continue if a task fails.
-     */
-    void setContinueOnFailure(boolean continueOnFailure);
+    ExecutionResult<Void> execute(FinalizedExecutionPlan plan);
 
     /**
      * Set of requested tasks.
@@ -53,8 +57,13 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     int size();
 
     /**
-     * Returns all of the work items in this graph scheduled for execution plus all
+     * Returns all the work items in this graph scheduled for execution plus all
      * dependencies from other builds.
      */
     void visitScheduledNodes(Consumer<List<Node>> visitor);
+
+    /**
+     * Resets the lifecycle for this graph.
+     */
+    void resetState();
 }

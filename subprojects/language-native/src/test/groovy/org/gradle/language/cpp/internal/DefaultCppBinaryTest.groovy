@@ -27,9 +27,11 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class DefaultCppBinaryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

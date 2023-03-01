@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.Factory;
@@ -43,14 +43,14 @@ import java.io.File;
 public class PublishArtifactNotationParserFactory implements Factory<NotationParser<Object, ConfigurablePublishArtifact>> {
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider metaDataProvider;
-    private final TaskResolver taskResolver;
     private final FileResolver fileResolver;
+    private final TaskDependencyFactory taskDependencyFactory;
 
-    public PublishArtifactNotationParserFactory(Instantiator instantiator, DependencyMetaDataProvider metaDataProvider, TaskResolver taskResolver, FileResolver fileResolver) {
+    public PublishArtifactNotationParserFactory(Instantiator instantiator, DependencyMetaDataProvider metaDataProvider, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
         this.instantiator = instantiator;
         this.metaDataProvider = metaDataProvider;
-        this.taskResolver = taskResolver;
         this.fileResolver = fileResolver;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
@@ -74,7 +74,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         protected ConfigurablePublishArtifact parseType(PublishArtifact notation) {
-            return instantiator.newInstance(DecoratingPublishArtifact.class, notation);
+            return instantiator.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, notation);
         }
     }
 
@@ -90,7 +90,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         protected ConfigurablePublishArtifact parseType(AbstractArchiveTask notation) {
-            return instantiator.newInstance(ArchivePublishArtifact.class, notation);
+            return instantiator.newInstance(ArchivePublishArtifact.class, taskDependencyFactory, notation);
         }
     }
 
@@ -127,7 +127,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         @Override
         protected ConfigurablePublishArtifact parseType(Provider<?> notation) {
             Module module = metaDataProvider.getModule();
-            return instantiator.newInstance(DecoratingPublishArtifact.class, new LazyPublishArtifact(notation, module.getVersion(), fileResolver));
+            return instantiator.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, new LazyPublishArtifact(notation, module.getVersion(), fileResolver, taskDependencyFactory));
         }
     }
 
@@ -145,7 +145,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         @Override
         protected ConfigurablePublishArtifact parseType(FileSystemLocation notation) {
             Module module = metaDataProvider.getModule();
-            return instantiator.newInstance(DecoratingPublishArtifact.class, new FileSystemPublishArtifact(notation, module.getVersion()));
+            return instantiator.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, new FileSystemPublishArtifact(notation, module.getVersion()));
         }
     }
 
@@ -158,7 +158,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         protected ConfigurablePublishArtifact parseType(File file) {
             Module module = metaDataProvider.getModule();
             ArtifactFile artifactFile = new ArtifactFile(file, module.getVersion());
-            return instantiator.newInstance(DefaultPublishArtifact.class, taskResolver, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier(), null, file, new Task[0]);
+            return instantiator.newInstance(DefaultPublishArtifact.class, taskDependencyFactory, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier(), null, file, new Task[0]);
         }
     }
 }

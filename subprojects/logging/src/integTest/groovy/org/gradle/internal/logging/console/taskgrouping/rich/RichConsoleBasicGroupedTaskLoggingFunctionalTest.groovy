@@ -97,7 +97,6 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
             }
             throw new RuntimeException('Config Failure...')
         """
-        executer.withStacktraceDisabled()
 
         when:
         fails('failing')

@@ -19,19 +19,22 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 
+import javax.annotation.Nullable;
+import java.io.File;
+
 public class DefaultJavaCompileSpecFactory extends AbstractJavaCompileSpecFactory<DefaultJavaCompileSpec> {
-    public DefaultJavaCompileSpecFactory(CompileOptions compileOptions, JavaInstallationMetadata toolchain) {
+    public DefaultJavaCompileSpecFactory(CompileOptions compileOptions, @Nullable JavaInstallationMetadata toolchain) {
         super(compileOptions, toolchain);
     }
 
     @Override
-    protected DefaultJavaCompileSpec getCommandLineSpec() {
-        return new DefaultCommandLineJavaSpec();
+    protected DefaultJavaCompileSpec getCommandLineSpec(File executable) {
+        return new DefaultCommandLineJavaSpec(executable);
     }
 
     @Override
-    protected DefaultJavaCompileSpec getForkingSpec() {
-        return new DefaultForkingJavaCompileSpec();
+    protected DefaultJavaCompileSpec getForkingSpec(File javaHome) {
+        return new DefaultForkingJavaCompileSpec(javaHome);
     }
 
     @Override
@@ -40,8 +43,28 @@ public class DefaultJavaCompileSpecFactory extends AbstractJavaCompileSpecFactor
     }
 
     private static class DefaultCommandLineJavaSpec extends DefaultJavaCompileSpec implements CommandLineJavaCompileSpec {
+        private final File executable;
+
+        private DefaultCommandLineJavaSpec(File executable) {
+            this.executable = executable;
+        }
+
+        @Override
+        public File getExecutable() {
+            return executable;
+        }
     }
 
     private static class DefaultForkingJavaCompileSpec extends DefaultJavaCompileSpec implements ForkingJavaCompileSpec {
+        private final File javaHome;
+
+        private DefaultForkingJavaCompileSpec(File javaHome) {
+            this.javaHome = javaHome;
+        }
+
+        @Override
+        public File getJavaHome() {
+            return javaHome;
+        }
     }
 }

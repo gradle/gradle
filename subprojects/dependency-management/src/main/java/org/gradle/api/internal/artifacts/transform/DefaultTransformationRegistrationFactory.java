@@ -26,29 +26,29 @@ import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.internal.tasks.properties.TypeMetadata;
-import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
-import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.properties.InputBehavior;
+import org.gradle.internal.properties.InputFilePropertyType;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadataStore;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
-import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.model.internal.type.ModelType;
@@ -72,7 +72,6 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final DomainObjectContext owner;
     private final InstantiationScheme actionInstantiationScheme;
-    private final InstantiationScheme legacyActionInstantiationScheme;
     private final DocumentationRegistry documentationRegistry;
 
     public DefaultTransformationRegistrationFactory(
@@ -101,7 +100,6 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         this.owner = owner;
         this.actionInstantiationScheme = actionScheme.getInstantiationScheme();
         this.actionMetadataStore = actionScheme.getInspectionScheme().getMetadataStore();
-        this.legacyActionInstantiationScheme = actionScheme.getLegacyInstantiationScheme();
         this.parametersPropertyWalker = parameterScheme.getInspectionScheme().getPropertyWalker();
         this.internalServices = internalServices;
         this.documentationRegistry = documentationRegistry;
@@ -115,25 +113,24 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         actionMetadata.visitValidationFailures(null, validationContext);
 
         // Should retain this on the metadata rather than calculate on each invocation
-        Class<? extends FileNormalizer> inputArtifactNormalizer = null;
-        Class<? extends FileNormalizer> dependenciesNormalizer = null;
+        FileNormalizer inputArtifactNormalizer = null;
+        FileNormalizer dependenciesNormalizer = null;
         DirectorySensitivity artifactDirectorySensitivity = DirectorySensitivity.DEFAULT;
         DirectorySensitivity dependenciesDirectorySensitivity = DirectorySensitivity.DEFAULT;
         LineEndingSensitivity artifactLineEndingSensitivity = LineEndingSensitivity.DEFAULT;
         LineEndingSensitivity dependenciesLineEndingSensitivity = LineEndingSensitivity.DEFAULT;
         for (PropertyMetadata propertyMetadata : actionMetadata.getPropertiesMetadata()) {
+            // Should ask the annotation handler to figure this out instead
             Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
+            NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
             if (propertyType.equals(InputArtifact.class)) {
-                // Should ask the annotation handler to figure this out instead
-                NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
-                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
+                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor);
                 inputArtifactNormalizer = visitor.normalizer;
                 artifactDirectorySensitivity = visitor.directorySensitivity;
                 artifactLineEndingSensitivity = visitor.lineEndingSensitivity;
                 DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), inputArtifactNormalizer, cacheable, validationContext);
             } else if (propertyType.equals(InputArtifactDependencies.class)) {
-                NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
-                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
+                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor);
                 dependenciesNormalizer = visitor.normalizer;
                 dependenciesDirectorySensitivity = visitor.directorySensitivity;
                 dependenciesLineEndingSensitivity = visitor.lineEndingSensitivity;
@@ -157,6 +154,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             implementation,
             parameterObject,
             from,
+            to,
             FileParameterUtils.normalizerOrDefault(inputArtifactNormalizer),
             FileParameterUtils.normalizerOrDefault(dependenciesNormalizer),
             cacheable,
@@ -179,13 +177,6 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, owner, inputFingerprinter));
     }
 
-    @Override
-    @SuppressWarnings("deprecation")
-    public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends org.gradle.api.artifacts.transform.ArtifactTransform> implementation, Object[] params) {
-        Transformer transformer = new LegacyTransformer(implementation, params, legacyActionInstantiationScheme, from, classLoaderHierarchyHasher, isolatableFactory);
-        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, owner, inputFingerprinter));
-    }
-
     private static class DefaultArtifactTransformRegistration implements ArtifactTransformRegistration {
         private final ImmutableAttributes from;
         private final ImmutableAttributes to;
@@ -198,12 +189,12 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         }
 
         @Override
-        public AttributeContainerInternal getFrom() {
+        public ImmutableAttributes getFrom() {
             return from;
         }
 
         @Override
-        public AttributeContainerInternal getTo() {
+        public ImmutableAttributes getTo() {
             return to;
         }
 
@@ -218,28 +209,24 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         }
     }
 
-    private static class NormalizerCollectingVisitor extends PropertyVisitor.Adapter {
-        private Class<? extends FileNormalizer> normalizer;
+    private static class NormalizerCollectingVisitor implements PropertyVisitor {
+        private FileNormalizer normalizer;
         private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
         private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;
 
-        @SuppressWarnings("deprecation")
         @Override
         public void visitInputFileProperty(
-            String propertyName,
-            boolean optional,
-            boolean skipWhenEmpty,
-            DirectorySensitivity directorySensitivity,
-            LineEndingSensitivity lineEndingSensitivity,
-            boolean incremental,
-            @Nullable Class<? extends FileNormalizer> fileNormalizer,
-            PropertyValue value,
-            InputFilePropertyType filePropertyType
+                String propertyName,
+                boolean optional,
+                InputBehavior behavior,
+                DirectorySensitivity directorySensitivity,
+                LineEndingSensitivity lineEndingSensitivity,
+                @Nullable FileNormalizer fileNormalizer,
+                PropertyValue value,
+                InputFilePropertyType filePropertyType
         ) {
             this.normalizer = fileNormalizer;
-            this.directorySensitivity = directorySensitivity == DirectorySensitivity.UNSPECIFIED
-                ? DirectorySensitivity.DEFAULT
-                : directorySensitivity;
+            this.directorySensitivity = directorySensitivity;
             this.lineEndingSensitivity = lineEndingSensitivity;
         }
     }

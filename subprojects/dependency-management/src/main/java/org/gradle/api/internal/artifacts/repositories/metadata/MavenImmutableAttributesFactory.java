@@ -34,7 +34,8 @@ public interface MavenImmutableAttributesFactory extends ImmutableAttributesFact
     Attribute<String> FORMAT_ATTRIBUTE = Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class);
     Attribute<String> CATEGORY_ATTRIBUTE = Attribute.of(Category.CATEGORY_ATTRIBUTE.getName(), String.class);
 
-    ImmutableAttributes libraryWithUsage(ImmutableAttributes original, String usage);
+    ImmutableAttributes compileScope(ImmutableAttributes original);
+    ImmutableAttributes runtimeScope(ImmutableAttributes original);
     ImmutableAttributes platformWithUsage(ImmutableAttributes original, String usage, boolean enforced);
     ImmutableAttributes sourcesVariant(ImmutableAttributes original);
     ImmutableAttributes javadocVariant(ImmutableAttributes original);

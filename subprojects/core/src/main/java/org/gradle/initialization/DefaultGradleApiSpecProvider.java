@@ -38,6 +38,7 @@ public class DefaultGradleApiSpecProvider extends GradleApiSpecProvider.SpecAdap
             "org.gradle",
             "org.apache.tools.ant",
             "groovy",
+            "org.apache.groovy",
             "org.codehaus.groovy",
             "groovyjarjarantlr",
             "org.slf4j",

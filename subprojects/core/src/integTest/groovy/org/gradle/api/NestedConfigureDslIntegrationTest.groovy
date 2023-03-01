@@ -211,8 +211,7 @@ assert repositories.empty
         succeeds()
     }
 
-    // NOTE: Documents actual behaviour, for backwards compatibility purposes, not desired behaviour
-    def "can reference script level configure method from named container configure closure when that closure would fail with MME if applied to a new element"() {
+    def "cannot reference script level configure method from named container configure closure when that closure would fail with MME if applied to a new element"() {
         buildFile << """
 configurations {
     ${mavenCentralRepository()}
@@ -225,7 +224,41 @@ assert repositories.size() == 1
 """
 
         expect:
-        succeeds()
+        fails "help"
+        errorOutput.contains("Could not find method maven() for arguments")
+    }
+
+    def "cannot reference script level configure method from async closure in named container configure closure when that closure would fail with MME if applied to a new element"() {
+        buildFile << """
+plugins {
+    id 'distribution'
+}
+${mavenCentralRepository()}
+
+configurations {
+    conf.incoming.afterResolve {
+        distributions {
+            myDist {
+                contents {}
+            }
+        }
+    }
+}
+
+task resolve {
+    dependsOn configurations.conf
+    doFirst {
+        configurations.conf.files() // Trigger `afterResolve`
+        assert distributions*.name.contains('myDist')
+    }
+}
+
+assert configurations*.name.contains('conf')
+"""
+
+        expect:
+        fails "resolve"
+        errorOutput.contains("Could not find method myDist() for arguments")
     }
 
     def "reports missing method from inside configure closure"() {

@@ -7,9 +7,16 @@ pluginManagement {
             url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
             content {
                 val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
+                // GE plugin marker artifact
+                includeVersionByRegex("com.gradle.enterprise", "com.gradle.enterprise.gradle.plugin", rcAndMilestonesPattern)
+                // GE plugin jar
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
-                includeVersionByRegex("com.gradle.enterprise", "test-distribution-gradle-plugin", rcAndMilestonesPattern)
-                includeVersionByRegex("com.gradle.enterprise.test-distribution", "com.gradle.enterprise.test-distribution.gradle.plugin", rcAndMilestonesPattern)
+            }
+        }
+        jcenter {
+            content {
+                includeModule("org.openmbee.junit", "junit-xml-parser")
+                includeModule("org.codehaus.groovy.modules", "http-builder-ng-core")
             }
         }
         gradlePluginPortal()
@@ -17,11 +24,10 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.10")
+    id("com.gradle.enterprise").version("3.12.3") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
-    id("gradlebuild.base.allprojects")
-    id("com.gradle.enterprise.test-distribution").version("2.3.2-milestone-1") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("gradlebuild.internal.cc-experiment")
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
 }
 
 includeBuild("build-logic-commons")
@@ -105,6 +111,7 @@ include("build-cache-http")
 include("testing-base")
 include("testing-native")
 include("testing-jvm")
+include("testing-jvm-infrastructure")
 include("testing-junit-platform")
 include("test-kit")
 include("installation-beacon")
@@ -124,7 +131,6 @@ include("file-watching")
 include("build-cache-packaging")
 include("execution")
 include("build-profile")
-include("kotlin-compiler-embeddable")
 include("kotlin-dsl")
 include("kotlin-dsl-provider-plugins")
 include("kotlin-dsl-tooling-models")
@@ -139,17 +145,21 @@ include("enterprise-logging")
 include("enterprise-workers")
 include("build-operations")
 include("problems")
+include("instrumentation-agent")
 
 // Plugin portal projects
 include("kotlin-dsl-plugins")
 
 // Internal utility and verification projects
 include("docs")
+include("docs-asciidoctor-extensions-base")
+include("docs-asciidoctor-extensions")
 include("samples")
 include("architecture-test")
 include("internal-testing")
 include("internal-integ-testing")
 include("internal-performance-testing")
+include("internal-architecture-testing")
 include("internal-build-reports")
 include("integ-test")
 include("kotlin-dsl-integ-tests")
@@ -181,6 +191,6 @@ gradle.settingsEvaluated {
     }
 
     if (!JavaVersion.current().isJava11) {
-        throw GradleException("This build requires JDK 11. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck'.")
+        throw GradleException("This build requires JDK 11. It's currently ${getBuildJavaHome()}. You can ignore this check by passing '-Dorg.gradle.ignoreBuildJavaVersionCheck=true'.")
     }
 }

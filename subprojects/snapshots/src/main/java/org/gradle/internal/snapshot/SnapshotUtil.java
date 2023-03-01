@@ -27,10 +27,19 @@ import java.util.function.Supplier;
 
 public class SnapshotUtil {
 
-    public static Map<String, FileSystemLocationSnapshot> index(FileSystemSnapshot snapshot) {
+    public static Map<String, FileSystemLocationSnapshot> indexByAbsolutePath(FileSystemSnapshot snapshot) {
         HashMap<String, FileSystemLocationSnapshot> index = new HashMap<>();
         snapshot.accept(entrySnapshot -> {
             index.put(entrySnapshot.getAbsolutePath(), entrySnapshot);
+            return SnapshotVisitResult.CONTINUE;
+        });
+        return index;
+    }
+
+    public static Map<String, FileSystemLocationSnapshot> indexByRelativePath(FileSystemSnapshot snapshot) {
+        HashMap<String, FileSystemLocationSnapshot> index = new HashMap<>();
+        snapshot.accept(new RelativePathTracker(), (entrySnapshot, relativePath) -> {
+            index.put(relativePath.toRelativePath(), entrySnapshot);
             return SnapshotVisitResult.CONTINUE;
         });
         return index;

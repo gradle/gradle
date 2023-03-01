@@ -6,6 +6,7 @@ description = "Integration tests which don't fit anywhere else - should probably
 
 dependencies {
     integTestImplementation(project(":base-services"))
+    integTestImplementation(project(":build-option"))
     integTestImplementation(project(":enterprise-operations"))
     integTestImplementation(project(":native"))
     integTestImplementation(project(":logging"))
@@ -34,6 +35,7 @@ dependencies {
     crossVersionTestImplementation(project(":platform-jvm"))
     crossVersionTestImplementation(project(":language-java"))
     crossVersionTestImplementation(project(":language-groovy"))
+    crossVersionTestImplementation(project(":logging"))
     crossVersionTestImplementation(project(":scala"))
     crossVersionTestImplementation(project(":ear"))
     crossVersionTestImplementation(project(":testing-jvm"))
@@ -53,4 +55,4 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true

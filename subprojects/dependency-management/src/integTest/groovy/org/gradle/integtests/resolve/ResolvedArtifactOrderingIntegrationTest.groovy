@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.maven.MavenModule
 
 class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -64,8 +65,11 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         buildFile << """
             task checkLegacy${name} {
                 doLast {
-                    assert configurations.${name}.resolvedConfiguration.getFiles { true }.collect { it.name } == [${fileNames}]
-                    assert configurations.${name}.files { true }.collect { it.name } == [${fileNames}]
+                    if (${!GradleContextualExecuter.configCache}) {
+                        // Don't check eager methods when CC is enabled
+                        assert configurations.${name}.resolvedConfiguration.getFiles { true }.collect { it.name } == [${fileNames}]
+                        assert configurations.${name}.files { true }.collect { it.name } == [${fileNames}]
+                    }
                 }
             }
 """
@@ -77,11 +81,21 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         def fileNames = toFileNames(modules).join(',')
         buildFile << """
             task check${name} {
+                def files = configurations.${name}
+                def incomingFiles = files.incoming.files
+                def artifactFiles = files.incoming.artifactView{}.files
+                def artifacts = files.incoming.artifactView{}.artifacts
                 doLast {
-                    assert configurations.${name}.collect { it.name } == [${fileNames}]
-                    assert configurations.${name}.resolvedConfiguration.files.collect { it.name } == [${fileNames}]
-                    assert configurations.${name}.incoming.artifactView{}.files.collect { it.name } == [${fileNames}]
-                    assert configurations.${name}.incoming.artifactView{}.artifacts.collect { it.file.name } == [${fileNames}]
+                    assert files.collect { it.name } == [${fileNames}]
+                    assert incomingFiles.collect { it.name } == [${fileNames}]
+                    assert artifactFiles.collect { it.name } == [${fileNames}]
+                    assert artifacts.collect { it.file.name } == [${fileNames}]
+                    if (${!GradleContextualExecuter.configCache}) {
+                        // Don't check eager methods when CC is enabled
+                        assert configurations.${name}.resolve().collect { it.name } == [${fileNames}]
+                        assert configurations.${name}.files.collect { it.name } == [${fileNames}]
+                        assert configurations.${name}.resolvedConfiguration.files.collect { it.name } == [${fileNames}]
+                    }
                 }
             }
 """

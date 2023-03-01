@@ -21,7 +21,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorDescription;
@@ -39,12 +38,12 @@ import javax.inject.Inject;
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
-class IvyPluginPublishingPlugin implements Plugin<Project> {
-    private final FeaturePreviews featurePreviews;
+abstract class IvyPluginPublishingPlugin implements Plugin<Project> {
 
     @Inject
-    IvyPluginPublishingPlugin(FeaturePreviews featurePreviews) {
-        this.featurePreviews = featurePreviews;
+    public IvyPluginPublishingPlugin() {
+        // This class is not visible outside of this package.
+        // To instantiate this plugin, we need a public constructor.
     }
 
     @Override

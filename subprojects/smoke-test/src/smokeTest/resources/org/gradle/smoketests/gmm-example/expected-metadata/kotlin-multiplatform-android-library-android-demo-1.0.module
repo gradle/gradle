@@ -11,7 +11,7 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "7.1"
+      "version": "7.7-20220815220000+0000"
     }
   },
   "variants": [
@@ -19,7 +19,8 @@
       "name": "demoReleaseApiElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "release",
-        "com.android.build.api.attributes.VariantAttr": "demoRelease",
+        "com.android.build.api.attributes.ProductFlavor:org.gradle.example.my-own-flavor": "demo",
+        "org.gradle.category": "library",
         "org.gradle.example.my-own-flavor": "demo",
         "org.gradle.usage": "java-api",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -28,11 +29,11 @@
         {
           "name": "kotlin-multiplatform-android-library-demo-release.aar",
           "url": "kotlin-multiplatform-android-library-android-demo-1.0.aar",
-          "size": 2261,
-          "sha512": "7a32f1ed173a562976e914a6ac060caa23f653dd738fc44dc84fb86f722063faaf9f0d3718885501168d15503b2128b1a22a29cf5e93875c4c076d7b18fc31c4",
-          "sha256": "bd941d94ea1bb503154210cc0dd000b0341f18b6921c12accf5e14ac15c6dae8",
-          "sha1": "b462820a36c5158b6ea409b4d4cf0b36b14271e8",
-          "md5": "c43e048c0c0da449e431d28d81023e70"
+          "size": 2310,
+          "sha512": "ce46a80193c87a3b0ff3400673f76e52f7ab56b6be2b5c097b9ea5d5b259039ac482d30e0054f1bc2bff247fcb5b986fc6b8d6502367981bf62f66ae650eca43",
+          "sha256": "065628e48eefb3f2e3236e9640c737e77a6513c61faf7abeff7d5ded2fecccdc",
+          "sha1": "1c88eb125abd38bd21c5bc6df4c6b7b060880e32",
+          "md5": "002fb9e92155f64b83ad52f3dc760ba1"
         }
       ]
     },
@@ -40,7 +41,8 @@
       "name": "demoReleaseRuntimeElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "release",
-        "com.android.build.api.attributes.VariantAttr": "demoRelease",
+        "com.android.build.api.attributes.ProductFlavor:org.gradle.example.my-own-flavor": "demo",
+        "org.gradle.category": "library",
         "org.gradle.example.my-own-flavor": "demo",
         "org.gradle.usage": "java-runtime",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -50,41 +52,56 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib",
           "version": {
-            "requires": "1.4.31"
-          }
+            "requires": "1.7.10"
+          },
+          "excludes": [
+            {
+              "group": "org.jetbrains.kotlin",
+              "module": "kotlin-stdlib-common"
+            },
+            {
+              "group": "org.jetbrains.kotlin",
+              "module": "kotlin-test-common"
+            },
+            {
+              "group": "org.jetbrains.kotlin",
+              "module": "kotlin-test-annotations-common"
+            }
+          ]
         },
         {
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib-common",
           "version": {
-            "requires": "1.4.31"
-          }
+            "requires": "1.7.10"
+          },
+          "excludes": [
+            {
+              "group": "org.jetbrains.kotlin",
+              "module": "kotlin-stdlib-common"
+            },
+            {
+              "group": "org.jetbrains.kotlin",
+              "module": "kotlin-test-common"
+            },
+            {
+              "group": "org.jetbrains.kotlin",
+              "module": "kotlin-test-annotations-common"
+            }
+          ]
         }
       ],
       "files": [
         {
           "name": "kotlin-multiplatform-android-library-demo-release.aar",
           "url": "kotlin-multiplatform-android-library-android-demo-1.0.aar",
-          "size": 2261,
-          "sha512": "7a32f1ed173a562976e914a6ac060caa23f653dd738fc44dc84fb86f722063faaf9f0d3718885501168d15503b2128b1a22a29cf5e93875c4c076d7b18fc31c4",
-          "sha256": "bd941d94ea1bb503154210cc0dd000b0341f18b6921c12accf5e14ac15c6dae8",
-          "sha1": "b462820a36c5158b6ea409b4d4cf0b36b14271e8",
-          "md5": "c43e048c0c0da449e431d28d81023e70"
+          "size": 2310,
+          "sha512": "ce46a80193c87a3b0ff3400673f76e52f7ab56b6be2b5c097b9ea5d5b259039ac482d30e0054f1bc2bff247fcb5b986fc6b8d6502367981bf62f66ae650eca43",
+          "sha256": "065628e48eefb3f2e3236e9640c737e77a6513c61faf7abeff7d5ded2fecccdc",
+          "sha1": "1c88eb125abd38bd21c5bc6df4c6b7b060880e32",
+          "md5": "002fb9e92155f64b83ad52f3dc760ba1"
         }
       ]
-    },
-    {
-      "name": "metadataApiElements-published",
-      "attributes": {
-        "org.gradle.usage": "kotlin-api",
-        "org.jetbrains.kotlin.platform.type": "common"
-      },
-      "available-at": {
-        "url": "../../kotlin-multiplatform-android-library-metadata/1.0/kotlin-multiplatform-android-library-metadata-1.0.module",
-        "group": "example",
-        "module": "kotlin-multiplatform-android-library-metadata",
-        "version": "1.0"
-      }
     }
   ]
 }

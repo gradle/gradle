@@ -48,7 +48,6 @@ class PmdPluginSubtypeParamIntegrationTest extends AbstractPmdPluginVersionInteg
         } else {
             buildFile << """
                 pmd {
-                    ruleSets = [] // disable default rule set
                     ruleSetConfig = resources.text.fromString('''<?xml version="1.0"?>
                         <ruleset name="Unused Code">
                             <description>Copy of https://github.com/pmd/pmd/blob/master/pmd-java/src/main/resources/rulesets/java/unusedcode.xml without deprecations.</description>

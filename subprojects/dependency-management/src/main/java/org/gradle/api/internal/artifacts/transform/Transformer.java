@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.work.InputChanges;
@@ -41,6 +40,8 @@ public interface Transformer extends Describable, TaskDependencyContainer {
 
     ImmutableAttributes getFromAttributes();
 
+    ImmutableAttributes getToAttributes();
+
     /**
      * Whether the transformer requires dependencies of the transformed artifact to be injected.
      */
@@ -56,7 +57,7 @@ public interface Transformer extends Describable, TaskDependencyContainer {
      */
     boolean isCacheable();
 
-    ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges);
+    TransformationResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges);
 
     /**
      * The hash of the secondary inputs of the transformer.
@@ -67,9 +68,9 @@ public interface Transformer extends Describable, TaskDependencyContainer {
 
     void isolateParametersIfNotAlready();
 
-    Class<? extends FileNormalizer> getInputArtifactNormalizer();
+    FileNormalizer getInputArtifactNormalizer();
 
-    Class<? extends FileNormalizer> getInputArtifactDependenciesNormalizer();
+    FileNormalizer getInputArtifactDependenciesNormalizer();
 
     boolean isIsolated();
 

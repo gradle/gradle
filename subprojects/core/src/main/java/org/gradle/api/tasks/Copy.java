@@ -67,7 +67,7 @@ import java.io.File;
  * </pre>
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class Copy extends AbstractCopyTask {
+public abstract class Copy extends AbstractCopyTask {
 
     @Override
     protected CopyAction createCopyAction() {

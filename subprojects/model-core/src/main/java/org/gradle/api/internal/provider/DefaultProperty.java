@@ -64,7 +64,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     }
 
     @Override
-    public void set(T value) {
+    public void set(@Nullable T value) {
         if (value == null) {
             discardValue();
         } else {

@@ -241,7 +241,21 @@
     "dirName": "docs",
     "name": "docs",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "docs-asciidoctor-extensions",
+    "name": "docs-asciidoctor-extensions",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "docs-asciidoctor-extensions-base",
+    "name": "docs-asciidoctor-extensions-base",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -350,6 +364,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "instrumentation-agent",
+    "name": "instrumentation-agent",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "integ-test",
     "name": "integ-test",
     "unitTests": false,
@@ -357,8 +378,8 @@
     "crossVersionTests": true
   },
   {
-    "dirName": "internal-android-performance-testing",
-    "name": "internal-android-performance-testing",
+    "dirName": "internal-architecture-testing",
+    "name": "internal-architecture-testing",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -420,13 +441,6 @@
     "crossVersionTests": false
   },
   {
-    "dirName": "kotlin-compiler-embeddable",
-    "name": "kotlin-compiler-embeddable",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "dirName": "kotlin-dsl",
     "name": "kotlin-dsl",
     "unitTests": true,
@@ -438,12 +452,12 @@
     "name": "kotlin-dsl-integ-tests",
     "unitTests": false,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "dirName": "kotlin-dsl-plugins",
     "name": "kotlin-dsl-plugins",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
@@ -458,7 +472,7 @@
     "dirName": "kotlin-dsl-tooling-builders",
     "name": "kotlin-dsl-tooling-builders",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": true
   },
   {
@@ -756,6 +770,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "testing-jvm-infrastructure",
+    "name": "testing-jvm-infrastructure",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "testing-native",
     "name": "testing-native",
     "unitTests": true,
@@ -793,7 +814,7 @@
   {
     "dirName": "worker-processes",
     "name": "worker-processes",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

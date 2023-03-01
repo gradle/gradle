@@ -1,0 +1,7 @@
+> Task :createDocs
+> Task :compileJava
+> Task :distTar
+> Task :distZip
+> Task :assemble
+
+BUILD SUCCESSFUL in 0s

@@ -19,9 +19,9 @@ package org.gradle.api.internal;
 import org.gradle.api.BuildableComponentSpec;
 import org.gradle.api.CheckableComponentSpec;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.platform.base.component.internal.AbstractComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
@@ -54,16 +54,15 @@ public abstract class AbstractBuildableComponentSpec extends AbstractComponentSp
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                if (buildTask == null) {
-                    context.add(buildTaskDependencies);
-                } else {
-                    context.add(buildTask);
-                }
+        // TODO maybe inject the task dependency factory into this type hierarchy, too
+        final TaskDependencyFactory taskDependencyFactory = DefaultTaskDependencyFactory.withNoAssociatedProject();
+        return taskDependencyFactory.visitingDependencies(context -> {
+            if (buildTask == null) {
+                context.add(buildTaskDependencies);
+            } else {
+                context.add(buildTask);
             }
-        };
+        });
     }
 
     @Override
@@ -73,7 +72,7 @@ public abstract class AbstractBuildableComponentSpec extends AbstractComponentSp
 
     @Override
     public boolean hasBuildDependencies() {
-        return buildTaskDependencies.getDependencies(buildTask).size() > 0;
+        return buildTaskDependencies.getDependenciesForInternalUse(buildTask).size() > 0;
     }
 
     @Nullable

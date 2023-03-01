@@ -22,22 +22,25 @@ import org.gradle.execution.plan.PlanExecutor
 import org.gradle.internal.build.BuildWorkGraph
 import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.ExecutionResult
+import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 
 class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTest {
     def workerLeaseService = new TestWorkerLeaseService()
-    def graph = new DefaultIncludedBuildTaskGraph(executorFactory, new TestBuildOperationExecutor(), buildStateRegistry, workerLeaseService, Stub(PlanExecutor))
+    def preparer = Mock(BuildTreeWorkGraphPreparer)
+    def graph = new DefaultIncludedBuildTaskGraph(executorFactory, new TestBuildOperationExecutor(), buildStateRegistry, workerLeaseService, Stub(PlanExecutor), preparer)
 
-    def "does nothing when nothing scheduled"() {
+    def "does no work when nothing scheduled"() {
         when:
         graph.withNewWorkGraph { g ->
-            g.scheduleWork { b ->
+            def f = g.scheduleWork { b ->
             }
-            g.runWork().rethrow()
+            f.runWork().rethrow()
         }
 
         then:
+        1 * preparer.prepareToScheduleTasks(_)
         0 * _
     }
 
@@ -50,14 +53,15 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
         when:
         graph.withNewWorkGraph { g ->
-            g.scheduleWork { b ->
+            def f = g.scheduleWork { b ->
                 b.withWorkGraph(build) {}
             }
-            g.runWork().rethrow()
+            f.runWork().rethrow()
         }
 
         then:
         1 * workGraphController.newWorkGraph() >> workGraph
+        1 * preparer.prepareToScheduleTasks(_)
         1 * workGraph.populateWorkGraph(_)
         1 * workGraph.finalizeGraph()
         1 * workGraph.runWork() >> ExecutionResult.succeeded()
@@ -128,10 +132,10 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
         when:
         graph.withNewWorkGraph { g ->
-            g.scheduleWork { b ->
+            def f = g.scheduleWork { b ->
                 b.withWorkGraph(build) {}
             }
-            g.runWork().rethrow()
+            f.runWork().rethrow()
         }
 
         then:
@@ -146,9 +150,9 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
         when:
         graph.withNewWorkGraph { g ->
-            g.scheduleWork {
+            def f= g.scheduleWork {
             }
-            g.runWork()
+            f.runWork()
             graph.locateTask(taskIdentifier(id, ":task")).queueForExecution()
         }
 

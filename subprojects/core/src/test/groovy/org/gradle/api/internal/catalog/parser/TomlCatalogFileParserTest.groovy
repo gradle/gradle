@@ -41,7 +41,6 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
         Interners.newStrongInterner(),
         Interners.newStrongInterner(),
         TestUtil.objectFactory(),
-        TestUtil.providerFactory(),
         Stub(Supplier),
     )
     DefaultVersionCatalog model

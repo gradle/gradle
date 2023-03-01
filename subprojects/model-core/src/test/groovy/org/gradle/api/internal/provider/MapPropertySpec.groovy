@@ -33,11 +33,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     }
 
     @Override
-    DefaultMapProperty<String, String> propertyWithDefaultValue() {
-        return property()
-    }
-
-    @Override
     DefaultMapProperty<String, String> propertyWithNoValue() {
         def p = property()
         p.set((Map) null)
@@ -505,9 +500,9 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasKnownProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
-        value.fixedValue.isEmpty()
+        value.getFixedValue().isEmpty()
     }
 
     def "has no producer and missing execution time value when element provider with no value added"() {
@@ -544,9 +539,9 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
-        value.fixedValue == [a: '1', b: '2']
+        value.getFixedValue() == [a: '1', b: '2']
     }
 
     def "has no producer and fixed execution time value when elements added"() {
@@ -557,9 +552,9 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
-        value.fixedValue == [a: '1', b: '2']
+        value.getFixedValue() == [a: '1', b: '2']
     }
 
     def "has no producer and fixed execution time value when element provider added"() {
@@ -570,9 +565,9 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
-        value.fixedValue == [a: '1', b: '2']
+        value.getFixedValue() == [a: '1', b: '2']
     }
 
     def "has no producer and fixed execution time value when elements provider added"() {
@@ -583,9 +578,9 @@ The value of this property is derived from: <source>""")
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
-        value.fixedValue == [a: '1', b: '2']
+        value.getFixedValue() == [a: '1', b: '2']
     }
 
     def "has no producer and changing execution time value when elements provider with changing value added"() {
@@ -597,8 +592,8 @@ The value of this property is derived from: <source>""")
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
         value.isChangingValue()
-        value.changingValue.get() == [a: '1', b: '2', c: '3']
-        value.changingValue.get() == [a: '1b', c: '3']
+        value.getChangingValue().get() == [a: '1', b: '2', c: '3']
+        value.getChangingValue().get() == [a: '1b', c: '3']
     }
 
     def "has union of producer task from providers unless producer task attached"() {
@@ -1061,6 +1056,142 @@ The value of this property is derived from: <source>""")
 
     Property<String> valueProperty() {
         return new DefaultProperty<String>(host, String)
+    }
+
+    def "runs side effect when calling '#getter' on property to which providers were added via 'put'"() {
+        def sideEffect1 = Mock(ValueSupplier.SideEffect)
+        def sideEffect2 = Mock(ValueSupplier.SideEffect)
+        def expectedUnpackedValue = ["some key": "some value", "other key": "other value"]
+
+        when:
+        property.put("some key", Providers.of("some value").withSideEffect(sideEffect1))
+        property.put("other key", Providers.of("other value").withSideEffect(sideEffect2))
+
+        def value = property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        def executionTimeValue = property.calculateExecutionTimeValue()
+        then:
+        0 * _ // no side effects until values are unpacked
+
+        when:
+        def unpackedValue = value.get()
+        then:
+        unpackedValue == expectedUnpackedValue
+        1 * sideEffect1.execute("some value")
+        then: // ensure ordering
+        1 * sideEffect2.execute("other value")
+        0 * _
+
+        when:
+        unpackedValue = executionTimeValue.toValue().get()
+        then:
+        unpackedValue == expectedUnpackedValue
+        1 * sideEffect1.execute("some value")
+        then: // ensure ordering
+        1 * sideEffect2.execute("other value")
+        0 * _
+
+        when:
+        unpackedValue = getter(property, getter, ["yet another key": "yet another value"])
+        then:
+        unpackedValue == expectedUnpackedValue
+        1 * sideEffect1.execute("some value")
+        then: // ensure ordering
+        1 * sideEffect2.execute("other value")
+        0 * _
+
+        where:
+        getter      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
+    }
+
+    def "runs side effect when calling '#getter' on property to which providers were added via 'putAll'"() {
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+
+        when:
+        property.putAll(Providers.of(someValue()).withSideEffect(sideEffect))
+
+        def value = property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        def executionTimeValue = property.calculateExecutionTimeValue()
+        then:
+        0 * _ // no side effects until values are unpacked
+
+        when:
+        def unpackedValue = value.get()
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        when:
+        unpackedValue = executionTimeValue.toValue().get()
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        when:
+        unpackedValue = getter(property, getter, ["yet another key": "yet another value"])
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        where:
+        getter      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
+    }
+
+    def "runs side effect when getting #description"() {
+        def valueSideEffect = Mock(ValueSupplier.SideEffect)
+
+        when:
+        property.put("some key", Providers.of("some value").withSideEffect(valueSideEffect))
+        def valueProvider = property.getting(key)
+        then:
+        0 * _ // no side effects until values are unpacked
+
+        when:
+        valueProvider.getOrNull()
+        then:
+        expectSideEffect * valueSideEffect.execute("some value")
+        0 * _
+
+        where:
+        description        | key        | expectSideEffect
+        "existing key"     | "some key" | 1
+        "non-existing key" | "oops key" | 0
+    }
+
+    def "runs side effect when calling '#getter' on property's 'keySet'"() {
+        def sideEffect1 = Mock(ValueSupplier.SideEffect)
+        def sideEffect2 = Mock(ValueSupplier.SideEffect)
+
+        when:
+        property.put("some key", Providers.of("some value").withSideEffect(sideEffect1))
+        property.putAll(Providers.of(["other key": "other value"]).withSideEffect(sideEffect2))
+        def keySetProvider = property.keySet()
+        then:
+        0 * _
+
+        when:
+        def keySetValue = keySetProvider.get()
+        then:
+        keySetValue == ["some key", "other key"].toSet()
+        // provider of the value in the Map entry does not need to be unpacked
+        0 * sideEffect1.execute("some value")
+        // provider of the whole map on the other hand must be unpacked and propagates the side effect
+        1 * sideEffect2.execute(["other key": "other value"])
+        0 * _
+
+        where:
+        getter      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
     }
 
     private ProviderInternal<String> brokenValueSupplier() {

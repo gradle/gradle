@@ -26,10 +26,11 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.internal.ConfigurationSoftwareComponentVariant;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.language.cpp.internal.DefaultUsageContext;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
@@ -56,8 +57,8 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
     private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultSwiftSharedLibrary(Names names, ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(names, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultSwiftSharedLibrary(Names names, ObjectFactory objectFactory, TaskDependencyFactory taskDependencyFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(names, objectFactory, taskDependencyFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.linkFile = objectFactory.fileProperty();
         this.linkFileProducer = objectFactory.property(Task.class);
         this.runtimeFile = objectFactory.fileProperty();
@@ -115,12 +116,12 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
 
     @Override
     public AttributeContainer getLinkAttributes() {
-        return getIdentity().getLinkUsageContext().getAttributes();
+        return getIdentity().getLinkVariant().getAttributes();
     }
 
     @Override
     public AttributeContainer getRuntimeAttributes() {
-        return getIdentity().getRuntimeUsageContext().getAttributes();
+        return getIdentity().getRuntimeVariant().getAttributes();
     }
 
     @Override
@@ -128,8 +129,8 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
         Configuration linkElements = getLinkElements().get();
         Configuration runtimeElements = getRuntimeElements().get();
         return Sets.newHashSet(
-            new DefaultUsageContext(getIdentity().getLinkUsageContext(), linkElements.getAllArtifacts(), linkElements),
-            new DefaultUsageContext(getIdentity().getRuntimeUsageContext(), runtimeElements.getAllArtifacts(), runtimeElements)
+            new ConfigurationSoftwareComponentVariant(getIdentity().getLinkVariant(), linkElements.getAllArtifacts(), linkElements),
+            new ConfigurationSoftwareComponentVariant(getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements)
         );
     }
 }

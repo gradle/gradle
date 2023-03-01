@@ -28,4 +28,5 @@ public interface GradleEnterprisePluginRequiredServices {
 
     StyledTextOutputFactory getStyledTextOutputFactory();
 
+    GradleEnterprisePluginBackgroundJobExecutors getBackgroundJobExecutors();
 }

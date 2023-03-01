@@ -50,33 +50,34 @@ trait VersionSpecificCacheCleanupFixture {
 
     abstract TestFile getCachesDir()
 
-    static enum MarkerFileType {
+    abstract static class MarkerFileType {
 
-        USED_TODAY {
+        public final static MarkerFileType USED_TODAY = new MarkerFileType() {
             @Override
             void process(TestFile markerFile) {
                 markerFile.createFile()
             }
-        },
+        }
 
-        NOT_USED_WITHIN_30_DAYS {
+        public final static MarkerFileType NOT_USED_WITHIN_30_DAYS = notUsedWithinDays(30)
+
+        public final static MarkerFileType NOT_USED_WITHIN_7_DAYS = notUsedWithinDays(7)
+
+        public final static MarkerFileType MISSING_MARKER_FILE  = new MarkerFileType() {
             @Override
-            void process(TestFile markerFile) {
-                markerFile.createFile()
-                markerFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(31)
+            void process(TestFile markerFile) { }
+        }
+
+        abstract void process(TestFile markerFile)
+
+        static MarkerFileType notUsedWithinDays(int days) {
+            return new MarkerFileType() {
+                @Override
+                void process(TestFile markerFile) {
+                    markerFile.createFile()
+                    markerFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(days+1)
+                }
             }
-        },
-
-        NOT_USED_WITHIN_7_DAYS {
-            @Override
-            void process(TestFile markerFile) {
-                markerFile.createFile()
-                markerFile.lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(8)
-            }
-        },
-
-        MISSING_MARKER_FILE
-
-        void process(TestFile markerFile) {}
+        }
     }
 }

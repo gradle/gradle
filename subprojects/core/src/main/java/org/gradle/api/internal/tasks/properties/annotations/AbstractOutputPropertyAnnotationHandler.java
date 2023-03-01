@@ -16,24 +16,25 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.reflect.AnnotationCategory;
-import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory;
+import org.gradle.internal.properties.OutputFilePropertyType;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
+import java.lang.annotation.Annotation;
 
-public abstract class AbstractOutputPropertyAnnotationHandler implements PropertyAnnotationHandler {
-    @Override
-    public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
-        return ImmutableSet.of(OPTIONAL);
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
+
+public abstract class AbstractOutputPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
+    private final OutputFilePropertyType filePropertyType;
+
+    public AbstractOutputPropertyAnnotationHandler(Class<? extends Annotation> annotationType, OutputFilePropertyType filePropertyType) {
+        super(annotationType, Kind.OUTPUT, ModifierAnnotationCategory.annotationsOf(OPTIONAL));
+        this.filePropertyType = filePropertyType;
     }
-
-    protected abstract OutputFilePropertyType getFilePropertyType();
 
     @Override
     public boolean isPropertyRelevant() {
@@ -41,12 +42,7 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
     }
 
     @Override
-    public boolean shouldVisit(PropertyVisitor visitor) {
-        return true;
-    }
-
-    @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        visitor.visitOutputFileProperty(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, getFilePropertyType());
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+        visitor.visitOutputFileProperty(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, filePropertyType);
     }
 }

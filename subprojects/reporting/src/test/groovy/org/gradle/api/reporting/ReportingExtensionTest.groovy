@@ -18,12 +18,13 @@ package org.gradle.api.reporting
 
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ReportingExtensionTest extends Specification {
 
     Project project = ProjectBuilder.builder().build()
-    ReportingExtension extension = new ReportingExtension(project)
+    ReportingExtension extension = TestUtil.newInstance(ReportingExtension.class, project)
 
     def "defaults to reports dir in build dir"() {
         expect:

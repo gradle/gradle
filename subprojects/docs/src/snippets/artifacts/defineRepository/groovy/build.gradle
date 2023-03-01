@@ -267,7 +267,7 @@ tasks.register('lookup') {
     def repoNames = repositories.collect { it.name }
     doLast {
         repoNames.each { assert it }
-        assert repositories[0]
+        assert repoNames[0]
     }
 }
 

@@ -292,20 +292,23 @@ dependencies {
 // end::custom-status-scheme[]
 
 tasks.register("compileClasspathArtifacts") {
+    FileCollection compileClasspath = configurations["compileClasspath"]
     doLast {
-        configurations["compileClasspath"].findAll { !it.name.startsWith("commons-lang3") }.each { println(it.name) }
+        compileClasspath.findAll { !it.name.startsWith("commons-lang3") }.each { println(it.name) }
     }
 }
 tasks.register("failRuntimeClasspathResolve") {
+    FileCollection runtimeClasspath = configurations["runtimeClasspath"]
     doLast {
-        configurations["runtimeClasspath"].each { println(it.name) }
+        runtimeClasspath.each { println(it.name) }
     }
 }
 tasks.register("runtimeClasspathArtifacts") {
+    FileCollection runtimeClasspath = configurations["runtimeClasspath"]
+    configurations["runtimeClasspath"].attributes {
+        attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture, "x86"))
+    }
     doLast {
-        configurations["runtimeClasspath"].attributes {
-            attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture, "x86"))
-        }
-        configurations["runtimeClasspath"].findAll { !it.name.startsWith("commons-lang3") }.each { println(it.name) }
+        runtimeClasspath.findAll { !it.name.startsWith("commons-lang3") }.each { println(it.name) }
     }
 }

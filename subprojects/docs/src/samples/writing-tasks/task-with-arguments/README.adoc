@@ -4,8 +4,8 @@ This sample shows how to create a plugin with a task that accepts arguments.
 The plugin is packaged via an included build.
 
 ====
-include::sample[dir="groovy",files="build.gradle[];settings.gradle[]"]
 include::sample[dir="kotlin",files="build.gradle.kts[];settings.gradle.kts[]"]
+include::sample[dir="groovy",files="build.gradle[];settings.gradle[]"]
 ====
 
 To execute the sample task:

@@ -81,7 +81,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
             allprojects {
                 configurations.apiElements.outgoing.variants {
                     classes {
-                        attributes.attribute(USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API_CLASSES))
+                        attributes.attribute(USAGE_ATTRIBUTE, objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_API_CLASSES))
                         artifact file: ${language.compileTaskName}.destinationDirectory.asFile.get(), builtBy: ${language.compileTaskName}
                         artifact file: emptyDirs.destinationDir, builtBy: emptyDirs
                         artifact file: processResources.destinationDir, builtBy: processResources
@@ -715,7 +715,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
                }
 
                // There MUST be at least 3 dependencies, in that specific order, for the bug to show up.
-               // The reason is that `IncrementalTaskInputs` reports wrong information about deletions at the
+               // The reason is that removed `IncrementalTaskInputs` reported wrong information about deletions at the
                // beginning of a list, when the collection is ordered. It has been agreed not to fix it now, but
                // rather change the incremental compiler not to rely on this incorrect information
 

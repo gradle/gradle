@@ -261,6 +261,26 @@ Secondary Variants (*)
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
+Variant archives
+--------------------------------------------------
+Configuration for archive artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant default
+--------------------------------------------------
+Configuration for default artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
+
+--------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
 List of source directories contained in the Main SourceSet.
@@ -310,7 +330,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -399,6 +419,26 @@ Secondary Variants (*)
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
+Variant archives
+--------------------------------------------------
+Configuration for archive artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant default
+--------------------------------------------------
+Configuration for default artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
+
+--------------------------------------------------
 Variant javadocElements
 --------------------------------------------------
 javadoc elements for main.
@@ -463,7 +503,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -566,6 +606,26 @@ Secondary Variants (*)
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
+Variant archives
+--------------------------------------------------
+Configuration for archive artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant default
+--------------------------------------------------
+Configuration for default artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
+
+--------------------------------------------------
 Variant javadocElements
 --------------------------------------------------
 javadoc elements for main.
@@ -630,7 +690,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -728,7 +788,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -753,7 +813,6 @@ Secondary Variants (*)
         """
 
         when:
-        executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
         run ':outgoingVariants', '--all'
 
         then:
@@ -797,7 +856,7 @@ Secondary Variants (*)
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
-Variant archives (l)
+Variant archives
 --------------------------------------------------
 Configuration for archive artifacts.
 
@@ -807,7 +866,7 @@ Artifacts
     - $jarPath (artifactType = jar)
 
 --------------------------------------------------
-Variant default (l)
+Variant default
 --------------------------------------------------
 Configuration for default artifacts.
 
@@ -866,7 +925,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -895,7 +954,6 @@ Artifacts
 """)
 
         and:
-        hasLegacyLegend()
         hasIncubatingLegend()
         hasSecondaryVariantsLegend()
     }
@@ -908,7 +966,6 @@ Artifacts
         """.stripIndent()
 
         when:
-        executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
         run ':outgoingVariants', '--all'
 
         then:
@@ -951,7 +1008,7 @@ Secondary Variants (*)
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
-Variant archives (l)
+Variant archives
 --------------------------------------------------
 Configuration for archive artifacts.
 
@@ -961,7 +1018,7 @@ Artifacts
     - $jarPath (artifactType = jar)
 
 --------------------------------------------------
-Variant default (l)
+Variant default
 --------------------------------------------------
 Configuration for default artifacts.
 
@@ -1020,7 +1077,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -1049,7 +1106,6 @@ Artifacts
 """)
 
         and:
-        hasLegacyLegend()
         hasIncubatingLegend()
         hasSecondaryVariantsLegend()
     }
@@ -1136,7 +1192,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -1214,6 +1270,26 @@ Secondary Variants (*)
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
 --------------------------------------------------
+Variant archives
+--------------------------------------------------
+Configuration for archive artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
+
+--------------------------------------------------
+Variant default
+--------------------------------------------------
+Configuration for default artifacts.
+
+Capabilities
+    - org:myLib:1.0 (default capability)
+Artifacts
+    - $jarPath (artifactType = jar)
+
+--------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
 List of source directories contained in the Main SourceSet.
@@ -1263,7 +1339,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library

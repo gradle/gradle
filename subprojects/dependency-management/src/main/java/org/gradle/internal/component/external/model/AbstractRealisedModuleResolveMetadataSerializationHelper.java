@@ -28,17 +28,18 @@ import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.IvyArtifactNameSerializer;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
+import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -129,7 +130,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         boolean endorsing = decoder.readBoolean();
         boolean force = decoder.readBoolean();
         String reason = decoder.readNullableString();
-        IvyArtifactName artifact = readNullableArtifact(decoder);
+        IvyArtifactName artifact = IvyArtifactNameSerializer.INSTANCE.readNullable(decoder);
         return new GradleDependencyMetadata(selector, excludes, constraint, endorsing, reason, force, artifact);
     }
 
@@ -137,10 +138,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         ImmutableList.Builder<ModuleComponentArtifactMetadata> artifacts = new ImmutableList.Builder<>();
         int artifactsCount = decoder.readSmallInt();
         for (int i = 0; i < artifactsCount; i++) {
-            String name = decoder.readString();
-            String type = decoder.readString();
-            String extension = decoder.readNullableString();
-            String classifier = decoder.readNullableString();
+            IvyArtifactName artifactName = IvyArtifactNameSerializer.INSTANCE.read(decoder);
             String timestamp = decoder.readNullableString();
 
             String version;
@@ -151,24 +149,20 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
             }
 
             boolean alternativeArtifact = decoder.readBoolean();
-            DefaultIvyArtifactName alternative = null;
+            IvyArtifactName alternative = null;
             if (alternativeArtifact) {
-                String altName = decoder.readString();
-                String altType = decoder.readString();
-                String altExtension = decoder.readNullableString();
-                String altClassifier = decoder.readNullableString();
-                alternative = new DefaultIvyArtifactName(altName, altType, altExtension, altClassifier);
+                alternative = IvyArtifactNameSerializer.INSTANCE.read(decoder);
             }
             boolean optional = decoder.readBoolean();
 
             if (optional) {
-                artifacts.add(new ModuleComponentOptionalArtifactMetadata(cid, new DefaultIvyArtifactName(name, type, extension, classifier)));
+                artifacts.add(new ModuleComponentOptionalArtifactMetadata(cid, artifactName));
             } else {
                 if (alternativeArtifact) {
-                    artifacts.add(new DefaultModuleComponentArtifactMetadata(cid, new DefaultIvyArtifactName(name, type, extension, classifier),
+                    artifacts.add(new DefaultModuleComponentArtifactMetadata(cid, artifactName,
                             new DefaultModuleComponentArtifactMetadata(cid, alternative)));
                 } else {
-                    artifacts.add(new DefaultModuleComponentArtifactMetadata(cid, new DefaultIvyArtifactName(name, type, extension, classifier)));
+                    artifacts.add(new DefaultModuleComponentArtifactMetadata(cid, artifactName));
                 }
             }
         }
@@ -197,9 +191,9 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         List<Capability> rawCapabilities = Lists.newArrayListWithCapacity(capabilitiesCount);
         for (int j = 0; j < capabilitiesCount; j++) {
             String appendix = decoder.readNullableString();
-            CapabilityInternal capability = new ImmutableCapability(decoder.readString(), decoder.readString(), decoder.readString());
+            CapabilityInternal capability = new DefaultImmutableCapability(decoder.readString(), decoder.readString(), decoder.readString());
             if (appendix != null) {
-                capability = new DefaultShadowedCapability(capability, appendix);
+                capability = new ShadowedImmutableCapability(capability, appendix);
             }
             rawCapabilities.add(capability);
         }
@@ -212,8 +206,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         encoder.writeSmallInt(ivyArtifactsCount);
         for (ComponentArtifactMetadata artifact : artifacts) {
             if (!(artifact instanceof UrlBackedArtifactMetadata)) {
-                IvyArtifactName artifactName = artifact.getName();
-                writeIvyArtifactName(encoder, artifactName);
+                IvyArtifactNameSerializer.INSTANCE.write(encoder, artifact.getName());
                 ComponentIdentifier componentId = artifact.getComponentId();
                 if (componentId instanceof MavenUniqueSnapshotComponentIdentifier) {
                     MavenUniqueSnapshotComponentIdentifier uid = (MavenUniqueSnapshotComponentIdentifier) componentId;
@@ -224,7 +217,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
                 }
                 encoder.writeBoolean(artifact.getAlternativeArtifact().isPresent());
                 if (artifact.getAlternativeArtifact().isPresent()) {
-                    writeIvyArtifactName(encoder, artifact.getAlternativeArtifact().get().getName());
+                    IvyArtifactNameSerializer.INSTANCE.write(encoder, artifact.getAlternativeArtifact().get().getName());
                 }
                 encoder.writeBoolean(artifact.isOptionalArtifact());
             }
@@ -236,13 +229,6 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
                 encoder.writeString(((UrlBackedArtifactMetadata) file).getRelativeUrl());
             }
         }
-    }
-
-    private void writeIvyArtifactName(Encoder encoder, IvyArtifactName artifactName) throws IOException {
-        encoder.writeString(artifactName.getName());
-        encoder.writeString(artifactName.getType());
-        encoder.writeNullableString(artifactName.getExtension());
-        encoder.writeNullableString(artifactName.getClassifier());
     }
 
     protected abstract void writeDependencies(Encoder encoder, ConfigurationMetadata configuration, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException;
@@ -272,7 +258,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         encoder.writeBoolean(dependencyMetadata.isEndorsingStrictVersions());
         encoder.writeBoolean(dependencyMetadata.isForce());
         encoder.writeNullableString(dependencyMetadata.getReason());
-        writeNullableArtifact(encoder,  dependencyMetadata.getDependencyArtifact());
+        IvyArtifactNameSerializer.INSTANCE.writeNullable(encoder, dependencyMetadata.getDependencyArtifact());
     }
 
     protected void writeMavenExcludeRules(Encoder encoder, List<ExcludeMetadata> excludes) throws IOException {
@@ -283,33 +269,10 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         }
     }
 
-    @Nullable
-    protected IvyArtifactName readNullableArtifact(Decoder decoder) throws IOException {
-        boolean hasArtifact = decoder.readBoolean();
-        IvyArtifactName artifactName = null;
-        if (hasArtifact) {
-            String artifact = decoder.readString();
-            String type = decoder.readString();
-            String ext = decoder.readNullableString();
-            String classifier = decoder.readNullableString();
-            artifactName = new DefaultIvyArtifactName(artifact, type, ext, classifier);
-        }
-        return artifactName;
-    }
-
-    protected void writeNullableArtifact(Encoder encoder, @Nullable IvyArtifactName artifact) throws IOException {
-        if (artifact == null) {
-            encoder.writeBoolean(false);
-        } else {
-            encoder.writeBoolean(true);
-            writeIvyArtifactName(encoder, artifact);
-        }
-    }
-
     protected DefaultExclude readExcludeRule(Decoder decoder) throws IOException {
         String moduleOrg = decoder.readString();
         String moduleName = decoder.readString();
-        IvyArtifactName artifactName = readNullableArtifact(decoder);
+        IvyArtifactName artifactName = IvyArtifactNameSerializer.INSTANCE.readNullable(decoder);
         String[] confs = readStringSet(decoder).toArray(new String[0]);
         String matcher = decoder.readNullableString();
         return new DefaultExclude(moduleIdentifierFactory.module(moduleOrg, moduleName), artifactName, confs, matcher);

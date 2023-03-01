@@ -35,7 +35,6 @@ public interface ArtifactTypeDefinition extends HasAttributes, Named {
      *
      * @since 7.3
      */
-    @Incubating
     Attribute<String> ARTIFACT_TYPE_ATTRIBUTE = Attribute.of("artifactType", String.class);
 
     /**

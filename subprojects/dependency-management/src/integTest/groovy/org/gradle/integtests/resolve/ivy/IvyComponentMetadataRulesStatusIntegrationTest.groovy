@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.rules.ComponentMetadataRulesStatusIntegrationTest
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 
@@ -61,14 +60,12 @@ dependencies {
         file('libs').assertHasDescendants('projectA-1.0.jar')
     }
 
-    @ToBeFixedForConfigurationCache
     def "resolve fails if status doesn't match default status scheme"() {
         expect:
         fails 'resolve'
         failure.assertHasCause(/Unexpected status 'silver' specified for org.test:projectA:1.0. Expected one of: [integration, milestone, release]/)
     }
 
-    @ToBeFixedForConfigurationCache
     def "resolve fails if status doesn't match custom status scheme"() {
         buildFile <<
                 """

@@ -23,8 +23,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * A dummy annotation which is used to trigger validation problems
- * during tests
+ * A dummy annotation which is used to trigger validation problems during tests.
+ *
+ * This is handled via {@link ValidationProblemPropertyAnnotationHandler},
+ * a service available globally in the embedded integration test runner only.
+ *
+ * @see ValidationServicesFixture
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})

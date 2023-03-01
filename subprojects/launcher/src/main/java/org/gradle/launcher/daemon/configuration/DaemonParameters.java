@@ -28,8 +28,10 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
@@ -37,7 +39,7 @@ public class DaemonParameters {
 
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
     public static final List<String> DEFAULT_JVM_8_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
-    public static final List<String> ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE = ImmutableList.of("--add-opens", "java.base/java.util=ALL-UNNAMED");
+    public static final List<String> ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE = ImmutableList.of("--add-opens=java.base/java.util=ALL-UNNAMED");
 
     private final File gradleUserHomeDir;
 
@@ -46,6 +48,7 @@ public class DaemonParameters {
 
     private int periodicCheckInterval = DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS;
     private final DaemonJvmOptions jvmOptions;
+    private boolean applyInstrumentationAgent = true;
     private Map<String, String> envVariables;
     private boolean enabled = true;
     private boolean hasJvmArgs;
@@ -125,8 +128,9 @@ public class DaemonParameters {
 
     public void applyDefaultsFor(JavaVersion javaVersion) {
         if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
-            jvmOptions.jvmArgs(ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE);
-            jvmOptions.jvmArgs(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
+            Set<String> jpmsArgs = new LinkedHashSet<>(ALLOW_ENVIRONMENT_VARIABLE_OVERWRITE);
+            jpmsArgs.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
+            jvmOptions.jvmArgs(jpmsArgs);
         }
         if (hasJvmArgs) {
             return;
@@ -146,9 +150,16 @@ public class DaemonParameters {
 
     public Map<String, String> getEffectiveSystemProperties() {
         Map<String, String> systemProperties = new HashMap<String, String>();
+        GUtil.addToMap(systemProperties, System.getProperties());
         GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
         GUtil.addToMap(systemProperties, jvmOptions.getImmutableDaemonProperties());
-        GUtil.addToMap(systemProperties, System.getProperties());
+        return systemProperties;
+    }
+
+    public Map<String, String> getMutableAndImmutableSystemProperties() {
+        Map<String, String> systemProperties = new HashMap<String, String>();
+        GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
+        GUtil.addToMap(systemProperties, jvmOptions.getImmutableDaemonProperties());
         return systemProperties;
     }
 
@@ -177,6 +188,10 @@ public class DaemonParameters {
         jvmOptions.getDebugOptions().getPort().set(debug);
     }
 
+    public void setDebugHost(String host) {
+        jvmOptions.getDebugOptions().getHost().set(host);
+    }
+
     public void setDebugSuspend(boolean suspend) {
         jvmOptions.getDebugOptions().getSuspend().set(suspend);
     }
@@ -192,6 +207,15 @@ public class DaemonParameters {
 
     public boolean getDebug() {
         return jvmOptions.getDebug();
+    }
+
+    public boolean shouldApplyInstrumentationAgent() {
+        return applyInstrumentationAgent;
+    }
+
+    public DaemonParameters setApplyInstrumentationAgent(boolean applyInstrumentationAgent) {
+        this.applyInstrumentationAgent = applyInstrumentationAgent;
+        return this;
     }
 
     public boolean isForeground() {

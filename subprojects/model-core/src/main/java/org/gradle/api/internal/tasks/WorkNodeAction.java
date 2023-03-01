@@ -27,19 +27,29 @@ public interface WorkNodeAction {
     /**
      * Does this action require exclusive access to the mutable state of its owning project?
      */
-    boolean usesMutableProjectState();
+    default boolean usesMutableProjectState() {
+        return false;
+    }
 
     /**
      * Returns the project which the action belongs to. This is used to determine the services to expose to {@link #run(NodeExecutionContext)} via the context.
      * Returning non-null here does not imply any kind of exclusive access to the project, unless {@link #usesMutableProjectState()} returns true.
      */
     @Nullable
-    Project getOwningProject();
+    default Project getOwningProject() {
+        return null;
+    }
 
-    void visitDependencies(TaskDependencyResolveContext context);
+    default void visitDependencies(TaskDependencyResolveContext context) {
+    }
 
     /**
      * Run the action, throwing any failure.
      */
     void run(NodeExecutionContext context);
+
+    @Nullable
+    default WorkNodeAction getPreExecutionNode() {
+        return null;
+    }
 }

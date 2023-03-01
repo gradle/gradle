@@ -17,8 +17,11 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.RelativePath;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 /**
  * The result of running a transformation.
@@ -30,12 +33,20 @@ import java.io.File;
  */
 public interface TransformationResult {
     /**
-     * Resolves location of the outputs of this results for a given input artifact.
+     * Resolves location of the outputs of this result for a given input artifact.
      *
      * Produced outputs don't need to be resolved to locations, since they are absolute paths and can be returned as is.
      * The relative paths of selected parts of the input artifact need to resolved based on the provided input artifact location.
      */
     ImmutableList<File> resolveOutputsForInputArtifact(File inputArtifact);
+
+    void visitOutputs(TransformationOutputVisitor visitor);
+
+    int size();
+
+    static OutputTypeInferringBuilder builderFor(File inputArtifact, File outputDir) {
+        return new OutputTypeInferringBuilder(inputArtifact, outputDir);
+    }
 
     static Builder builder() {
         return new Builder();
@@ -45,25 +56,87 @@ public interface TransformationResult {
         private final ImmutableList.Builder<TransformationOutput> builder = ImmutableList.builder();
         private boolean onlyProducedOutputs = true;
 
-        public void addInputArtifact(String relativePath) {
-            onlyProducedOutputs = false;
-            builder.add(new PartOfInputArtifact(relativePath));
-        }
-
-        public void addInputArtifact() {
+        public void addEntireInputArtifact() {
             onlyProducedOutputs = false;
             builder.add(EntireInputArtifact.INSTANCE);
         }
 
-        public void addOutput(File outputLocation) {
+        public void addPartOfInputArtifact(String relativePath) {
+            onlyProducedOutputs = false;
+            builder.add(new PartOfInputArtifact(relativePath));
+        }
+
+        public void addProducedOutput(File outputLocation) {
             builder.add(new ProducedOutput(outputLocation));
         }
 
         public TransformationResult build() {
             ImmutableList<TransformationOutput> transformationOutputs = builder.build();
             return onlyProducedOutputs
-                ? new AlreadyResolvedTransformationResult(convertToProducedOutputLocations(transformationOutputs))
-                : new ResolvingTransformationResult(transformationOutputs);
+                ? new ProducedOutputOnlyTransformationResult(convertToProducedOutputLocations(transformationOutputs))
+                : new FilteredTransformationResult(transformationOutputs);
+        }
+
+        private static ImmutableList<File> convertToProducedOutputLocations(ImmutableList<TransformationOutput> transformationOutputs) {
+            ImmutableList.Builder<File> builder = new ImmutableList.Builder<>();
+            transformationOutputs.forEach(output -> builder.add(((ProducedOutput) output).getOutputLocation()));
+            return builder.build();
+        }
+
+        /**
+         * Optimized variant for a transform whose results are all produced by the transform,
+         * and don't include any of its input artifact.
+         */
+        private static class ProducedOutputOnlyTransformationResult implements TransformationResult {
+            private final ImmutableList<File> producedOutputLocations;
+
+            public ProducedOutputOnlyTransformationResult(ImmutableList<File> producedOutputLocations) {
+                this.producedOutputLocations = producedOutputLocations;
+            }
+
+            @Override
+            public ImmutableList<File> resolveOutputsForInputArtifact(File inputArtifact) {
+                return producedOutputLocations;
+            }
+
+            @Override
+            public void visitOutputs(TransformationOutputVisitor visitor) {
+                producedOutputLocations.forEach(visitor::visitProducedOutput);
+            }
+
+            @Override
+            public int size() {
+                return producedOutputLocations.size();
+            }
+        }
+
+        /**
+         * Results of a transform that includes parts or the whole of its input artifact.
+         * It might also include outputs produced by the transform.
+         */
+        private static class FilteredTransformationResult implements TransformationResult {
+            private final ImmutableList<TransformationOutput> transformationOutputs;
+
+            public FilteredTransformationResult(ImmutableList<TransformationOutput> transformationOutputs) {
+                this.transformationOutputs = transformationOutputs;
+            }
+
+            @Override
+            public ImmutableList<File> resolveOutputsForInputArtifact(File inputArtifact) {
+                ImmutableList.Builder<File> builder = ImmutableList.builderWithExpectedSize(transformationOutputs.size());
+                transformationOutputs.forEach(output -> builder.add(output.resolveForInputArtifact(inputArtifact)));
+                return builder.build();
+            }
+
+            @Override
+            public void visitOutputs(TransformationOutputVisitor visitor) {
+                transformationOutputs.forEach(output -> output.visitOutput(visitor));
+            }
+
+            @Override
+            public int size() {
+                return transformationOutputs.size();
+            }
         }
 
         /**
@@ -78,40 +151,8 @@ public interface TransformationResult {
          */
         private interface TransformationOutput {
             File resolveForInputArtifact(File inputArtifact);
-        }
 
-        private static ImmutableList<File> convertToProducedOutputLocations(ImmutableList<TransformationOutput> transformationOutputs) {
-            ImmutableList.Builder<File> builder = new ImmutableList.Builder<>();
-            transformationOutputs.forEach(output -> builder.add(((ProducedOutput) output).getOutputLocation()));
-            return builder.build();
-        }
-
-        private static class AlreadyResolvedTransformationResult implements TransformationResult {
-            private final ImmutableList<File> producedOutputLocations;
-
-            public AlreadyResolvedTransformationResult(ImmutableList<File> producedOutputLocations) {
-                this.producedOutputLocations = producedOutputLocations;
-            }
-
-            @Override
-            public ImmutableList<File> resolveOutputsForInputArtifact(File inputArtifact) {
-                return producedOutputLocations;
-            }
-        }
-
-        private static class ResolvingTransformationResult implements TransformationResult {
-            private final ImmutableList<TransformationOutput> transformationOutputs;
-
-            public ResolvingTransformationResult(ImmutableList<TransformationOutput> transformationOutputs) {
-                this.transformationOutputs = transformationOutputs;
-            }
-
-            @Override
-            public ImmutableList<File> resolveOutputsForInputArtifact(File inputArtifact) {
-                ImmutableList.Builder<File> builder = ImmutableList.builderWithExpectedSize(transformationOutputs.size());
-                transformationOutputs.forEach(output -> builder.add(output.resolveForInputArtifact(inputArtifact)));
-                return builder.build();
-            }
+            void visitOutput(TransformationOutputVisitor visitor);
         }
 
         private static class PartOfInputArtifact implements TransformationOutput {
@@ -125,6 +166,11 @@ public interface TransformationResult {
             public File resolveForInputArtifact(File inputArtifact) {
                 return new File(inputArtifact, relativePath);
             }
+
+            @Override
+            public void visitOutput(TransformationOutputVisitor visitor) {
+                visitor.visitPartOfInputArtifact(relativePath);
+            }
         }
 
         private static class EntireInputArtifact implements TransformationOutput {
@@ -133,6 +179,11 @@ public interface TransformationResult {
             @Override
             public File resolveForInputArtifact(File inputArtifact) {
                 return inputArtifact;
+            }
+
+            @Override
+            public void visitOutput(TransformationOutputVisitor visitor) {
+                visitor.visitEntireInputArtifact();
             }
         }
 
@@ -151,6 +202,75 @@ public interface TransformationResult {
             public File resolveForInputArtifact(File inputArtifact) {
                 return outputFile;
             }
+
+            @Override
+            public void visitOutput(TransformationOutputVisitor visitor) {
+                visitor.visitProducedOutput(outputFile);
+            }
+        }
+    }
+
+    interface TransformationOutputVisitor {
+        /**
+         * Called when the result is the full input artifact.
+         */
+        void visitEntireInputArtifact();
+
+        /**
+         * Called when the result is inside the input artifact.
+         *
+         * @param relativePath the relative path from the input artifact to the selected location in the input artifact.
+         */
+        void visitPartOfInputArtifact(String relativePath);
+
+        /**
+         * Called when the result is a produced output in the workspace.
+         *
+         * @param outputLocation the absolute {@link File} location of the output in the workspace.
+         */
+        void visitProducedOutput(File outputLocation);
+    }
+
+    /**
+     * A {@link TransformationResult} builder which accepts absolute locations of results.
+     * <p>
+     * The builder then infers if the result is (in) the input artifact or a produced output in the workspace.
+     */
+    class OutputTypeInferringBuilder {
+        private final File inputArtifact;
+        private final File workspaceDir;
+        private final String inputArtifactPrefix;
+        private final String workspaceDirPrefix;
+        private final Builder delegate = TransformationResult.builder();
+
+        public OutputTypeInferringBuilder(File inputArtifact, File workspaceDir) {
+            this.inputArtifact = inputArtifact;
+            this.workspaceDir = workspaceDir;
+            this.inputArtifactPrefix = inputArtifact.getPath() + File.separator;
+            this.workspaceDirPrefix = workspaceDir.getPath() + File.separator;
+        }
+
+        /**
+         * Adds an output location to the result.
+         *
+         * @param workspaceAction an action to run when the output is a produced output in the workspace.
+         */
+        public void addOutput(File output, Consumer<File> workspaceAction) {
+            if (output.equals(inputArtifact)) {
+                delegate.addEntireInputArtifact();
+            } else if (output.equals(workspaceDir) || output.getPath().startsWith(workspaceDirPrefix)) {
+                delegate.addProducedOutput(output);
+                workspaceAction.accept(output);
+            } else if (output.getPath().startsWith(inputArtifactPrefix)) {
+                String relativePath = RelativePath.parse(true, output.getPath().substring(inputArtifactPrefix.length())).getPathString();
+                delegate.addPartOfInputArtifact(relativePath);
+            } else {
+                throw new InvalidUserDataException("Transform output " + output.getPath() + " must be a part of the input artifact or refer to a relative path.");
+            }
+        }
+
+        public TransformationResult build() {
+            return delegate.build();
         }
     }
 }

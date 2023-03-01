@@ -24,6 +24,24 @@ import spock.lang.Issue
 
 class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
 
+    @Override
+    String compilerConfiguration() {
+        """
+            tasks.withType(JavaCompile) {
+                options.fork = true
+            }
+        """
+    }
+
+    @Override
+    String logStatement() {
+        "compiler daemon"
+    }
+
+    def setup() {
+        executer.withArguments("-d")
+    }
+
     def "respects fork options settings"() {
         goodCode()
         buildFile << """
@@ -78,15 +96,4 @@ class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
         succeeds "compileJava"
     }
 
-    def setup() {
-        executer.withArguments("-d")
-    }
-
-    def compilerConfiguration() {
-        "tasks.withType(JavaCompile) { options.fork = true }"
-    }
-
-    def logStatement() {
-        "compiler daemon"
-    }
 }

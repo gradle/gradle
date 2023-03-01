@@ -16,20 +16,17 @@
 
 package org.gradle.internal.component.model;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
 
 public class DefaultComponentOverrideMetadata implements ComponentOverrideMetadata {
-    public static final ComponentOverrideMetadata EMPTY = new DefaultComponentOverrideMetadata(false, (IvyArtifactName) null, null);
+    public static final ComponentOverrideMetadata EMPTY = new DefaultComponentOverrideMetadata(false, null, null);
 
     private final boolean changing;
-    private final List<IvyArtifactName> artifacts;
+    private final IvyArtifactName artifact;
     private final ClientModule clientModule;
 
     public static ComponentOverrideMetadata forDependency(boolean changing, @Nullable IvyArtifactName mainArtifact, @Nullable ClientModule clientModule) {
@@ -40,12 +37,8 @@ public class DefaultComponentOverrideMetadata implements ComponentOverrideMetada
     }
 
     private DefaultComponentOverrideMetadata(boolean changing, @Nullable IvyArtifactName artifact, @Nullable ClientModule clientModule) {
-        this(changing, artifact == null ? Collections.emptyList() : ImmutableList.of(artifact), clientModule);
-    }
-
-    private DefaultComponentOverrideMetadata(boolean changing, List<IvyArtifactName> artifacts, @Nullable ClientModule clientModule) {
         this.changing = changing;
-        this.artifacts = artifacts;
+        this.artifact = artifact;
         this.clientModule = clientModule;
     }
 
@@ -62,12 +55,13 @@ public class DefaultComponentOverrideMetadata implements ComponentOverrideMetada
 
     @Override
     public ComponentOverrideMetadata withChanging() {
-        return new DefaultComponentOverrideMetadata(true, artifacts, clientModule);
+        return new DefaultComponentOverrideMetadata(true, artifact, clientModule);
     }
 
+    @Nullable
     @Override
-    public List<IvyArtifactName> getArtifacts() {
-        return artifacts;
+    public IvyArtifactName getArtifact() {
+        return artifact;
     }
 
     @Override

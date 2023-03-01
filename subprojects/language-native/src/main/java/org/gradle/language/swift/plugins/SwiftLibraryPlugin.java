@@ -66,7 +66,7 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDe
  *
  * @since 4.2
  */
-public class SwiftLibraryPlugin implements Plugin<Project> {
+public abstract class SwiftLibraryPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final ImmutableAttributesFactory attributesFactory;
@@ -100,10 +100,10 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
         library.getDevelopmentBinary().convention(project.provider(new Callable<SwiftBinary>() {
             @Override
             public SwiftBinary call() throws Exception {
-                return getDebugSharedHostStream().findFirst().orElse(
-                        getDebugStaticHostStream().findFirst().orElse(
-                                getDebugSharedStream().findFirst().orElse(
-                                        getDebugStaticStream().findFirst().orElse(null))));
+                return getDebugSharedHostStream().findFirst().orElseGet(
+                        () -> getDebugStaticHostStream().findFirst().orElseGet(
+                                () -> getDebugSharedStream().findFirst().orElseGet(
+                                        () -> getDebugStaticStream().findFirst().orElse(null))));
             }
 
             private Stream<SwiftBinary> getDebugStream() {

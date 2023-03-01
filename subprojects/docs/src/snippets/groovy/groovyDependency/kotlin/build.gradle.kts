@@ -17,3 +17,7 @@ dependencies {
     implementation(localGroovy())
 }
 // end::bundled-groovy-dependency[]
+
+dependencies {
+    testImplementation("junit:junit:4.13")
+}

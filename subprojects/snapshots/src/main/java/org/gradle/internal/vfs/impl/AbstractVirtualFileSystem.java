@@ -26,27 +26,48 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractVirtualFileSystem.class);
 
-    protected final VfsRootReference rootReference;
+    private final ReentrantLock updateLock = new ReentrantLock();
+
+    // Mutable state, changes need to be guarded by updateLock
+    protected volatile SnapshotHierarchy root;
     private volatile VersionHierarchyRoot versionHierarchyRoot;
 
-    protected AbstractVirtualFileSystem(VfsRootReference rootReference) {
-        this.rootReference = rootReference;
-        this.versionHierarchyRoot = VersionHierarchyRoot.empty(0, rootReference.getRoot().getCaseSensitivity());
+    protected AbstractVirtualFileSystem(SnapshotHierarchy root) {
+        this.root = root;
+        this.versionHierarchyRoot = VersionHierarchyRoot.empty(0, root.getCaseSensitivity());
+    }
+
+    protected void underLock(Runnable runnable) {
+        updateLock.lock();
+        try {
+            runnable.run();
+        } finally {
+            updateLock.unlock();
+        }
+    }
+
+    protected void updateRootUnderLock(UnaryOperator<SnapshotHierarchy> updateFunction) {
+        underLock(() -> {
+            SnapshotHierarchy currentRoot = root;
+            root = updateFunction.apply(currentRoot);
+        });
     }
 
     @Override
     public Optional<FileSystemLocationSnapshot> findSnapshot(String absolutePath) {
-        return rootReference.getRoot().findSnapshot(absolutePath);
+        return root.findSnapshot(absolutePath);
     }
 
     @Override
     public Optional<MetadataSnapshot> findMetadata(String absolutePath) {
-        return rootReference.getRoot().findMetadata(absolutePath);
+        return root.findMetadata(absolutePath);
     }
 
     @Override
@@ -58,9 +79,12 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public FileSystemLocationSnapshot store(String baseLocation, StoringAction storingAction) {
+    public <T> T store(String baseLocation, StoringAction<T> storingAction) {
         long versionBefore = versionHierarchyRoot.getVersion(baseLocation);
-        return storingAction.snapshot(snapshot -> storeIfUnchanged(snapshot.getAbsolutePath(), versionBefore, snapshot));
+        return storingAction.snapshot(snapshot -> {
+            storeIfUnchanged(snapshot.getAbsolutePath(), versionBefore, snapshot);
+            return snapshot;
+        });
     }
 
     private void storeIfUnchanged(String absolutePath, long versionBefore, FileSystemLocationSnapshot snapshot) {
@@ -68,7 +92,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
         // Only update VFS if no changes happened in between
         // The version in sub-locations may be smaller than the version we queried at the root when using a `StoringAction`.
         if (versionBefore >= versionAfter) {
-            rootReference.updateUnderLock(root -> updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener)));
+            updateRootUnderLock(root -> updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener)));
         } else {
             LOGGER.debug("Changes to the virtual file system happened while snapshotting '{}', not storing resulting snapshot", absolutePath);
         }
@@ -77,7 +101,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     @Override
     public void invalidate(Iterable<String> locations) {
         LOGGER.debug("Invalidating VFS paths: {}", locations);
-        rootReference.updateUnderLock(root -> {
+        updateRootUnderLock(root -> {
             SnapshotHierarchy result = root;
             VersionHierarchyRoot newVersionHierarchyRoot = versionHierarchyRoot;
             for (String location : locations) {

@@ -10,6 +10,7 @@ dependencyLocking {
 
 // tag::resolve-all[]
 tasks.register("resolveAndLockAll") {
+    notCompatibleWithConfigurationCache("Filters configurations at execution time")
     doFirst {
         require(gradle.startParameter.isWriteDependencyLocks)
     }

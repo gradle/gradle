@@ -18,17 +18,12 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.TransformAction;
-import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
+import org.gradle.internal.properties.annotations.AbstractTypeAnnotationHandler;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
-import java.lang.annotation.Annotation;
-
-import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfTypeAnnotation;
-
-public class CacheableTransformTypeAnnotationHandler implements TypeAnnotationHandler {
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return CacheableTransform.class;
+public class CacheableTransformTypeAnnotationHandler extends AbstractTypeAnnotationHandler {
+    public CacheableTransformTypeAnnotationHandler() {
+        super(CacheableTransform.class);
     }
 
     @Override
@@ -40,5 +35,4 @@ public class CacheableTransformTypeAnnotationHandler implements TypeAnnotationHa
                 TransformAction.class);
         }
     }
-
 }

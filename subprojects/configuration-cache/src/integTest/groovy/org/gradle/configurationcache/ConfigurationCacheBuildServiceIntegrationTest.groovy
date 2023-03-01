@@ -16,18 +16,29 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.OperationFinishEvent
+import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.operations.OperationProgressEvent
+import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -35,6 +46,57 @@ import javax.inject.Inject
 import java.util.concurrent.atomic.AtomicInteger
 
 class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    def "BuildOperationListener build service is instantiated only once per build"() {
+        given:
+        buildFile """
+            abstract class ListenerService
+                implements $BuildService.name<${BuildServiceParameters.name}.None>, $BuildOperationListener.name {
+
+                public ListenerService() {
+                    println('onInstantiated')
+                }
+
+                // Shouldn't be called
+                void started($BuildOperationDescriptor.name buildOperation, $OperationStartEvent.name startEvent) {
+                    println('onStarted')
+                }
+
+                // Shouldn't be called
+                void progress($OperationIdentifier.name operationIdentifier, $OperationProgressEvent.name progressEvent) {
+                    println('onProgress')
+                }
+
+                void finished($BuildOperationDescriptor.name buildOperation, $OperationFinishEvent.name finishEvent) {
+                    println('onFinished')
+                }
+            }
+
+            def listener = gradle.sharedServices.registerIfAbsent("listener", ListenerService) { }
+            def registry = services.get(BuildEventsListenerRegistry)
+            registry.onOperationCompletion(listener)
+        """
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun()
+
+        then: 'finish event is dispatched but start and progress are not'
+        output.count('onInstantiated') == 1
+        outputDoesNotContain 'onStarted'
+        outputDoesNotContain 'onProgress'
+        outputContains 'onFinished'
+
+        when:
+        configurationCacheRun()
+
+        then: 'behaves the same'
+        configurationCache.assertStateLoaded()
+        output.count('onInstantiated') == 1
+        outputDoesNotContain 'onStarted'
+        outputDoesNotContain 'onProgress'
+        outputContains 'onFinished'
+    }
 
     @Issue('https://github.com/gradle/gradle/issues/20001')
     def "build service from buildSrc is not restored"() {
@@ -64,6 +126,171 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         outputDoesNotContain onFinishMessage
     }
 
+    def "build service is restored"(String serviceName, boolean finalize, boolean finalizeOnRead) {
+        given:
+        def legacy = serviceName == null
+        def propertyAnnotations = legacy ?
+            """@$Internal.name""" :
+            """@$ServiceReference.name("$serviceName")"""
+
+        withCountingServicePlugin(true, propertyAnnotations)
+        file('settings.gradle') << """
+            pluginManagement {
+                includeBuild 'counting-service-plugin'
+            }
+            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+        """
+        file('build.gradle') << """
+            plugins { id 'counting-service-plugin' version '1.0' }
+
+            def altServiceProvider = project.getGradle().getSharedServices().registerIfAbsent(
+                "counter",
+                CountingService.class,
+                (spec) -> {}
+            );
+
+            tasks.register('count', CountingTask) {
+                ${ legacy ? """
+                countingService.convention(altServiceProvider)
+                usesService(altServiceProvider)
+                """ : "" }
+                ${ finalizeOnRead ? "countingService.finalizeValueOnRead()" : "" }
+                ${ finalize ? "countingService.finalizeValue()" : "" }
+                doLast {
+                    assert countingService.get().increment() == 2
+                    assert requiredServices.elements.size() == 1
+                    assert altServiceProvider.get().increment() == 3
+                }
+            }
+        """
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun(":count")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains 'Count: 1'
+
+        when:
+        configurationCacheRun(":count")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains 'Count: 1'
+
+        where:
+        serviceName | finalize | finalizeOnRead
+        null        | false    | false
+        null        | true     | false
+        null        | false    | true
+        "counter"   | false    | false
+        "counter"   | true     | false
+        "counter"   | false    | true
+        ""          | false    | false
+        ""          | true     | false
+        ""          | false    | true
+    }
+
+    def "missing build service when using @ServiceReference"() {
+        given:
+        withCountingServicePlugin(true, """
+            @$ServiceReference.name("consumedCounter")
+            @$Optional.name
+        """)
+        file('settings.gradle') << """
+            pluginManagement {
+                includeBuild 'counting-service-plugin'
+            }
+        """
+        file('build.gradle') << """
+            plugins { id 'counting-service-plugin' version '1.0' }
+
+            tasks.register('failedCount', CountingTask) {
+                doLast {
+                    assert countingService.getOrNull() == null
+                }
+            }
+        """
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheFails(":failedCount")
+
+        then:
+        configurationCache.assertStateStored()
+        failureDescriptionContains("Execution failed for task ':failedCount'.")
+        failureCauseContains("Cannot query the value of task ':failedCount' property 'countingService' because it has no value available.")
+
+        when:
+        configurationCacheFails(":failedCount")
+
+        then:
+        configurationCache.assertStateLoaded()
+        failureDescriptionContains("Execution failed for task ':failedCount'.")
+        failureCauseContains("Cannot query the value of task ':failedCount' property 'countingService' because it has no value available.")
+    }
+
+    private void withCountingServicePlugin(boolean register, String propertyAnnotations) {
+        createDir('counting-service-plugin') {
+            file("src/main/java/CountingServicePlugin.java") << """
+                public abstract class CountingServicePlugin implements $Plugin.name<$Project.name> {
+                    private $Provider.name<?> counterProvider;
+                    @Override
+                    public void apply($Project.name project) {
+                        ${register ? """
+                        project.getGradle().getSharedServices().registerIfAbsent(
+                            "counter",
+                            CountingService.class,
+                            (spec) -> {}
+                        );
+                        """ : ""}
+                    }
+                }
+
+                abstract class CountingTask extends $DefaultTask.name {
+
+                    $propertyAnnotations
+                    public abstract $Property.name<CountingService> getCountingService();
+
+                    public CountingTask() {}
+
+                    @$TaskAction.name
+                    void doIt() {
+                        System.out.println("Count: " + getCountingService().get().increment());
+                    }
+                }
+
+                abstract class CountingService implements
+                    $BuildService.name<${BuildServiceParameters.name}.None> {
+
+                    private ${AtomicInteger.name} count = new ${AtomicInteger.name}();
+
+                    public CountingService() {}
+
+                    public int increment() {
+                        return count.incrementAndGet();
+                    }
+               }
+            """
+            file("build.gradle") << """
+                plugins {
+                    id("java-gradle-plugin")
+                }
+                group = "com.example"
+                version = "1.0"
+                gradlePlugin {
+                    plugins {
+                        buildServicePlugin {
+                            id = 'counting-service-plugin'
+                            implementationClass = 'CountingServicePlugin'
+                        }
+                    }
+                }
+            """
+        }
+    }
+
     private void withListenerBuildServicePlugin(String onFinishMessage) {
         createDir('plugin') {
             file("src/main/java/BuildServicePlugin.java") << """
@@ -91,7 +318,6 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
                     $BuildService.name<${BuildServiceParameters.name}.None>,
                     $OperationCompletionListener.name {
 
-                    @$Inject.name
                     public ListenerBuildService() {}
 
                     @Override
@@ -172,7 +398,6 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
                     $BuildService.name<ProbeServiceParameters>,
                     $OperationCompletionListener.name {
 
-                    @$Inject.name
                     public ProbeService() {}
 
                     public void probe(String eventName, String taskPath) {
@@ -196,7 +421,6 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
                     @$Internal.name
                     public abstract $Property.name<ProbeService> getProbeService();
 
-                    @$Inject.name
                     public ProbeTask() {}
 
                     @$TaskAction.name
@@ -287,5 +511,91 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         outputContains 'probe(classloader2) => 4'
         outputContains 'probe(classloader2) => 5'
         outputContains 'probe(classloader2) => 6'
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/22337")
+    def "build service can be used as input of value source obtained at configuration time"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            abstract class EmptyService implements BuildService<${BuildServiceParameters.name}.None> {
+                int getValue() {
+                    return 42
+                }
+            }
+
+            abstract class ServiceValueSource implements ValueSource<Integer, Params> {
+                interface Params extends ValueSourceParameters {
+                    Property<EmptyService> getService()
+                }
+                @Override
+                Integer obtain(){
+                    return parameters.service.get().value
+                }
+            }
+            def serviceProvider = gradle.sharedServices.registerIfAbsent("counter", EmptyService) {}
+            def valueSource = providers.of(ServiceValueSource) {
+                parameters {
+                    service = serviceProvider
+                }
+            }.get()
+
+            task check {
+                doLast {
+                    println "valueSource = " + valueSource
+                }
+            }
+        """)
+
+        when:
+        configurationCacheRun "check"
+
+        then:
+        outputContains("valueSource = 42")
+        // TODO(https://github.com/gradle/gradle/issues/22337) A clear error message should be provided at store time
+        configurationCache.assertStateStored()
+        expect:
+        configurationCacheFails "check"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23700")
+    def "build service registered as listener in an included build with no work is not restored"() {
+        def onFinishMessage = "You won't see me!"
+        withListenerBuildServicePlugin onFinishMessage
+
+        def configurationCache = newConfigurationCacheFixture()
+        createDir('included-build') {
+            file('settings.gradle') << """
+                pluginManagement {
+                    repositories {
+                        maven { url '$mavenRepo.uri' }
+                    }
+                }
+            """
+            file('build.gradle') << """
+                plugins { id 'listener-build-service-plugin' version '1.0' }
+            """
+        }
+
+        settingsScript("""
+            includeBuild("included-build")
+        """)
+
+        buildScript("""
+            tasks.register("check") {}
+        """)
+
+        when:
+        configurationCacheRun "check"
+
+        then:
+        outputContains onFinishMessage
+
+        when:
+        configurationCacheRun "check"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputDoesNotContain onFinishMessage
     }
 }

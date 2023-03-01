@@ -22,37 +22,36 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
-import org.gradle.test.fixtures.archive.JarTestFixture
 
 class ConfigurationCacheConventionMappingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "doesn't restore convention value to incompatible field type"() {
         given:
-        settingsFile << """
-            rootProject.name = 'test'
-        """
-
         buildFile << """
-            plugins {
-                id 'java-library'
+            abstract class MyTask extends org.gradle.api.internal.ConventionTask {
+                private final Property<String> archiveName = project.objects.property(String)
+                @Input Property<String> getArchiveFileName() { return this.archiveName }
+
+                @Internal String getArchiveName() { return archiveFileName.getOrNull() }
+                void setArchiveName(String value) { archiveFileName.set(value) }
+
+                @TaskAction
+                void doIt() {
+                    assert archiveFileName.get() == "something"
+                }
             }
-            tasks.withType(Jar.class).named('jar') { javaJar ->
-                // The Jar.archiveName field is of type Property<String>
-                javaJar.conventionMapping('archiveName') { 'some_name' }
+
+            task myTask(type: MyTask) {
+                conventionMapping('archiveName') { 'not something' }
+                archiveFileName.convention("something")
             }
         """
 
-        when:
-        configurationCacheRun 'jar'
+        expect: 'convention mapping is ignored'
+        configurationCacheRun 'myTask'
 
-        then: 'convention mapping is ignored'
-        new JarTestFixture(file('build/libs/test.jar'))
-
-        when:
-        configurationCacheRun 'jar'
-
-        then: 'convention mapping is ignored just the same'
-        new JarTestFixture(file('build/libs/test.jar'))
+        and: 'convention mapping is ignored just the same'
+        configurationCacheRun 'myTask'
     }
 
     def "restores convention mapped task input property explicitly set to null"() {

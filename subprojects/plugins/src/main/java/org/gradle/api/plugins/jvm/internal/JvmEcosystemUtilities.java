@@ -18,6 +18,7 @@ package org.gradle.api.plugins.jvm.internal;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.provider.Provider;
@@ -27,9 +28,7 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * This class exposes a number of utilities which can be used by plugin authors
- * to either replicate what the Gradle JVM plugins are doing, or integrate with
- * the existing Jvm plugins.
+ * This class exposes a number of internal utilities for use by Gradle JVM plugins.
  */
 @NonNullApi
 @HasInternalProtocol
@@ -37,26 +36,48 @@ import org.gradle.internal.HasInternalProtocol;
 public interface JvmEcosystemUtilities {
 
     /**
-     * Registers a source set as contributing classes and exposes them as a variant.
+     * Registers a variant on {@code configuration} which exposes the resources defined by {@code sourceSet}.
      *
-     * @param configurationName the name of the configuration for which a classes variant should be exposed
-     * @param sourceSet the source set which will contribute classes to this variant
+     * @param configuration The {@link Configuration} for which a resources variant should be exposed.
+     * @param sourceSet The {@link SourceSet} which will contribute resources to this variant.
      */
-    void configureClassesDirectoryVariant(String configurationName, SourceSet sourceSet);
+    ConfigurationVariant configureResourcesDirectoryVariant(Configuration configuration, SourceSet sourceSet);
+
+    /**
+     * Registers a variant on {@code configuration} which exposes the classses defined by {@code sourceSet}.
+     *
+     * @param configuration The {@link Configuration} for which a classes variant should be exposed.
+     * @param sourceSet The {@link SourceSet} which will contribute classes to this variant.
+     */
+    ConfigurationVariant configureClassesDirectoryVariant(Configuration configuration, SourceSet sourceSet);
 
     /**
      * Configures a configuration with reasonable defaults to be resolved as a compile classpath.
      *
      * @param configuration the configuration to be configured
      */
-    <T> void configureAsCompileClasspath(HasConfigurableAttributes<T> configuration);
+    void configureAsCompileClasspath(HasConfigurableAttributes<?> configuration);
 
     /**
      * Configures a configuration with reasonable defaults to be resolved as a runtime classpath.
      *
      * @param configuration the configuration to be configured
      */
-    <T> void configureAsRuntimeClasspath(HasConfigurableAttributes<T> configuration);
+    void configureAsRuntimeClasspath(HasConfigurableAttributes<?> configuration);
+
+    /**
+     * Configures a consumable configuration to provide an API compile classpath.
+     *
+     * @param configuration the configuration to be configured
+     */
+    void configureAsApiElements(HasConfigurableAttributes<?> configuration);
+
+    /**
+     * Configures a consumable configuration to provide a runtime classpath.
+     *
+     * @param configuration the configuration to be configured
+     */
+    void configureAsRuntimeElements(HasConfigurableAttributes<?> configuration);
 
     <T> void configureAttributes(HasConfigurableAttributes<T> configurableAttributes, Action<? super JvmEcosystemAttributesDetails> details);
 

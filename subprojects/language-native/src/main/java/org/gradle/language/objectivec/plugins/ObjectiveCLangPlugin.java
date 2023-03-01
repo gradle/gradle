@@ -45,7 +45,7 @@ import java.util.Map;
  * Adds core Objective-C language support.
  */
 @Incubating
-public class ObjectiveCLangPlugin implements Plugin<Project> {
+public abstract class ObjectiveCLangPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);

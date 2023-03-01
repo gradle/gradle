@@ -19,13 +19,13 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.settings.building.SettingsBuildingException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
 import org.gradle.buildinit.plugins.internal.InitSettings;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
@@ -77,6 +77,11 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
+    public boolean supportsJavaTargets() {
+        return false;
+    }
+
+    @Override
     public Set<ModularizationOption> getModularizationOptions() {
         return Collections.singleton(ModularizationOption.SINGLE_PROJECT);
     }
@@ -87,7 +92,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
-    public void configureClasspath(ProjectInternal.DetachedResolver detachedResolver, ObjectFactory objects) {
+    public void configureClasspath(ProjectInternal.DetachedResolver detachedResolver, ObjectFactory objects, JvmEcosystemUtilities jvmEcosystemUtilities) {
         DependencyHandler dependencies = detachedResolver.getDependencies();
         Configuration config = detachedResolver.getConfigurations().detachedConfiguration(
             dependencies.create("org.apache.maven:maven-core:" + MAVEN_VERSION),
@@ -98,7 +103,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
             dependencies.create("org.eclipse.aether:aether-connector-basic:" + AETHER_VERSION),
             dependencies.create("org.eclipse.aether:aether-transport-wagon:" + AETHER_VERSION)
         );
-        config.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_RUNTIME));
+        jvmEcosystemUtilities.configureAsRuntimeClasspath(config);
         detachedResolver.getRepositories().mavenCentral();
         mavenClasspath = config;
     }

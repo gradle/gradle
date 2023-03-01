@@ -15,6 +15,8 @@
  */
 
 import common.VersionedSettingsBranch
+import common.pluginPortalUrlOverride
+import common.toCapitalized
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.DslContext
@@ -22,6 +24,8 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import promotion.PromotionProject
 
 class PromotionProjectTests {
@@ -30,9 +34,9 @@ class PromotionProjectTests {
         val model = setupModelFor("master")
 
         assertEquals("Promotion", model.name)
-        assertEquals(9, model.buildTypes.size)
+        assertEquals(10, model.buildTypes.size)
         assertEquals(
-            listOf("SanityCheck", "Nightly Snapshot", "Nightly Snapshot (from QuickFeedback)", "Nightly Snapshot (from QuickFeedback) - Step 1", "Nightly Snapshot (from QuickFeedback) - Step 2", "Publish Branch Snapshot (from Quick Feedback)", "Release - Milestone", "Start Release Cycle", "Start Release Cycle Test"),
+            listOf("SanityCheck", "Nightly Snapshot", "Nightly Snapshot (from QuickFeedback)", "Nightly Snapshot (from QuickFeedback) - Check Ready", "Nightly Snapshot (from QuickFeedback) - Upload", "Nightly Snapshot (from QuickFeedback) - Promote", "Publish Branch Snapshot (from Quick Feedback)", "Release - Milestone", "Start Release Cycle", "Start Release Cycle Test"),
             model.buildTypes.map { it.name }
         )
     }
@@ -42,9 +46,9 @@ class PromotionProjectTests {
         val model = setupModelFor("release")
 
         assertEquals("Promotion", model.name)
-        assertEquals(9, model.buildTypes.size)
+        assertEquals(10, model.buildTypes.size)
         assertEquals(
-            listOf("SanityCheck", "Nightly Snapshot", "Nightly Snapshot (from QuickFeedback)", "Nightly Snapshot (from QuickFeedback) - Step 1", "Nightly Snapshot (from QuickFeedback) - Step 2", "Publish Branch Snapshot (from Quick Feedback)", "Release - Milestone", "Release - Release Candidate", "Release - Final"),
+            listOf("SanityCheck", "Nightly Snapshot", "Nightly Snapshot (from QuickFeedback)", "Nightly Snapshot (from QuickFeedback) - Check Ready", "Nightly Snapshot (from QuickFeedback) - Upload", "Nightly Snapshot (from QuickFeedback) - Promote", "Publish Branch Snapshot (from Quick Feedback)", "Release - Milestone", "Release - Release Candidate", "Release - Final"),
             model.buildTypes.map { it.name }
         )
     }
@@ -60,20 +64,26 @@ class PromotionProjectTests {
     }
 
     @Test
-    fun `nightly promotion build type runs two gradle invocations`() {
+    fun `nightly promotion build type runs three gradle invocations`() {
         val model = setupModelFor("release")
-        val nightlytSnapshot = model.findBuildTypeByName("Nightly Snapshot")
+        val nightlySnapshot = model.findBuildTypeByName("Nightly Snapshot")
 
-        val steps = nightlytSnapshot.steps.items
-        assertEquals(2, steps.size)
+        val steps = nightlySnapshot.steps.items
+        assertEquals(3, steps.size)
 
-        val upload = gradleStep(steps, 0)
+        val expectedGradleParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
+        val checkReady = gradleStep(steps, 0)
+        checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
+        assertEquals(expectedGradleParams, checkReady.gradleParams)
+
+        val upload = gradleStep(steps, 1)
         upload.assertTasks("prepReleaseNightly uploadAll")
-        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
 
-        val promote = gradleStep(steps, 1)
+        val promote = gradleStep(steps, 2)
         promote.assertTasks("prepReleaseNightly promoteReleaseNightly")
-        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, promote.gradleParams)
+        assertEquals(expectedGradleParams, promote.gradleParams)
     }
 
     @Test
@@ -86,7 +96,7 @@ class PromotionProjectTests {
 
         val step = gradleStep(steps, 0)
         step.assertTasks("clean promoteStartReleaseCycle")
-        assertEquals("""-PcommitId=%dep.Gradle_master_Check_Stage_ReadyforNightly_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" """, step.gradleParams)
+        assertEquals("""-PcommitId=%dep.Gradle_Master_Check_Stage_ReadyforNightly_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" $pluginPortalUrlOverride %additional.gradle.parameters%""", step.gradleParams)
     }
 
     @Test
@@ -103,122 +113,169 @@ class PromotionProjectTests {
     }
 
     @Test
-    fun `nightly promotion from quick feedback build type runs two gradle invocations`() {
+    fun `nightly promotion from quick feedback build type runs three gradle invocations`() {
         val model = setupModelFor("release")
-        val nightlytSnapshot = model.findBuildTypeByName("Nightly Snapshot (from QuickFeedback)")
+        val nightlySnapshot = model.findBuildTypeByName("Nightly Snapshot (from QuickFeedback)")
 
-        val steps = nightlytSnapshot.steps.items
-        assertEquals(2, steps.size)
+        val steps = nightlySnapshot.steps.items
+        assertEquals(3, steps.size)
 
-        val upload = gradleStep(steps, 0)
+        val expectedGradleParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
+        val checkReady = gradleStep(steps, 0)
+        checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
+        assertEquals(expectedGradleParams, checkReady.gradleParams)
+
+        val upload = gradleStep(steps, 1)
         upload.assertTasks("prepReleaseNightly uploadAll")
-        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
 
-        val promote = gradleStep(steps, 1)
+        val promote = gradleStep(steps, 2)
         promote.assertTasks("prepReleaseNightly promoteReleaseNightly")
-        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, promote.gradleParams)
+        assertEquals(expectedGradleParams, promote.gradleParams)
     }
 
     @Test
-    fun `publish branch snapshot build type runs two gradle invocations`() {
+    fun `publish branch snapshot build type runs three gradle invocations`() {
         val model = setupModelFor("release")
-        val nightlytSnapshot = model.findBuildTypeByName("Publish Branch Snapshot (from Quick Feedback)")
+        val nightlySnapshot = model.findBuildTypeByName("Publish Branch Snapshot (from Quick Feedback)")
 
-        val steps = nightlytSnapshot.steps.items
-        assertEquals(2, steps.size)
+        val steps = nightlySnapshot.steps.items
+        assertEquals(3, steps.size)
 
-        val upload = gradleStep(steps, 0)
+        val expectedGradleParams = """-PcommitId=%dep.Gradle_Master_Check_Stage_QuickFeedback_Trigger.build.vcs.number% -PpromotedBranch=%branch.qualifier%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
+        val checkReady = gradleStep(steps, 0)
+        checkReady.assertTasks("prepSnapshot checkNeedToPromote")
+        assertEquals(expectedGradleParams, checkReady.gradleParams)
+
+        val upload = gradleStep(steps, 1)
         upload.assertTasks("prepSnapshot uploadAll")
-        assertEquals("""-PcommitId=%dep.Gradle_master_Check_Stage_QuickFeedback_Trigger.build.vcs.number% -PpromotedBranch=%branch.qualifier%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
 
-        val promote = gradleStep(steps, 1)
+        val promote = gradleStep(steps, 2)
         promote.assertTasks("prepSnapshot promoteSnapshot")
-        assertEquals("""-PcommitId=%dep.Gradle_master_Check_Stage_QuickFeedback_Trigger.build.vcs.number% -PpromotedBranch=%branch.qualifier%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, promote.gradleParams)
+        assertEquals(expectedGradleParams, promote.gradleParams)
     }
 
     @Test
-    fun `nightly promotion from quick feedback step 1 build type runs one gradle invocation`() {
+    fun `nightly promotion from quick feedback step 1 build type runs two gradle invocations`() {
         val model = setupModelFor("release")
-        val nightlytSnapshot = model.findBuildTypeByName("Nightly Snapshot (from QuickFeedback) - Step 1")
+        val nightlySnapshot = model.findBuildTypeByName("Nightly Snapshot (from QuickFeedback) - Upload")
 
-        val steps = nightlytSnapshot.steps.items
-        assertEquals(1, steps.size)
+        val steps = nightlySnapshot.steps.items
+        assertEquals(2, steps.size)
 
-        val upload = gradleStep(steps, 0)
+        val expectedParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
+        val checkReady = gradleStep(steps, 0)
+        checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
+        assertEquals(expectedParams, checkReady.gradleParams)
+
+        val upload = gradleStep(steps, 1)
         upload.assertTasks("prepReleaseNightly uploadAll")
-        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedParams, upload.gradleParams)
     }
 
     @Test
-    fun `nightly promotion from quick feedback step 2 build type runs one gradle invocation`() {
+    fun `nightly promotion from quick feedback step 2 build type runs two gradle invocations`() {
         val model = setupModelFor("release")
-        val nightlytSnapshot = model.findBuildTypeByName("Nightly Snapshot (from QuickFeedback) - Step 2")
+        val nightlySnapshot = model.findBuildTypeByName("Nightly Snapshot (from QuickFeedback) - Promote")
 
-        val steps = nightlytSnapshot.steps.items
-        assertEquals(1, steps.size)
+        val steps = nightlySnapshot.steps.items
+        assertEquals(2, steps.size)
 
-        val upload = gradleStep(steps, 0)
+        val expectedGradleParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
+        val checkReady = gradleStep(steps, 0)
+        checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
+        assertEquals(expectedGradleParams, checkReady.gradleParams)
+
+        val upload = gradleStep(steps, 1)
         upload.assertTasks("prepReleaseNightly promoteReleaseNightly")
-        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
     }
 
     @Test
-    fun `publish final release build type runs two gradle invocations`() {
+    fun `publish final release build type runs three gradle invocations`() {
         val model = setupModelFor("release")
-        val nightlytSnapshot = model.findBuildTypeByName("Release - Final")
+        val nightlySnapshot = model.findBuildTypeByName("Release - Final")
 
-        val steps = nightlytSnapshot.steps.items
-        assertEquals(2, steps.size)
+        val steps = nightlySnapshot.steps.items
+        assertEquals(3, steps.size)
 
-        val upload = gradleStep(steps, 0)
+        val expectedGradleParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
+        val checkReady = gradleStep(steps, 0)
+        checkReady.assertTasks("prepFinalRelease checkNeedToPromote")
+        assertEquals(expectedGradleParams, checkReady.gradleParams)
+
+        val upload = gradleStep(steps, 1)
         upload.assertTasks("prepFinalRelease uploadAll")
-        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
 
-        val promote = gradleStep(steps, 1)
+        val promote = gradleStep(steps, 2)
         promote.assertTasks("prepFinalRelease promoteFinalRelease")
-        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, promote.gradleParams)
+        assertEquals(expectedGradleParams, promote.gradleParams)
     }
 
     @Test
-    fun `publish rc build type runs two gradle invocations`() {
+    fun `publish rc build type runs three gradle invocations`() {
         val model = setupModelFor("release")
-        val nightlytSnapshot = model.findBuildTypeByName("Release - Release Candidate")
+        val nightlySnapshot = model.findBuildTypeByName("Release - Release Candidate")
 
-        val steps = nightlytSnapshot.steps.items
-        assertEquals(2, steps.size)
+        val steps = nightlySnapshot.steps.items
+        assertEquals(3, steps.size)
 
-        val upload = gradleStep(steps, 0)
+        val expectedGradleParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
+        val checkReady = gradleStep(steps, 0)
+        checkReady.assertTasks("prepRc checkNeedToPromote")
+        assertEquals(expectedGradleParams, checkReady.gradleParams)
+
+        val upload = gradleStep(steps, 1)
         upload.assertTasks("prepRc uploadAll")
-        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
 
-        val promote = gradleStep(steps, 1)
+        val promote = gradleStep(steps, 2)
         promote.assertTasks("prepRc promoteRc")
-        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
     }
 
-    @Test
-    fun `publish milestone build type runs two gradle invocations`() {
-        val model = setupModelFor("release")
-        val nightlytSnapshot = model.findBuildTypeByName("Release - Milestone")
+    @ParameterizedTest
+    @CsvSource(
+        value = [
+            "master,  promoteMilestone",
+            "release, promoteReleaseMilestone"
+        ]
+    )
+    fun `publish milestone build type runs three gradle invocations`(branch: String, promoteTaskName: String) {
+        val model = setupModelFor(branch)
+        val nightlySnapshot = model.findBuildTypeByName("Release - Milestone")
 
-        val steps = nightlytSnapshot.steps.items
-        assertEquals(2, steps.size)
+        val steps = nightlySnapshot.steps.items
+        assertEquals(3, steps.size)
 
-        val upload = gradleStep(steps, 0)
+        val expectedGradleParams = """-PcommitId=%dep.Gradle_${branch.toCapitalized()}_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
+        val checkReady = gradleStep(steps, 0)
+        checkReady.assertTasks("prepMilestone checkNeedToPromote")
+        assertEquals(expectedGradleParams, checkReady.gradleParams)
+
+        val upload = gradleStep(steps, 1)
         upload.assertTasks("prepMilestone uploadAll")
-        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
 
-        val promote = gradleStep(steps, 1)
-        promote.assertTasks("prepMilestone promoteMilestone")
-        assertEquals("""-PcommitId=%dep.Gradle_release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, upload.gradleParams)
+        val promote = gradleStep(steps, 2)
+        promote.assertTasks("prepMilestone $promoteTaskName")
+        assertEquals(expectedGradleParams, upload.gradleParams)
     }
 
     private fun setupModelFor(branchName: String): PromotionProject {
         // Set the project id here, so we can use methods on the DslContext
-        DslContext.projectId = AbsoluteId("Gradle_$branchName")
+        DslContext.projectId = AbsoluteId("Gradle_${branchName.toCapitalized()}")
         DslContext.addParameters("Branch" to branchName)
-        val model = PromotionProject(VersionedSettingsBranch(branchName, true))
-        return model
+        return PromotionProject(VersionedSettingsBranch(branchName))
     }
 
     private fun gradleStep(steps: List<BuildStep>, index: Int): GradleBuildStep {

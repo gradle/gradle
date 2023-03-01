@@ -11,7 +11,7 @@ plugins {
 
 val artifactType = Attribute.of("artifactType", String::class.java)
 val buildType = Attribute.of("com.android.build.api.attributes.BuildTypeAttr", String::class.java)
-val flavor = Attribute.of("org.gradle.example.my-own-flavor", String::class.java)
+val flavor = Attribute.of("com.android.build.api.attributes.ProductFlavor:org.gradle.example.my-own-flavor", String::class.java)
 
 configurations.all {
     if (isCanBeResolved && !isCanBeConsumed) {

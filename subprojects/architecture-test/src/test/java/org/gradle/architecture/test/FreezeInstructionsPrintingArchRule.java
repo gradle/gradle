@@ -56,6 +56,11 @@ public class FreezeInstructionsPrintingArchRule implements ArchRule {
     }
 
     @Override
+    public ArchRule allowEmptyShould(boolean allowEmptyShould) {
+        return delegate.allowEmptyShould(allowEmptyShould);
+    }
+
+    @Override
     public String getDescription() {
         return delegate.getDescription();
     }

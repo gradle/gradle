@@ -30,9 +30,11 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class DefaultSwiftBinaryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -50,7 +52,7 @@ class DefaultSwiftBinaryTest extends Specification {
         _ * configurations.create("nativeLinkDebug") >> link
         _ * configurations.create("nativeRuntimeDebug") >> runtime
 
-        binary = new DefaultSwiftBinary(Names.of("mainDebug"), project.objects, Stub(Provider), false, Stub(FileCollection),  configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
+        binary = new DefaultSwiftBinary(Names.of("mainDebug"), project.objects, project.taskDependencyFactory, Stub(Provider), false, Stub(FileCollection),  configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
     }
 
     def "compileModules is a transformed view of compile"() {

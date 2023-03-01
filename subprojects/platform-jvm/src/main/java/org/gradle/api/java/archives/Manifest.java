@@ -16,6 +16,7 @@
 package org.gradle.api.java.archives;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -81,7 +82,7 @@ public interface Manifest {
 
     /**
      * Specifies other manifests to be merged into this manifest. A merge path can either be another instance of
-     * {@link org.gradle.api.java.archives.Manifest} or a file path as interpreted by {@link org.gradle.api.Project#files(Object...)}.
+     * {@link org.gradle.api.java.archives.Manifest} or a file path as interpreted by {@link org.gradle.api.Project#file(Object)}.
      *
      * The merge is not happening instantaneously. It happens either before writing or when {@link #getEffectiveManifest()}
      * is called.
@@ -101,7 +102,7 @@ public interface Manifest {
      *
      * @return this
      */
-    Manifest from(Object mergePath, Closure<?> closure);
+    Manifest from(Object mergePath, @DelegatesTo(ManifestMergeSpec.class) Closure<?> closure);
 
     /**
      * Specifies other manifests to be merged into this manifest. A merge path is interpreted as described in

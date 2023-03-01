@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
 
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.api.internal.file.FileCollectionInternal
 
 import org.gradle.api.plugins.Convention
@@ -38,7 +38,7 @@ import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 
 import org.gradle.kotlin.dsl.provider.fileCollectionOf
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
-import org.gradle.kotlin.dsl.support.configureWith
+import org.gradle.kotlin.dsl.support.ScriptHandlerScopeInternal
 import org.gradle.kotlin.dsl.support.invalidPluginsCall
 
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -51,7 +51,7 @@ import kotlin.reflect.KProperty
  * Configures the build script classpath for this project.
  */
 fun Project.buildscript(action: ScriptHandlerScope.() -> Unit): Unit =
-    project.buildscript.configureWith(action)
+    ScriptHandlerScopeInternal(project, buildscript).action()
 
 
 /**
@@ -241,7 +241,7 @@ inline fun <reified T : Any> Project.container(noinline factory: (String) -> T):
  */
 fun Project.gradleKotlinDsl(): Dependency =
     DefaultSelfResolvingDependency(
-        OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation.GRADLE_KOTLIN_DSL),
+        OpaqueComponentIdentifier(DependencyFactoryInternal.ClassPathNotation.GRADLE_KOTLIN_DSL),
         project.fileCollectionOf(
             gradleKotlinDslOf(project),
             "gradleKotlinDsl"

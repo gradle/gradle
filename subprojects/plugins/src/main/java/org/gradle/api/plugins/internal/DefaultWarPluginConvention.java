@@ -21,14 +21,16 @@ import org.gradle.api.plugins.WarPluginConvention;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 
+import javax.inject.Inject;
 import java.io.File;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
-public class DefaultWarPluginConvention extends WarPluginConvention implements HasPublicType {
+public abstract class DefaultWarPluginConvention extends WarPluginConvention implements HasPublicType {
     private String webAppDirName;
     private final Project project;
 
+    @Inject
     public DefaultWarPluginConvention(Project project) {
         this.project = project;
         webAppDirName = "src/main/webapp";

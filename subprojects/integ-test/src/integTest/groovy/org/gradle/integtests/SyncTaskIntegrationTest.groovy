@@ -438,7 +438,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "sync emits a deprecation warning when the output contains unreadable files"() {
+    def "sync fails when the output contains unreadable files"() {
         given:
         def input = file("readableFile.txt").createFile()
 
@@ -458,22 +458,16 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withStackTraceChecksDisabled()
-        executer.expectDocumentedDeprecationWarning("Cannot access a file in the destination directory (see --info log for details). " +
-            "Syncing to a directory which contains unreadable content has been deprecated. " +
-            "This will fail with an error in Gradle 8.0. " +
-            "Use a Copy task with Task.doNotTrackState() instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#declare_unreadable_input_output")
-        run "sync", "--info"
+        runAndFail "sync"
         then:
-        outputDirectory.list().contains input.name
-        outputContains("Cannot access output property 'destinationDir' of task ':sync'")
-        executedAndNotSkipped(":sync")
+        failure.assertHasDocumentedCause("Cannot access a file in the destination directory. " +
+            "Syncing to a directory which contains unreadable content is not supported. " +
+            "Use a Copy task with Task.doNotTrackState() instead. " +
+            "See https://docs.gradle.org/current/userguide/incremental_build.html#disable-state-tracking for more details.")
+        failureHasCause("Failed to create MD5 hash for file '${unreadableOutput}' as it does not exist.")
 
         cleanup:
-        // The Sync task should delete the unreadable output, though that doesn't work every time.
-        if (unreadableOutput.exists()) {
-            unreadableOutput.makeReadable()
-        }
+        unreadableOutput.makeReadable()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9586")

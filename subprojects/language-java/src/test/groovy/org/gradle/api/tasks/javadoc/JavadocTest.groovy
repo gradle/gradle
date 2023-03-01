@@ -17,7 +17,10 @@
 package org.gradle.api.tasks.javadoc
 
 import org.apache.commons.io.FileUtils
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
@@ -25,6 +28,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class JavadocTest extends AbstractProjectBuilderSpec {
+
     def testDir = temporaryFolder.getTestDirectory()
     def destDir = new File(testDir, "dest")
     def srcDir = new File(testDir, "srcdir")
@@ -34,51 +38,54 @@ class JavadocTest extends AbstractProjectBuilderSpec {
     Javadoc task
 
     def setup() {
-        task = TestUtil.createTask(Javadoc, project)
+        task = TestUtil.createTask(Javadoc, project, "javadoc")
         task.setClasspath(configurationMock)
-        task.getJavadocTool().set(tool)
+        task.setDestinationDir(destDir)
+        task.source(srcDir)
+
+        FileUtils.touch(new File(srcDir, "file.java"))
+
         tool.metadata >> Mock(JavaInstallationMetadata) {
             getLanguageVersion() >> JavaLanguageVersion.of(11)
         }
-        FileUtils.touch(new File(srcDir, "file.java"))
+        tool.executablePath >> Mock(RegularFile) {
+            toString() >> "/test/toolchain/bin/javadoc"
+        }
     }
 
-    def defaultExecution() {
-        task.setDestinationDir(destDir)
-        task.source(srcDir)
-
-        when:
-        execute(task)
-
-        then:
-        1 * tool.execute(!null)
-    }
-
-    def usesToolchainIfConfigured() {
-        task.setDestinationDir(destDir)
-        task.source(srcDir)
-
-        when:
+    def "execution uses the tool"() {
         task.getJavadocTool().set(tool)
 
-        and:
-        execute(task)
-
-        then:
-        1 * tool.execute(!null)
-    }
-
-    def executionWithOptionalAttributes() {
         when:
-        task.setDestinationDir(destDir)
-        task.source(srcDir)
-        task.setMaxMemory("max-memory")
-        task.setVerbose(true)
-
-        and:
         execute(task)
 
         then:
         1 * tool.execute(_)
+    }
+
+    def "execution with additional options uses the tool"() {
+        task.getJavadocTool().set(tool)
+        task.setMaxMemory("max-memory")
+        task.setVerbose(true)
+
+        when:
+        execute(task)
+
+        then:
+        1 * tool.execute(_)
+    }
+
+    def "fails if custom executable does not exist"() {
+        def invalidExecutable = temporaryFolder.file("invalidExecutable")
+
+        when:
+        task.executable = invalidExecutable
+        execute(task)
+
+        then:
+        def e = thrown(TaskExecutionException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("The configured executable does not exist")
+        cause.message.contains(invalidExecutable.absolutePath)
     }
 }

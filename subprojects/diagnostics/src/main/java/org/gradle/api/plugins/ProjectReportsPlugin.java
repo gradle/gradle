@@ -28,7 +28,7 @@ import org.gradle.util.internal.WrapUtil;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/project_report_plugin.html">Project Report plugin reference</a>
  */
-public class ProjectReportsPlugin implements Plugin<Project> {
+public abstract class ProjectReportsPlugin implements Plugin<Project> {
     public static final String TASK_REPORT = "taskReport";
     public static final String PROPERTY_REPORT = "propertyReport";
     public static final String DEPENDENCY_REPORT = "dependencyReport";
@@ -39,7 +39,7 @@ public class ProjectReportsPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);
         @SuppressWarnings("deprecation")
-        final ProjectReportsPluginConvention convention = new org.gradle.api.plugins.internal.DefaultProjectReportsPluginConvention(project);
+        final ProjectReportsPluginConvention convention = project.getObjects().newInstance(org.gradle.api.plugins.internal.DefaultProjectReportsPluginConvention.class, project);
         @SuppressWarnings("deprecation")
         Convention projectConvention = project.getConvention();
         projectConvention.getPlugins().put("projectReports", convention);

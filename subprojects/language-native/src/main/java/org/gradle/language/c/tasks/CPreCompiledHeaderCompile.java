@@ -25,7 +25,7 @@ import org.gradle.work.DisableCachingByDefault;
  * Compiles C header source files into object files.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class CPreCompiledHeaderCompile extends AbstractNativePCHCompileTask {
+public abstract class CPreCompiledHeaderCompile extends AbstractNativePCHCompileTask {
     @Override
     protected NativeCompileSpec createCompileSpec() {
         return new DefaultCPCHCompileSpec();

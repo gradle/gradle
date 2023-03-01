@@ -20,12 +20,11 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
-import org.gradle.internal.MutableReference
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.TestInMemoryPersistentIndexedCache
+import org.gradle.testfixtures.internal.TestInMemoryIndexedCache
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -37,9 +36,9 @@ class DefaultOutputFilesRepositoryTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    def outputFiles = new TestInMemoryPersistentIndexedCache<String, Boolean>(BaseSerializerFactory.BOOLEAN_SERIALIZER)
+    def outputFiles = new TestInMemoryIndexedCache<String, Boolean>(BaseSerializerFactory.BOOLEAN_SERIALIZER)
     def cacheAccess = Stub(PersistentCache) {
-        createCache(_) >> outputFiles
+        createIndexedCache(_) >> outputFiles
     }
     def cacheDecorator = Mock(CacheDecorator)
     def inMemoryCacheDecoratorFactory = Stub(DefaultInMemoryCacheDecoratorFactory) {
@@ -75,8 +74,6 @@ class DefaultOutputFilesRepositoryTest extends Specification {
     }
 
     private FileSystemLocationSnapshot snapshot(File file) {
-        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
-        fileSystemAccess.read(file.getAbsolutePath(), result.&set)
-        return result.get()
+        return fileSystemAccess.read(file.getAbsolutePath())
     }
 }

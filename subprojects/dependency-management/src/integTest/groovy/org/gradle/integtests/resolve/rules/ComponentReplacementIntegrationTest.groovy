@@ -18,12 +18,15 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestDependency
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
+    private ResolveTestFixture resolve
 
     def setup() {
+        settingsFile << 'rootProject.name = "test"'
         buildFile << """
             configurations { conf }
             repositories {
@@ -31,19 +34,19 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
             }
             task resolvedFiles {
                 dependsOn 'dependencies'
+                def files = configurations.conf
+
                 doLast {
-                    copy {
-                        from configurations.conf
-                        into 'resolved-files'
+                    println "resolved files=" + files*.name.toSorted()
+                    if (!${GradleContextualExecuter.configCache}) {
+                        // Hit legacy API to trigger both result loading logic
+                        configurations.conf.resolvedConfiguration.firstLevelModuleDependencies
                     }
-                    println "All files:"
-                    configurations.conf.each { println it.name }
-                    // Hit legacy API to trigger both result loading logic
-                    configurations.conf.resolvedConfiguration.firstLevelModuleDependencies
                 }
             }
         """
-        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+        resolve = new ResolveTestFixture(buildFile)
+        resolve.addDefaultVariantDerivationStrategy()
     }
 
     //publishes and declares the dependencies
@@ -78,7 +81,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 
     void resolvedFiles(String... files) {
         run("resolvedFiles")
-        assert file('resolved-files').listFiles()*.name as Set == files as Set
+        outputContains("resolved files=" + files.toList().toSorted())
     }
 
     void resolvedModules(String... modules) {
@@ -426,17 +429,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
             declaredReplacements('a->b')
         }
 
-        when:
-        buildFile << """
-            task check {
-                doLast {
-                    def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
-                    assert modules.find { it.id.module == 'b' }.selectionReason.toString() == "$expected"
-                }
-            }
-        """
-
-        then:
+        expect:
         resolvedModules 'b'
 
         when:
@@ -450,10 +443,19 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 org:a:1 -> org:b:1""")
 
         when:
-        run 'check'
+        resolve.prepare("conf")
+        run "checkDeps"
 
         then:
-        noExceptionThrown()
+        resolve.expectDefaultConfiguration("runtime")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:1", "org:b:1") {
+                    selectedByRule(expected)
+                }
+                module("org:b:1")
+            }
+        }
 
         where:
         custom | expected

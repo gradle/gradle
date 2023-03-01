@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -26,21 +28,16 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.n
 
 public class DefaultArtifactIdentifier implements ArtifactIdentifier {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
-    private final String name;
-    private final String type;
-    private final String extension;
-    private final String classifier;
+    private final IvyArtifactName name;
 
     public DefaultArtifactIdentifier(ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, @Nullable String extension, @Nullable String classifier) {
         this.moduleVersionIdentifier = moduleVersionIdentifier;
-        this.name = name;
-        this.type = type;
-        this.extension = extension;
-        this.classifier = classifier;
+        this.name = new DefaultIvyArtifactName(name, type, extension, classifier);
     }
 
     public DefaultArtifactIdentifier(DefaultModuleComponentArtifactIdentifier id) {
-        this(newId(id.getComponentIdentifier()), id.getName().getName(), id.getName().getType(), id.getName().getExtension(), id.getName().getClassifier());
+        this.moduleVersionIdentifier = newId(id.getComponentIdentifier());
+        this.name = id.getName();
     }
 
     @Override
@@ -50,27 +47,29 @@ public class DefaultArtifactIdentifier implements ArtifactIdentifier {
 
     @Override
     public String getName() {
-        return name;
+        return name.getName();
     }
 
     @Override
     public String getType() {
-        return type;
+        return name.getType();
     }
 
+    @Nullable
     @Override
     public String getExtension() {
-        return extension;
+        return name.getExtension();
     }
 
+    @Nullable
     @Override
     public String getClassifier() {
-        return classifier;
+        return name.getClassifier();
     }
 
     @Override
     public String toString() {
-        return String.format("module: %s, name: %s, ext: %s, classifier: %s", moduleVersionIdentifier, name, extension, classifier);
+        return String.format("module: %s, name: %s", moduleVersionIdentifier, name);
     }
 
     @Override
@@ -84,28 +83,16 @@ public class DefaultArtifactIdentifier implements ArtifactIdentifier {
 
         DefaultArtifactIdentifier that = (DefaultArtifactIdentifier) o;
 
-        if (!Objects.equals(classifier, that.classifier)) {
-            return false;
-        }
-        if (!Objects.equals(extension, that.extension)) {
-            return false;
-        }
         if (!Objects.equals(moduleVersionIdentifier, that.moduleVersionIdentifier)) {
             return false;
         }
-        if (!Objects.equals(name, that.name)) {
-            return false;
-        }
-        return Objects.equals(type, that.type);
+        return Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
         int result = moduleVersionIdentifier != null ? moduleVersionIdentifier.hashCode() : 0;
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (extension != null ? extension.hashCode() : 0);
-        result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
         return result;
     }
 }

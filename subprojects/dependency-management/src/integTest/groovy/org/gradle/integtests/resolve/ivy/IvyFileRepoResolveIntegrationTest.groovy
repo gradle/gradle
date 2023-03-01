@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class IvyFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
     void "does not cache local artifacts or metadata"() {
@@ -124,7 +123,6 @@ task retrieve(type: Sync) {
         jarC1.assertHasChangedSince(jarCsnapshot)
     }
 
-    @ToBeFixedForConfigurationCache
     def "cannot define authentication for local file repo"() {
         given:
         def repo = ivyRepo()

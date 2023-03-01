@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.file.archive.impl;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.AbstractIterator;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.internal.file.FileException;
+import org.gradle.internal.io.IoFunction;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,10 +29,10 @@ import java.util.zip.ZipInputStream;
 
 public class StreamZipInput implements ZipInput {
 
-    private final ZipInputStream in;
+    private final ZipInputStream inputStream;
 
-    public StreamZipInput(InputStream in) {
-        this.in = new ZipInputStream(in);
+    public StreamZipInput(InputStream inputStream) {
+        this.inputStream = new ZipInputStream(inputStream);
     }
 
     @Override
@@ -42,31 +42,53 @@ public class StreamZipInput implements ZipInput {
             protected ZipEntry computeNext() {
                 java.util.zip.ZipEntry nextEntry;
                 try {
-                    nextEntry = in.getNextEntry();
+                    nextEntry = inputStream.getNextEntry();
                 } catch (IOException e) {
                     throw new FileException(e);
                 }
-                return nextEntry == null ? endOfData() : new JdkZipEntry(nextEntry, new Supplier<InputStream>() {
-                    @Override
-                    public InputStream get() {
-                        return in;
-                    }
-                }, new Runnable() {
-                    @Override
-                    public void run()  {
-                        try {
-                            in.closeEntry();
-                        } catch (IOException e) {
-                            throw new FileException(e);
-                        }
-                    }
-                });
+                return nextEntry == null ? endOfData() : new StreamZipEntry(nextEntry);
             }
         };
     }
 
     @Override
     public void close() throws IOException {
-        in.close();
+        inputStream.close();
+    }
+
+    private class StreamZipEntry extends AbstractZipEntry {
+        private boolean opened;
+
+        public StreamZipEntry(java.util.zip.ZipEntry entry) {
+            super(entry);
+        }
+
+        @Override
+        public <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException {
+            if (opened) {
+                throw new IllegalStateException("The input stream for " + getName() + " has already been opened.  It cannot be reopened again.");
+            }
+
+            opened = true;
+
+            try {
+                return action.apply(inputStream);
+            } finally {
+                closeEntry();
+            }
+        }
+
+        private void closeEntry() {
+            try {
+                inputStream.closeEntry();
+            } catch (IOException e) {
+                throw new FileException(e);
+            }
+        }
+
+        @Override
+        public boolean canReopen() {
+            return false;
+        }
     }
 }

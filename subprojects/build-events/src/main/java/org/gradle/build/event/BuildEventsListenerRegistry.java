@@ -16,7 +16,6 @@
 
 package org.gradle.build.event;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 import org.gradle.tooling.events.OperationCompletionListener;
 
@@ -27,7 +26,6 @@ import org.gradle.tooling.events.OperationCompletionListener;
  *
  * @since 6.1
  */
-@Incubating
 public interface BuildEventsListenerRegistry {
     /**
      * Subscribes the given listener to the finish events for tasks, if not already subscribed. The listener receives a {@link org.gradle.tooling.events.task.TaskFinishEvent} as each task completes.

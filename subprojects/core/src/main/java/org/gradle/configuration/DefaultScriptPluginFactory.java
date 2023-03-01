@@ -124,7 +124,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope, ClosureCreationInterceptingVerifier.INSTANCE);
             if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {
-                scriptTarget.attachScript(runner.getScript());
+                BasicScript script = runner.getScript();
+                script.init(scriptTarget, scriptServices);
+                scriptTarget.attachScript(script);
             }
             if (!runner.getRunDoesSomething()) {
                 return;

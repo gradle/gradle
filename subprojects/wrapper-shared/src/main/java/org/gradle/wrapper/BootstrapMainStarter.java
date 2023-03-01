@@ -33,9 +33,7 @@ public class BootstrapMainStarter {
         Class<?> mainClass = contextClassLoader.loadClass("org.gradle.launcher.GradleMain");
         Method mainMethod = mainClass.getMethod("main", String[].class);
         mainMethod.invoke(null, new Object[]{args});
-        if (contextClassLoader instanceof Closeable) {
-            ((Closeable) contextClassLoader).close();
-        }
+        ((Closeable) contextClassLoader).close();
     }
 
     static File findLauncherJar(File gradleHome) {

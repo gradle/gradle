@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories
 
 import groovy.transform.CompileStatic
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
@@ -53,7 +54,7 @@ trait ExcludeTestSupport {
     }
 
     ExcludeSpec moduleIdSet(List<String>... ids) {
-        factory.moduleIdSet(RandomizedIteratorHashSet.of(ids.collect { newId(it[0], it[1]) } as Set))
+        factory.moduleIdSet(RandomizedIteratorHashSet.of(ids.collect { newId(it[0], it[1]) } as Set<ModuleIdentifier>))
     }
 
     ExcludeSpec moduleIdSet(String... ids) {
@@ -72,7 +73,7 @@ trait ExcludeTestSupport {
             case 2:
                 return factory.anyOf(specs[0], specs[1])
             default:
-                return factory.anyOf(RandomizedIteratorHashSet.of(specs as Set))
+                return factory.anyOf(RandomizedIteratorHashSet.of(specs as Set<ExcludeSpec>))
         }
     }
 
@@ -85,7 +86,7 @@ trait ExcludeTestSupport {
             case 2:
                 return factory.allOf(specs[0], specs[1])
             default:
-                return factory.allOf(RandomizedIteratorHashSet.of(specs as Set))
+                return factory.allOf(RandomizedIteratorHashSet.of(specs as Set<ExcludeSpec>))
         }
     }
 

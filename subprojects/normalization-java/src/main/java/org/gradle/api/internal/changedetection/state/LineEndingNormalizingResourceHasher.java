@@ -22,9 +22,8 @@ import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.io.IoSupplier;
+import org.gradle.internal.io.IoFunction;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
@@ -35,12 +34,11 @@ import java.util.Optional;
  *
  * See {@link LineEndingNormalizingInputStreamHasher}.
  */
-public class LineEndingNormalizingResourceHasher implements ResourceHasher {
-    private final ResourceHasher delegate;
+public class LineEndingNormalizingResourceHasher extends FallbackHandlingResourceHasher {
     private final LineEndingNormalizingInputStreamHasher hasher;
 
     private LineEndingNormalizingResourceHasher(ResourceHasher delegate) {
-        this.delegate = delegate;
+        super(delegate);
         this.hasher = new LineEndingNormalizingInputStreamHasher();
     }
 
@@ -56,26 +54,38 @@ public class LineEndingNormalizingResourceHasher implements ResourceHasher {
     }
 
     @Override
+    boolean filter(RegularFileSnapshotContext context) {
+        return true;
+    }
+
+    @Override
+    boolean filter(ZipEntryContext context) {
+        return !context.getEntry().isDirectory();
+    }
+
+    @Override
     public void appendConfigurationToHasher(Hasher hasher) {
-        delegate.appendConfigurationToHasher(hasher);
+        super.appendConfigurationToHasher(hasher);
         hasher.putString(getClass().getName());
     }
 
-    @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
-        return hasher.hashContent(new File(snapshotContext.getSnapshot().getAbsolutePath()))
-            .orElseGet(IoSupplier.wrap(() -> delegate.hash(snapshotContext)));
+    Optional<HashCode> tryHash(RegularFileSnapshotContext snapshotContext) {
+        return Optional.of(snapshotContext)
+            .flatMap(IoFunction.wrap(this::hashContent));
     }
 
-    @Nullable
     @Override
-    public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        return hashContent(zipEntryContext)
-            .orElseGet(IoSupplier.wrap(() -> delegate.hash(zipEntryContext)));
+    Optional<HashCode> tryHash(ZipEntryContext zipEntryContext) {
+        return Optional.of(zipEntryContext)
+            .flatMap(IoFunction.wrap(this::hashContent));
+    }
+
+    private Optional<HashCode> hashContent(RegularFileSnapshotContext snapshotContext) throws IOException {
+        return hasher.hashContent(new File(snapshotContext.getSnapshot().getAbsolutePath()));
     }
 
     private Optional<HashCode> hashContent(ZipEntryContext zipEntryContext) throws IOException {
-        return zipEntryContext.getEntry().isDirectory() ? Optional.empty() : zipEntryContext.getEntry().withInputStream(hasher::hashContent);
+        return zipEntryContext.getEntry().withInputStream(hasher::hashContent);
     }
 }

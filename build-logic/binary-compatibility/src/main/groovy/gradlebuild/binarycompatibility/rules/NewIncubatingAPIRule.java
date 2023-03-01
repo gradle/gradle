@@ -27,8 +27,8 @@ import java.util.Map;
 
 public class NewIncubatingAPIRule extends AbstractGradleViolationRule {
 
-    public NewIncubatingAPIRule(Map<String, String> acceptedViolations) {
-        super(acceptedViolations);
+    public NewIncubatingAPIRule(Map<String, Object> params) {
+        super(params);
     }
 
     @Override

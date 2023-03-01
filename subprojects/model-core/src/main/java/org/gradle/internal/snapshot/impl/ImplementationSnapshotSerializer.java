@@ -25,11 +25,11 @@ import org.gradle.internal.serialize.Serializer;
 public class ImplementationSnapshotSerializer implements Serializer<ImplementationSnapshot> {
 
     private enum Impl implements Serializer<ImplementationSnapshot> {
-        DEFAULT {
+        CLASS {
             @Override
-            protected ImplementationSnapshot doRead(String typeName, Decoder decoder) throws Exception {
+            protected ImplementationSnapshot readAdditionalData(String classIdentifier, Decoder decoder) throws Exception {
                 HashCode classLoaderHash = hashCodeSerializer.read(decoder);
-                return new KnownImplementationSnapshot(typeName, classLoaderHash);
+                return new ClassImplementationSnapshot(classIdentifier, classLoaderHash);
             }
 
             @Override
@@ -37,37 +37,68 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
                 hashCodeSerializer.write(encoder, implementationSnapshot.getClassLoaderHash());
             }
         },
-        UNKNOWN_CLASSLOADER {
-            @Override
-            protected ImplementationSnapshot doRead(String typeName, Decoder decoder) {
-                return new UnknownClassloaderImplementationSnapshot(typeName);
-            }
-        },
         LAMBDA {
             @Override
-            protected ImplementationSnapshot doRead(String typeName, Decoder decoder) {
-                return new LambdaImplementationSnapshot(typeName);
+            protected ImplementationSnapshot readAdditionalData(String classIdentifier, Decoder decoder) throws Exception {
+                HashCode classLoaderHash = hashCodeSerializer.read(decoder);
+                String functionalInterfaceClass = decoder.readString();
+                String implClass = decoder.readString();
+                String implMethodName = decoder.readString();
+                String implMethodSignature = decoder.readString();
+                int implMethodKind = decoder.readSmallInt();
+                return new LambdaImplementationSnapshot(
+                    classIdentifier,
+                    classLoaderHash,
+                    functionalInterfaceClass,
+                    implClass,
+                    implMethodName,
+                    implMethodSignature,
+                    implMethodKind
+                );
+            }
+
+            @Override
+            protected void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
+                LambdaImplementationSnapshot serLambda = (LambdaImplementationSnapshot) implementationSnapshot;
+                hashCodeSerializer.write(encoder, serLambda.getClassLoaderHash());
+                encoder.writeString(serLambda.getFunctionalInterfaceClass());
+                encoder.writeString(serLambda.getImplClass());
+                encoder.writeString(serLambda.getImplMethodName());
+                encoder.writeString(serLambda.getImplMethodSignature());
+                encoder.writeSmallInt(serLambda.getImplMethodKind());
+            }
+        },
+        UNKNOWN {
+            @Override
+            protected ImplementationSnapshot readAdditionalData(String classIdentifier, Decoder decoder) throws Exception {
+                UnknownImplementationSnapshot.UnknownReason unknownReason = UnknownImplementationSnapshot.UnknownReason.values()[decoder.readSmallInt()];
+                return new UnknownImplementationSnapshot(classIdentifier, unknownReason);
+            }
+
+            @Override
+            protected void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
+                UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementationSnapshot;
+                encoder.writeSmallInt(unknownImplSnapshot.getUnknownReason().ordinal());
             }
         };
 
         @Override
         public void write(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
-            encoder.writeString(implementationSnapshot.getTypeName());
+            encoder.writeString(implementationSnapshot.getClassIdentifier());
             writeAdditionalData(encoder, implementationSnapshot);
         }
 
         @Override
         public ImplementationSnapshot read(Decoder decoder) throws Exception {
-            String typeName = decoder.readString();
-            return doRead(typeName, decoder);
+            String classIdentifier = decoder.readString();
+            return readAdditionalData(classIdentifier, decoder);
         }
 
         protected final Serializer<HashCode> hashCodeSerializer = new HashCodeSerializer();
 
-        protected abstract ImplementationSnapshot doRead(String typeName, Decoder decoder) throws Exception;
+        protected abstract ImplementationSnapshot readAdditionalData(String classIdentifier, Decoder decoder) throws Exception;
 
-        protected void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception {
-        }
+        protected abstract void writeAdditionalData(Encoder encoder, ImplementationSnapshot implementationSnapshot) throws Exception;
     }
 
     @Override
@@ -84,15 +115,15 @@ public class ImplementationSnapshotSerializer implements Serializer<Implementati
     }
 
     private static Impl determineSerializer(ImplementationSnapshot implementationSnapshot) {
-        if (implementationSnapshot instanceof KnownImplementationSnapshot) {
-            return Impl.DEFAULT;
-        }
-        if (implementationSnapshot instanceof UnknownClassloaderImplementationSnapshot) {
-            return Impl.UNKNOWN_CLASSLOADER;
+        if (implementationSnapshot instanceof ClassImplementationSnapshot) {
+            return Impl.CLASS;
         }
         if (implementationSnapshot instanceof LambdaImplementationSnapshot) {
             return Impl.LAMBDA;
         }
-        throw new IllegalArgumentException("Unknown implementation snapshot type: " + implementationSnapshot.getClass().getName());
+        if (implementationSnapshot instanceof UnknownImplementationSnapshot) {
+            return Impl.UNKNOWN;
+        }
+        throw new IllegalArgumentException("Unexpected implementation snapshot type: " + implementationSnapshot.getClass().getName());
     }
 }

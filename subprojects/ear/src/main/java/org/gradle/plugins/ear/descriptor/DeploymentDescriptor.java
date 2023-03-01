@@ -16,6 +16,7 @@
 package org.gradle.plugins.ear.descriptor;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 
@@ -173,7 +174,7 @@ public interface DeploymentDescriptor {
      *            The closure to execute when the XML has been created
      * @return this
      */
-    DeploymentDescriptor withXml(Closure closure);
+    DeploymentDescriptor withXml(@DelegatesTo(XmlProvider.class) Closure closure);
 
     /**
      * Adds an action to be called when the XML document has been created. The XML is passed to the action as a

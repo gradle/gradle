@@ -18,18 +18,46 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.Try;
+import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.history.AfterExecutionState;
 
+import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.Optional;
 
-public interface UpToDateResult extends AfterExecutionResult {
+public class UpToDateResult extends AfterExecutionResult {
+    private final ImmutableList<String> executionReasons;
+    private final OriginMetadata reusedOutputOriginMetadata;
+
+    public UpToDateResult(AfterExecutionResult parent, ImmutableList<String> executionReasons, @Nullable OriginMetadata reusedOutputOriginMetadata) {
+        super(parent);
+        this.executionReasons = executionReasons;
+        this.reusedOutputOriginMetadata = reusedOutputOriginMetadata;
+    }
+
+    public UpToDateResult(Duration duration, Try<ExecutionEngine.Execution> execution, @Nullable AfterExecutionState afterExecutionState, ImmutableList<String> executionReasons, @Nullable OriginMetadata reusedOutputOriginMetadata) {
+        super(duration, execution, afterExecutionState);
+        this.executionReasons = executionReasons;
+        this.reusedOutputOriginMetadata = reusedOutputOriginMetadata;
+    }
+
+    protected UpToDateResult(UpToDateResult parent) {
+        this(parent, parent.getExecutionReasons(), parent.getReusedOutputOriginMetadata().orElse(null));
+    }
+
     /**
      * A list of messages describing the first few reasons encountered that caused the work to be executed.
      * An empty list means the work was up-to-date and hasn't been executed.
      */
-    ImmutableList<String> getExecutionReasons();
+    public ImmutableList<String> getExecutionReasons() {
+        return executionReasons;
+    }
 
     /**
      * If a previously produced output was reused in some way, the reused output's origin metadata is returned.
      */
-    Optional<OriginMetadata> getReusedOutputOriginMetadata();
+    public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
+        return Optional.ofNullable(reusedOutputOriginMetadata);
+    }
 }

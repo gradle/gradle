@@ -19,6 +19,8 @@ package org.gradle.internal.deprecation;
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.DocumentationRegistry;
 
+import javax.annotation.Nullable;
+
 public abstract class Documentation {
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
@@ -40,10 +42,52 @@ public abstract class Documentation {
         return new DslReference(targetClass, property);
     }
 
-    abstract String documentationUrl();
+    @Nullable
+    public abstract String documentationUrl();
 
+    @Nullable
     public String consultDocumentationMessage() {
         return String.format("See %s for more details.", documentationUrl());
+    }
+
+    public static abstract class AbstractBuilder<T> {
+        protected abstract T withDocumentation(Documentation documentation);
+
+        /**
+         * Allows proceeding without including any documentation reference.
+         * Consider using one of the documentation providing methods instead.
+         */
+        public T undocumented() {
+            return withDocumentation(Documentation.NO_DOCUMENTATION);
+        }
+
+        /**
+         * Output: See USER_MANUAL_URL for more details.
+         */
+        public T withUserManual(String documentationId) {
+            return withDocumentation(Documentation.userManual(documentationId));
+        }
+
+        /**
+         * Output: See USER_MANUAL_URL for more details.
+         */
+        public T withUserManual(String documentationId, String section) {
+            return withDocumentation(Documentation.userManual(documentationId, section));
+        }
+
+        /**
+         * Output: See DSL_REFERENCE_URL for more details.
+         */
+        public T withDslReference(Class<?> targetClass, String property) {
+            return withDocumentation(Documentation.dslReference(targetClass, property));
+        }
+
+        /**
+         * Output: Consult the upgrading guide for further information: UPGRADE_GUIDE_URL
+         */
+        public T withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
+            return withDocumentation(Documentation.upgradeGuide(majorVersion, upgradeGuideSection));
+        }
     }
 
     private static class NullDocumentation extends Documentation {
@@ -52,7 +96,7 @@ public abstract class Documentation {
         }
 
         @Override
-        String documentationUrl() {
+        public String documentationUrl() {
             return null;
         }
 
@@ -66,13 +110,13 @@ public abstract class Documentation {
         private final String id;
         private final String section;
 
-        private UserGuide(String id, String section) {
+        private UserGuide(String id, @Nullable String section) {
             this.id = Preconditions.checkNotNull(id);
             this.section = section;
         }
 
         @Override
-        String documentationUrl() {
+        public String documentationUrl() {
             if (section != null) {
                 return DOCUMENTATION_REGISTRY.getDocumentationFor(id, section);
             }
@@ -90,7 +134,7 @@ public abstract class Documentation {
         }
 
         @Override
-        String documentationUrl() {
+        public String documentationUrl() {
             return DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_" + majorVersion, section);
         }
 
@@ -110,7 +154,7 @@ public abstract class Documentation {
         }
 
         @Override
-        String documentationUrl() {
+        public String documentationUrl() {
             return DOCUMENTATION_REGISTRY.getDslRefForProperty(targetClass, property);
         }
     }

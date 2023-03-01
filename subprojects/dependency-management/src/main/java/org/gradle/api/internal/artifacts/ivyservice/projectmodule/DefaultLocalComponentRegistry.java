@@ -18,13 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
@@ -32,13 +31,13 @@ import org.gradle.internal.model.ValueCalculator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
+public class DefaultLocalComponentRegistry implements LocalComponentRegistry, HoldsProjectState {
     private final BuildIdentifier thisBuild;
     private final ProjectStateRegistry projectStateRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final LocalComponentProvider provider;
     private final LocalComponentInAnotherBuildProvider otherBuildProvider;
-    private final Map<ProjectComponentIdentifier, CalculatedValueContainer<LocalComponentMetadata, ?>> projects = new ConcurrentHashMap<>();
+    private final Map<ProjectComponentIdentifier, CalculatedValueContainer<LocalComponentGraphResolveState, ?>> projects = new ConcurrentHashMap<>();
 
     public DefaultLocalComponentRegistry(
         BuildIdentifier thisBuild,
@@ -55,8 +54,8 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
     }
 
     @Override
-    public LocalComponentMetadata getComponent(ProjectComponentIdentifier projectIdentifier) {
-        CalculatedValueContainer<LocalComponentMetadata, ?> valueContainer = projects.computeIfAbsent(projectIdentifier, projectComponentIdentifier -> {
+    public LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier) {
+        CalculatedValueContainer<LocalComponentGraphResolveState, ?> valueContainer = projects.computeIfAbsent(projectIdentifier, projectComponentIdentifier -> {
             ProjectState projectState = projectStateRegistry.stateFor(projectIdentifier);
             return calculatedValueContainerFactory.create(Describables.of("metadata of", projectIdentifier), new MetadataSupplier(projectState));
         });
@@ -65,7 +64,12 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
         return valueContainer.get();
     }
 
-    private class MetadataSupplier implements ValueCalculator<LocalComponentMetadata> {
+    @Override
+    public void discardAll() {
+        projects.clear();
+    }
+
+    private class MetadataSupplier implements ValueCalculator<LocalComponentGraphResolveState> {
         private final ProjectState projectState;
 
         public MetadataSupplier(ProjectState projectState) {
@@ -73,21 +77,7 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
         }
 
         @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-        }
-
-        @Override
-        public boolean usesMutableProjectState() {
-            return false;
-        }
-
-        @Override
-        public ProjectInternal getOwningProject() {
-            return null;
-        }
-
-        @Override
-        public LocalComponentMetadata calculateValue(NodeExecutionContext context) {
+        public LocalComponentGraphResolveState calculateValue(NodeExecutionContext context) {
             if (isLocalProject(projectState.getComponentIdentifier())) {
                 return provider.getComponent(projectState);
             } else {

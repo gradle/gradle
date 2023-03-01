@@ -17,32 +17,29 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.IvyArtifactNameSerializer;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
+/**
+ * A thread-safe and reusable serializer for {@link DefaultModuleComponentArtifactIdentifier}.
+ */
 public class ComponentArtifactIdentifierSerializer implements Serializer<DefaultModuleComponentArtifactIdentifier> {
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
 
     @Override
     public void write(Encoder encoder, DefaultModuleComponentArtifactIdentifier value) throws Exception {
         componentIdentifierSerializer.write(encoder, value.getComponentIdentifier());
-        IvyArtifactName ivyArtifactName = value.getName();
-        encoder.writeString(ivyArtifactName.getName());
-        encoder.writeString(ivyArtifactName.getType());
-        encoder.writeNullableString(ivyArtifactName.getExtension());
-        encoder.writeNullableString(ivyArtifactName.getClassifier());
+        IvyArtifactNameSerializer.INSTANCE.write(encoder, value.getName());
     }
 
     @Override
     public DefaultModuleComponentArtifactIdentifier read(Decoder decoder) throws Exception {
         ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
-        String artifactName = decoder.readString();
-        String type = decoder.readString();
-        String extension = decoder.readNullableString();
-        String classifier = decoder.readNullableString();
-        return new DefaultModuleComponentArtifactIdentifier(componentIdentifier, artifactName, type, extension, classifier);
+        IvyArtifactName name = IvyArtifactNameSerializer.INSTANCE.read(decoder);
+        return new DefaultModuleComponentArtifactIdentifier(componentIdentifier, name);
     }
 }

@@ -70,4 +70,9 @@ public class ImmutableManagedValueSnapshot implements ValueSnapshot {
         hasher.putString(className);
         hasher.putString(value);
     }
+
+    @Override
+    public String toString() {
+        return "(" + className + ") " + value;
+    }
 }

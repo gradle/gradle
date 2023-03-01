@@ -684,7 +684,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from missing snapshot"() {
         given:
         def projectA = createModule('group', 'projectA', "1.0-SNAPSHOT")
@@ -724,7 +723,6 @@ Required by:
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports missing unique snapshot artifact"() {
         given:
         def projectA = publishModule('group', 'projectA', "1.0-SNAPSHOT")
@@ -768,7 +766,6 @@ Searched in the following locations:
     ${projectA.artifact.uri}""")
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from broken maven-metadata.xml"() {
         given:
         def projectA = publishModule('group', 'projectA', "1.0-SNAPSHOT")
@@ -974,7 +971,6 @@ dependencies {
         file('libs').assertHasDescendants("projectA-1.0.jar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports failure to find a missing unique snapshot in a Maven HTTP repository"() {
         given:
         def projectA = createModule("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
@@ -1073,6 +1069,90 @@ class CheckIsChangingRule implements ComponentMetadataRule {
         false       | Sources.GRADLE
         true        | Sources.POM
         false       | Sources.POM
+    }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    def "can resolve files from new variant with unique and non unique snapshots"() {
+        given:
+        buildFile << """
+dependencies.components {
+    all(PomRule) {
+        params("runtime")
+    }
+    all(PomRule) {
+        params("runtimeElements")
+    }
+}
+
+dependencies {
+    compile("org.gradle.integtests.resolve:unique:1.0-SNAPSHOT")
+    compile("org.gradle.integtests.resolve:not-unique:1.0-SNAPSHOT")
+}
+
+configurations {
+    poms {
+        extendsFrom(configurations.compile)
+        canBeResolved = true
+        canBeConsumed = false
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, getObjects().named(Category, Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, getObjects().named(DocsType, "pom"))
+        }
+    }
+}
+
+tasks.register("downloadPoms", Copy) {
+    from(configurations.poms)
+    into("\$buildDir/poms")
+}
+
+abstract class PomRule implements ComponentMetadataRule {
+
+    final String baseVariant
+
+    @Inject
+    PomRule(String baseVariant) {
+        this.baseVariant = baseVariant
+    }
+
+    @Inject
+    abstract ObjectFactory getObjects()
+
+    void execute(ComponentMetadataContext context) {
+        context.details.maybeAddVariant("pom", baseVariant) {
+            attributes {
+                attribute(Category.CATEGORY_ATTRIBUTE, getObjects().named(Category, Category.DOCUMENTATION))
+                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, getObjects().named(DocsType, "pom"))
+            }
+            withFiles {
+                removeAllFiles()
+                addFile("\${context.details.id.name}-\${context.details.id.version}.pom")
+            }
+        }
+    }
+}
+
+"""
+
+        def snapshotModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT")
+        if (isGradleMetadataPublished()) {
+            snapshotModule.withModuleMetadata()
+        }
+        snapshotModule.publish()
+        snapshotModule.allowAll()
+
+        def nonUniqueSnapshotModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "not-unique", "1.0-SNAPSHOT").withNonUniqueSnapshots()
+        if (isGradleMetadataPublished()) {
+            nonUniqueSnapshotModule.withModuleMetadata()
+        }
+        nonUniqueSnapshotModule.publish()
+        nonUniqueSnapshotModule.allowAll()
+
+        when:
+        run 'downloadPoms'
+
+        then:
+        file('build/poms').assertHasDescendants("unique-1.0-SNAPSHOT.pom", "not-unique-1.0-SNAPSHOT.pom")
     }
 
     private MavenModule createModule(MavenRepository repository = mavenHttpRepo, String org, String name, String version, boolean uniqueSnapshot = true) {

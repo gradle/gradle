@@ -19,9 +19,9 @@ package org.gradle.api.internal;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.internal.properties.PropertyVisitor;
 
 import java.io.File;
 import java.util.List;

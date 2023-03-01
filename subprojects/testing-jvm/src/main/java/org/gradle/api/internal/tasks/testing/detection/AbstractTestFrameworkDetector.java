@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -50,8 +49,8 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     private final Map<File, Boolean> superClasses;
     private TestClassProcessor testClassProcessor;
 
-    private Set<File> testClassesDirectories;
-    private Set<File> testClasspath;
+    private List<File> testClassesDirectories;
+    private List<File> testClasspath;
 
     protected AbstractTestFrameworkDetector(ClassFileExtractionManager classFileExtractionManager) {
         assert classFileExtractionManager != null;
@@ -108,12 +107,12 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     }
 
     @Override
-    public void setTestClasses(Set<File> testClassesDirectories) {
+    public void setTestClasses(List<File> testClassesDirectories) {
         this.testClassesDirectories = testClassesDirectories;
     }
 
     @Override
-    public void setTestClasspath(Set<File> testClasspath) {
+    public void setTestClasspath(List<File> testClasspath) {
         this.testClasspath = testClasspath;
     }
 

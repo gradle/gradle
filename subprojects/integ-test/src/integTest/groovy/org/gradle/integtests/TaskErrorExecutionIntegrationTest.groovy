@@ -24,6 +24,9 @@ import org.gradle.test.fixtures.file.TestFile
 class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
         expectReindentedValidationMessage()
+        executer.beforeExecute {
+            withStacktraceEnabled()
+        }
     }
 
     def reportsTaskActionExecutionFailsWithError() {
@@ -146,7 +149,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         fails "someTest"
 
         then:
-        failure.assertHasDescription("Task 'someTest' not found in root project 'test'. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'.")
+        failure.assertHasDescription("Task 'someTest' not found in root project 'test' and its subprojects. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'.")
         failure.assertHasResolutions(
             "Run gradle tasks to get a list of available tasks.",
             "Run with --info or --debug option to get more log output.",
@@ -156,7 +159,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         when:
         fails ":someTest"
         then:
-        failure.assertHasDescription("Task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'.")
+        failure.assertHasDescription("Cannot locate tasks that match ':someTest' as task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'.")
         failure.assertHasResolutions(
             "Run gradle tasks to get a list of available tasks.",
             "Run with --info or --debug option to get more log output.",
@@ -166,9 +169,83 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         when:
         fails "a:someTest"
         then:
-        failure.assertHasDescription("Task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'.")
+        failure.assertHasDescription("Cannot locate tasks that match 'a:someTest' as task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'.")
         failure.assertHasResolutions(
             "Run gradle tasks to get a list of available tasks.",
+            "Run with --info or --debug option to get more log output.",
+            "Run with --scan to get full insights.",
+        )
+    }
+
+    def reportsAmbiguousTask() {
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'a', 'b'
+        """
+        buildFile << """
+            allprojects { task someTaskAll }
+            project(':a') { task someTaskA }
+            project(':b') { task someTaskB }
+        """
+
+        when:
+        fails "soTa"
+        then:
+        failure.assertHasDescription("Task 'soTa' is ambiguous in root project 'test' and its subprojects. Candidates are: 'someTaskA', 'someTaskAll', 'someTaskB'.")
+        failure.assertHasResolutions(
+            "Run gradle tasks to get a list of available tasks.",
+            "Run with --info or --debug option to get more log output.",
+            "Run with --scan to get full insights.",
+        )
+
+        when:
+        fails "a:soTa"
+        then:
+        failure.assertHasDescription("Cannot locate tasks that match 'a:soTa' as task 'soTa' is ambiguous in project ':a'. Candidates are: 'someTaskA', 'someTaskAll'.")
+        failure.assertHasResolutions(
+            "Run gradle tasks to get a list of available tasks.",
+            "Run with --info or --debug option to get more log output.",
+            "Run with --scan to get full insights.",
+        )
+    }
+
+    def reportsUnknownProject() {
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'projA', 'projB'
+        """
+        buildFile << """
+            allprojects { task someTask }
+        """
+
+        when:
+        fails "prog:someTask"
+
+        then:
+        failure.assertHasDescription("Cannot locate tasks that match 'prog:someTask' as project 'prog' not found in root project 'test'. Some candidates are: 'projA', 'projB'.")
+        failure.assertHasResolutions(
+            "Run gradle projects to get a list of available projects.",
+            "Run with --info or --debug option to get more log output.",
+            "Run with --scan to get full insights.",
+        )
+    }
+
+    def reportsAmbiguousProject() {
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'projA', 'projB'
+        """
+        buildFile << """
+            allprojects { task someTask }
+        """
+
+        when:
+        fails "proj:someTask"
+
+        then:
+        failure.assertHasDescription("Cannot locate tasks that match 'proj:someTask' as project 'proj' is ambiguous in root project 'test'. Candidates are: 'projA', 'projB'.")
+        failure.assertHasResolutions(
+            "Run gradle projects to get a list of available projects.",
             "Run with --info or --debug option to get more log output.",
             "Run with --scan to get full insights.",
         )

@@ -316,7 +316,6 @@ Extended Configurations
 
         and:
         doesNotHaveLegacyLegend()
-        doesNotHaveIncubatingLegend()
     }
 
     def "reports resolvable configurations of a Java Library with module dependencies if --all flag is set"() {
@@ -325,6 +324,14 @@ Extended Configurations
             plugins { id 'java-library' }
 
             ${mavenCentralRepository()}
+
+            configurations {
+                archiveLegacy {
+                    description = 'Example legacy configuration.'
+                    canBeConsumed = true
+                    canBeResolved = true
+                }
+            }
 
             dependencies {
                 api 'org.apache.commons:commons-lang3:3.5'
@@ -350,9 +357,9 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration archives (l)
+Configuration archiveLegacy (l)
 --------------------------------------------------
-Configuration for archive artifacts.
+Example legacy configuration.
 
 --------------------------------------------------
 Configuration compileClasspath
@@ -369,14 +376,6 @@ Attributes
 Extended Configurations
     - compileOnly
     - implementation
-
---------------------------------------------------
-Configuration default (l)
---------------------------------------------------
-Configuration for default artifacts.
-
-Extended Configurations
-    - runtimeElements
 
 --------------------------------------------------
 Configuration runtimeClasspath
@@ -441,7 +440,6 @@ Extended Configurations
 
         and:
         hasLegacyLegend()
-        doesNotHaveIncubatingLegend()
     }
 
     def "specifying a missing config with no configs produces empty report"() {
@@ -535,7 +533,6 @@ The following Attributes have compatibility rules defined.
 
         and:
         doesNotHaveLegacyLegend()
-        doesNotHaveIncubatingLegend()
     }
 
     def "disambiguation rules are printed if present"() {
@@ -587,7 +584,129 @@ The following Attributes have disambiguation rules defined.
 
         and:
         doesNotHaveLegacyLegend()
-        doesNotHaveIncubatingLegend()
+    }
+
+    def "disambiguation rules are printed if added to attributes"() {
+        given: "A disambiguation rule applying to the alphabetically first named attribute in the list"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            def flavor = Attribute.of('flavor', String)
+
+            configurations {
+                custom {
+                    description = "My custom configuration"
+                    canBeResolved = true
+                    canBeConsumed = false
+
+                    attributes {
+                        attribute(flavor, 'vanilla')
+                    }
+                }
+            }
+
+            class CategorySelectionRule implements AttributeDisambiguationRule<String> {
+                void execute(MultipleCandidatesDetails<String> details) {
+                    if (details.candidateValues.contains('chocolate')) {
+                        details.closestMatch('chocolate')
+                    }
+                }
+            }
+
+            dependencies.attributesSchema {
+                attribute(flavor) {
+                    disambiguationRules.add(CategorySelectionRule)
+                }
+
+                def usage = getAttributes().find { it.name == 'org.gradle.usage' }
+                setAttributeDisambiguationPrecedence([flavor, usage])
+            }
+        """.stripIndent()
+
+        when:
+        succeeds ':resolvableConfigurations'
+
+        then:
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
+Disambiguation Rules
+--------------------------------------------------
+The following Attributes have disambiguation rules defined.
+
+    - flavor (1)
+    - org.gradle.category
+    - org.gradle.dependency.bundling
+    - org.gradle.jvm.environment
+    - org.gradle.jvm.version
+    - org.gradle.libraryelements
+    - org.gradle.plugin.api-version
+    - org.gradle.usage (2)
+
+(#): Attribute disambiguation precedence""")
+
+        and:
+        doesNotHaveLegacyLegend()
+    }
+
+    def "report prints attribute disambiguation precedence"() {
+        given: "A disambiguation rule applying to the alphabetically first named attribute in the list"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            def flavor = Attribute.of('flavor', String)
+
+            configurations {
+                custom {
+                    description = "My custom configuration"
+                    canBeResolved = true
+                    canBeConsumed = false
+
+                    attributes {
+                        attribute(flavor, 'vanilla')
+                    }
+                }
+            }
+
+            class CategorySelectionRule implements AttributeDisambiguationRule<String> {
+                void execute(MultipleCandidatesDetails<String> details) {
+                    if (details.candidateValues.contains('chocolate')) {
+                        details.closestMatch('chocolate')
+                    }
+                }
+            }
+
+            dependencies.attributesSchema {
+                attribute(flavor) {
+                    disambiguationRules.add(CategorySelectionRule)
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds ':resolvableConfigurations'
+
+        then:
+        result.groupedOutput.task(":resolvableConfigurations").assertOutputContains("""--------------------------------------------------
+Disambiguation Rules
+--------------------------------------------------
+The following Attributes have disambiguation rules defined.
+
+    - flavor
+    - org.gradle.category (1)
+    - org.gradle.dependency.bundling (5)
+    - org.gradle.jvm.environment (6)
+    - org.gradle.jvm.version (3)
+    - org.gradle.libraryelements (4)
+    - org.gradle.plugin.api-version
+    - org.gradle.usage (2)
+
+(#): Attribute disambiguation precedence""")
+
+        and:
+        doesNotHaveLegacyLegend()
     }
 
     def "specifying --recursive includes transitively extended configurations"() {

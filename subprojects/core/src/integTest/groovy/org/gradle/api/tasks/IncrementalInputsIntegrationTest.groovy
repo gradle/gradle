@@ -16,56 +16,316 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 import org.gradle.work.Incremental
 import spock.lang.Issue
 
-class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrationTest {
+class IncrementalInputsIntegrationTest extends AbstractIntegrationSpec {
 
-    String getTaskAction() {
+    def setup() {
+        setupTaskSources()
+        buildFile << """
+    task incremental(type: IncrementalTask) {
+        inputDir = project.mkdir('inputs')
+        outputDir = project.mkdir('outputs')
+        prop = 'foo'
+    }
+"""
+        file('inputs/file0.txt') << "inputFile0"
+        file('inputs/file1.txt') << "inputFile1"
+        file('inputs/file2.txt') << "inputFile2"
+
+        file('outputs/file1.txt') << "outputFile1"
+        file('outputs/file2.txt') << "outputFile2"
+    }
+
+    void setupTaskSources(String inputDirAnnotation = "@${Incremental.simpleName}") {
+        file("buildSrc/src/main/groovy/BaseIncrementalTask.groovy").text = """
+    import org.gradle.api.*
+    import org.gradle.api.file.*
+    import org.gradle.api.plugins.*
+    import org.gradle.api.tasks.*
+    import org.gradle.api.tasks.incremental.*
+    import org.gradle.work.*
+
+    abstract class BaseIncrementalTask extends DefaultTask {
+        ${inputDirAnnotation}
+        @InputDirectory
+        abstract DirectoryProperty getInputDir()
+
+        @Optional
+        @OutputFile
+        abstract RegularFileProperty getOutputFile()
+
+        @TaskAction
+        $taskAction
+
+        def touchOutputs() {
+        }
+
+        def createOutputsNonIncremental() {
+        }
+
+        @Internal
+        def addedFiles = []
+        @Internal
+        def modifiedFiles = []
+        @Internal
+        def removedFiles = []
+        @Internal
+        def incrementalExecution
+    }
         """
-            void execute(InputChanges inputChanges) {
-                assert !(inputChanges instanceof ExtensionAware)
+        file("buildSrc/src/main/groovy/IncrementalTask.groovy").text = """
+    import org.gradle.api.*
+    import org.gradle.api.plugins.*
+    import org.gradle.api.tasks.*
+    import org.gradle.api.tasks.incremental.*
 
-                if (System.getProperty('forceFail')) {
-                    throw new RuntimeException('failed')
-                }
+    abstract class IncrementalTask extends BaseIncrementalTask {
+        @Input
+        def String prop
 
-                incrementalExecution = inputChanges.incremental
+        @OutputDirectory
+        def File outputDir
 
-                inputChanges.getFileChanges(inputDir).each { change ->
-                    switch (change.changeType) {
-                        case ChangeType.ADDED:
-                            addedFiles << change.file
-                            break
-                        case ChangeType.MODIFIED:
-                            modifiedFiles << change.file
-                            break
-                        case ChangeType.REMOVED:
-                            removedFiles << change.file
-                            break
-                        default:
-                            throw new IllegalStateException()
-                    }
-                }
+        @Override
+        def createOutputsNonIncremental() {
+            new File(outputDir, 'file1.txt').text = 'outputFile1'
+            new File(outputDir, 'file2.txt').text = 'outputFile2'
+        }
 
-                if (!inputChanges.incremental) {
-                    createOutputsNonIncremental()
-                }
+        @Override
+        def touchOutputs() {
+            outputDir.eachFile {
+                it << "more content"
+            }
+        }
+    }
+"""
+    }
 
-                touchOutputs()
+    def "incremental task is informed that all input files are 'out-of-date' when run for the first time"() {
+        expect:
+        executesNonIncrementally()
+    }
+
+    def "incremental task is skipped when run with no changes since last execution"() {
+        given:
+        previousExecution()
+
+        when:
+        run "incremental"
+
+        then:
+        skipped(":incremental")
+    }
+
+    def "incremental task is informed of 'out-of-date' files when input file modified"() {
+        given:
+        previousExecution()
+
+        when:
+        file('inputs/file1.txt') << "changed content"
+
+        then:
+        executesIncrementally(modified: ['file1.txt'])
+    }
+
+    def "incremental task is informed of 'out-of-date' files when input file added"() {
+        given:
+        previousExecution()
+
+        when:
+        file('inputs/file3.txt') << "file3 content"
+
+        then:
+        executesIncrementally(added: ['file3.txt'])
+    }
+
+    def "incremental task is informed of 'out-of-date' files when input file removed"() {
+        given:
+        previousExecution()
+
+        when:
+        file('inputs/file2.txt').delete()
+
+        then:
+        executesIncrementally(removed: ['file2.txt'])
+    }
+
+    def "incremental task is informed of 'out-of-date' files when all input files removed"() {
+        given:
+        previousExecution()
+
+        when:
+        file('inputs/file0.txt').delete()
+        file('inputs/file1.txt').delete()
+        file('inputs/file2.txt').delete()
+
+        then:
+        executesIncrementally(removed: ['file0.txt', 'file1.txt', 'file2.txt'])
+    }
+
+    def "incremental task is informed of 'out-of-date' files with added, removed and modified files"() {
+        given:
+        previousExecution()
+
+        when:
+        file('inputs/file1.txt') << "changed content"
+        file('inputs/file2.txt').delete()
+        file('inputs/file3.txt') << "new file 3"
+        file('inputs/file4.txt') << "new file 4"
+
+        then:
+        executesIncrementally(
+            modified: ['file1.txt'],
+            removed: ['file2.txt'],
+            added: ['file3.txt', 'file4.txt']
+        )
+    }
+
+    def "incremental task is informed of 'out-of-date' files when task has no declared outputs or properties"() {
+        given:
+        buildFile.text = """
+    task incremental(type: BaseIncrementalTask) {
+        inputDir = project.mkdir('inputs')
+    }
+"""
+        and:
+        previousExecution()
+
+        when:
+        file('inputs/file3.txt') << "file3 content"
+
+        then:
+        executesIncrementally(added: ['file3.txt'])
+    }
+
+    def "incremental task is informed that all input files are 'out-of-date' when input property has changed"() {
+        given:
+        previousExecution()
+
+        when:
+        buildFile << "incremental.prop = 'changed'"
+
+        then:
+        executesNonIncrementally()
+    }
+
+    def "incremental task is informed that all input files are 'out-of-date' when input file property has been removed"() {
+        given:
+        buildFile << """
+            if (file('new-input.txt').exists()) {
+                incremental.inputs.file('new-input.txt')
             }
         """
+        def toBeRemovedInputFile = file('new-input.txt')
+        toBeRemovedInputFile.text = "to be removed input file"
+        previousExecution()
+
+        when:
+        toBeRemovedInputFile.delete()
+
+        then:
+        executesNonIncrementally()
     }
 
-    @Override
-    ChangeTypeInternal getRebuildChangeType() {
-        return ChangeTypeInternal.ADDED
+    def "incremental task is informed that all input files are 'out-of-date' when task class has changed"() {
+        given:
+        previousExecution()
+
+        when:
+        buildFile.text = """
+    abstract class IncrementalTask2 extends BaseIncrementalTask {}
+    task incremental(type: IncrementalTask2) {
+        inputDir = project.mkdir('inputs')
+    }
+"""
+
+        then:
+        executesNonIncrementally()
     }
 
-    @Override
-    String getPrimaryInputAnnotation() {
-        return "@${Incremental.simpleName}"
+    def "incremental task is informed that all input files are 'out-of-date' when output directory is changed"() {
+        given:
+        previousExecution()
+
+        when:
+        buildFile << "incremental.outputDir = project.mkdir('new-outputs')"
+
+        then:
+        executesNonIncrementally()
+    }
+
+    def "incremental task is informed that all input files are 'out-of-date' when output file has changed"() {
+        given:
+        previousExecution()
+
+        when:
+        file("outputs/file1.txt") << "further change"
+
+        then:
+        executesNonIncrementally()
+    }
+
+    def "incremental task is informed that all input files are 'out-of-date' when output file has been removed"() {
+        given:
+        previousExecution()
+
+        when:
+        file("outputs/file1.txt").delete()
+
+        then:
+        executesNonIncrementally()
+    }
+
+    def "incremental task is informed that all input files are 'out-of-date' when all output files have been removed"() {
+        given:
+        previousExecution()
+
+        when:
+        file("outputs").deleteDir()
+
+        then:
+        executesNonIncrementally()
+    }
+
+    def "incremental task is informed that all input files are 'out-of-date' when Task.upToDate() is false"() {
+        given:
+        previousExecution()
+
+        when:
+        buildFile << "incremental.outputs.upToDateWhen { false }"
+
+        then:
+        executesNonIncrementally()
+    }
+
+    def "incremental task is informed that all input files are 'out-of-date' when gradle is executed with --rerun-tasks"() {
+        given:
+        previousExecution()
+
+        when:
+        executer.withArgument("--rerun-tasks")
+
+        then:
+        executesNonIncrementally()
+    }
+
+    def "incremental task is informed of 'out-of-date' files since previous successful execution"() {
+        given:
+        previousExecution()
+
+        and:
+        file('inputs/file1.txt') << "changed content"
+
+        when:
+        failedExecution()
+
+        then:
+        executesIncrementally(modified: ['file1.txt'])
     }
 
     def "incremental task is executed non-incrementally when input file property has been added"() {
@@ -542,5 +802,84 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         type                   | annotation      | getter         | setter
         'DirectoryProperty'    | OutputDirectory | 'get().asFile' | 'set'
         'ConfigurableFileTree' | OutputFiles     | 'dir'          | 'from'
+    }
+
+    def previousExecution() {
+        run "incremental"
+    }
+
+    def failedExecution() {
+        executer.withArgument("-DforceFail=yep")
+        assert fails("incremental")
+        executer.withArguments()
+    }
+
+    void executesIncrementally(Map changes) {
+        executesIncrementalTask(incremental: true, *:changes)
+    }
+
+    void executesNonIncrementally(List<String> rebuiltFiles = ['file0.txt', 'file1.txt', 'file2.txt']) {
+        executesIncrementalTask(
+            incremental: false,
+            (rebuildChangeType.name().toLowerCase(Locale.US)): rebuiltFiles
+        )
+    }
+
+    ChangeTypeInternal getRebuildChangeType() {
+        return ChangeTypeInternal.ADDED
+    }
+
+    void executesIncrementalTask(Map options) {
+        boolean incremental = options.incremental != false
+        List<String> added = options.added ?: []
+        List<String> modified = options.modified ?: []
+        List<String> removed = options.removed ?: []
+
+        succeeds("incremental")
+        outputContains("incremental=$incremental")
+        outputContains("added=$added")
+        outputContains("modified=$modified")
+        outputContains("removed=$removed")
+    }
+
+    String getTaskAction() {
+        """
+            void execute(InputChanges inputChanges) {
+                assert !(inputChanges instanceof ExtensionAware)
+
+                if (System.getProperty('forceFail')) {
+                    throw new RuntimeException('failed')
+                }
+
+                incrementalExecution = inputChanges.incremental
+
+                inputChanges.getFileChanges(inputDir).each { change ->
+                    switch (change.changeType) {
+                        case ChangeType.ADDED:
+                            addedFiles << change.file
+                            break
+                        case ChangeType.MODIFIED:
+                            modifiedFiles << change.file
+                            break
+                        case ChangeType.REMOVED:
+                            removedFiles << change.file
+                            break
+                        default:
+                            throw new IllegalStateException()
+                    }
+                }
+
+                println "incremental=" + incrementalExecution
+                println "added=" + addedFiles*.name
+                println "modified=" + modifiedFiles*.name
+                println "removed=" + removedFiles*.name
+
+                if (!inputChanges.incremental) {
+                    createOutputsNonIncremental()
+                }
+
+                touchOutputs()
+            }
+        """
     }
 }

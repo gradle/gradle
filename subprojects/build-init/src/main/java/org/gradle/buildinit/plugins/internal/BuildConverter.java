@@ -19,6 +19,7 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 
 /**
  * Converts some existing build to a Gradle build.
@@ -31,5 +32,5 @@ public interface BuildConverter extends BuildInitializer {
 
     String getSourceBuildDescription();
 
-    void configureClasspath(ProjectInternal.DetachedResolver detachedResolver, ObjectFactory objects);
+    void configureClasspath(ProjectInternal.DetachedResolver detachedResolver, ObjectFactory objects, JvmEcosystemUtilities jvmEcosystemUtilities);
 }

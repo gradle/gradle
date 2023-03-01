@@ -29,6 +29,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
+
 public class TaskNameResolver {
 
     /**
@@ -120,7 +122,7 @@ public class TaskNameResolver {
     private void collectTaskNames(ProjectInternal project, Set<String> result) {
         discoverTasks(project);
         result.addAll(getTaskNames(project));
-        for (Project subProject : project.getChildProjects().values()) {
+        for (Project subProject : getChildProjectsForInternalUse(project)) {
             collectTaskNames((ProjectInternal) subProject, result);
         }
     }
@@ -180,7 +182,7 @@ public class TaskNameResolver {
                     return;
                 }
             }
-            for (Project subProject : project.getChildProjects().values()) {
+            for (Project subProject : getChildProjectsForInternalUse(project)) {
                 collect((ProjectInternal) subProject, tasks);
             }
         }

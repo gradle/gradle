@@ -313,6 +313,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         public void realize() {
             if (cache == null) {
                 ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(delegate.size());
+                // Collect elements discarding potential side effects aggregated in the returned value
                 super.collectInto(builder);
                 cache = new ArrayList<>(builder.build());
                 cache.removeAll(removedValues);

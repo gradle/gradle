@@ -18,6 +18,7 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
+import org.gradle.initialization.ClassLoaderScopeOrigin;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
@@ -48,10 +49,10 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     private ClassLoader effectiveLocalClassLoader;
     private ClassLoader effectiveExportClassLoader;
 
-    public DefaultClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
-        super(id, classLoaderCache, listener);
+    public DefaultClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, @Nullable ClassLoaderScopeOrigin origin, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
+        super(id, origin, classLoaderCache, listener);
         this.parent = parent;
-        listener.childScopeCreated(parent.getId(), id);
+        listener.childScopeCreated(parent.getId(), id, origin);
     }
 
     private ClassLoader loader(ClassLoaderId id, ClassLoader parent, ClassPath classPath, @Nullable List<ClassLoader> additionalLoaders) {
@@ -232,7 +233,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     @Override
     public void onReuse() {
         parent.onReuse();
-        listener.childScopeCreated(parent.getId(), id);
+        listener.childScopeCreated(parent.getId(), id, origin);
         if (!export.isEmpty()) {
             listener.classloaderCreated(this.id, id.exportId(), effectiveExportClassLoader, export, null);
         }

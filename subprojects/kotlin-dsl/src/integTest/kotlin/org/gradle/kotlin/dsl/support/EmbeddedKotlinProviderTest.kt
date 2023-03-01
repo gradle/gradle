@@ -44,24 +44,22 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
         withBuildScript(
             """
+            buildscript {
+                $repositoriesBlock
+                dependencies {
+                    classpath("org.jetbrains.kotlin:kotlin-stdlib:1.7.22")
+                    classpath("org.jetbrains.kotlin:kotlin-reflect:1.7.22")
+                }
+            }
             plugins {
-                kotlin("jvm") version "1.4.20"
+                kotlin("jvm") version "1.7.22"
             }
             """
         )
 
-        // Remove this when we are using a Kotlin version later than 1.6.10, so we can use 1.6.10 above.
-        executer.expectDocumentedDeprecationWarning(
-            "IncrementalTaskInputs has been deprecated. " +
-                "This is scheduled to be removed in Gradle 8.0. " +
-                "On method 'AbstractKotlinCompile.execute' use 'org.gradle.work.InputChanges' instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"
-        )
-        executer.withFullDeprecationStackTraceEnabled()
         val result = build("buildEnvironment")
-
         listOf("stdlib", "reflect").forEach { module ->
-            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.4.20 -> $embeddedKotlinVersion"))
+            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.7.22 -> $embeddedKotlinVersion"))
         }
     }
 

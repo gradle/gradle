@@ -17,22 +17,78 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.model.ObjectFactory;
 
 import java.io.File;
+import java.util.Objects;
 
 public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
 
+    public static class Key implements JavaToolchainSpecInternal.Key {
+
+        private final File javaHome;
+
+        public Key(File javaHome) {
+            this.javaHome = javaHome;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            Key key = (Key) o;
+            return Objects.equals(javaHome, key.javaHome);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(javaHome);
+        }
+    }
+
     private final File javaHome;
 
-    public SpecificInstallationToolchainSpec(ObjectFactory factory, File javaHome) {
+    private SpecificInstallationToolchainSpec(ObjectFactory factory, File javaHome) {
         super(factory);
         this.javaHome = javaHome;
+
+        // disallow changing property values
+        finalizeProperties();
+    }
+
+    public static SpecificInstallationToolchainSpec fromJavaHome(ObjectFactory objectFactory, File javaHome) {
+        if (javaHome.exists()) {
+            if (javaHome.isDirectory()) {
+                return new SpecificInstallationToolchainSpec(objectFactory, javaHome);
+            } else {
+                throw new InvalidUserDataException("The configured Java home is not a directory (" + javaHome.getAbsolutePath() + ")");
+            }
+        } else {
+            throw new InvalidUserDataException("The configured Java home does not exist (" + javaHome.getAbsolutePath() + ")");
+        }
+    }
+
+    public static SpecificInstallationToolchainSpec fromJavaExecutable(ObjectFactory objectFactory, String executable) {
+        return new SpecificInstallationToolchainSpec(objectFactory, JavaExecutableUtils.resolveJavaHomeOfExecutable(executable));
+    }
+
+    @Override
+    public Key toKey() {
+        return new Key(javaHome);
     }
 
     @Override
     public boolean isConfigured() {
+        return true;
+    }
+
+    @Override
+    public boolean isValid() {
         return true;
     }
 
@@ -46,19 +102,7 @@ public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        SpecificInstallationToolchainSpec that = (SpecificInstallationToolchainSpec) o;
-        return Objects.equal(javaHome, that.javaHome);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(javaHome);
+    public String toString() {
+        return getDisplayName();
     }
 }

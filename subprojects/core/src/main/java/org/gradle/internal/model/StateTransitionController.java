@@ -67,6 +67,17 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
     }
 
+    public void restart(T target, Runnable action) {
+        synchronizer.withLock(() -> {
+            action.run();
+            state = new InState<>(displayName, target, null);
+        });
+    }
+
+    public boolean isInStateOrLater(T expected) {
+        return state.hasSeenStateIgnoringTransitions(expected);
+    }
+
     /**
      * Verifies that the current state is the given state or some later state. Ignores any transition in progress and failures of previous operations.
      *

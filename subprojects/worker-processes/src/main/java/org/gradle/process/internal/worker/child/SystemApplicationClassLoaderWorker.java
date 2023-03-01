@@ -17,24 +17,18 @@
 package org.gradle.process.internal.worker.child;
 
 import org.gradle.api.Action;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.remote.MessagingClient;
 import org.gradle.internal.remote.ObjectConnection;
-import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
-import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
 import org.gradle.internal.remote.services.MessagingServices;
-import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -50,12 +44,12 @@ import org.gradle.process.internal.health.memory.OsMemoryInfo;
 import org.gradle.process.internal.worker.WorkerJvmMemoryInfoSerializer;
 import org.gradle.process.internal.worker.WorkerLoggingSerializer;
 import org.gradle.process.internal.worker.WorkerProcessContext;
+import org.gradle.process.internal.worker.messaging.WorkerConfig;
+import org.gradle.process.internal.worker.messaging.WorkerConfigSerializer;
 
-import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -83,22 +77,14 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
             return null;
         }
 
-        Decoder decoder = new InputStreamBackedDecoder(configInputStream);
+        WorkerConfig config = new WorkerConfigSerializer().read(new InputStreamBackedDecoder(configInputStream));
 
         // Read logging config and setup logging
-        int logLevel = decoder.readSmallInt();
         LoggingServiceRegistry loggingServiceRegistry = LoggingServiceRegistry.newEmbeddableLogging();
-        LoggingManagerInternal loggingManager = createLoggingManager(loggingServiceRegistry).setLevelInternal(LogLevel.values()[logLevel]);
+        LoggingManagerInternal loggingManager = createLoggingManager(loggingServiceRegistry).setLevelInternal(config.getLogLevel());
 
-        // Read whether process info should be published
-        boolean shouldPublishJvmMemoryInfo = decoder.readBoolean();
-
-        // Read path to Gradle user home
-        String gradleUserHomeDirPath = decoder.readString();
-        File gradleUserHomeDir = new File(gradleUserHomeDirPath);
-
-        // Read server address and start connecting
-        MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);
+        // Configure services
+        File gradleUserHomeDir = new File(config.getGradleUserHomeDirPath());
         NativeServices.initializeOnWorker(gradleUserHomeDir);
         DefaultServiceRegistry basicWorkerServices = new DefaultServiceRegistry(NativeServices.getInstance(), loggingServiceRegistry);
         basicWorkerServices.add(ExecutorFactory.class, new DefaultExecutorFactory());
@@ -112,25 +98,19 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         PrintUnrecoverableErrorToFileHandler unrecoverableErrorHandler = new PrintUnrecoverableErrorToFileHandler(errorLog);
 
         ObjectConnection connection = null;
-
         try {
-            // Read serialized worker details
-            final long workerId = decoder.readSmallLong();
-            final String displayName = decoder.readString();
-            byte[] serializedWorker = decoder.readBinary();
-            Action<WorkerProcessContext> workerAction = deserializeWorker(serializedWorker);
-
-            connection = basicWorkerServices.get(MessagingClient.class).getConnection(serverAddress);
+            // Read server address and start connecting
+            connection = basicWorkerServices.get(MessagingClient.class).getConnection(config.getServerAddress());
             connection.addUnrecoverableErrorHandler(unrecoverableErrorHandler);
             configureLogging(loggingManager, connection, workerLogEventListener);
             // start logging now that the logging manager is connected
             loggingManager.start();
-            if (shouldPublishJvmMemoryInfo) {
+            if (config.shouldPublishJvmMemoryInfo()) {
                 configureWorkerJvmMemoryInfoEvents(workerServices, connection);
             }
 
-            ActionExecutionWorker worker = new ActionExecutionWorker(workerAction);
-            worker.execute(new ContextImpl(workerId, displayName, connection, workerServices));
+            ActionExecutionWorker worker = new ActionExecutionWorker(config.getWorkerAction());
+            worker.execute(new ContextImpl(config.getWorkerId(), config.getDisplayName(), connection, workerServices));
         } finally {
             try {
                 loggingManager.removeOutputEventListener(workerLogEventListener);
@@ -143,19 +123,6 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         }
 
         return null;
-    }
-
-    private Action<WorkerProcessContext> deserializeWorker(byte[] serializedWorker) {
-        Action<WorkerProcessContext> action;
-        try {
-            ObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), getClass().getClassLoader());
-            @SuppressWarnings("unchecked")
-            Action<WorkerProcessContext> deserializedAction = (Action<WorkerProcessContext>) instr.readObject();
-            action = deserializedAction;
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-        return action;
     }
 
     private File getLastResortErrorLogFile(File workingDirectory) {

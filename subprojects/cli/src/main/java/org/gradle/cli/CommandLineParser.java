@@ -193,6 +193,9 @@ public class CommandLineParser {
 
             lines.put(key, value);
         }
+        // The "--" delimiter isn't an option, but it's useful to print it in the usage message anyway.
+        lines.put("--", "Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.");
+
         int max = 0;
         for (String optionStr : lines.keySet()) {
             max = Math.max(max, optionStr.length());
@@ -442,7 +445,7 @@ public class CommandLineParser {
         @Override
         public ParserState onComplete() {
             if (getHasArgument() && values.isEmpty()) {
-                throw new CommandLineArgumentException(String.format("No argument was provided for command-line option '%s'.", optionString));
+                throw new CommandLineArgumentException(String.format("No argument was provided for command-line option '%s' with description: '%s'", optionString, option.getDescription()));
             }
 
             ParsedCommandLineOption parsedOption = commandLine.addOption(optionString.option, option);

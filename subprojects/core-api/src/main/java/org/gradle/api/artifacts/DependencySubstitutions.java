@@ -147,16 +147,7 @@ public interface DependencySubstitutions {
         Substitution withoutArtifactSelectors();
 
         /**
-         * Specify the target of the substitution.
-         *
-         * @deprecated Use {@link #using(ComponentSelector)} instead. This method will be removed in Gradle 8.0.
-         */
-        @Deprecated
-        void with(ComponentSelector notation);
-
-
-        /**
-         * Specify the target of the substitution. This is a replacement for the {@link #with(ComponentSelector)}
+         * Specify the target of the substitution. This is a replacement for the prior {@code #with(ComponentSelector)}
          * method which supports chaining.
          *
          * @since 6.6

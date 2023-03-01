@@ -45,7 +45,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
-import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
+import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -88,13 +88,16 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
     private final DependencyVerificationOverride dependencyVerificationOverride;
     private final WorkerLeaseService workerLeaseService;
 
+    private final boolean selectFromAllVariants;
+
     // Selected for the configuration
     private SelectedArtifactResults artifactsForThisConfiguration;
     private DependencyVerificationException dependencyVerificationException;
 
-    public DefaultLenientConfiguration(ConfigurationInternal configuration, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransforms artifactTransforms, BuildOperationExecutor buildOperationExecutor, DependencyVerificationOverride dependencyVerificationOverride, WorkerLeaseService workerLeaseService) {
+    public DefaultLenientConfiguration(ConfigurationInternal configuration, boolean selectFromAllVariants, Set<UnresolvedDependency> unresolvedDependencies, VisitedArtifactsResults artifactResults, VisitedFileDependencyResults fileDependencyResults, TransientConfigurationResultsLoader transientConfigurationResultsLoader, ArtifactTransforms artifactTransforms, BuildOperationExecutor buildOperationExecutor, DependencyVerificationOverride dependencyVerificationOverride, WorkerLeaseService workerLeaseService) {
         this.configuration = configuration;
         this.implicitAttributes = configuration.getAttributes().asImmutable();
+        this.selectFromAllVariants = selectFromAllVariants;
         this.unresolvedDependencies = unresolvedDependencies;
         this.artifactResults = artifactResults;
         this.fileDependencyResults = fileDependencyResults;
@@ -107,23 +110,23 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
 
     private SelectedArtifactResults getSelectedArtifacts() {
         if (artifactsForThisConfiguration == null) {
-            artifactsForThisConfiguration = artifactResults.select(Specs.satisfyAll(), artifactTransforms.variantSelector(implicitAttributes, false, configuration.getDependenciesResolver()));
+            artifactsForThisConfiguration = artifactResults.selectLenient(Specs.satisfyAll(), artifactTransforms.variantSelector(implicitAttributes, false, selectFromAllVariants, configuration.getDependenciesResolver()));
         }
         return artifactsForThisConfiguration;
     }
 
     public SelectedArtifactSet select() {
-        return select(Specs.satisfyAll(), implicitAttributes, Specs.satisfyAll(), false);
+        return select(Specs.satisfyAll(), implicitAttributes, Specs.satisfyAll(), false, selectFromAllVariants);
     }
 
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec) {
-        return select(dependencySpec, implicitAttributes, Specs.satisfyAll(), false);
+        return select(dependencySpec, implicitAttributes, Specs.satisfyAll(), false, selectFromAllVariants);
     }
 
     @Override
-    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariants) {
-        VariantSelector selector = artifactTransforms.variantSelector(requestedAttributes, allowNoMatchingVariants, configuration.getDependenciesResolver());
-        SelectedArtifactResults artifactResults = this.artifactResults.select(componentSpec, selector);
+    public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec, final AttributeContainerInternal requestedAttributes, final Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
+        VariantSelector selector = artifactTransforms.variantSelector(requestedAttributes, allowNoMatchingVariants, selectFromAllVariants, configuration.getDependenciesResolver());
+        SelectedArtifactResults artifactResults = this.artifactResults.selectLenient(componentSpec, selector);
 
         return new SelectedArtifactSet() {
             @Override

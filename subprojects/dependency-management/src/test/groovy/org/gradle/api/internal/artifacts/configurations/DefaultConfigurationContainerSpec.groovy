@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations
 
+import org.gradle.api.Action
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
@@ -31,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.specs.Spec
@@ -72,8 +74,9 @@ class DefaultConfigurationContainerSpec extends Specification {
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
 
-    private CollectionCallbackActionDecorator domainObjectCollectionCallbackActionDecorator = Mock() {
+    private CollectionCallbackActionDecorator domainObjectCollectionCallbackActionDecorator = Mock(CollectionCallbackActionDecorator) {
         decorateSpec(_) >> { Spec spec -> spec }
+        decorate(_ as Action) >> { it[0] }
     }
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
     private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
@@ -84,6 +87,8 @@ class DefaultConfigurationContainerSpec extends Specification {
         resolver,
         listenerManager,
         metaDataProvider,
+        componentIdentifierFactory,
+        dependencyLockingProvider,
         domainObjectContext,
         fileCollectionFactory,
         buildOperationExecutor,
@@ -94,7 +99,8 @@ class DefaultConfigurationContainerSpec extends Specification {
         projectStateRegistry,
         Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
-        calculatedValueContainerFactory
+        calculatedValueContainerFactory,
+        TestFiles.taskDependencyFactory()
     )
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
         instantiator,

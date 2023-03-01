@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.idea.model;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 
@@ -37,7 +38,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * }
  * </pre>
  */
-public class IdeaWorkspace {
+public abstract class IdeaWorkspace {
 
     private XmlFileContentMerger iws;
 
@@ -59,7 +60,7 @@ public class IdeaWorkspace {
      * <p>
      * For example see docs for {@link IdeaWorkspace}
      */
-    public void iws(Closure closure) {
+    public void iws(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
         configure(closure, iws);
     }
 

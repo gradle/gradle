@@ -30,27 +30,27 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.Cast;
+import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
+import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -61,6 +61,7 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
+import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.util.internal.IncubationLogger;
@@ -71,6 +72,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -79,6 +81,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static org.gradle.internal.execution.ExecutionEngine.Execution;
 
 public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static String SUPPORTED_PROJECT_NAMES = "[a-zA-Z]([A-Za-z0-9\\-_])*";
@@ -92,10 +96,13 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final ClassPath classPath;
     private final DependenciesAccessorsWorkspaceProvider workspace;
     private final DefaultProjectDependencyFactory projectDependencyFactory;
-    private final FeaturePreviews featurePreviews;
+    private final FeatureFlags featureFlags;
     private final ExecutionEngine engine;
     private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
+    private final ImmutableAttributesFactory attributesFactory;
+    private final CapabilityNotationParser capabilityNotationParser;
+
     private final List<DefaultVersionCatalog> models = Lists.newArrayList();
     private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = Maps.newHashMap();
 
@@ -107,17 +114,22 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     public DefaultDependenciesAccessors(ClassPathRegistry registry,
                                         DependenciesAccessorsWorkspaceProvider workspace,
                                         DefaultProjectDependencyFactory projectDependencyFactory,
-                                        FeaturePreviews featurePreview,
+                                        FeatureFlags featureFlags,
                                         ExecutionEngine engine,
                                         FileCollectionFactory fileCollectionFactory,
-                                        InputFingerprinter inputFingerprinter) {
+                                        InputFingerprinter inputFingerprinter,
+                                        ImmutableAttributesFactory attributesFactory,
+                                        CapabilityNotationParser capabilityNotationParser
+    ) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
         this.projectDependencyFactory = projectDependencyFactory;
-        this.featurePreviews = featurePreview;
+        this.featureFlags = featureFlags;
         this.engine = engine;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
+        this.attributesFactory = attributesFactory;
+        this.capabilityNotationParser = capabilityNotationParser;
     }
 
     @Override
@@ -136,7 +148,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                     }
                 }
             }
-            if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
+            if (featureFlags.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
                 IncubationLogger.incubatingFeatureUsed("Type-safe project accessors");
                 writeProjectAccessors(((SettingsInternal) settings).getProjectRegistry());
             }
@@ -170,7 +182,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     private void executeWork(UnitOfWork work) {
         ExecutionEngine.Result result = engine.createRequest(work).execute();
-        ExecutionResult er = result.getExecutionResult().get();
+        Execution er = result.getExecution().get();
         GeneratedAccessors accessors = (GeneratedAccessors) er.getOutput();
         ClassPath generatedClasses = DefaultClassPath.of(accessors.classesDir);
         sources = sources.plus(DefaultClassPath.of(accessors.sourcesDir));
@@ -214,7 +226,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     }
 
     @Nullable
-    private <T> Class<? extends T> loadFactory(ClassLoaderScope classLoaderScope, String className) {
+    private static <T> Class<? extends T> loadFactory(ClassLoaderScope classLoaderScope, String className) {
         Class<? extends T> clazz;
         try {
             clazz = Cast.uncheckedCast(classLoaderScope.getExportClassLoader().loadClass(className));
@@ -233,26 +245,59 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 ImmutableMap.Builder<String, VersionCatalog> catalogs = ImmutableMap.builderWithExpectedSize(models.size());
                 for (DefaultVersionCatalog model : models) {
                     if (model.isNotEmpty()) {
-                        Class<? extends ExternalModuleDependencyFactory> factory;
-                        synchronized (this) {
-                            factory = factories.computeIfAbsent(model.getName(), n -> loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME_PREFIX + StringUtils.capitalize(n)));
-                        }
+                        Class<? extends ExternalModuleDependencyFactory> factory = loadVersionCatalogFactoryClass(accessorClassNameSuffix(model));
                         if (factory != null) {
                             container.create(model.getName(), factory, model);
-                            catalogs.put(model.getName(), new VersionCatalogView(model, providerFactory));
+                            catalogs.put(model.getName(), new VersionCatalogView(model, providerFactory, project.getObjects(), attributesFactory, capabilityNotationParser));
                         }
                     }
                 }
                 container.create(VersionCatalogsExtension.class, "versionCatalogs", DefaultVersionCatalogsExtension.class, catalogs.build());
             }
         } finally {
-            if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
+            if (featureFlags.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
                 ServiceRegistry services = project.getServices();
                 DependencyResolutionManagementInternal drm = services.get(DependencyResolutionManagementInternal.class);
                 ProjectFinder projectFinder = services.get(ProjectFinder.class);
                 createProjectsExtension(container, drm, projectFinder);
             }
         }
+    }
+
+    private String accessorClassNameSuffix(DefaultVersionCatalog model) {
+        return StringUtils.capitalize(model.getName());
+    }
+
+    @Override
+    public Map<String, ExternalModuleDependencyFactory> createPluginsBlockFactories(ObjectFactory objects) {
+        if (!models.isEmpty()) {
+            ImmutableMap.Builder<String, ExternalModuleDependencyFactory> catalogs = ImmutableMap.builderWithExpectedSize(models.size());
+            for (DefaultVersionCatalog model : models) {
+                if (model.isNotEmpty()) {
+                    Class<? extends ExternalModuleDependencyFactory> factory = loadVersionCatalogFactoryClass(pluginsBlockAccessorClassNameSuffix(model));
+                    if (factory != null) {
+                        catalogs.put(model.getName(), objects.newInstance(factory, model));
+                    }
+                }
+            }
+            return catalogs.build();
+        }
+        return Collections.emptyMap();
+    }
+
+    private String pluginsBlockAccessorClassNameSuffix(DefaultVersionCatalog model) {
+        return accessorClassNameSuffix(model) + IN_PLUGINS_BLOCK_FACTORIES_SUFFIX;
+    }
+
+    @Nullable
+    private Class<? extends ExternalModuleDependencyFactory> loadVersionCatalogFactoryClass(String accessorsClassnameSuffix) {
+        Class<? extends ExternalModuleDependencyFactory> factory;
+        synchronized (this) {
+            factory = factories.computeIfAbsent(accessorsClassnameSuffix, n ->
+                loadFactory(classLoaderScope, ACCESSORS_PACKAGE + "." + ACCESSORS_CLASSNAME_PREFIX + accessorsClassnameSuffix)
+            );
+        }
+        return factory;
     }
 
     private void createProjectsExtension(ExtensionContainer container, DependencyResolutionManagementInternal drm, ProjectFinder projectFinder) {
@@ -318,13 +363,13 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
                 @Override
                 public Object getOutput() {
-                    return loadRestoredOutput(workspace);
+                    return loadAlreadyProducedOutput(workspace);
                 }
             };
         }
 
         @Override
-        public Object loadRestoredOutput(File workspace) {
+        public Object loadAlreadyProducedOutput(File workspace) {
             File srcDir = new File(workspace, OUT_SOURCES);
             File dstDir = new File(workspace, OUT_CLASSES);
             return new GeneratedAccessors(srcDir, dstDir);
@@ -338,7 +383,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         private void visitOutputDir(OutputVisitor visitor, File workspace, String propertyName) {
             File dir = new File(workspace, propertyName);
-            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, dir, fileCollectionFactory.fixed(dir));
+            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, OutputFileValueSupplier.fromStatic(dir, fileCollectionFactory.fixed(dir)));
         }
     }
 
@@ -358,7 +403,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         protected List<ClassSource> getClassSources() {
-            return Collections.singletonList(new DependenciesAccessorClassSource(model.getName(), model));
+            return Arrays.asList(
+                new DependenciesAccessorClassSource(model.getName(), model),
+                new PluginsBlockDependenciesAccessorClassSource(model.getName(), model)
+            );
         }
 
         @Override
@@ -368,10 +416,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
             visitor.visitInputProperty(IN_PLUGINS, model::getPluginAliases);
             visitor.visitInputProperty(IN_MODEL_NAME, model::getName);
-            visitor.visitInputFileProperty(IN_CLASSPATH, InputPropertyType.NON_INCREMENTAL,
-                new FileValueSupplier(
+            visitor.visitInputFileProperty(IN_CLASSPATH, InputBehavior.NON_INCREMENTAL,
+                new InputFileValueSupplier(
                     classPath,
-                    ClasspathNormalizer.class,
+                    InputNormalizer.RUNTIME_CLASSPATH,
                     DirectorySensitivity.IGNORE_DIRECTORIES,
                     LineEndingSensitivity.DEFAULT,
                     () -> fileCollectionFactory.fixed(classPath.getAsFiles())));
@@ -455,6 +503,33 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         public String getSource() {
             StringWriter writer = new StringWriter();
             LibrariesSourceGenerator.generateSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName());
+            return writer.toString();
+        }
+    }
+
+    private static class PluginsBlockDependenciesAccessorClassSource implements ClassSource {
+        private final String name;
+        private final DefaultVersionCatalog model;
+
+        private PluginsBlockDependenciesAccessorClassSource(String name, DefaultVersionCatalog model) {
+            this.name = name;
+            this.model = model;
+        }
+
+        @Override
+        public String getPackageName() {
+            return ACCESSORS_PACKAGE;
+        }
+
+        @Override
+        public String getSimpleClassName() {
+            return ACCESSORS_CLASSNAME_PREFIX + StringUtils.capitalize(name) + IN_PLUGINS_BLOCK_FACTORIES_SUFFIX;
+        }
+
+        @Override
+        public String getSource() {
+            StringWriter writer = new StringWriter();
+            LibrariesSourceGenerator.generatePluginsBlockSource(writer, model, ACCESSORS_PACKAGE, getSimpleClassName());
             return writer.toString();
         }
     }

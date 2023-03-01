@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
+
 @NonNullApi
 public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
     private Map<String, Boolean> projectOpenStatus;
@@ -81,7 +83,7 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
         EclipseModelBuilder.ClasspathElements elements = EclipseModelBuilder.gatherClasspathElements(projectOpenStatus, eclipseClasspath, false);
         List<TaskDependency> buildDependencies = new ArrayList<>(elements.getBuildDependencies());
 
-        for (Project childProject : project.getChildProjects().values()) {
+        for (Project childProject : getChildProjectsForInternalUse(project)) {
             buildDependencies.addAll(populate(childProject));
         }
         return buildDependencies;

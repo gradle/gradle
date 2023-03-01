@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.tasks.TaskDependency;
@@ -28,7 +29,8 @@ public class DerivedIvyArtifact extends AbstractIvyArtifact {
     private final IvyArtifact original;
     private final PublicationInternal.DerivedArtifact derived;
 
-    public DerivedIvyArtifact(IvyArtifact original, PublicationInternal.DerivedArtifact derived) {
+    public DerivedIvyArtifact(IvyArtifact original, PublicationInternal.DerivedArtifact derived, TaskDependencyFactory taskDependencyFactory) {
+        super(taskDependencyFactory);
         this.original = original;
         this.derived = derived;
     }

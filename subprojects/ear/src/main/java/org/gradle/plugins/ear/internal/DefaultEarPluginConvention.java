@@ -31,7 +31,7 @@ import java.io.File;
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
 @Deprecated
-public class DefaultEarPluginConvention extends org.gradle.plugins.ear.EarPluginConvention implements HasPublicType {
+public abstract class DefaultEarPluginConvention extends org.gradle.plugins.ear.EarPluginConvention implements HasPublicType {
     private ObjectFactory objectFactory;
 
     private DeploymentDescriptor deploymentDescriptor;

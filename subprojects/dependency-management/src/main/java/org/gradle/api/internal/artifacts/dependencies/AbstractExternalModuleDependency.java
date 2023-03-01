@@ -26,14 +26,12 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 
 public abstract class AbstractExternalModuleDependency extends AbstractModuleDependency implements ExternalModuleDependency {
     private final ModuleIdentifier moduleIdentifier;
     private boolean changing;
-    private boolean force;
     private final DefaultMutableVersionConstraint versionConstraint;
 
     public AbstractExternalModuleDependency(ModuleIdentifier module, String version, @Nullable String configuration) {
@@ -45,8 +43,8 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
     }
 
-    public AbstractExternalModuleDependency(ModuleIdentifier module, MutableVersionConstraint version) {
-        super(null);
+    public AbstractExternalModuleDependency(ModuleIdentifier module, MutableVersionConstraint version, @Nullable String configuration) {
+        super(configuration);
         if (module == null) {
             throw new InvalidUserDataException("Module must not be null!");
         }
@@ -56,7 +54,6 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
 
     protected void copyTo(AbstractExternalModuleDependency target) {
         super.copyTo(target);
-        DeprecationLogger.whileDisabled(() -> target.setForce(isForce()));
         target.setChanging(isChanging());
     }
 
@@ -64,8 +61,8 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         if (!isCommonContentEquals(dependencyRhs)) {
             return false;
         }
-        return force == dependencyRhs.isForce() && changing == dependencyRhs.isChanging() &&
-            Objects.equal(getVersionConstraint(), dependencyRhs.getVersionConstraint());
+        return changing == dependencyRhs.isChanging() &&
+                Objects.equal(getVersionConstraint(), dependencyRhs.getVersionConstraint());
     }
 
     @Override
@@ -90,22 +87,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
 
     @Override
     public boolean isForce() {
-        return force;
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public ExternalModuleDependency setForce(boolean force) {
-        validateMutation(this.force, force);
-        if (force) {
-            DeprecationLogger.deprecate("Using force on a dependency")
-                .withAdvice("Consider using strict version constraints instead (version { strictly ... } }).")
-                .willBeRemovedInGradle8()
-                .withUpgradeGuideSection(5, "forced_dependencies")
-                .nagUser();
-        }
-        this.force = force;
-        return this;
+        return false; // Enforced Platforms no longer mark force, so there is no way for a dependency to be forced (configurations and resolution strategies are used instead)
     }
 
     @Override

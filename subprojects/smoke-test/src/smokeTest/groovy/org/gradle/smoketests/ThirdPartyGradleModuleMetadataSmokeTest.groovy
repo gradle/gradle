@@ -18,23 +18,39 @@ package org.gradle.smoketests
 
 import groovy.json.JsonSlurper
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+/**
+ * JDK11 or later since AGP 7.x requires Java11
+ */
+@Requires(TestPrecondition.JDK11_OR_LATER)
 class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
+    @Override
+    SmokeTestGradleRunner runner(String... tasks) {
+        def runner = super.runner(tasks)
+        // TODO: AGP's ShaderCompile uses Task.project after the configuration barrier to compute inputs
+        // TODO: KGP's kotlin2js compilation uses Task.project.objects from a provider
+        // TODO: KGP's KotlinNativeCompile uses Task.project.buildLibDirectories to compute a Classpath property
+        // TODO: KGP's TransformKotlinGranularMetadata uses Task.project for computing an input
+        runner.withJvmArguments(runner.jvmArguments + [
+            "-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true"
+        ])
+        return runner
+    }
     /**
      * Everything is done in one test to save execution time.
      * Running the producer build takes ~2min.
      */
-    @ToBeFixedForConfigurationCache
     def 'produces expected metadata and can be consumed'() {
         given:
         BuildResult result
         useSample("gmm-example")
-        def kotlinVersion = TestedVersions.kotlin.latestStartsWith("1.4")
-        def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("4.2")
+        def kotlinVersion = TestedVersions.kotlin.latestStartsWith("1.7.10")
+        def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("7.3")
         def arch = OperatingSystem.current().macOsX ? 'MacosX64' : 'LinuxX64'
 
         def expectedMetadata = new File(testProjectDir, 'expected-metadata')
@@ -119,23 +135,26 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
     private static SmokeTestGradleRunner setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(SmokeTestGradleRunner runner) {
         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
             // https://youtrack.jetbrains.com/issue/KT-44266#focus=Comments-27-4639508.0-0
-            runner.withJvmArguments("-Dkotlin.daemon.jvm.options=" +
-                "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED," +
-                "--add-opens=java.base/java.util=ALL-UNNAMED")
+            runner.withJvmArguments(runner.jvmArguments + [
+                "-Dkotlin.daemon.jvm.options=" +
+                    "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED," +
+                    "--add-opens=java.base/java.util=ALL-UNNAMED"
+            ])
         }
         return runner
     }
 
+    private static SmokeTestGradleRunner expectingDeprecations(SmokeTestGradleRunner runner, String kotlinVersion, String agpVersion) {
+        return runner.deprecations(KotlinPluginSmokeTest.KotlinDeprecations) {
+            expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+        }
+    }
+
     private BuildResult publish(String kotlinVersion, String agpVersion) {
-        return setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner('publish'))
+        return setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(expectingDeprecations(runner('publish'), kotlinVersion, agpVersion))
             .withProjectDir(new File(testProjectDir, 'producer'))
             .forwardOutput()
-            .deprecations(KotlinMultiPlatformDeprecations) {
-                expectKotlinJsCompileDestinationDirPropertyDeprecation(kotlinVersion)
-                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "projectNativeLibs")
-                expectKotlinIncrementalTaskInputsDeprecation(kotlinVersion)
-                expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
-            }.build()
+            .build()
     }
 
     private BuildResult consumer(String runTask) {
@@ -151,7 +170,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
             .withProjectDir(new File(testProjectDir, 'consumer'))
             .forwardOutput()
         if (JavaVersion.current().isJava9Compatible()) {
-            runner.withJvmArguments("--add-opens", "java.base/java.io=ALL-UNNAMED")
+            runner.withJvmArguments(runner.jvmArguments + ["--add-opens", "java.base/java.io=ALL-UNNAMED"])
         }
         return runner.build()
     }
@@ -171,19 +190,11 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         moduleRoot.variants.each { it.files.each { it.sha1 = '' } }
         moduleRoot.variants.each { it.files.each { it.md5 = '' } }
 
-        if (metadataFileName.endsWith('-metadata-1.0.module')) {
-            // bug in Kotlin metadata module publishing - wrong coordinates (ignored by Gradle)
-            // https://youtrack.jetbrains.com/issue/KT-36494
-            moduleRoot.component.module = ''
-            moduleRoot.component.url = ''
+        if (metadataFileName.startsWith('kotlin-multiplatform') && !OperatingSystem.current().isMacOsX()) {
+            // MacOS lib cannot be built on other platforms, so kotlin plugin won't add `artifactType` there
+            moduleRoot.variants.findAll { it.attributes["org.jetbrains.kotlin.native.target"] == "macos_x64" }.each { it.attributes.remove("artifactType") }
         }
 
         moduleRoot
-    }
-
-    static class KotlinMultiPlatformDeprecations extends BaseDeprecations implements WithKotlinDeprecations, WithAndroidDeprecations {
-        KotlinMultiPlatformDeprecations(SmokeTestGradleRunner runner) {
-            super(runner)
-        }
     }
 }

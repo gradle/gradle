@@ -26,11 +26,11 @@ abstract class AdHocPerformanceScenario(os: Os, arch: Arch = Arch.AMD64) : Build
 
     params {
         text(
-            "baselines",
-            "defaults",
+            "performance.baselines",
+            "",
             display = ParameterDisplay.PROMPT,
-            allowEmpty = false,
-            description = "The baselines you want to compare against. Can be a Gradle version number. Use force-defaults to not use the commit distribution as a baseline on a branch other than master or release."
+            allowEmpty = true,
+            description = "The baselines you want to run performance tests against. Empty means default baseline."
         )
         text(
             "testProject",
@@ -84,10 +84,9 @@ abstract class AdHocPerformanceScenario(os: Os, arch: Arch = Arch.AMD64) : Build
             gradleParams = (
                 performanceTestCommandLine(
                     "clean performance:%testProject%PerformanceAdHocTest --tests \"%scenario%\"",
-                    "%baselines%",
+                    "%performance.baselines%",
                     """--warmups %warmups% --runs %runs% --checks %checks% --channel %channel% --profiler %profiler% %additional.gradle.parameters%""",
                     os,
-                    Arch.AMD64,
                     "%testJavaVersion%",
                     "%testJavaVendor%",
                 ) + buildToolGradleParameters(isContinue = false)

@@ -44,14 +44,10 @@ public class TestSelectionMatcher {
     private final List<TestPattern> buildScriptExcludePatterns;
     private final List<TestPattern> commandLineIncludePatterns;
 
-    public TestSelectionMatcher(
-        Collection<String> includedTests,
-        Collection<String> excludedTests,
-        Collection<String> includedTestsCommandLine
-    ) {
-        buildScriptIncludePatterns = preparePatternList(includedTests);
-        buildScriptExcludePatterns = preparePatternList(excludedTests);
-        commandLineIncludePatterns = preparePatternList(includedTestsCommandLine);
+    public TestSelectionMatcher(TestFilterSpec filter) {
+        buildScriptIncludePatterns = preparePatternList(filter.getIncludedTests());
+        buildScriptExcludePatterns = preparePatternList(filter.getExcludedTests());
+        commandLineIncludePatterns = preparePatternList(filter.getIncludedTestsCommandLine());
     }
 
     private List<TestPattern> preparePatternList(Collection<String> includedTests) {

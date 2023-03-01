@@ -21,21 +21,38 @@ import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.configurationcache.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.initialization.DefaultConfigurationCacheProblemsListener
 import org.gradle.configurationcache.initialization.VintageInjectedClasspathInstrumentationStrategy
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
+import org.gradle.configurationcache.problems.DefaultProblemFactory
 import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
-import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
+import org.gradle.configurationcache.services.VintageEnvironmentChangeTracker
+import org.gradle.execution.selection.BuildTaskSelector
+import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.buildoption.DefaultInternalOptions
+import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
+import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
+import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.util.internal.IncubationLogger
 
 
 class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices {
+    companion object {
+        private
+        val parallelBuilding = InternalFlag("org.gradle.internal.tooling.parallel", true)
+
+        private
+        val invalidateCoupledProjects = InternalFlag("org.gradle.internal.invalidate-coupled-projects", true)
+    }
+
     override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {
         val startParameter = requirements.startParameter
 
@@ -46,9 +63,10 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             }
         }
 
+        val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         val isolatedProjects = startParameter.isolatedProjects.get()
-        val parallelToolingActions = (isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled) && isNotDisabled(requirements, "org.gradle.internal.tooling.parallel")
-        val invalidateCoupledProjects = isolatedProjects && isNotDisabled(requirements, "org.gradle.internal.invalidate-coupled-projects")
+        val parallelToolingActions = (isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled) && options.getOption(parallelBuilding).get()
+        val invalidateCoupledProjects = isolatedProjects && options.getOption(invalidateCoupledProjects).get()
         val modelParameters = if (requirements.isCreatesModel) {
             // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
             BuildModelParameters(isolatedProjects, isolatedProjects, isolatedProjects, true, isolatedProjects, parallelToolingActions, invalidateCoupledProjects)
@@ -76,10 +94,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         }
     }
 
-    private
-    fun isNotDisabled(requirements: BuildActionModelRequirements, systemPropertyName: String) =
-        !"false".equals(requirements.startParameter.systemPropertiesArgs.get(systemPropertyName), true)
-
     override fun servicesForNestedBuildTree(startParameter: StartParameterInternal): BuildTreeModelControllerServices.Supplier {
         return BuildTreeModelControllerServices.Supplier { registration ->
             registration.add(BuildType::class.java, BuildType.TASKS)
@@ -95,19 +109,38 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         registration.add(BuildModelParameters::class.java, modelParameters)
         registration.add(BuildActionModelRequirements::class.java, requirements)
         if (modelParameters.isConfigurationCache) {
-            registration.add(EnvironmentChangeTracker::class.java)
             registration.add(ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)
             registration.add(ConfigurationCacheStartParameter::class.java)
             registration.add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             registration.add(ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
+            registration.add(ConfigurationCacheEnvironmentChangeTracker::class.java)
+            registration.add(DefaultConfigurationCacheProblemsListener::class.java)
+            registration.add(DefaultProblemFactory::class.java)
             registration.add(ConfigurationCacheProblems::class.java)
             registration.add(DefaultConfigurationCache::class.java)
             registration.add(BeanStateWriterLookup::class.java)
             registration.add(BeanStateReaderLookup::class.java)
             registration.add(JavaSerializationEncodingLookup::class.java)
+            registration.addProvider(ConfigurationCacheBuildTreeProvider())
         } else {
             registration.add(VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(VintageBuildTreeLifecycleControllerFactory::class.java)
+            registration.add(VintageEnvironmentChangeTracker::class.java)
+            registration.addProvider(VintageBuildTreeProvider())
+        }
+    }
+
+    private
+    class ConfigurationCacheBuildTreeProvider {
+        fun createBuildTreeWorkGraphPreparer(buildRegistry: BuildStateRegistry, buildTaskSelector: BuildTaskSelector, cache: BuildTreeConfigurationCache): BuildTreeWorkGraphPreparer {
+            return ConfigurationCacheAwareBuildTreeWorkGraphPreparer(DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector), cache)
+        }
+    }
+
+    private
+    class VintageBuildTreeProvider {
+        fun createBuildTreeWorkGraphPreparer(buildRegistry: BuildStateRegistry, buildTaskSelector: BuildTaskSelector): BuildTreeWorkGraphPreparer {
+            return DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector)
         }
     }
 }

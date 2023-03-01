@@ -430,6 +430,7 @@ public class Maven2Gradle {
         String encoding = (String) project.getProperties().get("project.build.sourceEncoding");
         if (StringUtils.isNotEmpty(encoding)) {
             builder.taskPropertyAssignment(null, "JavaCompile", "options.encoding", encoding);
+            builder.taskPropertyAssignment(null, "Javadoc", "options.encoding", encoding);
         }
     }
 

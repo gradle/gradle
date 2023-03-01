@@ -18,11 +18,13 @@ package org.gradle.plugins.ide
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.http.HttpArtifact
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.testing.fixture.GroovyCoverage
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
@@ -32,7 +34,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
     @Rule
     HttpServer server
 
-    String groovyVersion = "3.0.10"
+    String groovyVersion = GroovyCoverage.CURRENT_STABLE
 
     def setup() {
         server.start()
@@ -116,11 +118,13 @@ dependencies {
         and:
         module.pom.expectGet()
         module.artifact.expectGet()
+
+        sourceArtifact.expectHead()
         sourceArtifact.expectGetBroken()
+
+        javadocArtifact.expectHead()
         javadocArtifact.expectGetBroken()
 
-        expectBehaviorAfterBrokenMavenArtifact(sourceArtifact)
-        expectBehaviorAfterBrokenMavenArtifact(javadocArtifact)
 
         then:
         succeeds ideTask
@@ -265,9 +269,6 @@ dependencies {
         sourceArtifact.expectGetBroken()
         javadocArtifact.expectGetBroken()
 
-        expectBehaviorAfterBrokenIvyArtifact(sourceArtifact)
-        expectBehaviorAfterBrokenIvyArtifact(javadocArtifact)
-
         then:
         succeeds ideTask
         ideFileContainsNoSourcesAndJavadocEntry()
@@ -357,6 +358,7 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache
+    @Requires(TestPrecondition.STABLE_GROOVY) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
@@ -392,6 +394,7 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache
+    @Requires(TestPrecondition.STABLE_GROOVY) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached when using gradleApi()"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
@@ -416,6 +419,7 @@ dependencies {
 
     @ToBeFixedForConfigurationCache
     @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(TestPrecondition.STABLE_GROOVY) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached when using gradleTestKit()"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
@@ -487,6 +491,7 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache
+    @Requires(TestPrecondition.STABLE_GROOVY) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "does not add project repository to download localGroovy() sources"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
@@ -596,8 +601,9 @@ eclipse {
 }
 
 task resolve {
+    def runtimeClasspath = configurations.runtimeClasspath
     doLast {
-        configurations.runtimeClasspath.each { println it }
+        runtimeClasspath.each { println it }
     }
 }
 """
@@ -615,7 +621,5 @@ task resolve {
 
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
 
-    abstract void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact)
 
-    abstract void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact)
 }

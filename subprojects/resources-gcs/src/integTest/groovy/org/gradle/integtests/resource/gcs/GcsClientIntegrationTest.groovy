@@ -20,7 +20,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.storage.Storage
 import com.google.api.services.storage.model.StorageObject
 import org.apache.commons.io.IOUtils
@@ -48,7 +48,7 @@ class GcsClientIntegrationTest extends Specification {
         File file = temporaryFolder.createFile(FILE_NAME)
         file << fileContents
 
-        Storage.Builder builder = new Storage.Builder(new NetHttpTransport(), new JacksonFactory(), null)
+        Storage.Builder builder = new Storage.Builder(new NetHttpTransport(), new GsonFactory(), null)
         builder.setRootUrl(server.uri.toString())
         builder.setServicePath("/")
 
@@ -91,9 +91,9 @@ class GcsClientIntegrationTest extends Specification {
     def "should interact with real Gcs"() {
         String bucketName = System.getenv('G_GCS_BUCKET')
         def transport = new NetHttpTransport()
-        def jacksonFactory = new JacksonFactory()
-        Storage.Builder builder = new Storage.Builder(transport, jacksonFactory, null)
-        GoogleCredential googleCredential = GoogleCredential.getApplicationDefault(transport, jacksonFactory)
+        def jsonFactory = new GsonFactory()
+        Storage.Builder builder = new Storage.Builder(transport, jsonFactory, null)
+        GoogleCredential googleCredential = GoogleCredential.getApplicationDefault(transport, jsonFactory)
         builder.setHttpRequestInitializer(new HttpRequestInitializer() {
             @Override
             void initialize(HttpRequest request) throws IOException {

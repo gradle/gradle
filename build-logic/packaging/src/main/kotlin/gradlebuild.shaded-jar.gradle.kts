@@ -15,6 +15,8 @@
  */
 
 import gradlebuild.basics.classanalysis.Attributes
+import gradlebuild.capitalize
+import gradlebuild.decapitalize
 import gradlebuild.shade.ArtifactTypes.buildReceiptType
 import gradlebuild.shade.ArtifactTypes.classTreesType
 import gradlebuild.shade.ArtifactTypes.entryPointsType
@@ -52,10 +54,10 @@ fun registerTransforms() {
                 .attribute(Attributes.minified, true)
             to.attribute(Attributes.artifactType, relocatedClassesAndAnalysisType)
             parameters {
-                shadowPackage.set("org.gradle.internal.impldep")
-                keepPackages.set(shadedJarExtension.keepPackages)
-                unshadedPackages.set(shadedJarExtension.unshadedPackages)
-                ignoredPackages.set(shadedJarExtension.ignoredPackages)
+                shadowPackage = "org.gradle.internal.impldep"
+                keepPackages = shadedJarExtension.keepPackages
+                unshadedPackages = shadedJarExtension.unshadedPackages
+                ignoredPackages = shadedJarExtension.ignoredPackages
             }
         }
 
@@ -97,7 +99,7 @@ fun addShadedJarTask(): TaskProvider<ShadedJar> {
     val configurationToShade = shadedJarExtension.shadedConfiguration
 
     return tasks.register("${project.name.kebabToCamel()}ShadedJar", ShadedJar::class) {
-        jarFile.set(layout.buildDirectory.file(provider { "shaded-jar/${moduleIdentity.baseName.get()}-shaded-${moduleIdentity.version.get().baseVersion.version}.jar" }))
+        jarFile = layout.buildDirectory.file(provider { "shaded-jar/${moduleIdentity.baseName.get()}-shaded-${moduleIdentity.version.get().baseVersion.version}.jar" })
         classTreesConfiguration.from(configurationToShade.artifactViewForType(classTreesType))
         entryPointsConfiguration.from(configurationToShade.artifactViewForType(entryPointsType))
         relocatedClassesConfiguration.from(configurationToShade.artifactViewForType(relocatedClassesType))
@@ -185,6 +187,6 @@ fun Configuration.artifactViewForType(artifactTypeName: String) = incoming.artif
     attributes.attribute(Attributes.artifactType, artifactTypeName)
 }.files
 
-fun String.kebabToPascal() = split("-").map { it.capitalize() }.joinToString("")
+fun String.kebabToPascal() = split("-").joinToString("") { it.capitalize() }
 
 fun String.kebabToCamel() = kebabToPascal().decapitalize()

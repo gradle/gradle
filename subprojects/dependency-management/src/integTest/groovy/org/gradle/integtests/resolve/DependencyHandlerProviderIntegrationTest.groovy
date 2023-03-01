@@ -17,10 +17,10 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
+
 /**
  * Tests covering the use of {@link org.gradle.api.provider.Provider} as an argument in the
  * {@link org.gradle.api.artifacts.dsl.DependencyHandler} block.
@@ -68,7 +68,6 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "works correctly with up-to-date checking"() {
         given:
         mavenHttpRepo.module("group", "projectA", "1.1").publish()
@@ -88,9 +87,10 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
 
         task resolve {
             inputs.files(configurations.conf)
-            outputs.file("out.txt")
+            def outFile = file("out.txt")
+            outputs.file(outFile)
             doLast {
-               file("out.txt") << 'Hello'
+               outFile << 'Hello'
             }
         }
 
@@ -148,8 +148,9 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
         }
 
         task resolve {
+            def files = configurations.conf
             doLast {
-                 configurations.conf.resolve()
+                 files*.name
             }
         }
         """

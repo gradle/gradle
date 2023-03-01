@@ -98,7 +98,12 @@ The following types/formats are supported:
 
             ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
             failure.assertHasDescription("Execution failed for task ':copy'.")
-            failure.assertHasCause("Cannot fingerprint input file property 'rootSpec\$1': java.nio.file.AccessDeniedException: ${dir}")
+            failure.assertHasDocumentedCause("Cannot access input property 'rootSpec\$1' of task ':copy'. " +
+                "Accessing unreadable inputs or outputs is not supported. " +
+                "Declare the task as untracked by using Task.doNotTrackState(). " +
+                "See https://docs.gradle.org/current/userguide/incremental_build.html#disable-state-tracking for more details."
+            )
+            failure.assertHasCause("java.nio.file.AccessDeniedException: ${dir}")
         } finally {
             dir.permissions = oldPermissions
         }

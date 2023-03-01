@@ -16,23 +16,111 @@
 
 package org.gradle.tooling;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
+import java.util.Collection;
+
 /**
- * Provides test selection from a specific test task.
+ * Provides infrastructure to select which test classes, methods, and packages will be included in the test execution.
+ * <p>
+ * A complex example:
+ * <pre>
+ * TestLauncher testLauncher = projectConnection.newTestLauncher();
+ * testLauncher.withTestsFor(specs -&gt; {
+ *     specs.forTaskPath(":test")                                    // configure the test selection on the ':test' task
+ *          .includePackage("org.pkg")                               // execute all tests declared the org.pkg package and its sub-packages
+ *          .includeClass("com.MyTest")                              // execute the MyTest test class
+ *          .includeMethod("com.OtherTest", Arrays.asList("verify")) // execute the OtherTest.verify() test method
+ *          .includePattern("io.*")                                  // execute all tests matching to io.*
+ * }).run();
+ * </pre>
+ * <p>
+ * All methods on this interface (including the class and method selection) support patterns as arguments. The patterns follow the rules of
+ * <a href="https://docs.gradle.org/current/userguide/java_testing.html#test_filtering">test filtering</a>.
+ * <p>
+ * The test execution will fail if any of the selected classes, methods, or patters have no matching tests.
  *
- * @see TestLauncher#withTestsFor(Action)
  * @since 7.6
  */
 @Incubating
 public interface TestSpec {
 
     /**
-     * Creates a new test selection for the target task.
+     * Adds all tests declared in the target package to the test execution.
+     * <p>
+     * The effect is recursive, meaning that the tests defined in sub-packages will also be executed.
      *
-     * @param taskPath The target task.
-     * @return A new test selection.
+     * @param pkg The target package.
+     * @return this
      */
-    TestPatternSpec forTaskPath(String taskPath);
+    TestSpec includePackage(String pkg);
+
+    /**
+     * Adds all tests declared in the target packages to the test execution.
+     *
+     * @see #includePackage(String)
+     * @param packages The target packages.
+     * @return this
+     */
+    TestSpec includePackages(Collection<String> packages);
+
+    /**
+     * Adds the target test class to the test execution.
+     * <p>
+     * The target class should be selected with its fully-qualified name.
+     *
+     * @param cls The fully-qualified name of the target class.
+     * @return this
+     */
+    TestSpec includeClass(String cls);
+
+    /**
+     * Adds the target test classes to the test execution.
+     *
+     * @see #includeClass(String)
+     * @param classes The fully-qualified name of the target classes.
+     * @return this
+     */
+    TestSpec includeClasses(Collection<String>  classes);
+
+    /**
+     * Adds the target test method to the test execution.
+     * <p>
+     * The target method should be selected with its fully-qualified class name and with the name of the method.
+     *
+     * @param cls The fully-qualified name of the class containing the method.
+     * @param method The name of the target method.
+     * @return this
+     */
+    TestSpec includeMethod(String cls, String method);
+
+    /**
+     * Adds the target test methods to the test execution.
+     *
+     * @see #includeMethod(String, String)
+     * @param cls The fully-qualified name of the class containing the method.
+     * @param methods The name of the target methods.
+     * @return this
+     */
+    TestSpec includeMethods(String cls, Collection<String> methods);
+
+    /**
+     * Adds all test classes and methods to the test execution that matches the target pattern.
+     * <p>
+     * The patterns follow the rules of
+     * <a href="https://docs.gradle.org/current/userguide/java_testing.html#test_filtering">test filtering</a>.
+     *
+     * @param pattern the pattern to select tests.
+     * @return this
+     */
+    TestSpec includePattern(String pattern);
+
+    /**
+     * Adds all test classes and methods to the test execution that matches the target patterns.
+     *
+     * @see #includePattern(String)
+     * @param patterns the patterns to select tests.
+     * @return this
+     */
+    TestSpec includePatterns(Collection<String> patterns);
 }

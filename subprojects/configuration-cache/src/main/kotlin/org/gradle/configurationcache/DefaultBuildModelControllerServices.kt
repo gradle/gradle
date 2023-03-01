@@ -24,12 +24,14 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
+import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
+import org.gradle.api.internal.project.DynamicLookupRoutine
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
-import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.configuration.internal.DynamicCallContextTracker
 import org.gradle.configuration.project.BuildScriptProcessor
 import org.gradle.configuration.project.ConfigureActionsProjectEvaluator
 import org.gradle.configuration.project.DelayedConfigurationActions
@@ -38,12 +40,11 @@ import org.gradle.configuration.project.PluginsProjectConfigureActions
 import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.configurationcache.extensions.get
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
-import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnablement
+import org.gradle.configurationcache.flow.FlowServicesProvider
+import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.configurationcache.services.DefaultEnvironment
-import org.gradle.execution.DefaultTaskSchedulingPreparer
-import org.gradle.execution.ExcludedTaskFilteringProjectsPreparer
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.TaskExecutionPreparer
@@ -73,10 +74,8 @@ class DefaultBuildModelControllerServices(
             registration.add(BuildDefinition::class.java, buildDefinition)
             registration.add(BuildState::class.java, owner)
             registration.addProvider(ServicesProvider(buildDefinition, parentBuild, services))
-            registration.add(DeprecatedFeaturesListenerManagerAction::class.java)
+            registration.addProvider(FlowServicesProvider)
             if (buildModelParameters.isConfigurationCache) {
-                registration.add(ConfigurationCacheBuildEnablement::class.java)
-                registration.add(ConfigurationCacheProblemsListenerManagerAction::class.java)
                 registration.addProvider(ConfigurationCacheBuildControllerProvider())
                 registration.add(ConfigurationCacheEnvironment::class.java)
             } else {
@@ -135,10 +134,9 @@ class DefaultBuildModelControllerServices(
             stateTransitionControllerFactory: StateTransitionControllerFactory
         ): BuildModelController {
             val projectsPreparer: ProjectsPreparer = gradle.services.get()
-            val taskSchedulingPreparer = DefaultTaskSchedulingPreparer(ExcludedTaskFilteringProjectsPreparer(gradle.services.get()))
             val settingsPreparer: SettingsPreparer = gradle.services.get()
             val taskExecutionPreparer: TaskExecutionPreparer = gradle.services.get()
-            return VintageBuildModelController(gradle, projectsPreparer, taskSchedulingPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)
+            return VintageBuildModelController(gradle, projectsPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)
         }
     }
 
@@ -147,11 +145,28 @@ class DefaultBuildModelControllerServices(
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry<ProjectInternal>,
             problemsListener: ProblemsListener,
-            userCodeApplicationContext: UserCodeApplicationContext,
-            listenerManager: ListenerManager
+            problemFactory: ProblemFactory,
+            listenerManager: ListenerManager,
+            dynamicCallProblemReporting: DynamicCallProblemReporting
         ): CrossProjectModelAccess {
             val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry)
-            return ProblemReportingCrossProjectModelAccess(delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), userCodeApplicationContext)
+            return ProblemReportingCrossProjectModelAccess(
+                delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), problemFactory, dynamicCallProblemReporting
+            )
+        }
+
+        fun createDynamicCallProjectIsolationProblemReporting(dynamicCallContextTracker: DynamicCallContextTracker): DynamicCallProblemReporting =
+            DefaultDynamicCallProblemReporting().also { reporting ->
+                dynamicCallContextTracker.onEnter(reporting::enterDynamicCall)
+                dynamicCallContextTracker.onLeave(reporting::leaveDynamicCall)
+            }
+
+        fun createDynamicLookupRoutine(
+            dynamicCallContextTracker: DynamicCallContextTracker,
+            buildModelParameters: BuildModelParameters
+        ): DynamicLookupRoutine = when {
+            buildModelParameters.isIsolatedProjects -> TrackingDynamicLookupRoutine(dynamicCallContextTracker)
+            else -> DefaultDynamicLookupRoutine()
         }
     }
 
@@ -162,6 +177,9 @@ class DefaultBuildModelControllerServices(
         ): CrossProjectModelAccess {
             return DefaultCrossProjectModelAccess(projectRegistry)
         }
+
+        fun createDynamicLookupRoutine(): DynamicLookupRoutine =
+            DefaultDynamicLookupRoutine()
     }
 
     private
@@ -212,7 +230,7 @@ class DefaultBuildModelControllerServices(
             calculatedValueContainerFactory: CalculatedValueContainerFactory,
             provider: LocalComponentProvider,
             otherBuildProvider: LocalComponentInAnotherBuildProvider
-        ): LocalComponentRegistry {
+        ): DefaultLocalComponentRegistry {
             return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, projectStateRegistry, calculatedValueContainerFactory, provider, otherBuildProvider)
         }
     }

@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.internal.validation;
 
-import org.gradle.api.publish.internal.PublicationInternal;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.util.Objects;
 
@@ -25,20 +25,22 @@ import java.util.Objects;
  */
 final class PublicationWithProject {
     private final String projectDisplayText;
-    private final PublicationInternal<?> publication;
+    private final String publicationName;
+    private final ModuleVersionIdentifier coordinates;
 
-    PublicationWithProject(String projectDisplayText, PublicationInternal<?> publication) {
+    public PublicationWithProject(String projectDisplayText, String publicationName, ModuleVersionIdentifier coordinates) {
         this.projectDisplayText = projectDisplayText;
-        this.publication = publication;
+        this.publicationName = publicationName;
+        this.coordinates = coordinates;
     }
 
-    public PublicationInternal<?> getPublication() {
-        return publication;
+    public ModuleVersionIdentifier getCoordinates() {
+        return coordinates;
     }
 
     @Override
     public String toString() {
-        return "'" + publication.getName() + "' in " + projectDisplayText;
+        return "'" + publicationName + "' in " + projectDisplayText;
     }
 
     @Override
@@ -50,11 +52,11 @@ final class PublicationWithProject {
             return false;
         }
         PublicationWithProject that = (PublicationWithProject) o;
-        return Objects.equals(projectDisplayText, that.projectDisplayText) && Objects.equals(publication, that.publication);
+        return Objects.equals(projectDisplayText, that.projectDisplayText) && Objects.equals(publicationName, that.publicationName) && Objects.equals(coordinates, that.coordinates);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(projectDisplayText, publication);
+        return Objects.hash(projectDisplayText, publicationName, coordinates);
     }
 }

@@ -36,14 +36,18 @@ class ZipSlipTest extends Specification {
         !isUnsafeZipEntryName(safePath)
 
         where:
-        unsafePath | safePath
-        "/"        | "foo/"
-        "\\"       | "foo\\"
-        "/foo"     | "foo"
-        "\\foo"    | "foo"
-        "foo/.."   | "foo/bar"
-        "foo\\.."  | "foo\\bar"
-        "C:/foo"   | "foo"
+        unsafePath     | safePath
+        "/"            | "foo/"
+        "\\"           | "foo\\"
+        "/foo"         | "foo"
+        "\\foo"        | "foo"
+        "foo/.."       | "foo/bar"
+        "foo\\.."      | "foo\\bar"
+        "C:/foo"       | "foo"
+        "../foo"       | "..foo"
+        "..\\foo"      | "..foo"
+        "foo/../bar"   | "foo/..bar"
+        "foo\\..\\bar" | "foo\\..bar"
     }
 
     private static boolean isWindows() {

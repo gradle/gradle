@@ -74,7 +74,7 @@ class AntBuilderAwareUtil {
     }
 
     static def assertSetContainsForAllTypes(MinimalFileTree set, Iterable<String> filenames) {
-        assertSetContainsForAllTypes(new FileTreeAdapter(set, TestFiles.patternSetFactory), filenames)
+        assertSetContainsForAllTypes(new FileTreeAdapter(set, TestFiles.taskDependencyFactory(), TestFiles.patternSetFactory), filenames)
     }
 
     static def assertSetContainsForFileSet(FileCollection set, String... filenames) {

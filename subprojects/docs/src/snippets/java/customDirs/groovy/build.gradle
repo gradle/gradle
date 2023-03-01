@@ -52,9 +52,13 @@ reporting.baseDir = "my-reports"
 testResultsDirName = "$buildDir/my-test-results"
 
 tasks.register('showDirs') {
+    def rootDir = project.rootDir
+    def reportsDir = project.reportsDir
+    def testResultsDir = project.testResultsDir
+
     doLast {
-        logger.quiet(rootDir.toPath().relativize(project.reportsDir.toPath()).toString())
-        logger.quiet(rootDir.toPath().relativize(project.testResultsDir.toPath()).toString())
+        logger.quiet(rootDir.toPath().relativize(reportsDir.toPath()).toString())
+        logger.quiet(rootDir.toPath().relativize(testResultsDir.toPath()).toString())
     }
 }
 // end::custom-report-dirs[]

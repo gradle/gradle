@@ -17,12 +17,12 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 
 public class OpaqueComponentIdentifier implements ComponentIdentifier {
-    private final DependencyFactory.ClassPathNotation classPathNotation;
+    private final DependencyFactoryInternal.ClassPathNotation classPathNotation;
 
-    public OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation classPathNotation) {
+    public OpaqueComponentIdentifier(DependencyFactoryInternal.ClassPathNotation classPathNotation) {
         assert classPathNotation != null;
         this.classPathNotation = classPathNotation;
     }
@@ -56,7 +56,7 @@ public class OpaqueComponentIdentifier implements ComponentIdentifier {
         return getDisplayName();
     }
 
-    public DependencyFactory.ClassPathNotation getClassPathNotation() {
+    public DependencyFactoryInternal.ClassPathNotation getClassPathNotation() {
         return classPathNotation;
     }
 }

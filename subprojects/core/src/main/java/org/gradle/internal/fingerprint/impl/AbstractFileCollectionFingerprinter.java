@@ -18,8 +18,8 @@ package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
-import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.execution.FileCollectionFingerprinter;
+import org.gradle.internal.execution.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;

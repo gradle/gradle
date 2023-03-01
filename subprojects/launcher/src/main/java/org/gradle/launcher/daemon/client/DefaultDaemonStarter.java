@@ -21,6 +21,7 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.agents.AgentUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -40,9 +41,10 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecHandle;
+import org.gradle.process.internal.JvmOptions;
+import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
-import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,6 +78,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         ModuleRegistry registry = new DefaultModuleRegistry(gradleInstallation);
         ClassPath classpath;
         List<File> searchClassPath;
+
         if (gradleInstallation == null) {
             // When not running from a Gradle distro, need runtime impl for launcher plus the search path to look for other modules
             classpath = registry.getModule("gradle-launcher").getAllRequiredModulesClasspath();
@@ -91,7 +94,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
         versionValidator.validate(daemonParameters);
 
-        List<String> daemonArgs = new ArrayList<String>();
+        List<String> daemonArgs = new ArrayList<>();
         daemonArgs.addAll(getPriorityArgs(daemonParameters.getPriority()));
         daemonArgs.add(daemonParameters.getEffectiveJvm().getJavaExecutable().getAbsolutePath());
 
@@ -101,8 +104,19 @@ public class DefaultDaemonStarter implements DaemonStarter {
         daemonArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getAsFiles()));
 
         if (Boolean.getBoolean("org.gradle.daemon.debug")) {
-            daemonArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
+            daemonArgs.add(JvmOptions.getDebugArgument(true, true, "5005"));
         }
+
+        ClassPath agentClasspath = registry.getModule(AgentUtils.AGENT_MODULE_NAME).getImplementationClasspath();
+        if (daemonParameters.shouldApplyInstrumentationAgent()) {
+            if (agentClasspath.isEmpty()) {
+                throw new IllegalStateException("Cannot find the agent JAR");
+            }
+            for (File agentJar : agentClasspath.getAsFiles()) {
+                daemonArgs.add("-javaagent:" + agentJar);
+            }
+        }
+
         LOGGER.debug("Using daemon args: {}", daemonArgs);
 
         daemonArgs.add(GradleDaemon.class.getName());

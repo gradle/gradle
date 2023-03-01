@@ -59,7 +59,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         resolveRuntimeArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -68,6 +67,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         javaLibrary(mavenRepo.module("org.test", "qux", "1.0-latest")).withModuleMetadata().publish()
 
         createBuildScripts("""
+
             dependencies {
                 api "org.test:foo:1.0"
                 implementation "org.test:bar:1.0"
@@ -81,6 +81,8 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
                     }
                 }
             }
+
+            ${mavenTestRepository()}
         """)
 
         when:
@@ -657,10 +659,18 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with capability requests"() {
         given:
         createBuildScripts("""
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
+            ${withDocs() ? """tasks.javadoc {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
+            """ : ""}
             dependencies {
                 implementation("org.test:foo:1.0") {
                     capabilities {
@@ -798,9 +808,10 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5034, https://github.com/gradle/gradle/issues/5035")
-    @ToBeFixedForConfigurationCache
     void "configuration exclusions are published in generated POM and Gradle metadata"() {
         given:
+        javaLibrary(mavenRepo.module("org.test", "a", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "b", "2.0")).withModuleMetadata().publish()
         createBuildScripts("""
             configurations {
                 api.exclude(group: "api-group", module: "api-module")
@@ -823,7 +834,9 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                     }
                 }
             }
+            ${mavenTestRepository()}
         """)
+
         settingsFile << """
             include "subproject"
         """
@@ -1004,6 +1017,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                     }
                 }
             }
+            ${mavenTestRepository()}
 """)
 
         when:
@@ -1096,13 +1110,18 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
 
     }
 
-    @ToBeFixedForConfigurationCache
     def 'can publish a java library using a virtual platform by ignoring it explicitly'() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
 
         createBuildScripts("""
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
+
             dependencies {
                 api "org.test:bar:1.0"
                 api platform("org.test:platform:1.0")
@@ -1131,7 +1150,10 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                     }
                 }
             }
+
+            ${mavenTestRepository()}
         """)
+
 
         when:
         run "publish"
@@ -1146,7 +1168,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         // Sadly this does not take care of the Gradle metadata
     }
 
-    @ToBeFixedForConfigurationCache
     def 'can publish java library with a #config dependency on a java-platform subproject"'() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -1179,6 +1200,7 @@ include(':platform')
                     }
                 }
             }
+            ${mavenTestRepository()}
 """)
 
         when:

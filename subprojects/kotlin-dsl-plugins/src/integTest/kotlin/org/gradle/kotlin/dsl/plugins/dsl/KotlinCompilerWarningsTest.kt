@@ -44,7 +44,7 @@ class KotlinCompilerWarningsTest : AbstractPluginTest() {
 
     @Test
     fun `experimental compiler warnings are not shown for known experimental features with allWarningsAsErrors`() {
-        withBuildScriptForKotlinCompile("allWarningsAsErrors = true")
+        withBuildScriptForKotlinCompile("allWarningsAsErrors.set(true)")
         withKotlinSourceFile()
 
         val result = build("compileKotlin")
@@ -79,7 +79,7 @@ class KotlinCompilerWarningsTest : AbstractPluginTest() {
 
     @Test
     fun `compiler warning for an explicitly enabled experimental feature is shown`() {
-        withBuildScriptForKotlinCompile("freeCompilerArgs += listOf(\"$experimentalFeatureToWarnAbout\")")
+        withBuildScriptForKotlinCompile("freeCompilerArgs.add(\"$experimentalFeatureToWarnAbout\")")
         withKotlinSourceFile()
 
         val result = build("compileKotlin")
@@ -93,8 +93,8 @@ class KotlinCompilerWarningsTest : AbstractPluginTest() {
     fun `compiler warning for an explicitly enabled experimental feature is shown with allWarningsAsErrors`() {
         withBuildScriptForKotlinCompile(
             """
-            allWarningsAsErrors = true
-            freeCompilerArgs += listOf("$experimentalFeatureToWarnAbout")
+            allWarningsAsErrors.set(true)
+            freeCompilerArgs.add("$experimentalFeatureToWarnAbout")
         """
         )
         withKotlinSourceFile()
@@ -107,16 +107,16 @@ class KotlinCompilerWarningsTest : AbstractPluginTest() {
     }
 
     private
-    fun withBuildScriptForKotlinCompile(kotlinOptions: String = "", kotlinTaskConfig: String = "") {
+    fun withBuildScriptForKotlinCompile(compilerOptions: String = "", kotlinTaskConfig: String = "") {
         var compileKotlinTaskConfiguration = ""
-        if (kotlinOptions.isNotEmpty() || kotlinTaskConfig.isNotEmpty()) {
+        if (compilerOptions.isNotEmpty() || kotlinTaskConfig.isNotEmpty()) {
             // TODO: why does KotlinCompile task only become visible in forkingIntegTest?
             assumeNonEmbeddedGradleExecuter()
             compileKotlinTaskConfiguration = """
                 tasks.withType<KotlinCompile>().configureEach {
                     $kotlinTaskConfig
-                    kotlinOptions {
-                        $kotlinOptions
+                    compilerOptions {
+                        $compilerOptions
                     }
                 }
             """

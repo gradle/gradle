@@ -19,7 +19,9 @@ package org.gradle.integtests.fixtures.logging;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.integtests.fixtures.executer.LogContent;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -29,6 +31,14 @@ import java.util.stream.Collectors;
 
 /**
  * Parses console output into its pieces for verification in functional tests
+ *
+ * <pre>
+ * then:
+ * executedAndNotSkipped(":compileJava")
+ *
+ * result.groupedOutput.task(":compileJava")
+ *     .assertOutputContains("Compiling with toolchain")
+ * </pre>
  */
 public class GroupedOutputFixture {
     /**
@@ -67,8 +77,8 @@ public class GroupedOutputFixture {
 
     private final LogContent originalOutput;
     private final String strippedOutput;
-    private Map<String, GroupedTaskFixture> tasks;
-    private Map<String, GroupedTransformationFixture> transformations;
+    private Map<String, GroupedTaskOutputFixture> tasks;
+    private Map<String, GroupedTransformationOutputFixture> transformations;
 
     public GroupedOutputFixture(LogContent output) {
         this.originalOutput = output;
@@ -86,7 +96,7 @@ public class GroupedOutputFixture {
         return strippedOutput;
     }
 
-    private void findOutputs(String strippedOutput, Pattern outputPattern, Consumer<Matcher> consumer) {
+    private static void findOutputs(String strippedOutput, Pattern outputPattern, Consumer<Matcher> consumer) {
         Matcher matcher = outputPattern.matcher(strippedOutput);
         while (matcher.find()) {
             consumer.accept(matcher);
@@ -105,7 +115,7 @@ public class GroupedOutputFixture {
         return tasks.containsKey(taskName);
     }
 
-    public GroupedTaskFixture task(String taskName) {
+    public GroupedTaskOutputFixture task(String taskName) {
         boolean foundTask = hasTask(taskName);
 
         if (!foundTask) {
@@ -115,10 +125,47 @@ public class GroupedOutputFixture {
         return tasks.get(taskName);
     }
 
+    /**
+     * Returns grouped output for the given transformer type.
+     */
+    public GroupedTransformationOutputFixture transform(String transformer) {
+        List<GroupedTransformationOutputFixture> foundTransformations = transformations.values().stream()
+            .filter(transformation -> transformation.getTransformer().equals(transformer))
+            .collect(Collectors.toList());
+
+        if (foundTransformations.size() == 0) {
+            throw new AssertionError(String.format("The grouped output for transformation with transformer '%s' could not be found.%nOutput:%n%s", transformer, originalOutput));
+        } else if (foundTransformations.size() > 1) {
+            throw new AssertionError(String.format("Multiple grouped outputs for transformation with transformer '%s' were found. Consider specifying a subject.%nOutput:%n%s", transformer, originalOutput));
+        }
+
+        return foundTransformations.get(0);
+    }
+
+    /**
+     * Returns grouped output for the given transformer type and transformation subject.
+     */
+    public GroupedTransformationOutputFixture transform(String transformer, String subject) {
+        List<GroupedTransformationOutputFixture> foundTransformations = transformations.values().stream()
+            .filter(transformation -> transformation.getTransformer().equals(transformer) && transformation.getSubject().equals(subject))
+            .collect(Collectors.toList());
+
+        if (foundTransformations.size() == 0) {
+            throw new AssertionError(String.format("The grouped output for transformation with transformer '%s' and subject '%s' could not be found.%nOutput:%n%s", transformer, subject, originalOutput));
+        } else if (foundTransformations.size() > 1) {
+            throw new AssertionError(String.format("Multiple grouped outputs for transformation with transformer '%s' and subject '%s' were found.%nOutput:%n%s", transformer, subject, originalOutput));
+        }
+
+        return foundTransformations.get(0);
+    }
+
+    /**
+     * Returns transformation subjects for the given transformer type.
+     */
     public Set<String> subjectsFor(String transformer) {
         return transformations.values().stream()
                 .filter(transformation -> transformation.getTransformer().equals(transformer))
-                .map(transformation -> transformation.getSubject())
+                .map(GroupedTransformationOutputFixture::getSubject)
                 .collect(Collectors.toSet());
     }
 
@@ -126,8 +173,9 @@ public class GroupedOutputFixture {
         return strippedOutput;
     }
 
+    @Override
     public String toString() {
-        return originalOutput.withNormalizedEol();
+        return "Output for tasks: " + Arrays.deepToString(tasks.keySet().stream().sorted().toArray());
     }
 
     private void consumeTaskOutput(Matcher matcher) {
@@ -135,9 +183,9 @@ public class GroupedOutputFixture {
         String taskOutcome = matcher.group(2);
         String taskOutput = StringUtils.strip(matcher.group(3), "\n");
 
-        GroupedTaskFixture task = tasks.get(taskName);
+        GroupedTaskOutputFixture task = tasks.get(taskName);
         if (task == null) {
-            task = new GroupedTaskFixture(taskName);
+            task = new GroupedTaskOutputFixture(taskName);
             tasks.put(taskName, task);
         }
 
@@ -153,9 +201,9 @@ public class GroupedOutputFixture {
 
         String key = initialSubjectType + ";" + subject + ";" + transformer;
 
-        GroupedTransformationFixture transformation = transformations.get(key);
+        GroupedTransformationOutputFixture transformation = transformations.get(key);
         if (transformation == null) {
-            transformation = new GroupedTransformationFixture(initialSubjectType, subject, transformer);
+            transformation = new GroupedTransformationOutputFixture(initialSubjectType, subject, transformer);
             transformations.put(key, transformation);
         }
 

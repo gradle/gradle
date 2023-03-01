@@ -102,7 +102,7 @@ class BuildSrcClassPathModeConfigurationAction : BuildSrcProjectConfigurationAct
 
 
 @CacheableTask
-open class GenerateSourceRootsFile : DefaultTask() {
+abstract class GenerateSourceRootsFile : DefaultTask() {
 
     @get:Input
     val sourceRoots = project.objects.listProperty<String>()

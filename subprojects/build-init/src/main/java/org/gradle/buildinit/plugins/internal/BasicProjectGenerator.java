@@ -61,6 +61,11 @@ public class BasicProjectGenerator implements ProjectGenerator {
     }
 
     @Override
+    public boolean isJvmLanguage() {
+        return false;
+    }
+
+    @Override
     public Set<ModularizationOption> getModularizationOptions() {
         return Collections.singleton(ModularizationOption.SINGLE_PROJECT);
     }

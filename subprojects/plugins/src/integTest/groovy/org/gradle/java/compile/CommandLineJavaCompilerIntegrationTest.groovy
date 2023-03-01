@@ -19,22 +19,21 @@ package org.gradle.java.compile
 
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.internal.TextUtil
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ !Jvm.current().getExecutable("javac").exists() })
 class CommandLineJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
-    def compilerConfiguration() {
-        def javaHome = TextUtil.escapeString(Jvm.current().getJavaHome().getAbsolutePath())
 
+    @Override
+    String compilerConfiguration() {
         """
-compileJava.options.with {
-    fork = true
-    forkOptions.javaHome = file("$javaHome")
-}
-"""
+            compileJava.options.with {
+                fork = true
+                forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(Jvm.current().javaHome.toString())}")
+            }
+        """
     }
 
-    def logStatement() {
+    @Override
+    String logStatement() {
         "Compiling with Java command line compiler"
     }
 }

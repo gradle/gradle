@@ -9,10 +9,6 @@
                 </tr>
             </thead>
             <tr>
-                <td>extension</td>
-                <td><literal>war</literal></td>
-            </tr>
-            <tr>
                 <td>classpath</td>
                 <td><literal>project.sourceSets.main.runtimeClasspath - project.configurations.providedRuntime</literal></td>
             </tr>

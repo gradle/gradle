@@ -4,7 +4,6 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.provider.BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED
-import org.gradle.test.fixtures.Flaky
 import org.gradle.util.Matchers.isEmpty
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.endsWith
@@ -15,8 +14,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
-import org.junit.experimental.categories.Category
-import spock.lang.Issue
 import java.io.File
 import java.util.UUID
 import java.util.regex.Pattern
@@ -659,8 +656,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     }
 
     @Test
-    @Issue("https://github.com/gradle/gradle-private/issues/3496")
-    @Category(Flaky::class)
     fun `recompiles buildscript when not able to determine Kotlin metadata kind for class on buildscript classpath`() {
         givenJavaClassInBuildSrcContains(
             """
@@ -851,7 +846,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     private
     fun configureProjectAndExpectCompileAvoidanceWarnings(vararg tasks: String): BuildOperationsAssertions {
-        ignoreKotlinDaemonJvmDeprecationWarningsOnJdk16()
         val buildOperations = BuildOperationsFixture(executer, testDirectoryProvider)
         val output = executer.withArgument("--info").withTasks(*tasks).run().normalizedOutput
         return BuildOperationsAssertions(buildOperations, output, true)

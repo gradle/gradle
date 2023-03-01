@@ -68,7 +68,6 @@ import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISU
 import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2015;
 import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2017;
 import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2019;
-import static org.gradle.util.TestPrecondition.MAC_OS_X_M1;
 
 public class AvailableToolChains {
     private static final Comparator<ToolChainCandidate> LATEST_RELEASED_FIRST = Collections.reverseOrder(new Comparator<ToolChainCandidate>() {
@@ -114,15 +113,11 @@ public class AvailableToolChains {
      * @return A list of all known tool chains for this platform. Includes those tool chains that are not available on the current machine.
      */
     public static List<ToolChainCandidate> getToolChains() {
-        if (MAC_OS_X_M1.isFulfilled()) {
-            return Collections.emptyList();
-        }
         if (toolChains == null) {
-            List<ToolChainCandidate> compilers = new ArrayList<ToolChainCandidate>();
+            List<ToolChainCandidate> compilers = new ArrayList<>();
             if (OperatingSystem.current().isWindows()) {
                 compilers.addAll(findVisualCpps());
                 compilers.add(findMinGW());
-                compilers.add(findCygwin());
             } else if (OperatingSystem.current().isMacOsX()) {
                 compilers.addAll(findClangs(true));
                 compilers.addAll(findGccs(false));
@@ -746,12 +741,17 @@ public class AvailableToolChains {
         xcodeCandidates.stream().filter(File::exists).forEach(xcodeInstall -> {
             TestFile xcodebuild = new TestFile("/usr/bin/xcodebuild");
 
-            String output = xcodebuild.execute(Collections.singletonList("-version"), Collections.singletonList("DEVELOPER_DIR=" + xcodeInstall.getAbsolutePath())).getOut();
-            Pattern versionRegex = Pattern.compile("Xcode (\\d+\\.\\d+(\\.\\d+)?)");
-            Matcher matcher = versionRegex.matcher(output);
-            if (matcher.find()) {
-                VersionNumber version = VersionNumber.parse(matcher.group(1));
-                xcodes.add(new InstalledXcode(xcodeInstall, version));
+            try {
+                String output = xcodebuild.execute(Collections.singletonList("-version"), Collections.singletonList("DEVELOPER_DIR=" + xcodeInstall.getAbsolutePath())).getOut();
+                Pattern versionRegex = Pattern.compile("Xcode (\\d+\\.\\d+(\\.\\d+)?)");
+                Matcher matcher = versionRegex.matcher(output);
+                if (matcher.find()) {
+                    VersionNumber version = VersionNumber.parse(matcher.group(1));
+                    xcodes.add(new InstalledXcode(xcodeInstall, version));
+                }
+            } catch (RuntimeException re) {
+                String msg = String.format("Unable to invoke xcodebuild -version for %s%nCause: %s", xcodeInstall.getAbsolutePath(), re.getCause());
+                System.out.println(msg);
             }
         });
 

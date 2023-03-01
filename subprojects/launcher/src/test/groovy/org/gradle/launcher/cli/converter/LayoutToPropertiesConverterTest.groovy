@@ -194,7 +194,7 @@ class LayoutToPropertiesConverterTest extends Specification {
         return buildLayoutConverter.convert(initialProperties, parsedCommandLine, null) {
             it.setGradleInstallationHomeDir(gradleDistribution)
             it.setGradleUserHomeDir(gradleHome)
-            it.setProjectDir(rootDir)
+            it.setCurrentDir(rootDir)
             overrides.delegate = it
             overrides()
         }

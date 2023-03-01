@@ -50,19 +50,21 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         // Setup classloader for root project, all other projects will be derived from this.
         SettingsInternal settings = gradle.getSettings();
         ClassLoaderScope settingsClassLoaderScope = settings.getClassLoaderScope();
-        ClassLoaderScope buildSrcClassLoaderScope = settingsClassLoaderScope.createChild("buildSrc[" + gradle.getIdentityPath() + "]");
+        ClassLoaderScope buildSrcClassLoaderScope = settingsClassLoaderScope.createChild("buildSrc[" + gradle.getIdentityPath() + "]", null);
         gradle.setBaseProjectClassLoaderScope(buildSrcClassLoaderScope);
         generateDependenciesAccessorsAndAssignPluginVersions(gradle.getServices(), settings, buildSrcClassLoaderScope);
         // attaches root project
         buildLoader.load(gradle.getSettings(), gradle);
-        // Makes included build substitutions available
-        if (gradle.isRootBuild()) {
-            coordinator.registerGlobalLibrarySubstitutions();
-        }
+
+        // Makes included build substitutions available for this build
+        coordinator.registerSubstitutionsAvailableFor(gradle.getOwner());
+
         // Build buildSrc and export classpath to root project
         buildBuildSrcAndLockClassloader(gradle, buildSrcClassLoaderScope);
 
         delegate.prepareProjects(gradle);
+
+        coordinator.registerSubstitutionsProvidedBy(gradle.getOwner());
     }
 
     private void buildBuildSrcAndLockClassloader(GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {

@@ -23,7 +23,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
 import org.gradle.internal.Cast;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 
 import java.util.Collection;
@@ -61,10 +61,10 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
         }
 
         if (_ineligiblePropertyNames.contains(propertyName)) {
-            DeprecationLogger.deprecateBehaviour("Using internal convention mapping with a Provider backed property.")
-                    .willBecomeAnErrorInGradle8()
-                    .withUpgradeGuideSection(7, "convention_mapping")
-                    .nagUser();
+            throw DocumentedFailure.builder()
+                .withSummary("Using internal convention mapping with a Provider backed property.")
+                .withUpgradeGuideSection(7, "convention_mapping")
+                .build();
         }
 
         _mappings.put(propertyName, mapping);

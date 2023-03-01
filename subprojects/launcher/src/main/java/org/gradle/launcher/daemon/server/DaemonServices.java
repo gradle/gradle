@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.agents.AgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -57,7 +58,6 @@ import org.gradle.launcher.daemon.server.exec.StartBuildOrRespondWithBusy;
 import org.gradle.launcher.daemon.server.exec.WatchForDisconnection;
 import org.gradle.launcher.daemon.server.health.DaemonHealthCheck;
 import org.gradle.launcher.daemon.server.health.DaemonHealthStats;
-import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus;
 import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
@@ -83,10 +83,10 @@ public class DaemonServices extends DefaultServiceRegistry {
         this.loggingManager = loggingManager;
 
         addProvider(new DaemonRegistryServices(configuration.getBaseDir()));
-        addProvider(new GlobalScopeServices(!configuration.isSingleUse(), additionalModuleClassPath));
+        addProvider(new GlobalScopeServices(!configuration.isSingleUse(), AgentStatus.of(configuration.isInstrumentationAgentAllowed()), additionalModuleClassPath));
     }
 
-    protected DaemonContext createDaemonContext() {
+    protected DaemonContext createDaemonContext(AgentStatus agentStatus) {
         DaemonContextBuilder builder = new DaemonContextBuilder(get(ProcessEnvironment.class));
         builder.setDaemonRegistryDir(configuration.getBaseDir());
         builder.setIdleTimeout(configuration.getIdleTimeout());
@@ -96,6 +96,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         LOGGER.debug("Creating daemon context with opts: {}", configuration.getJvmOptions());
 
         builder.setDaemonOpts(configuration.getJvmOptions());
+        builder.setApplyInstrumentationAgent(agentStatus.isAgentInstrumentationEnabled());
 
         return builder.create();
     }
@@ -105,10 +106,6 @@ public class DaemonServices extends DefaultServiceRegistry {
         final Long pid = daemonContext.getPid();
         String fileName = "daemon-" + (pid == null ? UUID.randomUUID() : pid) + ".out.log";
         return new File(get(DaemonDir.class).getVersionedDir(), fileName);
-    }
-
-    protected DaemonMemoryStatus createDaemonMemoryStatus(DaemonHealthStats healthStats, GarbageCollectorMonitoringStrategy strategy) {
-        return new DaemonMemoryStatus(healthStats, strategy.getHeapUsageThreshold(), strategy.getGcRateThreshold(), strategy.getNonHeapUsageThreshold(), strategy.getThrashingThreshold());
     }
 
     protected DaemonHealthCheck createDaemonHealthCheck(ListenerManager listenerManager, HealthExpirationStrategy healthExpirationStrategy) {
@@ -127,8 +124,8 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new MasterExpirationStrategy(daemon, configuration, healthExpirationStrategy, listenerManager);
     }
 
-    protected HealthExpirationStrategy createHealthExpirationStrategy(DaemonMemoryStatus memoryStatus) {
-        return new HealthExpirationStrategy(memoryStatus);
+    protected HealthExpirationStrategy createHealthExpirationStrategy(DaemonHealthStats stats, GarbageCollectorMonitoringStrategy strategy) {
+        return new HealthExpirationStrategy(stats, strategy);
     }
 
     protected DaemonHealthStats createDaemonHealthStats(DaemonRunningStats runningStats, GarbageCollectorMonitoringStrategy strategy, ExecutorFactory executorFactory) {
@@ -151,7 +148,7 @@ public class DaemonServices extends DefaultServiceRegistry {
             new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
             new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
-            new LogAndCheckHealth(healthStats, healthCheck),
+            new LogAndCheckHealth(healthStats, healthCheck, runningStats),
             new ForwardClientInput(),
             new RequestStopIfSingleUsedDaemon(),
             new ResetDeprecationLogger(),

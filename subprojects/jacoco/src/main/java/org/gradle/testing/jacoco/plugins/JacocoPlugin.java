@@ -36,7 +36,6 @@ import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
@@ -44,7 +43,6 @@ import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -55,7 +53,6 @@ import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
 
 import javax.inject.Inject;
-import java.io.File;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
@@ -64,7 +61,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/jacoco_plugin.html">JaCoCo plugin reference</a>
  */
-public class JacocoPlugin implements Plugin<Project> {
+public abstract class JacocoPlugin implements Plugin<Project> {
 
     /**
      * The jacoco version used if none is explicitly specified.
@@ -100,7 +97,6 @@ public class JacocoPlugin implements Plugin<Project> {
         configureAgentDependencies(agent, extension);
         configureTaskClasspathDefaults(extension);
         applyToDefaultTasks(extension);
-        configureDefaultOutputPathForJacocoMerge();
         configureJacocoReportsDefaults(extension);
         addDefaultReportAndCoverageVerificationTasks(extension);
         configureCoverageDataElementsVariants(project);
@@ -125,8 +121,6 @@ public class JacocoPlugin implements Plugin<Project> {
         variant.setVisible(false);
         variant.setCanBeResolved(false);
         variant.setCanBeConsumed(true);
-        variant.extendsFrom(project.getConfigurations().getByName(suite.getSources().getImplementationConfigurationName()),
-                project.getConfigurations().getByName(suite.getSources().getRuntimeOnlyConfigurationName()));
 
         final ObjectFactory objects = project.getObjects();
         variant.attributes(attributes -> {
@@ -151,17 +145,12 @@ public class JacocoPlugin implements Plugin<Project> {
         agentConf.setVisible(false);
         agentConf.setTransitive(true);
         agentConf.setDescription("The Jacoco agent to use to get coverage data.");
-        deprecateForConsumption(agentConf);
+        agentConf.setCanBeConsumed(false);
         Configuration antConf = project.getConfigurations().create(ANT_CONFIGURATION_NAME);
         antConf.setVisible(false);
         antConf.setTransitive(true);
         antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");
-        deprecateForConsumption(antConf);
-    }
-
-    private static void deprecateForConsumption(Configuration configuration) {
-        ((DeprecatableConfiguration) configuration).deprecateForConsumption(deprecation -> deprecation.willBecomeAnErrorInGradle8()
-            .withUpgradeGuideSection(7, "plugin_configuration_consumption"));
+        antConf.setCanBeConsumed(false);
     }
 
     /**
@@ -194,14 +183,6 @@ public class JacocoPlugin implements Plugin<Project> {
      */
     private void applyToDefaultTasks(final JacocoPluginExtension extension) {
         project.getTasks().withType(Test.class).configureEach(extension::applyTo);
-    }
-
-    @SuppressWarnings("deprecation")
-    private void configureDefaultOutputPathForJacocoMerge() {
-        Provider<File> buildDirectory = project.getLayout().getBuildDirectory().getAsFile();
-        project.getTasks().withType(org.gradle.testing.jacoco.tasks.JacocoMerge.class).configureEach(task ->
-            task.setDestinationFile(buildDirectory.map(buildDir -> new File(buildDir, "jacoco/" + task.getName() + ".exec")))
-        );
     }
 
     private void configureJacocoReportsDefaults(final JacocoPluginExtension extension) {

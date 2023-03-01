@@ -40,14 +40,14 @@ public final class LoadProjectsBuildOperationType implements BuildOperationType<
          * The path of the build configuration that contains these projects.
          * This will be ':' for top-level builds. Nested builds will have a sub-path.
          *
-         * @see org.gradle.api.internal.GradleInternal#getIdentityPath()
+         * See {@code org.gradle.api.internal.GradleInternal#getIdentityPath()}.
          */
         String getBuildPath();
 
         /**
          * A description of the root Project for this build.
          *
-         * @see org.gradle.api.initialization.Settings#getRootProject()
+         * See {@code org.gradle.api.initialization.Settings#getRootProject()}.
          */
         Project getRootProject();
 
@@ -56,14 +56,14 @@ public final class LoadProjectsBuildOperationType implements BuildOperationType<
             /**
              * The name of the project.
              *
-             * @see org.gradle.api.Project#getName()
+             * See {@code org.gradle.api.Project#getName()}.
              */
             String getName();
 
             /**
              * The path of the project.
              *
-             * @see org.gradle.api.Project#getPath()
+             * See {@code org.gradle.api.Project#getPath()}.
              */
             String getPath();
 
@@ -72,21 +72,21 @@ public final class LoadProjectsBuildOperationType implements BuildOperationType<
              * For top-level builds this will be the same as {@link #getPath()}.
              * For nested builds the project path will be prefixed with a build path.
              *
-             * @see org.gradle.api.internal.project.ProjectInternal#getIdentityPath()
+             * See {@code org.gradle.api.internal.project.ProjectInternal#getIdentityPath()}.
              */
             String getIdentityPath();
 
             /**
              * The absolute file path of the project directory.
              *
-             * @see org.gradle.api.Project#getProjectDir()
+             * See {@code org.gradle.api.Project#getProjectDir()}.
              */
             String getProjectDir();
 
             /**
              * The absolute file path of the projects build file.
              *
-             * @see org.gradle.api.Project#getBuildFile()
+             * See {@code org.gradle.api.Project#getBuildFile()}.
              */
             String getBuildFile();
 
@@ -95,12 +95,10 @@ public final class LoadProjectsBuildOperationType implements BuildOperationType<
              * No null values.
              * Ordered by project name lexicographically.
              *
-             * @see org.gradle.api.Project#getChildProjects()
+             * See {@code org.gradle.api.Project#getChildProjects()}.
              */
 
-            Set<Project> getChildren();
+            Set<? extends Project> getChildren();
         }
     }
-
-
 }

@@ -38,7 +38,7 @@ import org.gradle.platform.base.plugins.ComponentBasePlugin;
  * - Registers the base {@link LanguageSourceSet} type.
  */
 @Incubating
-public class LanguageBasePlugin implements Plugin<Project> {
+public abstract class LanguageBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(ComponentBasePlugin.class);

@@ -8,10 +8,16 @@ abstract class NpmTask : DefaultTask() {
     @get:Input
     val args = project.objects.listProperty<String>()
 
+    @get:Inject
+    abstract val projectLayout: ProjectLayout
+
     @TaskAction
     fun run() {
-        project.file("${project.buildDir}/bundle.js").outputStream().use { stream ->
-            project.file("scripts").listFiles().sorted().forEach {
+        val bundleFile = projectLayout.buildDirectory.file("bundle.js").get().asFile
+        val scriptsFiles = projectLayout.projectDirectory.dir("scripts").asFile.listFiles()
+
+        bundleFile.outputStream().use { stream ->
+            scriptsFiles.sorted().forEach {
                 stream.write(it.readBytes())
             }
         }
@@ -39,7 +45,10 @@ tasks.register<NpmTask>("bundle") {
 
 tasks.register("printBundle") {
     dependsOn("bundle")
+
+    val projectLayout = layout
+
     doLast {
-        println(file("$buildDir/bundle.js").readText())
+        println(projectLayout.buildDirectory.file("bundle.js").get().asFile.readText())
     }
 }

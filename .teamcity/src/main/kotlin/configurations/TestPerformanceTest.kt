@@ -22,6 +22,7 @@ import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
+import common.skipConditionally
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
@@ -39,13 +40,13 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
                 tasks +
                     buildToolGradleParameters(isContinue = false)
                 ).joinToString(separator = " ")
+            skipConditionally()
         }
     }
 
     fun BuildSteps.adHocPerformanceTest(tests: List<String>) {
         gradleStep(
             listOf(
-                "-PperformanceBaselines=force-defaults",
                 "clean",
                 "performance:${testProject}PerformanceAdHocTest",
                 tests.map { """--tests "$it"""" }.joinToString(" "),

@@ -18,13 +18,11 @@ package org.gradle.integtests.resolve.capabilities
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    @ToBeFixedForConfigurationCache
     def "can consume published capabilities"() {
         given:
         repository {
@@ -112,7 +110,6 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "can detect conflict between local project and capability from external dependency"() {
         given:
         repository {
@@ -157,7 +154,6 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
      * This test illustrates that published modules can declare capabilities, which are then discovered
      * as we visit the graph. And if no published module declares a preference, then build should fail.
      */
-    @ToBeFixedForConfigurationCache
     def "fails with reasonable error message if no module express preference for conflict of modules that publish the same capability"() {
         given:
         repository {
@@ -256,7 +252,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
                             throw new IllegalStateException("Expected default capability to be explicit")
                         } else {
                             println "  - capabilities: " + capabilities.collect {
-                                if (!(it instanceof org.gradle.internal.component.external.model.ImmutableCapability)) {
+                                if (!(it instanceof org.gradle.internal.component.external.model.DefaultImmutableCapability)) {
                                     throw new IllegalStateException("Unexpected capability type: \$it")
                                 }
                                 "\${it}"

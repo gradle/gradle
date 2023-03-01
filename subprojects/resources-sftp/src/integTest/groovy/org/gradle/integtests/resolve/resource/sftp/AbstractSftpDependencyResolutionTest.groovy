@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.server.sftp.MavenSftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
 
-class AbstractSftpDependencyResolutionTest extends AbstractDependencyResolutionTest {
+abstract class AbstractSftpDependencyResolutionTest extends AbstractDependencyResolutionTest {
     @Rule final SFTPServer server = new SFTPServer(temporaryFolder)
 
     def setup() {

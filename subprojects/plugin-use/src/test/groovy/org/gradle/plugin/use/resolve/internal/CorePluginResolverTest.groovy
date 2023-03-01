@@ -37,7 +37,9 @@ class CorePluginResolverTest extends Specification {
         }
     }
 
-    def docRegistry = Mock(DocumentationRegistry)
+    def docRegistry = Mock(DocumentationRegistry) {
+        it.getDocumentationFor(_ as String) >> { String page -> "https://docs.gradle.org/current/userguide/${page}.html"}
+    }
     def pluginRegistry = Mock(PluginRegistry)
     def result = Mock(PluginResolutionResult)
 
@@ -101,7 +103,9 @@ class CorePluginResolverTest extends Specification {
 
         then:
         1 * pluginRegistry.lookup(DefaultPluginId.of("org.gradle.foo")) >> null
-        1 * result.notFound(resolver.getDescription(), { it.contains("not a core plugin") })
+        1 * result.notFound(resolver.getDescription(), {
+            it.contains("not a core plugin, please see https://docs.gradle.org/current/userguide/plugin_reference.html for available core plugins")
+        })
     }
 
 }

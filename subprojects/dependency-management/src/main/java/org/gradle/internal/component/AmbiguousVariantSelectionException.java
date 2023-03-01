@@ -16,9 +16,6 @@
 
 package org.gradle.internal.component;
 
-import com.google.common.collect.Ordering;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
@@ -29,7 +26,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.*;
+import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatchesForAmbiguity;
+import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatchesForIncompatibility;
 
 public class AmbiguousVariantSelectionException extends VariantSelectionException {
 
@@ -62,14 +60,6 @@ public class AmbiguousVariantSelectionException extends VariantSelectionExceptio
             formatter.endChildren();
         }
         return formatter.toString();
-    }
-
-    public static void formatAttributes(TreeFormatter formatter, AttributeContainer attributes) {
-        formatter.startChildren();
-        for (Attribute<?> attribute : Ordering.usingToString().sortedCopy(attributes.keySet())) {
-            formatter.node(attribute.getName() + " '" + attributes.getAttribute(attribute) + "'");
-        }
-        formatter.endChildren();
     }
 
 }

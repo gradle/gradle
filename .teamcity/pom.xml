@@ -4,7 +4,7 @@
     <name>Gradle_Check Config DSL Script</name>
     <properties>
         <kotlin.version>1.6.21</kotlin.version>
-        <teamcity.dsl.version>2022.04</teamcity.dsl.version>
+        <teamcity.dsl.version>2022.10</teamcity.dsl.version>
         <mockk.version>1.9</mockk.version>
         <bytebuddy.version>1.10.6</bytebuddy.version>
         <junit.version>5.8.1</junit.version>
@@ -142,7 +142,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>1.2.76</version>
+            <version>1.2.83</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.teamcity</groupId>

@@ -13,20 +13,20 @@
 
 
     /**
-     * Retrieves the [application][org.gradle.api.plugins.ApplicationPluginConvention] convention.
+     * Retrieves the [customConvention][org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention] convention.
      *
      * @deprecated The concept of conventions is deprecated. Use extensions instead.
      */
-    val org.gradle.api.Project.`application`: org.gradle.api.plugins.ApplicationPluginConvention get() =
-        ((this as? Project)?.convention ?: (this as org.gradle.api.internal.HasConvention).convention).getPluginByName<org.gradle.api.plugins.ApplicationPluginConvention>("application")
+    val org.gradle.api.Project.`customConvention`: org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention get() =
+        ((this as? Project)?.convention ?: (this as org.gradle.api.internal.HasConvention).convention).getPluginByName<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention>("customConvention")
 
     /**
-     * Configures the [application][org.gradle.api.plugins.ApplicationPluginConvention] convention.
+     * Configures the [customConvention][org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention] convention.
      *
      * @deprecated The concept of conventions is deprecated. Use extensions instead.
      */
-    fun org.gradle.api.Project.`application`(configure: Action<org.gradle.api.plugins.ApplicationPluginConvention>): Unit =
-        configure.execute(`application`)
+    fun org.gradle.api.Project.`customConvention`(configure: Action<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention>): Unit =
+        configure.execute(`customConvention`)
 
 
 

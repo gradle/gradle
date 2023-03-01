@@ -49,6 +49,12 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
         return taskState.getSkipMessage();
     }
 
+    @Nullable
+    @Override
+    public String getSkipReasonMessage() {
+        return taskState.getSkipReasonMessage();
+    }
+
     @Override
     public boolean isActionable() {
         return taskState.isActionable();

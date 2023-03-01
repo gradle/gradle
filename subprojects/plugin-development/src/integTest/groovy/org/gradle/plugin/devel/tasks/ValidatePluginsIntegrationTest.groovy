@@ -18,11 +18,14 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.hamcrest.Matchers.containsString
+import static org.junit.Assume.assumeNotNull
 
 class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 
@@ -32,7 +35,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
     }
 
-    String iterableSymbol = '*'
+    String iterableSymbol = '.*'
 
     @Override
     String getNameSymbolFor(String name) {
@@ -341,9 +344,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-                error(missingAnnotationMessage { type('MyTransformAction').property('badTime').missingInput() }, 'validation_problems', 'missing_annotation'),
-                error(annotationInvalidInContext { annotation('InputFile').type('MyTransformAction').property('inputFile').forTransformAction() }, 'validation_problems', 'annotation_invalid_in_context'),
-                error(missingAnnotationMessage { type('MyTransformAction').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { type('MyTransformAction').property('badTime').missingInput() }, 'validation_problems', 'missing_annotation'),
+            error(annotationInvalidInContext { annotation('InputFile').type('MyTransformAction').property('inputFile').forTransformAction() }, 'validation_problems', 'annotation_invalid_in_context'),
+            error(missingAnnotationMessage { type('MyTransformAction').property('oldThing').missingInput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -493,8 +496,25 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            warning(notCacheableWithoutReason { type('MyTask').noReasonOnTask().includeLink() }),
-            warning(notCacheableWithoutReason { type('MyTransformAction').noReasonOnArtifactTransform().includeLink() })
+            warning("""
+                Type 'MyTask' must be annotated either with @CacheableTask or with @DisableCachingByDefault.
+
+                Reason: The task author should make clear why a task is not cacheable.
+
+                Possible solutions:
+                  1. Add @DisableCachingByDefault(because = ...).
+                  2. Add @CacheableTask.
+                  3. Add @UntrackedTask(because = ...).
+            """.stripIndent(true).trim(), "validation_problems", "disable_caching_by_default"),
+            warning("""
+                Type 'MyTransformAction' must be annotated either with @CacheableTransform or with @DisableCachingByDefault.
+
+                Reason: The transform action author should make clear why a transform action is not cacheable.
+
+                Possible solutions:
+                  1. Add @DisableCachingByDefault(because = ...).
+                  2. Add @CacheableTransform.
+            """.stripIndent(true).trim(), "validation_problems", "disable_caching_by_default")
         ])
     }
 
@@ -514,5 +534,326 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationSucceeds()
+    }
+
+    @ValidationTestFor(ValidationProblemId.UNSUPPORTED_VALUE_TYPE)
+    def "can not use ResolvedArtifactResult as task input annotated with @#annotation"() {
+        given:
+        source("src/main/java/NestedBean.java") << """
+            import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+
+            public interface NestedBean {
+
+                @$annotation
+                Property<ResolvedArtifactResult> getNestedInput();
+            }
+        """
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+
+            @DisableCachingByDefault
+            public abstract class MyTask extends DefaultTask {
+
+                private final NestedBean nested = getProject().getObjects().newInstance(NestedBean.class);
+
+                @$annotation
+                public ResolvedArtifactResult getDirect() { return null; }
+
+                @$annotation
+                public Provider<ResolvedArtifactResult> getProviderInput() { return getPropertyInput(); }
+
+                @$annotation
+                public abstract Property<ResolvedArtifactResult> getPropertyInput();
+
+                @$annotation
+                public abstract SetProperty<ResolvedArtifactResult> getSetPropertyInput();
+
+                @$annotation
+                public abstract ListProperty<ResolvedArtifactResult> getListPropertyInput();
+
+                @$annotation
+                public abstract MapProperty<String, ResolvedArtifactResult> getMapPropertyInput();
+
+                @Nested
+                public NestedBean getNestedBean() { return nested; }
+            }
+        """
+
+        expect:
+        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=7")
+        assertValidationFailsWith([
+                error(unsupportedValueType { type('MyTask').property('direct').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('ResolvedArtifactResult').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+                error(unsupportedValueType { type('MyTask').property('listPropertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('ListProperty<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+                error(unsupportedValueType { type('MyTask').property('mapPropertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('MapProperty<String, ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+                error(unsupportedValueType { type('MyTask').property('nestedBean.nestedInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('Property<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+                error(unsupportedValueType { type('MyTask').property('propertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('Property<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+                error(unsupportedValueType { type('MyTask').property('providerInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('Provider<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+                error(unsupportedValueType { type('MyTask').property('setPropertyInput').annotationType(annotation).unsupportedValueType('ResolvedArtifactResult').propertyType('SetProperty<ResolvedArtifactResult>').solution('Extract artifact metadata and annotate with @Input.').solution('Extract artifact files and annotate with @InputFiles.') }, "validation_problems", "unsupported_value_type"),
+        ])
+
+        where:
+        annotation   | _
+        "Input"      | _
+        "InputFile"  | _
+        "InputFiles" | _
+    }
+
+    @ValidationTestFor([
+            ValidationProblemId.MISSING_NORMALIZATION_ANNOTATION,
+            ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION
+    ])
+    def "detects problems with file inputs"() {
+        file("input.txt").text = "input"
+        file("input").createDir()
+
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.file.*;
+            import org.gradle.api.tasks.*;
+            import java.util.Set;
+            import java.util.Collections;
+            import java.io.File;
+            import java.nio.file.Path;
+
+            @CacheableTask
+            public abstract class MyTask extends DefaultTask {
+                @javax.inject.Inject
+                org.gradle.api.internal.file.FileResolver fileResolver;
+
+                @InputDirectory
+                @Optional
+                public File getInputDirectory() {
+                    return new File("input");
+                }
+
+                @InputFile
+                public File getInputFile() {
+                    return new File("input.txt");
+                }
+
+                @InputFiles
+                public Set<File> getInputFiles() {
+                    return Collections.emptySet();
+                }
+
+                @Input
+                public File getFile() {
+                    return new File("some-file");
+                }
+
+                @Input
+                public FileCollection getFileCollection() {
+                    return getProject().files();
+                }
+
+                @Input
+                public Path getFilePath() {
+                    return new File("some-file").toPath();
+                }
+
+                @Input
+                public FileTree getFileTree() {
+                    return getProject().files().getAsFileTree();
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        expect:
+        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=7")
+        assertValidationFailsWith([
+                error(incorrectUseOfInputAnnotation { type('MyTask').property('file').propertyType('File') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+                error(incorrectUseOfInputAnnotation { type('MyTask').property('fileCollection').propertyType('FileCollection') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+                error(incorrectUseOfInputAnnotation { type('MyTask').property('filePath').propertyType('Path') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+                error(incorrectUseOfInputAnnotation { type('MyTask').property('fileTree').propertyType('FileTree') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+                error(missingNormalizationStrategy { type('MyTask').property('inputDirectory').annotatedWith('InputDirectory') }, 'validation_problems', 'missing_normalization_annotation'),
+                error(missingNormalizationStrategy { type('MyTask').property('inputFile').annotatedWith('InputFile') }, 'validation_problems', 'missing_normalization_annotation'),
+                error(missingNormalizationStrategy { type('MyTask').property('inputFiles').annotatedWith('InputFiles') }, 'validation_problems', 'missing_normalization_annotation'),
+        ])
+    }
+
+    @ValidationTestFor(
+            ValidationProblemId.MISSING_ANNOTATION
+    )
+    def "detects problems on nested collections"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import java.util.*;
+            import java.io.File;
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends DefaultTask {
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                @Nested
+                public List<Options> getOptionsList() {
+                    return Arrays.asList(new Options());
+                }
+
+                @Nested
+                public Iterable<Options> getIterableOptions() {
+                    return Arrays.asList(new Options());
+                }
+
+                @Nested
+                public Iterable<Iterable<Options>> getDoubleIterableOptions() {
+                    return Arrays.asList(Arrays.asList(new Options()));
+                }
+
+                @Nested
+                public Map<String, Options> getMappedOptions() {
+                    return Collections.singletonMap("alma", new Options());
+                }
+
+                @Nested
+                public Iterable<Map<String, Iterable<Options>>> getIterableMappedOptions() {
+                    return Arrays.asList(Collections.singletonMap("alma", Arrays.asList(new Options())));
+                }
+
+                @Nested
+                public Provider<Options> getProvidedOptions() {
+                    return getProject().getObjects().property(Options.class).convention(new Options());
+                }
+
+                @Nested
+                public Iterable<NamedBean> getNamedIterable() {
+                    return Arrays.asList(new NamedBean());
+                }
+
+                @Nested
+                public AnnotatedList getAnnotatedList() {
+                    return new AnnotatedList();
+                }
+
+                public static class Options {
+                    @Input
+                    public String getGood() {
+                        return "good";
+                    }
+
+                    public String getNotAnnotated() {
+                        return null;
+                    }
+                }
+
+                public static class NamedBean implements Named {
+                    @Input
+                    public String getGood() {
+                        return "good";
+                    }
+
+                    public String getNotAnnotated() {
+                        return null;
+                    }
+
+                    @Internal
+                    public String getName() {
+                        return "tibor";
+                    }
+                }
+
+                // Does not validate the type parameter of extended collection
+                // because it has annotated properties
+                public static class AnnotatedList extends ArrayList<Options> {
+                    public AnnotatedList() {
+                        add(new Options());
+                    }
+
+                    @Input
+                    public String getGood() {
+                        return "good";
+                    }
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        expect:
+        executer.withArgument("-Dorg.gradle.internal.max.validation.errors=8")
+        assertValidationFailsWith([
+                error(missingAnnotationMessage { type('MyTask').property("doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property("iterableMappedOptions${iterableSymbol}${getKeySymbolFor("alma")}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property("iterableOptions${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property("mappedOptions${getKeySymbolFor("alma")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property("namedIterable${getNameSymbolFor("tibor")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property("options.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage { type('MyTask').property("providedOptions.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+        ])
+    }
+
+    def "honors configured Java Toolchain to avoid compiled by a more recent version failure"() {
+        def currentJdk = Jvm.current()
+        def newerJdk = AvailableJavaHomes.getDifferentVersion { it.languageVersion > currentJdk.javaVersion }
+        assumeNotNull(newerJdk)
+
+        def installationPaths = [currentJdk, newerJdk].collect { it.javaHome.absolutePath }.join(",")
+
+        given:
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.work.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public abstract class MyTask extends DefaultTask {
+            }
+        """
+        executer.withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
+        buildFile << """
+            java {
+                toolchain {
+                    languageVersion.set(JavaLanguageVersion.of(${newerJdk.javaVersion.majorVersion}))
+                }
+            }
+        """
+        expect:
+        assertValidationSucceeds()
+    }
+
+    def "missing Java Toolchain plugin causes a deprecation warning"() {
+        given:
+        source("producer/settings.gradle") << ""
+        source("producer/build.gradle") << "plugins { id 'java' }"
+        source("producer/src/main/java/Test.java") << "public class Test {}"
+
+        source("consumer/settings.gradle") << ""
+        source("consumer/build.gradle") << """
+            tasks.register("validatePlugins", ValidatePlugins) {
+                classes.from("../producer/build/classes/java/main")
+                outputFile.set(project.file("\$buildDir/report.txt"))
+            }
+        """
+
+        when:
+        executer.inDirectory(file("producer"))
+            .withArgument("build")
+            .run()
+
+        executer.inDirectory(file("consumer"))
+            .expectDocumentedDeprecationWarning(
+                "Using task ValidatePlugins without applying the Java Toolchain plugin. " +
+                    "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#validate_plugins_without_java_toolchain"
+            )
+
+        then:
+        succeeds "validatePlugins"
     }
 }

@@ -24,32 +24,38 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.credentials.CredentialListener
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
-import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsExternalProcess
+import org.gradle.configurationcache.problems.DocumentationSection.RequirementsSafeCredentials
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsUseProjectDuringExecution
+import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
-import org.gradle.configurationcache.problems.location
+import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.execution.TaskExecutionTracker
+import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
 
 @ServiceScope(Scopes.BuildTree::class)
-interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener
+interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener, CredentialListener
 
 
+@ListenerService
 class DefaultConfigurationCacheProblemsListener internal constructor(
     private val problems: ProblemsListener,
-    private val userCodeApplicationContext: UserCodeApplicationContext,
+    private val problemFactory: ProblemFactory,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val taskExecutionTracker: TaskExecutionTracker,
-    private val featurePreviews: FeaturePreviews,
+    private val featureFlags: FeatureFlags,
+    private val inputTrackingState: InputTrackingState,
 ) : ConfigurationCacheProblemsListener {
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
@@ -67,12 +73,12 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     }
 
     override fun onExternalProcessStarted(command: String, consumer: String?) {
-        if (!featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE) || !atConfigurationTime() || taskExecutionTracker.currentTask.isPresent) {
+        if (!isStableConfigurationCacheEnabled() || !atConfigurationTime() || isExecutingTask() || isInputTrackingDisabled()) {
             return
         }
         problems.onProblem(
             PropertyProblem(
-                userCodeApplicationContext.location(consumer),
+                problemFactory.locationForCaller(consumer),
                 StructuredMessage.build {
                     text("external process started ")
                     reference(command)
@@ -86,33 +92,31 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private
     fun onTaskExecutionAccessProblem(invocationDescription: String, task: TaskInternal) {
         problemsListenerFor(task).onProblem(
-            PropertyProblem(
-                propertyTraceForTask(task),
-                StructuredMessage.build {
-                    text("invocation of ")
-                    reference(invocationDescription)
-                    text(" at execution time is unsupported.")
-                },
-                InvalidUserCodeException(
-                    "Invocation of '$invocationDescription' by $task at execution time is unsupported."
-                ),
-                documentationSection = RequirementsUseProjectDuringExecution
-            )
+            problemFactory.problem {
+                text("invocation of ")
+                reference(invocationDescription)
+                text(" at execution time is unsupported.")
+            }
+                .exception("Invocation of '$invocationDescription' by $task at execution time is unsupported.")
+                .documentationSection(RequirementsUseProjectDuringExecution)
+                .mapLocation { locationForTask(it, task) }
+                .build()
         )
     }
 
     private
-    fun problemsListenerFor(task: TaskInternal): ProblemsListener = when {
-        task.isCompatibleWithConfigurationCache -> problems
-        else -> problems.forIncompatibleType()
-    }
+    fun locationForTask(location: PropertyTrace, task: TaskInternal) =
+        if (location is PropertyTrace.BuildLogic) {
+            location
+        } else {
+            PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
+        }
 
     private
-    fun propertyTraceForTask(task: TaskInternal) =
-        userCodeApplicationContext.current()
-            ?.displayName
-            ?.let(PropertyTrace::BuildLogic)
-            ?: PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
+    fun problemsListenerFor(task: TaskInternal): ProblemsListener = when {
+        task.isCompatibleWithConfigurationCache -> problems
+        else -> problems.forIncompatibleTask(task.identityPath.path)
+    }
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
         if (isBuildSrcBuild(invocationSource)) {
@@ -120,7 +124,6 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         }
         problems.onProblem(
             listenerRegistrationProblem(
-                userCodeApplicationContext.location(null),
                 invocationDescription,
                 InvalidUserCodeException(
                     "Listener registration '$invocationDescription' by $invocationSource is unsupported."
@@ -129,13 +132,24 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         )
     }
 
+    override fun onUnsafeCredentials(locationSpecificReason: String, task: TaskInternal) {
+        problems.onProblem(
+            problemFactory.problem {
+                text("Credential values found in configuration for: ")
+                text(locationSpecificReason)
+            }
+                .exception()
+                .documentationSection(RequirementsSafeCredentials)
+                .mapLocation { locationForTask(it, task) }
+                .build()
+        )
+    }
+
     private
     fun listenerRegistrationProblem(
-        trace: PropertyTrace,
         invocationDescription: String,
         exception: InvalidUserCodeException
-    ) = PropertyProblem(
-        trace,
+    ) = problemFactory.problem(
         StructuredMessage.build {
             text("registration of listener on ")
             reference(invocationDescription)
@@ -154,4 +168,13 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private
     fun atConfigurationTime() =
         configurationTimeBarrier.isAtConfigurationTime
+
+    private
+    fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
+
+    private
+    fun isStableConfigurationCacheEnabled() = featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
+
+    private
+    fun isExecutingTask() = taskExecutionTracker.currentTask.isPresent
 }

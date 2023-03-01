@@ -17,7 +17,6 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 
 import java.util.Map;
@@ -27,7 +26,6 @@ import java.util.Map;
  *
  * @since 7.2
  */
-@Incubating
 public interface ExpandDetails {
     /**
      * Controls if the underlying {@link groovy.text.SimpleTemplateEngine} escapes backslashes in the file before processing. If this is set to {@code false} then escape sequences in the processed

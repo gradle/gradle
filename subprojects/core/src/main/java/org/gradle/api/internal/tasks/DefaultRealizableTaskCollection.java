@@ -47,7 +47,7 @@ public class DefaultRealizableTaskCollection<T extends Task> implements TaskColl
 
     private final TaskCollection<T> delegate;
     private final Class<T> type;
-    private final AtomicBoolean realized = new AtomicBoolean(false);
+    private final AtomicBoolean realized = new AtomicBoolean();
     private final MutableModelNode modelNode;
     private final Instantiator instantiator;
 

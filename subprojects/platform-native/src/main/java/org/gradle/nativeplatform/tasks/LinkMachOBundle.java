@@ -27,7 +27,7 @@ import org.gradle.work.DisableCachingByDefault;
  * @since 4.3
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class LinkMachOBundle extends AbstractLinkTask {
+public abstract class LinkMachOBundle extends AbstractLinkTask {
     @Override
     protected LinkerSpec createLinkerSpec() {
         return new LinkMachOBundle.Spec();

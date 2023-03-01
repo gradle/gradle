@@ -18,42 +18,39 @@ package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerWorkerExecutor;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
 import org.gradle.process.internal.JavaForkOptionsFactory;
-import org.gradle.workers.internal.ActionExecutionSpecFactory;
-import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
 import java.util.Set;
 
 public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompileSpec> {
-    private final WorkerDaemonFactory workerDaemonFactory;
+    private final CompilerWorkerExecutor compilerWorkerExecutor;
     private final FileCollection scalaClasspath;
     private final FileCollection zincClasspath;
     private final File daemonWorkingDir;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
-    private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private final ClasspathHasher classpathHasher;
 
     public ScalaCompilerFactory(
-        File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, FileCollection scalaClasspath,
+        File daemonWorkingDir, CompilerWorkerExecutor compilerWorkerExecutor, FileCollection scalaClasspath,
         FileCollection zincClasspath, JavaForkOptionsFactory forkOptionsFactory,
-        ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory,
+        ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry,
         ClasspathHasher classpathHasher) {
         this.daemonWorkingDir = daemonWorkingDir;
-        this.workerDaemonFactory = workerDaemonFactory;
+        this.compilerWorkerExecutor = compilerWorkerExecutor;
         this.scalaClasspath = scalaClasspath;
         this.zincClasspath = zincClasspath;
         this.forkOptionsFactory = forkOptionsFactory;
         this.classPathRegistry = classPathRegistry;
         this.classLoaderRegistry = classLoaderRegistry;
-        this.actionExecutionSpecFactory = actionExecutionSpecFactory;
         this.classpathHasher = classpathHasher;
     }
 
@@ -67,7 +64,7 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
         // currently, we leave it to ZincScalaCompiler to also compile the Java code
         Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new DaemonScalaCompiler<>(
             daemonWorkingDir, ZincScalaCompilerFacade.class, new Object[] {hashedScalaClasspath},
-            workerDaemonFactory, zincClasspathFiles, forkOptionsFactory, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory);
+            compilerWorkerExecutor, zincClasspathFiles, forkOptionsFactory, classPathRegistry, classLoaderRegistry);
         return new NormalizingScalaCompiler(scalaCompiler);
     }
 }

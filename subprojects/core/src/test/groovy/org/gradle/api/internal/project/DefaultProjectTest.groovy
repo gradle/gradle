@@ -29,6 +29,7 @@ import org.gradle.api.UnknownProjectException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
+import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -62,13 +63,16 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.resources.ApiTextResourceAdapter
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskDependencyFactory
+import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.configuration.internal.DynamicCallContextTracker
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
@@ -135,6 +139,7 @@ class DefaultProjectTest extends Specification {
     ConfigurationContainer configurationContainerMock = Stub(ConfigurationContainer)
     RepositoryHandler repositoryHandlerMock = Stub(RepositoryHandler)
     DependencyHandler dependencyHandlerMock = Stub(DependencyHandler)
+    DependencyFactory dependencyFactoryMock = Stub(DependencyFactory)
     ComponentMetadataHandler moduleHandlerMock = Stub(ComponentMetadataHandler)
     ScriptHandlerInternal scriptHandlerMock = Mock(ScriptHandlerInternal)
     DependencyMetaDataProvider dependencyMetaDataProviderMock = Stub(DependencyMetaDataProvider)
@@ -160,8 +165,8 @@ class DefaultProjectTest extends Specification {
     DependencyResolutionManagementInternal dependencyResolutionManagement = Stub(DependencyResolutionManagementInternal)
     CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope("root", getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache(), Stub(ClassLoaderScopeRegistryListener))
-    ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
-    ObjectFactory objectFactory = new DefaultObjectFactory(instantiatorMock, Stub(NamedObjectInstantiator), Stub(DirectoryFileTreeFactory),  TestFiles.patternSetFactory,  new DefaultPropertyFactory(Stub(PropertyHost)), Stub(FilePropertyFactory), Stub(FileCollectionFactory), Stub(DomainObjectCollectionFactory))
+    ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project", null)
+    ObjectFactory objectFactory = new DefaultObjectFactory(instantiatorMock, Stub(NamedObjectInstantiator), Stub(DirectoryFileTreeFactory),  TestFiles.patternSetFactory,  new DefaultPropertyFactory(Stub(PropertyHost)), Stub(FilePropertyFactory), TestFiles.taskDependencyFactory(), Stub(FileCollectionFactory), Stub(DomainObjectCollectionFactory))
 
     def setup() {
         rootDir = new File("/path/root").absoluteFile
@@ -191,11 +196,13 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(ConfigurationContainer) >> configurationContainerMock
         serviceRegistryMock.get(ArtifactHandler) >> Stub(ArtifactHandler)
         serviceRegistryMock.get(DependencyHandler) >> dependencyHandlerMock
+        serviceRegistryMock.get(DependencyFactory) >> dependencyFactoryMock
         serviceRegistryMock.get((Type) ComponentMetadataHandler) >> moduleHandlerMock
         serviceRegistryMock.get((Type) ConfigurationTargetIdentifier) >> configurationTargetIdentifier
         serviceRegistryMock.get((Type) SoftwareComponentContainer) >> softwareComponentsMock
         serviceRegistryMock.get((Type) InputNormalizationHandlerInternal) >> inputNormalizationHandler
         serviceRegistryMock.get(ProjectEvaluator) >> projectEvaluator
+        serviceRegistryMock.get(DynamicLookupRoutine) >> new DefaultDynamicLookupRoutine()
         serviceRegistryMock.getFactory(AntBuilder) >> antBuilderFactoryMock
         serviceRegistryMock.get((Type) ScriptHandlerInternal) >> scriptHandlerMock
         serviceRegistryMock.get((Type) LoggingManagerInternal) >> loggingManagerMock
@@ -222,6 +229,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(DomainObjectCollectionFactory) >> TestUtil.domainObjectCollectionFactory()
         serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry)
         serviceRegistryMock.get(ObjectFactory) >> objectFactory
+        serviceRegistryMock.get(TaskDependencyFactory) >> DefaultTaskDependencyFactory.forProject(taskContainerMock, Mock(TaskDependencyUsageTracker))
         pluginManager.getPluginContainer() >> pluginContainer
 
         serviceRegistryMock.get((Type) DeferredProjectConfiguration) >> Stub(DeferredProjectConfiguration)
@@ -244,19 +252,20 @@ class DefaultProjectTest extends Specification {
 
         serviceRegistryMock.get((Type) ObjectFactory) >> Stub(ObjectFactory)
         serviceRegistryMock.get((Type) DependencyLockingHandler) >> Stub(DependencyLockingHandler)
+        serviceRegistryMock.get((Type) DynamicCallContextTracker) >> Stub(DynamicCallContextTracker)
 
         projectState = Mock(ProjectState)
         projectState.name >> 'root'
         project = defaultProject('root', projectState, null, rootDir, rootProjectClassLoaderScope)
-        def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild("project-child1")
+        def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild("project-child1", null)
         child1State = Mock(ProjectState)
         child1 = defaultProject("child1", child1State, project, new File("child1"), child1ClassLoaderScope)
         child1State.mutableModel >> child1
         child1State.name >> "child1"
         chilchildState = Mock(ProjectState)
-        childchild = defaultProject("childchild", chilchildState, child1, new File("childchild"), child1ClassLoaderScope.createChild("project-childchild"))
+        childchild = defaultProject("childchild", chilchildState, child1, new File("childchild"), child1ClassLoaderScope.createChild("project-childchild", null))
         child2State = Mock(ProjectState)
-        child2 = defaultProject("child2", child2State, project, new File("child2"), rootProjectClassLoaderScope.createChild("project-child2"))
+        child2 = defaultProject("child2", child2State, project, new File("child2"), rootProjectClassLoaderScope.createChild("project-child2", null))
         child2State.mutableModel >> child2
         child2State.name >> "child2"
         projectState.childProjects >> ([child1State, child2State] as Set)
@@ -268,6 +277,7 @@ class DefaultProjectTest extends Specification {
     private DefaultProject defaultProject(String name, ProjectState owner, def parent, File rootDir, ClassLoaderScope scope) {
         _ * owner.identityPath >> (parent == null ? Path.ROOT : parent.identityPath.child(name))
         _ * owner.projectPath >> (parent == null ? Path.ROOT : parent.projectPath.child(name))
+        _ * owner.depth >> owner.projectPath.segmentCount()
         def project = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultProject, name, parent, rootDir, new File(rootDir, 'build.gradle'), script, build, owner, projectServiceRegistryFactoryMock, scope, baseClassLoaderScope)
         _ * owner.applyToMutableState(_) >> { Consumer action -> action.accept(project) }
         return project
@@ -309,6 +319,7 @@ class DefaultProjectTest extends Specification {
         assert project.defaultTasks == []
         assert project.configurations.is(configurationContainerMock)
         assert project.repositories.is(repositoryHandlerMock)
+        assert project.dependencyFactory.is(dependencyFactoryMock)
         assert !project.state.executed
         assert project.components.is(softwareComponentsMock)
     }
@@ -450,9 +461,9 @@ class DefaultProjectTest extends Specification {
 
     def getChildProject() {
         expect:
-        project.childProjects.size() == 2
-        project.childProjects.child1.is(child1)
-        project.childProjects.child2.is(child2)
+        project.childProjectsUnchecked.size() == 2
+        project.childProjectsUnchecked.child1.is(child1)
+        project.childProjectsUnchecked.child2.is(child2)
     }
 
     def defaultTasks() {

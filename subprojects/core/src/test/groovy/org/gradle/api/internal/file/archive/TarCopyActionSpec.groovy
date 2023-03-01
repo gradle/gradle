@@ -36,10 +36,10 @@ import static org.gradle.api.internal.file.copy.CopyActionExecuterUtil.visit
 import static org.hamcrest.CoreMatchers.equalTo
 
 @CleanupTestDirectory
-public class TarCopyActionSpec extends Specification {
+class TarCopyActionSpec extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
-    private TarCopyAction action;
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    private TarCopyAction action
 
 
     def "creates tar file"() {
@@ -56,24 +56,24 @@ public class TarCopyActionSpec extends Specification {
 
     def "creates bzip compressed tar file"() {
         expect:
-        final TestFile tarFile = initializeTarFile(temporaryFolder.testDirectory.file("test.tbz2"), Bzip2Archiver.getCompressor());
-        tarAndUntarAndCheckFileContents(tarFile);
+        final TestFile tarFile = initializeTarFile(temporaryFolder.testDirectory.file("test.tbz2"), Bzip2Archiver.getCompressor())
+        tarAndUntarAndCheckFileContents(tarFile)
     }
 
     private void tarAndUntarAndCheckFileContents(TestFile tarFile) {
-        tar(file("dir/file1"), file("file2"));
+        tar(file("dir/file1"), file("file2"))
 
-        TestFile expandDir = temporaryFolder.getTestDirectory().file("expanded");
-        tarFile.untarTo(expandDir);
-        expandDir.file("dir/file1").assertContents(equalTo("contents of dir/file1"));
-        expandDir.file("file2").assertContents(equalTo("contents of file2"));
+        TestFile expandDir = temporaryFolder.getTestDirectory().file("expanded")
+        tarFile.untarTo(expandDir)
+        expandDir.file("dir/file1").assertContents(equalTo("contents of dir/file1"))
+        expandDir.file("file2").assertContents(equalTo("contents of file2"))
     }
 
     def "tar file contains expected permissions"() {
         when:
-        TestFile tarFile = initializeTarFile(temporaryFolder.getTestDirectory().file("test.tar"), new SimpleCompressor());
+        TestFile tarFile = initializeTarFile(temporaryFolder.getTestDirectory().file("test.tar"), new SimpleCompressor())
 
-        tar(dir("dir"), file("file"));
+        tar(dir("dir"), file("file"))
 
         then:
         def tarFixture = new TarTestFixture(tarFile)
@@ -83,13 +83,13 @@ public class TarCopyActionSpec extends Specification {
 
     def "wraps failure to open output file"() {
         when:
-        TestFile tarFile = initializeTarFile(temporaryFolder.createDir("test.tar"), new SimpleCompressor());
+        TestFile tarFile = initializeTarFile(temporaryFolder.createDir("test.tar"), new SimpleCompressor())
 
         action.execute(new CopyActionProcessingStream() {
-            public void process(CopyActionProcessingStreamAction action) {
+            void process(CopyActionProcessingStreamAction action) {
                 // nothing
             }
-        });
+        })
 
         then:
         def e = thrown(GradleException)
@@ -98,10 +98,10 @@ public class TarCopyActionSpec extends Specification {
 
     def "wraps failure to add element"() {
         when:
-        TestFile tarFile = initializeTarFile(temporaryFolder.getTestDirectory().file("test.tar"), new SimpleCompressor());
+        TestFile tarFile = initializeTarFile(temporaryFolder.getTestDirectory().file("test.tar"), new SimpleCompressor())
 
-        Throwable failure = new RuntimeException("broken");
-        visit(action, brokenFile("dir/file1", failure));
+        Throwable failure = new RuntimeException("broken")
+        visit(action, brokenFile("dir/file1", failure))
 
         then:
         def e = thrown(GradleException)
@@ -110,22 +110,22 @@ public class TarCopyActionSpec extends Specification {
     }
 
     private TestFile initializeTarFile(final TestFile tarFile, final ArchiveOutputStreamFactory compressor) {
-        action = new TarCopyAction(tarFile, compressor, false);
-        return tarFile;
+        action = new TarCopyAction(tarFile, compressor, false)
+        return tarFile
     }
 
     private void tar(final FileCopyDetailsInternal... files) {
         action.execute(new CopyActionProcessingStream() {
-            public void process(CopyActionProcessingStreamAction action) {
+            void process(CopyActionProcessingStreamAction action) {
                 for (FileCopyDetailsInternal f : files) {
-                    action.processFile(f);
+                    action.processFile(f)
                 }
             }
-        });
+        })
     }
 
     private FileCopyDetailsInternal file(final String path) {
-        final String content = String.format("contents of %s", path);
+        final String content = String.format("contents of %s", path)
 
         final FileCopyDetailsInternal details = Stub(FileCopyDetailsInternal)
         details.getRelativePath() >> RelativePath.parse(true, path)
@@ -133,9 +133,9 @@ public class TarCopyActionSpec extends Specification {
         details.getSize() >> content.getBytes().length
         details.isDirectory() >> false
         details.getMode() >> 1
-        details.copyTo(_ as OutputStream) >> {OutputStream out -> IOUtils.write(content, out);}
+        details.copyTo(_ as OutputStream) >> {OutputStream out -> IOUtils.write(content, out)}
 
-        return details;
+        return details
     }
 
     private FileCopyDetailsInternal dir(final String path) {
@@ -146,7 +146,7 @@ public class TarCopyActionSpec extends Specification {
         details.isDirectory() >> true
         details.getMode() >> 2
 
-        return details;
+        return details
     }
 
     private FileCopyDetailsInternal brokenFile(final String path, final Throwable failure) {
@@ -160,6 +160,6 @@ public class TarCopyActionSpec extends Specification {
         details.toString() >> "[dir/file1]"
         details.copyTo(_ as OutputStream) >> {OutputStream out -> throw failure }
 
-        return details;
+        return details
     }
 }

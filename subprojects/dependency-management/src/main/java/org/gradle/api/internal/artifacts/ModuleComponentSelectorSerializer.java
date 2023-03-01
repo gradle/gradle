@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -111,7 +111,7 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         }
         ImmutableList.Builder<Capability> builder = ImmutableList.builderWithExpectedSize(size);
         for (int i=0; i<size; i++) {
-            builder.add(new ImmutableCapability(decoder.readString(), decoder.readString(), decoder.readNullableString()));
+            builder.add(new DefaultImmutableCapability(decoder.readString(), decoder.readString(), decoder.readNullableString()));
         }
         return builder.build();
     }

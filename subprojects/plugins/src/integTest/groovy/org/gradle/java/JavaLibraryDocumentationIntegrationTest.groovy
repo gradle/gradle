@@ -104,7 +104,7 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         fails(':a:javadocJar')
 
         then:
-        failure.assertHasDescription("Task 'javadocJar' not found in project ':a'. Some candidates are: 'javadoc'.")
+        failure.assertHasDescription("Cannot locate tasks that match ':a:javadocJar' as task 'javadocJar' not found in project ':a'. Some candidates are: 'javadoc'.")
 
         when:
         buildFile << '''
@@ -121,7 +121,7 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         fails(':a:sourcesJar')
 
         then:
-        failure.assertHasDescription("Task 'sourcesJar' not found in project ':a'.")
+        failure.assertHasDescription("Cannot locate tasks that match ':a:sourcesJar' as task 'sourcesJar' not found in project ':a'.")
 
         when:
         buildFile << '''

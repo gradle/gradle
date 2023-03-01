@@ -27,7 +27,7 @@ class LazilyInitializedFileCollectionTest extends Specification {
     def createCount = 0
     def taskDependenciesCount = 0
     def task = Stub(Task)
-    def fileCollection = new LazilyInitializedFileCollection() {
+    def fileCollection = new LazilyInitializedFileCollection(TestFiles.taskDependencyFactory()) {
         @Override
         String getDisplayName() {
             return "test collection"

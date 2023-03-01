@@ -17,8 +17,11 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGenerator {
+    final static String PLUGINS_BUILD_LOCATION = "build-logic";
+
     private final DocumentationRegistry documentationRegistry;
     private final BuildScriptBuilderFactory scriptBuilderFactory;
 
@@ -42,6 +45,17 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
                 "The settings file is used to specify which projects to include in your build.\n\n"
                     + "Detailed information about configuring a multi-project build in Gradle can be found\n"
                     + "in the user manual at " + documentationRegistry.getDocumentationFor("multi_project_builds"));
+        if (settings.getModularizationOption() == ModularizationOption.WITH_LIBRARY_PROJECTS && settings.isUseIncubatingAPIs()) {
+            builder.includePluginsBuild();
+        }
+
+        if(settings.getJavaLanguageVersion().isPresent()){
+            builder.plugin(
+                "Apply the foojay-resolver plugin to allow automatic download of JDKs",
+                "org.gradle.toolchains.foojay-resolver",
+                "0.4.0");
+        }
+
         builder.propertyAssignment(null, "rootProject.name", settings.getProjectName());
         if (!settings.getSubprojects().isEmpty()) {
             builder.methodInvocation(null, "include", settings.getSubprojects().toArray());

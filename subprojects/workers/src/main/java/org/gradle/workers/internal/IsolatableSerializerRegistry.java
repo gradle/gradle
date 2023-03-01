@@ -385,7 +385,13 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public void write(Encoder encoder, IsolatedJavaSerializedValueSnapshot value) throws Exception {
             encoder.writeByte(SERIALIZED_VALUE);
             encoder.writeString(value.getOriginalClass().getName());
-            encoder.writeBinary(value.getImplementationHash().toByteArray());
+            HashCode implementationHash = value.getImplementationHash();
+            if (implementationHash == null) {
+                encoder.writeBoolean(false);
+            } else {
+                encoder.writeBoolean(true);
+                encoder.writeBinary(implementationHash.toByteArray());
+            }
             encoder.writeBinary(value.getValue());
         }
 
@@ -393,9 +399,12 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public IsolatedJavaSerializedValueSnapshot read(Decoder decoder) throws Exception {
             String originalClassName = decoder.readString();
             Class<?> originalClass = fromClassName(originalClassName);
-            byte[] hashBytes = decoder.readBinary();
+            HashCode implementationHash = null;
+            if (decoder.readBoolean()) {
+                implementationHash = HashCode.fromBytes(decoder.readBinary());
+            }
             byte[] serializedBytes = decoder.readBinary();
-            return new IsolatedJavaSerializedValueSnapshot(HashCode.fromBytes(hashBytes), serializedBytes, originalClass);
+            return new IsolatedJavaSerializedValueSnapshot(implementationHash, serializedBytes, originalClass);
         }
 
         @Override

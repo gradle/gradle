@@ -87,7 +87,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:latest.integration", "project :dep", "test:test:2.0") {
+                edge("test:test:latest.integration", ":dep", "test:test:2.0") {
                 }
             }
         }
@@ -103,7 +103,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:latest.integration", "project :dep", "test:test:3.0") {
+                edge("test:test:latest.integration", ":dep", "test:test:3.0") {
                 }
             }
         }
@@ -121,7 +121,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:latest.integration", "project :dep", "test:test:3.0") {
+                edge("test:test:latest.integration", ":dep", "test:test:3.0") {
                 }
             }
         }
@@ -151,7 +151,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:2.0", "project :dep", "test:test:2.0") {
+                edge("test:test:2.0", ":dep", "test:test:2.0") {
                 }
             }
         }
@@ -164,7 +164,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:2.0", "project :dep", "test:test:2.0") {
+                edge("test:test:2.0", ":dep", "test:test:2.0") {
                 }
             }
         }
@@ -206,7 +206,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:2.0", "project :dep", "test:test:2.0") {
+                edge("test:test:2.0", ":dep", "test:test:2.0") {
                 }
             }
         }
@@ -219,7 +219,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:2.0", "project :dep", "test:test:2.0") {
+                edge("test:test:2.0", ":dep", "test:test:2.0") {
                 }
             }
         }
@@ -249,7 +249,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:${selector}", "project :dep", "test:test:1.1") {
+                edge("test:test:${selector}", ":dep", "test:test:1.1") {
                 }
             }
         }
@@ -266,7 +266,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:${selector}", "project :dep", "test:test:1.2") {
+                edge("test:test:${selector}", ":dep", "test:test:1.2") {
                 }
             }
         }
@@ -312,7 +312,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:${selector}", "project :dep", "test:test:1.1") {
+                edge("test:test:${selector}", ":dep", "test:test:1.1") {
                 }
             }
         }
@@ -325,7 +325,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:${selector}", "project :dep", "test:test:1.1") {
+                edge("test:test:${selector}", ":dep", "test:test:1.1") {
                 }
             }
         }
@@ -388,7 +388,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:{branch release}", "project :dep", "test:test:2.0") {
+                edge("test:test:{branch release}", ":dep", "test:test:2.0") {
                 }
             }
         }
@@ -404,7 +404,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:{branch release}", "project :dep", "test:test:3.0") {
+                edge("test:test:{branch release}", ":dep", "test:test:3.0") {
                 }
             }
         }
@@ -417,7 +417,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:{branch release}", "project :dep", "test:test:3.0") {
+                edge("test:test:{branch release}", ":dep", "test:test:3.0") {
                 }
             }
         }
@@ -460,7 +460,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:{branch release}", "project :dep", "test:test:2.0") {
+                edge("test:test:{branch release}", ":dep", "test:test:2.0") {
                 }
             }
         }
@@ -473,7 +473,7 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:{branch release}", "project :dep", "test:test:2.0") {
+                edge("test:test:{branch release}", ":dep", "test:test:2.0") {
                 }
             }
         }

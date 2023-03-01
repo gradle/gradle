@@ -149,7 +149,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
             resource = textUriFileResourceLoaderFactory.create(redirectVerifier).loadUri("script", scriptUri);
         }
         ScriptSource scriptSource = new TextResourceScriptSource(resource);
-        ClassLoaderScope classLoaderScopeChild = classLoaderScope.createChild("script-" + scriptUri.toString());
+        ClassLoaderScope classLoaderScopeChild = classLoaderScope.createChild("script-" + scriptUri, null);
         ScriptHandler scriptHandler = scriptHandlerFactory.create(scriptSource, classLoaderScopeChild);
         ScriptPlugin configurer = configurerFactory.create(scriptSource, scriptHandler, classLoaderScopeChild, classLoaderScope, false);
         for (Object target : targets) {

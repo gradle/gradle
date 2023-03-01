@@ -25,9 +25,13 @@ import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+
+@ThreadSafe
 public class ExecutionNodeAccessHierarchy {
     private volatile ValuedVfsHierarchy<NodeAccess> root;
     private final SingleFileTreeElementMatcher matcher;
@@ -43,10 +47,26 @@ public class ExecutionNodeAccessHierarchy {
      * That includes node which access ancestors or children of the location.
      */
     public ImmutableSet<Node> getNodesAccessing(String location) {
-        return visitValues(location, new AbstractNodeAccessVisitor() {
+        return visitValues(location, new CollectingNodeAccessVisitor());
+    }
+
+    /**
+     * Visits all nodes which access the location.
+     *
+     * That includes node which access ancestors or children of the location.
+     */
+    public <T> T visitNodesAccessing(String location, T initialValue, BiFunction<T, ? super Node, T> visitor) {
+        return visitValues(location, new AbstractNodeAccessVisitor<T>() {
+            T currentValue = initialValue;
+
             @Override
-            public void visitChildren(PersistentList<NodeAccess> values, Supplier<String> relativePathSupplier) {
-                values.forEach(this::addNode);
+            void visit(NodeAccess value) {
+                currentValue = visitor.apply(currentValue, value.getNode());
+            }
+
+            @Override
+            T getResult() {
+                return currentValue;
             }
         });
     }
@@ -58,13 +78,11 @@ public class ExecutionNodeAccessHierarchy {
      * Nodes accessing children of the location are only included if the children match the filter.
      */
     public ImmutableSet<Node> getNodesAccessing(String location, Spec<FileTreeElement> filter) {
-        return visitValues(location, new AbstractNodeAccessVisitor() {
+        return visitValues(location, new CollectingNodeAccessVisitor() {
             @Override
-            public void visitChildren(PersistentList<NodeAccess> values, Supplier<String> relativePathSupplier) {
+            boolean acceptChildren(Supplier<String> relativePathSupplier) {
                 String relativePathFromLocation = relativePathSupplier.get();
-                if (matcher.elementWithRelativePathMatches(filter, new File(location, relativePathFromLocation), relativePathFromLocation)) {
-                    values.forEach(this::addNode);
-                }
+                return matcher.elementWithRelativePathMatches(filter, new File(location, relativePathFromLocation), relativePathFromLocation);
             }
         });
     }
@@ -97,38 +115,57 @@ public class ExecutionNodeAccessHierarchy {
         root = root.empty();
     }
 
-    private ImmutableSet<Node> visitValues(String location, AbstractNodeAccessVisitor visitor) {
+    private <T> T visitValues(String location, AbstractNodeAccessVisitor<T> visitor) {
         root.visitValues(location, visitor);
         return visitor.getResult();
     }
 
-    private abstract static class AbstractNodeAccessVisitor implements ValueVisitor<NodeAccess> {
-
-        private final ImmutableSet.Builder<Node> builder = ImmutableSet.builder();
-
-        public void addNode(NodeAccess value) {
-            builder.add(value.getNode());
-        }
-
+    private abstract static class AbstractNodeAccessVisitor<T> implements ValueVisitor<NodeAccess> {
         @Override
         public void visitExact(NodeAccess value) {
-            addNode(value);
+            visit(value);
         }
 
         @Override
         public void visitAncestor(NodeAccess value, VfsRelativePath pathToVisitedLocation) {
             if (value.accessesChild(pathToVisitedLocation)) {
-                addNode(value);
+                visit(value);
             }
         }
 
-        public ImmutableSet<Node> getResult() {
+        @Override
+        public void visitChildren(PersistentList<NodeAccess> values, Supplier<String> relativePathSupplier) {
+            if (acceptChildren(relativePathSupplier)) {
+                values.forEach(this::visit);
+            }
+        }
+
+        boolean acceptChildren(Supplier<String> relativePathSupplier) {
+            return true;
+        }
+
+        abstract void visit(NodeAccess value);
+
+        abstract T getResult();
+    }
+
+    private static class CollectingNodeAccessVisitor extends AbstractNodeAccessVisitor<ImmutableSet<Node>> {
+        private final ImmutableSet.Builder<Node> builder = ImmutableSet.builder();
+
+        @Override
+        void visit(NodeAccess value) {
+            builder.add(value.getNode());
+        }
+
+        @Override
+        ImmutableSet<Node> getResult() {
             return builder.build();
         }
     }
 
     private interface NodeAccess {
         Node getNode();
+
         boolean accessesChild(VfsRelativePath childPath);
     }
 

@@ -114,7 +114,7 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
         given:
         def inputStreamWasClosed = false
         def inputStreamProvider = Mock(Function) {
-            apply(_) >> new ByteArrayInputStream("".bytes) {
+            apply(_) >> new ByteArrayInputStream(Byte.parseByte('0')) {
                 @Override
                 void close() throws IOException {
                     inputStreamWasClosed = true

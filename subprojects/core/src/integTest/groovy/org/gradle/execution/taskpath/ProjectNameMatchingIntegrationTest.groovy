@@ -45,18 +45,17 @@ class ProjectNameMatchingIntegrationTest extends AbstractIntegrationSpec {
         run("$projectPath:help", "--info")
 
         then:
-        outputContains("Project name matched '$expectedPath'")
+        outputContains("Task path '$projectPath:help' matched project '$resolvedProject'")
         outputDoesNotContain("abbreviated")
 
         where:
-        desc                                    | projectPath                           | expectedPath
+        desc                                    | projectPath                           | resolvedProject
         "root (no colon)"                       | ""                                    | ":"                      // Global root
-        "root (with colon)"                     | ":"                                   | ":"
         "projectA"                              | ":projectA"                           | ":projectA"              // Subprojects
         "projectA/projectSubA"                  | ":projectA:projectSubA"               | ":projectA:projectSubA"
-        "included build - included root"        | ":includedBuild"                      | ":"                      // Included build projects
-        "included build - projectI"             | ":includedBuild:projectI"             | ":projectI"
-        "included build - projectI/projectSubI" | ":includedBuild:projectI:projectSubI" | ":projectI:projectSubI"
+        "included build - included root"        | ":includedBuild"                      | ":includedBuild"         // Included build projects
+        "included build - projectI"             | ":includedBuild:projectI"             | ":includedBuild:projectI"
+        "included build - projectI/projectSubI" | ":includedBuild:projectI:projectSubI" | ":includedBuild:projectI:projectSubI"
     }
 
     def "logs info message for project name pattern match [#desc]"() {
@@ -64,22 +63,15 @@ class ProjectNameMatchingIntegrationTest extends AbstractIntegrationSpec {
         run("$projectPath:help", "--info")
 
         then:
-        if (projectPath.startsWith(":includedBuild")) {
-            // Gradle will scope a composite build's task (e.g. :includedBuild:help) to the included build.
-            // This means e.g., that ":includedBuild:help" will look like ":help", with "includedBuild" being the root project
-            // Because of this, we need to strip the composite project's name, as no log line will contain it directly
-            projectPath = projectPath.replaceFirst(":includedBuild", "")
-        }
-
-        outputContains("Abbreviated project name '$projectPath' matched '$expectedProjectPath'")
+        outputContains("Task path '$projectPath:help' matched project '$expectedProjectPath'")
 
         where:
         desc                                    | projectPath                   | expectedProjectPath
-        "projectA"                              | ":pA"                         | ":projectA"             // Subprojects
+        "projectA"                              | ":pA"                         | ":projectA"               // Subprojects
         "projectA/projectSubA"                  | ":pA:projectSubA"             | ":projectA:projectSubA"
         "projectA/projectSubA"                  | ":projectA:pSA"               | ":projectA:projectSubA"
-        "included build - projectI"             | ":includedBuild:pI"           | ":projectI"             // Included build projects
-        "included build - projectI/projectSubI" | ":includedBuild:projectI:pSI" | ":projectI:projectSubI"
+        "included build - projectI"             | ":includedBuild:pI"           | ":includedBuild:projectI" // Included build projects
+        "included build - projectI/projectSubI" | ":includedBuild:projectI:pSI" | ":includedBuild:projectI:projectSubI"
     }
 
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.initialization.ClassLoaderScopeId;
+import org.gradle.initialization.ClassLoaderScopeOrigin;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
@@ -31,11 +32,14 @@ import java.util.function.Function;
 public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
 
     protected final ClassLoaderScopeIdentifier id;
+    @Nullable
+    protected final ClassLoaderScopeOrigin origin;
     protected final ClassLoaderCache classLoaderCache;
     protected final ClassLoaderScopeRegistryListener listener;
 
-    protected AbstractClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
+    protected AbstractClassLoaderScope(ClassLoaderScopeIdentifier id, @Nullable ClassLoaderScopeOrigin origin, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
         this.id = id;
+        this.origin = origin;
         this.classLoaderCache = classLoaderCache;
         this.listener = listener;
     }
@@ -45,6 +49,12 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
      */
     public ClassLoaderScopeId getId() {
         return id;
+    }
+
+    @Nullable
+    @Override
+    public ClassLoaderScopeOrigin getOrigin() {
+        return origin;
     }
 
     /**
@@ -74,12 +84,12 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
     }
 
     @Override
-    public ClassLoaderScope createChild(String name) {
-        return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache, listener);
+    public ClassLoaderScope createChild(String name, @Nullable ClassLoaderScopeOrigin origin) {
+        return new DefaultClassLoaderScope(id.child(name), this, origin, classLoaderCache, listener);
     }
 
     @Override
-    public ClassLoaderScope createLockedChild(String name, ClassPath localClasspath, @Nullable HashCode classpathImplementationHash, Function<ClassLoader, ClassLoader> localClassLoaderFactory) {
-        return new ImmutableClassLoaderScope(id.child(name), this, localClasspath, classpathImplementationHash, localClassLoaderFactory, classLoaderCache, listener);
+    public ClassLoaderScope createLockedChild(String name, @Nullable ClassLoaderScopeOrigin origin, ClassPath localClasspath, @Nullable HashCode classpathImplementationHash, @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory) {
+        return new ImmutableClassLoaderScope(id.child(name), this, origin, localClasspath, classpathImplementationHash, localClassLoaderFactory, classLoaderCache, listener);
     }
 }

@@ -16,11 +16,13 @@
 
 package org.gradle.internal.watch
 
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.watch.registry.impl.WatchableHierarchies
 import spock.lang.Issue
 
+@LocalOnly
 class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
     def "source file changes are recognized"() {

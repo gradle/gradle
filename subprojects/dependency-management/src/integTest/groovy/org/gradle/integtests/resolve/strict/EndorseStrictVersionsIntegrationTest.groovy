@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.strict
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -144,7 +143,6 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "multiple endorsed strict versions that target the same module fail the build if they conflict"() {
         given:
         repository {

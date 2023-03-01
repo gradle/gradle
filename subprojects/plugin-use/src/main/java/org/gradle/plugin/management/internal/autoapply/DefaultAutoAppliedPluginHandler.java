@@ -20,12 +20,18 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
+
+import java.util.function.Predicate;
+
+import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
 public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler {
 
@@ -88,18 +94,20 @@ public class DefaultAutoAppliedPluginHandler implements AutoAppliedPluginHandler
     }
 
     private static boolean isAlreadyRequestedInBuildScriptBlock(PluginRequestInternal autoAppliedPlugin, ScriptHandler scriptHandler) {
-        ModuleVersionSelector module = autoAppliedPlugin.getModule();
-        if (module == null) {
-            return false;
+        String pluginId = autoAppliedPlugin.getId().getId();
+        ModuleIdentifier pluginMarker = DefaultModuleIdentifier.newId(pluginId, pluginId + PLUGIN_MARKER_SUFFIX);
+        Predicate<Dependency> predicate = dependency -> hasMatchingCoordinates(dependency, pluginMarker);
+
+        ModuleVersionSelector moduleSelector = autoAppliedPlugin.getModule();
+        if (moduleSelector != null) {
+            predicate = predicate.or(dependency -> hasMatchingCoordinates(dependency, moduleSelector.getModule()));
         }
 
         Configuration classpathConfiguration = scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
-        for (Dependency dependency : classpathConfiguration.getDependencies()) {
-            if (module.getGroup().equals(dependency.getGroup()) && module.getName().equals(dependency.getName())) {
-                return true;
-            }
-        }
+        return classpathConfiguration.getDependencies().stream().anyMatch(predicate);
+    }
 
-        return false;
+    private static boolean hasMatchingCoordinates(Dependency dependency, ModuleIdentifier module) {
+        return module.getGroup().equals(dependency.getGroup()) && module.getName().equals(dependency.getName());
     }
 }

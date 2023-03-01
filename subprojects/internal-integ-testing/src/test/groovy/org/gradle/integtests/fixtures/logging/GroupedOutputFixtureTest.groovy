@@ -17,6 +17,9 @@
 package org.gradle.integtests.fixtures.logging
 
 import org.gradle.integtests.fixtures.executer.LogContent
+import org.gradle.integtests.fixtures.logging.GroupedWorkOutputFixture.ComparisonFailureFormat
+import org.gradle.integtests.fixtures.logging.comparison.LineSearchFailures
+import org.gradle.integtests.fixtures.logging.comparison.LineSearchFailures.PotentialMatchesExistComparisonFailure
 import spock.lang.Specification
 
 class GroupedOutputFixtureTest extends Specification {
@@ -393,7 +396,7 @@ Hello, World!
         groupedOutput.task(':helloWorld').output == 'Hello, World!'
     }
 
-    def "does not fail with with stack overflow error"() {
+    def "does not fail with stack overflow error"() {
         def consoleOutput = """
  [1m> Task :xx:
  [3A [1m< [0;32;1;0;39;1m-------------> build\\tmp\\test files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp... 'C\\tcagent1\\work\\4b92f910977a653d\\subprojects\\logging\\build\\tmp\\test files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle' to cross build script cache [m [420D [2B
@@ -407,4 +410,139 @@ Hello, World!
         then:
         noExceptionThrown()
     }
+
+    // region assertOutputContains
+    def "test assertOutputContains searching for single expected line"() {
+        given: "sample output for a task not containing the expected line"
+        def consoleOutput = """> Task :example1
+toast
+bacon
+eggs
+toast
+ham
+eggs
+> Task :example2
+toast
+ham
+eggs
+toast
+eggs
+"""
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
+
+        when:
+        groupedOutput.task(':example1').assertOutputContains("waffles")
+
+        then:
+        thrown(LineSearchFailures.NoMatchingLinesExistComparisonFailure)
+    }
+
+    def "test assertOutputContains using LINEWISE format searching for multiple expected lines"() {
+        given: "sample output for a task not containing the expected lines in a continuous sequence"
+        def consoleOutput = """> Task :example1
+toast
+bacon
+eggs
+toast
+ham
+eggs
+> Task :example2
+toast
+ham
+eggs
+toast
+eggs
+"""
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
+
+        when:
+        groupedOutput.task(':example1').assertOutputContains(ComparisonFailureFormat.LINEWISE, """eggs
+bacon""")
+
+        then:
+        def e = thrown(PotentialMatchesExistComparisonFailure)
+        e.message == """Lines not found.  Similar sections:
+
+Potential Match (actual lines):
+ [ X   1: toast
+expected:<[eggs]> but was:<[toast]>
+     ] 2: bacon
+       3: eggs
+       4: toast
+       5: ham
+
+Potential Match (actual lines):
+       1: toast
+       2: bacon
+ [     3: eggs
+   X ] 4: toast
+expected:<[bacon]> but was:<[toast]>
+       5: ham
+       6: eggs
+"""
+        e.numPotentialMatches == 2
+    }
+
+    def "test assertOutputContains using UNIFIED format searching for multiple expected lines"() {
+        given: "sample output for a task not containing the expected lines in a continuous sequence"
+        def consoleOutput = """> Task :example1
+toast
+bacon
+eggs
+toast
+ham
+eggs
+> Task :example2
+toast
+ham
+eggs
+toast
+eggs
+"""
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
+
+        when:
+        groupedOutput.task(':example1').assertOutputContains(ComparisonFailureFormat.UNIFIED, """eggs
+bacon""")
+
+        then:
+        def e = thrown(PotentialMatchesExistComparisonFailure)
+        e.message == """Lines not found.  Similar sections:
+
+@@ -1,2 +1,6 @@
+-eggs
++toast
+ bacon
++eggs
++toast
++ham
++eggs"""
+        e.numPotentialMatches == 2
+    }
+
+    def "test assertOutputContains using legacy format where expected lines (#expected) are each present, but not in a continuous sequence"() {
+        given: "sample output for a task not containing the expected lines in a continuous sequence"
+        def consoleOutput = """> Task :example1
+toast
+bacon
+eggs
+toast
+ham
+eggs
+> Task :example2
+toast
+ham
+eggs
+toast
+eggs
+"""
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
+
+        expect:
+        groupedOutput.task(':example1').assertOutputContains("""toast
+bacon
+eggs
+""")
+    }
+    // endregion assertOutputContains
 }

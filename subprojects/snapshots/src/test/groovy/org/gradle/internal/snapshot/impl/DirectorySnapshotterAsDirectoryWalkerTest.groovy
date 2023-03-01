@@ -41,7 +41,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
     def "directory snapshotter returns the same details as directory walker"() {
         given:
         def rootDir = tmpDir.createDir("root")
-        generateFilesAndSubDirectories(rootDir, 10, 5, 3, 1, new AtomicInteger(0))
+        generateFilesAndSubDirectories(rootDir, 10, 5, 3, 1, new AtomicInteger())
         def patternSet = Mock(PatternSet)
         List<FileVisitDetails> visitedWithJdk7Walker = walkFiles(rootDir)
         Spec<FileTreeElement> assertingSpec = new Spec<FileTreeElement>() {

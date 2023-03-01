@@ -18,6 +18,7 @@ package org.gradle.configurationcache.problems
 
 import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.configurationcache.extensions.documentationLinkFor
 import java.io.Writer
 
 
@@ -112,6 +113,13 @@ class JsonModelWriter(val writer: Writer) {
                         comma()
                         property("declaringType", firstTypeFrom(trace.trace).name)
                     }
+                    PropertyKind.PropertyUsage -> {
+                        property("kind", trace.kind.name)
+                        comma()
+                        property("name", trace.name)
+                        comma()
+                        property("from", projectPathFrom(trace.trace))
+                    }
                     else -> {
                         property("kind", trace.kind.name)
                         comma()
@@ -138,10 +146,15 @@ class JsonModelWriter(val writer: Writer) {
                 comma()
                 property("type", trace.type.name)
             }
+            is PropertyTrace.Project -> {
+                property("kind", "Project")
+                comma()
+                property("path", trace.path)
+            }
             is PropertyTrace.BuildLogic -> {
                 property("kind", "BuildLogic")
                 comma()
-                property("location", trace.displayName.displayName)
+                property("location", trace.source.displayName)
             }
             is PropertyTrace.BuildLogicClass -> {
                 property("kind", "BuildLogicClass")
@@ -244,7 +257,7 @@ class JsonModelWriter(val writer: Writer) {
 
     private
     fun documentationLinkFor(section: DocumentationSection) =
-        documentationRegistry.getDocumentationFor("configuration_cache", section.anchor)
+        documentationRegistry.documentationLinkFor(section)
 
     private
     fun stackTraceStringOf(problem: PropertyProblem): String? =

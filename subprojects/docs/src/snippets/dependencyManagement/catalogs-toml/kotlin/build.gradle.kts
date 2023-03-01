@@ -16,7 +16,7 @@
 
 plugins {
     `java-library`
-    alias(projectLibs.plugins.jmh)
+    alias(projectLibs.plugins.versions)
 }
 
 dependencies {

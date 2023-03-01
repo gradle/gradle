@@ -35,7 +35,6 @@ val logger = LoggerFactory.getLogger("daemonTracker")
 abstract class DaemonTracker : BuildService<DaemonTracker.Params>, AutoCloseable {
     interface Params : BuildServiceParameters {
         val rootProjectDir: DirectoryProperty
-        val gradleHomeDir: DirectoryProperty
     }
 
     @get:Inject
@@ -58,7 +57,7 @@ abstract class DaemonTracker : BuildService<DaemonTracker.Params>, AutoCloseable
             override fun afterTest(test: TestDescriptor, result: TestResult) = Unit
             override fun beforeSuite(suite: TestDescriptor) {
                 if (suite.parent == null) {
-                    forEachJavaProcess {
+                    forEachJavaProcess { pid ->
                         // processes that exist before the test suite execution should
                         // not trigger a warning
                         daemonPids += pid
@@ -68,7 +67,7 @@ abstract class DaemonTracker : BuildService<DaemonTracker.Params>, AutoCloseable
 
             override fun afterSuite(suite: TestDescriptor, result: TestResult) {
                 if (suite.parent == null) {
-                    forEachJavaProcess {
+                    forEachJavaProcess { pid ->
                         if (daemonPids.add(pid)) {
                             suspiciousDaemons.getOrPut(suite.toString(), { ConcurrentHashMap.newKeySet() }) += pid
                         }
@@ -80,34 +79,18 @@ abstract class DaemonTracker : BuildService<DaemonTracker.Params>, AutoCloseable
     private
     fun cleanUpDaemons() {
         val alreadyKilled = mutableSetOf<String>()
-        forEachJavaProcess {
+        forEachJavaProcess { pid ->
             suspiciousDaemons.forEach { (suite, pids) ->
                 if (pid in pids && pid !in alreadyKilled) {
-                    logger.warn("A process was created in $suite but wasn't shutdown properly. Killing PID $pid (Command line: $process)")
-                    execOperations.pkill(pid)
+                    logger.warn("A process was created in $suite but wasn't shutdown properly. Killing PID $pid")
+                    KillLeakingJavaProcesses.pkill(pid)
                 }
             }
         }
     }
 
-    fun killProcessesFromPreviousRun() {
-        var didKill = false
-
-        // KTS: Need to explicitly type the argument as `Action<ProcessInfo>` due to
-        // https://github.com/gradle/kotlin-dsl/issues/522
-        forEachJavaProcess {
-            logger.warn("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID $pid (Command line: $process)")
-            execOperations.pkill(pid)
-            didKill = true
-        }
-
-        if (didKill) {
-            // it might take a moment until file handles are released
-            Thread.sleep(5000)
-        }
-    }
-
     private
-    fun forEachJavaProcess(action: ProcessInfo.() -> Unit) =
-        execOperations.forEachLeakingJavaProcess(parameters.gradleHomeDir.asFile.get(), parameters.rootProjectDir.asFile.get(), action)
+    fun forEachJavaProcess(action: (pid: String) -> Unit) {
+        KillLeakingJavaProcesses.forEachLeakingJavaProcess(parameters.rootProjectDir.asFile.get(), action)
+    }
 }

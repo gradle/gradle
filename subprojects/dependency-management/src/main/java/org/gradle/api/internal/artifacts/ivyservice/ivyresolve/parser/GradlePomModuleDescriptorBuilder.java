@@ -45,8 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This a straight copy of org.apache.ivy.plugins.parser.m2.PomModuleDescriptorBuilder, with minor changes: 1) Do not create artifact for empty classifier. (Previously did so for all non-null
- * classifiers)
+ * This file was originally a copy of org.apache.ivy.plugins.parser.m2.PomModuleDescriptorBuilder, but has since been significantly modified.
  */
 public class GradlePomModuleDescriptorBuilder {
     public static final ImmutableMap<String, Configuration> MAVEN2_CONFIGURATIONS = ImmutableMap.<String, Configuration>builder()

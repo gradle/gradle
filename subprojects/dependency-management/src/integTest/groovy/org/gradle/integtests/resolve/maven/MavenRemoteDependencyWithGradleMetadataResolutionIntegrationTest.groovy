@@ -34,7 +34,6 @@ class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends A
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "downloads and caches the module metadata when present"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
 
@@ -93,7 +92,6 @@ dependencies {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "skips module metadata when not present and caches result"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").publish()
 
@@ -658,7 +656,6 @@ task checkRelease {
         "true"            | "false"             | "Boolean"       | "true"                              | "false"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from failure to locate module"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata()
 
@@ -706,7 +703,6 @@ Required by:
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from failure to download module metadata"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
 
@@ -750,7 +746,6 @@ dependencies {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports failure to parse module metadata"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
         m.moduleMetadata.file.text = 'not-really-json'
@@ -792,7 +787,6 @@ dependencies {
         failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports failure to locate files"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata()
         m.artifact(classifier: 'extra')

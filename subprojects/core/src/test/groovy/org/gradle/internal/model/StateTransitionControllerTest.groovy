@@ -692,4 +692,34 @@ class StateTransitionControllerTest extends ConcurrentSpec {
         then:
         noExceptionThrown()
     }
+
+    def "can reset state to initial state"() {
+        def action = Mock(Runnable)
+        def resetAction = Mock(Runnable)
+        def controller = controller(TestState.A)
+
+        given:
+        asWorker {
+            controller.transition(TestState.A, TestState.B) {}
+        }
+
+        when:
+        asWorker {
+            controller.restart(TestState.A, resetAction)
+        }
+
+        then:
+        1 * resetAction.run()
+        0 * _
+
+        when:
+        asWorker {
+            controller.transition(TestState.A, TestState.B, action)
+        }
+
+        then:
+        1 * action.run()
+        0 * _
+    }
+
 }

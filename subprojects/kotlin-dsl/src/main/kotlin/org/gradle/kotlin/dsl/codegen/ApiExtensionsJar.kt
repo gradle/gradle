@@ -20,13 +20,13 @@ import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.zipTo
 
-import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.kotlin.dsl.support.bytecode.GradleJvmVersion
 
 import java.io.File
 
 
-@VisibleForTesting
+internal
 fun generateApiExtensionsJar(
     temporaryFileProvider: TemporaryFileProvider,
     outputFile: File,
@@ -116,6 +116,7 @@ fun compileKotlinApiExtensionsTo(
 
     val success = compileToDirectory(
         outputDirectory,
+        GradleJvmVersion.minimalJavaVersion,
         "gradle-api-extensions",
         sourceFiles,
         logger,

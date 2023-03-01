@@ -16,14 +16,14 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.Transformer;
-import org.gradle.tooling.TestPatternSpec;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.OperationDescriptorWrapper;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
+import org.gradle.tooling.internal.protocol.test.InternalTaskSpec;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -39,8 +39,7 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
     private final InternalDebugOptions debugOptions;
     private final Map<String, List<InternalJvmTestRequest>> taskAndTests;
     private final boolean isRunDefaultTasks;
-    private final List<String> tasks;
-    private final List<TestPatternSpec> testPatternSpecs;
+    private final List<InternalTaskSpec> taskSpecs;
 
     public TestExecutionRequest(Iterable<TestOperationDescriptor> operationDescriptors,
                                 Collection<String> testClassNames,
@@ -48,16 +47,14 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
                                 InternalDebugOptions debugOptions,
                                 Map<String, List<InternalJvmTestRequest>> testTasks,
                                 boolean isRunDefaultTasks,
-                                List<String> tasks,
-                                List<TestPatternSpec> testPatternSpecs) {
+                                List<InternalTaskSpec> taskSpecs) {
         this.testDescriptors = adaptDescriptors(operationDescriptors);
         this.testClassNames = testClassNames;
         this.internalJvmTestRequests = internalJvmTestRequests;
         this.debugOptions = debugOptions;
         this.taskAndTests = testTasks;
         this.isRunDefaultTasks = isRunDefaultTasks;
-        this.tasks = tasks;
-        this.testPatternSpecs = testPatternSpecs;
+        this.taskSpecs = taskSpecs;
     }
 
     public InternalDebugOptions getDebugOptions() {
@@ -82,22 +79,17 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
         return internalJvmTestRequests;
     }
 
-    public List<TestPatternSpec> getTestPatternSpecs() {
-        return testPatternSpecs;
+    public List<InternalTaskSpec> getTaskSpecs() {
+        return taskSpecs;
     }
 
     private Collection<InternalTestDescriptor> adaptDescriptors(Iterable<TestOperationDescriptor> operationDescriptors) {
-        return CollectionUtils.collect(operationDescriptors, new Transformer<InternalTestDescriptor, OperationDescriptor>() {
+        return CollectionUtils.collect(operationDescriptors, new InternalTransformer<InternalTestDescriptor, OperationDescriptor>() {
             @Override
             public InternalTestDescriptor transform(OperationDescriptor operationDescriptor) {
                 return (InternalTestDescriptor) ((OperationDescriptorWrapper) operationDescriptor).getInternalOperationDescriptor();
             }
         });
-    }
-
-    @Override
-    public List<String> getTasks() {
-        return tasks;
     }
 
     @Override

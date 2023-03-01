@@ -20,4 +20,3 @@ Fixes #?
 - [ ] Verify design and implementation 
 - [ ] Verify test coverage and CI build status
 - [ ] Verify documentation
-- [ ] Recognize contributor in release notes

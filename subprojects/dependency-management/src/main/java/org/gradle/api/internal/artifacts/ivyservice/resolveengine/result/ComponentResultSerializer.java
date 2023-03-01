@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -30,8 +29,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
+import java.util.Collection;
 
 public class ComponentResultSerializer implements Serializer<ResolvedGraphComponent> {
 
@@ -101,21 +99,21 @@ public class ComponentResultSerializer implements Serializer<ResolvedGraphCompon
         idSerializer.write(encoder, value.getModuleVersion());
         reasonSerializer.write(encoder, value.getSelectionReason());
         componentIdSerializer.write(encoder, value.getComponentId());
-        List<ResolvedVariantResult> allVariants;
-        Set<ResolvedVariantResult> resolvedVariants;
+        Collection<ResolvedVariantResult> allVariants;
+        Collection<ResolvedVariantResult> resolvedVariants;
         if (returnAllVariants) {
             allVariants = value.getAllVariants();
-            resolvedVariants = ImmutableSet.copyOf(value.getResolvedVariants());
+            resolvedVariants = value.getResolvedVariants();
         } else {
             allVariants = value.getResolvedVariants();
-            resolvedVariants = ImmutableSet.copyOf(allVariants);
+            resolvedVariants = allVariants;
         }
         writeSelectedVariantDetails(encoder, resolvedVariants, allVariants);
         encoder.writeNullableString(value.getRepositoryName());
     }
 
     private void writeSelectedVariantDetails(
-        Encoder encoder, Set<ResolvedVariantResult> resolvedVariants, List<ResolvedVariantResult> variants
+        Encoder encoder, Collection<ResolvedVariantResult> resolvedVariants, Collection<ResolvedVariantResult> variants
     ) throws IOException {
         encoder.writeSmallInt(variants.size());
         encoder.writeSmallInt(resolvedVariants.size());

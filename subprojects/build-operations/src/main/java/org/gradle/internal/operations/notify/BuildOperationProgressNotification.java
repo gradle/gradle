@@ -19,7 +19,7 @@ package org.gradle.internal.operations.notify;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
- * A notification that a build operation has finished.
+ * A notification that a build operation has made progress in some way.
  *
  * The methods of this interface are awkwardly prefixed to allow
  * internal types to implement this interface along with other internal interfaces

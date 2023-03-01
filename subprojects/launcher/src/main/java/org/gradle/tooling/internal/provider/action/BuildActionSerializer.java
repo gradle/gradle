@@ -27,8 +27,10 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.internal.DefaultTaskExecutionRequest;
+import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
-import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.buildoption.Option;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
@@ -40,11 +42,13 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SetSerializer;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.gradle.tooling.events.OperationType;
-import org.gradle.tooling.internal.consumer.DefaultTestPatternSpec;
+import org.gradle.tooling.internal.consumer.DefaultTaskSpec;
+import org.gradle.tooling.internal.consumer.DefaultTestSpec;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
-import org.gradle.tooling.internal.protocol.test.InternalTestPatternSpec;
+import org.gradle.tooling.internal.protocol.test.InternalTaskSpec;
+import org.gradle.tooling.internal.protocol.test.InternalTestSpec;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayloadSerializer;
 
@@ -68,7 +72,7 @@ public class BuildActionSerializer {
         registry.register(ClientProvidedBuildAction.class, new ClientProvidedBuildActionSerializer());
         registry.register(ClientProvidedPhasedAction.class, new ClientProvidedPhasedActionSerializer());
         registry.register(TestExecutionRequestAction.class, new TestExecutionRequestActionSerializer());
-        registry.register(InternalTestPatternSpec.class, new InternalTestPatternSpecSerializer());
+        registry.register(InternalTaskSpec.class, new InternalTaskSpecSerializer());
         return registry.build(BuildAction.class);
     }
 
@@ -81,7 +85,7 @@ public class BuildActionSerializer {
         private final Serializer<List<String>> stringListSerializer = new ListSerializer<>(BaseSerializerFactory.STRING_SERIALIZER);
         private final Serializer<List<File>> fileListSerializer = new ListSerializer<>(BaseSerializerFactory.FILE_SERIALIZER);
         private final Serializer<Set<String>> stringSetSerializer = new SetSerializer<>(BaseSerializerFactory.STRING_SERIALIZER);
-        private final Serializer<BuildOption.Value<Boolean>> valueSerializer = new ValueSerializer();
+        private final Serializer<Option.Value<Boolean>> valueSerializer = new ValueSerializer();
 
         StartParameterSerializer() {
             BaseSerializerFactory serializerFactory = new BaseSerializerFactory();
@@ -109,11 +113,11 @@ public class BuildActionSerializer {
 
             // Layout
             @SuppressWarnings("deprecation")
-            File customBuildFile = startParameter.getBuildFile();
+            File customBuildFile = DeprecationLogger.whileDisabled(startParameter::getBuildFile);
             nullableFileSerializer.write(encoder, customBuildFile);
             nullableFileSerializer.write(encoder, startParameter.getProjectDir());
             @SuppressWarnings("deprecation")
-            File customSettingsFile = startParameter.getSettingsFile();
+            File customSettingsFile = DeprecationLogger.whileDisabled(startParameter::getSettingsFile);
             nullableFileSerializer.write(encoder, customSettingsFile);
             FILE_SERIALIZER.write(encoder, startParameter.getCurrentDir());
             FILE_SERIALIZER.write(encoder, startParameter.getGradleUserHomeDir());
@@ -163,14 +167,17 @@ public class BuildActionSerializer {
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
             encoder.writeSmallInt(taskRequests.size());
             for (TaskExecutionRequest taskRequest : taskRequests) {
-                if (!(taskRequest instanceof DefaultTaskExecutionRequest)) {
-                    // Only handle the command line for now
+                if (taskRequest instanceof RunDefaultTasksExecutionRequest) {
+                    encoder.writeByte((byte) 0);
+                } else if (taskRequest instanceof DefaultTaskExecutionRequest) {
+                    DefaultTaskExecutionRequest request = (DefaultTaskExecutionRequest) taskRequest;
+                    encoder.writeByte((byte) 1);
+                    encoder.writeNullableString(request.getProjectPath());
+                    nullableFileSerializer.write(encoder, request.getRootDir());
+                    stringListSerializer.write(encoder, request.getArgs());
+                } else {
                     throw new UnsupportedOperationException();
                 }
-                DefaultTaskExecutionRequest request = (DefaultTaskExecutionRequest) taskRequest;
-                encoder.writeNullableString(request.getProjectPath());
-                nullableFileSerializer.write(encoder, request.getRootDir());
-                stringListSerializer.write(encoder, request.getArgs());
             }
         }
 
@@ -194,9 +201,13 @@ public class BuildActionSerializer {
             startParameter.setExcludedTaskNames(stringSetSerializer.read(decoder));
 
             // Layout
-            startParameter.setBuildFile(nullableFileSerializer.read(decoder));
+            DeprecationLogger.whileDisabledThrowing(() ->
+                startParameter.setBuildFile(nullableFileSerializer.read(decoder))
+            );
             startParameter.setProjectDir(nullableFileSerializer.read(decoder));
-            startParameter.setSettingsFile(nullableFileSerializer.read(decoder));
+            DeprecationLogger.whileDisabledThrowing(() ->
+                startParameter.setSettingsFile(nullableFileSerializer.read(decoder))
+            );
             startParameter.setCurrentDir(FILE_SERIALIZER.read(decoder));
             startParameter.setGradleUserHomeDir(FILE_SERIALIZER.read(decoder));
             startParameter.setGradleHomeDir(nullableFileSerializer.read(decoder));
@@ -251,10 +262,17 @@ public class BuildActionSerializer {
             int requestCount = decoder.readSmallInt();
             List<TaskExecutionRequest> taskExecutionRequests = new ArrayList<>(requestCount);
             for (int i = 0; i < requestCount; i++) {
-                String projectPath = decoder.readNullableString();
-                File rootDir = nullableFileSerializer.read(decoder);
-                List<String> args = stringListSerializer.read(decoder);
-                taskExecutionRequests.add(new DefaultTaskExecutionRequest(args, projectPath, rootDir));
+                byte tag = decoder.readByte();
+                if (tag == 0) {
+                    taskExecutionRequests.add(new RunDefaultTasksExecutionRequest());
+                } else if (tag == 1) {
+                    String projectPath = decoder.readNullableString();
+                    File rootDir = nullableFileSerializer.read(decoder);
+                    List<String> args = stringListSerializer.read(decoder);
+                    taskExecutionRequests.add(new DefaultTaskExecutionRequest(args, projectPath, rootDir));
+                } else {
+                    throw new IllegalStateException();
+                }
             }
             return taskExecutionRequests;
         }
@@ -351,16 +369,14 @@ public class BuildActionSerializer {
         final InternalDebugOptions debugOptions;
         final Map<String, List<InternalJvmTestRequest>> taskAndTests;
         final boolean isRunDefaultTasks;
-        final List<String> tasks;
 
-        public TestExecutionRequestPayload(Set<InternalTestDescriptor> testDescriptors, Set<String> classNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests, boolean isRunDefaultTasks, List<String> tasks) {
+        public TestExecutionRequestPayload(Set<InternalTestDescriptor> testDescriptors, Set<String> classNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests, boolean isRunDefaultTasks) {
             this.testDescriptors = testDescriptors;
             this.classNames = classNames;
             this.internalJvmTestRequests = internalJvmTestRequests;
             this.debugOptions = debugOptions;
             this.taskAndTests = taskAndTests;
             this.isRunDefaultTasks = isRunDefaultTasks;
-            this.tasks = tasks;
         }
     }
 
@@ -368,7 +384,7 @@ public class BuildActionSerializer {
         private final Serializer<StartParameterInternal> startParameterSerializer = new StartParameterSerializer();
         private final Serializer<BuildEventSubscriptions> buildEventSubscriptionsSerializer = new BuildEventSubscriptionsSerializer();
         private final Serializer<TestExecutionRequestPayload> payloadSerializer = new DefaultSerializer<>();
-        private final Serializer<InternalTestPatternSpec> testPatternSerializer = new InternalTestPatternSpecSerializer();
+        private final Serializer<InternalTaskSpec> taskSpecSerializer = new InternalTaskSpecSerializer();
 
         @Override
         public void write(Encoder encoder, TestExecutionRequestAction value) throws Exception {
@@ -380,13 +396,12 @@ public class BuildActionSerializer {
                 value.getInternalJvmTestRequests(),
                 value.getDebugOptions(),
                 value.getTaskAndTests(),
-                value.isRunDefaultTasks(),
-                value.getTasks()
+                value.isRunDefaultTasks()
             ));
 
-            encoder.writeSmallInt(value.getTestPatternSpecs().size());
-            for (InternalTestPatternSpec testPatternSpec : value.getTestPatternSpecs()) {
-                testPatternSerializer.write(encoder, testPatternSpec);
+            encoder.writeSmallInt(value.getTaskSpecs().size());
+            for (InternalTaskSpec taskSpec : value.getTaskSpecs()) {
+                taskSpecSerializer.write(encoder, taskSpec);
             }
         }
 
@@ -396,48 +411,61 @@ public class BuildActionSerializer {
             BuildEventSubscriptions buildEventSubscriptions = buildEventSubscriptionsSerializer.read(decoder);
             TestExecutionRequestPayload payload = payloadSerializer.read(decoder);
             int numOfPatterns = decoder.readSmallInt();
-            List<InternalTestPatternSpec> testPatternSpecs = new ArrayList<>(numOfPatterns);
+            List<InternalTaskSpec> taskSpecs = new ArrayList<>(numOfPatterns);
             for (int i = 0; i < numOfPatterns; i++) {
-                testPatternSpecs.add(i, testPatternSerializer.read(decoder));
+                taskSpecs.add(i, taskSpecSerializer.read(decoder));
             }
-            return new TestExecutionRequestAction(buildEventSubscriptions, startParameter, payload.testDescriptors, payload.classNames, payload.internalJvmTestRequests, payload.debugOptions, payload.taskAndTests, payload.isRunDefaultTasks, payload.tasks, testPatternSpecs);
+            return new TestExecutionRequestAction(buildEventSubscriptions, startParameter, payload.testDescriptors, payload.classNames, payload.internalJvmTestRequests, payload.debugOptions, payload.taskAndTests, payload.isRunDefaultTasks, taskSpecs);
         }
     }
 
-    private static class InternalTestPatternSpecSerializer implements Serializer<InternalTestPatternSpec> {
+    private static class InternalTaskSpecSerializer implements Serializer<InternalTaskSpec> {
 
         private final Serializer<List<String>> stringListSerializer = new ListSerializer<>(BaseSerializerFactory.STRING_SERIALIZER);
 
         @Override
-        public void write(Encoder encoder, InternalTestPatternSpec value) throws Exception {
-            encoder.writeString(value.getTaskPath());
-            stringListSerializer.write(encoder, value.getClasses());
-            stringListSerializer.write(encoder, value.getPatterns());
-            stringListSerializer.write(encoder, value.getPackages());
-            Map<String, List<String>> methods = value.getMethods();
-            encoder.writeSmallInt(methods.size());
-            for (Map.Entry<String, List<String>> entry : methods.entrySet()) {
-                String cls = entry.getKey();
-                List<String> method = entry.getValue();
-                encoder.writeString(cls);
-                stringListSerializer.write(encoder, method);
+        public void write(Encoder encoder, InternalTaskSpec value) throws Exception {
+            if (value instanceof InternalTestSpec) {
+                encoder.writeSmallInt(0);
+                InternalTestSpec test = (InternalTestSpec) value;
+                encoder.writeString(value.getTaskPath());
+                stringListSerializer.write(encoder, test.getClasses());
+                stringListSerializer.write(encoder, test.getPatterns());
+                stringListSerializer.write(encoder, test.getPackages());
+                Map<String, List<String>> methods = test.getMethods();
+                encoder.writeSmallInt(methods.size());
+                for (Map.Entry<String, List<String>> entry : methods.entrySet()) {
+                    String cls = entry.getKey();
+                    List<String> method = entry.getValue();
+                    encoder.writeString(cls);
+                    stringListSerializer.write(encoder, method);
+                }
+            } else {
+                encoder.writeSmallInt(1);
+                encoder.writeString(value.getTaskPath());
             }
         }
 
         @Override
-        public InternalTestPatternSpec read(Decoder decoder) throws Exception {
-            String taskPath = decoder.readString();
-            List<String> classes = stringListSerializer.read(decoder);
-            List<String> patterns = stringListSerializer.read(decoder);
-            List<String> packages = stringListSerializer.read(decoder);
-            int methodsSize = decoder.readSmallInt();
-            Map<String, List<String>> methods = new LinkedHashMap<>();
-            for (int i = 0; i < methodsSize; i++) {
-                String cls = decoder.readString();
-                List<String> method = stringListSerializer.read(decoder);
-                methods.put(cls, method);
+        public InternalTaskSpec read(Decoder decoder) throws Exception {
+            int type = decoder.readSmallInt();
+            if (type == 0) {
+                String taskPath = decoder.readString();
+                List<String> classes = stringListSerializer.read(decoder);
+                List<String> patterns = stringListSerializer.read(decoder);
+                List<String> packages = stringListSerializer.read(decoder);
+                int methodsSize = decoder.readSmallInt();
+                Map<String, List<String>> methods = new LinkedHashMap<>();
+                for (int i = 0; i < methodsSize; i++) {
+                    String cls = decoder.readString();
+                    List<String> method = stringListSerializer.read(decoder);
+                    methods.put(cls, method);
+                }
+                return new DefaultTestSpec(taskPath, classes, methods, packages, patterns);
+            } else {
+                String taskPath = decoder.readString();
+                return new DefaultTaskSpec(taskPath);
             }
-            return new DefaultTestPatternSpec(taskPath, classes, methods, packages, patterns);
         }
     }
 
@@ -460,30 +488,30 @@ public class BuildActionSerializer {
         }
     }
 
-    private static class ValueSerializer implements Serializer<BuildOption.Value<Boolean>> {
+    private static class ValueSerializer implements Serializer<Option.Value<Boolean>> {
         private static final byte EXPLICIT_TRUE = (byte) 1;
         private static final byte EXPLICIT_FALSE = (byte) 2;
         public static final byte IMPLICIT_TRUE = (byte) 3;
         public static final byte IMPLICIT_FALSE = (byte) 4;
 
         @Override
-        public BuildOption.Value<Boolean> read(Decoder decoder) throws Exception {
+        public Option.Value<Boolean> read(Decoder decoder) throws Exception {
             switch (decoder.readByte()) {
                 case EXPLICIT_TRUE:
-                    return BuildOption.Value.value(true);
+                    return Option.Value.value(true);
                 case EXPLICIT_FALSE:
-                    return BuildOption.Value.value(false);
+                    return Option.Value.value(false);
                 case IMPLICIT_TRUE:
-                    return BuildOption.Value.defaultValue(true);
+                    return Option.Value.defaultValue(true);
                 case IMPLICIT_FALSE:
-                    return BuildOption.Value.defaultValue(false);
+                    return Option.Value.defaultValue(false);
                 default:
                     throw new IllegalStateException();
             }
         }
 
         @Override
-        public void write(Encoder encoder, BuildOption.Value<Boolean> value) throws Exception {
+        public void write(Encoder encoder, Option.Value<Boolean> value) throws Exception {
             if (value.isExplicit() && value.get()) {
                 encoder.writeByte(EXPLICIT_TRUE);
             } else if (value.isExplicit()) {

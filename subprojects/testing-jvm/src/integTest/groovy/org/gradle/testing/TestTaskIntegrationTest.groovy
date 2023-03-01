@@ -282,11 +282,41 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         extraArgs << [[], ["--tests", "MyTest"]]
     }
 
-    def "options set prior to setting same test framework will warn and have no effect"() {
+    def "test framework can be set to the same value (#frameworkName) twice"() {
+        ignoreWhenJUnitPlatform()
+
+        given:
+        file('src/test/java/MyTest.java') << (frameworkName == "JUnit" ? standaloneTestClass() : junitJupiterStandaloneTestClass())
+
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation $frameworkDeps
+            }
+
+            test {
+                $useMethod
+                $useMethod
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds("test")
+
+        where:
+        frameworkName       | useMethod                 | frameworkDeps
+        "JUnit"             | "useJUnit()"              | "'junit:junit:${JUnitCoverage.NEWEST}'"
+        "JUnit Platform"    | "useJUnitPlatform()"      | "'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'"
+    }
+
+    def "options can be set prior to setting same test framework for the default test task"() {
         ignoreWhenJUnitPlatform()
 
         given:
         file('src/test/java/MyTest.java') << standaloneTestClass()
+        file("src/test/java/Slow.java") << """public interface Slow {}"""
 
         settingsFile << "rootProject.name = 'Sample'"
         buildFile << """apply plugin: 'java'
@@ -302,22 +332,13 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 }
                 useJUnit()
             }
-
-            tasks.register('verifyTestOptions') {
-                doLast {
-                    assert tasks.getByName("test").getOptions().getClass() == JUnitOptions
-                    assert !tasks.getByName("test").getOptions().getExcludeCategories().contains("Slow")
-                }
-            }
         """.stripIndent()
 
-        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
-
         expect:
-        succeeds("test", "verifyTestOptions", "--warn")
+        succeeds("test")
     }
 
-    def "options set prior to changing test framework will produce additional warning and have no effect"() {
+    def "options cannot be set prior to changing test framework for the default test task"() {
         ignoreWhenJUnitPlatform()
 
         given:
@@ -340,56 +361,72 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             test {
                 useJUnitPlatform()
             }
+        """.stripIndent()
 
-            tasks.register('verifyTestOptions') {
-                doLast {
-                    assert tasks.getByName("test").getOptions().getClass() == JUnitPlatformOptions
+        expect:
+        fails("test")
+        failure.assertHasCause("The value for task ':test' property 'testFrameworkProperty' is final and cannot be changed any further.")
+    }
+
+    def "options can be set prior to setting same test framework for a custom test task"() {
+        ignoreWhenJUnitPlatform()
+
+        given:
+        file('src/test/java/MyTest.java') << standaloneTestClass()
+        file("src/test/java/Slow.java") << """public interface Slow {}"""
+
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+
+            sourceSets {
+                customTest
+            }
+
+            dependencies {
+                customTestImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
+            }
+
+            tasks.create('customTest', Test) {
+                classpath = sourceSets.customTest.runtimeClasspath
+                testClassesDirs = sourceSets.customTest.output.classesDirs
+                options {
+                    excludeCategories = ["Slow"]
                 }
+                useJUnit()
             }
         """.stripIndent()
 
-        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
-
-        when:
-        succeeds("test", "verifyTestOptions", "--warn")
-
-        then:
-        outputContains("Test framework is changing from 'JUnitTestFramework', previous option configuration would not be applicable.")
+        expect:
+        succeeds("customTest")
     }
 
-    def "options accessed and not explicitly configured prior to setting test framework will also warn"() {
+    def "options cannot be set prior to changing test framework for a custom test task"() {
+        ignoreWhenJUnitPlatform()
+
         given:
         file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
 
         settingsFile << "rootProject.name = 'Sample'"
-        buildFile << """
-            import org.gradle.api.internal.tasks.testing.*
-
-            apply plugin: 'java'
+        buildFile << """apply plugin: 'java'
 
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
             }
 
-            def options = test.getOptions()
-
-            test {
-                useJUnitPlatform()
-            }
-
-            tasks.register('verifyTestOptions') {
-                doLast {
-                    assert options.getClass() == JUnitOptions
-                    assert tasks.getByName("test").getOptions().getClass() == JUnitPlatformOptions
+            tasks.create('customTest', Test) {
+                options {
+                    excludeCategories = ["Slow"]
                 }
+                useJUnitPlatform()
             }
         """.stripIndent()
 
-        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
-
         expect:
-        succeeds("test", "verifyTestOptions", "--warn")
+        fails("customTest")
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
     def "options configured after setting test framework works"() {
@@ -423,6 +460,42 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         expect:
         succeeds("test", "verifyTestOptions", "--warn")
+    }
+
+    def "setForkEvery null emits deprecation warning"() {
+        given:
+        buildScript """
+            plugins {
+                id 'java'
+            }
+            tasks.withType(Test).configureEach {
+                forkEvery = null
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Setting Test.forkEvery to null. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Set Test.forkEvery to 0 instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery for more details.")
+
+        then:
+        succeeds "test", "--dry-run"
+    }
+
+    def "setForkEvery Long emits deprecation warning"() {
+        given:
+        buildScript """
+            plugins {
+                id 'java'
+            }
+            tasks.withType(Test).configureEach {
+                setForkEvery(Long.valueOf(1))
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The Test.setForkEvery(Long) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the Test.setForkEvery(long) method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery for more details.")
+
+        then:
+        succeeds "test", "--dry-run"
     }
 
     private static String standaloneTestClass() {

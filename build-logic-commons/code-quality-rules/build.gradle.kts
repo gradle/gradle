@@ -1,3 +1,6 @@
+import groovy.lang.GroovySystem
+import org.gradle.util.internal.VersionNumber
+
 /*
  * Copyright 2022 the original author or authors.
  *
@@ -20,15 +23,22 @@ plugins {
 description = "Provides a custom CodeNarc rule used by the Gradle build"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+        vendor = JvmVendorSpec.ADOPTIUM
+    }
 }
 
 group = "gradlebuild"
 
+val groovyVersion = GroovySystem.getVersion()
+val isGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
+val codenarcVersion = if (isGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
+
 dependencies {
     compileOnly(localGroovy())
-    compileOnly("org.codenarc:CodeNarc:3.0.1") {
+    compileOnly("org.codenarc:CodeNarc:$codenarcVersion") {
+        exclude(group = "org.apache.groovy")
         exclude(group = "org.codehaus.groovy")
     }
 }

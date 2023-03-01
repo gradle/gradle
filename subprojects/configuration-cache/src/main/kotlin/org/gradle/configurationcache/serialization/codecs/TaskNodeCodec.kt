@@ -24,14 +24,10 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
+import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.InputParameterUtils
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
-import org.gradle.api.internal.tasks.properties.PropertyValue
-import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.specs.Spec
-import org.gradle.api.tasks.FileNormalizer
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.problems.PropertyTrace
@@ -56,8 +52,15 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
+import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
+import org.gradle.internal.properties.InputBehavior
+import org.gradle.internal.properties.InputFilePropertyType
+import org.gradle.internal.properties.OutputFilePropertyType
+import org.gradle.internal.properties.PropertyValue
+import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.util.internal.DeferredUtil
 
 
@@ -104,7 +107,7 @@ class TaskNodeCodec(
                     }
                     writeDestroyablesOf(task)
                     writeLocalStateOf(task)
-                    writeRegisteredServicesOf(task)
+                    writeRequiredServices(task)
                 }
             }
         }
@@ -130,7 +133,7 @@ class TaskNodeCodec(
             readRegisteredPropertiesOf(task)
             readDestroyablesOf(task)
             readLocalStateOf(task)
-            readRegisteredServicesOf(task)
+            readRequiredServices(task)
         }
 
         return task
@@ -168,12 +171,12 @@ class TaskNodeCodec(
     }
 
     private
-    suspend fun WriteContext.writeRegisteredServicesOf(task: TaskInternal) {
-        writeCollection(task.requiredServices)
+    suspend fun WriteContext.writeRequiredServices(task: TaskInternal) {
+        writeCollection(task.requiredServices.elements)
     }
 
     private
-    suspend fun ReadContext.readRegisteredServicesOf(task: TaskInternal) {
+    suspend fun ReadContext.readRequiredServices(task: TaskInternal) {
         readCollection {
             task.usesService(readNonNull())
         }
@@ -225,11 +228,11 @@ suspend fun <T> T.withTaskOf(
     action: suspend () -> Unit
 ) where T : IsolateContext, T : MutableIsolateContext {
     withIsolate(IsolateOwner.OwnerTask(task), codec) {
-        withPropertyTrace(PropertyTrace.Task(taskType, task.path)) {
+        withPropertyTrace(PropertyTrace.Task(taskType, task.identityPath.path)) {
             if (task.isCompatibleWithConfigurationCache) {
                 action()
             } else {
-                forIncompatibleType(action)
+                forIncompatibleType(task.identityPath.path, action)
             }
         }
     }
@@ -250,9 +253,8 @@ sealed class RegisteredProperty {
         val propertyValue: PropertyValue,
         val optional: Boolean,
         val filePropertyType: InputFilePropertyType,
-        val skipWhenEmpty: Boolean,
-        val incremental: Boolean,
-        val fileNormalizer: Class<out FileNormalizer>?,
+        val behavior: InputBehavior,
+        val normalizer: FileNormalizer?,
         val directorySensitivity: DirectorySensitivity,
         val lineEndingSensitivity: LineEndingSensitivity
     ) : RegisteredProperty()
@@ -293,17 +295,19 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
                     writeBoolean(optional)
                     writeBoolean(true)
                     writeEnum(filePropertyType)
-                    writeBoolean(skipWhenEmpty)
-                    writeClass(fileNormalizer!!)
+                    writeEnum(behavior)
+                    writeEnum(normalizer!! as InputNormalizer)
                     writeEnum(directorySensitivity)
                     writeEnum(lineEndingSensitivity)
                 }
+
                 is RegisteredProperty.Input -> {
                     val finalValue = InputParameterUtils.prepareInputParameterValue(propertyValue)
                     writeInputProperty(propertyName, finalValue)
                     writeBoolean(optional)
                     writeBoolean(false)
                 }
+
                 else -> throw IllegalStateException()
             }
         }
@@ -326,7 +330,7 @@ fun collectRegisteredOutputsOf(task: Task): List<RegisteredProperty.OutputFile> 
 
     val properties = mutableListOf<RegisteredProperty.OutputFile>()
 
-    (task.outputs as TaskOutputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
+    (task.outputs as TaskOutputsInternal).visitRegisteredProperties(object : PropertyVisitor {
 
         override fun visitOutputFileProperty(
             propertyName: String,
@@ -353,16 +357,15 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
 
     val properties = mutableListOf<RegisteredProperty>()
 
-    (task.inputs as TaskInputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
+    (task.inputs as TaskInputsInternal).visitRegisteredProperties(object : PropertyVisitor {
 
         override fun visitInputFileProperty(
             propertyName: String,
             optional: Boolean,
-            skipWhenEmpty: Boolean,
+            behavior: InputBehavior,
             directorySensitivity: DirectorySensitivity,
             lineEndingSensitivity: LineEndingSensitivity,
-            incremental: Boolean,
-            fileNormalizer: Class<out FileNormalizer>?,
+            normalizer: FileNormalizer?,
             propertyValue: PropertyValue,
             filePropertyType: InputFilePropertyType
         ) {
@@ -372,9 +375,8 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
                     propertyValue,
                     optional,
                     filePropertyType,
-                    skipWhenEmpty,
-                    incremental,
-                    fileNormalizer,
+                    behavior,
+                    normalizer,
                     directorySensitivity,
                     lineEndingSensitivity
                 )
@@ -416,25 +418,26 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
             when {
                 isFileInputProperty -> {
                     val filePropertyType = readEnum<InputFilePropertyType>()
-                    val skipWhenEmpty = readBoolean()
-                    val normalizer = readClass()
+                    val inputBehavior = readEnum<InputBehavior>()
+                    val normalizer = readEnum<InputNormalizer>()
                     val directorySensitivity = readEnum<DirectorySensitivity>()
                     val lineEndingNormalization = readEnum<LineEndingSensitivity>()
-                    task.inputs.run {
+                    ((task as TaskInternal).inputs.run {
                         when (filePropertyType) {
                             InputFilePropertyType.FILE -> file(pack(propertyValue))
                             InputFilePropertyType.DIRECTORY -> dir(pack(propertyValue))
                             InputFilePropertyType.FILES -> files(pack(propertyValue))
                         }
-                    }.run {
+                    } as TaskInputFilePropertyBuilderInternal).run {
                         withPropertyName(propertyName)
                         optional(optional)
-                        skipWhenEmpty(skipWhenEmpty)
-                        withNormalizer(normalizer.uncheckedCast())
+                        skipWhenEmpty(inputBehavior.shouldSkipWhenEmpty())
+                        withInternalNormalizer(normalizer)
                         ignoreEmptyDirectories(directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES)
                         normalizeLineEndings(lineEndingNormalization == LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
                     }
                 }
+
                 else -> {
                     task.inputs
                         .property(propertyName, propertyValue)

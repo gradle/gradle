@@ -34,8 +34,8 @@ Instead, it declares binary dependencies on the libraries produced by `my-utils`
 
 .Dependencies of my-app
 ====
-include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="my-app/app/build.gradle[tags=app_dependencies]"]
 include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="my-app/app/build.gradle.kts[tags=app_dependencies]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="my-app/app/build.gradle[tags=app_dependencies]"]
 ====
 
 
@@ -64,16 +64,16 @@ One downside of the above approach is that it requires you to modify an existing
 
 .Declaring a separate composite
 ====
-include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="settings.gradle[]"]
 include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="settings.gradle[]"]
 ====
 
 In this scenario, the 'main' build that is executed is the composite, and it doesn't define any useful tasks to execute itself. In order to execute the 'run' task in the 'my-app' build, the composite build must define a delegating task.
 
 .Depending on task from included build
 ====
-include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="build.gradle[tags=run]"]
 include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="build.gradle.kts[tags=run]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="build.gradle[tags=run]"]
 ====
 
 More details about tasks that depend on included build tasks are below.
@@ -87,8 +87,8 @@ Using this mechanism, the included build may also contribute a settings plugin t
 
 .Including a plugin build
 ====
-include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-plugin-build",files="settings.gradle[tags=include-build]"]
 include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/include-plugin-build",files="settings.gradle.kts[tags=include-build]"]
+include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-plugin-build",files="settings.gradle[tags=include-build]"]
 ====
 
 NOTE: Including plugin builds via the plugin management block is an incubating feature.
@@ -99,7 +99,7 @@ However, this does not support all use cases and including plugin builds like th
 === Restrictions on included builds
 
 Most builds can be included into a composite, including other composite builds.
-However there are some limitations.
+However there are some restrictions.
 
 Every included build:
 
@@ -118,18 +118,17 @@ Tasks can be executed, tests can be run, and builds can be imported into the IDE
 [[composite_build_executing_tasks]]
 === Executing tasks
 
-Tasks from the composite build can be executed from the command-line or from your IDE.
-Executing a task will result in direct task dependencies being executed, as well as those tasks required to build dependency artifacts from included builds.
+Tasks from an included build can be executed from the command-line or from your IDE in the same way as tasks from a regular multi-project build.
+Executing a task will result in task dependencies being executed, as well as those tasks required to build dependency artifacts from other included builds.
 
-You call a task in an included build using a fully qualified path, which usually is `:included-build-name:subproject-name:taskName`.
-Subproject and task names can be <<command_line_interface.adoc#sec:name_abbreviation,abbreviated>>.
-This is not supported for included build names.
+You can call a task in an included build using a fully qualified path, for example `:included-build-name:project-name:taskName`.
+Project and task names can be <<command_line_interface.adoc#sec:name_abbreviation,abbreviated>>.
 
 ----
 $ ./gradlew :included-build:subproject-a:compileJava
 > Task :included-build:subproject-a:compileJava
 
-$ ./gradlew :included-build:sA:cJ
+$ ./gradlew :i-b:sA:cJ
 > Task :included-build:subproject-a:compileJava
 ----
 
@@ -165,8 +164,8 @@ Take for example a single-project build 'anonymous-library', that produces a jav
 
 .Build that does not declare group attribute
 ====
-include::sample[dir="samples/build-organization/composite-builds/declared-substitution/groovy/anonymous-library",files="build.gradle[]"]
 include::sample[dir="samples/build-organization/composite-builds/declared-substitution/kotlin/anonymous-library",files="build.gradle.kts[]"]
+include::sample[dir="samples/build-organization/composite-builds/declared-substitution/groovy/anonymous-library",files="build.gradle[]"]
 ====
 
 When this build is included in a composite, it will attempt to substitute for the dependency module "undefined:anonymous-library" ("undefined" being the default value for `project.group`, and "anonymous-library" being the root project name).
@@ -175,8 +174,8 @@ To use the unpublished library unmodified in a composite build, the composing bu
 
 .Declaring the substitutions for an included build
 ====
-include::sample[dir="samples/build-organization/composite-builds/declared-substitution/groovy",files="settings.gradle[]"]
-include::sample[dir="samples/build-organization/composite-builds/declared-substitution/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="samples/build-organization/composite-builds/declared-substitution/kotlin",files="settings.gradle.kts[tags=composite_substitution]"]
+include::sample[dir="samples/build-organization/composite-builds/declared-substitution/groovy",files="settings.gradle[tags=composite_substitution]"]
 ====
 
 With this configuration, the "my-app" composite build will substitute any dependency on `org.sample:number-utils` with a dependency on the root project of "anonymous-library".
@@ -189,8 +188,8 @@ This is necessary, because the rules are globally applied in the build and Gradl
 
 .Deactivate global dependency substitution rules
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-deactivateGlobalSubstitution/groovy",files="build.gradle[tags=disableGlobalDependencySubstitutionRules]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-deactivateGlobalSubstitution/kotlin",files="build.gradle.kts[tags=disableGlobalDependencySubstitutionRules]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-deactivateGlobalSubstitution/groovy",files="build.gradle[tags=disableGlobalDependencySubstitutionRules]"]
 ====
 
 In this example, we create a separate `publishedRuntimeClasspath` configuration that gets resolve to the published versions of modules that also exist in one of the local builds.
@@ -231,14 +230,14 @@ Using these APIs, it is possible to declare a dependency on a task in a particul
 
 .Depending on a single task from an included build
 ====
-include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="build.gradle[tags=run]"]
 include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="build.gradle.kts[tags=run]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="build.gradle[tags=run]"]
 ====
 
 .Depending on a task with path in all included builds
 ====
-include::sample[dir="samples/build-organization/composite-builds/hierarchical-multirepo/groovy",files="build.gradle"]
 include::sample[dir="samples/build-organization/composite-builds/hierarchical-multirepo/kotlin",files="build.gradle.kts"]
+include::sample[dir="samples/build-organization/composite-builds/hierarchical-multirepo/groovy",files="build.gradle"]
 ====
 
 [[current_limitations_and_future_work]]
@@ -247,9 +246,4 @@ include::sample[dir="samples/build-organization/composite-builds/hierarchical-mu
 Limitations of the current implementation include:
 
 * No support for included builds that have publications that don't mirror the project default configuration. See <<#included_build_substitution_limitations,Cases where composite builds won't work>>.
-* Software model based native builds are not supported. (Binary dependencies are not yet supported for native builds).
 * Multiple composite builds may conflict when run in parallel, if more than one includes the same build. Gradle does not share the project lock of a shared composite build to between Gradle invocation to prevent concurrent execution.
-
-Improvements we have planned for upcoming releases include:
-
-* Making the implicit `buildSrc` project an included build.

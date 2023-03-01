@@ -14,3 +14,5 @@ There are different ways to work with the sample:
   For example, `cd server-application` and run the app using  `../gradlew :app:bootRun`.
 - You may only build or import a selected component (and its dependencies).
   For example, only import the `user-feature` build in the IDE.
+
+// TODO:Finalize Upload Removal - Issue #21439

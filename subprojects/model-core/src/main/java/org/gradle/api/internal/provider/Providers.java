@@ -47,7 +47,9 @@ public class Providers {
                 return new NoValueProvider<>(value);
             }
         } else {
-            return of(value.get());
+            ProviderInternal<T> provider = of(value.getWithoutSideEffect());
+            ValueSupplier.SideEffect<?> sideEffect = value.getSideEffect();
+            return sideEffect == null ? provider : provider.withSideEffect(Cast.uncheckedCast(sideEffect));
         }
     }
 

@@ -21,7 +21,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 /**
@@ -82,5 +82,5 @@ public interface TaskProperties {
     /**
      * Validations for the properties.
      */
-    void validate(TaskValidationContext validationContext);
+    void validate(PropertyValidationContext validationContext);
 }

@@ -57,7 +57,7 @@ class DaemonRegistryServicesTest extends Specification {
         def registry = registry("someDir").get(DaemonRegistry)
         5.times { idx ->
             concurrent.start {
-                def context = new DefaultDaemonContext("$idx", new File("$idx"), new File("$idx"), idx, 5000, [], DaemonParameters.Priority.NORMAL)
+                def context = new DefaultDaemonContext("$idx", new File("$idx"), new File("$idx"), idx, 5000, [], false, DaemonParameters.Priority.NORMAL)
                 registry.store(new DaemonInfo(
                     new SocketInetAddress(Inet6Address.getLocalHost(), (int)(8888 + idx)), context, "foo-$idx".bytes, Idle))
             }

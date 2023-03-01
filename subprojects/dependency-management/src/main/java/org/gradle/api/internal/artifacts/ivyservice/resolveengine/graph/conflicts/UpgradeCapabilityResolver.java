@@ -19,7 +19,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.model.CapabilityInternal;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.util.internal.VersionNumber;
 
 import java.util.Collection;

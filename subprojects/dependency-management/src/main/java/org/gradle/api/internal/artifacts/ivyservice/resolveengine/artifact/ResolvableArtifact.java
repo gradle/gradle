@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.model.CalculatedValue;
 
 import java.io.File;
@@ -33,6 +34,8 @@ public interface ResolvableArtifact extends TaskDependencyContainer {
      * Should this artifact be resolved synchronously? For example, is the result of {@link #getFile()} available in memory or can it be calculated quickly without IO calls?
      */
     boolean isResolveSynchronously();
+
+    IvyArtifactName getArtifactName();
 
     /**
      * Resolves the file, if not already, blocking until complete.

@@ -27,9 +27,7 @@ public class PatternMatchTestClassProcessor implements TestClassProcessor {
     private final TestClassProcessor delegate;
 
     public PatternMatchTestClassProcessor(DefaultTestFilter testFilter, TestClassProcessor delegate) {
-        this.testClassSelectionMatcher = new TestSelectionMatcher(
-            testFilter.getIncludePatterns(), testFilter.getExcludePatterns(),
-            testFilter.getCommandLineIncludePatterns());
+        this.testClassSelectionMatcher = new TestSelectionMatcher(testFilter.toSpec());
         this.delegate = delegate;
     }
 

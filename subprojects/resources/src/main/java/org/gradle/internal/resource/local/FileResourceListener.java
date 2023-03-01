@@ -24,7 +24,12 @@ import java.io.File;
 @EventScope(Scopes.Build.class)
 public interface FileResourceListener {
     /**
-     * Called when a file system resource is accessed.
+     * Called when a file system resource is accessed as a regular file.
      */
     void fileObserved(File file);
+
+    /**
+     * Called when the children of a file system resource are listed.
+     */
+    void directoryChildrenObserved(File file);
 }

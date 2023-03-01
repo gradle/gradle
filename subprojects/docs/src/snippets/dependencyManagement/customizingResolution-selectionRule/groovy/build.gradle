@@ -44,8 +44,9 @@ dependencies {
 // end::reject-version-1-1[]
 
 tasks.register('printRejectConfig') {
+    FileCollection rejectConfig = configurations.rejectConfig
     doLast {
-        configurations.rejectConfig.each { println "Resolved: ${it.name}" }
+        rejectConfig.each { println "Resolved: ${it.name}" }
     }
 }
 
@@ -78,8 +79,9 @@ dependencies {
 }
 
 tasks.register('printMetadataRulesConfig') {
+    FileCollection metadataRulesConfig = configurations.metadataRulesConfig
     doLast {
-        configurations.metadataRulesConfig.each { println "Resolved: ${it.name}" }
+        metadataRulesConfig.each { println "Resolved: ${it.name}" }
     }
 }
 
@@ -104,8 +106,9 @@ dependencies {
 }
 
 tasks.register('printTargetConfig') {
+    FileCollection targetConfig = configurations.targetConfig
     doLast {
-        configurations.targetConfig.each { println "Resolved: ${it.name}" }
+        targetConfig.each { println "Resolved: ${it.name}" }
     }
 }
 
@@ -132,7 +135,8 @@ dependencies {
 }
 
 tasks.register('resolveConfiguration') {
+    FileCollection sampleConfig = configurations.sampleConfig
     doLast {
-        configurations.sampleConfig.each { println it }
+        sampleConfig.each { println it }
     }
 }

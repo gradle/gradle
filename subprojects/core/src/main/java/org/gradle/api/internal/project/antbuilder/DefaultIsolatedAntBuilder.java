@@ -26,7 +26,6 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
@@ -101,7 +100,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
 
         // Need Transformer (part of AntBuilder API) from base services
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
-        this.antAdapterLoader = new VisitableURLClassLoader("gradle-core-loader", baseAntLoader, gradleCoreUrls);
+        this.antAdapterLoader = VisitableURLClassLoader.fromClassPath("gradle-core-loader", baseAntLoader, gradleCoreUrls);
 
         gradleApiGroovyLoader = groovySystemLoaderFactory.forClassLoader(this.getClass().getClassLoader());
         antAdapterGroovyLoader = groovySystemLoaderFactory.forClassLoader(antAdapterLoader);
@@ -133,36 +132,33 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
     }
 
     @Override
-    public void execute(final Closure antClosure) {
+    public void execute(Closure antClosure) {
+        execute(delegate -> ClosureBackedAction.execute(delegate, antClosure));
+    }
+
+    @Override
+    public void execute(Action<AntBuilderDelegate> antBuilderAction) {
         classLoaderCache.withCachedClassLoader(libClasspath, gradleApiGroovyLoader, antAdapterGroovyLoader,
-            new Factory<ClassLoader>() {
-                @Override
-                public ClassLoader create() {
-                    return new VisitableURLClassLoader("ant-lib-loader", baseAntLoader, libClasspath);
-                }
-            }, new Action<CachedClassLoader>() {
-                @Override
-                public void execute(CachedClassLoader cachedClassLoader) {
-                    ClassLoader classLoader = cachedClassLoader.getClassLoader();
-                    Object antBuilder = newInstanceOf("org.gradle.api.internal.project.ant.BasicAntBuilder");
-                    Object antLogger = newInstanceOf("org.gradle.api.internal.project.ant.AntLoggingAdapter");
+            () -> new VisitableURLClassLoader("ant-lib-loader", baseAntLoader, libClasspath.getAsURLs()),
+            cachedClassLoader -> {
+                ClassLoader classLoader = cachedClassLoader.getClassLoader();
+                Object antBuilder = newInstanceOf("org.gradle.api.internal.project.ant.BasicAntBuilder");
+                Object antLogger = newInstanceOf("org.gradle.api.internal.project.ant.AntLoggingAdapter");
 
-                    // This looks ugly, very ugly, but that is apparently what Ant does itself
-                    ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
-                    Thread.currentThread().setContextClassLoader(classLoader);
+                // This looks ugly, very ugly, but that is apparently what Ant does itself
+                ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
+                Thread.currentThread().setContextClassLoader(classLoader);
 
-                    try {
-                        configureAntBuilder(antBuilder, antLogger);
+                try {
+                    configureAntBuilder(antBuilder, antLogger);
 
-                        // Ideally, we'd delegate directly to the AntBuilder, but its Closure class is different to our caller's
-                        // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
-                        // because they are not an instanceof its Closure class.
-                        Object delegate = new AntBuilderDelegate(antBuilder, classLoader);
-                        ClosureBackedAction.execute(delegate, antClosure);
-                    } finally {
-                        Thread.currentThread().setContextClassLoader(originalLoader);
-                        disposeBuilder(antBuilder, antLogger);
-                    }
+                    // Ideally, we'd delegate directly to the AntBuilder, but its Closure class is different to our caller's
+                    // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
+                    // because they are not an instanceof its Closure class.
+                    antBuilderAction.execute(new AntBuilderDelegate(antBuilder, classLoader));
+                } finally {
+                    Thread.currentThread().setContextClassLoader(originalLoader);
+                    disposeBuilder(antBuilder, antLogger);
                 }
             });
     }

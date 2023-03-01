@@ -26,10 +26,10 @@ class JavaModuleCrossCompileIntegrationTest extends AbstractJavaModuleIntegratio
                 sourceCompatibility = JavaVersion.VERSION_1_8
                 targetCompatibility = JavaVersion.VERSION_1_8
             }
-            def jvm = extensions.create(org.gradle.api.plugins.jvm.internal.JvmPluginExtension, "jvm", org.gradle.api.plugins.jvm.internal.DefaultJvmPluginExtension)
+            def jvm = project.services.get(org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities)
 
             def main = sourceSets.main
-            jvm.utilities.registerJvmLanguageSourceDirectory(main, "java9") {
+            jvm.registerJvmLanguageSourceDirectory(main, "java9") {
                 withDescription "Java 9 Sources"
                 compiledWithJava {
                     sourceCompatibility = '9'

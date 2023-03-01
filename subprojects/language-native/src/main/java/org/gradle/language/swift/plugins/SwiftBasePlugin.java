@@ -46,7 +46,7 @@ import javax.inject.Inject;
  *
  * @since 4.1
  */
-public class SwiftBasePlugin implements Plugin<Project> {
+public abstract class SwiftBasePlugin implements Plugin<Project> {
     private final ProjectPublicationRegistry publicationRegistry;
     private final MacOSSdkPathLocator locator;
 

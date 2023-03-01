@@ -90,31 +90,29 @@ fun MavenPublication.configureGradleModulePublication() {
 
     pom {
         packaging = "jar"
-        name.set("org.gradle:gradle-${project.name}")
-        description.set(
-            provider {
-                require(project.description != null) { "You must set the description of published project ${project.name}" }
-                project.description
-            }
-        )
-        url.set("https://gradle.org")
+        name = "org.gradle:gradle-${project.name}"
+        description = provider {
+            require(project.description != null) { "You must set the description of published project ${project.name}" }
+            project.description
+        }
+        url = "https://gradle.org"
         licenses {
             license {
-                name.set("Apache-2.0")
-                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                name = "Apache-2.0"
+                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
             }
         }
         developers {
             developer {
-                name.set("The Gradle team")
-                organization.set("Gradle Inc.")
-                organizationUrl.set("https://gradle.org")
+                name = "The Gradle team"
+                organization = "Gradle Inc."
+                organizationUrl = "https://gradle.org"
             }
         }
         scm {
-            connection.set("scm:git:git://github.com/gradle/gradle.git")
-            developerConnection.set("scm:git:ssh://github.com:gradle/gradle.git")
-            url.set("https://github.com/gradle/gradle")
+            connection = "scm:git:git://github.com/gradle/gradle.git"
+            developerConnection = "scm:git:ssh://github.com:gradle/gradle.git"
+            url = "https://github.com/gradle/gradle"
         }
     }
 }
@@ -209,6 +207,18 @@ fun publishNormalizedToLocalRepository() {
         isVisible = false
         outgoing.artifact(localRepository) {
             builtBy(localPublish)
+        }
+    }
+
+    if (signArtifacts) {
+        // Otherwise we get
+        // ask ':tooling-api:publishGradleDistributionPublicationToRemoteRepository' uses this output of task ':tooling-api:signLocalPublication'
+        // without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed.
+        tasks.named("publishGradleDistributionPublicationToRemoteRepository") {
+            dependsOn("signLocalPublication")
+        }
+        tasks.named("publishLocalPublicationToLocalRepository") {
+            dependsOn("signGradleDistributionPublication")
         }
     }
 }

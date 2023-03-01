@@ -76,7 +76,7 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
         !warSubprojectBuildFile.text.contains("options.encoding")
 
         assertContainsPublishingConfig(conventionPluginScript, scriptDsl)
-        conventionPluginScript.text.contains("options.encoding = 'UTF-8'") || conventionPluginScript.text.contains('options.encoding = "UTF-8"')
+        assertContainsEncodingConfig(conventionPluginScript, scriptDsl, 'UTF-8')
         conventionPluginScript.text.contains(TextUtil.toPlatformLineSeparators('''
 java {
     withSourcesJar()
@@ -207,6 +207,29 @@ Root project 'webinar-parent'
         targetDir.file("build/libs/util-2.5.jar").exists()
         failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
+    }
+
+    private static void assertContainsEncodingConfig(TestFile buildScript, BuildInitDsl dsl, String encoding) {
+        def text = buildScript.text
+        if (dsl == BuildInitDsl.GROOVY) {
+            assert text.contains(TextUtil.toPlatformLineSeparators("""
+tasks.withType(JavaCompile) {
+    options.encoding = '$encoding'
+}
+
+tasks.withType(Javadoc) {
+    options.encoding = '$encoding'
+}"""))
+        } else {
+            assert text.contains(TextUtil.toPlatformLineSeparators("""
+tasks.withType<JavaCompile>() {
+    options.encoding = "$encoding"
+}
+
+tasks.withType<Javadoc>() {
+    options.encoding = "$encoding"
+}"""))
+        }
     }
 
     private static void assertContainsPublishingConfig(TestFile buildScript, BuildInitDsl dsl, String indent = "", List<String> additionalArchiveTasks = []) {
@@ -624,6 +647,51 @@ Root project 'webinar-parent'
     }""")
 
         dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators(mavenLocalRepoBlock))
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20981")
+    def "escapeSingleQuotes"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
+        def descriptionPropertyAssignment = (isGroovy ? 'description = \'That\\\'s it\'' : 'description = "That\'s it"')
+        dsl.getBuildFile().text.readLines().contains(descriptionPropertyAssignment)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20981")
+    def "escapeDoubleQuotes"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
+        def descriptionPropertyAssignment = (isGroovy ? 'description = \'"Quoted description"\'' : 'description = "\\"Quoted description\\""')
+        dsl.getBuildFile().text.readLines().contains(descriptionPropertyAssignment)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20981")
+    def "escapeBackslashes"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
+        def descriptionPropertyAssignment = (isGroovy ? "description = 'A description \\\\ with a backslash'" : 'description = "A description \\\\ with a backslash"')
+        dsl.getBuildFile().text.readLines().contains(descriptionPropertyAssignment)
     }
 
     static libRequest(MavenHttpRepository repo, String group, String name, Object version) {

@@ -227,7 +227,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
     def "captures output from buildSrc"() {
         given:
         configureNestedBuild('buildSrc')
-        file('buildSrc/build.gradle') << "build.dependsOn 'foo'"
+        file('buildSrc/build.gradle') << "jar.dependsOn 'foo'"
         file("build.gradle") << ""
 
         when:
@@ -376,7 +376,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
         List<BuildOperationRecord.Progress> output = []
         operations.walk(operations.root(RunBuildBuildOperationType)) {
-            output.addAll(it.progress.findAll { it.hasDetailsOfType(LogEventBuildOperationProgressDetails) })
+            output.addAll(it.progress(LogEventBuildOperationProgressDetails))
         }
 
         def uniqueMessages = output.collect { it.details.message }.unique()

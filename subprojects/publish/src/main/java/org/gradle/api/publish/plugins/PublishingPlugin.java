@@ -22,8 +22,6 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -45,7 +43,7 @@ import javax.inject.Inject;
  * @since 1.3
  * @see <a href="https://docs.gradle.org/current/userguide/publishing_setup.html#publishing_overview">Publishing reference</a>
  */
-public class PublishingPlugin implements Plugin<Project> {
+public abstract class PublishingPlugin implements Plugin<Project> {
 
     public static final String PUBLISH_TASK_GROUP = "publishing";
     public static final String PUBLISH_LIFECYCLE_TASK_NAME = "publish";
@@ -54,22 +52,16 @@ public class PublishingPlugin implements Plugin<Project> {
     private final Instantiator instantiator;
     private final ArtifactPublicationServices publicationServices;
     private final ProjectPublicationRegistry projectPublicationRegistry;
-    private final FeaturePreviews featurePreviews;
-    private final DocumentationRegistry documentationRegistry;
-    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
+    private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
     public PublishingPlugin(ArtifactPublicationServices publicationServices,
                             Instantiator instantiator,
                             ProjectPublicationRegistry projectPublicationRegistry,
-                            FeaturePreviews featurePreviews,
-                            DocumentationRegistry documentationRegistry,
                             CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this.publicationServices = publicationServices;
         this.instantiator = instantiator;
         this.projectPublicationRegistry = projectPublicationRegistry;
-        this.featurePreviews = featurePreviews;
-        this.documentationRegistry = documentationRegistry;
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
     }
 

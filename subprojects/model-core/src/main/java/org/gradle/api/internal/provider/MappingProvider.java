@@ -18,45 +18,35 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * A mapping provider that uses a transform that 1. does not use the value contents and 2. always produces a value.
+ * <p>A mapping provider that uses a transform that:</p>
+ *
+ * <ul>
+ *     <li>1. does not use the value contents</li>
+ *     <li>2. always produces a non-null value.</li>
+ * </ul>
+ *
+ * <p>This implementation is used only for internal transforms where these constraints are known to be true.
+ * For user provided mappings and other internal mappings, {@link TransformBackedProvider} is used instead.</p>
+ *
+ * <p>The constraints allows certain optimizations. Currently, this is limited to skipping the transform when the provider presence is queried, but other optimizations may be added in the future.
+ * Also, because the transform does not use the value content, this provider also skips checks to verify that the content has been built when the value is queried.</p>
+ *
+ * @see ProviderInternal for a discussion of the "value" and "value contents".
  */
-public class MappingProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
-    private final Class<OUT> type;
-    private final ProviderInternal<? extends IN> provider;
-    private final Transformer<? extends OUT, ? super IN> transformer;
+public class MappingProvider<OUT, IN> extends TransformBackedProvider<OUT, IN> {
 
-    public MappingProvider(Class<OUT> type, ProviderInternal<? extends IN> provider, Transformer<? extends OUT, ? super IN> transformer) {
-        this.type = type;
-        this.provider = provider;
-        this.transformer = transformer;
-    }
-
-    @Nullable
-    @Override
-    public Class<OUT> getType() {
-        return type;
-    }
-
-    @Override
-    public ValueProducer getProducer() {
-        return provider.getProducer();
+    public MappingProvider(@Nullable Class<OUT> type, ProviderInternal<? extends IN> provider, Transformer<? extends OUT, ? super IN> transformer) {
+        super(type, provider, transformer);
     }
 
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
+        // Rely on MappingProvider contract with regard to the transform always returning value
         return provider.calculatePresence(consumer);
-    }
-
-    @Override
-    protected Value<OUT> calculateOwnValue(ValueConsumer consumer) {
-        Value<? extends IN> value = provider.calculateValue(consumer);
-        if (value.isMissing()) {
-            return value.asType();
-        }
-        return Value.of(transformer.transform(value.get()));
     }
 
     @Override
@@ -64,15 +54,27 @@ public class MappingProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
         ExecutionTimeValue<? extends IN> value = provider.calculateExecutionTimeValue();
         if (value.isChangingValue()) {
             return ExecutionTimeValue.changingValue(new MappingProvider<OUT, IN>(type, value.getChangingValue(), transformer));
-        } else if (value.isMissing()) {
-            return ExecutionTimeValue.missing();
-        } else {
-            return ExecutionTimeValue.fixedValue(transformer.transform(value.getFixedValue()));
         }
+
+        return ExecutionTimeValue.value(mapValue(value.toValue()));
+    }
+
+    @Nonnull
+    @Override
+    protected Value<OUT> mapValue(Value<? extends IN> value) {
+        Value<OUT> transformedValue = super.mapValue(value);
+        // Check MappingProvider contract with regard to the transform
+        if (!value.isMissing() && transformedValue.isMissing()) {
+            throw new IllegalStateException("The transformer in MappingProvider must always return a value");
+        }
+        return transformedValue;
     }
 
     @Override
+    protected void beforeRead() {}
+
+    @Override
     public String toString() {
-        return "map(" + type.getName() + " " + provider + " " + transformer + ")";
+        return "map(" + (type == null ? "" : type.getName() + " ") + provider + " " + transformer + ")";
     }
 }

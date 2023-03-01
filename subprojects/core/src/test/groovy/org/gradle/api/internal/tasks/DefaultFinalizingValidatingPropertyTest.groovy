@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.tasks
 
-
 import org.gradle.api.internal.tasks.properties.DefaultFinalizingValidatingProperty
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue
-import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.ValidationActions
+import org.gradle.internal.properties.PropertyValue
 import spock.lang.Specification
 
 class DefaultFinalizingValidatingPropertyTest extends Specification {

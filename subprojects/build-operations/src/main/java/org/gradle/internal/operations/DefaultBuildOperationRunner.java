@@ -59,9 +59,9 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         execute(buildOperation.description(), defaultParent, new BuildOperationExecution<O>() {
             @Override
             public O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context, BuildOperationExecutionListener listener) {
-                Throwable failure = null;
                 try {
                     listener.start(descriptor, operationState);
+                    Throwable failure = null;
                     try {
                         worker.execute(buildOperation, context);
                     } catch (Throwable t) {
@@ -99,7 +99,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                     }
 
                     @Override
-                    public void setResult(Object result) {
+                    public void setResult(@Nullable Object result) {
                         assertNotFinished();
                         context.setResult(result);
                         finish();

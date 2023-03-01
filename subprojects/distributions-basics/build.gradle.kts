@@ -7,6 +7,8 @@ description = "The collector project for the 'basics' portion of the Gradle dist
 dependencies {
     coreRuntimeOnly(platform(project(":core-platform")))
 
+    agentsRuntimeOnly(project(":instrumentation-agent"))
+
     pluginsRuntimeOnly(platform(project(":distributions-core")))
 
     pluginsRuntimeOnly(project(":resources-http"))

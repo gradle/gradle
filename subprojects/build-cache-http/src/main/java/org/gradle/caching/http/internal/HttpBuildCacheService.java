@@ -23,6 +23,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.protocol.HTTP;
 import org.gradle.api.UncheckedIOException;
@@ -70,10 +71,7 @@ public class HttpBuildCacheService implements BuildCacheService {
     public HttpBuildCacheService(HttpClientHelper httpClientHelper, URI url, HttpBuildCacheRequestCustomizer requestCustomizer, boolean useExpectContinue) {
         this.requestCustomizer = requestCustomizer;
         this.useExpectContinue = useExpectContinue;
-        if (!url.getPath().endsWith("/")) {
-            throw new IllegalArgumentException("HTTP cache root URI must end with '/'");
-        }
-        this.root = url;
+        this.root = withTrailingSlash(url);
         this.httpClientHelper = httpClientHelper;
     }
 
@@ -191,6 +189,23 @@ public class HttpBuildCacheService implements BuildCacheService {
     private static URI safeUri(URI uri) {
         try {
             return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    /**
+     * Add a trailing slash to the given URI's path if necessary.
+     *
+     * @param uri the original URI
+     * @return a URI guaranteed to have a trailing slash in the path
+     */
+    private static URI withTrailingSlash(URI uri) {
+        if (uri.getPath().endsWith("/")) {
+            return uri;
+        }
+        try {
+            return new URIBuilder(uri).setPath(uri.getPath() + "/").build();
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

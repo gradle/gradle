@@ -11,6 +11,7 @@ description = """This project contains most of the dependency management logic o
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":build-option"))
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
     implementation(project(":messaging"))
@@ -61,7 +62,6 @@ dependencies {
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":execution")))
-    testImplementation(testFixtures(project(":security")))
 
     integTestImplementation(project(":build-option"))
     integTestImplementation(libs.jansi)
@@ -115,11 +115,11 @@ dependencies {
     crossVersionTestImplementation(libs.jettyWebApp)
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true
 
 tasks.clean {
     val testFiles = layout.buildDirectory.dir("tmp/test files")
@@ -130,4 +130,9 @@ tasks.clean {
             include("**/read-only-cache/**")
         }.visit { this.file.setWritable(true) }
     }
+}
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

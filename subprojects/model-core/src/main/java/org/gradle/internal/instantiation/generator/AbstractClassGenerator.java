@@ -85,6 +85,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
+
 /**
  * Generates a subclass of the target class to mix-in some DSL behaviour.
  *
@@ -180,7 +182,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         ServicesPropertyHandler servicesHandler = new ServicesPropertyHandler();
         InjectAnnotationPropertyHandler injectionHandler = new InjectAnnotationPropertyHandler();
-        PropertyTypePropertyHandler propertyTypedHandler = new PropertyTypePropertyHandler();
+        LazyGroovySupportTypePropertyHandler lazyGroovySupportTypedHandler = new LazyGroovySupportTypePropertyHandler();
         ManagedPropertiesHandler managedPropertiesHandler = new ManagedPropertiesHandler();
         NamePropertyHandler namePropertyHandler = new NamePropertyHandler();
         ExtensibleTypePropertyHandler extensibleTypeHandler = new ExtensibleTypePropertyHandler();
@@ -190,7 +192,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         List<ClassGenerationHandler> handlers = new ArrayList<>(5 + enabledAnnotations.size() + disabledAnnotations.size());
         handlers.add(extensibleTypeHandler);
         handlers.add(dslMixInHandler);
-        handlers.add(propertyTypedHandler);
+        handlers.add(lazyGroovySupportTypedHandler);
         handlers.add(servicesHandler);
         handlers.add(namePropertyHandler);
         handlers.add(managedPropertiesHandler);
@@ -420,6 +422,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         return Property.class.isAssignableFrom(type) ||
             HasMultipleValues.class.isAssignableFrom(type) ||
             MapProperty.class.isAssignableFrom(type);
+    }
+
+    private static boolean isConfigurableFileCollectionType(Class<?> type) {
+        return ConfigurableFileCollection.class.isAssignableFrom(type);
     }
 
     private static boolean isAttachableType(MethodMetadata method) {
@@ -654,11 +660,20 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         public boolean hasAnnotation(Class<? extends Annotation> type) {
-            if (backingField != null && backingField.getAnnotation(type) != null) {
-                return true;
-            } else {
-                return mainGetter.method.getAnnotation(type) != null;
-            }
+            return findAnnotation(type) != null;
+        }
+
+        @Nullable
+        public <A extends Annotation> A findAnnotation(Class<A> type) {
+            return ofNullable(backingFieldAnnotationOf(type)).orElseGet(() -> getterAnnotationOf(type));
+        }
+
+        private <A extends Annotation> A getterAnnotationOf(Class<A> type) {
+            return mainGetter.method.getAnnotation(type);
+        }
+
+        private <A extends Annotation> A backingFieldAnnotationOf(Class<A> type) {
+            return backingField == null ? null : backingField.getAnnotation(type);
         }
 
         public MethodMetadata getMainGetter() {
@@ -1127,20 +1142,24 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
-    private static class PropertyTypePropertyHandler extends ClassGenerationHandler {
-        private final List<PropertyMetadata> propertyTyped = new ArrayList<>();
+    private static class LazyGroovySupportTypePropertyHandler extends ClassGenerationHandler {
+        private final List<PropertyMetadata> lazyGroovySupportTyped = new ArrayList<>();
 
         @Override
         void visitProperty(PropertyMetadata property) {
-            if (property.isReadable() && isPropertyType(property.getType())) {
-                propertyTyped.add(property);
+            // For ConfigurableFileCollection we generate setters just for readonly properties,
+            // since we want to support += for mutable FileCollection properties, but we don't support += for ConfigurableFileCollection (yet).
+            // And if we generate setter override for ConfigurableFileCollection, it's difficult to distinguish between these two cases in setFromAnyValue method.
+            if (property.isReadable() && isPropertyType(property.getType()) ||
+                property.isReadOnly() && isConfigurableFileCollectionType(property.getType())) {
+                lazyGroovySupportTyped.add(property);
             }
         }
 
         @Override
         void applyTo(ClassGenerationVisitor visitor) {
-            for (PropertyMetadata property : propertyTyped) {
-                visitor.addPropertySetterOverloads(property, property.mainGetter);
+            for (PropertyMetadata property : lazyGroovySupportTyped) {
+                visitor.addLazyGroovySupportSetterOverloads(property, property.mainGetter);
             }
         }
     }
@@ -1462,7 +1481,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void addActionMethod(Method method);
 
-        void addPropertySetterOverloads(PropertyMetadata property, MethodMetadata getter);
+        void addLazyGroovySupportSetterOverloads(PropertyMetadata property, MethodMetadata getter);
 
         void addNameProperty();
 

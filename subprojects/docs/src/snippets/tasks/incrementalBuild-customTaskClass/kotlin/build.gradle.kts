@@ -12,6 +12,10 @@ val processTemplates by tasks.registering(ProcessTemplates::class) {
     outputDir.set(file(layout.buildDirectory.dir("genOutput")))
 }
 
+interface Injected {
+    @get:Inject val fs: FileSystemOperations
+}
+
 // tag::ad-hoc-task[]
 tasks.register("processTemplatesAdHoc") {
     inputs.property("engine", TemplateEngineType.FREEMARKER)
@@ -23,12 +27,18 @@ tasks.register("processTemplatesAdHoc") {
     outputs.dir(layout.buildDirectory.dir("genOutput2"))
         .withPropertyName("outputDir")
 
+// end::ad-hoc-task[]
+    val buildDirectory = layout.buildDirectory
+    val objectFactory = project.objects
+    val injected = objectFactory.newInstance<Injected>()
+
+// tag::ad-hoc-task[]
     doLast {
         // Process the templates here
 // end::ad-hoc-task[]
-        copy {
-            into(layout.buildDirectory.dir("genOutput2"))
-            from(fileTree("src/templates"))
+        injected.fs.copy {
+            into(buildDirectory.dir("genOutput2"))
+            from(objectFactory.fileTree().from("src/templates"))
             expand("year" to "2012")
         }
 
@@ -57,10 +67,14 @@ tasks.register("processTemplatesAdHocSkipWhenEmpty") {
     outputs.dir(layout.buildDirectory.dir("genOutput2"))
         .withPropertyName("outputDir")
 
+    val buildDirectory = layout.buildDirectory
+    val objectFactory = project.objects
+    val injected = objectFactory.newInstance<Injected>()
+
     doLast {
-        copy {
-            into(layout.buildDirectory.dir("genOutput2"))
-            from(fileTree("src/templates"))
+        injected.fs.copy {
+            into(buildDirectory.dir("genOutput2"))
+            from(objectFactory.fileTree().from("src/templates"))
             expand("year" to "2013")
         }
     }
@@ -87,7 +101,7 @@ tasks.register<ProcessTemplates>("processTemplatesWithExtraInputs") {
 
 // tag::inferred-task-dep-via-outputs[]
 tasks.register<Zip>("packageFiles") {
-    from(processTemplates.map {it.outputs })
+    from(processTemplates.map { it.outputDir })
 }
 // end::inferred-task-dep-via-outputs[]
 
@@ -100,13 +114,14 @@ tasks.register<Zip>("packageFiles2") {
 
 // tag::adhoc-destroyable-task[]
 tasks.register("removeTempDir") {
-    destroyables.register(layout.projectDirectory.dir("tmpDir"))
+    val tmpDir = layout.projectDirectory.dir("tmpDir")
+    destroyables.register(tmpDir)
     doLast {
-        delete(layout.projectDirectory.dir("tmpDir"))
+        tmpDir.asFile.deleteRecursively()
     }
 }
 // end::adhoc-destroyable-task[]
 
 tasks.build {
-    dependsOn(processTemplates, "processTemplatesAdHoc", "processTemplatesAdHocSkipWhenEmpty", "processTemplatesWithExtraInputs", "processTemplatesWithoutAnnotations")
+    dependsOn(processTemplates, "processTemplatesAdHoc", "processTemplatesAdHocSkipWhenEmpty", "processTemplatesWithExtraInputs")
 }

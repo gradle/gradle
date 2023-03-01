@@ -31,7 +31,7 @@ import javax.inject.Inject;
  * At this moment nearly all configuration is done via {@link EclipseJdt}.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
+public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
 
     private EclipseJdt jdt;
 

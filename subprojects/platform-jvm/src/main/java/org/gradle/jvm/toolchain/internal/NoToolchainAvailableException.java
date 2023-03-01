@@ -17,11 +17,13 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
+@Contextual
 public class NoToolchainAvailableException extends GradleException {
 
-    public NoToolchainAvailableException(JavaToolchainSpec filter, boolean autoDetect, boolean autoDownload) {
-        super("No compatible toolchains found for request filter: " + filter.getDisplayName() + " (auto-detect " + autoDetect + ", auto-download " + autoDownload + ")");
+    public NoToolchainAvailableException(JavaToolchainSpec specification, ToolchainDownloadFailedException cause) {
+        super("No matching toolchains found for requested specification: " + specification.getDisplayName() + ".", cause);
     }
 }

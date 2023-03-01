@@ -15,9 +15,9 @@ tasks.named<Jar>("sourcesJar") {
 
 shadedJar {
     shadedConfiguration.exclude(mapOf("group" to "org.slf4j", "module" to "slf4j-api"))
-    keepPackages.set(listOf("org.gradle.tooling"))
-    unshadedPackages.set(listOf("org.gradle", "org.slf4j", "sun.misc"))
-    ignoredPackages.set(setOf("org.gradle.tooling.provider.model"))
+    keepPackages = listOf("org.gradle.tooling")
+    unshadedPackages = listOf("org.gradle", "org.slf4j", "sun.misc")
+    ignoredPackages = setOf("org.gradle.tooling.provider.model")
 }
 
 dependencies {
@@ -36,6 +36,7 @@ dependencies {
 
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":core"))
+    testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":model-core"))
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":base-services-groovy"))
@@ -78,12 +79,11 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/tooling/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
-testFilesCleanup.reportOnly.set(true)
+integTest.usesJavadocCodeSnippets = true
+testFilesCleanup.reportOnly = true
 
 apply(from = "buildship.gradle")
-

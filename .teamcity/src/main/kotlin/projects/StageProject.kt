@@ -4,16 +4,15 @@ import common.VersionedSettingsBranch
 import common.hiddenArtifactDestination
 import common.toCapitalized
 import configurations.BaseGradleBuildType
+import configurations.DocsTestProject
+import configurations.DocsTestTrigger
 import configurations.FunctionalTest
 import configurations.FunctionalTestsPass
 import configurations.PartialTrigger
 import configurations.PerformanceTest
 import configurations.PerformanceTestsPass
-import configurations.SanityCheck
 import configurations.SmokeTests
 import configurations.buildReportTab
-import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2019_2.IdOwner
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import model.CIBuildModel
@@ -24,7 +23,7 @@ import model.PerformanceTestBucketProvider
 import model.PerformanceTestCoverage
 import model.SpecificBuild
 import model.Stage
-import model.StageNames
+import model.StageName
 import model.TestCoverage
 import model.TestType
 
@@ -45,6 +44,8 @@ class StageProject(
     val performanceTests: List<PerformanceTestsPass>
 
     val functionalTests: List<BaseGradleBuildType>
+
+    val docsTestTriggers: List<BaseGradleBuildType>
 
     init {
         features {
@@ -67,22 +68,10 @@ class StageProject(
 
         val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak }
         val topLevelFunctionalTests = topLevelCoverage
-            .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage, enableTestDistribution = false) }
+            .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage) }
         topLevelFunctionalTests.forEach(this::buildType)
 
-        val functionalTestProjects = allCoverage
-            .map { testCoverage ->
-                val functionalTestProject = FunctionalTestProject(model, functionalTestBucketProvider, testCoverage, stage)
-                if (stage.functionalTestsDependOnSpecificBuilds) {
-                    specificBuildTypes.forEach { specificBuildType ->
-                        functionalTestProject.addDependencyForAllBuildTypes(specificBuildType)
-                    }
-                }
-                if (!(stage.functionalTestsDependOnSpecificBuilds && stage.specificBuilds.contains(SpecificBuild.SanityCheck)) && stage.dependsOnSanityCheck) {
-                    functionalTestProject.addDependencyForAllBuildTypes(RelativeId(SanityCheck.buildTypeId(model)))
-                }
-                functionalTestProject
-            }
+        val functionalTestProjects = allCoverage.map { testCoverage -> FunctionalTestProject(model, functionalTestBucketProvider, testCoverage, stage) }
 
         functionalTestProjects.forEach { functionalTestProject ->
             this@StageProject.subProject(functionalTestProject)
@@ -93,7 +82,7 @@ class StageProject(
 
         functionalTests = topLevelFunctionalTests + functionalTestsPass
         val crossVersionTests = topLevelFunctionalTests.filter { it.testCoverage.isCrossVersionTest } + functionalTestsPass.filter { it.testCoverage.isCrossVersionTest }
-        if (stage.stageName !in listOf(StageNames.QUICK_FEEDBACK_LINUX_ONLY, StageNames.QUICK_FEEDBACK)) {
+        if (stage.stageName !in listOf(StageName.QUICK_FEEDBACK_LINUX_ONLY, StageName.QUICK_FEEDBACK)) {
             if (topLevelFunctionalTests.size + functionalTestProjects.size > 1) {
                 buildType(PartialTrigger("All Functional Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_FuncTests", model, functionalTests))
             }
@@ -114,9 +103,14 @@ class StageProject(
                 buildType(PartialTrigger("All Specific Builds for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_SpecificBuilds", model, specificBuildTypes))
             }
             if (performanceTests.size > 1) {
-                buildType(PartialTrigger("All Performance Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_PerformanceTests", model, performanceTests))
+                buildType(createPerformancePartialTrigger(model, stage))
             }
         }
+
+        val docsTestProjects = stage.docsTests.map { DocsTestProject(model, stage, it.os, it.testJava, it.docsTestTypes) }
+        docsTestProjects.forEach(this::subProject)
+        docsTestTriggers = docsTestProjects.map { DocsTestTrigger(model, it) }
+        docsTestTriggers.forEach(this::buildType)
 
         stage.performanceTestPartialTriggers.forEach { trigger ->
             buildType(
@@ -140,6 +134,22 @@ class StageProject(
         val performanceTestProject = AutomaticallySplitPerformanceTestProject(model, performanceTestBucketProvider, stage, performanceTestCoverage)
         subProject(performanceTestProject)
         return PerformanceTestsPass(model, performanceTestProject).also(this::buildType)
+    }
+
+    private
+    fun createPerformancePartialTrigger(model: CIBuildModel, stage: Stage): PartialTrigger<PerformanceTestsPass> {
+        val performancePartialTrigger = PartialTrigger("All Performance Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_PerformanceTests", model, performanceTests)
+        performanceTests.forEach { performanceTestTrigger ->
+            // The space removal is necessary - otherwise it doesn't show
+            val artifactDirName = performanceTestTrigger.name.replace(" ", "")
+            performancePartialTrigger.dependencies {
+                artifacts(performanceTestTrigger) {
+                    id = "artifact_dependency_${performancePartialTrigger.uuid}_${(performanceTestTrigger.id as RelativeId).relativeId}"
+                    artifactRules = "**/* => $artifactDirName"
+                }
+            }
+        }
+        return performancePartialTrigger
     }
 
     private fun createFlameGraphs(model: CIBuildModel, stage: Stage, flameGraphSpec: FlameGraphGeneration): PerformanceTestsPass {
@@ -166,15 +176,3 @@ class StageProject(
         )
     }
 }
-
-private fun FunctionalTestProject.addDependencyForAllBuildTypes(dependency: IdOwner) =
-    functionalTests.forEach { functionalTestBuildType ->
-        functionalTestBuildType.dependencies {
-            dependency(dependency) {
-                snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
-                    onDependencyCancel = FailureAction.FAIL_TO_START
-                }
-            }
-        }
-    }

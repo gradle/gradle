@@ -19,9 +19,9 @@ package org.gradle.api.tasks
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.tasks.TaskPropertyUtils
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
-import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
@@ -114,7 +114,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         buildFile << """
             import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
             import org.gradle.api.internal.tasks.TaskPropertyUtils
-            import org.gradle.api.internal.tasks.properties.PropertyWalker
+            import org.gradle.internal.properties.bean.PropertyWalker
 
             class CustomTask extends DefaultTask {
                 @Optional @${annotation.name} input

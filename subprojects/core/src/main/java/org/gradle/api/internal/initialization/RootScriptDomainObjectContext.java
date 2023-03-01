@@ -28,9 +28,9 @@ import java.util.function.Function;
 
 public class RootScriptDomainObjectContext implements DomainObjectContext, ModelContainer<Object> {
     private static final Object MODEL = new Object();
-    public static final DomainObjectContext INSTANCE = new RootScriptDomainObjectContext();
+    public static final RootScriptDomainObjectContext INSTANCE = new RootScriptDomainObjectContext();
 
-    public static final DomainObjectContext PLUGINS = new RootScriptDomainObjectContext() {
+    public static final RootScriptDomainObjectContext PLUGINS = new RootScriptDomainObjectContext() {
         @Override
         public boolean isPluginContext() {
             return true;

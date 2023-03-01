@@ -16,17 +16,19 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.core.IsNot.not
 
 class GroovyPluginTest extends AbstractProjectBuilderSpec {
-    private final GroovyPlugin groovyPlugin = new GroovyPlugin()
+    private final GroovyPlugin groovyPlugin = TestUtil.newInstance(GroovyPlugin)
 
     def "applies the java plugin to the project"() {
         when:
@@ -41,7 +43,7 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
         groovyPlugin.apply(project)
 
         when:
-        def implementation = project.configurations.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME)
+        def implementation = project.configurations.getByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME)
 
         then:
         implementation.extendsFrom == [] as Set
@@ -79,7 +81,7 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
         then:
         task instanceof GroovyCompile
         task.description == 'Compiles the main Groovy source.'
-        dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME).matches(task)
+        dependsOn(JvmConstants.COMPILE_JAVA_TASK_NAME).matches(task)
 
         when:
         task = project.tasks['compileTestGroovy']
@@ -87,7 +89,7 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
         then:
         task instanceof GroovyCompile
         task.description == 'Compiles the test Groovy source.'
-        dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME).matches(task)
+        dependsOn(JvmConstants.COMPILE_TEST_JAVA_TASK_NAME, JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME, 'compileGroovy').matches(task)
     }
 
     def "compile dependency to java compilation can be turned off by changing the compile task classpath"() {
@@ -102,7 +104,7 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
         then:
         task instanceof GroovyCompile
         task.classpath.files as List == []
-        not(dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME)).matches(task)
+        not(dependsOn(JvmConstants.COMPILE_JAVA_TASK_NAME)).matches(task)
 
         when:
         task = project.tasks['compileTestGroovy']
@@ -115,7 +117,7 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
             mainSourceSet.groovy.destinationDirectory.get().asFile,
             mainSourceSet.output.resourcesDir
         ]
-        not(dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME)).matches(task)
+        not(dependsOn(JvmConstants.COMPILE_TEST_JAVA_TASK_NAME, JvmConstants.CLASSES_TASK_NAME)).matches(task)
     }
 
     def "dependencies of Java plugin tasks include Groovy compile tasks"() {
@@ -123,14 +125,14 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
         groovyPlugin.apply(project)
 
         when:
-        def task = project.tasks[JavaPlugin.CLASSES_TASK_NAME]
+        def task = project.tasks[JvmConstants.CLASSES_TASK_NAME]
         then:
-        dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME, 'compileGroovy').matches(task)
+        dependsOn(JvmConstants.COMPILE_JAVA_TASK_NAME, JvmConstants.PROCESS_RESOURCES_TASK_NAME, 'compileGroovy').matches(task)
 
         when:
-        task = project.tasks[JavaPlugin.TEST_CLASSES_TASK_NAME]
+        task = project.tasks[JvmConstants.TEST_CLASSES_TASK_NAME]
         then:
-        dependsOn(JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME, JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, 'compileTestGroovy').matches(task)
+        dependsOn(JvmConstants.PROCESS_TEST_RESOURCES_TASK_NAME, JvmConstants.COMPILE_TEST_JAVA_TASK_NAME, 'compileTestGroovy').matches(task)
     }
 
     def "adds standard tasks to the project"() {

@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.work.InputChanges
 import spock.lang.Issue
 
 class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
@@ -206,13 +204,13 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9723")
-    def "declaring a task action receiving #incrementalChangesType without declaring outputs is not allowed"() {
+    def "declaring a task action receiving InputChanges without declaring outputs is not allowed"() {
         def input = file('input.txt').createFile()
         buildFile << """
             class IncrementalTask extends DefaultTask {
                 @InputFile File input
 
-                @TaskAction execute(${incrementalChangesType} inputChanges) {
+                @TaskAction execute(InputChanges inputChanges) {
                 }
             }
 
@@ -222,18 +220,10 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        if (deprecated) {
-            executer.expectDocumentedDeprecationWarning """IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method 'IncrementalTask.execute' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"""
-        }
         fails 'noOutput'
         then:
         failure.assertHasDescription("Execution failed for task ':noOutput'.")
         failure.assertHasCause("You must declare outputs or use `TaskOutputs.upToDateWhen()` when using the incremental task API")
-
-        where:
-        incrementalChangesType           | deprecated
-        IncrementalTaskInputs.simpleName | true
-        InputChanges.simpleName          | false
     }
 
     private static String declareSimpleCopyTask(boolean modification = false) {

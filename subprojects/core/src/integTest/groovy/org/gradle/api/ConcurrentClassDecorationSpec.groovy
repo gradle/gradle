@@ -19,8 +19,10 @@ package org.gradle.api
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.test.fixtures.Flaky
 import spock.lang.Issue
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3534")
 class ConcurrentClassDecorationSpec extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2836")
