@@ -693,19 +693,25 @@ class StateTransitionControllerTest extends ConcurrentSpec {
         noExceptionThrown()
     }
 
-    def "can reset state to initial state"() {
+    def "can reset state to initial state and discard collected failure"() {
         def action = Mock(Runnable)
         def resetAction = Mock(Runnable)
         def controller = controller(TestState.A)
 
         given:
         asWorker {
-            controller.transition(TestState.A, TestState.B) {}
+            try {
+                controller.transition(TestState.A, TestState.B) {
+                    throw new RuntimeException("broken")
+                }
+            } catch (RuntimeException e) {
+                // ignore
+            }
         }
 
         when:
         asWorker {
-            controller.restart(TestState.A, resetAction)
+            controller.restart(TestState.B, TestState.A, resetAction)
         }
 
         then:
@@ -720,6 +726,25 @@ class StateTransitionControllerTest extends ConcurrentSpec {
         then:
         1 * action.run()
         0 * _
+    }
+
+    def "reset state fails when not in expected from state"() {
+        def resetAction = Mock(Runnable)
+        def controller = controller(TestState.A)
+
+        given:
+        asWorker {
+            controller.transition(TestState.A, TestState.C) {}
+        }
+
+        when:
+        asWorker {
+            controller.restart(TestState.B, TestState.A, resetAction)
+        }
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Can only transition <state> to state A from state B however it is currently in state C.'
     }
 
 }

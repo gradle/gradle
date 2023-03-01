@@ -124,10 +124,15 @@ public interface BuildLifecycleController {
     /**
      * Restarts the lifecycle of this build.
      */
-    void resetLifecycle();
+    void resetModel();
 
     /**
-     * Runs whatever work is required prior to discarding the model for this build. This can happen at the end of the build or prior to calling {@link #resetLifecycle()}.
+     * Runs whatever work is required prior to discarding the model for this build. This is called prior to calling {@link #resetModel()}.
+     */
+    ExecutionResult<Void> beforeModelReset();
+
+    /**
+     * Runs whatever work is required prior to discarding the model for this build. This is called at the end of the build, after {@link #finishBuild(Throwable)}.
      */
     ExecutionResult<Void> beforeModelDiscarded(boolean failed);
 

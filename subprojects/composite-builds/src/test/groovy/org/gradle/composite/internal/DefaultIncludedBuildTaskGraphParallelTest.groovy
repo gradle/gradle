@@ -340,7 +340,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
-        void resetLifecycle() {
+        void resetModel() {
         }
 
         @Override
@@ -409,6 +409,11 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
         @Override
         ExecutionResult<Void> beforeModelDiscarded(boolean failed) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        ExecutionResult<Void> beforeModelReset() {
             throw new UnsupportedOperationException()
         }
 

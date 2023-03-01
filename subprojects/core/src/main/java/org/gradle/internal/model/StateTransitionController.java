@@ -136,10 +136,12 @@ public class StateTransitionController<T extends StateTransitionController.State
         });
     }
 
-    public void restart(T target, Runnable action) {
+    public void restart(T fromState, T toState, Runnable action) {
         synchronizer.withLock(() -> {
+            CurrentState<T> current = state;
+            current.assertCanReset(fromState, toState);
             action.run();
-            state = new InState<>(displayName, target, null);
+            state = new InState<>(displayName, toState, null);
         });
     }
 
@@ -265,6 +267,10 @@ public class StateTransitionController<T extends StateTransitionController.State
         public abstract void assertNotInState(T forbidden);
 
         public abstract void assertCanTransition(T fromState, T toState);
+
+        public void assertCanReset(T fromState, T toState) {
+            assertCanTransition(fromState, toState);
+        }
 
         public abstract boolean inStateAndNotTransitioning(T toState);
 
@@ -449,6 +455,11 @@ public class StateTransitionController<T extends StateTransitionController.State
         @Override
         public void assertCanTransition(T fromState, T toState) {
             throwFailure();
+        }
+
+        @Override
+        public void assertCanReset(T fromState, T toState) {
+            // This is ok, failure will be discarded
         }
 
         @Override

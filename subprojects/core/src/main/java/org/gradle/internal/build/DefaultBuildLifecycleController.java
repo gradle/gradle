@@ -48,6 +48,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         // Scheduling tasks for execution
         TaskSchedule,
         ReadyToRun,
+        BuildFinishHooks,
+        ReadyToReset,
         // build has finished and should do no further work
         Finished
     }
@@ -62,6 +64,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     private final StateTransitionController<State> state;
     private final GradleInternal gradle;
     private boolean hasTasks;
+    private boolean hasFiredBeforeModelDiscarded;
 
     public DefaultBuildLifecycleController(
         GradleInternal gradle,
@@ -117,8 +120,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public void resetLifecycle() {
-        state.restart(State.Configure, () -> {
+    public void resetModel() {
+        state.restart(State.ReadyToReset, State.Configure, () -> {
             gradle.resetState();
             for (HoldsProjectState service : gradle.getServices().getAll(HoldsProjectState.class)) {
                 service.discardAll();
@@ -127,8 +130,22 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
+    public ExecutionResult<Void> beforeModelReset() {
+        return state.finish(State.ReadyToReset, failures -> fireBeforeModelDiscarded(false));
+    }
+
+    @Override
     public ExecutionResult<Void> beforeModelDiscarded(boolean failed) {
-        return ExecutionResult.maybeFailing(() -> buildModelLifecycleListener.beforeModelDiscarded(gradle, failed));
+        return state.finish(State.Finished, failures -> fireBeforeModelDiscarded(failed));
+    }
+
+    private ExecutionResult<Void> fireBeforeModelDiscarded(boolean failed) {
+        if (hasFiredBeforeModelDiscarded) {
+            return ExecutionResult.succeeded();
+        } else {
+            hasFiredBeforeModelDiscarded = true;
+            return ExecutionResult.maybeFailing(() -> buildModelLifecycleListener.beforeModelDiscarded(gradle, failed));
+        }
     }
 
     @Override
@@ -197,7 +214,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public ExecutionResult<Void> finishBuild(@Nullable Throwable failure) {
-        return state.finish(State.Finished, stageFailures -> {
+        return state.finish(State.BuildFinishHooks, stageFailures -> {
             // Fire the build finished events even if nothing has happened to this build, because quite a lot of internal infrastructure
             // adds listeners and expects to see a build finished event. Infrastructure should not be using the public listener types
             // In addition, they almost all should be using a build tree scoped event instead of a build scoped event
