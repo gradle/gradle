@@ -83,13 +83,8 @@ public class JUnitTestFramework implements TestFramework {
     }
 
     @Override
-    public List<String> getTestWorkerApplicationClasses() {
+    public List<String> getWorkerImplementationClasspathModuleNames() {
         return Collections.singletonList("junit");
-    }
-
-    @Override
-    public List<String> getTestWorkerApplicationModules() {
-        return Collections.emptyList();
     }
 
     @Override
