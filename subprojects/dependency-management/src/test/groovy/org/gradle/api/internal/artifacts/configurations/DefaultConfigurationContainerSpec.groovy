@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations
 
+import org.gradle.api.Action
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
@@ -73,8 +74,9 @@ class DefaultConfigurationContainerSpec extends Specification {
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
 
-    private CollectionCallbackActionDecorator domainObjectCollectionCallbackActionDecorator = Mock() {
+    private CollectionCallbackActionDecorator domainObjectCollectionCallbackActionDecorator = Mock(CollectionCallbackActionDecorator) {
         decorateSpec(_) >> { Spec spec -> spec }
+        decorate(_ as Action) >> { it[0] }
     }
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
     private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {

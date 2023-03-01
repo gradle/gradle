@@ -572,10 +572,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return artifactHandler;
     }
 
-    public void setArtifactHandler(ArtifactHandler artifactHandler) {
-        this.artifactHandler = artifactHandler;
-    }
-
     @Inject
     @Override
     public abstract RepositoryHandler getRepositories();
@@ -586,10 +582,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             configurationContainer = services.get(RoleBasedConfigurationContainerInternal.class);
         }
         return configurationContainer;
-    }
-
-    public void setConfigurationContainer(RoleBasedConfigurationContainerInternal configurationContainer) {
-        this.configurationContainer = configurationContainer;
     }
 
     @Deprecated
@@ -1057,10 +1049,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     @Inject
     public abstract DependencyFactory getDependencyFactory();
-
-    public void setDependencyHandler(DependencyHandler dependencyHandler) {
-        this.dependencyHandler = dependencyHandler;
-    }
 
     @Override
     public ProjectEvaluationListener getProjectEvaluationBroadcaster() {

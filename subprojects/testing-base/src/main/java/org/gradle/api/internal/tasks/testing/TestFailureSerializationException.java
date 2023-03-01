@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jvm.internal;
 
-import org.gradle.api.capabilities.Capability;
+package org.gradle.api.internal.tasks.testing;
 
-public interface JvmVariantBuilderInternal extends JvmVariantBuilder {
-    /**
-     * Explicitly declares a capability provided by this component
-     * @param capability the capability this component provides
-     */
-    JvmVariantBuilder capability(Capability capability);
+import org.gradle.api.GradleException;
+
+import javax.annotation.Nullable;
+
+/**
+ *  Thrown when there is an error while serializing/deserializing a test result.
+ */
+public class TestFailureSerializationException extends GradleException {
+    public TestFailureSerializationException(String message, @Nullable Throwable cause) {
+        super(message, cause);
+    }
 }
