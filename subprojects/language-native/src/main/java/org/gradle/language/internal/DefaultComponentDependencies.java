@@ -18,7 +18,6 @@ package org.gradle.language.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
@@ -30,9 +29,8 @@ public class DefaultComponentDependencies implements ComponentDependencies {
     private final Configuration implementation;
 
     @Inject
-    public DefaultComponentDependencies(ConfigurationContainer configurations, String implementationName) {
-        RoleBasedConfigurationContainerInternal rbConfigurations = (RoleBasedConfigurationContainerInternal) configurations;
-        implementation = rbConfigurations.bucket(implementationName);
+    public DefaultComponentDependencies(RoleBasedConfigurationContainerInternal configurations, String implementationName) {
+        implementation = configurations.bucket(implementationName);
     }
 
     public Configuration getImplementationDependencies() {

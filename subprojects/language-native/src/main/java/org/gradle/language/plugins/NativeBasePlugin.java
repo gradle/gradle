@@ -37,6 +37,7 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.transform.UnzipTransform;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -340,7 +341,7 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         components.withType(ConfigurableComponentWithLinkUsage.class, component -> {
             Names names = component.getNames();
 
-            Configuration linkElements = configurations.consumable(names.withSuffix("linkElements"));
+            @SuppressWarnings("deprecation") Configuration linkElements = configurations.createWithRole(names.withSuffix("linkElements"), ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE);
             linkElements.extendsFrom(component.getImplementationDependencies());
             AttributeContainer attributes = component.getLinkAttributes();
             copyAttributesTo(attributes, linkElements);
@@ -355,7 +356,7 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
         components.withType(ConfigurableComponentWithRuntimeUsage.class, component -> {
             Names names = component.getNames();
 
-            Configuration runtimeElements = configurations.consumable(names.withSuffix("runtimeElements"));
+            @SuppressWarnings("deprecation") Configuration runtimeElements = configurations.createWithRole(names.withSuffix("runtimeElements"), ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE);
             runtimeElements.extendsFrom(component.getImplementationDependencies());
 
             AttributeContainer attributes = component.getRuntimeAttributes();
