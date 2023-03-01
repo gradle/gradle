@@ -395,7 +395,7 @@ java {
 Gradle 7.x supports Kotlin Gradle Plugin 1.3.72 and above.
 Kotlin Gradle Plugin versions above 1.6.21 are not tested with Gradle 7.x.
 Gradle 8.x supports Kotlin Gradle Plugin 1.6.10 and above.
-You can use a lower Kotlin language version by modifying the language version and api version setting in the Kotlin `compile` task.
+You can use a lower Kotlin language version by modifying the language version and api version setting in the Kotlin compilation tasks.
 
 ==== Minimal supported Android Gradle Plugin version changed
 Gradle 7.x supports Android Gradle Plugin (AGP) 4.1 and above.
@@ -633,6 +633,12 @@ For information about breaking and nonbreaking changes in this upgrade, see the 
 * Kotlin 1.6 link:https://kotlinlang.org/docs/whatsnew16.html#language[language] / link:https://kotlinlang.org/docs/whatsnew16.html#standard-library[standard library]
 * Kotlin 1.7 link:https://kotlinlang.org/docs/whatsnew17.html#language[language] / link:https://kotlinlang.org/docs/whatsnew17.html#standard-library[standard library]
 * Kotlin 1.8 link:https://kotlinlang.org/docs/whatsnew18.html#language[language] / link:https://kotlinlang.org/docs/whatsnew18.html#standard-library[standard library]
+
+Note that the Kotlin Gradle Plugin 1.8.0 started using Java toolchains.
+It is recommended you configure a toolchain instead of defining Java `sourceCompatibility`/`targetCompatibility` in Kotlin projects.
+
+Also note that the Kotlin Gradle Plugin 1.8.0 introduced `compilerOptions` with lazy configuration properties as a replacement for `kotlinOptions` which did not support lazy configuration.
+It is recommended you configure Kotlin compilation using `compilerOptions` instead of `kotlinOptions`.
 
 [[kotlin_dsl_plugin_toolchains]]
 ==== `kotlinDslPluginOptions.jvmTarget` is deprecated
