@@ -79,14 +79,14 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
             // So defer looking up the java extension and sourceSet until the convention mapping is resolved.
             // See https://github.com/gradle/gradle/issues/18622
             test.getConventionMapping().map("testClassesDirs", () -> {
-                DeprecationLogger.deprecate("Configuring the test classes dirs by default for standalone Test tasks")
+                DeprecationLogger.deprecate("Relying on the convention for Test.testClassesDirs in custom Test tasks")
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "test_task_default_classpath")
                     .nagUser();
                 return JavaPluginHelper.getDefaultTestSuite(project).getSources().getOutput().getClassesDirs();
             });
             test.getConventionMapping().map("classpath", () -> {
-                DeprecationLogger.deprecate("Configuring the test classpath by default for standalone Test tasks")
+                DeprecationLogger.deprecate("Relying on the convention for Test.classpath in custom Test tasks")
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "test_task_default_classpath")
                     .nagUser();
