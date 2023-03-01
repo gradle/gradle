@@ -60,15 +60,15 @@ import org.gradle.internal.build.BuildStateRegistry
  */
 internal
 class FixedValueReplacingProviderCodec(
-    valueSourceProviderFactory: ValueSourceProviderFactory,
-    buildStateRegistry: BuildStateRegistry,
-    flowProviders: FlowProviders
+    valueSourceProviderCodec: Codec<ValueSourceProvider<*, *>>,
+    buildServiceProviderCodec: Codec<BuildServiceProvider<*, *>>,
+    flowProvidersCodec: Codec<RequestedTasksResultProvider>,
 ) {
     private
     val providerWithChangingValueCodec = Bindings.of {
-        bind(ValueSourceProviderCodec(valueSourceProviderFactory))
-        bind(BuildServiceProviderCodec(buildStateRegistry))
-        bind(FlowProvidersCodec(flowProviders))
+        bind(valueSourceProviderCodec)
+        bind(buildServiceProviderCodec)
+        bind(flowProvidersCodec)
         bind(BeanCodec)
     }.build()
 
