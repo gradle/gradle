@@ -16,10 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 
-import org.apache.ivy.core.module.descriptor.Configuration
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
@@ -41,38 +37,30 @@ abstract class AbstractDependencyDescriptorFactoryInternalSpec extends Specifica
     static final TEST_EXCLUDE_RULE = new org.gradle.api.internal.artifacts.DefaultExcludeRule("testOrg", null)
     static final TEST_IVY_EXCLUDE_RULE = getTestExcludeRule()
 
+    static final ARTIFACT = new DefaultDependencyArtifact("name", "type", "classifier", "ext", null)
+    static final ARTIFACT_WITH_CLASSIFIERS = new DefaultDependencyArtifact("name2", "type2", "ext2", "classifier2", "http://www.url2.com")
+
     def excludeRuleConverterStub = Mock(ExcludeRuleConverter)
-    def moduleDescriptor = createModuleDescriptor(WrapUtil.toSet(TEST_CONF))
-    def artifact = new DefaultDependencyArtifact("name", "type", null, null, null)
-    def artifactWithClassifiers = new DefaultDependencyArtifact("name2", "type2", "ext2", "classifier2", "http://www.url2.com")
 
     def setup() {
         expectExcludeRuleConversion(TEST_EXCLUDE_RULE, TEST_IVY_EXCLUDE_RULE)
-    }
-
-    static DefaultModuleDescriptor createModuleDescriptor(Set<String> confs) {
-        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId("org", "name"), "rev"), "status", null)
-        for (String conf : confs) {
-            moduleDescriptor.addConfiguration(new Configuration(conf))
-        }
-        return moduleDescriptor
     }
 
     protected void expectExcludeRuleConversion(final ExcludeRule excludeRule, final Exclude exclude) {
         excludeRuleConverterStub.convertExcludeRule(excludeRule) >> exclude
     }
 
-    protected Dependency setUpDependency(ModuleDependency dependency, boolean withArtifacts) {
+    protected static Dependency setUpDependency(ModuleDependency dependency, boolean withArtifacts) {
         ModuleDependency result = dependency;
         if (withArtifacts) {
-            result = dependency.addArtifact(artifact).
-                addArtifact(artifactWithClassifiers)
+            result = dependency.addArtifact(ARTIFACT).
+                addArtifact(ARTIFACT_WITH_CLASSIFIERS)
         }
         return result.exclude(WrapUtil.toMap("group", TEST_EXCLUDE_RULE.getGroup())).
                 setTransitive(true)
     }
 
-    protected void assertDependencyDescriptorHasCommonFixtureValues(LocalOriginDependencyMetadata dependencyMetadata, boolean withArtifacts) {
+    protected static void assertDependencyDescriptorHasCommonFixtureValues(LocalOriginDependencyMetadata dependencyMetadata, boolean withArtifacts) {
         assert TEST_IVY_EXCLUDE_RULE == dependencyMetadata.getExcludes().get(0)
         assert dependencyMetadata.getModuleConfiguration() == TEST_CONF
         if (!withArtifacts) {
@@ -84,19 +72,19 @@ abstract class AbstractDependencyDescriptorFactoryInternalSpec extends Specifica
         }
     }
 
-    private void assertDependencyDescriptorHasArtifacts(DependencyMetadata dependencyMetadata) {
+    private static void assertDependencyDescriptorHasArtifacts(DependencyMetadata dependencyMetadata) {
         List<IvyArtifactName> artifactDescriptors = WrapUtil.toList(dependencyMetadata.getArtifacts())
         assert artifactDescriptors.size() == 2
 
-        IvyArtifactName artifactDescriptorWithoutClassifier = findDescriptor(artifactDescriptors, artifact)
-        compareArtifacts(artifact, artifactDescriptorWithoutClassifier)
-        assert artifactDescriptorWithoutClassifier.classifier == null
-        assert artifactDescriptorWithoutClassifier.extension == artifact.type
+        IvyArtifactName artifactDescriptorWithoutClassifier = findDescriptor(artifactDescriptors, ARTIFACT)
+        compareArtifacts(ARTIFACT, artifactDescriptorWithoutClassifier)
+        assert artifactDescriptorWithoutClassifier.classifier == ARTIFACT.classifier
+        assert artifactDescriptorWithoutClassifier.extension == ARTIFACT.extension
 
-        IvyArtifactName artifactDescriptorWithClassifierAndConfs = findDescriptor(artifactDescriptors, artifactWithClassifiers)
-        compareArtifacts(artifactWithClassifiers, artifactDescriptorWithClassifierAndConfs)
-        assert artifactWithClassifiers.classifier == artifactDescriptorWithClassifierAndConfs.classifier
-        assert artifactWithClassifiers.extension == artifactDescriptorWithClassifierAndConfs.extension
+        IvyArtifactName artifactDescriptorWithClassifierAndConfs = findDescriptor(artifactDescriptors, ARTIFACT_WITH_CLASSIFIERS)
+        compareArtifacts(ARTIFACT_WITH_CLASSIFIERS, artifactDescriptorWithClassifierAndConfs)
+        assert ARTIFACT_WITH_CLASSIFIERS.classifier == artifactDescriptorWithClassifierAndConfs.classifier
+        assert ARTIFACT_WITH_CLASSIFIERS.extension == artifactDescriptorWithClassifierAndConfs.extension
     }
 
     private static IvyArtifactName findDescriptor(List<IvyArtifactName> artifactDescriptors, DefaultDependencyArtifact dependencyArtifact) {

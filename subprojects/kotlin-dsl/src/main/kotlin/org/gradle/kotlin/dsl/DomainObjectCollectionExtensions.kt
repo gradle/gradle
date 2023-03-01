@@ -20,8 +20,8 @@ import org.gradle.api.DomainObjectCollection
 
 
 /**
- * Returns a collection containing the objects in this collection of the given type. Equivalent to calling
- * {@code withType(type).all(configureAction)}
+ * Returns a collection containing the objects in this collection of the given type.
+ * Equivalent to calling `withType(type).all(configureAction)`.
  *
  * @param S The type of objects to find.
  * @param configuration The action to execute for each object in the resulting collection.

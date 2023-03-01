@@ -17,17 +17,16 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.internal.Cast;
 
 import javax.inject.Inject;
 import java.util.function.Function;
@@ -38,7 +37,7 @@ public class DefaultJvmLanguageSourceDirectoryBuilder implements JvmLanguageSour
     private final SourceSet sourceSet;
 
     private String description;
-    private Action<? super CompileTaskDetails> taskBuilder;
+    private Function<DirectoryProperty, TaskProvider<? extends AbstractCompile>> taskBuilder;
     private boolean includeInAllJava;
 
     @Inject
@@ -55,21 +54,20 @@ public class DefaultJvmLanguageSourceDirectoryBuilder implements JvmLanguageSour
     }
 
     @Override
-    public JvmLanguageSourceDirectoryBuilder compiledBy(Action<? super CompileTaskDetails> taskBuilder) {
+    public JvmLanguageSourceDirectoryBuilder compiledBy(Function<DirectoryProperty, TaskProvider<? extends AbstractCompile>> taskBuilder) {
         this.taskBuilder = taskBuilder;
         return this;
     }
 
     @Override
     public JvmLanguageSourceDirectoryBuilder compiledWithJava(Action<? super JavaCompile> compilerConfiguration) {
-        return includeInAllJava().compiledBy(details -> {
-            TaskProvider<JavaCompile> taskProvider = project.getTasks().register("compile" + StringUtils.capitalize(name), JavaCompile.class, compileTask -> {
-                compileTask.source(details.getSourceDirectory());
+        return includeInAllJava().compiledBy(sourceDirectory ->
+            project.getTasks().register("compile" + StringUtils.capitalize(name), JavaCompile.class, compileTask -> {
+                compileTask.source(sourceDirectory);
                 compileTask.setClasspath(sourceSet.getCompileClasspath());
                 compilerConfiguration.execute(compileTask);
-            });
-            details.setCompileTask(taskProvider, JavaCompile::getDestinationDirectory);
-        });
+            })
+        );
     }
 
     @Override
@@ -84,55 +82,30 @@ public class DefaultJvmLanguageSourceDirectoryBuilder implements JvmLanguageSour
         }
         SourceDirectorySet langSrcDir = project.getObjects().sourceDirectorySet(name, description == null ? "Sources for " + name : description);
         langSrcDir.srcDir("src/" + sourceSet.getName() + "/" + name);
-        DefaultCompileTaskDetails details = createTaskDetails(langSrcDir);
+
+        TaskProvider<? extends AbstractCompile> compileTask = taskBuilder.apply(
+            project.getObjects().directoryProperty().fileProvider(
+                project.getProviders().provider(() -> langSrcDir.getSourceDirectories().getSingleFile())
+            )
+        );
+
         JvmPluginsHelper.configureOutputDirectoryForSourceSet(
             sourceSet,
             langSrcDir,
             project,
-            details.task,
-            details.task.map(task -> {
+            compileTask,
+            compileTask.map(task -> {
                 if (task instanceof HasCompileOptions) {
                     return ((HasCompileOptions) task).getOptions();
                 }
                 throw new UnsupportedOperationException("Unsupported compile task " + task.getClass().getName());
-            }),
-            Cast.uncheckedCast(details.mapping)
+            })
         );
         if (includeInAllJava) {
             sourceSet.getAllJava().source(langSrcDir);
         }
         sourceSet.getAllSource().source(langSrcDir);
-        project.getTasks().named(JavaPlugin.CLASSES_TASK_NAME).configure(classes ->
-            classes.dependsOn(details.task));
-    }
-
-    private DefaultCompileTaskDetails createTaskDetails(SourceDirectorySet langSrcDir) {
-        DefaultCompileTaskDetails details = new DefaultCompileTaskDetails(
-            project.getObjects().directoryProperty().fileProvider(
-                project.getProviders().provider(() -> langSrcDir.getSourceDirectories().getSingleFile())
-            ));
-        taskBuilder.execute(details);
-        return details;
-    }
-
-    private static class DefaultCompileTaskDetails implements CompileTaskDetails {
-        private final DirectoryProperty langSrcDir;
-        private TaskProvider<? extends Task> task;
-        private Function<? extends Task, DirectoryProperty> mapping;
-
-        public DefaultCompileTaskDetails(DirectoryProperty langSrcDir) {
-            this.langSrcDir = langSrcDir;
-        }
-
-        @Override
-        public DirectoryProperty getSourceDirectory() {
-            return langSrcDir;
-        }
-
-        @Override
-        public <T extends Task> void setCompileTask(TaskProvider<? extends Task> task, Function<T, DirectoryProperty> mapping) {
-            this.task = task;
-            this.mapping = mapping;
-        }
+        project.getTasks().named(JvmConstants.CLASSES_TASK_NAME).configure(classes ->
+            classes.dependsOn(compileTask));
     }
 }

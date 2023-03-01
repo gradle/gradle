@@ -21,6 +21,7 @@ import com.nhaarman.mockito_kotlin.mock
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.test.fixtures.Flaky
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
@@ -45,6 +46,7 @@ import kotlin.script.dependencies.ScriptContents.Position
 import kotlin.script.dependencies.ScriptDependenciesResolver.ReportSeverity
 
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3717")
 class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Before

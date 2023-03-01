@@ -26,18 +26,6 @@ import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 import static org.hamcrest.CoreMatchers.containsString
 
 class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
-    void createSimpleJupiterTest() {
-        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
-            package org.gradle;
-
-            import org.junit.jupiter.api.Test;
-
-            public class JUnitJupiterTest {
-                @Test
-                public void ok() { }
-            }
-            '''
-    }
 
     def 'can work with junit-platform-runner'() {
         given:
@@ -408,5 +396,50 @@ public class StaticInnerTest {
         scenario       | extraArgs
         "w/o filters"  | []
         "with filters" | ['--tests', 'JUnitJupiterTest']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23602")
+    def "handles unserializable exception thrown from test"() {
+        given:
+        file('src/test/java/PoisonTest.java') << """
+            import org.junit.jupiter.api.Test;
+
+            public class PoisonTest {
+                @Test
+                public void passingTest() { }
+
+                @Test
+                public void testWithUnserializableException() {
+                    throw new UnserializableException();
+                }
+
+                @Test
+                public void normalFailingTest() {
+                    assert false;
+                }
+
+                private static class WriteReplacer implements java.io.Serializable {
+                    private Object readResolve() {
+                        return new RuntimeException();
+                    }
+                }
+
+                private static class UnserializableException extends RuntimeException {
+                    private Object writeReplace() {
+                        return new WriteReplacer();
+                    }
+                }
+            }
+        """
+
+        when:
+        fails("test")
+
+        then:
+        with(new DefaultTestExecutionResult(testDirectory).testClass("PoisonTest")) {
+            assertTestPassed("passingTest")
+            assertTestFailed("testWithUnserializableException", containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
+            assertTestFailed("normalFailingTest", containsString("AssertionError"))
+        }
     }
 }

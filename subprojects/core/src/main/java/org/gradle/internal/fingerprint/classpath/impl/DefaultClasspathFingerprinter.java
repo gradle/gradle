@@ -21,9 +21,9 @@ import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
-import org.gradle.api.tasks.ClasspathNormalizer;
-import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.execution.FileCollectionSnapshotter;
+import org.gradle.internal.execution.model.InputNormalizer;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter;
@@ -55,7 +55,7 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
     }
 
     @Override
-    public Class<? extends FileNormalizer> getRegisteredType() {
-        return ClasspathNormalizer.class;
+    public FileNormalizer getNormalizer() {
+        return InputNormalizer.RUNTIME_CLASSPATH;
     }
 }

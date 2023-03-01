@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
-class CompositeBuildTaskExcludeIntegrationTest extends AbstractIntegrationSpec {
+class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTaskExecutionIntegrationTest {
 
     def setup() {
         settingsFile << """
@@ -91,12 +91,31 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can exclude tasks from an included build"() {
-        when:
-        succeeds("build", "-x", ":included:sub:test")
+        expect:
+        2.times {
+            succeeds("build", "-x", ":included:sub:test")
+            result.assertTasksExecuted(":test", ":build", ":sub:test", ":sub:build", ":included:test", ":included:build", ":included:sub:build")
+            result.assertTaskNotExecuted(":included:sub:test")
+        }
+        2.times {
+            succeeds("build", "-x", "included:sub:test")
+            result.assertTasksExecuted(":test", ":build", ":sub:test", ":sub:build", ":included:test", ":included:build", ":included:sub:build")
+            result.assertTaskNotExecuted(":included:sub:test")
+        }
+    }
 
-        then:
-        result.assertTasksExecuted(":test", ":build", ":sub:test", ":sub:build", ":included:test", ":included:build" , ":included:sub:build")
-        result.assertTaskNotExecuted(":included:sub:test")
+    def "can exclude tasks using pattern matching"() {
+        expect:
+        2.times {
+            succeeds("build", "-x", ":included:sub:te")
+            result.assertTasksExecuted(":test", ":build", ":sub:test", ":sub:build", ":included:test", ":included:build", ":included:sub:build")
+            result.assertTaskNotExecuted(":included:sub:test")
+        }
+        2.times {
+            succeeds("build", "-x", "i:s:te")
+            result.assertTasksExecuted(":test", ":build", ":sub:test", ":sub:build", ":included:test", ":included:build", ":included:sub:build")
+            result.assertTaskNotExecuted(":included:sub:test")
+        }
     }
 
     def "excluding a task from a root project does not affect included task with same path"() {
@@ -118,11 +137,6 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractIntegrationSpec {
         result.assertTaskNotExecuted(":sub:test")
     }
 
-    def "cannot use unqualified absolute paths to to exclude task from included build root"() {
-        expect:
-        runAndFail("build", "-x", "included:test")
-    }
-
     def "cannot use unqualified task paths to exclude tasks from included build subproject"() {
         when:
         run("build", "-x", "sub:test")
@@ -130,5 +144,116 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertTasksExecuted(":test", ":build", ":sub:build", ":included:test", ":included:build", ":included:sub:test", ":included:sub:build")
         result.assertTaskNotExecuted(":sub:test")
+    }
+
+    def "can exclude task from main build when root build uses project plugin from included build"() {
+        setup:
+        settingsFile << "includeBuild('build-logic')"
+        def rootDir = file("build-logic")
+        addPluginIncludedBuild(rootDir)
+        buildFile.text = """
+            plugins {
+                id("test.plugin")
+                id("java-library")
+            }
+        """
+
+        expect:
+        2.times {
+            succeeds("assemble", "-x", "jar")
+            result.assertTaskNotExecuted(":jar")
+        }
+    }
+
+    def "can exclude task from main build when root build uses settings plugin from included build"() {
+        setup:
+        def rootDir = file("build-logic")
+        addSettingsPluginIncludedBuild(rootDir)
+        settingsFile.text = """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            plugins {
+                id("test.plugin")
+            }
+        """
+        buildFile.text = """
+            plugins {
+                id("java-library")
+            }
+        """
+
+        expect:
+        2.times {
+            succeeds("assemble", "-x", "jar")
+            result.assertTaskNotExecuted(":jar")
+        }
+    }
+
+    def "can exclude task from included build that produces a project plugin used from root build"() {
+        setup:
+        settingsFile << "includeBuild('build-logic')"
+        def rootDir = file("build-logic")
+        addPluginIncludedBuild(rootDir)
+        buildFile.text = """
+            plugins {
+                id("test.plugin")
+                id("java-library")
+            }
+        """
+
+        expect:
+        succeeds("greeting", ":build-logic:classes")
+        2.times {
+            succeeds("greeting", "-x", ":build-logic:classes")
+            result.assertTaskNotExecuted(":build-logic:classes")
+        }
+    }
+
+    def "can exclude task from included build that is a dependency of the root build and also produces a project plugin used from root build"() {
+        setup:
+        settingsFile << "includeBuild('build-logic')"
+        def rootDir = file("build-logic")
+        addPluginIncludedBuild(rootDir)
+        buildFile.text = """
+            plugins {
+                id("test.plugin")
+                id("java-library")
+            }
+            dependencies {
+                implementation("lib:lib:1.0")
+            }
+        """
+
+        expect:
+        succeeds("greeting", ":build-logic:classes")
+        2.times {
+            succeeds("greeting", "-x", ":build-logic:jar")
+            result.assertTaskNotExecuted(":build-logic:jar")
+            result.assertTaskNotExecuted(":build-logic:compileJava")
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21708")
+    def "can exclude task from included build that requires a project plugin from another build"() {
+        setup:
+        settingsFile << """
+            includeBuild('build-logic')
+            includeBuild('app')
+        """
+        def rootDir = file("build-logic")
+        addPluginIncludedBuild(rootDir)
+        file("app/build.gradle") << """
+            plugins {
+                id("test.plugin")
+                id("java-library")
+            }
+        """
+
+        expect:
+        2.times {
+            succeeds(":app:assemble", "-x", ":app:processResources")
+            result.assertTaskNotExecuted(":app:processResources")
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,20 +20,94 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 
 import javax.annotation.Nullable;
+import java.lang.invoke.SerializedLambda;
+import java.util.Objects;
 
 public class LambdaImplementationSnapshot extends ImplementationSnapshot {
 
-    public LambdaImplementationSnapshot(String typeName) {
-        super(typeName);
+    private final HashCode classLoaderHash;
+
+    private final String functionalInterfaceClass;
+    private final String implClass;
+    private final String implMethodName;
+    private final String implMethodSignature;
+    private final int implMethodKind;
+
+    public LambdaImplementationSnapshot(HashCode classLoaderHash, SerializedLambda lambda) {
+        this(
+            lambda.getCapturingClass(),
+            classLoaderHash,
+            lambda.getFunctionalInterfaceClass(),
+            lambda.getImplClass(),
+            lambda.getImplMethodName(),
+            lambda.getImplMethodSignature(),
+            lambda.getImplMethodKind()
+        );
+    }
+
+    public LambdaImplementationSnapshot(
+        String capturingClass,
+        HashCode classLoaderHash,
+        String functionalInterfaceClass,
+        String implClass,
+        String implMethodName,
+        String implMethodSignature,
+        int implMethodKind
+    ) {
+        super(capturingClass);
+        this.classLoaderHash = classLoaderHash;
+        this.functionalInterfaceClass = functionalInterfaceClass;
+        this.implClass = implClass;
+        this.implMethodName = implMethodName;
+        this.implMethodSignature = implMethodSignature;
+        this.implMethodKind = implMethodKind;
     }
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        throw new RuntimeException("Cannot hash implementation of lambda " + getTypeName());
+        hasher.putString(LambdaImplementationSnapshot.class.getName());
+        hasher.putString(classIdentifier);
+        hasher.putHash(classLoaderHash);
+        hasher.putString(functionalInterfaceClass);
+        hasher.putString(implClass);
+        hasher.putString(implMethodName);
+        hasher.putString(implMethodSignature);
+        hasher.putInt(implMethodKind);
+    }
+
+    @Nullable
+    @Override
+    public HashCode getClassLoaderHash() {
+        return classLoaderHash;
+    }
+
+    public String getFunctionalInterfaceClass() {
+        return functionalInterfaceClass;
+    }
+
+    public String getImplClass() {
+        return implClass;
+    }
+
+    public String getImplMethodName() {
+        return implMethodName;
+    }
+
+    public String getImplMethodSignature() {
+        return implMethodSignature;
+    }
+
+    public int getImplMethodKind() {
+        return implMethodKind;
     }
 
     @Override
     protected boolean isSameSnapshot(@Nullable Object o) {
+        return equals(o);
+    }
+
+    @Override
+    public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
@@ -42,38 +116,22 @@ public class LambdaImplementationSnapshot extends ImplementationSnapshot {
         }
 
         LambdaImplementationSnapshot that = (LambdaImplementationSnapshot) o;
-
-        return getTypeName().equals(that.getTypeName());
-    }
-
-    @Override
-    public HashCode getClassLoaderHash() {
-        return null;
-    }
-
-    @Override
-    public boolean isUnknown() {
-        return true;
-    }
-
-    @Override
-    @Nullable
-    public UnknownReason getUnknownReason() {
-        return UnknownReason.LAMBDA;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return false;
+        return classIdentifier.equals(that.classIdentifier) &&
+            classLoaderHash.equals(that.classLoaderHash) &&
+            functionalInterfaceClass.equals(that.functionalInterfaceClass) &&
+            implClass.equals(that.implClass) &&
+            implMethodName.equals(that.implMethodName) &&
+            implMethodSignature.equals(that.implMethodSignature) &&
+            implMethodKind == that.implMethodKind;
     }
 
     @Override
     public int hashCode() {
-        return getTypeName().hashCode();
+        return Objects.hash(classIdentifier, classLoaderHash, functionalInterfaceClass, implClass, implMethodName, implMethodSignature, implMethodKind);
     }
 
     @Override
     public String toString() {
-        return getTypeName();
+        return classIdentifier + "::" + implMethodName + "@" + classLoaderHash;
     }
 }

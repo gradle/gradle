@@ -56,4 +56,9 @@ public class MapEntrySnapshot<T> {
         result = 31 * result + value.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return key + "=" + value;
+    }
 }

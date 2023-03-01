@@ -28,6 +28,7 @@ import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.CurrentBuildOperationRef
+import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter
 import org.gradle.internal.operations.DefaultBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
@@ -50,7 +51,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final Clock clock = Mock(Clock)
     final BuildOperationListener buildOperationListener = Mock()
     final CurrentBuildOperationRef currentBuildOperationRef = new CurrentBuildOperationRef()
-    final BuildOperationProgressEventEmitter progressBroadcaster = new BuildOperationProgressEventEmitter(
+    final BuildOperationProgressEventEmitter progressBroadcaster = new DefaultBuildOperationProgressEventEmitter(
         clock, currentBuildOperationRef, buildOperationListener
     )
 

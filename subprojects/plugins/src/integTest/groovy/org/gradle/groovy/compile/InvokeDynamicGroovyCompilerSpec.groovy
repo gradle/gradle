@@ -16,9 +16,17 @@
 
 package org.gradle.groovy.compile
 
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.fixture.GroovyCoverage
+import org.gradle.util.internal.VersionNumber
 
-@TargetVersions(['3.0.10:indy'])
+@TargetCoverage({
+    GroovyCoverage.SUPPORTS_INDY.collect {
+        VersionNumber.parse(it).major >= 4
+            ? it
+            : "$it:indy"
+    }
+})
 class InvokeDynamicGroovyCompilerSpec extends ApiGroovyCompilerIntegrationSpec {
     def canEnableAndDisableInvokeDynamicOptimization() {
         when:

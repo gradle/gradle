@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts;
 
+import javax.annotation.Nullable;
+
 /**
  * <p>An {@code Artifact} represents an artifact included in a {@link org.gradle.api.artifacts.Dependency}.</p>
  * An artifact is an (immutable) value object.
@@ -37,7 +39,7 @@ public interface DependencyArtifact {
      * but sometimes this is not the case. For example for an ivy XML module descriptor, the type is
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
-     * @see #getExtension() 
+     * @see #getExtension()
      */
     String getType();
 
@@ -51,33 +53,36 @@ public interface DependencyArtifact {
      * but sometimes this is not the case. For example for an ivy XML module descriptor, the type is
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
-     * @see #getType() 
+     * @see #getType()
      */
+    @Nullable
     String getExtension();
 
     /**
      * Sets the extension of this artifact.
      */
-    void setExtension(String extension);
+    void setExtension(@Nullable String extension);
 
     /**
      * Returns the classifier of this artifact.
      */
+    @Nullable
     String getClassifier();
 
     /**
      * Sets the classifier of this artifact.
      */
-    void setClassifier(String classifier);
+    void setClassifier(@Nullable String classifier);
 
     /**
-     * Returns an URL under which this artifact can be retrieved. If not
-     * specified the user repositories are used for retrieving. 
+     * Returns a URL under which this artifact can be retrieved. If not
+     * specified the user repositories are used for retrieving.
      */
+    @Nullable
     String getUrl();
 
     /**
      * Sets the URL for this artifact.
      */
-    void setUrl(String url);
+    void setUrl(@Nullable String url);
 }

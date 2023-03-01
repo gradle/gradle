@@ -19,11 +19,13 @@ package org.gradle.util;
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.GeneratedClosure;
 import org.gradle.api.Action;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.Actions;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -65,12 +67,17 @@ import static org.gradle.util.internal.CollectionUtils.toStringList;
  * <p>
  * As a last resort, to apply some configuration represented by a Groovy Closure, a plugin can use {@link org.gradle.api.Project#configure(Object, Closure)}.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public class ConfigureUtil {
 
     public static <T> T configureByMap(Map<?, ?> properties, T delegate) {
+        logDeprecation(8);
+        return configureByMapInternal(properties, delegate);
+    }
+
+    private static <T> T configureByMapInternal(Map<?, ?> properties, T delegate) {
         if (properties.isEmpty()) {
             return delegate;
         }
@@ -102,7 +109,8 @@ public class ConfigureUtil {
                 throw new IncompleteInputException("Input configuration map does not contain following mandatory keys: " + missingKeys, missingKeys);
             }
         }
-        return configureByMap(properties, delegate);
+        logDeprecation(7);
+        return configureByMapInternal(properties, delegate);
     }
 
     /**
@@ -115,6 +123,7 @@ public class ConfigureUtil {
         public IncompleteInputException(String message, Collection missingKeys) {
             super(message);
             this.missingKeys = missingKeys;
+            logDeprecation(7);
         }
 
         public Collection getMissingKeys() {
@@ -136,6 +145,7 @@ public class ConfigureUtil {
      * @return The delegate param
      */
     public static <T> T configure(@Nullable Closure configureClosure, T target) {
+        // TODO log deprecation once the shadow plugin is fixed
         if (configureClosure == null) {
             return target;
         }
@@ -153,6 +163,7 @@ public class ConfigureUtil {
      * Creates an action that uses the given closure to configure objects of type T.
      */
     public static <T> Action<T> configureUsing(@Nullable final Closure configureClosure) {
+        logDeprecation(7);
         if (configureClosure == null) {
             return Actions.doNothing();
         }
@@ -164,6 +175,7 @@ public class ConfigureUtil {
      * Called from an object's {@link Configurable#configure} method.
      */
     public static <T> T configureSelf(@Nullable Closure configureClosure, T target) {
+        logDeprecation(7);
         if (configureClosure == null) {
             return target;
         }
@@ -176,6 +188,7 @@ public class ConfigureUtil {
      * Called from an object's {@link Configurable#configure} method.
      */
     public static <T> T configureSelf(@Nullable Closure configureClosure, T target, ConfigureDelegate closureDelegate) {
+        logDeprecation(7);
         if (configureClosure == null) {
             return target;
         }
@@ -193,6 +206,13 @@ public class ConfigureUtil {
         // Hackery to make closure execution faster, by short-circuiting the expensive property and method lookup on Closure
         Closure withNewOwner = configureClosure.rehydrate(target, closureDelegate, configureClosure.getThisObject());
         new ClosureBackedAction<T>(withNewOwner, Closure.OWNER_ONLY, false).execute(target);
+    }
+
+    private static void logDeprecation(int majorVersion) {
+        DeprecationLogger.deprecateType(ConfigureUtil.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(majorVersion, "org_gradle_util_reports_deprecations")
+            .nagUser();
     }
 
     /**

@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.gradle.buildinit.plugins.internal.SimpleGlobalFilesBuildSettingsDescriptor.PLUGINS_BUILD_LOCATION;
+
 public class LanguageSpecificAdaptor implements ProjectGenerator {
     private static final List<String> SAMPLE_CONVENTION_PLUGINS = Arrays.asList("common", "application", "library");
 
@@ -58,6 +60,11 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     @Override
     public Language getLanguage() {
         return descriptor.getLanguage();
+    }
+
+    @Override
+    public boolean isJvmLanguage() {
+        return descriptor.isJvmLanguage();
     }
 
     @Override
@@ -95,7 +102,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
 
     public Map<String, List<String>> generateWithExternalComments(InitSettings settings) {
         HashMap<String, List<String>> comments = new HashMap<>();
-        for(BuildScriptBuilder buildScriptBuilder : allBuildScriptBuilder(settings)) {
+        for (BuildScriptBuilder buildScriptBuilder : allBuildScriptBuilder(settings)) {
             buildScriptBuilder.withExternalComments().create(settings.getTarget()).generate();
             comments.put(buildScriptBuilder.getFileNameWithoutExtension(), buildScriptBuilder.extractComments());
         }
@@ -104,7 +111,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
 
     @Override
     public void generate(InitSettings settings) {
-        for(BuildScriptBuilder buildScriptBuilder : allBuildScriptBuilder(settings)) {
+        for (BuildScriptBuilder buildScriptBuilder : allBuildScriptBuilder(settings)) {
             buildScriptBuilder.create(settings.getTarget()).generate();
         }
     }
@@ -113,8 +120,9 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
         List<BuildScriptBuilder> builder = new ArrayList<>();
 
         if (settings.getModularizationOption() == ModularizationOption.WITH_LIBRARY_PROJECTS) {
-            builder.add(buildSrcSetup(settings));
-            for(String conventionPluginName: SAMPLE_CONVENTION_PLUGINS) {
+            builder.add(pluginsBuildSettingsScriptBuilder(settings));
+            builder.add(pluginsBuildBuildScriptBuilder(settings));
+            for (String conventionPluginName : SAMPLE_CONVENTION_PLUGINS) {
                 builder.add(conventionPluginScriptBuilder(conventionPluginName, settings));
             }
         }
@@ -129,18 +137,27 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
         return builder;
     }
 
-    private BuildScriptBuilder buildSrcSetup(InitSettings settings) {
-        BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), "buildSrc/build", settings.isUseIncubatingAPIs());
-        buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + settings.getDsl().toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
-        if (getLanguage() == Language.KOTLIN) {
-            String kotlinPluginCoordinates = "org.jetbrains.kotlin:kotlin-gradle-plugin";
-            if (settings.getDsl() == BuildInitDsl.GROOVY) {
-                // we don't get a Kotlin version from context without the 'kotlin-dsl' plugin
-                kotlinPluginCoordinates = kotlinPluginCoordinates + ":" + libraryVersionProvider.getVersion("kotlin");
-            }
-            buildSrcScriptBuilder.implementationDependency(null, kotlinPluginCoordinates);
+    private BuildScriptBuilder pluginsBuildSettingsScriptBuilder(InitSettings settings) {
+        BuildScriptBuilder builder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), pluginsBuildLocation(settings) + "/settings", settings.isUseIncubatingAPIs());
+        builder.fileComment("This settings file is used to specify which projects to include in your build-logic build.");
+        String rootProjectName;
+        if (settings.isUseIncubatingAPIs()) {
+            rootProjectName = settings.getProjectName() + "-build-logic";
+        } else {
+            rootProjectName = "buildSrc";
         }
-        return buildSrcScriptBuilder;
+        builder.propertyAssignment(null, "rootProject.name", rootProjectName);
+        return builder;
+    }
+
+    private BuildScriptBuilder pluginsBuildBuildScriptBuilder(InitSettings settings) {
+        BuildScriptBuilder pluginsBuildScriptBuilder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), pluginsBuildLocation(settings) + "/build", settings.isUseIncubatingAPIs());
+        pluginsBuildScriptBuilder.conventionPluginSupport("Support convention plugins written in " + settings.getDsl().toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
+        if (getLanguage() == Language.KOTLIN) {
+            String kotlinPluginCoordinates = "org.jetbrains.kotlin:kotlin-gradle-plugin:" + libraryVersionProvider.getVersion("kotlin");
+            pluginsBuildScriptBuilder.implementationDependency(null, kotlinPluginCoordinates);
+        }
+        return pluginsBuildScriptBuilder;
     }
 
     private BuildScriptBuilder projectBuildScriptBuilder(String projectName, InitSettings settings, String buildFile) {
@@ -151,9 +168,18 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
 
     private BuildScriptBuilder conventionPluginScriptBuilder(String conventionPluginName, InitSettings settings) {
         BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(),
-            "buildSrc/src/main/" + settings.getDsl().name().toLowerCase() + "/" + settings.getPackageName() + "." + getLanguage().getName() + "-" + conventionPluginName + "-conventions",
+            pluginsBuildLocation(settings) + "/src/main/" + settings.getDsl().name().toLowerCase() + "/"
+                + settings.getPackageName() + "." + getLanguage().getName() + "-" + conventionPluginName + "-conventions",
             settings.isUseIncubatingAPIs());
         descriptor.generateConventionPluginBuildScript(conventionPluginName, settings, buildScriptBuilder);
         return buildScriptBuilder;
+    }
+
+    private String pluginsBuildLocation(InitSettings settings) {
+        if (settings.isUseIncubatingAPIs()) {
+            return PLUGINS_BUILD_LOCATION;
+        } else {
+            return "buildSrc";
+        }
     }
 }

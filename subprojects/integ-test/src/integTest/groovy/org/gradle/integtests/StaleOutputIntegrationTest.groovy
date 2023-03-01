@@ -16,17 +16,14 @@
 
 package org.gradle.integtests
 
-import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
-import org.gradle.internal.reflect.problems.ValidationProblemId
-import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.internal.execution.steps.CleanupStaleOutputsStep
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements ExecutionOptimizationDeprecationFixture {
+class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue(['GRADLE-2440', 'GRADLE-2579'])
     def 'stale output file is removed after input source directory is emptied.'() {
@@ -95,9 +92,10 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Exec
         buildFile << taskWithSources.buildScript
         buildFile << """
             task taskWithOverlap {
-                outputs.file('${taskWithSources.outputDir}/overlapping.txt')
+                def overlappingFile = file('${taskWithSources.outputDir}/overlapping.txt')
+                outputs.file(overlappingFile)
                 doLast {
-                    file('${taskWithSources.outputDir}/overlapping.txt').text = "overlapping file"
+                    overlappingFile.text = "overlapping file"
                 }
             }
         """.stripIndent()
@@ -128,16 +126,20 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Exec
             task firstCopy {
                 inputs.file('first.file')
                 outputs.dir('build/destination')
+                def outputFile = file('build/destination/first.file')
+                def inputFile = file('first.file')
                 doLast {
-                    file('build/destination/first.file').text = file('first.file').text
+                    outputFile.text = inputFile.text
                 }
             }
 
             task secondCopy {
                 inputs.file('second.file')
                 outputs.dir('build/destination')
+                def outputFile = file('build/destination/second.file')
+                def inputFile = file('second.file')
                 doLast {
-                    file('build/destination/second.file').text = file('second.file').text
+                    outputFile.text = inputFile.text
                 }
             }
 
@@ -292,7 +294,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Exec
 
         then:
         fixture.staleFilesHaveBeenRemoved()
-        operations.hasOperation(CleanupStaleOutputsExecuter.CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
+        operations.hasOperation(CleanupStaleOutputsStep.CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
     }
 
     def "no build operations are created for stale outputs cleanup if no files are removed"() {
@@ -306,7 +308,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Exec
 
         then:
         executedAndNotSkipped(fixture.taskPath)
-        !operations.first(CleanupStaleOutputsExecuter.CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
+        !operations.first(CleanupStaleOutputsStep.CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
     }
 
     def "overlapping outputs between 'build/outputs' and '#overlappingOutputDir' are not cleaned up"() {
@@ -344,8 +346,9 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Exec
         buildFile << """
             task writeToRealOutput() {
                 outputs.dir 'build/other-output'
+                def outputFile = file('build/other-output/output-file.txt')
                 doLast {
-                    file('build/other-output/output-file.txt').text = "Hello world"
+                    outputFile.text = "Hello world"
                 }
             }
         """.stripIndent()
@@ -371,11 +374,13 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Exec
                     def sources = file("src")
                     inputs.dir sources skipWhenEmpty()
                     outputs.dir "${outputDir}"
+                    def outputDir = file("${outputDir}")
+                    def sourceTree = files(sources).asFileTree
                     doLast {
-                        file("${outputDir}").mkdirs()
-                        files(sources).asFileTree.visit { details ->
+                        outputDir.mkdirs()
+                        sourceTree.visit { details ->
                             if (!details.directory) {
-                                def output = file("${outputDir}/\$details.relativePath")
+                                def output = new File(outputDir, "\$details.relativePath")
                                 output.parentFile.mkdirs()
                                 output.text = details.file.text
                             }
@@ -437,9 +442,6 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Exec
         skipped(taskWithLocalState.taskPath)
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IMPLICIT_DEPENDENCY
-    )
     def "up-to-date checks detect removed stale outputs"() {
 
         given:
@@ -473,12 +475,14 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Exec
         }
 
         when:
-        expectMissingDependencyDeprecation(":restore", ":backup", file('build/original'))
-        expectMissingDependencyDeprecation(":backup", ":restore", file('backup'))
-        run 'backup', 'restore'
-
+        succeeds "backup"
         then:
         executedAndNotSkipped(':backup')
+
+        when:
+        succeeds "restore"
+
+        then:
         executedAndNotSkipped(':restore')
         original.text == backup.text
         original.text == "Original"
@@ -491,13 +495,14 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Exec
         //
         // If cleaning up stale output files does not invalidate the file system mirror, then the restore task would be up-to-date.
         invalidateBuildOutputCleanupState()
-        expectMissingDependencyDeprecation(":restore", ":backup", file('build/original'))
-        expectMissingDependencyDeprecation(":backup", ":restore", file('backup'))
-        run 'backup', 'restore', '--info'
+        succeeds 'backup'
+        then:
+        skipped ':backup'
 
+        when:
+        succeeds 'restore', '--info'
         then:
         output.contains("Deleting stale output file: ${original.parentFile.absolutePath}")
-        skipped ':backup'
         executedAndNotSkipped(':restore')
         original.text == backup.text
         original.text == "Original"
@@ -565,11 +570,13 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Exec
                     inputs.dir sources skipWhenEmpty()
                     outputs.file "$outputFile"
                     localState.register "$localStateDir"
+                    def stateDir = file("${localStateDir}")
+                    def sourceTree = files(sources).asFileTree
                     doLast {
-                        file("${localStateDir}").mkdirs()
-                        files(sources).asFileTree.visit { details ->
+                        stateDir.mkdirs()
+                        sourceTree.visit { details ->
                             if (!details.directory) {
-                                def output = file("${localStateDir}/\${details.relativePath}.info")
+                                def output = new File(stateDir, "\${details.relativePath}.info")
                                 output.parentFile.mkdirs()
                                 output.text = "Analysis for \${details.relativePath}"
                             }
@@ -716,19 +723,22 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Exec
             }
 
             if (project.findProperty('assertRemoved')) {
+                def outputDir = file('${outputDirPath}')
+                def outputFile = file('${outputFilePath}')
                 ${taskName}.doFirst {
-                    assert file('${outputDirPath}').directory
-                    assert file('${outputDirPath}').list().length == 0
-                    assert !file('${outputFilePath}').exists()
+                    assert outputDir.directory
+                    assert outputDir.list().length == 0
+                    assert !outputFile.exists()
                 }
             }
 
             task writeDirectlyToOutputDir {
                 outputs.dir('${buildDir}')
 
+                def overlappingDir = file("${getOverlappingOutputDir()}")
                 doLast {
-                    file("${getOverlappingOutputDir()}").mkdirs()
-                    file("${getOverlappingOutputDir()}/new-output.txt").text = "new output"
+                    overlappingDir.mkdirs()
+                    new File(overlappingDir, "new-output.txt").text = "new output"
                 }
             }
 

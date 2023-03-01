@@ -48,6 +48,13 @@ fun <T, R> splitIntoBuckets(
 
     val expectedBucketSize = list.sumOf(toIntFunction) / expectedBucketNumber
 
+    if (expectedBucketSize == 0) {
+        // The elements in the list are so small that they can't even be divided into {expectedBucketNumber}.
+        // For example, how do you split [0,0,0,0,0] into 3 buckets?
+        // In this case, we simply put the elements into these buckets evenly.
+        return list.chunked(list.size / expectedBucketNumber, smallElementAggregateFunction)
+    }
+
     val largestElement = list.removeFirst()!!
 
     val largestElementSize = toIntFunction(largestElement)

@@ -52,8 +52,8 @@ public class DefaultIncrementalInputProperties implements IncrementalInputProper
     @Override
     public InputFileChanges incrementalChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
         return new DefaultInputFileChanges(
-            ImmutableSortedMap.copyOfSorted(Maps.filterKeys(previous, propertyName -> incrementalInputProperties.containsKey(propertyName))),
-            ImmutableSortedMap.copyOfSorted(Maps.filterKeys(current, propertyName -> incrementalInputProperties.containsKey(propertyName)))
+            ImmutableSortedMap.copyOfSorted(Maps.filterKeys(previous, incrementalInputProperties::containsKey)),
+            ImmutableSortedMap.copyOfSorted(Maps.filterKeys(current, incrementalInputProperties::containsKey))
         );
     }
 }

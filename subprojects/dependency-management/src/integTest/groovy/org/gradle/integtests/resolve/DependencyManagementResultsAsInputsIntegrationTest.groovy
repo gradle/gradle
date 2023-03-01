@@ -27,9 +27,10 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.ImmutableCapability
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -123,23 +124,55 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         withOriginalSourceIn("composite-lib")
     }
 
-    def "can not use ResolvedArtifactResult as task input"() {
+    def "can not use ResolvedArtifactResult as task input annotated with #annotation"() {
+
+        executer.beforeExecute {
+            executer.noDeprecationChecks() // Cannot convert the provided notation to a File or URI
+            executer.withArgument("-Dorg.gradle.internal.max.validation.errors=20")
+        }
+
         given:
         buildFile << """
+            interface NestedBean {
+                $annotation
+                Property<ResolvedArtifactResult> getNested()
+            }
+
             abstract class TaskWithInput extends DefaultTask {
 
-                @Input
-                abstract SetProperty<ResolvedArtifactResult> getInput();
+                private final NestedBean nested = project.objects.newInstance(NestedBean.class)
 
-                @OutputFile
-                abstract RegularFileProperty getOutputFile()
+                $annotation
+                ResolvedArtifactResult getDirect() { null }
+
+                $annotation
+                Provider<ResolvedArtifactResult> getProviderInput() { propertyInput }
+
+                $annotation
+                abstract Property<ResolvedArtifactResult> getPropertyInput();
+
+                $annotation
+                abstract SetProperty<ResolvedArtifactResult> getSetPropertyInput();
+
+                $annotation
+                abstract ListProperty<ResolvedArtifactResult> getListPropertyInput();
+
+                $annotation
+                abstract MapProperty<String, ResolvedArtifactResult> getMapPropertyInput();
+
+                @Nested
+                abstract NestedBean getNestedInput();
             }
 
             tasks.register('verify', TaskWithInput) {
-                input.set(configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts)
-                outputFile.set(layout.buildDirectory.file('output.txt'))
+                def artifacts = configurations.runtimeClasspath.incoming.artifacts
+                propertyInput.set(artifacts.resolvedArtifacts.map { it[0] })
+                setPropertyInput.set(artifacts.resolvedArtifacts)
+                listPropertyInput.set(artifacts.resolvedArtifacts)
+                mapPropertyInput.put("some", artifacts.resolvedArtifacts.map { it[0] })
+                nestedInput.nested.set(artifacts.resolvedArtifacts.map { it[0] })
                 doLast {
-                    println(input.get())
+                    println(setPropertyInput.get())
                 }
             }
         """
@@ -148,8 +181,30 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         fails "verify"
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':verify'.")
-        failureHasCause("Cannot fingerprint input property 'input'")
+        failureDescriptionStartsWith("Some problems were found with the configuration of task ':verify' (type 'TaskWithInput').")
+        failureDescriptionContains("Type 'TaskWithInput' property 'direct' has $annotation annotation used on property of type 'ResolvedArtifactResult'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'providerInput' has $annotation annotation used on property of type 'Provider<ResolvedArtifactResult>'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'propertyInput' has $annotation annotation used on property of type 'Property<ResolvedArtifactResult>'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'setPropertyInput' has $annotation annotation used on property of type 'SetProperty<ResolvedArtifactResult>'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'listPropertyInput' has $annotation annotation used on property of type 'ListProperty<ResolvedArtifactResult>'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'mapPropertyInput' has $annotation annotation used on property of type 'MapProperty<String, ResolvedArtifactResult>'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'nestedInput.nested' has $annotation annotation used on property of type 'Property<ResolvedArtifactResult>'.")
+
+        // Because
+        failureDescriptionContains("ResolvedArtifactResult is not supported on task properties annotated with $annotation.")
+
+        // Possible solutions
+        failureDescriptionContains("1. Extract artifact metadata and annotate with @Input.")
+        failureDescriptionContains("2. Extract artifact files and annotate with @InputFiles.")
+
+        // Documentation
+        failureDescriptionContains("Please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#unsupported_value_type for more details about this problem.")
+
+        where:
+        annotation    | _
+        "@Input"      | _
+        "@InputFile"  | _
+        "@InputFiles" | _
     }
 
     def "can use #type as task input"() {
@@ -158,7 +213,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             import ${DefaultModuleIdentifier.name}
             import ${DefaultModuleVersionIdentifier.name}
             import ${DefaultModuleComponentIdentifier.name}
-            import ${ImmutableCapability.name}
+            import ${DefaultImmutableCapability.name}
             import ${DefaultModuleComponentArtifactIdentifier.name}
             import ${ImmutableAttributesFactory.name}
             import ${DefaultResolvedVariantResult.name}
@@ -210,10 +265,10 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         // For ResolvedArtifactResult
         "Attribute"                    | "Attribute.of(System.getProperty('n'), String)"
         "AttributeContainer"           | "services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n'))"
-        "Capability"                   | "new ImmutableCapability('group', System.getProperty('n'), '1.0')"
+        "Capability"                   | "new DefaultImmutableCapability('group', System.getProperty('n'), '1.0')"
         "ModuleComponentIdentifier"    | "new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0')"
         "ComponentArtifactIdentifier"  | "new DefaultModuleComponentArtifactIdentifier(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0'), System.getProperty('n') + '-1.0.jar', 'jar', null)"
-        "ResolvedVariantResult"        | "new DefaultResolvedVariantResult(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), Describables.of('variantName'), services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), [new ImmutableCapability('group', System.getProperty('n'), '1.0')], null)"
+        "ResolvedVariantResult"        | "new DefaultResolvedVariantResult(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), Describables.of('variantName'), services.get(ImmutableAttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), [new DefaultImmutableCapability('group', System.getProperty('n'), '1.0')], null)"
         // For ResolvedComponentResult
         "ModuleVersionIdentifier"      | "DefaultModuleVersionIdentifier.newId('group', System.getProperty('n'), '1.0')"
 //        "ResolvedComponentResult"      | "null"
@@ -579,12 +634,12 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
         where:
-        changeDesc                                             | changeArg
-        "a new external dependency"                            | "-DexternalDependency=true"
-        "changing selection reasons"                           | "-DselectionReason=changed"
-        "changing project library variant metadata"            | "-DprojectLibAttrValue=new-value"
-        "changing included library variant metadata"           | "-DcompositeLibAttrValue=new-value"
-        "changing external library variant metadata"           | "-DexternalLibAttrValue=new-value"
+        changeDesc                                   | changeArg
+        "a new external dependency"                  | "-DexternalDependency=true"
+        "changing selection reasons"                 | "-DselectionReason=changed"
+        "changing project library variant metadata"  | "-DprojectLibAttrValue=new-value"
+        "changing included library variant metadata" | "-DcompositeLibAttrValue=new-value"
+        "changing external library variant metadata" | "-DexternalLibAttrValue=new-value"
     }
 
     def "can use ResolvedComponentResult result as task input and '#changeDesc' invalidates the cache (returnAllVariants=true)"() {

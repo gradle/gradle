@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.signing;
-
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache;
+package org.gradle.plugins.signing
 
 class SigningClosureBlockIntegrationSpec extends SigningIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache
     def "use groovy closure when signing"() {
         given:
         buildFile << """
@@ -43,7 +40,6 @@ class SigningClosureBlockIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0.jar.asc").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "use kotlin action when signing"() {
         given:
         buildFile.delete()

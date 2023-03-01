@@ -156,8 +156,10 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         buildSrcTasks.child("Task :buildSrc:a:compileJava").descendant("Resolve dependencies :buildSrc:a:compileClasspath", "Resolve dependencies of :buildSrc:a:compileClasspath")
         buildSrcTasks.child("Task :buildSrc:b:compileJava").descendant("Resolve dependencies :buildSrc:b:compileClasspath", "Resolve dependencies of :buildSrc:b:compileClasspath")
 
-        buildSrcTasks.child("Task :buildSrc:a:test").descendant("Gradle Test Run :buildSrc:a:test").descendant("Test ok(ATest)")
-        buildSrcTasks.child("Task :buildSrc:b:test")
+        if (targetDist.runsBuildSrcTests) {
+            buildSrcTasks.child("Task :buildSrc:a:test").descendant("Gradle Test Run :buildSrc:a:test").descendant("Test ok(ATest)")
+            buildSrcTasks.child("Task :buildSrc:b:test")
+        }
 
         when:
         events.clear()
@@ -172,7 +174,9 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
         then:
         events.tasks.size() == events.operations.size()
         events.operation("Task :buildSrc:a:compileJava")
-        events.operation("Task :buildSrc:a:test")
+        if (targetDist.runsBuildSrcTests) {
+            events.operation("Task :buildSrc:a:test")
+        }
         events.operation("Task :compileJava")
         events.operation("Task :test")
 
@@ -189,7 +193,9 @@ class BasicProjectConfigurationProgressCrossVersionSpec extends ToolingApiSpecif
 
         then:
         events.tests.size() == events.operations.size()
-        events.operation("Gradle Test Run :buildSrc:a:test").descendant("Test ok(ATest)")
+        if (targetDist.runsBuildSrcTests) {
+            events.operation("Gradle Test Run :buildSrc:a:test").descendant("Test ok(ATest)")
+        }
         events.operation("Gradle Test Run :test").descendant("Test ok(ThingTest)")
     }
 

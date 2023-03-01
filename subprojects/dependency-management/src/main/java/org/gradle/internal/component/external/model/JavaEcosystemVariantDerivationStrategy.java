@@ -21,7 +21,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 
 import java.util.Collections;
 
@@ -41,7 +41,7 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
     }
 
     @Override
-    public ImmutableList<? extends ConfigurationMetadata> derive(ModuleComponentResolveMetadata metadata) {
+    public ImmutableList<? extends ModuleConfigurationMetadata> derive(ModuleComponentResolveMetadata metadata) {
         if (metadata instanceof DefaultMavenModuleResolveMetadata) {
             DefaultMavenModuleResolveMetadata md = (DefaultMavenModuleResolveMetadata) metadata;
             ImmutableAttributes attributes = md.getAttributes();
@@ -52,14 +52,10 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
             ImmutableCapabilities shadowedPlatformCapability = buildShadowPlatformCapability(componentId, false);
             ImmutableCapabilities shadowedEnforcedPlatformCapability = buildShadowPlatformCapability(componentId, true);
             return ImmutableList.of(
-                    // When deriving variants for the Java ecosystem, we actually have 2 components "mixed together": the library and the platform
-                    // and there's no way to figure out what was the intent when it was published. So we derive variants, but we also need
-                    // to use generic JAVA_API and JAVA_RUNTIME attributes, instead of more precise JAVA_API_JARS and JAVA_RUNTIME_JARS
-                    // because of the platform aspect (which aren't jars but "something"). Using JAVA_API_JARS for the library part and
-                    // JAVA_API for the platform would lead to selection of the platform when we don't want them (in other words in a single
-                    // component we cannot mix precise usages with more generic ones)
-                libraryWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API),
-                libraryWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME),
+                // When deriving variants for the Java ecosystem, we actually have 2 components "mixed together": the library and the platform
+                // and there's no way to figure out what was the intent when it was published. So we derive variants for both.
+                libraryCompileScope(compileConfiguration, attributes, attributesFactory),
+                libraryRuntimeScope(runtimeConfiguration, attributes, attributesFactory),
                 libraryWithSourcesVariant(runtimeConfiguration, attributes, attributesFactory, metadata),
                 libraryWithJavadocVariant(runtimeConfiguration, attributes, attributesFactory, metadata),
                 platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, false, shadowedPlatformCapability),
@@ -79,7 +75,7 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
         return runtimeConfiguration.mutate()
             .withName("sources")
             .withAttributes(attributesFactory.sourcesVariant(originAttributes))
-            .withArtifacts(ImmutableList.of(metadata.optionalArtifact("source", "jar", "sources")))
+            .withArtifacts(ImmutableList.of(metadata.optionalArtifact("jar", "jar", "sources")))
             .withoutConstraints()
             .build();
     }
@@ -89,18 +85,18 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
      *
      * @return synthetic metadata for the javadoc-classifier jar
      */
-    private static DefaultConfigurationMetadata libraryWithJavadocVariant(DefaultConfigurationMetadata runtimeConfiguration, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, ModuleComponentResolveMetadata metadata) {
+    private static ModuleConfigurationMetadata libraryWithJavadocVariant(DefaultConfigurationMetadata runtimeConfiguration, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, ModuleComponentResolveMetadata metadata) {
         return runtimeConfiguration.mutate()
             .withName("javadoc")
             .withAttributes(attributesFactory.javadocVariant(originAttributes))
-            .withArtifacts(ImmutableList.of(metadata.optionalArtifact("javadoc", "jar", "javadoc")))
+            .withArtifacts(ImmutableList.of(metadata.optionalArtifact("jar", "jar", "javadoc")))
             .withoutConstraints()
             .build();
     }
 
     private ImmutableCapabilities buildShadowPlatformCapability(ModuleComponentIdentifier componentId, boolean enforced) {
         return ImmutableCapabilities.of(Collections.singletonList(
-                new DefaultShadowedCapability(new ImmutableCapability(
+                new ShadowedImmutableCapability(new DefaultImmutableCapability(
                         componentId.getGroup(),
                         componentId.getModule(),
                         componentId.getVersion()
@@ -109,15 +105,23 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
         );
     }
 
-    private static ConfigurationMetadata libraryWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, String usage) {
-        ImmutableAttributes attributes = attributesFactory.libraryWithUsage(originAttributes, usage);
+    private static ModuleConfigurationMetadata libraryCompileScope(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory) {
+        ImmutableAttributes attributes = attributesFactory.compileScope(originAttributes);
         return conf.mutate()
-                .withAttributes(attributes)
-                .withoutConstraints()
-                .build();
+            .withAttributes(attributes)
+            .withoutConstraints()
+            .build();
     }
 
-    private static ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, String usage, boolean enforcedPlatform, ImmutableCapabilities shadowedPlatformCapability) {
+    private static ModuleConfigurationMetadata libraryRuntimeScope(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory) {
+        ImmutableAttributes attributes = attributesFactory.runtimeScope(originAttributes);
+        return conf.mutate()
+            .withAttributes(attributes)
+            .withoutConstraints()
+            .build();
+    }
+
+    private static ModuleConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, String usage, boolean enforcedPlatform, ImmutableCapabilities shadowedPlatformCapability) {
         ImmutableAttributes attributes = attributesFactory.platformWithUsage(originAttributes, usage, enforcedPlatform);
         String prefix = enforcedPlatform ? "enforced-platform-" : "platform-";
         DefaultConfigurationMetadata.Builder builder = conf.mutate()

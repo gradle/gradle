@@ -17,7 +17,10 @@
 package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
+import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheVersionMapping;
@@ -26,13 +29,12 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.internal.UnusedVersionsCacheCleanup;
 import org.gradle.cache.internal.UsedGradleVersions;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
-import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultClasspathTransformerCacheFactory implements ClasspathTransformerCacheFactory {
@@ -49,29 +51,41 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final UsedGradleVersions usedGradleVersions;
+    private final CacheConfigurationsInternal cacheConfigurations;
 
-    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions) {
+    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CacheConfigurationsInternal cacheConfigurations) {
         this.usedGradleVersions = usedGradleVersions;
+        this.cacheConfigurations = cacheConfigurations;
     }
 
     @Override
-    public PersistentCache createCache(GlobalScopedCache cacheRepository, FileAccessTimeJournal fileAccessTimeJournal) {
-        return cacheRepository
-            .crossVersionCache(CACHE_KEY)
+    public PersistentCache createCache(GlobalScopedCacheBuilderFactory cacheBuilderFactory, FileAccessTimeJournal fileAccessTimeJournal) {
+        return cacheBuilderFactory
+            .createCrossVersionCacheBuilder(CACHE_KEY)
             .withDisplayName(CACHE_NAME)
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
-            .withCleanup(
-                CompositeCleanupAction.builder()
-                    .add(UnusedVersionsCacheCleanup.create(CACHE_NAME, CACHE_VERSION_MAPPING, usedGradleVersions))
-                    .add(
-                        new LeastRecentlyUsedCacheCleanup(
-                            new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP),
-                            fileAccessTimeJournal,
-                            DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
-                        )
-                    ).build()
-            ).open();
+            .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal))
+            .open();
+    }
+
+    private CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal) {
+        return DefaultCacheCleanupStrategy.from(
+            createCleanupAction(fileAccessTimeJournal),
+            cacheConfigurations.getCleanupFrequency()
+        );
+    }
+
+    private CompositeCleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal) {
+        return CompositeCleanupAction.builder()
+            .add(UnusedVersionsCacheCleanup.create(CACHE_NAME, CACHE_VERSION_MAPPING, usedGradleVersions))
+            .add(
+                new LeastRecentlyUsedCacheCleanup(
+                    new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP),
+                    fileAccessTimeJournal,
+                    cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesOlderThanAsSupplier()
+                )
+            ).build();
     }
 
     @Override

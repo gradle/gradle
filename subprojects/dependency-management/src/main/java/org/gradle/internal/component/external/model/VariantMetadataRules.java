@@ -18,32 +18,33 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.MutableVariantFilesMetadata;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DependencyConstraintsMetadata;
 import org.gradle.api.artifacts.DirectDependenciesMetadata;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
-import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.MutableVariantFilesMetadata;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.specs.Spec;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.VariantFilesRules;
 import org.gradle.internal.component.model.CapabilitiesRules;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.VariantAttributesRules;
+import org.gradle.internal.component.model.VariantFilesRules;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import java.util.ArrayList;
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class VariantMetadataRules {
     private final ImmutableAttributesFactory attributesFactory;
@@ -55,25 +56,50 @@ public class VariantMetadataRules {
     private CapabilitiesRules capabilitiesRules;
     private VariantFilesRules variantFilesRules;
 
+    private final AttributeContainerInternal baseAttributes;
+    // If two configurations have a dependency on the same module, there is a chance they can be
+    // resolved concurrently. Dependency resolution exercises this code when performing attribute
+    // matching, so this map must support concurrent modification.
+    private final Map<String, AttributeContainerInternal> variantAttributes = new ConcurrentHashMap<>();
+
     public VariantMetadataRules(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId) {
-        this.attributesFactory = attributesFactory;
-        this.moduleVersionId = moduleVersionId;
+        this(attributesFactory, moduleVersionId, attributesFactory.mutable());
     }
 
-    public ImmutableAttributes applyVariantAttributeRules(VariantResolveMetadata variant, AttributeContainerInternal source) {
-        if (variantAttributesRules != null) {
-            return variantAttributesRules.execute(variant, source);
+    private VariantMetadataRules(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId, AttributeContainerInternal baseAttributes) {
+        this.attributesFactory = attributesFactory;
+        this.moduleVersionId = moduleVersionId;
+        this.baseAttributes = baseAttributes;
+    }
+
+    public AttributeContainerInternal getAttributes(@Nullable String variantName) {
+        if (variantName == null) {
+            return baseAttributes;
+        } else {
+            return variantAttributes.computeIfAbsent(variantName, name -> attributesFactory.mutable(baseAttributes));
         }
-        return source.asImmutable();
+    }
+
+    protected AttributeContainerInternal joinVariantAttributes(VariantResolveMetadata variant, AttributeContainerInternal parent) {
+        AttributeContainerInternal variantAttrs = getAttributes(variant.getName());
+        return attributesFactory.join(parent, variantAttrs);
+    }
+
+    public ImmutableAttributes applyVariantAttributeRules(VariantResolveMetadata variant, AttributeContainerInternal parent) {
+        AttributeContainerInternal joined = joinVariantAttributes(variant, parent);
+        if (variantAttributesRules != null) {
+            return variantAttributesRules.execute(variant, joined);
+        }
+        return joined.asImmutable();
     }
 
     public CapabilitiesMetadata applyCapabilitiesRules(VariantResolveMetadata variant, CapabilitiesMetadata capabilities) {
         if (capabilitiesRules != null) {
-            ArrayList<Capability> descriptors = Lists.newArrayList(capabilities.getCapabilities());
+            List<Capability> descriptors = Lists.newArrayList(capabilities.getCapabilities());
             if (descriptors.isEmpty()) {
                 // we must add the implicit capability here because it is assumed that if there's a rule
                 // "addCapability" would effectively _add_ a capability, so the implicit one must not be forgotten
-                descriptors.add(new ImmutableCapability(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion()));
+                descriptors.add(new DefaultImmutableCapability(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion()));
             }
             DefaultMutableCapabilities mutableCapabilities = new DefaultMutableCapabilities(descriptors);
             return capabilitiesRules.execute(variant, mutableCapabilities);
@@ -154,26 +180,30 @@ public class VariantMetadataRules {
     }
 
     /**
-     * A variant action is an action which is only executed if it matches a predicate. Typically, on the name
-     * of the variant or its attributes.
+     * A variant action is an action which is only executed if it matches the name of the variant.
      * @param <T> the type of the action subject
      */
     public static class VariantAction<T> {
-        private final Spec<? super VariantResolveMetadata> spec;
+        private final String variantName;
         private final Action<? super T> delegate;
 
-        public VariantAction(Spec<? super VariantResolveMetadata> spec, Action<? super T> delegate) {
-            this.spec = spec;
+        /**
+         * @param variantName The variant name to match. If null, all variants are matched.
+         * @param delegate The action to execute upon matching.
+         */
+        public VariantAction(@Nullable String variantName, Action<? super T> delegate) {
+            this.variantName = variantName;
             this.delegate = delegate;
         }
 
         /**
-         * Executes the underlying action if the supplied variant matches the predicate
+         * Executes the underlying action if the supplied variant matches.
+         *
          * @param variant the variant metadata, used to check if the rule applies
          * @param subject the subject of the rule
          */
         public void maybeExecute(VariantResolveMetadata variant, T subject) {
-            if (spec.isSatisfiedBy(variant)) {
+            if (variantName == null || variantName.equals(variant.getName())) {
                 delegate.execute(subject);
             }
         }
@@ -183,7 +213,17 @@ public class VariantMetadataRules {
         private final static ImmutableRules INSTANCE = new ImmutableRules();
 
         private ImmutableRules() {
-            super(null, null);
+            super(null, null, null);
+        }
+
+        @Override
+        public AttributeContainerInternal getAttributes(@Nullable String variantName) {
+            return ImmutableAttributes.EMPTY;
+        }
+
+        @Override
+        protected AttributeContainerInternal joinVariantAttributes(VariantResolveMetadata variant, AttributeContainerInternal parent) {
+            return parent;
         }
 
         @Override

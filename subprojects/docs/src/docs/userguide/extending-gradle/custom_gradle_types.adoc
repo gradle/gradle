@@ -193,6 +193,7 @@ include::{snippetsPath}/plugins/constructorServiceInjection/groovy/buildSrc/src/
 ----
 ====
 
+[[property_injection]]
 === Property injection
 
 Alternatively, a service can be injected by adding a property getter method annotated with the `javax.inject.Inject` annotation to the class.

@@ -177,7 +177,7 @@ class DefaultProjectLayoutTest extends Specification {
     }
 
     def "can resolve directory relative to build directory"() {
-        def pathProvider = withValues("a", "b")
+        def pathProvider = withValues("a", "b", "c")
 
         expect:
         def dir = layout.buildDirectory.dir("sub-dir")
@@ -188,17 +188,17 @@ class DefaultProjectLayoutTest extends Specification {
         provider.present
 
         def dir1 = provider.get()
-        dir1.getAsFile() == projectDir.file("build/a")
+        dir1.getAsFile() == projectDir.file("build/b")
 
         def dir2 = provider.get()
-        dir2.getAsFile() == projectDir.file("build/b")
+        dir2.getAsFile() == projectDir.file("build/c")
 
-        dir1.getAsFile() == projectDir.file("build/a")
-        dir2.getAsFile() == projectDir.file("build/b")
+        dir1.getAsFile() == projectDir.file("build/b")
+        dir2.getAsFile() == projectDir.file("build/c")
     }
 
     def "can resolve regular file relative to build directory"() {
-        def pathProvider = withValues("a", "b")
+        def pathProvider = withValues("a", "b", "c")
 
         expect:
         def file = layout.buildDirectory.file("child")
@@ -209,13 +209,13 @@ class DefaultProjectLayoutTest extends Specification {
         provider.present
 
         def file1 = provider.get()
-        file1.getAsFile() == projectDir.file("build/a")
+        file1.getAsFile() == projectDir.file("build/b")
 
         def file2 = provider.get()
-        file2.getAsFile() == projectDir.file("build/b")
+        file2.getAsFile() == projectDir.file("build/c")
 
-        file1.getAsFile() == projectDir.file("build/a")
-        file2.getAsFile() == projectDir.file("build/b")
+        file1.getAsFile() == projectDir.file("build/b")
+        file2.getAsFile() == projectDir.file("build/c")
     }
 
     def "directories are equal when their paths are equal"() {

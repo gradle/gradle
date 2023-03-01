@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandleBuilder;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.Arrays;
 import java.util.EnumMap;
 
 
@@ -52,11 +54,11 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     }
 
     @Override
-    public JvmInstallationMetadata getMetadata(File javaHome) {
+    public JvmInstallationMetadata getMetadata(InstallationLocation javaInstallationLocation) {
+        File javaHome = javaInstallationLocation.getLocation();
         if (javaHome == null || !javaHome.exists()) {
             return failure(javaHome, "No such directory: " + javaHome);
         }
-        EnumMap<ProbedSystemProperty, String> metadata;
         if (Jvm.current().getJavaHome().equals(javaHome)) {
             return getMetadataFromCurrentJvm(javaHome);
         }
@@ -70,25 +72,28 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
                 result.put(type, System.getProperty(type.getSystemPropertyKey()));
             }
         }
+        logger.info("Received JVM installation metadata from '{}': {}", javaHome.getAbsolutePath(), result);
         return asMetadata(javaHome, result);
     }
 
     private JvmInstallationMetadata asMetadata(File javaHome, EnumMap<ProbedSystemProperty, String> metadata) {
-        String implementationVersion = metadata.get(ProbedSystemProperty.VERSION);
-        if (implementationVersion == null) {
+        String javaVersion = metadata.get(ProbedSystemProperty.JAVA_VERSION);
+        if (javaVersion == null) {
             return failure(javaHome, metadata.get(ProbedSystemProperty.Z_ERROR));
         }
         try {
-            JavaVersion.toVersion(implementationVersion);
+            JavaVersion.toVersion(javaVersion);
         } catch (IllegalArgumentException e) {
-            return failure(javaHome, "Cannot parse version number: " + implementationVersion);
+            return failure(javaHome, "Cannot parse version number: " + javaVersion);
         }
+        String javaVendor = metadata.get(ProbedSystemProperty.JAVA_VENDOR);
+        String runtimeName = metadata.get(ProbedSystemProperty.RUNTIME_NAME);
         String runtimeVersion = metadata.get(ProbedSystemProperty.RUNTIME_VERSION);
+        String jvmName = metadata.get(ProbedSystemProperty.VM_NAME);
         String jvmVersion = metadata.get(ProbedSystemProperty.VM_VERSION);
-        String vendor = metadata.get(ProbedSystemProperty.VENDOR);
-        String implementationName = metadata.get(ProbedSystemProperty.VM);
-        String architecture = metadata.get(ProbedSystemProperty.ARCH);
-        return JvmInstallationMetadata.from(javaHome, implementationVersion, runtimeVersion, jvmVersion, vendor, implementationName, architecture);
+        String jvmVendor = metadata.get(ProbedSystemProperty.VM_VENDOR);
+        String architecture = metadata.get(ProbedSystemProperty.OS_ARCH);
+        return JvmInstallationMetadata.from(javaHome, javaVersion, javaVendor, runtimeName, runtimeVersion, jvmName, jvmVersion, jvmVendor, architecture);
     }
 
     private JvmInstallationMetadata getMetadataFromInstallation(File jdkPath) {
@@ -127,7 +132,10 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     }
 
     private JvmInstallationMetadata parseExecOutput(File jdkPath, String probeResult) {
-        String[] split = probeResult.split(System.getProperty("line.separator"));
+        String[] split = Arrays.stream(probeResult.split(System.getProperty("line.separator")))
+                .filter(line -> line.startsWith(MetadataProbe.MARKER_PREFIX))
+                .map(line -> line.substring(MetadataProbe.MARKER_PREFIX.length()))
+                .toArray(String[]::new);
         if (split.length != ProbedSystemProperty.values().length - 1) { // -1 because of Z_ERROR
             final String errorMessage = "Unexpected command output: \n" + probeResult;
             logger.info("Failed to parse JVM installation metadata output at '" + jdkPath + "'. " + errorMessage);
@@ -139,6 +147,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
                 result.put(type, split[type.ordinal()].trim());
             }
         }
+        logger.info("Received JVM installation metadata from '{}': {}", jdkPath.getAbsolutePath(), result);
         return asMetadata(jdkPath, result);
     }
 
@@ -151,8 +160,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     }
 
     private File writeProbeClass(File tmpDir) {
-        File probe = new MetadataProbe().writeClass(tmpDir);
-        return probe;
+        return new MetadataProbe().writeClass(tmpDir);
     }
 
 }

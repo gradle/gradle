@@ -16,40 +16,14 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.util.GradleVersion
+import java.util.jar.JarOutputStream
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 abstract class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
-    static class AndroidLintDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
-        AndroidLintDeprecations(SmokeTestGradleRunner runner) {
-            super(runner)
-        }
-
-        void expectAndroidLintDeprecations(String agpVersion, List<String> artifacts) {
-            artifacts.each { artifact ->
-                runner.expectLegacyDeprecationWarningIf(
-                    agpVersion.startsWith("4.1"),
-                    "In plugin 'com.android.internal.version-check' type 'com.android.build.gradle.tasks.LintPerVariantTask' property 'allInputs' cannot be resolved:  " +
-                        "Cannot convert the provided notation to a File or URI: $artifact. " +
-                        "The following types/formats are supported:  - A String or CharSequence path, for example 'src/main/java' or '/usr/include'. - A String or CharSequence URI, for example 'file:/usr/include'. - A File instance. - A Path instance. - A Directory instance. - A RegularFile instance. - A URI or URL instance. - A TextResource instance. " +
-                        "Reason: An input file collection couldn't be resolved, making it impossible to determine task inputs. " +
-                        "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
-                        "Execution optimizations are disabled to ensure correctness. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#unresolvable_input for more details."
-                )
-            }
-            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs")
-            if (agpVersion.startsWith("7.")) {
-                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "inputFiles", "resources")
-            }
-            expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
-        }
-    }
 }
 
 class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTest {
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "check deprecation warnings produced by building Santa Tracker (agp=#agpVersion)"() {
 
         given:
@@ -71,7 +45,6 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
 }
 
 class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTrackerSmokeTest {
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "incremental Java compilation works for Santa Tracker (agp=#agpVersion)"() {
 
         given:
@@ -87,6 +60,7 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
         def compiledClassFile = checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
 
         when:
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         def result = buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
         def md5Before = compiledClassFile.md5Hash
 
@@ -96,12 +70,18 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
 
         when:
         fileToChange.replace("computeCurrentVelocity(1000", "computeCurrentVelocity(2000")
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
         def md5After = compiledClassFile.md5Hash
 
         then:
         result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
-        assertConfigurationCacheStateLoaded()
+        // TODO - this is here because AGP >=7.4 reads build/generated/source/kapt/debug at configuration time
+        if (agpVersion.startsWith('7.3')) {
+            assertConfigurationCacheStateLoaded()
+        } else {
+            assertConfigurationCacheStateStored()
+        }
         md5After != md5Before
 
         where:
@@ -110,7 +90,6 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
 }
 
 class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
-    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "can lint Santa-Tracker (agp=#agpVersion)"() {
 
         given:
@@ -124,13 +103,8 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         def runner = runnerForLocation(
             checkoutDir, agpVersion,
             "common:lintDebug", "playgames:lintDebug", "doodles-lib:lintDebug"
-        ).deprecations(AndroidLintDeprecations) {
-            expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-            expectAndroidLintDeprecations(agpVersion, [
-                "kotlin-android-extensions-runtime-${kotlinVersion}.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:${kotlinVersion})",
-                "appcompat-1.0.2.aar (androidx.appcompat:appcompat:1.0.2)"
-            ])
-        }
+        )
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
         def result = runner.buildAndFail()
@@ -143,12 +117,8 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         runner = runnerForLocation(
             checkoutDir, agpVersion,
             "common:lintDebug", "playgames:lintDebug", "doodles-lib:lintDebug"
-        ).deprecations(AndroidLintDeprecations) {
-            expectAndroidLintDeprecations(agpVersion, [
-                "kotlin-android-extensions-runtime-${kotlinVersion}.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:${kotlinVersion})",
-                "appcompat-1.0.2.aar (androidx.appcompat:appcompat:1.0.2)"
-            ])
-        }
+        )
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         runner.withArguments(runner.arguments + "--continue")
         result = runner.buildAndFail()
 
@@ -157,6 +127,32 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         result.output.contains("Lint found errors in the project; aborting build.")
 
         where:
-        agpVersion << TESTED_AGP_VERSIONS
+        agpVersion << TESTED_AGP_VERSIONS.findAll { !it.startsWith("4.")}
+    }
+}
+
+class SantaTrackerConfigurationCacheWorkaround {
+    static void beforeBuild(File checkoutDir, File gradleHome) {
+        // Workaround for Android Gradle plugin checking for the presence of these directories at configuration time,
+        // which invalidates configuration cache if their presence changes. Create these directories before the first build.
+        // See: https://android.googlesource.com/platform/tools/base/+/studio-master-dev/build-system/gradle-core/src/main/java/com/android/build/gradle/tasks/ShaderCompile.java#120
+        // TODO: remove this once AGP stops checking for the existence of these directories at configuration time
+        checkoutDir.listFiles().findAll { it.isDirectory() && new File(it, "build.gradle").exists() }.each {
+            new File(it, "build/intermediates/merged_shaders/debug/out").mkdirs()
+            new File(it, "build/intermediates/merged_shaders/debugUnitTest/out").mkdirs()
+            new File(it, "build/intermediates/merged_shaders/debugAndroidTest/out").mkdirs()
+            new File(it, "build/intermediates/merged_shaders/release/out").mkdirs()
+            new File(it, "build/intermediates/merged_shaders/releaseAndroidTest/out").mkdirs()
+        }
+        File androidAnalyticsSetting = new File(System.getProperty("user.home"), ".android/analytics.settings")
+        if (!androidAnalyticsSetting.exists()) {
+            androidAnalyticsSetting.parentFile.mkdirs()
+            androidAnalyticsSetting.createNewFile()
+        }
+        def androidFakeDependency = new File(gradleHome, "android/FakeDependency.jar")
+        if (!androidFakeDependency.exists()) {
+            androidFakeDependency.parentFile.mkdirs()
+            new JarOutputStream(new FileOutputStream(androidFakeDependency)).close()
+        }
     }
 }

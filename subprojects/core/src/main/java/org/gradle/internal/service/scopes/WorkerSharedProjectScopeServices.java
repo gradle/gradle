@@ -19,9 +19,9 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.cache.DefaultDecompressionCacheFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultArchiveOperations;
-import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.DefaultFileSystemOperations;
@@ -44,10 +44,15 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
+import org.gradle.cache.internal.DecompressionCacheFactory;
+import org.gradle.cache.internal.scopes.DefaultProjectScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.ProjectScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -72,7 +77,10 @@ public class WorkerSharedProjectScopeServices {
     void configure(ServiceRegistration registration) {
         registration.add(DefaultPropertyFactory.class);
         registration.add(DefaultFilePropertyFactory.class);
-        registration.add(DefaultFileCollectionFactory.class);
+    }
+
+    protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost) {
+        return parent.forChildScope(fileResolver, taskDependencyFactory, propertyHost);
     }
 
     protected FileResolver createFileResolver(FileLookup lookup) {
@@ -81,10 +89,8 @@ public class WorkerSharedProjectScopeServices {
 
     protected DefaultFileOperations createFileOperations(
             FileResolver fileResolver,
-            TemporaryFileProvider temporaryFileProvider,
             Instantiator instantiator,
             DirectoryFileTreeFactory directoryFileTreeFactory,
-            StreamHasher streamHasher,
             FileHasher fileHasher,
             DefaultResourceHandler.Factory resourceHandlerFactory,
             FileCollectionFactory fileCollectionFactory,
@@ -93,14 +99,15 @@ public class WorkerSharedProjectScopeServices {
             Factory<PatternSet> patternSetFactory,
             Deleter deleter,
             DocumentationRegistry documentationRegistry,
-            ProviderFactory providers
+            ProviderFactory providers,
+            TaskDependencyFactory taskDependencyFactory,
+            DecompressionCacheFactory decompressionCache,
+            ScopedCacheBuilderFactory cacheBuilderFactory
     ) {
         return new DefaultFileOperations(
                 fileResolver,
-                temporaryFileProvider,
                 instantiator,
                 directoryFileTreeFactory,
-                streamHasher,
                 fileHasher,
                 resourceHandlerFactory,
                 fileCollectionFactory,
@@ -109,7 +116,10 @@ public class WorkerSharedProjectScopeServices {
                 patternSetFactory,
                 deleter,
                 documentationRegistry,
-                providers);
+                taskDependencyFactory,
+                providers,
+                decompressionCache,
+                cacheBuilderFactory);
     }
 
     protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
@@ -125,7 +135,7 @@ public class WorkerSharedProjectScopeServices {
     }
 
     ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory,
-                                      PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory,
+                                      PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
                                       DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator) {
         return new DefaultObjectFactory(
                 instantiatorFactory.decorate(services),
@@ -134,6 +144,7 @@ public class WorkerSharedProjectScopeServices {
                 patternSetFactory,
                 propertyFactory,
                 filePropertyFactory,
+                taskDependencyFactory,
                 fileCollectionFactory,
                 domainObjectCollectionFactory);
     }
@@ -141,5 +152,13 @@ public class WorkerSharedProjectScopeServices {
     DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
                                              FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory) {
         return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
+    }
+
+    protected ProjectScopedCacheBuilderFactory createProjectScopedCache(TemporaryFileProvider temporaryFileProvider, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        return new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory);
+    }
+
+    protected DecompressionCacheFactory createDecompressionCacheFactory(TemporaryFileProvider temporaryFileProvider, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        return new DefaultDecompressionCacheFactory(() -> new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory));
     }
 }

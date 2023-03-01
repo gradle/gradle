@@ -71,7 +71,7 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     }
 
     @Override
-    public ListProperty<T> convention(Iterable<? extends T> elements) {
+    public ListProperty<T> convention(@Nullable Iterable<? extends T> elements) {
         super.convention(elements);
         return this;
     }

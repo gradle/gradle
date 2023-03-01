@@ -16,26 +16,28 @@ file('src2/dir2').mkdirs()
 
 // tag::closure[]
 tasks.register('list') {
+    Directory projectDirectory = layout.projectDirectory
     doLast {
         File srcDir
 
         // Create a file collection using a closure
-        collection = layout.files { srcDir.listFiles() }
+        collection = projectDirectory.files { srcDir.listFiles() }
 
-        srcDir = file('src')
+        srcDir = projectDirectory.file('src').asFile
         println "Contents of $srcDir.name"
-        collection.collect { relativePath(it) }.sort().each { println it }
+        collection.collect { projectDirectory.asFile.relativePath(it) }.sort().each { println it }
 
-        srcDir = file('src2')
+        srcDir = projectDirectory.file('src2').asFile
         println "Contents of $srcDir.name"
-        collection.collect { relativePath(it) }.sort().each { println it }
+        collection.collect { projectDirectory.asFile.relativePath(it) }.sort().each { println it }
     }
 }
 // end::closure[]
 
 tasks.register('usage') {
+    ProjectLayout projectLayout = layout
     doLast {
-        collection = layout.files('src/file1.txt')
+        collection = projectLayout.files('src/file1.txt')
 
         // tag::usage[]
         // Iterate over the files in the collection
@@ -51,14 +53,15 @@ tasks.register('usage') {
         File file = collection.singleFile
 
         // Add and subtract collections
-        def union = collection + layout.files('src/file2.txt')
-        def difference = collection - layout.files('src/file2.txt')
+        def union = collection + projectLayout.files('src/file2.txt')
+        def difference = collection - projectLayout.files('src/file2.txt')
 
         // end::usage[]
     }
 }
 
 tasks.register('filterTextFiles') {
+    Directory projectDirectory = layout.projectDirectory
     doLast {
         // tag::filtering-file-collections[]
         FileCollection textFiles = collection.filter { File f ->
@@ -66,10 +69,10 @@ tasks.register('filterTextFiles') {
         }
         // end::filtering-file-collections[]
 
-        textFiles.collect { relativePath(it) }.sort().each { String path ->
+        textFiles.collect { projectDirectory.asFile.relativePath(it).toString() }.sort().each { String path ->
             println path
         }
 
-        assert textFiles.files*.name.sort()  == ['file1.txt', 'file2.txt', 'file5.txt']
+        assert textFiles.files*.name.sort() == ['file1.txt', 'file2.txt', 'file5.txt']
     }
 }

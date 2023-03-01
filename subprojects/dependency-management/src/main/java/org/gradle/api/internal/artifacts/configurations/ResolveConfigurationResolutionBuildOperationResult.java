@@ -106,11 +106,13 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
             return getDesugared().keySet();
         }
 
+        @Deprecated
         @Override
         public <T> AttributeContainer attribute(Attribute<T> key, T value) {
             return getDesugared().attribute(key, value);
         }
 
+        @Deprecated
         @Override
         public <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider) {
             return getDesugared().attributeProvider(key, provider);

@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.external.model.ImmutableCapability
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
@@ -92,7 +92,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes other build root ProjectComponentSelector"() {
         given:
-        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), path(":prefix:a:someProject"), Path.ROOT, "someProject", ImmutableAttributes.EMPTY, capabilities())
+        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), path(":prefix"), Path.ROOT, "someProject", ImmutableAttributes.EMPTY, capabilities())
 
         when:
         def result = serialize(selector, serializer)
@@ -274,6 +274,6 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
 
     private static List<Capability> capabilities() {
-        [new ImmutableCapability("org", "foo", "${Math.random()}"), new ImmutableCapability("org", "bar", "${Math.random()}")]
+        [new DefaultImmutableCapability("org", "foo", "${Math.random()}"), new DefaultImmutableCapability("org", "bar", "${Math.random()}")]
     }
 }

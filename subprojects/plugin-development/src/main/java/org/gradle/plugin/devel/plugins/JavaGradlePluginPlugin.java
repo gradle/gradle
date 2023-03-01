@@ -18,6 +18,7 @@ package org.gradle.plugin.devel.plugins;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -29,16 +30,17 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaLibraryPlugin;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.Copy;
@@ -46,9 +48,12 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.initialization.buildsrc.GradlePluginApiVersionAttributeConfigurationAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
@@ -57,6 +62,7 @@ import org.gradle.plugin.devel.tasks.ValidatePlugins;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
+import org.gradle.process.CommandLineArgumentProvider;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -65,6 +71,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -81,11 +88,10 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/java_gradle_plugin.html">Gradle plugin development reference</a>
  */
-@SuppressWarnings({"deprecation", "DeprecatedIsStillUsed"})
 @NonNullApi
-public class JavaGradlePluginPlugin implements Plugin<Project> {
+public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
-    static final String API_CONFIGURATION = JavaPlugin.API_CONFIGURATION_NAME;
+    static final String API_CONFIGURATION = JvmConstants.API_CONFIGURATION_NAME;
     static final String JAR_TASK = "jar";
     static final String PROCESS_RESOURCES_TASK = "processResources";
     static final String GRADLE_PLUGINS = "gradle-plugins";
@@ -142,6 +148,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         configureDescriptorGeneration(project, extension);
         validatePluginDeclarations(project, extension);
         configurePluginValidations(project, extension);
+        configureDependencyGradlePluginsResolution(project);
     }
 
     private void registerPlugins(Project project, GradlePluginDevelopmentExtension extension) {
@@ -171,9 +178,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     private GradlePluginDevelopmentExtension createExtension(Project project) {
-        JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-        SourceSet defaultPluginSourceSet = javaPluginExtension.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        SourceSet defaultTestSourceSet = javaPluginExtension.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
+        SourceSet defaultPluginSourceSet = JavaPluginHelper.getJavaComponent(project).getSourceSet();
+        SourceSet defaultTestSourceSet = JavaPluginHelper.getDefaultTestSuite(project).getSources();
         return project.getExtensions().create(EXTENSION_NAME, GradlePluginDevelopmentExtension.class, project, defaultPluginSourceSet, defaultTestSourceSet);
     }
 
@@ -189,24 +195,28 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
             pluginUnderTestMetadataTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(pluginUnderTestMetadataTask.getName()));
 
-            pluginUnderTestMetadataTask.getPluginClasspath().from((Callable<FileCollection>) () -> {
-                SourceSet sourceSet = extension.getPluginSourceSet();
-                Configuration runtimeClasspath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
-                ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
-                    config.componentFilter(spec(JavaGradlePluginPlugin::excludeGradleApi));
-                });
-                return pluginUnderTestMetadataTask.getProject().getObjects().fileCollection().from(
-                    sourceSet.getOutput(),
-                    view.getFiles().getElements()
-                );
-            });
+            pluginUnderTestMetadataTask.getPluginClasspath().from(classpathForPlugin(project, extension));
         });
+    }
+
+    private static Callable<FileCollection> classpathForPlugin(Project project, GradlePluginDevelopmentExtension extension) {
+        return () -> {
+            SourceSet sourceSet = extension.getPluginSourceSet();
+            Configuration runtimeClasspath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
+            ArtifactView view = runtimeClasspath.getIncoming().artifactView(config ->
+                config.componentFilter(spec(JavaGradlePluginPlugin::excludeGradleApi))
+            );
+            return project.getObjects().fileCollection().from(
+                sourceSet.getOutput(),
+                view.getFiles().getElements()
+            );
+        };
     }
 
     private static boolean excludeGradleApi(ComponentIdentifier componentId) {
         if (componentId instanceof OpaqueComponentIdentifier) {
-            DependencyFactory.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
-            return classPathNotation != DependencyFactory.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
+            DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
+            return classPathNotation != DependencyFactoryInternal.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
         }
         return true;
     }
@@ -256,8 +266,20 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
             task.getClasses().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getOutput().getClassesDirs());
             task.getClasspath().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getCompileClasspath());
+
+            task.getLauncher().convention(toolchainLauncher(project));
         });
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, check -> check.dependsOn(validatorTask));
+    }
+
+    private void configureDependencyGradlePluginsResolution(Project project) {
+        new GradlePluginApiVersionAttributeConfigurationAction().execute((ProjectInternal) project);
+    }
+
+    private Provider<JavaLauncher> toolchainLauncher(Project project) {
+        JavaPluginExtension extension = project.getExtensions().findByType(JavaPluginExtension.class);
+        JavaToolchainService service = project.getExtensions().findByType(JavaToolchainService.class);
+        return service.launcherFor(extension.getToolchain());
     }
 
     /**
@@ -373,10 +395,14 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             Set<SourceSet> testSourceSets = extension.getTestSourceSets();
             project.getNormalization().getRuntimeClasspath().ignore(PluginUnderTestMetadata.METADATA_FILE_NAME);
 
-            project.getTasks().withType(Test.class).configureEach(test -> test.getInputs()
-                .files(pluginClasspathTask.get().getPluginClasspath())
-                .withPropertyName("pluginClasspath")
-                .withNormalizer(ClasspathNormalizer.class));
+            project.getTasks().withType(Test.class).configureEach(test -> {
+                test.getInputs()
+                    .files(pluginClasspathTask.get().getPluginClasspath())
+                    .withPropertyName("pluginClasspath")
+                    .withNormalizer(ClasspathNormalizer.class);
+
+                test.getJvmArgumentProviders().add(new AddOpensCommandLineArgumentProvider(test));
+            });
 
             for (SourceSet testSourceSet : testSourceSets) {
                 String implementationConfigurationName = testSourceSet.getImplementationConfigurationName();
@@ -384,6 +410,26 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
                 String runtimeOnlyConfigurationName = testSourceSet.getRuntimeOnlyConfigurationName();
                 dependencies.add(runtimeOnlyConfigurationName, project.getLayout().files(pluginClasspathTask));
             }
+        }
+    }
+
+    /**
+     * Provides an {@code --add-opens} flag for {@code java.base/java.lang} if the JVM version
+     * a given test task is running does not allow reflection of JDK internals by default.
+     * Needed when using ProjectBuilder in tests.
+     */
+    private static class AddOpensCommandLineArgumentProvider implements CommandLineArgumentProvider {
+        private final Test test;
+
+        private AddOpensCommandLineArgumentProvider(Test test) {
+            this.test = test;
+        }
+
+        @Override
+        public Iterable<String> asArguments() {
+            return test.getJavaVersion().isCompatibleWith(JavaVersion.VERSION_1_9)
+                ? Collections.singletonList("--add-opens=java.base/java.lang=ALL-UNNAMED")
+                : Collections.emptyList();
         }
     }
 

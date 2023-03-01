@@ -40,6 +40,6 @@ repositories {
 }
 
 dependencies {
-    implementation("gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.7.2")
+    implementation("com.github.spotbugs.snom:spotbugs-gradle-plugin:5.0.12")
 }
 // end::repositories-and-dependencies[]

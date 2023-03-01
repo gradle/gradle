@@ -12,8 +12,9 @@ dependencies {
 }
 
 tasks.register('printArtifactNames') {
+    FileCollection compileClasspath = configurations.compileClasspath
     doLast {
-        def libraryNames = configurations.compileClasspath.collect { it.name }
+        def libraryNames = compileClasspath.collect { it.name }
         logger.quiet libraryNames
     }
 }

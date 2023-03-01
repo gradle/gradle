@@ -53,6 +53,12 @@ link:http://brew.sh[Homebrew] is "the missing package manager for macOS".
 ❯ brew install gradle
 ----
 
+link:https://www.macports.org[MacPorts] is another package manager for macOS.
+
+----
+❯ sudo port install gradle
+----
+
 Other package managers are available, but the version of Gradle distributed by them is not controlled by Gradle, Inc. Linux package managers may distribute a modified version of Gradle that is incompatible or incomplete when compared to the official version (available from SDKMAN! or below).
 
 <<#sec:installation_next_steps,↓ Proceed to next steps>>
@@ -95,6 +101,7 @@ Alternatively, you can unpack the Gradle distribution ZIP into `C:\Gradle` using
 
 To run Gradle, the path to the unpacked files from the Gradle website need to be on your terminal's path. The steps to do this are different for each operating system.
 
+[[sec:linux_macos_users_2]]
 ==== Linux & MacOS users
 
 Configure your `PATH` environment variable to include the `bin` directory of the unzipped distribution, e.g.:
@@ -147,4 +154,4 @@ Now that you have Gradle installed, use these resources for getting started:
  * Sign up for a link:{website}/training/intro-to-gradle/[live introductory Gradle training] with a core engineer.
  * Learn how to achieve common tasks through the <<command_line_interface.adoc#command_line_interface,command-line interface>>.
  * <<build_environment.adoc#build_environment,Configure Gradle execution>>, such as use of an HTTP proxy for downloading dependencies.
- * Subscribe to the link:https://newsletter.gradle.com/[Gradle Newsletter] for monthly release and community updates.
+ * Subscribe to the link:https://newsletter.gradle.org/[Gradle Newsletter] for monthly release and community updates.

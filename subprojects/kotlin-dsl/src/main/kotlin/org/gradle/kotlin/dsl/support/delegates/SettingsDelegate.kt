@@ -30,7 +30,10 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.toolchain.management.ToolchainManagement
+import org.gradle.api.cache.CacheConfigurations
 import org.gradle.caching.configuration.BuildCacheConfiguration
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.plugin.management.PluginManagementSpec
 import org.gradle.vcs.SourceControl
 import java.io.File
@@ -39,7 +42,18 @@ import java.io.File
 /**
  * Facilitates the implementation of the [Settings] interface by delegation via subclassing.
  */
+@Deprecated("Will be removed in Gradle 9.0")
 abstract class SettingsDelegate : Settings {
+
+    init {
+        @Suppress("DEPRECATION")
+        if (!org.gradle.kotlin.dsl.SettingsScriptApi::class.java.isAssignableFrom(this::class.java)) {
+            DeprecationLogger.deprecateType(SettingsDelegate::class.java)
+                .willBeRemovedInGradle9()
+                .undocumented()
+                .nagUser()
+        }
+    }
 
     internal
     abstract val delegate: Settings
@@ -95,6 +109,12 @@ abstract class SettingsDelegate : Settings {
     override fun getPluginManagement(): PluginManagementSpec =
         delegate.pluginManagement
 
+    override fun toolchainManagement(toolchainManagementConfiguration: Action<in ToolchainManagement>) =
+        delegate.toolchainManagement(toolchainManagementConfiguration)
+
+    override fun getToolchainManagement(): ToolchainManagement =
+        delegate.toolchainManagement
+
     override fun sourceControl(configuration: Action<in SourceControl>) =
         delegate.sourceControl(configuration)
 
@@ -140,4 +160,9 @@ abstract class SettingsDelegate : Settings {
 
     override fun getDependencyResolutionManagement(): DependencyResolutionManagement =
         delegate.dependencyResolutionManagement
+
+    override fun getCaches(): CacheConfigurations =
+        delegate.caches
+
+    override fun caches(cacheConfigurations: Action<in CacheConfigurations>) = delegate.caches(cacheConfigurations)
 }

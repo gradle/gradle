@@ -63,4 +63,9 @@ abstract class AbstractScalarValueSnapshot<T> implements ValueSnapshot {
     public int hashCode() {
         return value.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return "" + value;
+    }
 }

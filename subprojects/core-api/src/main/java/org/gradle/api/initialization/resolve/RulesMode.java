@@ -15,14 +15,11 @@
  */
 package org.gradle.api.initialization.resolve;
 
-import org.gradle.api.Incubating;
-
 /**
  * The rules mode determines how component metadata rules should be applied.
  *
  * @since 6.8
  */
-@Incubating
 public enum RulesMode {
     /**
      * If this mode is set, any component metadata rule declared on a project

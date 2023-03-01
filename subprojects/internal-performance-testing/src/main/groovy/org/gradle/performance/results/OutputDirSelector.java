@@ -21,11 +21,4 @@ import java.io.File;
 public interface OutputDirSelector {
 
     File outputDirFor(String testId);
-
-    static String fileSafeNameFor(String name) {
-        String fileSafeName = name.trim().replaceAll("[^a-zA-Z0-9.-]", "-").replaceAll("-+", "-");
-        return (fileSafeName.endsWith("-"))
-            ? fileSafeName.substring(0, fileSafeName.length() - 1)
-            : fileSafeName;
-    }
 }

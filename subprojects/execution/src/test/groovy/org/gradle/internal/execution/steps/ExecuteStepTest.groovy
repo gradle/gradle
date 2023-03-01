@@ -17,11 +17,16 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.operations.TestBuildOperationExecutor
+
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_INCREMENTALLY
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.execution.UnitOfWork.WorkResult.DID_NO_WORK
+import static org.gradle.internal.execution.UnitOfWork.WorkResult.DID_WORK
 
 class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
     def workspace = Mock(File)
@@ -33,10 +38,6 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
     def step = new ExecuteStep<>(new TestBuildOperationExecutor())
     def inputChanges = Mock(InputChangesInternal)
 
-    @Override
-    protected ChangingOutputsContext createContext() {
-        Stub(ChangingOutputsContext)
-    }
 
     def setup() {
         _ * context.getWorkspace() >> workspace
@@ -48,7 +49,7 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
         def result = step.execute(work, context)
 
         then:
-        result.executionResult.get().outcome == expectedOutcome
+        result.execution.get().outcome == expectedOutcome
         // Check
         result.duration.toMillis() >= 100
 
@@ -64,9 +65,9 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
         0 * _
 
         where:
-        workResult                        | expectedOutcome
-        UnitOfWork.WorkResult.DID_WORK    | ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
-        UnitOfWork.WorkResult.DID_NO_WORK | ExecutionOutcome.UP_TO_DATE
+        workResult  | expectedOutcome
+        DID_WORK    | EXECUTED_NON_INCREMENTALLY
+        DID_NO_WORK | UP_TO_DATE
     }
 
     def "failure #failure.class.simpleName is handled"() {
@@ -74,8 +75,8 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
         def result = step.execute(work, context)
 
         then:
-        !result.executionResult.successful
-        result.executionResult.failure.get() == failure
+        !result.execution.successful
+        result.execution.failure.get() == failure
         result.duration.toMillis() >= 100
 
         _ * context.inputChanges >> Optional.empty()
@@ -96,7 +97,7 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
         def result = step.execute(work, context)
 
         then:
-        result.executionResult.get().outcome == expectedOutcome
+        result.execution.get().outcome == expectedOutcome
 
         _ * context.inputChanges >> Optional.of(inputChanges)
         _ * inputChanges.incremental >> incrementalExecution
@@ -108,10 +109,10 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
         0 * _
 
         where:
-        incrementalExecution | workResult                        | expectedOutcome
-        true                 | UnitOfWork.WorkResult.DID_WORK    | ExecutionOutcome.EXECUTED_INCREMENTALLY
-        false                | UnitOfWork.WorkResult.DID_WORK    | ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
-        true                 | UnitOfWork.WorkResult.DID_NO_WORK | ExecutionOutcome.UP_TO_DATE
-        false                | UnitOfWork.WorkResult.DID_NO_WORK | ExecutionOutcome.UP_TO_DATE
+        incrementalExecution | workResult  | expectedOutcome
+        true                 | DID_WORK    | EXECUTED_INCREMENTALLY
+        false                | DID_WORK    | EXECUTED_NON_INCREMENTALLY
+        true                 | DID_NO_WORK | UP_TO_DATE
+        false                | DID_NO_WORK | UP_TO_DATE
     }
 }

@@ -17,7 +17,9 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
 class JavaExecIntegrationTest extends AbstractIntegrationSpec {
@@ -66,7 +68,28 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "java exec is not incremental by default"() {
+    def "emits deprecation warning if executable specified as relative path"() {
+        given:
+        def executable = TextUtil.normaliseFileSeparators(Jvm.current().javaExecutable.toString())
+
+        buildFile << """
+            tasks.withType(JavaExec) {
+                executable = new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString()
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning("Configuring a Java executable via a relative path. " +
+                "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
+                "Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against. " +
+                "Configure an absolute path to a Java executable instead.")
+        run "run"
+
+        then:
+        executedAndNotSkipped ":run"
+    }
+
+    def "is not incremental by default"() {
         when:
         run "run"
 
@@ -243,24 +266,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         outputFile.text == "different"
     }
 
-    def "main class can be configured through a convention mapping"() {
-        given:
-        buildFile.text = """
-            apply plugin: "java"
-
-            task run(type: JavaExec) {
-                classpath = project.layout.files(compileJava)
-                conventionMapping("main") { "driver.Driver" }
-            }
-        """
-
-        when:
-        run "run"
-
-        then:
-        executedAndNotSkipped ":run"
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/12832")
     def "classpath can be replaced with a file collection including the replaced value"() {
         given:
@@ -274,51 +279,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when:
-        run "run"
-
-        then:
-        executedAndNotSkipped ":run"
-    }
-
-    def "main setter method is deprecated"() {
-        given:
-        buildFile.text = """
-            plugins {
-                id("java")
-            }
-
-            task run(type: JavaExec) {
-                classpath = project.layout.files(compileJava)
-                main = "driver.Driver"
-            }
-        """
-
-        executer.expectDocumentedDeprecationWarning("The JavaExec.main property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:main for more details.")
-        when:
-        run "run"
-
-        then:
-        executedAndNotSkipped ":run"
-    }
-
-    def "main getter method is deprecated"() {
-        given:
-        buildFile.text = """
-            plugins {
-                id("java")
-            }
-
-            task run(type: JavaExec) {
-                classpath = project.layout.files(compileJava)
-                mainClass = "driver.Driver"
-                doLast {
-                    println main
-                }
-            }
-        """
-
-        executer.expectDocumentedDeprecationWarning("The JavaExec.main property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the mainClass property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:main for more details.")
         when:
         run "run"
 

@@ -34,7 +34,8 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
-import org.gradle.tooling.internal.protocol.test.InternalTestPatternSpec;
+import org.gradle.tooling.internal.protocol.test.InternalTaskSpec;
+import org.gradle.tooling.internal.protocol.test.InternalTestSpec;
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction;
 
 import java.util.Collection;
@@ -103,20 +104,23 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
             }
         }
 
-        for (InternalTestPatternSpec testPatternSpec : internalTestExecutionRequest.getTestPatternSpecs()) {
-            for (String cls : testPatternSpec.getClasses()) {
-                requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test class: ").append(cls).append(" in task " + testPatternSpec.getTaskPath());
-            }
-            for (Map.Entry<String, List<String>> methods : testPatternSpec.getMethods().entrySet()) {
-                for (String method : methods.getValue()) {
-                    requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(methods.getKey()).append(".").append(method).append("()").append(" in task " + testPatternSpec.getTaskPath());
+        for (InternalTaskSpec taskSpec : internalTestExecutionRequest.getTaskSpecs()) {
+            if (taskSpec instanceof InternalTestSpec) {
+                InternalTestSpec testSpec = (InternalTestSpec) taskSpec;
+                for (String cls : testSpec.getClasses()) {
+                    requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test class: ").append(cls).append(" in task " + taskSpec.getTaskPath());
                 }
-            }
-            for (String pkg : testPatternSpec.getPackages()) {
-                requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test package ").append(pkg).append(" in task " + testPatternSpec.getTaskPath());
-            }
-            for (String pattern : testPatternSpec.getPatterns()) {
-                requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test pattern ").append(pattern).append(" in task " + testPatternSpec.getTaskPath());
+                for (Map.Entry<String, List<String>> methods : testSpec.getMethods().entrySet()) {
+                    for (String method : methods.getValue()) {
+                        requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(methods.getKey()).append(".").append(method).append("()").append(" in task " + taskSpec.getTaskPath());
+                    }
+                }
+                for (String pkg : testSpec.getPackages()) {
+                    requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test package ").append(pkg).append(" in task " + taskSpec.getTaskPath());
+                }
+                for (String pattern : testSpec.getPatterns()) {
+                    requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test pattern ").append(pattern).append(" in task " + taskSpec.getTaskPath());
+                }
             }
         }
 

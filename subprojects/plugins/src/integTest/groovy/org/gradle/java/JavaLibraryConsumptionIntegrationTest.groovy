@@ -29,10 +29,16 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 implementation 'io.reactivex:rxnetty:0.4.4'
             }
+
+            def displayNamesOf(config) {
+                provider { config.incoming.resolutionResult.allDependencies*.requested.displayName }
+            }
             task checkForRxJavaDependency {
+                def runtimeClasspathNames = displayNamesOf(configurations.runtimeClasspath)
+                def compileClasspathNames = displayNamesOf(configurations.compileClasspath)
                 doLast {
-                    assert configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.find { it.requested.displayName == 'io.reactivex:rxjava:1.0.1' }
-                    assert !configurations.compileClasspath.incoming.resolutionResult.allDependencies.find { it.requested.displayName == 'io.reactivex:rxjava:1.0.1' }
+                    assert runtimeClasspathNames.get().find { it == 'io.reactivex:rxjava:1.0.1' }
+                    assert !compileClasspathNames.get().find { it == 'io.reactivex:rxjava:1.0.1' }
                 }
             }
         """
@@ -71,8 +77,9 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.register("resolve") {
+                def files = provider { configurations.consumer.files }
                 doLast {
-                    println configurations.consumer.files
+                    println files.get()
                 }
             }
         """
@@ -81,17 +88,17 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
         fails 'resolve'
 
         then:
-        failure.assertHasCause """The consumer was configured to find a runtime of a component compatible with Java 7, and its dependencies declared externally. However we cannot choose between the following variants of org.junit.jupiter:junit-jupiter-api:5.6.0:
+        failure.assertHasCause """The consumer was configured to find a component for use during runtime, compatible with Java 7, and its dependencies declared externally. However we cannot choose between the following variants of org.junit.jupiter:junit-jupiter-api:5.6.0:
   - javadocElements
   - sourcesElements
 All of them match the consumer attributes:
-  - Variant 'javadocElements' capability org.junit.jupiter:junit-jupiter-api:5.6.0 declares a runtime of a component, and its dependencies declared externally:
+  - Variant 'javadocElements' capability org.junit.jupiter:junit-jupiter-api:5.6.0 declares a component for use during runtime, and its dependencies declared externally:
       - Unmatched attributes:
           - Provides documentation but the consumer didn't ask for it
           - Provides javadocs but the consumer didn't ask for it
           - Doesn't say anything about its target Java version (required compatibility with Java 7)
           - Provides release status but the consumer didn't ask for it
-  - Variant 'sourcesElements' capability org.junit.jupiter:junit-jupiter-api:5.6.0 declares a runtime of a component, and its dependencies declared externally:
+  - Variant 'sourcesElements' capability org.junit.jupiter:junit-jupiter-api:5.6.0 declares a component for use during runtime, and its dependencies declared externally:
       - Unmatched attributes:
           - Provides documentation but the consumer didn't ask for it
           - Provides sources but the consumer didn't ask for it
@@ -99,8 +106,8 @@ All of them match the consumer attributes:
           - Provides release status but the consumer didn't ask for it
 The following variants were also considered but didn't match the requested attributes:
   - Variant 'apiElements' capability org.junit.jupiter:junit-jupiter-api:5.6.0 declares a component, and its dependencies declared externally:
-      - Incompatible because this component declares an API of a component compatible with Java 8 and the consumer needed a runtime of a component compatible with Java 7
-  - Variant 'runtimeElements' capability org.junit.jupiter:junit-jupiter-api:5.6.0 declares a runtime of a component, and its dependencies declared externally:
-      - Incompatible because this component declares a component compatible with Java 8 and the consumer needed a component compatible with Java 7"""
+      - Incompatible because this component declares a component for use during compile-time, compatible with Java 8 and the consumer needed a component for use during runtime, compatible with Java 7
+  - Variant 'runtimeElements' capability org.junit.jupiter:junit-jupiter-api:5.6.0 declares a component for use during runtime, and its dependencies declared externally:
+      - Incompatible because this component declares a component, compatible with Java 8 and the consumer needed a component, compatible with Java 7"""
     }
 }

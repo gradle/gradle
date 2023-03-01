@@ -145,7 +145,6 @@ task showMissing { doLast { println configurations.missing.files } }
         succeeds("showMissing")
     }
 
-    @ToBeFixedForConfigurationCache
     def "cached empty version list is ignored when no module for dynamic version is available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -365,7 +364,6 @@ Required by:
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "cached missing module is ignored if module is not available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")

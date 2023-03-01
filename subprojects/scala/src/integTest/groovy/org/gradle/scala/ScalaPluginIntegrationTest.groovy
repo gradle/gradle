@@ -16,21 +16,28 @@
 package org.gradle.scala
 
 import org.gradle.api.plugins.scala.ScalaBasePlugin
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.ScalaCoverage
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
+import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
 
-class ScalaPluginIntegrationTest extends AbstractIntegrationSpec {
+
+@TargetCoverage({ ScalaCoverage.LATEST_IN_MAJOR })
+class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
+
     @Issue("https://issues.gradle.org/browse/GRADLE-3094")
     def "can apply scala plugin"() {
         file("build.gradle") << """
-apply plugin: "scala"
+            apply plugin: "scala"
 
-task someTask
-"""
+            task someTask
+        """
 
         expect:
         succeeds("someTask")
@@ -49,7 +56,7 @@ task someTask
                 ${mavenCentralRepository()}
                 plugins.withId("scala") {
                     dependencies {
-                        implementation("org.scala-lang:scala-library:2.12.6")
+                        implementation("${scalaDependency(version.toString())}")
                     }
                 }
             }
@@ -74,6 +81,7 @@ task someTask
         """
 
         expect:
+        executer.noDeprecationChecks()
         succeeds(":a:classes", "--parallel")
         true
     }
@@ -93,7 +101,7 @@ task someTask
             project(":scala") {
                 apply plugin: 'scala'
                 dependencies {
-                    implementation("org.scala-lang:scala-library:2.12.6")
+                    implementation("${scalaDependency(version.toString())}")
                     implementation(project(":java").sourceSets.main.output)
                 }
             }
@@ -138,7 +146,7 @@ task someTask
                 apply plugin: 'scala'
 
                 dependencies {
-                    implementation("org.scala-lang:scala-library:2.12.6")
+                    implementation("${scalaDependency(version.toString())}")
                 }
             }
         """
@@ -161,7 +169,7 @@ task someTask
                 apply plugin: 'scala'
 
                 dependencies {
-                    implementation("org.scala-lang:scala-library:2.12.6")
+                    implementation("${scalaDependency(version.toString())}")
                 }
             }
             project(":war") {
@@ -185,6 +193,7 @@ task someTask
     }
 
     def "forcing an incompatible version of Scala fails with a clear error message"() {
+        def fixedScalaVersion = "2.10.7"
         settingsFile << """
             rootProject.name = "scala"
         """
@@ -196,7 +205,7 @@ task someTask
                 implementation("org.scala-lang:scala-library")
             }
             configurations.all {
-                resolutionStrategy.force "org.scala-lang:scala-library:2.10.7"
+                resolutionStrategy.force "org.scala-lang:scala-library:${fixedScalaVersion}"
             }
         """
         file("src/main/scala/Foo.scala") << """
@@ -207,16 +216,8 @@ task someTask
 
         then:
         def expectedMessage = "The version of 'scala-library' was changed while using the default Zinc version." +
-            " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.13:" + ScalaBasePlugin.DEFAULT_ZINC_VERSION
-        if (GradleContextualExecuter.isConfigCache()) {
-            // Nested in the CC problems report
-            failure.assertHasFailures(2)
-            failure.assertHasFailure("Configuration cache problems found in this build.") { fail ->
-                fail.assertHasCause(expectedMessage)
-            }
-        } else {
-            failureHasCause(expectedMessage)
-        }
+            " Version ${fixedScalaVersion} is not compatible with org.scala-sbt:zinc_2.13:" + ScalaBasePlugin.DEFAULT_ZINC_VERSION
+        failureHasCause(expectedMessage)
     }
 
     def "trying to use an old version of Zinc switches to Gradle-supported version"() {
@@ -230,7 +231,7 @@ task someTask
 
             dependencies {
                 zinc("com.typesafe.zinc:zinc:0.3.6")
-                implementation("org.scala-lang:scala-library:2.12.6")
+                implementation("${scalaDependency(version.toString())}")
             }
         """
         file("src/main/scala/Foo.scala") << """
@@ -257,5 +258,38 @@ task someTask
         def matcher = log4jOutput =~ versionPattern
         matcher.find()
         Integer.valueOf(matcher.group(1)) >= 16
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.noDaemon })
+    def "Scala compiler daemon respects keepalive option"() {
+        buildFile << """
+            plugins {
+                id 'scala'
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation("${scalaDependency(version.toString())}")
+            }
+
+            tasks.withType(AbstractScalaCompile) {
+                scalaCompileOptions.keepAliveMode = KeepAliveMode.SESSION
+            }
+        """
+        file('src/main/scala/Foo.scala') << '''
+            class Foo {
+            }
+        '''
+        expect:
+        succeeds(':compileScala', '--info')
+        postBuildOutputContains('Stopped 1 worker daemon')
+
+        when:
+        buildFile.text = buildFile.text.replace('SESSION', 'DAEMON')
+
+        then:
+        succeeds(':compileScala', '--info')
+        postBuildOutputDoesNotContain('Stopped 1 worker daemon')
     }
 }

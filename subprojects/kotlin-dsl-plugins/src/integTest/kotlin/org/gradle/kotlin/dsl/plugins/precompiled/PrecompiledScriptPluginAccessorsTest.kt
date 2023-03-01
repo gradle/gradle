@@ -26,6 +26,8 @@ import org.codehaus.groovy.runtime.StringGroovyMethods
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.PluginManager
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.bytecode.InternalName
@@ -40,6 +42,7 @@ import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 import org.gradle.kotlin.dsl.support.zipTo
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil.replaceLineSeparatorsOf
 import org.gradle.util.internal.ToBeImplemented
 
@@ -370,7 +373,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
             kotlin { }
 
-            tasks.compileKotlin { kotlinOptions { } }
+            tasks.compileKotlin { compilerOptions { } }
 
             """
         )
@@ -583,7 +586,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     Declaration(
                         "",
                         "JavaProjectPlugin",
-                        null
+                        Visibilities.Public
                     )
                 )
             )
@@ -676,34 +679,68 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    fun `plugin application errors are reported but don't cause the build to fail`() {
+    fun `plugin application errors fail the build by default`() {
 
-        // given:
         val pluginId = "invalid.plugin"
         val pluginJar = jarWithInvalidPlugin(pluginId, "InvalidPlugin")
 
         withPrecompiledScriptApplying(pluginId, pluginJar)
 
-        gradleExecuterFor(arrayOf("classes")).withStackTraceChecksDisabled().run().apply {
-            assertOutputContains("An exception occurred applying plugin request [id: '$pluginId']")
-            assertOutputContains("'InvalidPlugin' is neither a plugin or a rule source and cannot be applied.")
-        }
-    }
-
-    @Test
-    fun `plugin application errors can be made to fail the build via system property`() {
-
-        // given:
-        val pluginId = "invalid.plugin"
-        val pluginJar = jarWithInvalidPlugin(pluginId, "InvalidPlugin")
-
-        withPrecompiledScriptApplying(pluginId, pluginJar)
-
-        gradleExecuterFor(arrayOf("classes", "-Dorg.gradle.kotlin.dsl.precompiled.accessors.strict=true")).withStackTraceChecksDisabled().runWithFailure().apply {
+        val assertions: ExecutionFailure.() -> Unit = {
             assertHasFailure("An exception occurred applying plugin request [id: '$pluginId']") {
                 assertHasCause("'InvalidPlugin' is neither a plugin or a rule source and cannot be applied.")
             }
         }
+
+        gradleExecuterFor(arrayOf("classes"))
+            .withStackTraceChecksDisabled()
+            .runWithFailure()
+            .assertions()
+
+        executer.beforeExecute {
+            it.expectDeprecationWarning(
+                "The org.gradle.kotlin.dsl.precompiled.accessors.strict system property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#strict-kotlin-dsl-precompiled-scripts-accessors-by-default"
+            )
+        }
+
+        gradleExecuterFor(arrayOf("--rerun-tasks", "classes", "-Dorg.gradle.kotlin.dsl.precompiled.accessors.strict="))
+            .withStackTraceChecksDisabled()
+            .runWithFailure()
+            .assertions()
+
+        gradleExecuterFor(arrayOf("--rerun-tasks", "classes", "-Dorg.gradle.kotlin.dsl.precompiled.accessors.strict=true"))
+            .withStackTraceChecksDisabled()
+            .runWithFailure()
+            .assertions()
+    }
+
+    @Test
+    fun `plugin application errors can be ignored but are reported`() {
+
+        val pluginId = "invalid.plugin"
+        val pluginJar = jarWithInvalidPlugin(pluginId, "InvalidPlugin")
+
+        withPrecompiledScriptApplying(pluginId, pluginJar)
+
+        executer.beforeExecute {
+            it.expectDeprecationWarning(
+                "The org.gradle.kotlin.dsl.precompiled.accessors.strict system property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#strict-kotlin-dsl-precompiled-scripts-accessors-by-default"
+            )
+        }
+
+        val assertions: ExecutionResult.() -> Unit = {
+            assertOutputContains("An exception occurred applying plugin request [id: '$pluginId']")
+            assertOutputContains("'InvalidPlugin' is neither a plugin or a rule source and cannot be applied.")
+        }
+
+        gradleExecuterFor(arrayOf("--rerun-tasks", "classes", "-Dorg.gradle.kotlin.dsl.precompiled.accessors.strict=false"))
+            .withStackTraceChecksDisabled()
+            .run()
+            .assertions()
     }
 
     private

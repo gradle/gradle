@@ -17,8 +17,8 @@
 package org.gradle.api.artifacts.result;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -52,7 +52,6 @@ public interface ResolutionResult {
      * @return a provider for the root node of the resolved dependency graph
      * @since 7.4
      */
-    @Incubating
     Provider<ResolvedComponentResult> getRootComponent();
 
     /**
@@ -80,7 +79,7 @@ public interface ResolutionResult {
      *
      * @param closure - closure that is applied for each dependency
      */
-    void allDependencies(Closure closure);
+    void allDependencies(@DelegatesTo(DependencyResult.class) Closure closure);
 
     /**
      * Retrieves all instances of {@link ResolvedComponentResult} from the graph,
@@ -104,7 +103,7 @@ public interface ResolutionResult {
      *
      * @param closure - closure that is applied for each component
      */
-    void allComponents(Closure closure);
+    void allComponents(@DelegatesTo(ResolvedComponentResult.class) Closure closure);
 
     /**
      * The attributes that were requested. Those are the attributes which

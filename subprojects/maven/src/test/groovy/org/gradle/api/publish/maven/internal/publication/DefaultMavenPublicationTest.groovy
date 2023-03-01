@@ -223,12 +223,12 @@ class DefaultMavenPublicationTest extends Specification {
         artifact2.file >> artifactFile
         artifact2.classifier >> ""
         artifact2.extension >> "jar"
-        def usage1 = Stub(UsageContext) { getName() >> 'api' }
-        usage1.artifacts >> [artifact1]
-        def usage2 = Stub(UsageContext) { getName() >> 'runtime' }
-        usage2.artifacts >> [artifact2]
+        def variant1 = Stub(UsageContext) { getName() >> 'api' }
+        variant1.artifacts >> [artifact1]
+        def variant2 = Stub(UsageContext) { getName() >> 'runtime' }
+        variant2.artifacts >> [artifact2]
         def component = Stub(SoftwareComponentInternal)
-        component.usages >> [usage1, usage2]
+        component.usages >> [variant1, variant2]
         def mavenArtifact = Mock(MavenArtifact)
         mavenArtifact.file >> artifactFile
         notationParser.parseNotation(artifact1) >> mavenArtifact
@@ -563,7 +563,7 @@ class DefaultMavenPublicationTest extends Specification {
         def objectFactory = TestUtil.objectFactory()
         def publication = new DefaultMavenPublication("pub-name", module, notationParser, instantiator, objectFactory, projectDependencyResolver, TestFiles.fileCollectionFactory()
             , AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP, Mock(VersionMappingStrategyInternal), DependencyManagementTestUtil.platformSupport(),
-            Mock(DocumentationRegistry))
+            Mock(DocumentationRegistry), TestFiles.taskDependencyFactory())
         publication.setPomGenerator(createArtifactGenerator(pomFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(gradleMetadataFile))
         return publication
@@ -594,13 +594,13 @@ class DefaultMavenPublicationTest extends Specification {
     }
 
     def createComponent(def artifacts, def dependencies, def scope) {
-        def usage = Stub(UsageContext) {
+        def variant = Stub(UsageContext) {
             getName() >> scope
             getArtifacts() >> artifacts
             getDependencies() >> dependencies
         }
         def component = Stub(SoftwareComponentInternal) {
-            getUsages() >> [usage]
+            getUsages() >> [variant]
         }
         return component
     }

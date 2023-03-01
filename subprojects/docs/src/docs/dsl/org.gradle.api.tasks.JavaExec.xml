@@ -17,6 +17,10 @@
                 <td><literal>[]</literal></td>
             </tr>
             <tr>
+                <td>jvmArguments</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
                 <td>jvmArgumentProviders</td>
                 <td><literal>[]</literal></td>
             </tr>
@@ -39,10 +43,6 @@
             <tr>
                 <td>debug</td>
                 <td><literal>false</literal></td>
-            </tr>
-            <tr>
-                <td>main</td>
-                <td><literal>null</literal></td>
             </tr>
             <tr>
                 <td>mainClass</td>
@@ -108,6 +108,10 @@
                 <td>javaLauncher</td>
                 <td><literal>java.toolchain</literal></td>
             </tr>
+            <tr>
+                <td>debugOptions</td>
+                <td/>
+            </tr>
         </table>
     </section>
     <section>
@@ -144,6 +148,9 @@
             </tr>
             <tr>
                 <td>environment</td>
+            </tr>
+            <tr>
+                <td>debugOptions</td>
             </tr>
         </table>
     </section>

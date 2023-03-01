@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
@@ -39,7 +38,7 @@ import java.util.List;
 /**
  * Transformed artifact set that performs the transformation itself when visited.
  */
-public abstract class AbstractTransformedArtifactSet implements ResolvedArtifactSet, FileCollectionInternal.Source {
+public abstract class AbstractTransformedArtifactSet implements TransformedArtifactSet, FileCollectionInternal.Source {
     private final CalculatedValueContainer<ImmutableList<ResolvedArtifactSet.Artifacts>, CalculateArtifacts> result;
 
     public AbstractTransformedArtifactSet(
@@ -77,6 +76,7 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         // Calculate the artifacts now
         result.finalizeIfNotAlready();
         for (Artifacts artifacts : result.get()) {
+            artifacts.prepareForVisitingIfNotAlready();
             visitor.visitArtifacts(artifacts);
         }
         // Need to fire an "end collection" event. Should clean this up so it is not necessary
@@ -133,16 +133,6 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
 
         public List<? extends Capability> getCapabilities() {
             return capabilities;
-        }
-
-        @Override
-        public boolean usesMutableProjectState() {
-            return false;
-        }
-
-        @Override
-        public ProjectInternal getOwningProject() {
-            return null;
         }
 
         @Override

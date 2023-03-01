@@ -38,9 +38,6 @@
                 <td>ignoreExitValue</td>
             </tr>
             <tr>
-                <td>execResult</td>
-            </tr>
-            <tr>
                 <td>executionResult</td>
             </tr>
         </table>

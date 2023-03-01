@@ -15,6 +15,8 @@
  */
 package org.gradle.composite.internal;
 
+import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
@@ -28,6 +30,11 @@ public interface BuildController extends Stoppable {
      * Adds tasks and nodes to the work graph of this build.
      */
     void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
+
+    /**
+     * Adds a filter to the work graph of this build.
+     */
+    void addFilter(Spec<Task> filter);
 
     /**
      * Queues the given task for execution. Does not schedule the task, use {@link #scheduleQueuedTasks()} for this.

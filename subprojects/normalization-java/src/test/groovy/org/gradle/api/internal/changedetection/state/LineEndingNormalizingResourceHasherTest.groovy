@@ -23,6 +23,7 @@ import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext
 import org.gradle.internal.fingerprint.hashing.ResourceHasher
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.io.IoFunction
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -122,6 +123,19 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
         lineEndingSensitivity << LineEndingSensitivity.values()
     }
 
+    def "hashes original context with delegate for directories"() {
+        def delegate = Mock(ResourceHasher)
+        def hasher = LineEndingNormalizingResourceHasher.wrap(delegate, LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
+        def dir = file('dir')
+        def zipContext = zipContext(dir, true, true)
+
+        when:
+        hasher.hash(zipContext)
+
+        then:
+        1 * delegate.hash(zipContext)
+    }
+
     def "throws IOException generated from hasher"() {
         def file = file('doesNotExist').tap { it.text = "" }
         def delegate = Mock(ResourceHasher)
@@ -134,7 +148,8 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
         hasher.hash(snapshotContext)
 
         then:
-        thrown(FileNotFoundException)
+        def e = thrown(UncheckedIOException)
+        e.cause instanceof FileNotFoundException
     }
 
     def "throws #exception.simpleName generated from delegate"() {
@@ -175,7 +190,7 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
         return new File(tempDir, path)
     }
 
-    static ZipEntryContext zipContext(File file, boolean directory = false) {
+    static ZipEntryContext zipContext(File file, boolean directory = false, boolean unsafe = false) {
         def zipEntry = new ZipEntry() {
             @Override
             boolean isDirectory() {
@@ -193,13 +208,23 @@ class LineEndingNormalizingResourceHasherTest extends Specification {
             }
 
             @Override
-            <T> T withInputStream(ZipEntry.InputStreamAction<T> action) throws IOException {
-                action.run(new ByteArrayInputStream(file.bytes))
+            <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException {
+                action.apply(new ByteArrayInputStream(file.bytes))
             }
 
             @Override
             int size() {
                 return file.bytes.length
+            }
+
+            @Override
+            boolean canReopen() {
+                return !unsafe
+            }
+
+            @Override
+            ZipEntry.ZipCompressionMethod getCompressionMethod() {
+                return ZipEntry.ZipCompressionMethod.DEFLATED
             }
         }
         return new DefaultZipEntryContext(zipEntry, file.path, "foo.zip")

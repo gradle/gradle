@@ -18,6 +18,7 @@ package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.IvyArtifactNameSerializer
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
@@ -26,7 +27,6 @@ import org.gradle.configurationcache.serialization.readFile
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.internal.Describables
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
-import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.model.CalculatedValueContainerFactory
 
 
@@ -39,10 +39,7 @@ class DefaultResolvableArtifactCodec(
     override suspend fun WriteContext.encode(value: DefaultResolvableArtifact) {
         // Write the source artifact
         writeFile(value.file)
-        writeString(value.artifactName.name)
-        writeString(value.artifactName.type)
-        writeNullableString(value.artifactName.extension)
-        writeNullableString(value.artifactName.classifier)
+        IvyArtifactNameSerializer.INSTANCE.write(this, value.artifactName)
         // TODO - preserve the artifact id implementation instead of unpacking the component id
         componentIdSerializer.write(this, value.id.componentIdentifier)
         // TODO - preserve the artifact's owner id (or get rid of it as it's not used for transforms)
@@ -50,7 +47,7 @@ class DefaultResolvableArtifactCodec(
 
     override suspend fun ReadContext.decode(): DefaultResolvableArtifact {
         val file = readFile()
-        val artifactName = DefaultIvyArtifactName(readString(), readString(), readNullableString(), readNullableString())
+        val artifactName = IvyArtifactNameSerializer.INSTANCE.read(this)
         val componentId = componentIdSerializer.read(this)
         val artifactId = ComponentFileArtifactIdentifier(componentId, file.name)
         return DefaultResolvableArtifact(null, artifactName, artifactId, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory.create(Describables.of(artifactId), file), calculatedValueContainerFactory)

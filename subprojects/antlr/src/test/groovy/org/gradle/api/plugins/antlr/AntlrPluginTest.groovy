@@ -85,12 +85,12 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
         project.tasks.compileCustomJava.taskDependencies.getDependencies(null).contains(custom)
     }
 
-    def 'source set convention exposes its public type'() {
+    def 'source set extension exposes its public type'() {
         when:
         project.pluginManager.apply(AntlrPlugin)
 
         then:
         def main = project.sourceSets.main
-        main.convention.plugins['antlr'].publicType == typeOf(AntlrSourceVirtualDirectory)
+        main.extensions.extensionsSchema.find { it.name == 'antlr' }.publicType == typeOf(AntlrSourceDirectorySet)
     }
 }

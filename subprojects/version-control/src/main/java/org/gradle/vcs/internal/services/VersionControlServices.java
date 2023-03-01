@@ -30,8 +30,8 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.cache.internal.CleanupActionFactory;
-import org.gradle.cache.scopes.BuildTreeScopedCache;
+import org.gradle.cache.internal.CleanupActionDecorator;
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.service.ServiceRegistration;
@@ -112,16 +112,16 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
                 .toComposite();
         }
 
-        VersionControlRepositoryConnectionFactory createVersionControlSystemFactory(CleanupActionFactory cleanupActionFactory, BuildTreeScopedCache scopedCache) {
-            return new DefaultVersionControlRepositoryFactory(scopedCache, cleanupActionFactory);
+        VersionControlRepositoryConnectionFactory createVersionControlSystemFactory(CleanupActionDecorator cleanupActionDecorator, BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
+            return new DefaultVersionControlRepositoryFactory(cacheBuilderFactory, cleanupActionDecorator);
         }
 
-        VcsDirectoryLayout createVcsWorkingDirectoryRoot(BuildTreeScopedCache scopedCache) {
-            return new VcsDirectoryLayout(scopedCache);
+        VcsDirectoryLayout createVcsWorkingDirectoryRoot(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
+            return new VcsDirectoryLayout(cacheBuilderFactory);
         }
 
-        PersistentVcsMetadataCache createMetadataCache(BuildTreeScopedCache scopedCache) {
-            return new PersistentVcsMetadataCache(scopedCache);
+        PersistentVcsMetadataCache createMetadataCache(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
+            return new PersistentVcsMetadataCache(cacheBuilderFactory);
         }
     }
 

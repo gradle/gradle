@@ -23,7 +23,6 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
-import org.gradle.internal.vfs.impl.VfsRootReference;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
@@ -43,8 +42,8 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchingNotSupportedVirtualFileSystem.class);
 
-    public WatchingNotSupportedVirtualFileSystem(VfsRootReference rootReference) {
-        super(rootReference);
+    public WatchingNotSupportedVirtualFileSystem(SnapshotHierarchy root) {
+        super(root);
     }
 
     @Override
@@ -62,7 +61,7 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
         if (watchMode == WatchMode.ENABLED) {
             LOGGER.warn("Watching the file system is not supported.");
         }
-        rootReference.updateUnderLock(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+        updateRootUnderLock(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
                 context.setResult(BuildStartedFileSystemWatchingBuildOperationType.Result.WATCHING_DISABLED);
@@ -90,7 +89,7 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
         BuildOperationRunner buildOperationRunner,
         int maximumNumberOfWatchedHierarchies
     ) {
-        rootReference.updateUnderLock(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+        updateRootUnderLock(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
                 context.setResult(BuildFinishedFileSystemWatchingBuildOperationType.Result.WATCHING_DISABLED);

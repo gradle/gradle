@@ -47,7 +47,7 @@ class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
         fails ':help'
 
         then:
-        failure.assertHasErrorOutput("Incompatible because this component declares an API of a component compatible with Java 2099 and the consumer needed a runtime of a component compatible with Java ${JavaVersion.current().majorVersion}")
+        failure.assertHasErrorOutput("Incompatible because this component declares a component for use during compile-time, compatible with Java 2099 and the consumer needed a component for use during runtime, compatible with Java ${JavaVersion.current().majorVersion}")
 
         where:
         id                  | pluginsBlock
@@ -90,7 +90,7 @@ class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
         fails ':help'
 
         then:
-        failure.assertHasErrorOutput("Incompatible because this component declares an API of a component compatible with Java 2099 and the consumer needed a runtime of a component compatible with Java ${JavaVersion.current().majorVersion}")
+        failure.assertHasErrorOutput("Incompatible because this component declares a component for use during compile-time, compatible with Java 2099 and the consumer needed a component for use during runtime, compatible with Java ${JavaVersion.current().majorVersion}")
 
         where:
         id                  | pluginsBlock       | substitution

@@ -2,7 +2,15 @@ plugins {
     id("java-library")
 }
 
-val taskProvider = tasks.register<Test>("integTest")
+sourceSets {
+    create("integTest")
+}
+
+val taskProvider = tasks.register<Test>("integTest") {
+    classpath = sourceSets["integTest"].runtimeClasspath
+    testClassesDirs = sourceSets["integTest"].output.classesDirs
+}
+
 val TaskContainer.integTest: TaskProvider<Test> get() = taskProvider // define accessor we would get if 'integTest' was defined in plugin
 
 // tag::integTest[]

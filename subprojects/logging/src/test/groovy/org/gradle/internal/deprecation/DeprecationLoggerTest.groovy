@@ -44,8 +44,8 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
     def "logs deprecation warning once until reset"() {
         when:
-        DeprecationLogger.deprecate("nag").willBeRemovedInGradle8().undocumented().nagUser()
-        DeprecationLogger.deprecate("nag").willBeRemovedInGradle8().undocumented().nagUser()
+        DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
+        DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
 
         then:
         def events = outputEventListener.events
@@ -54,7 +54,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
         when:
         DeprecationLogger.reset()
-        DeprecationLogger.deprecate("nag").willBeRemovedInGradle8().undocumented().nagUser()
+        DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
 
         then:
         events.size() == 2
@@ -74,7 +74,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
 
         and:
         1 * factory.create() >> {
-            DeprecationLogger.deprecate("nag").willBeRemovedInGradle8().undocumented().nagUser()
+            DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
             return "result"
         }
         0 * _
@@ -98,18 +98,30 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         outputEventListener.events.empty
     }
 
+    def "nested whileDisabled call does not enable deprecation log in the outer method"() {
+        when:
+        DeprecationLogger.whileDisabled {
+            DeprecationLogger.whileDisabled {
+            }
+            DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
+        }
+
+        then:
+        outputEventListener.events.empty
+    }
+
     def "warnings are disabled for the current thread only"() {
         when:
         async {
             start {
                 thread.blockUntil.disabled
-                DeprecationLogger.deprecate("nag").willBeRemovedInGradle8().undocumented().nagUser()
+                DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
                 instant.logged
             }
             start {
                 DeprecationLogger.whileDisabled {
                     instant.disabled
-                    DeprecationLogger.deprecate("ignored").willBeRemovedInGradle8().undocumented().nagUser()
+                    DeprecationLogger.deprecate("ignored").willBeRemovedInGradle9().undocumented().nagUser()
                     thread.blockUntil.logged
                 }
             }
@@ -125,14 +137,14 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         when:
         DeprecationLogger.deprecate("foo")
             .withAdvice("bar.")
-            .willBeRemovedInGradle8()
+            .willBeRemovedInGradle9()
             .undocumented()
             .nagUser();
 
         then:
         def events = outputEventListener.events
         events.size() == 1
-        events[0].message.startsWith("foo has been deprecated. This is scheduled to be removed in Gradle 8.0. bar.")
+        events[0].message.startsWith("foo has been deprecated. This is scheduled to be removed in Gradle 9.0. bar.")
     }
 
     def "reports suppressed deprecation messages with --warning-mode summary"() {
@@ -140,7 +152,7 @@ class DeprecationLoggerTest extends ConcurrentSpec {
         def documentation = new DocumentationRegistry()
         def documentationReference = documentation.getDocumentationFor("command_line_interface", "sec:command_line_warnings")
         DeprecationLogger.init(Mock(UsageLocationReporter), WarningMode.Summary, Mock(BuildOperationProgressEventEmitter))
-        DeprecationLogger.deprecate("nag").willBeRemovedInGradle8().undocumented().nagUser()
+        DeprecationLogger.deprecate("nag").willBeRemovedInGradle9().undocumented().nagUser()
 
         when:
         DeprecationLogger.reportSuppressedDeprecations()

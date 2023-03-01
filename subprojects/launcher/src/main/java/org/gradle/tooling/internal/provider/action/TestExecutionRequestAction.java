@@ -18,14 +18,13 @@ package org.gradle.tooling.internal.provider.action;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.tooling.events.test.internal.DefaultDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
-import org.gradle.tooling.internal.protocol.test.InternalTestPatternSpec;
+import org.gradle.tooling.internal.protocol.test.InternalTaskSpec;
 import org.gradle.tooling.internal.provider.test.ProviderInternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 import org.gradle.util.internal.CollectionUtils;
@@ -44,8 +43,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     private final InternalDebugOptions debugOptions;
     private final Map<String, List<InternalJvmTestRequest>> taskAndTests;
     private final boolean isRunDefaultTasks;
-    private final List<String> tasks;
-    private final List<InternalTestPatternSpec> testPatternSpecs;
+    private final List<InternalTaskSpec> taskSpecs;
 
     public TestExecutionRequestAction(BuildEventSubscriptions clientSubscriptions,
                                       StartParameterInternal startParameter,
@@ -54,8 +52,8 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
                                       Set<InternalJvmTestRequest> internalJvmTestRequests,
                                       InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests,
                                       boolean isRunDefaultTasks,
-                                      List<String> tasks,
-                                      List<InternalTestPatternSpec> testPatternSpecs) {
+                                      List<InternalTaskSpec> taskSpecs
+    ) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.testDescriptors = testDescriptors;
@@ -64,8 +62,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
         this.debugOptions = debugOptions;
         this.taskAndTests = taskAndTests;
         this.isRunDefaultTasks = isRunDefaultTasks;
-        this.tasks = tasks;
-        this.testPatternSpecs = testPatternSpecs;
+        this.taskSpecs = taskSpecs;
     }
 
     // Unpacks the request to serialize across to the daemon and creates instance of
@@ -79,8 +76,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
             getDebugOptions(testExecutionRequest),
             getTaskAndTests(testExecutionRequest),
             testExecutionRequest.isRunDefaultTasks(false),
-            testExecutionRequest.getTasks(Collections.emptyList()),
-            testExecutionRequest.getTestPatternSpecs(Collections.emptyList()));
+            testExecutionRequest.getTaskSpecs(Collections.emptyList()));
     }
 
     private static Set<InternalJvmTestRequest> getInternalJvmTestRequests(ProviderInternalTestExecutionRequest testExecutionRequest, Set<String> classNames) {
@@ -104,19 +100,9 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     private static List<InternalJvmTestRequest> toProviderInternalJvmTestRequest(Collection<InternalJvmTestRequest> internalJvmTestRequests, Collection<String> testClassNames) {
         // handle consumer < 2.7
         if (internalJvmTestRequests.isEmpty()) {
-            return CollectionUtils.collect(testClassNames, new Transformer<InternalJvmTestRequest, String>() {
-                @Override
-                public InternalJvmTestRequest transform(String testClass) {
-                    return new ProviderInternalJvmTestRequest(testClass, null);
-                }
-            });
+            return CollectionUtils.collect(testClassNames, testClass -> new ProviderInternalJvmTestRequest(testClass, null));
         } else {
-            return CollectionUtils.collect(internalJvmTestRequests, new Transformer<InternalJvmTestRequest, InternalJvmTestRequest>() {
-                @Override
-                public InternalJvmTestRequest transform(InternalJvmTestRequest internalTestMethod) {
-                    return new ProviderInternalJvmTestRequest(internalTestMethod.getClassName(), internalTestMethod.getMethodName());
-                }
-            });
+            return CollectionUtils.collect(internalJvmTestRequests, internalTestMethod -> new ProviderInternalJvmTestRequest(internalTestMethod.getClassName(), internalTestMethod.getMethodName()));
         }
     }
 
@@ -155,15 +141,11 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
         return taskAndTests;
     }
 
-    public List<String> getTasks() {
-        return tasks;
-    }
-
     public boolean isRunDefaultTasks() {
         return isRunDefaultTasks;
     }
 
-    public List<InternalTestPatternSpec> getTestPatternSpecs() {
-        return testPatternSpecs;
+    public List<InternalTaskSpec> getTaskSpecs() {
+        return taskSpecs;
     }
 }

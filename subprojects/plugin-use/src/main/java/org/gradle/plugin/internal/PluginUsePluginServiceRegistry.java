@@ -40,8 +40,9 @@ import org.gradle.plugin.management.internal.DefaultPluginResolutionStrategy;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
+import org.gradle.plugin.management.internal.autoapply.CompositeAutoAppliedPluginRegistry;
 import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginHandler;
-import org.gradle.plugin.management.internal.autoapply.DefaultAutoAppliedPluginRegistry;
+import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPluginRegistry;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
@@ -51,6 +52,8 @@ import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPlu
 import org.gradle.plugin.use.resolve.service.internal.DefaultInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy;
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
+
+import java.util.List;
 
 public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistry {
 
@@ -84,12 +87,12 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             registration.add(PluginVersionTracker.class);
         }
 
-        AutoAppliedPluginRegistry createAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {
-            return new DefaultAutoAppliedPluginRegistry(buildDefinition);
+        AutoAppliedPluginRegistry createInjectedAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {
+            return new InjectedAutoAppliedPluginRegistry(buildDefinition);
         }
 
-        AutoAppliedPluginHandler createAutoAppliedPluginHandler(AutoAppliedPluginRegistry registry) {
-            return new DefaultAutoAppliedPluginHandler(registry);
+        AutoAppliedPluginHandler createAutoAppliedPluginHandler(List<AutoAppliedPluginRegistry> registries) {
+            return new DefaultAutoAppliedPluginHandler(new CompositeAutoAppliedPluginRegistry(registries));
         }
 
         ClientInjectedClasspathPluginResolver createInjectedClassPathPluginResolver(

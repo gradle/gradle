@@ -17,16 +17,14 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import com.google.common.base.Strings;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.publish.internal.PublicationArtifactInternal;
-import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.publish.ivy.internal.publisher.IvyArtifactInternal;
 import org.gradle.api.tasks.TaskDependency;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractIvyArtifact implements IvyArtifact, PublicationArtifactInternal {
+public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
     private final TaskDependency allBuildDependencies;
     private final DefaultTaskDependency additionalBuildDependencies;
 
@@ -36,9 +34,12 @@ public abstract class AbstractIvyArtifact implements IvyArtifact, PublicationArt
     private String classifier;
     private String conf;
 
-    protected AbstractIvyArtifact() {
+    protected AbstractIvyArtifact(TaskDependencyFactory taskDependencyFactory) {
         this.additionalBuildDependencies = new DefaultTaskDependency();
-        this.allBuildDependencies = new CompositeTaskDependency();
+        this.allBuildDependencies = taskDependencyFactory.visitingDependencies(context -> {
+            context.add(getDefaultBuildDependencies());
+            additionalBuildDependencies.visitDependencies(context);
+        });
     }
 
     @Override
@@ -118,13 +119,5 @@ public abstract class AbstractIvyArtifact implements IvyArtifact, PublicationArt
     @Override
     public String toString() {
         return String.format("%s %s:%s:%s:%s", getClass().getSimpleName(), getName(), getType(), getExtension(), getClassifier());
-    }
-
-    private class CompositeTaskDependency extends AbstractTaskDependency {
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(getDefaultBuildDependencies());
-            additionalBuildDependencies.visitDependencies(context);
-        }
     }
 }

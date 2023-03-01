@@ -256,20 +256,6 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
                 }
                 return this;
             }
-
-            @Override
-            @Deprecated
-            public void with(ComponentSelector substitute) {
-                // Do not nag for 7.1 as this introduces a performance regression with Android plugin
-                // Revisit when upgrading Android plugin
-                /*DeprecationLogger.deprecateMethod(Substitution.class, "with(ComponentSelector)")
-                    .replaceWith("using(ComponentSelector)")
-                    .willBeRemovedInGradle8()
-                    .withUpgradeGuideSection(7, "dependency_substitutions_with")
-                    .nagUser();*/
-
-                using(substitute);
-            }
         };
     }
 

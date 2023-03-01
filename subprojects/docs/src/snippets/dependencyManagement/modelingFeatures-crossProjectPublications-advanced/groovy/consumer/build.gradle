@@ -46,10 +46,12 @@ abstract class InstrumentedJarsRule implements AttributeCompatibilityRule<Librar
 // end::compatibility-rule[]
 
 tasks.register("showTestClasspath") {
-    inputs.files(configurations.testCompileClasspath)
-    inputs.files(configurations.testRuntimeClasspath)
+    FileCollection testCompileClasspath = configurations.testCompileClasspath
+    FileCollection testRuntimeClasspath = configurations.testRuntimeClasspath
+    inputs.files(testCompileClasspath)
+    inputs.files(testRuntimeClasspath)
     doLast {
-        println configurations.testCompileClasspath.files.name
-        println configurations.testRuntimeClasspath.files.name
+        println testCompileClasspath.files.name
+        println testRuntimeClasspath.files.name
     }
 }

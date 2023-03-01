@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import spock.lang.Unroll
 
@@ -25,18 +26,19 @@ import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.SCALA
 
-abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
+abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
     abstract BuildInitDsl getBuildDsl()
+    abstract Language getJvmLanguage()
 
     @Override
     String subprojectName() {
         return null
     }
 
-    @Unroll("creates multi-project application sample for #jvmLanguage with #scriptDsl build scripts, when incubating flag = #incubating")
+    @Unroll("creates multi-project application sample when incubating flag = #incubating")
     def "creates multi-project application sample"() {
         given:
-        def dsl = scriptDsl as BuildInitDsl
+        def dsl = buildDsl
         def language = jvmLanguage.name
         def ext = jvmLanguage.extension
         def settingsFile = dsl.fileNameFor('settings')
@@ -50,7 +52,8 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         targetDir.file(settingsFile).exists()
         !targetDir.file(buildFile).exists()
 
-        targetDir.file("buildSrc").assertHasDescendants(
+        targetDir.file(incubating ? "build-logic" : "buildSrc").assertHasDescendants(
+            settingsFile,
             buildFile,
             "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-common-conventions")}",
             "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-application-conventions")}",
@@ -58,18 +61,18 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         )
 
         def appFiles = [buildFile,
-            "src/main/${language}/some/thing/app/App.${ext}",
-            "src/main/${language}/some/thing/app/MessageUtils.${ext}",
-            "src/test/${language}/some/thing/app/MessageUtilsTest.${ext}",
-            "src/main/resources",
-            "src/test/resources"]
+                        "src/main/${language}/some/thing/app/App.${ext}",
+                        "src/main/${language}/some/thing/app/MessageUtils.${ext}",
+                        "src/test/${language}/some/thing/app/MessageUtilsTest.${ext}",
+                        "src/main/resources",
+                        "src/test/resources"]
         targetDir.file("app").assertHasDescendants(appFiles*.toString())
 
         def listFiles = [buildFile,
-            "src/main/${language}/some/thing/list/LinkedList.${ext}",
-            "src/test/${language}/some/thing/list/LinkedListTest.${ext}",
-            "src/main/resources",
-            "src/test/resources"]
+                         "src/main/${language}/some/thing/list/LinkedList.${ext}",
+                         "src/test/${language}/some/thing/list/LinkedListTest.${ext}",
+                         "src/main/resources",
+                         "src/test/resources"]
         targetDir.file("list").assertHasDescendants(listFiles*.toString())
 
         def utilFiles = [
@@ -99,23 +102,9 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         outputContains("Hello World!")
 
         where:
-        [jvmLanguage, scriptDsl, incubating] << [
-                [JAVA, GROOVY, KOTLIN, SCALA],
-                [getBuildDsl()],
-                [true, false]
-        ].combinations()
+        incubating << [true, false]
     }
 
-    def "can explicitly configure application not to split projects with #scriptDsl build scripts"() {
-        given:
-        def dsl = scriptDsl as BuildInitDsl
-
-        expect:
-        succeeds('init', '--type', "java-application", '--dsl', dsl.id)
-
-        where:
-        scriptDsl << getBuildDsl()
-    }
 
     void assertTestPassed(String subprojectName, String className, String name) {
         def result = new DefaultTestExecutionResult(targetDir.file(subprojectName))
@@ -124,16 +113,99 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
     }
 }
 
-class GroovyDslMultiProjectJvmApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+class GroovyDslMultiProjectJavaApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
     @Override
     BuildInitDsl getBuildDsl() {
         return BuildInitDsl.GROOVY
     }
+
+    @Override
+    Language getJvmLanguage() {
+        return JAVA
+    }
 }
 
-class KotlinDslMultiProjectJvmApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+class GroovyDslMultiProjectGroovyApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.GROOVY
+    }
+
+    @Override
+    Language getJvmLanguage() {
+        return GROOVY
+    }
+}
+
+class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.GROOVY
+    }
+
+    @Override
+    Language getJvmLanguage() {
+        return KOTLIN
+    }
+}
+
+class GroovyDslMultiProjectScalaApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.GROOVY
+    }
+
+    @Override
+    Language getJvmLanguage() {
+        return SCALA
+    }
+}
+
+
+class KotlinDslMultiProjectJavaApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
     @Override
     BuildInitDsl getBuildDsl() {
         return BuildInitDsl.KOTLIN
+    }
+
+    @Override
+    Language getJvmLanguage() {
+        return JAVA
+    }
+}
+
+class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.KOTLIN
+    }
+
+    @Override
+    Language getJvmLanguage() {
+        return GROOVY
+    }
+}
+
+class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.KOTLIN
+    }
+
+    @Override
+    Language getJvmLanguage() {
+        return KOTLIN
+    }
+}
+
+class KotlinDslMultiProjectScalaApplicationInitIntegrationTest extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+    @Override
+    BuildInitDsl getBuildDsl() {
+        return BuildInitDsl.KOTLIN
+    }
+
+    @Override
+    Language getJvmLanguage() {
+        return SCALA
     }
 }

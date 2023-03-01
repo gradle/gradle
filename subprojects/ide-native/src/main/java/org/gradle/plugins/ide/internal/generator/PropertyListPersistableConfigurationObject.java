@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.internal.generator;
 import com.dd.plist.NSObject;
 import com.dd.plist.PropertyListParser;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.internal.PropertyListTransformer;
 
@@ -58,7 +59,7 @@ public abstract class PropertyListPersistableConfigurationObject<T extends NSObj
 
     protected abstract void load(T rootObject);
 
-    public void transformAction(Closure<?> action) {
+    public void transformAction(@DelegatesTo(NSObject.class) Closure<?> action) {
         transformAction(configureUsing(action));
     }
 

@@ -26,8 +26,9 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -91,7 +92,7 @@ import static com.google.common.base.Strings.emptyToNull;
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
 @Incubating
-public class ComponentModelBasePlugin implements Plugin<Project> {
+public abstract class ComponentModelBasePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
@@ -197,7 +198,7 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
 
             @Override
             public void execute(Task task) {
-                Set<? extends Task> taskDependencies = task.getTaskDependencies().getDependencies(task);
+                Set<? extends Task> taskDependencies = TaskDependencyUtil.getDependenciesForInternalUse(task.getTaskDependencies(), task);
 
                 if (taskDependencies.isEmpty()) {
                     TreeFormatter formatter = new TreeFormatter();

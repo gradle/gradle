@@ -16,12 +16,10 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Unroll
 
 class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaIntegTest {
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with a feature"() {
         ivyRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -34,12 +32,14 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
                     }
                     outgoing.capability("org:optional-feature:\${version}")
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
             }
+
+            ${ivyTestRepository()}
 
             dependencies {
                 optionalFeatureImplementation 'org:optionaldep:1.0'
@@ -84,7 +84,6 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can group dependencies by feature"() {
         ivyRepo.module('org', 'optionaldep-g1', '1.0').publish()
         ivyRepo.module('org', 'optionaldep1-g2', '1.0').publish()
@@ -99,7 +98,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
                     }
                     outgoing.capability("org:optional-feature1:\${version}")
                 }
@@ -111,12 +110,14 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
                     }
                     outgoing.capability("org:optional-feature2:\${version}")
                 }
                 compileClasspath.extendsFrom(optionalFeature2Implementation)
             }
+
+            ${ivyTestRepository()}
 
             dependencies {
                 optionalFeature1Implementation 'org:optionaldep-g1:1.0'
@@ -163,7 +164,6 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
     }
 
     @Unroll("publish java-library with feature with additional artifact #id (#optionalFeatureFileName)")
-    @ToBeFixedForConfigurationCache
     def "publish java-library with feature with additional artifact"() {
         ivyRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -176,12 +176,14 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
                     }
                     outgoing.capability("org:optional-feature:\${version}")
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
             }
+
+            ${ivyTestRepository()}
 
             dependencies {
                 optionalFeatureImplementation 'org:optionaldep:1.0'
@@ -200,8 +202,11 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
             }
 
             task touchFile {
+                // explicit dependency otherwise this task may run before the Jar task
+                dependsOn tasks.jar
+                def featureFile = file("\$buildDir/$optionalFeatureFileName")
                 doLast {
-                    file("\$buildDir/$optionalFeatureFileName") << "test"
+                    featureFile << "test"
                 }
             }
         """
@@ -259,7 +264,6 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with a feature from a configuration with more than one outgoing variant"() {
         ivyRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -272,12 +276,14 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
                     }
                     outgoing.capability("org:optional-feature:\${version}")
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
             }
+
+            ${ivyTestRepository()}
 
             dependencies {
                 optionalFeatureImplementation 'org:optionaldep:1.0'
@@ -335,7 +341,6 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with a feature from a configuration with more than one outgoing variant and filter out variants"() {
         ivyRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -354,6 +359,8 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
             }
+
+            ${ivyTestRepository()}
 
             dependencies {
                 optionalFeatureImplementation 'org:optionaldep:1.0'

@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser.FORMAT_VERSION
@@ -30,7 +29,6 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
         settingsFile << "rootProject.name = 'test'"
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses the module metadata when configured as source and pom is not present"() {
         mavenRepo.module("test", "a", "1.2").withNoPom().withModuleMetadata().publish()
 
@@ -118,19 +116,39 @@ dependencies {
     debug 'test:a:1.2'
     release 'test:a:1.2'
 }
-task checkDebug {
-    doLast { assert configurations.debug.files*.name == ['a-1.2-debug.jar', 'b-2.0.jar'] }
-}
-task checkRelease {
-    doLast { assert configurations.release.files*.name == ['a-1.2-release.jar', 'c-2.2.jar'] }
-}
 """
+        resolve.prepare {
+            config("debug")
+            config("release")
+        }
 
-        expect:
-        succeeds("checkDebug")
+        when:
+        run("checkDebug")
 
-        and:
-        succeeds("checkRelease")
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:a:1.2") {
+                    artifact(classifier: "debug")
+                    configuration("debug")
+                    edge("test:b:{prefer 2.0}", "test:b:2.0")
+                }
+            }
+        }
+
+        when:
+        run("checkRelease")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:a:1.2") {
+                    artifact(classifier: "release")
+                    configuration("release")
+                    edge("test:c:{prefer 2.2}", "test:c:2.2")
+                }
+            }
+        }
     }
 
     def "variant can define zero files or multiple files"() {
@@ -182,22 +200,42 @@ dependencies {
     debug 'test:a:1.2'
     release 'test:a:1.2'
 }
-task checkDebug {
-    doLast { assert configurations.debug.files*.name == ['a-1.2-api.jar', 'a-1.2-runtime.jar', 'b-2.0.jar'] }
-}
-task checkRelease {
-    doLast { assert configurations.release.files*.name == ['b-2.0.jar'] }
-}
 """
+        resolve.prepare {
+            config("debug")
+            config("release")
+        }
 
-        expect:
-        succeeds("checkDebug")
+        when:
+        run("checkDebug")
 
-        and:
-        succeeds("checkRelease")
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:a:1.2") {
+                    configuration("debug")
+                    artifact(classifier: "api")
+                    artifact(classifier: "runtime")
+                    edge("test:b:{prefer 2.0}", "test:b:2.0")
+                }
+            }
+        }
+
+        when:
+        run("checkRelease")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:a:1.2") {
+                    configuration("release")
+                    noArtifacts()
+                    edge("test:b:{prefer 2.0}", "test:b:2.0")
+                }
+            }
+        }
     }
 
-    @ToBeFixedForConfigurationCache
     def "variant can define files whose names are different to their maven contention location"() {
         def a = mavenRepo.module("test", "a", "1.2")
             .withModuleMetadata()
@@ -233,19 +271,26 @@ configurations {
 dependencies {
     debug 'test:a:1.2'
 }
-task checkDebug {
-    doLast { assert configurations.debug.files*.name == ['a_main.jar', 'a_extra.jar', 'a.zip'] }
-}
 """
+        resolve.prepare("debug")
 
-        expect:
-        succeeds("checkDebug")
+        when:
+        run("checkDeps")
 
-        and:
-        succeeds("checkDebug")
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:a:1.2") {
+                    configuration("lot-o-files")
+                    artifact(fileName: 'a_main.jar', artifactName: 'a_main.jar', version: '')
+                    // Version is extracted from the file name byt classifier is extracted from the URL. This is checking current behaviour not necessarily desired behaviour
+                    artifact(fileName: 'a_extra.jar', artifactName: 'a_extra.jar', version: '', classifier: 'extra')
+                    artifact(type: 'zip', version: '')
+                }
+            }
+        }
     }
 
-    @ToBeFixedForConfigurationCache
     def "variant can define files whose names and locations do not match maven convention"() {
         def a = mavenRepo.module("test", "a", "1.2")
             .withModuleMetadata()
@@ -284,16 +329,24 @@ configurations {
 dependencies {
     debug 'test:a:1.2'
 }
-task checkDebug {
-    doLast { assert configurations.debug.files*.name == ['file1.jar', 'a-1.2.jar', 'a-3.jar', 'file4.jar'] }
-}
 """
+        resolve.prepare("debug")
 
-        expect:
-        succeeds("checkDebug")
+        when:
+        run("checkDeps")
 
-        and:
-        succeeds("checkDebug")
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:a:1.2") {
+                    configuration("lot-o-files")
+                    artifact(name: 'file1', version: '')
+                    artifact(name: 'a', version: '1.2', legacyName: 'file2')
+                    artifact(name: 'a', version: '3', legacyName: '../sibling/file3')
+                    artifact(name: 'file4', version: '', legacyName: 'child/file4')
+                }
+            }
+        }
     }
 
     def "module with module metadata can depend on another module with module metadata"() {
@@ -370,18 +423,45 @@ dependencies {
     debug 'test:a:1.2'
     release 'test:a:1.2'
 }
-task checkDebug {
-    doLast { assert configurations.debug.files*.name == ['a-1.2-debug.jar', 'b-2.0.jar', 'c-preview-debug.jar'] }
-}
-task checkRelease {
-    doLast { assert configurations.release.files*.name == [] }
-}
 """
+        resolve.prepare {
+            config("debug")
+            config("release")
+        }
 
-        expect:
-        succeeds("checkDebug")
+        when:
+        run("checkDebug")
 
-        and:
-        succeeds("checkRelease")
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:a:1.2") {
+                    configuration("debug")
+                    artifact(classifier: "debug")
+                    edge("test:b:{prefer 2.0}", "test:b:2.0") {
+                        module("test:c:preview") {
+                            artifact(classifier: "debug")
+                        }
+                    }
+                }
+            }
+        }
+
+        when:
+        run("checkRelease")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("test:a:1.2") {
+                    configuration("release")
+                    noArtifacts()
+                    edge("test:c:{prefer preview}", "test:c:preview") {
+                        configuration("release")
+                        noArtifacts()
+                    }
+                }
+            }
+        }
     }
 }

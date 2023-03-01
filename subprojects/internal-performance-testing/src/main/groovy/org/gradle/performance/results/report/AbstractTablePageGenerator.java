@@ -27,6 +27,7 @@ import org.gradle.performance.results.ResultsStore;
 
 import java.io.Writer;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -48,7 +49,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
     }
 
     protected abstract class TableHtml extends MetricsHtml {
-        AtomicInteger counter = new AtomicInteger(0);
+        AtomicInteger counter = new AtomicInteger();
 
         public TableHtml(Writer writer) {
             super(writer);
@@ -69,8 +70,8 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                     body();
                         div().id("accordion").classAttr("mx-auto");
                         renderTableHeader();
-                        renderTable("Cross version scenarios", "Compare the performance of the same build on different code versions.", getCrossVersionScenarios());
-                        renderTable("Cross build scenarios", "Compare the performance of different builds", getCrossBuildScenarios());
+                        renderTable("Cross version scenarios", "Compare the performance of the same build on different code versions.", determineBaseline(), getCrossVersionScenarios());
+                        renderTable("Cross build scenarios", "Compare the performance of different builds", Optional.empty(), getCrossBuildScenarios());
                         renderPopoverDiv();
                     end();
                 footer(this);
@@ -140,10 +141,11 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                 end();
             }
 
-            private void renderTable(String title, String description, List<PerformanceReportScenario> scenarios) {
+            private void renderTable(String title, String description, Optional<String> baselineVersion, List<PerformanceReportScenario> scenarios) {
                 div().classAttr("row alert alert-primary m-0");
                     div().classAttr("col-12 p-0").text(title);
-                i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title(description).text(" ").end();
+                        i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title(description).text(" ").end();
+                        baselineVersion.ifPresent(version -> b().text("(vs " + version + ")").end());
                     end();
                 end();
                 scenarios.forEach(scenario -> renderScenario(counter.incrementAndGet(), scenario));
@@ -255,11 +257,16 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
             private void renderVersionHeader(String version) {
                 th();
                     colspan("2").text(version);
-                    if (version.contains("-commit-")) {
-                        i().classAttr("fa fa-info-circle").attr("data-toggle", "tooltip").title("The test is executed against the commit where your branch forks from master.").text(" ").end();
-                    }
                 end();
             }
             // @formatter:on
+    }
+
+    private Optional<String> determineBaseline() {
+        return executionDataProvider.getReportScenarios().stream()
+            .filter(scenario -> !scenario.getCrossBuild())
+            .findFirst()
+            .filter(scenario -> !scenario.getHistoryExecutions().isEmpty())
+            .map(scenario -> scenario.getHistoryExecutions().get(0).getBaseVersion().getName());
     }
 }

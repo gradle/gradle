@@ -30,7 +30,7 @@ import javax.inject.Inject;
  * At this moment nearly all configuration is done via {@link EclipseClasspath}.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
+public abstract class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
 
     private EclipseClasspath classpath;
 

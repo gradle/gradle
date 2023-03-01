@@ -18,7 +18,6 @@ package org.gradle.api.file;
 import org.gradle.api.Describable;
 import org.gradle.api.Named;
 import org.gradle.api.Task;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -135,38 +134,4 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @since 6.1
      */
     <T extends Task> void compiledBy(TaskProvider<T> taskProvider, Function<T, DirectoryProperty> mapping);
-
-    /**
-     * Returns the directory to put the output for these sources.
-     *
-     * @return The output directory for this set of sources.
-     * @since 4.0
-     *
-     * @deprecated Use {@link #getClassesDirectory()} instead. This method will be removed in Gradle 8.0.
-     */
-    @ReplacedBy("classesDirectory")
-    @Deprecated
-    File getOutputDir();
-
-    /**
-     * Sets the provider that gives the directory to assemble the compiled classes into.
-
-     * @param provider provides output directory for this source directory set
-     * @since 4.0
-     *
-     * @deprecated Use {@link #getDestinationDirectory()}.set() instead. This method will be removed in Gradle 8.0.
-     */
-    @Deprecated
-    void setOutputDir(Provider<File> provider);
-
-    /**
-     * Sets the directory to assemble the compiled classes into.
-     *
-     * @param outputDir output directory for this source directory set
-     * @since 4.0
-     *
-     * @deprecated Use {@link #getDestinationDirectory()}.set() instead. This method will be removed in Gradle 8.0.
-     */
-    @Deprecated
-    void setOutputDir(File outputDir);
 }

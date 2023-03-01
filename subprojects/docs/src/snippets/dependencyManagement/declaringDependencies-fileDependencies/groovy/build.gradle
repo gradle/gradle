@@ -13,15 +13,16 @@ dependencies {
 // end::file-dependencies[]
 
 tasks.register('createLibs') {
+    def projectDir = layout.projectDirectory
     doLast {
-        file('ant').mkdirs()
-        file('libs').mkdirs()
-        file('tools').mkdirs()
-        file('ant/antcontrib.jar').createNewFile()
-        file('libs/commons-lang.jar').createNewFile()
-        file('libs/log4j.jar').createNewFile()
-        file('tools/a.exe').createNewFile()
-        file('tools/b.exe').createNewFile()
+        projectDir.file('ant').asFile.mkdirs()
+        projectDir.file('libs').asFile.mkdirs()
+        projectDir.file('tools').asFile.mkdirs()
+        projectDir.file('ant/antcontrib.jar').asFile.createNewFile()
+        projectDir.file('libs/commons-lang.jar').asFile.createNewFile()
+        projectDir.file('libs/log4j.jar').asFile.createNewFile()
+        projectDir.file('tools/a.exe').asFile.createNewFile()
+        projectDir.file('tools/b.exe').asFile.createNewFile()
     }
 }
 
@@ -32,5 +33,3 @@ tasks.register('copyLibs', Copy) {
     from configurations.deploymentTools
     into layout.buildDirectory.dir('libs')
 }
-
-

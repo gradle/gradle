@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableSortedMap
 import groovy.transform.CompileStatic
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter
+import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 

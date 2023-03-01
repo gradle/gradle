@@ -2,12 +2,23 @@ plugins {
     id('java')
 }
 
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.apache.commons:commons-lang3:3.11'
+}
+
 // tag::copy[]
 tasks.register('copyFiles', Copy) {
     into(layout.buildDirectory.dir('output'))
-    from(configurations.compileClasspath)
+    // Store the configuration into a variable because referencing the project from the task action
+    // is not compatible with the configuration cache.
+    FileCollection compileClasspath = configurations.compileClasspath
+    from(compileClasspath)
     doFirst {
-        println ">> Compilation deps: ${configurations.compileClasspath.files}"
+        println ">> Compilation deps: ${compileClasspath.files.name}"
     }
 }
 // end::copy[]

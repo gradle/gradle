@@ -76,9 +76,4 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
             }
         };
     }
-
-    @Override
-    public IsolationMode getIsolationMode() {
-        return IsolationMode.NONE;
-    }
 }

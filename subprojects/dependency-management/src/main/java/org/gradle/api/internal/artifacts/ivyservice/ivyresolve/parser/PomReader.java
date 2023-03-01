@@ -579,7 +579,9 @@ public class PomReader implements PomParent {
                         String groupId = getFirstChildText((Element) node, GROUP_ID);
                         String artifactId = getFirstChildText((Element) node, ARTIFACT_ID);
                         if ((groupId != null) || (artifactId != null)) {
-                            exclusions.add(moduleIdentifierFactory.module(groupId != null ? groupId : "*", artifactId != null ? artifactId : "*"));
+                            String resolvedGroupId = groupId != null ? replaceProps(groupId) : "*";
+                            String resolvedArtifactId = artifactId != null ? replaceProps(artifactId) : "*";
+                            exclusions.add(moduleIdentifierFactory.module(resolvedGroupId, resolvedArtifactId));
                         }
                     }
                 }

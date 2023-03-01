@@ -37,8 +37,9 @@ import org.gradle.internal.component.external.model.RealisedConfigurationMetadat
 import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -92,7 +93,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
 
     @Nullable
     @Override
-    public ConfigurationMetadata getConfiguration(String name) {
+    public ModuleConfigurationMetadata getConfiguration(String name) {
         if ("default".equals(name)) {
             ImmutableList.Builder<ModuleDependencyMetadata> dependencies = new ImmutableList.Builder<>();
             Set<ModuleResolveState> participatingModules = platformState.getParticipatingModules();
@@ -116,7 +117,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     }
 
     @Override
-    public Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal() {
+    public Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
         return Optional.absent();
     }
 

@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
@@ -32,7 +33,7 @@ import static org.gradle.internal.build.NestedRootBuildRunner.runNestedRootBuild
  * Executes a Gradle build.
  */
 @DisableCachingByDefault(because = "Child Gradle build will do its own caching")
-public class GradleBuild extends ConventionTask {
+public abstract class GradleBuild extends ConventionTask {
     private StartParameter startParameter;
     private String buildName;
 
@@ -95,7 +96,7 @@ public class GradleBuild extends ConventionTask {
      *
      * @return The build file. May be null.
      * @deprecated Use {@link #getDir()} instead to get the root of the nested build.
-     * This method will be removed in Gradle 8.0.
+     * This method will be removed in Gradle 9.0.
      */
     @Nullable
     @Optional
@@ -103,7 +104,10 @@ public class GradleBuild extends ConventionTask {
     @InputFile
     @Deprecated
     public File getBuildFile() {
-        return getStartParameter().getBuildFile();
+        logBuildFileDeprecation();
+        return DeprecationLogger.whileDisabled(() ->
+            getStartParameter().getBuildFile()
+        );
     }
 
     /**
@@ -112,7 +116,7 @@ public class GradleBuild extends ConventionTask {
      * @param file The build file. May be null to use the default build file for the build.
      * @since 4.0
      * @deprecated Use {@link #setDir(File)} instead to set the root of the nested build.
-     * This method will be removed in Gradle 8.0.
+     * This method will be removed in Gradle 9.0.
      */
     @Deprecated
     public void setBuildFile(@Nullable File file) {
@@ -124,11 +128,24 @@ public class GradleBuild extends ConventionTask {
      *
      * @param file The build file. May be null to use the default build file for the build.
      * @deprecated Use {@link #setDir(Object)} instead to set the root of the nested build.
-     * This method will be removed in Gradle 8.0.
+     * This method will be removed in Gradle 9.0.
      */
     @Deprecated
     public void setBuildFile(@Nullable Object file) {
-        getStartParameter().setBuildFile(getProject().file(file));
+        logBuildFileDeprecation();
+        DeprecationLogger.whileDisabled(() ->
+            getStartParameter().setBuildFile(getProject().file(file))
+        );
+    }
+
+    private void logBuildFileDeprecation() {
+        DeprecationLogger.deprecateProperty(GradleBuild.class, "buildFile")
+            .withContext("Setting custom build file to select the root of the nested build has been deprecated.")
+            .withAdvice("Please use 'dir' to specify the root of the nested build instead.")
+            .replaceWith("dir")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "configuring_custom_build_layout")
+            .nagUser();
     }
 
     /**

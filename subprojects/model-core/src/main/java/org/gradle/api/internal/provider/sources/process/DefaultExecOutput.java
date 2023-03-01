@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.provider.sources.process;
 
-import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource.ExecOutputData;
 import org.gradle.api.provider.Provider;
 import org.gradle.process.ExecOutput;
 import org.gradle.process.ExecResult;
 
 import java.nio.charset.Charset;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 public class DefaultExecOutput implements ExecOutput {
     private final Provider<ExecOutputData> dataProvider;
@@ -33,17 +34,17 @@ public class DefaultExecOutput implements ExecOutput {
 
     @Override
     public Provider<ExecResult> getResult() {
-        return dataProvider.map(SerializableLambdas.transformer(ExecOutputData::getResult));
+        return dataProvider.map(transformer(ExecOutputData::getResult));
     }
 
     @Override
     public StandardStreamContent getStandardOutput() {
-        return new DefaultStandardStreamContent(dataProvider.map(SerializableLambdas.transformer(ExecOutputData::getOutput)));
+        return new DefaultStandardStreamContent(dataProvider.map(transformer(ExecOutputData::getOutput)));
     }
 
     @Override
     public StandardStreamContent getStandardError() {
-        return new DefaultStandardStreamContent(dataProvider.map(SerializableLambdas.transformer(ExecOutputData::getError)));
+        return new DefaultStandardStreamContent(dataProvider.map(transformer(ExecOutputData::getError)));
     }
 
     private static class DefaultStandardStreamContent implements StandardStreamContent {
@@ -55,7 +56,7 @@ public class DefaultExecOutput implements ExecOutput {
 
         @Override
         public Provider<String> getAsText() {
-            return getAsBytes().map(SerializableLambdas.transformer(bytes -> new String(bytes, Charset.defaultCharset())));
+            return getAsBytes().map(transformer(bytes -> new String(bytes, Charset.defaultCharset())));
         }
 
         @Override

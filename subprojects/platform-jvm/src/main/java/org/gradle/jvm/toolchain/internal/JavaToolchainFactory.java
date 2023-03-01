@@ -19,10 +19,9 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.util.Optional;
 
 public class JavaToolchainFactory {
 
@@ -30,22 +29,30 @@ public class JavaToolchainFactory {
     private final ToolchainToolFactory toolFactory;
     private final FileFactory fileFactory;
     private final JvmMetadataDetector detector;
+    private final BuildOperationProgressEventEmitter eventEmitter;
 
     @Inject
-    public JavaToolchainFactory(JvmMetadataDetector detector, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory) {
+    public JavaToolchainFactory(
+        JvmMetadataDetector detector,
+        JavaCompilerFactory compilerFactory,
+        ToolchainToolFactory toolFactory,
+        FileFactory fileFactory,
+        BuildOperationProgressEventEmitter eventEmitter
+    ) {
         this.detector = detector;
         this.compilerFactory = compilerFactory;
         this.toolFactory = toolFactory;
         this.fileFactory = fileFactory;
+        this.eventEmitter = eventEmitter;
     }
 
-    public Optional<JavaToolchain> newInstance(File javaHome, JavaToolchainInput input) {
+    public JavaToolchainInstantiationResult newInstance(InstallationLocation javaHome, JavaToolchainInput input, boolean isFallbackToolchain) {
         final JvmInstallationMetadata metadata = detector.getMetadata(javaHome);
-        if(metadata.isValidInstallation()) {
-            final JavaToolchain toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, fileFactory, input);
-            return Optional.of(toolchain);
+        if (metadata.isValidInstallation()) {
+            final JavaToolchain toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, fileFactory, input, isFallbackToolchain, eventEmitter);
+            return new JavaToolchainInstantiationResult(javaHome, metadata, toolchain);
         }
-        return Optional.empty();
+        return new JavaToolchainInstantiationResult(javaHome, metadata);
     }
 
 }

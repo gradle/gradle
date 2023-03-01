@@ -166,6 +166,14 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
         then:
         result.groupedOutput.transformationCount == 2
 
+        result.groupedOutput.transform("GreenMultiplier", "lib1.jar (project :lib)")
+            .assertOutputContains("Creating multiplier")
+            .assertOutputContains("Transforming lib1.jar to lib1.jar.green")
+
+        result.groupedOutput.transform("GreenMultiplier", "lib2.jar (project :lib)")
+            .assertOutputContains("Creating multiplier")
+            .assertOutputContains("Transforming lib2.jar to lib2.jar.green")
+
         where:
         type << TESTED_CONSOLE_TYPES
     }
@@ -236,7 +244,7 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
         succeeds(":util:resolveBlue", "-DshowOutput")
         then:
         result.groupedOutput.transformationCount == 4
-        def initialSubjects = ((1..2).collect { "lib${it}.jar (project :lib)".toString() }) as Set
+        def initialSubjects = ["lib1.jar (project :lib)", "lib2.jar (project :lib)"] as Set
         result.groupedOutput.subjectsFor('GreenMultiplier') == initialSubjects
         result.groupedOutput.subjectsFor('BlueMultiplier') == initialSubjects
     }

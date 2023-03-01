@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -42,8 +43,8 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The default test class scanner factory.
@@ -81,14 +82,40 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     public void execute(final JvmTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {
         final TestFramework testFramework = testExecutionSpec.getTestFramework();
         final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
-        final Set<File> classpath = ImmutableSet.copyOf(testExecutionSpec.getClasspath());
-        final Set<File> modulePath = ImmutableSet.copyOf(testExecutionSpec.getModulePath());
-        final List<String> testWorkerImplementationModules = testFramework.getTestWorkerImplementationModules();
+
+        // TODO: Loading jars from the Gradle distribution can lead confusion in regards
+        // to which test framework dependencies actually end up on the classpath, and can
+        // lead to multiple different versions on the classpath at once.
+        // Once test suites are de-incubated, we should deprecate this distribution-loading
+        // behavior entirely and rely on the tests to always provide their implementation
+        // dependencies.
+
+        final List<File> classpath;
+        final List<File> modulePath;
+        if (testFramework.getUseDistributionDependencies()) {
+            if (testExecutionSpec.getTestIsModule()) {
+                classpath = pathWithAdditionalJars(testExecutionSpec.getClasspath(), testFramework.getTestWorkerApplicationClasses());
+                modulePath = pathWithAdditionalJars(testExecutionSpec.getModulePath(), testFramework.getTestWorkerApplicationModules());
+            } else {
+                // For non-module tests, add all additional distribution jars to the classpath.
+                List<String> additionalClasspath = ImmutableList.<String>builder()
+                    .addAll(testFramework.getTestWorkerApplicationClasses())
+                    .addAll(testFramework.getTestWorkerApplicationModules())
+                    .build();
+
+                classpath = pathWithAdditionalJars(testExecutionSpec.getClasspath(), additionalClasspath);
+                modulePath = ImmutableList.copyOf(testExecutionSpec.getModulePath());
+            }
+        } else {
+            classpath = ImmutableList.copyOf(testExecutionSpec.getClasspath());
+            modulePath = ImmutableList.copyOf(testExecutionSpec.getModulePath());
+        }
+
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             @Override
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(),
-                    classpath, modulePath, testWorkerImplementationModules, testFramework.getWorkerConfigurationAction(), moduleRegistry, documentationRegistry);
+                    classpath, modulePath, testFramework.getWorkerConfigurationAction(), moduleRegistry, documentationRegistry);
             }
         };
         final Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {
@@ -107,7 +134,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         Runnable detector;
         if (testExecutionSpec.isScanForTestClasses() && testFramework.getDetector() != null) {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
-            testFrameworkDetector.setTestClasses(testExecutionSpec.getTestClassesDirs().getFiles());
+            testFrameworkDetector.setTestClasses(new ArrayList<File>(testExecutionSpec.getTestClassesDirs().getFiles()));
             testFrameworkDetector.setTestClasspath(classpath);
             detector = new DefaultTestClassScanner(testClassFiles, testFrameworkDetector, processor);
         } else {
@@ -131,5 +158,35 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             maxParallelForks = maxWorkerCount;
         }
         return maxParallelForks;
+    }
+
+    /**
+     * Create a classpath or modulePath, as a list of files, given both the files provided by the test spec and a list of
+     * modules to load from the Gradle distribution.
+     *
+     * @param testFiles A set of jars, as given from a {@link JvmTestExecutionSpec}'s classpath or modulePath.
+     * @param additionalModules The names of any additional modules to load from the Gradle distribution.
+     *
+     * @return A set of files representing the constructed classpath or modulePath.
+     */
+    private List<File> pathWithAdditionalJars(Iterable<? extends File> testFiles, List<String> additionalModules) {
+        ImmutableList.Builder<File> outputFiles = ImmutableList.<File>builder().addAll(testFiles);
+
+        if (LOGGER.isDebugEnabled() && !additionalModules.isEmpty()) {
+            LOGGER.debug("Loaded additional modules from the Gradle distribution: " + Joiner.on(",").join(additionalModules));
+        }
+
+        for (String module : additionalModules) {
+            outputFiles.addAll(moduleRegistry.getExternalModule(module).getImplementationClasspath().getAsFiles());
+
+            // TODO: The user is relying on dependencies from the Gradle distribution. Emit a deprecation warning.
+            // We may want to wait for test-suites to be de-incubated here. If users are using the `test.useJUnitPlatform`
+            // syntax, they will need to list their framework dependency manually, but if they are using the
+            // `testing.suites.test.useJUnitFramework` syntax, they do not need to explicitly list their dependencies.
+            // We don't want to push users to add their dependencies explicitly if test suites will remove that
+            // requirement in the future.
+        }
+
+        return outputFiles.build();
     }
 }

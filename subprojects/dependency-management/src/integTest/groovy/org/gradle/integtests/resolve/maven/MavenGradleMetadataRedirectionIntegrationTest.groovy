@@ -31,7 +31,7 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
             apply plugin: 'java-library'
-            
+
             repositories {
                 maven { url "${mavenHttpRepo.uri}" }
             }
@@ -122,9 +122,9 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
         setup:
         buildFile.text = """
             apply plugin: 'java-library'
-            
+
             repositories {
-                maven { 
+                maven {
                     url "${mavenHttpRepo.uri}"
                     metadataSources {
                         mavenPom()
@@ -133,7 +133,7 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
                     }
                 }
             }
-            
+
              dependencies {
                 api "org:main:1.0"
             }

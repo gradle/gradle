@@ -46,8 +46,8 @@ The producer can expose its instrumented classes by creating a configuration tha
 
 .Declaring an outgoing variant
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/groovy",files="producer/build.gradle[tags=declare-outgoing-configuration]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/kotlin",files="producer/build.gradle.kts[tags=declare-outgoing-configuration]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/groovy",files="producer/build.gradle[tags=declare-outgoing-configuration]"]
 ====
 
 This configuration is _consumable_, which means it's an "exchange" meant for consumers.
@@ -55,8 +55,8 @@ We're now going to add artifacts to this configuration, that consumers would get
 
 .Attaching an artifact to an outgoing configuration
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/groovy",files="producer/build.gradle[tags=attach-outgoing-artifact]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/kotlin",files="producer/build.gradle.kts[tags=attach-outgoing-artifact]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/groovy",files="producer/build.gradle[tags=attach-outgoing-artifact]"]
 ====
 
 Here the "artifact" we're attaching is a _task_ that actually generates a Jar.
@@ -66,16 +66,16 @@ If it's not the case, you will need to explicitly declare how the artifact is ge
 
 .Explicitly declaring the task dependency of an artifact
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/groovy",files="producer/build.gradle[tags=attach-outgoing-artifact-explicit]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/kotlin",files="producer/build.gradle.kts[tags=attach-outgoing-artifact-explicit]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/groovy",files="producer/build.gradle[tags=attach-outgoing-artifact-explicit]"]
 ====
 
 Now the _consumer_ needs to depend on this configuration in order to get the right artifact:
 
 .An explicit configuration dependency
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/groovy",files="consumer/build.gradle[tags=explicit-configuration-dependency]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/kotlin",files="consumer/build.gradle.kts[tags=explicit-configuration-dependency]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/groovy",files="consumer/build.gradle[tags=explicit-configuration-dependency]"]
 ====
 
 [WARNING]
@@ -90,8 +90,8 @@ In Gradle terminology, this is called a <<declaring_dependencies.adoc#sec:resolv
 
 .Declaring a resolvable configuration on the consumer
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/groovy",files="consumer/build.gradle[tags=resolvable-configuration]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/kotlin",files="consumer/build.gradle.kts[tags=resolvable-configuration]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/groovy",files="consumer/build.gradle[tags=resolvable-configuration]"]
 ====
 
 [[sec:variant-aware-sharing]]
@@ -143,8 +143,8 @@ In fact, the attribute we care about is `org.gradle.libraryelements` which expla
 
 .Declaring the variant attributes
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="producer/build.gradle[tags=declare-outgoing-configuration]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="producer/build.gradle.kts[tags=declare-outgoing-configuration]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="producer/build.gradle[tags=declare-outgoing-configuration]"]
 ====
 
 [NOTE]
@@ -167,8 +167,8 @@ We can now, on the consumer, declare our dependency as a regular project depende
 
 .Declaring the project dependency
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=test_dependency]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=test_dependency]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=test_dependency]"]
 ====
 
 If we stop here, Gradle will still select the `runtimeElements` variant in place of our `instrumentedJars` variant.
@@ -178,8 +178,8 @@ So we need to change the requested attributes so that we now look for instrument
 
 .Changing the consumer attributes
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=ask-for-instrumented-classes]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=ask-for-instrumented-classes]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=ask-for-instrumented-classes]"]
 ====
 
 We can look at another report _on the consumer side_ to view exactly what attributes of each dependency will be requested:
@@ -205,16 +205,16 @@ To do this, we need to write a _compatibility rule_:
 
 .A compatibility rule
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=compatibility-rule]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=compatibility-rule]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=compatibility-rule]"]
 ====
 
 which we need to declare on the attributes schema:
 
 .Making use of the compatibility rule
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=compatibility-rule-use]"]
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=compatibility-rule-use]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=compatibility-rule-use]"]
 ====
 
 And that's it! Now we have:

@@ -22,6 +22,8 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import java.util.function.Consumer;
 
 public interface FileTreeInternal extends FileTree, FileCollectionInternal {
+    String DEFAULT_TREE_DISPLAY_NAME = "file tree";
+
     String getDisplayName();
 
     void visitContentsAsFileTrees(Consumer<FileTreeInternal> visitor);

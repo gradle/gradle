@@ -22,7 +22,6 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Category;
@@ -31,12 +30,14 @@ import org.gradle.api.attributes.TestSuiteTargetName;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 import org.gradle.util.internal.TextUtil;
@@ -58,7 +59,7 @@ import java.util.Map;
  * @see <a href="https://docs.gradle.org/current/userguide/jvm_test_suite_plugin.html">Test Suite plugin reference</a>
  */
 @Incubating
-public class JvmTestSuitePlugin implements Plugin<Project> {
+public abstract class JvmTestSuitePlugin implements Plugin<Project> {
     public static final String DEFAULT_TEST_SUITE_NAME = SourceSet.TEST_SOURCE_SET_NAME;
     private static final String TEST_RESULTS_ELEMENTS_VARIANT_PREFIX = "testResultsElementsFor";
 
@@ -73,14 +74,24 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
         testSuites.registerBinding(JvmTestSuite.class, DefaultJvmTestSuite.class);
 
-        // TODO: Deprecate this behavior?
-        // Why would any Test task created need to use the test source set's classes?
         project.getTasks().withType(Test.class).configureEach(test -> {
             // The test task may have already been created but the test sourceSet may not exist yet.
             // So defer looking up the java extension and sourceSet until the convention mapping is resolved.
             // See https://github.com/gradle/gradle/issues/18622
-            test.getConventionMapping().map("testClassesDirs", () ->  project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().findByName(SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
-            test.getConventionMapping().map("classpath", () -> project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().findByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
+            test.getConventionMapping().map("testClassesDirs", () -> {
+                DeprecationLogger.deprecate("Configuring the test classes dirs by default for standalone Test tasks")
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "test_task_default_classpath")
+                    .nagUser();
+                return JavaPluginHelper.getDefaultTestSuite(project).getSources().getOutput().getClassesDirs();
+            });
+            test.getConventionMapping().map("classpath", () -> {
+                DeprecationLogger.deprecate("Configuring the test classpath by default for standalone Test tasks")
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "test_task_default_classpath")
+                    .nagUser();
+                return JavaPluginHelper.getDefaultTestSuite(project).getSources().getRuntimeClasspath();
+            });
             test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
         });
 
@@ -118,16 +129,13 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         variant.setVisible(false);
         variant.setCanBeResolved(false);
         variant.setCanBeConsumed(true);
-        variant.extendsFrom(project.getConfigurations().getByName(suite.getSources().getImplementationConfigurationName()),
-            project.getConfigurations().getByName(suite.getSources().getRuntimeOnlyConfigurationName()));
-
 
         final ObjectFactory objects = project.getObjects();
         variant.attributes(attributes -> {
             attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
             attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, objects.named(TestSuiteName.class, suite.getName()));
             attributes.attribute(TestSuiteTargetName.TEST_SUITE_TARGET_NAME_ATTRIBUTE, objects.named(TestSuiteTargetName.class, target.getName()));
-            attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, suite.getTestType().map(createNamedTestTypeAndVerifyUniqueness(project, suite)));
+            attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> createNamedTestTypeAndVerifyUniqueness(project, suite, tt)));
             attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
         });
 
@@ -137,13 +145,11 @@ public class JvmTestSuitePlugin implements Plugin<Project> {
         );
     }
 
-    private Transformer<TestSuiteType, String> createNamedTestTypeAndVerifyUniqueness(Project project, TestSuite suite) {
-        return tt -> {
-            final TestSuite other = testTypesInUse.putIfAbsent(tt, suite);
-            if (null != other) {
-                throw new BuildException("Could not configure suite: '" + suite.getName() + "'. Another test suite: '" + other.getName() + "' uses the type: '" + tt + "' and has already been configured in project: '" + project.getName() + "'.");
-            }
-            return project.getObjects().named(TestSuiteType.class, tt);
-        };
+    private TestSuiteType createNamedTestTypeAndVerifyUniqueness(Project project, TestSuite suite, String tt) {
+        final TestSuite other = testTypesInUse.putIfAbsent(tt, suite);
+        if (null != other) {
+            throw new BuildException("Could not configure suite: '" + suite.getName() + "'. Another test suite: '" + other.getName() + "' uses the type: '" + tt + "' and has already been configured in project: '" + project.getName() + "'.");
+        }
+        return project.getObjects().named(TestSuiteType.class, tt);
     }
 }

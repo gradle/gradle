@@ -16,12 +16,13 @@
 
 package org.gradle.groovy.compile
 
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.fixture.GroovyCoverage
 import org.junit.Assume
 
 
-abstract class AbstractToolchainGroovyCompileIntegrationTest extends ApiGroovyCompilerIntegrationSpec {
+abstract class AbstractToolchainGroovyCompileIntegrationTest extends ApiGroovyCompilerIntegrationSpec implements JavaToolchainFixture {
 
     Jvm jdk
 
@@ -31,7 +32,7 @@ abstract class AbstractToolchainGroovyCompileIntegrationTest extends ApiGroovyCo
         Assume.assumeTrue(GroovyCoverage.supportsJavaVersion(version, jdk.javaVersion))
 
         executer.beforeExecute {
-            withArgument("-Porg.gradle.java.installations.paths=${jdk.javaHome.absolutePath}")
+            withInstallations(jdk)
         }
     }
 
@@ -39,13 +40,7 @@ abstract class AbstractToolchainGroovyCompileIntegrationTest extends ApiGroovyCo
 
     @Override
     String compilerConfiguration() {
-        """
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
-                }
-            }
-        """
+        javaPluginToolchainVersion(jdk)
     }
 
     @Override

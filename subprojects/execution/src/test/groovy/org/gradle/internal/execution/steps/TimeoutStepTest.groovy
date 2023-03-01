@@ -26,7 +26,7 @@ import org.gradle.internal.operations.OperationIdentifier
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 
-class TimeoutStepTest extends ContextInsensitiveStepSpec {
+class TimeoutStepTest extends StepSpec<Context> {
     def timeoutHandler = Mock(TimeoutHandler)
     def buildOperationRef = new DefaultBuildOperationRef(new OperationIdentifier(1), new OperationIdentifier(2))
     def currentBuildOperationRef = new CurrentBuildOperationRef()

@@ -54,6 +54,12 @@ plugins.withId("java-base") {
         artifactTypes.getByName("jar") {
             attributes.attribute(minified, java.lang.Boolean.FALSE)
         }
+        /*
+         * This transform exists solely to shrink the size of the fastutil jar from 25MB to 1.5MB.
+         * The keys to the map parameter are used as the names of the files to which to apply the transform - there is only one entry.
+         * It would perhaps be better to do this more selectively instead of applying this transform so broadly and having
+         * it just no-op in most cases.
+         */
         registerTransform(Minify::class) {
             from.attribute(minified, false).attribute(artifactType, "jar")
             to.attribute(minified, true).attribute(artifactType, "jar")
@@ -66,7 +72,7 @@ plugins.withId("java-base") {
         // TODO we should be able to solve this only by requesting attributes for artifacts - https://github.com/gradle/gradle/issues/11831#issuecomment-580686994
         (this as ConfigurationInternal).beforeLocking {
             // everywhere where we resolve, prefer the minified version
-            if (isCanBeResolved && !isCanBeConsumed && name != "currentApiClasspath") {
+            if (isCanBeResolved && !isCanBeConsumed && name !in setOf("currentApiClasspath", "codenarc")) {
                 attributes.attribute(minified, true)
             }
             // local projects are already minified

@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies
 
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
@@ -37,6 +38,7 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.Factory
@@ -52,7 +54,7 @@ class DefaultDependencyHandlerTest extends Specification {
     private static final String UNKNOWN_TEST_CONF_NAME = "unknown"
 
     private ConfigurationContainer configurationContainer = Mock()
-    private DependencyFactory dependencyFactory = Mock()
+    private DependencyFactoryInternal dependencyFactory = Mock()
     private Configuration configuration = Mock()
     private ProjectFinder projectFinder = Mock()
     private DependencySet dependencySet = Mock()
@@ -87,7 +89,7 @@ class DefaultDependencyHandlerTest extends Specification {
 
         when:
         def result = dependencyHandler.add(TEST_CONF_NAME, "someNotation") {
-            force = true
+            because 'It is necessary'
         }
 
         then:
@@ -95,7 +97,7 @@ class DefaultDependencyHandlerTest extends Specification {
 
         and:
         1 * dependencyFactory.createDependency("someNotation") >> dependency
-        1 * dependency.setForce(true)
+        1 * dependency.because('It is necessary')
         1 * dependencySet.add(dependency)
     }
 
@@ -117,7 +119,6 @@ class DefaultDependencyHandlerTest extends Specification {
 
         when:
         def result = dependencyHandler.create("someNotation") {
-            force = true
             version {
                 it.require '1.0'
             }
@@ -128,7 +129,6 @@ class DefaultDependencyHandlerTest extends Specification {
 
         and:
         1 * dependencyFactory.createDependency("someNotation") >> dependency
-        1 * dependency.setForce(true)
         1 * dependency.version(_ as Action<VersionConstraint>)
     }
 
@@ -151,7 +151,7 @@ class DefaultDependencyHandlerTest extends Specification {
         ExternalDependency dependency = Mock()
 
         when:
-        def result = dependencyHandler.someConf("someNotation") { force = true }
+        def result = dependencyHandler.someConf("someNotation") { because "It's really important" }
 
         then:
         result == dependency
@@ -159,7 +159,7 @@ class DefaultDependencyHandlerTest extends Specification {
         and:
         1 * dependencyFactory.createDependency("someNotation") >> dependency
         1 * dependencySet.add(dependency)
-        1 * dependency.setForce(true)
+        1 * dependency.because("It's really important")
     }
 
     void "can use dynamic method to add multiple dependencies"() {
@@ -227,20 +227,18 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencyFactory.createProjectDependencyFromMap(projectFinder, [:]) >> projectDependency
     }
 
-    void "attaches configuration from same project to target configuration"() {
+    void "cannot create project dependency for configuration from same project"() {
         Configuration other = Mock()
 
         given:
         configurationContainer.contains(other) >> true
 
         when:
-        def result = dependencyHandler.add(TEST_CONF_NAME, other)
+        dependencyHandler.add(TEST_CONF_NAME, other)
 
         then:
-        result == null
-
-        and:
-        1 * configuration.extendsFrom(other)
+        def t = thrown(GradleException)
+        t.message.contains("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.")
     }
 
     void "cannot create project dependency for configuration from different project"() {
@@ -253,8 +251,8 @@ class DefaultDependencyHandlerTest extends Specification {
         dependencyHandler.add(TEST_CONF_NAME, other)
 
         then:
-        UnsupportedOperationException e = thrown()
-        e.message == 'Currently you can only declare dependencies on configurations from the same project.'
+        def t = thrown(GradleException)
+        t.message.contains("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.")
     }
 
     void "creates client module dependency"() {
@@ -294,7 +292,7 @@ class DefaultDependencyHandlerTest extends Specification {
         result == dependency
 
         and:
-        1 * dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_API) >> dependency
+        1 * dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_API) >> dependency
     }
 
     void "creates Gradle test-kit dependency"() {
@@ -307,7 +305,7 @@ class DefaultDependencyHandlerTest extends Specification {
         result == dependency
 
         and:
-        1 * dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT) >> dependency
+        1 * dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT) >> dependency
     }
 
     void "creates local groovy dependency"() {
@@ -320,7 +318,7 @@ class DefaultDependencyHandlerTest extends Specification {
         result == dependency
 
         and:
-        1 * dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.LOCAL_GROOVY) >> dependency
+        1 * dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY) >> dependency
     }
 
     void "cannot add dependency to unknown configuration"() {
@@ -365,9 +363,9 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "local platform dependencies are endorsing"() {
-        ModuleDependency dep1 = new DefaultProjectDependency(null, null, false)
+        ModuleDependency dep1 = new DefaultProjectDependency(null, null, false, TestFiles.taskDependencyFactory())
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
-        ModuleDependency dep2 = new DefaultProjectDependency(null, null, false)
+        ModuleDependency dep2 = new DefaultProjectDependency(null, null, false, TestFiles.taskDependencyFactory())
         dep2.attributesFactory = AttributeTestUtil.attributesFactory()
 
         when:
@@ -401,7 +399,7 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "local platform dependency can be made non-endorsing"() {
-        ModuleDependency dep1 = new DefaultProjectDependency(null, null, false)
+        ModuleDependency dep1 = new DefaultProjectDependency(null, null, false, TestFiles.taskDependencyFactory())
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
 
         when:

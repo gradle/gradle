@@ -42,7 +42,7 @@ import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  *
  * @see <a href="https://docs.gradle.org/current/userguide/kotlin_dsl.html">Kotlin DSL reference</a>
  */
-class KotlinDslPlugin : Plugin<Project> {
+abstract class KotlinDslPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 

@@ -16,15 +16,18 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.internal.file.Deleter;
 import org.gradle.work.FileChange;
 
-import java.util.Collections;
 import java.util.Set;
 
 public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
+
+    private static final Set<String> SUPPORTED_FILE_EXTENSIONS = ImmutableSet.of(".java");
 
     public JavaRecompilationSpecProvider(
         Deleter deleter,
@@ -38,7 +41,12 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
 
     @Override
     protected Set<String> getFileExtensions() {
-        return Collections.singleton(".java");
+        return SUPPORTED_FILE_EXTENSIONS;
+    }
+
+    @Override
+    protected void processCompilerSpecificDependencies(JavaCompileSpec spec, RecompilationSpec recompilationSpec, SourceFileChangeProcessor sourceFileChangeProcessor, SourceFileClassNameConverter sourceFileClassNameConverter) {
+        // Nothing to do for Java compiler here
     }
 
     @Override

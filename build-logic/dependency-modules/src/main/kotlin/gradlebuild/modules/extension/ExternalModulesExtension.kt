@@ -18,11 +18,11 @@ package gradlebuild.modules.extension
 import gradlebuild.modules.model.License
 
 
-abstract class ExternalModulesExtension {
+abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
-    val groovyVersion = "3.0.10"
-    val configurationCacheReportVersion = "1.1"
-    val kotlinVersion = "1.6.21"
+    val groovyVersion = if (isBundleGroovy4) "4.0.7" else "3.0.13"
+    val configurationCacheReportVersion = "1.2"
+    val kotlinVersion = "1.8.10"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -56,22 +56,25 @@ abstract class ExternalModulesExtension {
     val gcs = "com.google.apis:google-api-services-storage"
     val googleApiClient = "com.google.api-client:google-api-client"
     val googleHttpClient = "com.google.http-client:google-http-client"
-    val googleHttpClientJackson2 = "com.google.http-client:google-http-client-jackson2"
+    val googleHttpClientGson = "com.google.http-client:google-http-client-gson"
+    val googleHttpClientApacheV2 = "com.google.http-client:google-http-client-apache-v2"
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
-    val groovy = "org.codehaus.groovy:groovy"
-    val groovyAnt = "org.codehaus.groovy:groovy-ant"
-    val groovyAstbuilder = "org.codehaus.groovy:groovy-astbuilder"
-    val groovyConsole = "org.codehaus.groovy:groovy-console"
-    val groovyDateUtil = "org.codehaus.groovy:groovy-dateutil"
-    val groovyDatetime = "org.codehaus.groovy:groovy-datetime"
-    val groovyDoc = "org.codehaus.groovy:groovy-groovydoc"
-    val groovyJson = "org.codehaus.groovy:groovy-json"
-    val groovyNio = "org.codehaus.groovy:groovy-nio"
-    val groovySql = "org.codehaus.groovy:groovy-sql"
-    val groovyTemplates = "org.codehaus.groovy:groovy-templates"
-    val groovyTest = "org.codehaus.groovy:groovy-test"
-    val groovyXml = "org.codehaus.groovy:groovy-xml"
+    val gradleEnterpriseTestAnnotation = "com.gradle:gradle-enterprise-testing-annotations"
+    val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
+    val groovy = "$groovyGroup:groovy"
+    val groovyAnt = "$groovyGroup:groovy-ant"
+    val groovyAstbuilder = "$groovyGroup:groovy-astbuilder"
+    val groovyConsole = "$groovyGroup:groovy-console"
+    val groovyDateUtil = "$groovyGroup:groovy-dateutil"
+    val groovyDatetime = "$groovyGroup:groovy-datetime"
+    val groovyDoc = "$groovyGroup:groovy-groovydoc"
+    val groovyJson = "$groovyGroup:groovy-json"
+    val groovyNio = "$groovyGroup:groovy-nio"
+    val groovySql = "$groovyGroup:groovy-sql"
+    val groovyTemplates = "$groovyGroup:groovy-templates"
+    val groovyTest = "$groovyGroup:groovy-test"
+    val groovyXml = "$groovyGroup:groovy-xml"
     val gson = "com.google.code.gson:gson"
     val guava = "com.google.guava:guava"
     val hamcrest = "org.hamcrest:hamcrest-core"
@@ -205,7 +208,8 @@ abstract class ExternalModulesExtension {
         gcs to License.Apache2,
         googleApiClient to License.Apache2,
         googleHttpClient to License.Apache2,
-        googleHttpClientJackson2 to License.Apache2,
+        googleHttpClientGson to License.Apache2,
+        googleHttpClientApacheV2 to License.Apache2,
         googleOauthClient to License.Apache2,
         gradleProfiler to License.Apache2,
         groovy to License.Apache2,

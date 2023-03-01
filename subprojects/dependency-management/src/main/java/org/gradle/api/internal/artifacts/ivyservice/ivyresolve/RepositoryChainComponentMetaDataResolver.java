@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
@@ -97,7 +98,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
                 LOGGER.debug("Discarding resolve failure.", error);
             }
 
-            result.resolved(metaDataFactory.transform(latestResolved));
+            result.resolved(DefaultComponentGraphResolveState.of(metaDataFactory.transform(latestResolved)));
             return;
         }
         if (!errors.isEmpty()) {

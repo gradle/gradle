@@ -211,7 +211,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply(hybridClass)
 
         then:
-        1 * target.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) })
+        1 * target.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) }, hybridClass)
 
         and:
         manager.pluginContainer.size() == 1
@@ -225,7 +225,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply(hybridClass)
 
         then:
-        1 * target.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) })
+        1 * target.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) }, hybridClass)
 
         and:
         manager.pluginContainer.size() == 1
@@ -248,7 +248,7 @@ class DefaultPluginManagerTest extends Specification {
         manager.apply("foo")
 
         then:
-        1 * target.applyImperativeRulesHybrid("foo", { hybridClass.isInstance(it) })
+        1 * target.applyImperativeRulesHybrid("foo", { hybridClass.isInstance(it) }, hybridClass)
 
         and:
         manager.pluginContainer.size() == 1
@@ -277,7 +277,7 @@ class DefaultPluginManagerTest extends Specification {
 
         then:
         1 * target.getConfigurationTargetIdentifier()
-        1 * target.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) })
+        1 * target.applyImperativeRulesHybrid(null, { hybridClass.isInstance(it) }, hybridClass)
         0 * target._
         1 * action.execute(_)
         0 * action._

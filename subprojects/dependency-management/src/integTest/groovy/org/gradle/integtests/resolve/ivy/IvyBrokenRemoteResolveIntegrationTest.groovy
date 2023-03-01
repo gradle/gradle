@@ -396,7 +396,6 @@ task showBroken { doLast { println configurations.broken.files } }
         succeeds("showBroken")
     }
 
-    @ToBeFixedForConfigurationCache
     void "reports and caches missing artifact"() {
         given:
         buildFile << """
@@ -440,7 +439,6 @@ Searched in the following locations:
     ${module.jar.uri}""")
     }
 
-    @ToBeFixedForConfigurationCache
     void "reports and recovers from failed artifact download"() {
         given:
         buildFile << """

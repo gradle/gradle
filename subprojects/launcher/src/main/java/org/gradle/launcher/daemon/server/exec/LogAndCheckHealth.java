@@ -19,28 +19,31 @@ package org.gradle.launcher.daemon.server.exec;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.util.NumberUtil;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.health.DaemonHealthCheck;
 import org.gradle.launcher.daemon.server.health.DaemonHealthStats;
-import org.gradle.launcher.daemon.server.health.HealthLogger;
+import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 
 public class LogAndCheckHealth implements DaemonCommandAction {
 
-    private static final Logger LOG = Logging.getLogger(LogAndCheckHealth.class);
+    public static final String HEALTH_MESSAGE_PROPERTY = "org.gradle.daemon.performance.logging";
 
     private final DaemonHealthStats stats;
     private final DaemonHealthCheck healthCheck;
-    private final HealthLogger logger;
+    private final DaemonRunningStats runningStats;
+    private final Logger logger;
 
-    public LogAndCheckHealth(DaemonHealthStats stats, DaemonHealthCheck healthCheck) {
-        this(stats, healthCheck, new HealthLogger());
+    public LogAndCheckHealth(DaemonHealthStats stats, DaemonHealthCheck healthCheck, DaemonRunningStats runningStats) {
+        this(stats, healthCheck, runningStats, Logging.getLogger(LogAndCheckHealth.class));
     }
 
     @VisibleForTesting
-    LogAndCheckHealth(DaemonHealthStats stats, DaemonHealthCheck healthCheck, HealthLogger logger) {
+    LogAndCheckHealth(DaemonHealthStats stats, DaemonHealthCheck healthCheck, DaemonRunningStats runningStats, Logger logger) {
         this.stats = stats;
         this.healthCheck = healthCheck;
+        this.runningStats = runningStats;
         this.logger = logger;
     }
 
@@ -51,11 +54,26 @@ public class LogAndCheckHealth implements DaemonCommandAction {
             return;
         }
 
-        logger.logHealth(stats, LOG);
+        if (Boolean.getBoolean(LogAndCheckHealth.HEALTH_MESSAGE_PROPERTY)) {
+            logger.lifecycle(getStartBuildMessage());
+        } else {
+            // The default.
+            logger.info(getStartBuildMessage());
+        }
+
         execution.proceed();
 
         // Execute the health check that should send out a DaemonExpiration event
         // if the daemon is unhealthy
         healthCheck.executeHealthCheck();
+    }
+
+    private String getStartBuildMessage() {
+        int nextBuildNum = runningStats.getBuildCount() + 1;
+        if (nextBuildNum == 1) {
+            return String.format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(Runtime.getRuntime().maxMemory()));
+        } else {
+            return String.format("Starting %s build in daemon %s", NumberUtil.ordinal(nextBuildNum), stats.getHealthInfo());
+        }
     }
 }

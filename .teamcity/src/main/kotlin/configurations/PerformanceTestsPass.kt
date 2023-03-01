@@ -18,6 +18,7 @@ package configurations
 
 import common.Os
 import common.applyDefaultSettings
+import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2019_2.ReuseBuilds
 import model.CIBuildModel
 import model.PerformanceTestType
@@ -35,6 +36,13 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
 
         applyDefaultSettings(os)
         params {
+            text(
+                "reverse.dep.*.performance.baselines",
+                type.defaultBaselines,
+                display = ParameterDisplay.PROMPT,
+                allowEmpty = true,
+                description = "The baselines you want to run performance tests against. Empty means default baseline."
+            )
             param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
             param("performance.db.username", "tcagent")
             param("performance.channel", performanceTestSpec.channel())
@@ -60,6 +68,8 @@ subprojects/$performanceProjectName/build/performance-test-results.zip
                 .filter { it.testProjects.isNotEmpty() }
                 .joinToString(",") { "%dep.${it.id}.env.BUILD_ID%" }
 
+            val dependencyBaselines = performanceTestProject.performanceTests.first { it.testProjects.isNotEmpty() }.let { "%dep.${it.id}.performance.baselines%" }
+
             gradleRunnerStep(
                 model,
                 ":$performanceProjectName:$taskName --channel %performance.channel%",
@@ -67,7 +77,8 @@ subprojects/$performanceProjectName/build/performance-test-results.zip
                     "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
                     "-Porg.gradle.performance.db.url" to "%performance.db.url%",
                     "-Porg.gradle.performance.db.username" to "%performance.db.username%",
-                    "-Porg.gradle.performance.dependencyBuildIds" to dependencyBuildIds
+                    "-Porg.gradle.performance.dependencyBuildIds" to dependencyBuildIds,
+                    "-PperformanceBaselines" to dependencyBaselines
                 ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) }
             )
         }

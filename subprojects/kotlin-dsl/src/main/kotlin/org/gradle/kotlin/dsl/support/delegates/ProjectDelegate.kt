@@ -27,6 +27,7 @@ import org.gradle.api.ProjectState
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
+import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -53,6 +54,8 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.WorkResult
+import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.normalization.InputNormalizationHandler
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
@@ -65,7 +68,18 @@ import java.util.concurrent.Callable
 /**
  * Facilitates the implementation of the [Project] interface by delegation via subclassing.
  */
+@Deprecated("Will be removed in Gradle 9.0")
 abstract class ProjectDelegate : Project {
+
+    init {
+        @Suppress("DEPRECATION")
+        if (!org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript::class.java.isAssignableFrom(this::class.java)) {
+            DeprecationLogger.deprecateType(ProjectDelegate::class.java)
+                .willBeRemovedInGradle9()
+                .undocumented()
+                .nagUser()
+        }
+    }
 
     internal
     abstract val delegate: Project
@@ -225,6 +239,9 @@ abstract class ProjectDelegate : Project {
     override fun getComponents(): SoftwareComponentContainer =
         delegate.components
 
+    override fun components(configuration: Action<in SoftwareComponentContainer>) =
+        delegate.components(configuration)
+
     override fun setBuildDir(path: File) {
         delegate.buildDir = path
     }
@@ -250,7 +267,7 @@ abstract class ProjectDelegate : Project {
     override fun getDependencyLocking(): DependencyLockingHandler =
         delegate.dependencyLocking
 
-    override fun <T : Any?> provider(value: Callable<T>): Provider<T> =
+    override fun <T : Any> provider(value: Callable<out T?>): Provider<T> =
         delegate.provider(value)
 
     override fun findProperty(propertyName: String): Any? =
@@ -258,6 +275,9 @@ abstract class ProjectDelegate : Project {
 
     override fun getDependencies(): DependencyHandler =
         delegate.dependencies
+
+    override fun getDependencyFactory(): DependencyFactory =
+        delegate.dependencyFactory
 
     override fun getResources(): ResourceHandler =
         delegate.resources
@@ -352,6 +372,7 @@ abstract class ProjectDelegate : Project {
     override fun javaexec(action: Action<in JavaExecSpec>): ExecResult =
         delegate.javaexec(action)
 
+    @AllowUsingApiForExternalUse
     override fun getChildProjects(): MutableMap<String, Project> =
         delegate.childProjects
 

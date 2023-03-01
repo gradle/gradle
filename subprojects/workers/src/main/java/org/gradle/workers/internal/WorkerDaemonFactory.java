@@ -57,9 +57,4 @@ public class WorkerDaemonFactory implements WorkerFactory {
             }
         };
     }
-
-    @Override
-    public IsolationMode getIsolationMode() {
-        return IsolationMode.PROCESS;
-    }
 }

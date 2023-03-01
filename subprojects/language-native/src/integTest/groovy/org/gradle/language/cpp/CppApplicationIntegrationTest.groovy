@@ -96,7 +96,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
     }
 
     @ToBeFixedForConfigurationCache
-    def "sources are compiled and linked with with C++ tools"() {
+    def "sources are compiled and linked with C++ tools"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppCompilerDetectingTestApp()
 

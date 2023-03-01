@@ -87,7 +87,7 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
                 files = ImmutableList.of();
                 isExternalVariant = false;
             } else {
-                attributes = (ImmutableAttributes) baseVariant.getAttributes();
+                attributes = baseVariant.getAttributes();
                 capabilities = (ImmutableCapabilities) baseVariant.getCapabilities();
                 dependencies = baseVariant.getDependencies();
                 dependencyConstraints = baseVariant.getDependencyConstraints();

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging;
 
-import org.apache.commons.lang.StringUtils;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -32,26 +32,18 @@ import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.util.internal.TextUtil;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConfiguration> {
 
-    private static List<BuildOption<LoggingConfiguration>> options;
-
-    static {
-        List<BuildOption<LoggingConfiguration>> options = new ArrayList<BuildOption<LoggingConfiguration>>();
-        options.add(new LogLevelOption());
-        options.add(new StacktraceOption());
-        options.add(new ConsoleOption());
-        options.add(new WarningsOption());
-        LoggingConfigurationBuildOptions.options = Collections.unmodifiableList(options);
-    }
+    private static List<BuildOption<LoggingConfiguration>> options = ImmutableList.<BuildOption<LoggingConfiguration>>of(
+        new LogLevelOption(),
+        new StacktraceOption(),
+        new ConsoleOption(),
+        new WarningsOption());
 
     public static List<BuildOption<LoggingConfiguration>> get() {
         return options;
@@ -62,15 +54,11 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         return options;
     }
 
-    public Collection<String> getLogLevelOptions() {
-        return Arrays.asList(
-            LogLevelOption.DEBUG_SHORT_OPTION,
+    public Collection<String> getLongLogLevelOptions() {
+        return ImmutableList.of(
             LogLevelOption.DEBUG_LONG_OPTION,
-            LogLevelOption.WARN_SHORT_OPTION,
             LogLevelOption.WARN_LONG_OPTION,
-            LogLevelOption.INFO_SHORT_OPTION,
             LogLevelOption.INFO_LONG_OPTION,
-            LogLevelOption.QUIET_SHORT_OPTION,
             LogLevelOption.QUIET_LONG_OPTION);
     }
 
@@ -128,17 +116,17 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
             }
         }
 
-        private LogLevel parseLogLevel(String value) {
-            LogLevel logLevel = null;
+        public static LogLevel parseLogLevel(String value) {
             try {
-                logLevel = LogLevel.valueOf(value.toUpperCase(Locale.ENGLISH));
+                LogLevel logLevel = LogLevel.valueOf(value.toUpperCase(Locale.ENGLISH));
                 if (logLevel == LogLevel.ERROR) {
                     throw new IllegalArgumentException("Log level cannot be set to 'ERROR'.");
                 }
+                return logLevel;
             } catch (IllegalArgumentException e) {
                 Origin.forGradleProperty(GRADLE_PROPERTY).handleInvalidValue(value, "must be one of quiet, warn, lifecycle, info, or debug)");
             }
-            return logLevel;
+            return null;
         }
     }
 
@@ -200,7 +188,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
 
         @Override
         public void applyTo(String value, LoggingConfiguration settings, Origin origin) {
-            String consoleValue = StringUtils.capitalize(TextUtil.toLowerCaseLocaleSafe(value));
+            String consoleValue = TextUtil.capitalize(TextUtil.toLowerCaseLocaleSafe(value));
             try {
                 ConsoleOutput consoleOutput = ConsoleOutput.valueOf(consoleValue);
                 settings.setConsoleOutput(consoleOutput);
@@ -221,7 +209,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         @Override
         public void applyTo(String value, LoggingConfiguration settings, final Origin origin) {
             try {
-                settings.setWarningMode(WarningMode.valueOf(StringUtils.capitalize(TextUtil.toLowerCaseLocaleSafe(value))));
+                settings.setWarningMode(WarningMode.valueOf(TextUtil.capitalize(TextUtil.toLowerCaseLocaleSafe(value))));
             } catch (IllegalArgumentException e) {
                 origin.handleInvalidValue(value);
             }

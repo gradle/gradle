@@ -83,7 +83,7 @@ import java.util.concurrent.Callable;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/eclipse_plugin.html">Eclipse plugin reference</a>
  */
-public class EclipsePlugin extends IdePlugin {
+public abstract class EclipsePlugin extends IdePlugin {
 
     public static final String ECLIPSE_TASK_NAME = "eclipse";
     public static final String ECLIPSE_PROJECT_TASK_NAME = "eclipseProject";

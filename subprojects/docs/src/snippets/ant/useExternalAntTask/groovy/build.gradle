@@ -1,12 +1,34 @@
+repositories {
+    mavenCentral()
+}
+
+configurations.create("checkstyle")
+
+dependencies {
+    checkstyle 'com.puppycrawl.tools:checkstyle:9.3'
+}
+
+def download = tasks.register('download', Copy) {
+    from configurations.checkstyle
+    into 'libs'
+}
+
+// tag::configure-task[]
 tasks.register('check') {
+    def checkstyleConfig = file('checkstyle.xml')
     doLast {
-        ant.taskdef(resource: 'checkstyletask.properties') {
+        ant.taskdef(resource: 'com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties') {
             classpath {
                 fileset(dir: 'libs', includes: '*.jar')
             }
         }
-        ant.checkstyle(config: 'checkstyle.xml') {
+        ant.checkstyle(config: checkstyleConfig) {
             fileset(dir: 'src')
         }
     }
+}
+// end::configure-task[]
+
+tasks.named('check') {
+    dependsOn(download)
 }

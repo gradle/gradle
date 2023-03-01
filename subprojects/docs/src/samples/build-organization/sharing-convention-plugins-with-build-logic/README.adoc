@@ -7,35 +7,6 @@ Let's use the following project structure:
 [.multi-language-sample]
 =====
 .Project structure
-[source, groovy]
-----
-├── application
-│   ├── src
-│   │   └── main
-│   └── build.gradle
-├── build-conventions
-│   ├── src
-│   │   ...
-│   ├── build.gradle
-│   └── settings.gradle
-├── buildSrc
-│   ├── src
-│   │   ...
-│   └── build.gradle
-├── list
-│   ├── src
-│   │   ...
-│   └── build.gradle
-├── utilities
-│   ├── src
-│   │   ...
-│   └── build.gradle
-└── settings.gradle
-----
-=====
-[.multi-language-sample]
-=====
-.Project structure
 [source, kotlin]
 ----
 ├── application
@@ -62,12 +33,41 @@ Let's use the following project structure:
 └── settings.gradle.kts
 ----
 =====
+[.multi-language-sample]
+=====
+.Project structure
+[source, groovy]
+----
+├── application
+│   ├── src
+│   │   └── main
+│   └── build.gradle
+├── build-conventions
+│   ├── src
+│   │   ...
+│   ├── build.gradle
+│   └── settings.gradle
+├── buildSrc
+│   ├── src
+│   │   ...
+│   └── build.gradle
+├── list
+│   ├── src
+│   │   ...
+│   └── build.gradle
+├── utilities
+│   ├── src
+│   │   ...
+│   └── build.gradle
+└── settings.gradle
+----
+=====
 ====
 
 The build is configured as follows:
 ====
-include::sample[dir="groovy",files="settings.gradle[]"]
 include::sample[dir="kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="groovy",files="settings.gradle[]"]
 ====
 
 The shared _convention plugin_ `myproject.java-conventions` is implemented in an _included build_ called `build-conventions`.
@@ -76,14 +76,14 @@ For more details about included builds, see link:{userManualPath}/composite_buil
 
 The `myproject.java-conventions` plugin is then applied to the `buildSrc` build:
 ====
-include::sample[dir="groovy",files="buildSrc/build.gradle[tags=plugins]"]
 include::sample[dir="kotlin",files="buildSrc/build.gradle.kts[tags=plugins]"]
+include::sample[dir="groovy",files="buildSrc/build.gradle[tags=plugins]"]
 ====
 
 It is also applied in the subprojects of the root project:
 ====
-include::sample[dir="groovy",files="application/build.gradle[tags=plugins];utilities/build.gradle[tags=plugins];list/build.gradle[tags=plugins]"]
 include::sample[dir="kotlin",files="application/build.gradle.kts[tags=plugins];utilities/build.gradle.kts[tags=plugins];list/build.gradle.kts[tags=plugins]"]
+include::sample[dir="groovy",files="application/build.gradle[tags=plugins];utilities/build.gradle[tags=plugins];list/build.gradle[tags=plugins]"]
 ====
 
 For more details on authoring custom Gradle plugins, consult the link:{userManualPath}/custom_plugins.html[user manual].

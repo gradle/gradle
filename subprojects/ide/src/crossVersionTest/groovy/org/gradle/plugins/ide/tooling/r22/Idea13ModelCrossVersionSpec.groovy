@@ -21,20 +21,18 @@ import org.gradle.tooling.model.idea.IdeaProject
 class Idea13ModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "provides generated sources dir information"() {
-
         file('build.gradle').text = """
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-idea {
-  module {
-    sourceDirs += file('foo')
-    testSourceDirs += file('foo2')
-    generatedSourceDirs += file('foo')
-    generatedSourceDirs += file('foo2')
-  }
-}
-"""
+            idea {
+              module {
+                sourceDirs += file('foo')
+                generatedSourceDirs += file('foo')
+                generatedSourceDirs += file('foo2')
+              }
+            }
+        """
 
         when:
         IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
@@ -44,7 +42,6 @@ idea {
         def generatedSourceDirectories = contentRoot.sourceDirectories.findAll { it.generated }
         def generatedTestDirectories = contentRoot.testDirectories.findAll { it.generated }
         generatedSourceDirectories.collect { it.directory } == [file('foo')]
-        generatedTestDirectories.collect { it.directory } == [file('foo2')]
         generatedSourceDirectories.every { contentRoot.sourceDirectories.contains(it) }
         generatedTestDirectories.every { contentRoot.testDirectories.contains(it) }
     }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 
 /**
  * A {@link FileCollection} implementation that throws a given exception when visited.
@@ -27,6 +28,7 @@ public class FailingFileCollection extends LazilyInitializedFileCollection {
     private final RuntimeException failure;
 
     public FailingFileCollection(String displayName, RuntimeException failure) {
+        super(DefaultTaskDependencyFactory.withNoAssociatedProject());
         this.displayName = displayName;
         this.failure = failure;
     }

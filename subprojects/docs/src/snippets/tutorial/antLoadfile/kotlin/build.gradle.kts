@@ -1,6 +1,7 @@
 tasks.register("loadfile") {
+    val resourceDirectory = file("./antLoadfileResources")
     doLast {
-        val files = file("./antLoadfileResources").listFiles().sorted()
+        val files = resourceDirectory.listFiles().sorted()
         files.forEach { file ->
             if (file.isFile) {
                 ant.withGroovyBuilder {

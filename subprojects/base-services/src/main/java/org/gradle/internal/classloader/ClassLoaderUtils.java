@@ -36,7 +36,7 @@ public abstract class ClassLoaderUtils {
 
     static {
         CLASS_DEFINER = JavaVersion.current().isJava9Compatible() ? new LookupClassDefiner() : new ReflectionClassDefiner();
-        CLASS_LOADER_PACKAGES_FETCHER = JavaVersion.current().isJava9Compatible() ? new LookupPackagesFetcher() : new ReflectionPackagesFetcher();
+        CLASS_LOADER_PACKAGES_FETCHER = JavaVersion.current().isJava9Compatible() ? new Java9PackagesFetcher() : new ReflectionPackagesFetcher();
     }
 
     /**
@@ -51,6 +51,8 @@ public abstract class ClassLoaderUtils {
         CompositeStoppable.stoppable(classLoader).stop();
     }
 
+    // Used by the Gradle Play Framework Plugin. See:
+    // https://github.com/gradle/playframework/blob/master/src/main/java/org/gradle/playframework/tools/internal/run/PlayWorkerServer.java#L72
     public static void disableUrlConnectionCaching() {
         // fix problems in updating jar files by disabling default caching of URL connections.
         // URLConnection default caching should be disabled since it causes jar file locking issues and JVM crashes in updating jar files.
@@ -69,6 +71,7 @@ public abstract class ClassLoaderUtils {
         return CLASS_LOADER_PACKAGES_FETCHER.getPackages(classLoader);
     }
 
+    @Nullable
     static Package getPackage(ClassLoader classLoader, String name) {
         return CLASS_LOADER_PACKAGES_FETCHER.getPackage(classLoader, name);
     }
@@ -120,6 +123,7 @@ public abstract class ClassLoaderUtils {
     private interface ClassLoaderPackagesFetcher {
         Package[] getPackages(ClassLoader classLoader);
 
+        @Nullable
         Package getPackage(ClassLoader classLoader, String name);
     }
 
@@ -188,8 +192,8 @@ public abstract class ClassLoaderUtils {
         @SuppressWarnings("unchecked")
         public <T> Class<T> defineDecoratorClass(Class<?> decoratedClass, ClassLoader classLoader, String className, byte[] classBytes) {
             try {
-                // Lookup.defineClass can only define a class into same classloader as the lookup object
-                // we have to use the fallback defineClass() if they're not same, which is the case of ManagedProxyClassGenerator
+                // Lookup.defineClass can only define a class into same classloader as the lookup object.
+                // We have to use the fallback defineClass() if they're not same, which is the case of ManagedProxyClassGenerator
                 if (decoratedClass.getClassLoader() == classLoader) {
                     MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(decoratedClass, baseLookup);
                     return (Class) lookup.defineClass(classBytes);
@@ -216,24 +220,36 @@ public abstract class ClassLoaderUtils {
             return GET_PACKAGES_METHOD.invoke(classLoader);
         }
 
+        @Nullable
         @Override
         public Package getPackage(ClassLoader classLoader, String name) {
             return GET_PACKAGE_METHOD.invoke(classLoader, name);
         }
     }
 
-    private static class LookupPackagesFetcher extends AbstractClassLoaderLookuper implements ClassLoaderPackagesFetcher {
-        private MethodType getPackagesMethodType = MethodType.methodType(Package[].class, new Class<?>[]{});
-        private MethodType getDefinedPackageMethodType = MethodType.methodType(Package.class, new Class<?>[]{String.class});
+    private static class Java9PackagesFetcher implements ClassLoaderPackagesFetcher {
 
         @Override
         public Package[] getPackages(ClassLoader classLoader) {
-            return invoke(classLoader, "getPackages", getPackagesMethodType);
+            return new ClassLoader(classLoader) {
+                @Override
+                protected Package[] getPackages() {
+                    return super.getPackages();
+                }
+            }.getPackages();
         }
 
+        @Nullable
         @Override
         public Package getPackage(ClassLoader classLoader, String name) {
-            return invoke(classLoader, "getPackage", getDefinedPackageMethodType, name);
+            return new ClassLoader(classLoader) {
+                // TODO: This is deprecated for a reason. We should consider migrating if possible.
+                @Override
+                @SuppressWarnings("deprecation")
+                protected Package getPackage(String name) {
+                    return super.getPackage(name);
+                }
+            }.getPackage(name);
         }
     }
 }

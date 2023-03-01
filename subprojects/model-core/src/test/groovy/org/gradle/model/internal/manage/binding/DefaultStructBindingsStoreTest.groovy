@@ -25,9 +25,11 @@ import org.gradle.model.Unmanaged
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaExtractor
 import org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore
 import org.gradle.model.internal.type.ModelType
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Specification
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
+import static org.junit.Assume.assumeTrue
 
 class DefaultStructBindingsStoreTest extends Specification {
     def schemaStore = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies())
@@ -528,7 +530,7 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
 
     @Managed
-    interface IsAllowedWithBoxedBoolean {
+    interface BoxedBoolean {
         Boolean isThing()
         void setThing(Boolean thing)
     }
@@ -541,10 +543,22 @@ class DefaultStructBindingsStoreTest extends Specification {
     }
 
     def "allows 'is' as a prefix for getter on non primitive Boolean in #type"() {
-        def bindings = extract(IsAllowedWithBoxedBoolean)
+        assumeTrue('This test requires bundled Groovy 3', VersionNumber.parse(GroovySystem.version).major == 3)
+        def bindings = extract(BoxedBoolean)
 
         expect:
         bindings.getManagedProperty("thing")
+    }
+
+    /**
+     * See <a href="https://issues.apache.org/jira/browse/GROOVY-10708">GROOVY-10708</a>
+     */
+    def "does not allow 'is' as a prefix for getter on non primitive Boolean in #type"() {
+        assumeTrue('This test requires bundled Groovy 4 or later', VersionNumber.parse(GroovySystem.version).major >= 4)
+        when: extract(BoxedBoolean)
+        then: def ex = thrown InvalidManagedTypeException
+        ex.message == """Type ${fullyQualifiedNameOf(BoxedBoolean)} is not a valid managed type:
+- Property 'thing' is not valid: it must both have an abstract getter and a setter"""
     }
 
     @Managed

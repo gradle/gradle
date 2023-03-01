@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.capitalize
 import gradlebuild.pluginpublish.extension.PluginPublishExtension
 import java.time.Year
 
@@ -24,10 +25,10 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
-extensions.create<PluginPublishExtension>("pluginPublish", gradlePlugin, pluginBundle)
+extensions.create<PluginPublishExtension>("pluginPublish", gradlePlugin)
 
 tasks.validatePlugins {
-    enableStricterValidation.set(true)
+    enableStricterValidation = true
 }
 
 // Remove gradleApi() and gradleTestKit() as we want to compile/run against Gradle modules
@@ -39,16 +40,18 @@ configurations.all {
     }
 }
 
-pluginBundle {
-    tags = listOf("Kotlin", "DSL")
-    website = "https://github.com/gradle/kotlin-dsl"
-    vcsUrl = "https://github.com/gradle/kotlin-dsl"
-}
-
 publishing.publications.withType<MavenPublication>().configureEach {
     if (name == "pluginMaven") {
         groupId = project.group.toString()
         artifactId = moduleIdentity.baseName.get()
+    }
+    pom {
+        licenses {
+            license {
+                name = "The Apache License, Version 2.0"
+                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            }
+        }
     }
 }
 
@@ -58,12 +61,13 @@ val localRepository = layout.buildDirectory.dir("repository")
 
 val publishPluginsToTestRepository by tasks.registering {
     dependsOn("publishPluginMavenPublicationToTestRepository")
+    val repoDir = localRepository // Prevent capturing the Gradle script instance for configuration cache compatibility
     // This should be unified with publish-public-libraries if possible
     doLast {
-        localRepository.get().asFileTree.matching { include("**/maven-metadata.xml") }.forEach {
+        repoDir.get().asFileTree.matching { include("**/maven-metadata.xml") }.forEach {
             it.writeText(it.readText().replace("\\Q<lastUpdated>\\E\\d+\\Q</lastUpdated>\\E".toRegex(), "<lastUpdated>${Year.now().value}0101000000</lastUpdated>"))
         }
-        localRepository.get().asFileTree.matching { include("**/*.module") }.forEach {
+        repoDir.get().asFileTree.matching { include("**/*.module") }.forEach {
             val content = it.readText()
                 .replace("\"buildId\":\\s+\"\\w+\"".toRegex(), "\"buildId\": \"\"")
                 .replace("\"size\":\\s+\\d+".toRegex(), "\"size\": 0")
@@ -76,15 +80,21 @@ val publishPluginsToTestRepository by tasks.registering {
     }
 }
 
+val futurePluginVersionsPropertiesFile = layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties")
 val writeFuturePluginVersions by tasks.registering(WriteProperties::class) {
-    outputFile = layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties").get().asFile
+    destinationFile = futurePluginVersionsPropertiesFile
 }
-sourceSets.main.get().output.dir(
-    writeFuturePluginVersions.map { it.outputFile.parentFile }
-)
-configurations.runtimeElements.get().outgoing {
-    variants.named("resources") {
-        artifact(writeFuturePluginVersions.map { it.outputFile.parentFile })
+val futurePluginVersionsDestDir = futurePluginVersionsPropertiesFile.map { it.asFile.parentFile }
+sourceSets.main {
+    output.dir(mapOf("builtBy" to writeFuturePluginVersions), futurePluginVersionsDestDir)
+}
+configurations.runtimeElements {
+    outgoing {
+        variants.named("resources") {
+            artifact(futurePluginVersionsDestDir) {
+                builtBy(writeFuturePluginVersions)
+            }
+        }
     }
 }
 
@@ -98,9 +108,14 @@ publishing {
 }
 
 gradlePlugin {
+    website = "https://github.com/gradle/gradle/tree/HEAD/subprojects/kotlin-dsl-plugins"
+    vcsUrl = "https://github.com/gradle/gradle/tree/HEAD/subprojects/kotlin-dsl-plugins"
+
     plugins.all {
 
         val plugin = this
+
+        tags.addAll("Kotlin", "DSL")
 
         publishPluginsToTestRepository.configure {
             dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")

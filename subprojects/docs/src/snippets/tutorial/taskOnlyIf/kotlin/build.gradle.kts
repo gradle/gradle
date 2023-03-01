@@ -5,5 +5,8 @@ val hello by tasks.registering {
 }
 
 hello {
-    onlyIf { !project.hasProperty("skipHello") }
+    val skipProvider = providers.gradleProperty("skipHello")
+    onlyIf("there is no property skipHello") {
+        !skipProvider.isPresent()
+    }
 }

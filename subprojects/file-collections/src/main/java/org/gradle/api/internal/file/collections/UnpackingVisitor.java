@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.ProviderResolutionStrategy;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.util.PatternSet;
@@ -45,14 +46,16 @@ public class UnpackingVisitor {
     private final Factory<PatternSet> patternSetFactory;
     private final boolean includeBuildable;
     private final ProviderResolutionStrategy providerResolutionStrategy;
+    private final TaskDependencyFactory taskDependencyFactory;
 
-    public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory) {
-        this(visitor, resolver, patternSetFactory, ProviderResolutionStrategy.REQUIRE_PRESENT, true);
+    public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+        this(visitor, resolver, taskDependencyFactory, patternSetFactory, ProviderResolutionStrategy.REQUIRE_PRESENT, true);
     }
 
-    public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, ProviderResolutionStrategy providerResolutionStrategy, boolean includeBuildable) {
+    public UnpackingVisitor(Consumer<FileCollectionInternal> visitor, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, ProviderResolutionStrategy providerResolutionStrategy, boolean includeBuildable) {
         this.visitor = visitor;
         this.resolver = resolver;
+        this.taskDependencyFactory = taskDependencyFactory;
         this.patternSetFactory = patternSetFactory;
         this.providerResolutionStrategy = providerResolutionStrategy;
         this.includeBuildable = includeBuildable;
@@ -65,13 +68,13 @@ public class UnpackingVisitor {
             return;
         }
         if (element instanceof DirectoryTree) {
-            visitor.accept(new FileTreeAdapter((MinimalFileTree) element, patternSetFactory));
+            visitor.accept(new FileTreeAdapter((MinimalFileTree) element, taskDependencyFactory, patternSetFactory));
             return;
         }
         if (element instanceof ProviderInternal) {
             // ProviderInternal is-a TaskDependencyContainer, so check first
             ProviderInternal<?> provider = (ProviderInternal<?>) element;
-            visitor.accept(new ProviderBackedFileCollection(provider, resolver, patternSetFactory, providerResolutionStrategy));
+            visitor.accept(new ProviderBackedFileCollection(provider, resolver, taskDependencyFactory, patternSetFactory, providerResolutionStrategy));
             return;
         }
         if (includeBuildable && (element instanceof Buildable || element instanceof TaskDependencyContainer)) {
@@ -108,7 +111,7 @@ public class UnpackingVisitor {
     }
 
     private void visitSingleFile(Object element) {
-        visitor.accept(new SingleFileResolvingFileCollection(element, resolver, patternSetFactory));
+        visitor.accept(new SingleFileResolvingFileCollection(element, resolver, taskDependencyFactory, patternSetFactory));
     }
 
     private static class SingleFileResolvingFileCollection extends AbstractOpaqueFileCollection {
@@ -116,8 +119,8 @@ public class UnpackingVisitor {
         private final PathToFileResolver resolver;
         private File resolved;
 
-        public SingleFileResolvingFileCollection(Object element, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory) {
-            super(patternSetFactory);
+        public SingleFileResolvingFileCollection(Object element, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+            super(taskDependencyFactory, patternSetFactory);
             this.element = element;
             this.resolver = resolver;
         }
@@ -160,7 +163,7 @@ public class UnpackingVisitor {
 
         @Override
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-            new UnpackingVisitor(visitor, resolver, patternSetFactory, ProviderResolutionStrategy.REQUIRE_PRESENT, false).add(element);
+            new UnpackingVisitor(visitor, resolver, taskDependencyFactory, patternSetFactory, ProviderResolutionStrategy.REQUIRE_PRESENT, false).add(element);
         }
     }
 }

@@ -25,8 +25,8 @@ import com.google.common.collect.Maps;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
-import org.apache.tools.zip.ZipEntry;
-import org.apache.tools.zip.ZipFile;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
 import org.gradle.cache.internal.FileContentCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
@@ -57,7 +57,7 @@ public class AnnotationProcessorDetector {
     private final boolean logStackTraces;
 
     public AnnotationProcessorDetector(FileContentCacheFactory cacheFactory, Logger logger, boolean logStackTraces) {
-        this.cache = cacheFactory.newCache("annotation-processors", 20000, new ProcessorServiceLocator(), new ListSerializer<AnnotationProcessorDeclaration>(AnnotationProcessorDeclarationSerializer.INSTANCE));
+        this.cache = cacheFactory.newCache("annotation-processors", 20000, new ProcessorServiceLocator(), new ListSerializer<>(AnnotationProcessorDeclarationSerializer.INSTANCE));
         this.logger = logger;
         this.logStackTraces = logStackTraces;
     }
@@ -99,7 +99,7 @@ public class AnnotationProcessorDetector {
                     return toProcessorDeclarations(processorClassNames, processorTypes);
                 } catch (Exception e) {
                     logger.warn("Could not read annotation processor declarations from " + classesDir + ". Gradle will assume that all processors in this directory are non-incremental.", logStackTraces ? e : null);
-                    return toProcessorDeclarations(processorClassNames, Collections.<String, IncrementalAnnotationProcessorType>emptyMap());
+                    return toProcessorDeclarations(processorClassNames, Collections.emptyMap());
                 }
             } catch (Exception e) {
                 logger.warn("Could not read annotation processor declarations from " + classesDir + ". Gradle will assume that this directory contains no annotation processors.", logStackTraces ? e : null);
@@ -138,7 +138,7 @@ public class AnnotationProcessorDetector {
                         return toProcessorDeclarations(processorClassNames, processorTypes);
                     } catch (Exception e) {
                         logger.warn("Could not read annotation processor declarations from " + jar + ". Gradle will assume that all processors in this jar are non-incremental.", logStackTraces ? e : null);
-                        return toProcessorDeclarations(processorClassNames, Collections.<String, IncrementalAnnotationProcessorType>emptyMap());
+                        return toProcessorDeclarations(processorClassNames, Collections.emptyMap());
                     }
                 } finally {
                     zipFile.close();
@@ -150,7 +150,7 @@ public class AnnotationProcessorDetector {
         }
 
         private List<String> getProcessorClassNames(ZipFile zipFile) throws IOException {
-            ZipEntry processorDeclaration = zipFile.getEntry(PROCESSOR_DECLARATION);
+            ZipArchiveEntry processorDeclaration = zipFile.getEntry(PROCESSOR_DECLARATION);
             if (processorDeclaration == null) {
                 return Collections.emptyList();
             }
@@ -158,7 +158,7 @@ public class AnnotationProcessorDetector {
         }
 
         private Map<String, IncrementalAnnotationProcessorType> getProcessorTypes(ZipFile zipFile) throws IOException {
-            ZipEntry incrementalProcessorDeclaration = zipFile.getEntry(INCREMENTAL_PROCESSOR_DECLARATION);
+            ZipArchiveEntry incrementalProcessorDeclaration = zipFile.getEntry(INCREMENTAL_PROCESSOR_DECLARATION);
             if (incrementalProcessorDeclaration == null) {
                 return Collections.emptyMap();
             }
@@ -166,7 +166,7 @@ public class AnnotationProcessorDetector {
             return parseIncrementalProcessors(lines);
         }
 
-        private List<String> readLines(ZipFile zipFile, ZipEntry zipEntry) throws IOException {
+        private List<String> readLines(ZipFile zipFile, ZipArchiveEntry zipEntry) throws IOException {
             InputStream in = zipFile.getInputStream(zipEntry);
             try {
                 return CharStreams.readLines(new InputStreamReader(in, Charsets.UTF_8), new MetadataLineProcessor());

@@ -27,7 +27,7 @@ import org.gradle.tooling.events.OperationType
 import org.gradle.util.GradleVersion
 
 @ToolingApiVersion('>=5.1')
-@TargetGradleVersion('>=5.1')
+@TargetGradleVersion('>=5.4')
 class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
     def events = ProgressEvents.create()
@@ -37,6 +37,8 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
             include 'lib', 'app'
         """
         buildFile << """
+            import org.gradle.api.artifacts.transform.TransformParameters
+
             def artifactType = Attribute.of('artifactType', String)
             subprojects {
                 apply plugin: 'java'
@@ -188,11 +190,14 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
     private static String getFileSizer() {
         """
-            class FileSizer extends ArtifactTransform {
-                List<File> transform(File input) {
-                    def output = new File(outputDirectory, input.name + ".txt")
+            abstract class FileSizer implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    def output = outputs.file(input.name + ".txt")
                     output.text = String.valueOf(input.length())
-                    return [output]
                 }
             }
         """
@@ -200,11 +205,14 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
     def getFileNamer() {
         """
-            class FileNamer extends ArtifactTransform {
-                List<File> transform(File input) {
-                    def output = new File(outputDirectory, input.name + ".txt")
+            abstract class FileNamer implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    def output = outputs.file(input.name + ".txt")
                     output.text = String.valueOf(input.name)
-                    return [output]
                 }
             }
         """
@@ -212,8 +220,8 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
     def getBrokenTransform(String message) {
         """
-            class BrokenTransform extends ArtifactTransform {
-                List<File> transform(File input) {
+            abstract class BrokenTransform implements TransformAction<TransformParameters.None> {
+                void transform(TransformOutputs outputs) {
                     throw new GradleException("$message")
                 }
             }
@@ -223,10 +231,9 @@ class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
     def registerTransform(String transformImplementation, String from = "jar", String to = "size") {
         """
             dependencies {
-                registerTransform {
+                registerTransform($transformImplementation) {
                     from.attribute(artifactType, '$from')
                     to.attribute(artifactType, '$to')
-                    artifactTransform($transformImplementation)
                 }
             }
         """

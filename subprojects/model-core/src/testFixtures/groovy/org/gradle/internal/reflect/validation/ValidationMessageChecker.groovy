@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect.validation
 
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.services.BuildService
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -166,11 +167,27 @@ trait ValidationMessageChecker {
     )
     String incorrectUseOfInputAnnotation(@DelegatesTo(value = IncorrectUseOfInputAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(IncorrectUseOfInputAnnotation, 'incorrect_use_of_input_annotation', spec)
-        config.description("has @Input annotation used on property of type '${config.propertyType}'")
+        def incorrectUseOfInputAnnotation = config.description("has @Input annotation used on property of type '${config.propertyType}'")
             .reason("A property of type '${config.propertyType}' annotated with @Input cannot determine how to interpret the file")
-            .solution("Annotate with @InputFile for regular files")
-            .solution("Annotate with @InputDirectory for directories")
-            .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
+        if (config.propertyType == "DirectoryProperty" || config.propertyType == "Directory") {
+            return incorrectUseOfInputAnnotation.solution("Annotate with @InputDirectory for directories").render()
+        } else {
+            return incorrectUseOfInputAnnotation.solution("Annotate with @InputFile for regular files")
+                .solution("Annotate with @InputFiles for collections of files")
+                .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
+                .render()
+        }
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE
+    )
+    String serviceReferenceMustBeABuildService(@DelegatesTo(value = UnsupportedServiceReferenceType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(UnsupportedServiceReferenceType, 'service_reference_must_be_a_build_service', spec)
+        config.description("has @ServiceReference annotation used on property of type '${config.propertyType}' which is not a build service implementation")
+            .reason("A property annotated with @ServiceReference must be of a type that implements '${BuildService.class.name}'")
+            .solution("Make '${config.propertyType}' implement '${BuildService.class.name}'")
+            .solution("Replace the @ServiceReference annotation on '${config.property}' with @Internal and assign a value of type '${config.propertyType}' explicitly")
             .render()
     }
 
@@ -183,17 +200,6 @@ trait ValidationMessageChecker {
             .reason("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
             .solution("Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath")
             .render()
-    }
-
-    @ValidationTestFor(
-        ValidationProblemId.UNRESOLVABLE_INPUT
-    )
-    String unresolvableInput(@DelegatesTo(value = UnresolvableInput, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}, boolean renderSolutions = true) {
-        def config = display(UnresolvableInput, 'unresolvable_input', spec)
-        config.description("cannot be resolved: ${config.conversionProblem}")
-            .reason("An input file collection couldn't be resolved, making it impossible to determine task inputs")
-            .solution("Consider using Task.dependsOn instead")
-            .render(renderSolutions)
     }
 
     @ValidationTestFor(
@@ -371,26 +377,9 @@ trait ValidationMessageChecker {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
-    )
-    String notCacheableWithoutReason(@DelegatesTo(value = NotCacheableWithoutReason, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        def config = display(NotCacheableWithoutReason, "disable_caching_by_default", spec)
-        config.description("must be annotated either with ${config.cacheableAnnotation} or with @DisableCachingByDefault.")
-            .reason("The ${config.workType} author should make clear why a ${config.workType} is not cacheable.")
-            .solution("Add @DisableCachingByDefault(because = ...)")
-            .solution("Add ${config.cacheableAnnotation}.")
-
-        config.otherAnnotations.each { annotation ->
-            config.solution("Add ${annotation}.")
-        }
-
-        config.render()
-    }
-
-    @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
-    String dummyValidationProblem(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
+    String dummyValidationProblem(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
         display(SimpleMessage, 'dummy') {
             type(onType).property(onProperty)
             description(desc)
@@ -401,7 +390,7 @@ trait ValidationMessageChecker {
     @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
-    String dummyValidationProblemWithLink(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
+    String dummyValidationProblemWithLink(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
         display(SimpleMessage, 'dummy') {
             type(onType).property(onProperty)
             description(desc)
@@ -425,13 +414,24 @@ trait ValidationMessageChecker {
         }.render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.UNSUPPORTED_VALUE_TYPE
+    )
+    String unsupportedValueType(@DelegatesTo(value = UnsupportedValueType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(UnsupportedValueType, "unsupported_value_type", spec)
+        config.description("has @${config.annotationType} annotation used on property of type '${config.propertyType}'")
+            .reason("${config.unsupportedValueType} is not supported on task properties annotated with @${config.annotationType}.")
+        config.render()
+    }
+
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
                                                                    String message,
-                                                                   String docId = 'more_about_tasks',
-                                                                   String section = 'sec:up_to_date_checks') {
+                                                                   String docId = "incremental_build",
+                                                                   String section = "") {
         String asSingleLine = convertToSingleLine(message)
         String deprecationMessage = asSingleLine + (asSingleLine.endsWith(" ") ? '' : ' ') +
-            "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+            "This behavior has been deprecated. " +
+            "This behavior is scheduled to be removed in Gradle 9.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
             "See https://docs.gradle.org/current/userguide/${docId}.html#${section} for more details."
         executer.expectDocumentedDeprecationWarning(deprecationMessage)
@@ -828,12 +828,12 @@ trait ValidationMessageChecker {
         }
 
         AnnotationContext forTransformParameters() {
-            validAnnotations = "@Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested or @ReplacedBy"
+            validAnnotations = "@Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference"
             this
         }
 
         AnnotationContext forTask() {
-            validAnnotations = "@Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles or @ReplacedBy"
+            validAnnotations = "@Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles, @ReplacedBy or @ServiceReference"
             this
         }
     }
@@ -926,4 +926,36 @@ trait ValidationMessageChecker {
         }
     }
 
+    static class UnsupportedValueType extends ValidationMessageDisplayConfiguration<UnsupportedValueType> {
+
+        String annotationType
+        String propertyType
+        String unsupportedValueType
+
+        UnsupportedValueType(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        UnsupportedValueType annotationType(String annotationType) {
+            this.annotationType = annotationType
+            this
+        }
+
+        UnsupportedValueType propertyType(String propertyType) {
+            this.propertyType = propertyType
+            this
+        }
+
+        UnsupportedValueType unsupportedValueType(String unsupportedValueType) {
+            this.unsupportedValueType = unsupportedValueType
+            this
+        }
+    }
+
+    static class UnsupportedServiceReferenceType extends ValidationMessageDisplayConfiguration<UnsupportedServiceReferenceType> {
+
+        UnsupportedServiceReferenceType(ValidationMessageChecker checker) {
+            super(checker)
+        }
+    }
 }

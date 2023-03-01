@@ -25,7 +25,7 @@ import org.gradle.work.DisableCachingByDefault;
  * Compiles Objective C++ header source files into object files.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class ObjectiveCppPreCompiledHeaderCompile extends AbstractNativePCHCompileTask {
+public abstract class ObjectiveCppPreCompiledHeaderCompile extends AbstractNativePCHCompileTask {
     @Override
     protected NativeCompileSpec createCompileSpec() {
         return new DefaultObjectiveCppPCHCompileSpec();

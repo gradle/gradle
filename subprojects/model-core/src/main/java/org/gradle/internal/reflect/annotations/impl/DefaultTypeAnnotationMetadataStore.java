@@ -29,8 +29,8 @@ import com.google.common.collect.SetMultimap;
 import org.gradle.api.Action;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
@@ -59,8 +59,8 @@ import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
-import static org.gradle.internal.reflect.AnnotationCategory.TYPE;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
+import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadataStore {
@@ -180,7 +180,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     @Override
     public TypeAnnotationMetadata getTypeAnnotationMetadata(Class<?> type) {
-        return cache.get(type, () -> createTypeAnnotationMetadata(type));
+        return cache.get(type, this::createTypeAnnotationMetadata);
     }
 
     private TypeAnnotationMetadata createTypeAnnotationMetadata(Class<?> type) {
@@ -225,7 +225,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private void inheritMethods(Class<?> type, TypeValidationContext validationContext, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
         visitSuperTypes(type, (superType, metadata) -> {
             for (PropertyAnnotationMetadata property : metadata.getPropertiesAnnotationMetadata()) {
-                getOrCreateBuilder(property.getPropertyName(), property.getMethod(), validationContext, methodBuilders)
+                getOrCreateBuilder(property.getPropertyName(), property.getGetter(), validationContext, methodBuilders)
                     .inheritAnnotations(superType.isInterface(), property);
             }
         });
@@ -251,7 +251,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private ImmutableList<PropertyAnnotationMetadataBuilder> convertMethodToPropertyBuilders(Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
         Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders = new LinkedHashMap<>();
         List<PropertyAnnotationMetadataBuilder> metadataBuilders = Ordering.<PropertyAnnotationMetadataBuilder>from(
-            comparing(metadataBuilder -> metadataBuilder.getMethod().getName()))
+            comparing(metadataBuilder -> metadataBuilder.getGetter().getName()))
             .sortedCopy(methodBuilders.values());
         for (PropertyAnnotationMetadataBuilder metadataBuilder : metadataBuilders) {
             String propertyName = metadataBuilder.getPropertyName();
@@ -259,7 +259,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             // Do we have an 'is'-getter as well as a 'get'-getter?
             if (previouslySeenBuilder != null) {
                 // It is okay to have redundant generated 'is'-getters
-                if (generatedMethodDetector.test(metadataBuilder.method)) {
+                if (generatedMethodDetector.test(metadataBuilder.getter)) {
                     continue;
                 }
                 // The 'is'-getter is ignored, we can skip it in favor of the 'get'-getter
@@ -278,8 +278,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         .reportAs(ERROR)
                         .forProperty(propertyName)
                         .withDescription(() -> String.format("has redundant getters: '%s()' and '%s()'",
-                            previouslySeenBuilder.method.getName(),
-                            metadataBuilder.method.getName()))
+                            previouslySeenBuilder.getter.getName(),
+                            metadataBuilder.getter.getName()))
                         .happensBecause(() -> "Boolean property '" + propertyName + "' has both an `is` and a `get` getter")
                         .withLongDescription("Different annotations on the different getters cause problems on what to track as inputs")
                         .addPossibleSolution("Remove one of the getters")
@@ -511,7 +511,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private class PropertyAnnotationMetadataBuilder implements Comparable<PropertyAnnotationMetadataBuilder> {
         private final String propertyName;
-        private Method method;
+        private Method getter;
         private final ListMultimap<AnnotationCategory, Annotation> declaredAnnotations = MultimapBuilder
             .treeKeys(comparing(AnnotationCategory::getDisplayName))
             .arrayListValues()
@@ -526,9 +526,9 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             .build();
         private final TypeValidationContext validationContext;
 
-        public PropertyAnnotationMetadataBuilder(String propertyName, Method method, TypeValidationContext validationContext) {
+        public PropertyAnnotationMetadataBuilder(String propertyName, Method getter, TypeValidationContext validationContext) {
             this.propertyName = propertyName;
-            this.method = method;
+            this.getter = getter;
             this.validationContext = validationContext;
         }
 
@@ -536,12 +536,12 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             return propertyName;
         }
 
-        public Method getMethod() {
-            return method;
+        public Method getGetter() {
+            return getter;
         }
 
         public void overrideMethod(Method method) {
-            this.method = method;
+            this.getter = method;
         }
 
         public void declareAnnotation(Annotation annotation) {
@@ -561,7 +561,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         public PropertyAnnotationMetadata build() {
-            return new DefaultPropertyAnnotationMetadata(propertyName, method, resolveAnnotations());
+            return new DefaultPropertyAnnotationMetadata(propertyName, getter, resolveAnnotations());
         }
 
         private ImmutableMap<AnnotationCategory, Annotation> resolveAnnotations() {

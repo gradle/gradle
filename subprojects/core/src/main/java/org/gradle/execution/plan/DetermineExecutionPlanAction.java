@@ -17,20 +17,22 @@
 package org.gradle.execution.plan;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.properties.OutputFilePropertyType;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.io.StringWriter;
@@ -40,6 +42,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -85,20 +88,21 @@ class DetermineExecutionPlanAction {
         this.finalizers = finalizers;
     }
 
-    public void run() {
+    public ImmutableList<Node> run() {
         updateFinalizerGroups();
         processEntryNodes();
         processNodeQueue();
-        createOrdinalRelationships();
-
-        ordinalNodeAccess.createInterNodeRelationships();
-        nodeMapping.addAll(ordinalNodeAccess.getAllNodes());
+        return createOrdinalRelationshipsAndCollectNodes();
     }
 
+    /**
+     * Create the finalizer group for each finalizer and propagate these groups down to all dependencies.
+     */
     private void updateFinalizerGroups() {
         if (finalizers.isEmpty()) {
             return;
         }
+
         // Collect the finalizers and their dependencies so that each node is ordered before all of its dependencies
         LinkedList<Node> nodes = new LinkedList<>();
         Set<Node> visiting = new HashSet<>();
@@ -106,8 +110,8 @@ class DetermineExecutionPlanAction {
         Deque<Node> queue = new ArrayDeque<>(finalizers);
         while (!queue.isEmpty()) {
             Node node = queue.peek();
-            if (visited.contains(node)) {
-                // Already visited node, skip
+            if (node.isCannotRunInAnyPlan() || visited.contains(node)) {
+                // Already visited node or node cannot execute (eg has already executed), skip
                 queue.remove();
             } else if (visiting.add(node)) {
                 // Haven't seen this node
@@ -122,10 +126,10 @@ class DetermineExecutionPlanAction {
                 nodes.addFirst(node);
             }
         }
+
         for (Node node : nodes) {
-            node.updateGroupOfFinalizer();
+            node.maybeInheritFinalizerGroups();
         }
-        finalizers.clear();
     }
 
     private void processEntryNodes() {
@@ -166,7 +170,8 @@ class DetermineExecutionPlanAction {
                     addFinalizerToQueue(visitingSegmentCounter++, finalizer);
                 }
 
-                for (Node successor : node.getAllSuccessorsInReverseOrder()) {
+                ListIterator<NodeInVisitingSegment> insertPoint = nodeQueue.listIterator();
+                for (Node successor : node.getAllSuccessors()) {
                     if (visitingNodes.containsEntry(successor, currentSegment)) {
                         if (!walkedShouldRunAfterEdges.isEmpty()) {
                             //remove the last walked should run after edge and restore state from before walking it
@@ -183,7 +188,7 @@ class DetermineExecutionPlanAction {
                             onOrderingCycle(successor, node);
                         }
                     }
-                    nodeQueue.addFirst(new NodeInVisitingSegment(successor, currentSegment));
+                    insertPoint.add(new NodeInVisitingSegment(successor, currentSegment));
                 }
                 path.push(node);
             } else {
@@ -193,19 +198,20 @@ class DetermineExecutionPlanAction {
                 visitingNodes.remove(node, currentSegment);
                 path.pop();
                 nodeMapping.add(node);
-
-                for (Node dependency : node.getDependencySuccessors()) {
-                    dependency.getMutationInfo().consumingNodes.add(node);
-                }
             }
         }
     }
 
-    private void createOrdinalRelationships() {
+    private ImmutableList<Node> createOrdinalRelationshipsAndCollectNodes() {
+        ImmutableList.Builder<Node> scheduledNodes = ImmutableList.builderWithExpectedSize(nodeMapping.size());
         for (Node node : nodeMapping) {
             node.maybeUpdateOrdinalGroup();
-            createOrdinalRelationships(node);
+            createOrdinalRelationships(node, scheduledNodes);
+            scheduledNodes.add(node);
         }
+
+        nodeMapping.addAll(ordinalNodeAccess.getAllNodes());
+        return scheduledNodes.build();
     }
 
     private void addFinalizerToQueue(int visitingSegmentCounter, Node finalizer) {
@@ -292,12 +298,7 @@ class DetermineExecutionPlanAction {
 
     private List<Set<Node>> findCycles(Node successor) {
         CachingDirectedGraphWalker<Node, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> {
-            connectedNodes.addAll(node.getDependencySuccessors());
-            if (node instanceof TaskNode) {
-                TaskNode taskNode = (TaskNode) node;
-                connectedNodes.addAll(taskNode.getMustSuccessors());
-                connectedNodes.addAll(taskNode.getFinalizingSuccessors());
-            }
+            node.getHardSuccessors().forEach(connectedNodes::add);
         });
         graphWalker.add(successor);
         return graphWalker.findCycles();
@@ -310,7 +311,8 @@ class DetermineExecutionPlanAction {
             (it, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(it),
             (it, values, connectedNodes) -> {
                 for (Node dependency : cycle) {
-                    if (it.hasHardSuccessor(dependency)) {
+                    Set<Node> successors = Sets.newHashSet(it.getHardSuccessors());
+                    if (dependency instanceof TaskNode && successors.contains(dependency)) {
                         connectedNodes.add(dependency);
                     }
                 }
@@ -320,8 +322,8 @@ class DetermineExecutionPlanAction {
         return writer;
     }
 
-    private void createOrdinalRelationships(Node node) {
-        if (!(node instanceof TaskNode)) {
+    private void createOrdinalRelationships(Node node, ImmutableList.Builder<Node> scheduleBuilder) {
+        if (!(node instanceof LocalTaskNode)) {
             return;
         }
 
@@ -330,36 +332,20 @@ class DetermineExecutionPlanAction {
             return;
         }
 
-        TaskNode taskNode = (TaskNode) node;
+        LocalTaskNode taskNode = (LocalTaskNode) node;
         TaskClassifier taskClassifier = classifyTask(taskNode);
 
         if (taskClassifier.isDestroyer()) {
-            // Create (or get) a destroyer ordinal node that depends on the dependencies of this task node
-            OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateDestroyableLocationNode(ordinal);
-            ordinalNode.addDependenciesFrom(taskNode);
-
-            Node precedingProducersNode = ordinalNodeAccess.getPrecedingProducerLocationNode(ordinal);
-            if (precedingProducersNode != null) {
-                // Depend on any previous producer ordinal nodes (i.e. any producer ordinal nodes with a lower ordinal)
-                taskNode.addDependencySuccessor(precedingProducersNode);
-            }
+            ordinalNodeAccess.addDestroyerNode(ordinal, taskNode, scheduleBuilder::add);
         } else if (taskClassifier.isProducer()) {
-            // Create (or get) a producer ordinal node that depends on the dependencies of this task node
-            OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateOutputLocationNode(ordinal);
-            ordinalNode.addDependenciesFrom(taskNode);
-
-            Node precedingDestroyersNode = ordinalNodeAccess.getPrecedingDestroyerLocationNode(ordinal);
-            if (precedingDestroyersNode != null) {
-                // Depend on any previous destroyer ordinal nodes (i.e. any destroyer ordinal nodes with a lower ordinal)
-                taskNode.addDependencySuccessor(precedingDestroyersNode);
-            }
+            ordinalNodeAccess.addProducerNode(ordinal, taskNode, scheduleBuilder::add);
         }
     }
 
     /**
      * Walk the properties of the task to determine if it is a destroyer or a producer (or neither).
      */
-    private TaskClassifier classifyTask(TaskNode taskNode) {
+    private TaskClassifier classifyTask(LocalTaskNode taskNode) {
         TaskClassifier taskClassifier = new TaskClassifier();
         TaskInternal task = taskNode.getTask();
 
@@ -386,7 +372,7 @@ class DetermineExecutionPlanAction {
         return ((ProjectInternal) task.getProject()).getServices().get(PropertyWalker.class);
     }
 
-    private static class TaskClassifier extends PropertyVisitor.Adapter {
+    private static class TaskClassifier implements PropertyVisitor {
         private boolean isProducer;
         private boolean isDestroyer;
 

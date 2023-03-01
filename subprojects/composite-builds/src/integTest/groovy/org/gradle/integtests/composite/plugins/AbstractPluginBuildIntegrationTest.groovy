@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite.plugins
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
@@ -175,7 +174,9 @@ abstract class AbstractPluginBuildIntegrationTest extends AbstractIntegrationSpe
                 }
             }
         """
+
         executer.inDirectory(file("plugin")).withTasks("publish").run()
+
         file("plugin").forceDeleteDir()
         mavenRepo.module("com.example", "plugin", "1.0").assertPublished()
     }

@@ -38,7 +38,7 @@ class WindowsInstallationSupplierTest extends Specification {
         0 * registry._
     }
 
-    def "finds adoptopenjdk homes"() {
+    def "finds openjdk homes"() {
         given:
         registry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, "SOFTWARE\\AdoptOpenJDK\\JDK") >> [
             "8.0",
@@ -46,6 +46,21 @@ class WindowsInstallationSupplierTest extends Specification {
         ]
         registry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, "SOFTWARE\\AdoptOpenJDK\\JDK\\8.0\\hotspot\\MSI", "Path") >> "c:\\jdk8"
         registry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, "SOFTWARE\\AdoptOpenJDK\\JDK\\9.0-abc\\hotspot\\MSI", "Path") >> "d:\\jdk9"
+
+        registry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, "SOFTWARE\\Eclipse Adoptium\\JDK") >> [
+            "17.0.3-7",
+            "11.0.15-10",
+        ]
+        registry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, "SOFTWARE\\Eclipse Adoptium\\JDK\\17.0.3-7\\hotspot\\MSI", "Path") >> "c:\\jdk17"
+        registry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, "SOFTWARE\\Eclipse Adoptium\\JDK\\11.0.15-10\\hotspot\\MSI", "Path") >> "d:\\jdk11"
+
+        registry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, "SOFTWARE\\Eclipse Foundation\\JDK") >> [
+            "15.0-abc",
+            "16.0-def",
+        ]
+        registry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, "SOFTWARE\\Eclipse Foundation\\JDK\\15.0-abc\\hotspot\\MSI", "Path") >> "c:\\jdk15"
+        registry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, "SOFTWARE\\Eclipse Foundation\\JDK\\16.0-def\\hotspot\\MSI", "Path") >> "d:\\jdk16"
+
         registry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, _) >> { throw new MissingRegistryEntryException() }
         def supplier = createSupplier()
 
@@ -53,8 +68,8 @@ class WindowsInstallationSupplierTest extends Specification {
         def locations = supplier.get()
 
         then:
-        locations*.location.path.containsAll("c:\\jdk8", "d:\\jdk9")
-        locations*.source == ["Windows Registry", "Windows Registry"]
+        locations*.location.path.containsAll("c:\\jdk8", "d:\\jdk9", "c:\\jdk17", "d:\\jdk11", "c:\\jdk15", "d:\\jdk16")
+        locations*.source == ["Windows Registry"] * 6
     }
 
     def "handles absent adoptopenjdk keys"() {

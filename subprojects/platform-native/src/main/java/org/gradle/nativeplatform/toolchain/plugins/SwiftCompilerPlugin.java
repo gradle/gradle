@@ -44,7 +44,7 @@ import org.gradle.process.internal.ExecActionFactory;
  */
 @Incubating
 @NonNullApi
-public class SwiftCompilerPlugin implements Plugin<Project> {
+public abstract class SwiftCompilerPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {

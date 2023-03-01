@@ -54,7 +54,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
-        file("gradle/wrapper/gradle-wrapper.jar").length() < 60 * 1024
+        file("gradle/wrapper/gradle-wrapper.jar").length() < 61 * 1024
     }
 
     def "generated wrapper scripts for given version from command-line"() {
@@ -71,7 +71,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(file("second")).withTasks("wrapper").run()
 
         then: "the checksum should be constant (unless there are code changes)"
-        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("b95314dbc8c92954d14d1b8e8c14eab50e7a599468fbb2e9fae81ec1f4fafc0a")
+        Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("ed2c26eba7cfb93cc2b7785d05e534f07b5b48b5e7fc941921cd098628abca58")
 
         and:
         file("first/gradle/wrapper/gradle-wrapper.jar").md5Hash == file("second/gradle/wrapper/gradle-wrapper.jar").md5Hash
@@ -133,6 +133,14 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionSha256Sum=somehash")
+    }
+
+    def "generated wrapper scripts for given network timeout from command-line"() {
+        when:
+        run "wrapper", "--network-timeout", "7000"
+
+        then:
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("networkTimeout=7000")
     }
 
     def "wrapper JAR does not contain version in manifest"() {

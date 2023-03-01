@@ -133,7 +133,7 @@ class ProjectBuilderTest extends Specification {
 
     def "Can trigger afterEvaluate programmatically"() {
         setup:
-        def latch = new AtomicBoolean(false)
+        def latch = new AtomicBoolean()
 
         when:
         def project = buildProject()
@@ -153,7 +153,7 @@ class ProjectBuilderTest extends Specification {
     @Issue("GRADLE-3136")
     def "Can trigger afterEvaluate programmatically after calling getTasksByName"() {
         setup:
-        def latch = new AtomicBoolean(false)
+        def latch = new AtomicBoolean()
 
         when:
         def project = buildProject()

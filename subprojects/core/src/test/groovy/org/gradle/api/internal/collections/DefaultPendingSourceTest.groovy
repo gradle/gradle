@@ -19,10 +19,12 @@ package org.gradle.api.internal.collections
 import org.gradle.api.Action
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSupplier
-import spock.lang.Specification
 
-class DefaultPendingSourceTest extends Specification {
-    def pending = new DefaultPendingSource()
+class DefaultPendingSourceTest extends PendingSourceSpec {
+
+    DefaultPendingSource<CharSequence> source = new DefaultPendingSource<>()
+
+    def pending = source
     def provider1 = Mock(ProviderInternal)
     def provider2 = Mock(ProviderInternal)
     def provider3 = Mock(ProviderInternal)

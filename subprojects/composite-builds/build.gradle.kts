@@ -32,4 +32,4 @@ dependencies {
     }
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true

@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Options for the ScalaDoc tool.
  */
-public class ScalaDocOptions extends AbstractOptions {
+public abstract class ScalaDocOptions extends AbstractOptions {
     private boolean deprecation = true;
     private boolean unchecked = true;
     private String windowTitle;

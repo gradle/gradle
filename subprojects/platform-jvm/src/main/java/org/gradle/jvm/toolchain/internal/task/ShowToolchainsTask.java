@@ -25,7 +25,7 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
+import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
@@ -42,7 +42,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 @UntrackedTask(because = "Produces only non-cacheable console output")
-public class ShowToolchainsTask extends DefaultTask {
+public abstract class ShowToolchainsTask extends DefaultTask {
 
     private static final Comparator<ReportableToolchain> TOOLCHAIN_COMPARATOR = Comparator
         .<ReportableToolchain, String>comparing(t -> t.metadata.getDisplayName())
@@ -101,7 +101,7 @@ public class ShowToolchainsTask extends DefaultTask {
     }
 
     private ReportableToolchain asReportableToolchain(InstallationLocation location) {
-        JvmInstallationMetadata metadata = getMetadataDetector().getMetadata(location.getLocation());
+        JvmInstallationMetadata metadata = getMetadataDetector().getMetadata(location);
         return new ReportableToolchain(metadata, location);
     }
 

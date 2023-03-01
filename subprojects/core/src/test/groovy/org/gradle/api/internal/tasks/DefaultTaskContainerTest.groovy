@@ -27,6 +27,7 @@ import org.gradle.api.UnknownTaskException
 import org.gradle.api.internal.AbstractPolymorphicDomainObjectContainerSpec
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
@@ -57,7 +58,12 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         getGradle() >> Mock(GradleInternal) {
             getIdentityPath() >> Path.path(":")
         }
+        getOwner() >> Mock(ProjectState) {
+            getDepth() >> 0
+            getProjectPath() >> Path.path(":project")
+        }
         getServices() >> Mock(ServiceRegistry)
+        getTaskDependencyFactory() >> TestFiles.taskDependencyFactory()
         getObjects() >> Stub(ObjectFactory)
     }
     private taskCount = 1

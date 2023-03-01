@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures.executer;
+package org.gradle.integtests.fixtures.executer
 
-import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLayout;
-import org.gradle.cache.internal.CacheVersion;
-import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.test.fixtures.file.TestDirectoryProvider;
-import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.util.GradleVersion;
+import org.gradle.api.JavaVersion
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.cache.internal.CacheVersion
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 
 class DefaultGradleDistribution implements GradleDistribution {
     private static final String DISABLE_HIGHEST_JAVA_VERSION = "org.gradle.java.version.disableHighest";
@@ -80,54 +80,69 @@ class DefaultGradleDistribution implements GradleDistribution {
     private boolean doesWorkWith(JavaVersion javaVersion) {
         // 0.9-rc-1 was broken for Java 5
         if (isVersion("0.9-rc-1") && javaVersion == JavaVersion.VERSION_1_5) {
-            return false;
+            return false
         }
 
         if (isSameOrOlder("1.0")) {
-            return javaVersion.compareTo(JavaVersion.VERSION_1_5) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_7) <= 0;
+            return javaVersion >= JavaVersion.VERSION_1_5 && javaVersion <= JavaVersion.VERSION_1_7
         }
 
         // 1.x works on Java 5 - 8
         if (isSameOrOlder("1.12")) {
-            return javaVersion.compareTo(JavaVersion.VERSION_1_5) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
+            return javaVersion >= JavaVersion.VERSION_1_5 && javaVersion <= JavaVersion.VERSION_1_8
         }
 
         // 2.x and 3.0-milestone-1 work on Java 6 - 8
         if (isSameOrOlder("3.0-milestone-1")) {
-            return javaVersion.compareTo(JavaVersion.VERSION_1_6) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
+            return javaVersion >= JavaVersion.VERSION_1_6 && javaVersion <= JavaVersion.VERSION_1_8
         }
 
         // 3.x - 4.6 works on Java 7 - 8
         if (isSameOrOlder("4.6")) {
-            return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
+            return javaVersion >= JavaVersion.VERSION_1_7 && javaVersion <= JavaVersion.VERSION_1_8
         }
 
         if (isSameOrOlder("4.11")) {
-            return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_10) <= 0;
+            return javaVersion >= JavaVersion.VERSION_1_7 && javaVersion <= JavaVersion.VERSION_1_10
         }
 
         // 5.4 officially added support for JDK 12, but it worked before then.
         if (isSameOrOlder("5.7")) {
-            return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_12) <= 0;
+            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_12
         }
 
         if (isSameOrOlder("6.0")) {
-            return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_13) <= 0;
+            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_13
         }
 
         // 6.7 added official support for JDK15
         if (isSameOrOlder("6.6.1")) {
-            return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_14) <= 0;
+            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_14
         }
 
         // 7.0 added official support for JDK16
         // milestone 2 was published with Groovy 3 upgrade and without asm upgrade yet
         // subsequent milestones and RCs will support JDK16
         if (isSameOrOlder("7.0-milestone-2")) {
-            return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_15) <= 0;
+            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_15
         }
 
-        return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && maybeEnforceHighestVersion(javaVersion, JavaVersion.VERSION_16);
+        // 7.3 added JDK 17 support
+        if (isSameOrOlder("7.2")) {
+            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_16
+        }
+
+        // 7.5 added JDK 18 support
+        if (isSameOrOlder("7.4.2")) {
+            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_17
+        }
+
+        // 7.6 added JDK 19 support
+        if (isSameOrOlder("7.5.1")) {
+            return javaVersion >= JavaVersion.VERSION_1_8 && javaVersion <= JavaVersion.VERSION_18
+        }
+
+        return javaVersion >= JavaVersion.VERSION_1_8 && maybeEnforceHighestVersion(javaVersion, JavaVersion.VERSION_19)
     }
 
     @Override
@@ -286,6 +301,16 @@ class DefaultGradleDistribution implements GradleDistribution {
     @Override
     boolean isToolingApiHasExecutionPhaseBuildOperation() {
         return isSameOrNewer("7.1-rc-1");
+    }
+
+    @Override
+    boolean isLoadsFromConfigurationCacheAfterStore() {
+        return isSameOrNewer("8.0-milestone-5")
+    }
+
+    @Override
+    boolean isRunsBuildSrcTests() {
+        return isSameOrOlder("7.6")
     }
 
     @Override

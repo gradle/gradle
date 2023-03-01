@@ -79,6 +79,7 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,6 +87,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -219,7 +221,7 @@ public class ProviderConnection {
             BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> executer = createExecuter(providerParameters, parameters);
             boolean interactive = providerParameters.getStandardInput() != null;
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime(), interactive), cancellationToken, buildEventConsumer);
-            BuildActionResult result = executer.execute(action, new ConnectionOperationParameters(parameters.daemonParams, providerParameters), buildRequestContext);
+            BuildActionResult result = executer.execute(action, new ConnectionOperationParameters(parameters.daemonParams, parameters.tapiSystemProperties, providerParameters), buildRequestContext);
             throwFailure(result);
             return payloadSerializer.deserialize(result.getResult());
         } finally {
@@ -261,7 +263,7 @@ public class ProviderConnection {
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = sharedServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.captureSystemSources();
-            executer = new StdInSwapExecuter(standardInput, embeddedExecutor);
+            executer = new SystemPropertySetterExecuter(new StdInSwapExecuter(standardInput, embeddedExecutor));
         } else {
             LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
             loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
@@ -324,18 +326,29 @@ public class ProviderConnection {
             daemonParams.setIdleTimeout(idleTimeout);
         }
 
-        return new Parameters(daemonParams, buildLayoutResult, properties);
+        Map<String, String> effectiveSystemProperties = new HashMap<>();
+        Map<String, String> operationParametersSystemProperties = operationParameters.getSystemProperties(null);
+        if (operationParametersSystemProperties != null) {
+            effectiveSystemProperties.putAll(operationParametersSystemProperties);
+            effectiveSystemProperties.putAll(daemonParams.getMutableAndImmutableSystemProperties());
+        } else {
+            GUtil.addToMap(effectiveSystemProperties, System.getProperties());
+            effectiveSystemProperties.putAll(daemonParams.getMutableAndImmutableSystemProperties());
+        }
+        return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties);
     }
 
     private static class Parameters {
         final DaemonParameters daemonParams;
         final BuildLayoutResult buildLayout;
         final AllProperties properties;
+        final Map<String, String> tapiSystemProperties;
 
-        public Parameters(DaemonParameters daemonParams, BuildLayoutResult buildLayout, AllProperties properties) {
+        public Parameters(DaemonParameters daemonParams, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> tapiSystemProperties) {
             this.daemonParams = daemonParams;
             this.buildLayout = buildLayout;
             this.properties = properties;
+            this.tapiSystemProperties = tapiSystemProperties;
         }
     }
 
@@ -366,6 +379,7 @@ public class ProviderConnection {
             .put(InternalBuildProgressListener.BUILD_EXECUTION, OperationType.GENERIC)
             .put(InternalBuildProgressListener.TEST_OUTPUT, OperationType.TEST_OUTPUT)
             .put(InternalBuildProgressListener.FILE_DOWNLOAD, OperationType.FILE_DOWNLOAD)
+            .put(InternalBuildProgressListener.BUILD_PHASE, OperationType.BUILD_PHASE)
             .build();
 
         private final BuildEventSubscriptions clientSubscriptions;

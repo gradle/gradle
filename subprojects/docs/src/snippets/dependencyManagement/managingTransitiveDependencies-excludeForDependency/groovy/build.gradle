@@ -37,7 +37,8 @@ dependencies {
 }
 
 tasks.register("printArtifacts") {
+    def runtimeClasspath = configurations.runtimeClasspath
     doLast {
-        configurations.runtimeClasspath.each { println(it.name) }
+        runtimeClasspath.each { println(it.name) }
     }
 }

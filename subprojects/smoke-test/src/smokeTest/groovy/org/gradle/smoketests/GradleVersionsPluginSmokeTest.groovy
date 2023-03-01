@@ -16,14 +16,16 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'can check for updated versions'() {
+        Assume.assumeTrue('Incompatible with Groovy 4: Execution failed for task \':dependencyUpdates\'. > groovy/util/XmlSlurper', VersionNumber.parse(GroovySystem.version).major < 4) // TODO Watch for merge and release of https://github.com/ben-manes/gradle-versions-plugin/pull/656
         given:
         buildFile << """
             plugins {
@@ -51,7 +53,20 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
 
         when:
-        def result = runner('dependencyUpdates', '-DoutputFormatter=txt').forwardOutput().build()
+        def runner = runner('dependencyUpdates', '-DoutputFormatter=txt')
+            // TODO: com.github.benmanes.gradle.versions.updates.DependencyUpdates plugin triggers dependency resolution at execution time
+            .withJvmArguments("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+            .forwardOutput()
+
+        def declarationConfiguration = ["compileClasspathCopy", "compileClasspathCopy2", "runtimeClasspathCopy", "runtimeClasspathCopy2", "testCompileClasspathCopy", "testCompileClasspathCopy2", "testRuntimeClasspathCopy", "testRuntimeClasspathCopy2"]
+        declarationConfiguration.each {
+            runner.expectDeprecationWarning(
+                "The $it configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations",
+                "https://github.com/ben-manes/gradle-versions-plugin/issues/718"
+            )
+        }
+
+        def result = runner.build()
 
         then:
         result.task(':dependencyUpdates').outcome == SUCCESS

@@ -21,8 +21,9 @@ import org.gradle.initialization.GradleApiSpecProvider
 
 class KotlinGradleApiSpecProvider : GradleApiSpecProvider {
 
-    override fun get() = KotlinSpec
+    override fun get(): GradleApiSpecProvider.Spec = KotlinSpec
 
+    private
     object KotlinSpec : GradleApiSpecProvider.SpecAdapter() {
         override fun getExportedPackages() = setOf("kotlin")
     }

@@ -49,17 +49,17 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         configuration.collectVariants(new ConfigurationInternal.VariantVisitor() {
             @Override
             public void visitArtifacts(Collection<? extends PublishArtifact> artifacts) {
-                metaData.addArtifacts(configuration.getName(), artifacts);
+                configurationMetadata.addArtifacts(artifacts);
             }
 
             @Override
             public void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends Capability> capabilities, Collection<? extends PublishArtifact> artifacts) {
-                metaData.addVariant(configuration.getName(), configuration.getName(), configurationIdentifier, displayName, attributes, ImmutableCapabilities.of(capabilities), artifacts);
+                configurationMetadata.addVariant(configuration.getName(), configurationIdentifier, displayName, attributes, ImmutableCapabilities.of(capabilities), artifacts);
             }
 
             @Override
             public void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends Capability> capabilities, Collection<? extends PublishArtifact> artifacts) {
-                metaData.addVariant(configuration.getName(), configuration.getName() + "-" + name, new NestedVariantIdentifier(configurationIdentifier, name), displayName, attributes, ImmutableCapabilities.of(capabilities), artifacts);
+                configurationMetadata.addVariant(configuration.getName() + "-" + name, new NestedVariantIdentifier(configurationIdentifier, name), displayName, attributes, ImmutableCapabilities.of(capabilities), artifacts);
             }
         });
         return configurationMetadata;
@@ -72,8 +72,7 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         ImmutableSet<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
         ImmutableSet<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
         // Presence of capabilities is bound to the definition of a capabilities extension to the project
-        ImmutableCapabilities capabilities =
-            ImmutableCapabilities.copyAsImmutable(Configurations.collectCapabilities(configuration, Sets.newHashSet(), Sets.newHashSet()));
+        ImmutableCapabilities capabilities = ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, Sets.newHashSet(), Sets.newHashSet()));
         return metaData.addConfiguration(configuration.getName(),
             configuration.getDescription(),
             extendsFrom,
@@ -84,8 +83,7 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
             configuration.isCanBeConsumed(),
             configuration.getConsumptionDeprecation(),
             configuration.isCanBeResolved(),
-            capabilities,
-            configuration.getConsistentResolutionConstraints());
+            capabilities);
     }
 
     private static class NestedVariantIdentifier implements VariantResolveMetadata.Identifier {

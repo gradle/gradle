@@ -21,9 +21,8 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.workers.WorkParameters;
 
-public interface CheckstyleActionParameters extends WorkParameters {
+public interface CheckstyleActionParameters extends AntWorkParameters {
     RegularFileProperty getConfig();
 
     ConfigurableFileCollection getSource();
@@ -42,9 +41,13 @@ public interface CheckstyleActionParameters extends WorkParameters {
 
     Property<Boolean> getIsHtmlRequired();
 
+    Property<Boolean> getIsSarifRequired();
+
     RegularFileProperty getXmlOuputLocation();
 
     RegularFileProperty getHtmlOuputLocation();
+
+    RegularFileProperty getSarifOutputLocation();
 
     DirectoryProperty getTemporaryDir();
 

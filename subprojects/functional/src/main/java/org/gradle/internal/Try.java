@@ -114,7 +114,7 @@ public abstract class Try<T> {
      * If the represented operation was successful, returns the original result,
      * otherwise returns the given mapping function applied to the failure.
      */
-    public abstract Try<T> mapFailure(Function<Throwable, Throwable> f);
+    public abstract Try<T> mapFailure(Function<? super Throwable, ? extends Throwable> f);
 
     /**
      * Calls the given consumer with the result iff the represented operation was successful.
@@ -170,7 +170,7 @@ public abstract class Try<T> {
         }
 
         @Override
-        public Try<T> mapFailure(Function<Throwable, Throwable> f) {
+        public Try<T> mapFailure(Function<? super Throwable, ? extends Throwable> f) {
             return this;
         }
 
@@ -269,7 +269,7 @@ public abstract class Try<T> {
         }
 
         @Override
-        public Try<T> mapFailure(Function<Throwable, Throwable> f) {
+        public Try<T> mapFailure(Function<? super Throwable, ? extends Throwable> f) {
             return Try.failure(f.apply(failure));
         }
 

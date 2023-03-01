@@ -18,11 +18,10 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.fixture.TestNGCoverage
 import org.gradle.util.internal.VersionNumber
 
-import static org.gradle.testing.fixture.TestNGCoverage.*
-
-@TargetCoverage({ STANDARD_COVERAGE_WITH_LEGACY })
+@TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
 class AbstractTestNGVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     static boolean supportConfigFailurePolicy() {

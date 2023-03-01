@@ -21,17 +21,32 @@ import com.google.common.collect.Sets;
 import java.util.Set;
 
 class MutationInfo {
-    final Node node;
-    final Set<Node> consumingNodes = Sets.newHashSet();
+    private final Set<Node> nodesYetToConsumeOutput = Sets.newHashSet();
     final Set<String> outputPaths = Sets.newHashSet();
     final Set<String> destroyablePaths = Sets.newHashSet();
     boolean hasFileInputs;
     boolean hasOutputs;
     boolean hasLocalState;
-    boolean resolved;
     boolean hasValidationProblem;
+    private boolean outputProduced;
 
-    MutationInfo(Node node) {
-        this.node = node;
+    void started() {
+        outputProduced = true;
+    }
+
+    boolean isOutputProducedButNotYetConsumed() {
+        return outputProduced && !nodesYetToConsumeOutput.isEmpty();
+    }
+
+    public Set<Node> getNodesYetToConsumeOutput() {
+        return nodesYetToConsumeOutput;
+    }
+
+    public void consumerCompleted(Node node) {
+        nodesYetToConsumeOutput.remove(node);
+    }
+
+    public void addConsumer(Node node) {
+        nodesYetToConsumeOutput.add(node);
     }
 }

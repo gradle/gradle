@@ -19,6 +19,8 @@ package org.gradle.configurationcache
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.initialization.layout.BuildLayout
+import org.gradle.internal.buildoption.DefaultInternalOptions
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.hamcrest.CoreMatchers.equalTo
@@ -82,6 +84,34 @@ class ConfigurationCacheKeyTest {
     }
 
     @Test
+    fun `cache key honours --offline`() {
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isOffline = true
+            },
+            equalTo(
+                cacheKeyStringFromStartParameter {
+                    isOffline = true
+                }
+            )
+        )
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isOffline = true
+            },
+            not(equalTo(cacheKeyStringFromStartParameter {
+                isOffline = false
+            }))
+        )
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isOffline = false
+            },
+            equalTo(cacheKeyStringFromStartParameter { })
+        )
+    }
+
+    @Test
     fun `sanity check`() {
         assertThat(
             cacheKeyStringFromStartParameter {},
@@ -100,7 +130,9 @@ class ConfigurationCacheKeyTest {
                     null,
                     null
                 ),
-                startParameter
+                startParameter,
+                DefaultInternalOptions(mapOf()),
+                BuildModelParameters(false, true, false, false, false, false, false)
             ),
             RunTasksRequirements(startParameter)
         ).string

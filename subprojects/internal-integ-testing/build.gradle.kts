@@ -69,7 +69,7 @@ dependencies {
     implementation(libs.jacksonAnnotations)
     implementation(libs.jacksonDatabind)
     implementation(libs.ivy)
-    implementation(libs.ant)
+    implementation(libs.commonsCompress)
     implementation(libs.jgit) {
         because("Some tests require a git reportitory - see AbstractIntegrationSpec.initGitDir(")
     }
@@ -104,17 +104,17 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
-    destFile.set(layout.buildDirectory.file("generated-resources/all-released-versions/all-released-versions.properties"))
-    versions.set(moduleIdentity.releasedVersions.map {
+    destFile = layout.buildDirectory.file("generated-resources/all-released-versions/all-released-versions.properties")
+    versions = moduleIdentity.releasedVersions.map {
         it.allPreviousVersions.joinToString(" ") { it.version }
-    })
-    mostRecent.set(moduleIdentity.releasedVersions.map { it.mostRecentRelease.version })
-    mostRecentSnapshot.set(moduleIdentity.releasedVersions.map { it.mostRecentSnapshot.version })
+    }
+    mostRecent = moduleIdentity.releasedVersions.map { it.mostRecentRelease.version }
+    mostRecentSnapshot = moduleIdentity.releasedVersions.map { it.mostRecentSnapshot.version }
 }
 
 val copyAgpVersionsInfo by tasks.registering(Copy::class) {
@@ -124,8 +124,8 @@ val copyAgpVersionsInfo by tasks.registering(Copy::class) {
 
 val generateLanguageAnnotations by tasks.registering(GenerateLanguageAnnotations::class) {
     classpath.from(configurations.integTestDistributionRuntimeClasspath)
-    packageName.set("org.gradle.integtests.fixtures")
-    destDir.set(layout.buildDirectory.dir("generated/sources/language-annotations/groovy/main"))
+    packageName = "org.gradle.integtests.fixtures"
+    destDir = layout.buildDirectory.dir("generated/sources/language-annotations/groovy/main")
 }
 
 sourceSets.main {

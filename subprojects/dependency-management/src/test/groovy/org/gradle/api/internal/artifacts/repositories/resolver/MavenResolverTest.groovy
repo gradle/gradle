@@ -37,7 +37,6 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resource.local.FileResourceRepository
@@ -48,7 +47,6 @@ import spock.lang.Specification
 
 class MavenResolverTest extends Specification {
     def module = Mock(MavenModuleResolveMetadata)
-    def result = Mock(BuildableComponentArtifactsResolveResult)
     def transport = Stub(RepositoryTransport)
     def resolver = resolver()
 
@@ -73,8 +71,8 @@ class MavenResolverTest extends Specification {
 
     def "resolvers are differentiated by alwaysProvidesMetadataForModules flag"() {
         given:
-        def resolver1 = resolver( false, false)
-        def resolver2 = resolver( false, true)
+        def resolver1 = resolver(false, false)
+        def resolver2 = resolver(false, true)
 
         resolver1.addIvyPattern(new IvyResourcePattern("ivy1"))
         resolver1.addArtifactPattern(new IvyResourcePattern("artifact1"))

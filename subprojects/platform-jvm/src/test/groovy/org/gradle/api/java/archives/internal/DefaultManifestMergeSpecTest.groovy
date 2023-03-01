@@ -17,6 +17,7 @@ package org.gradle.api.java.archives.internal
 
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.ManifestMergeDetails
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -124,6 +125,16 @@ class DefaultManifestMergeSpecTest extends Specification {
 
         expect:
         mergeSpec.merge(baseManifest, Mock(FileResolver)).sections.section == [key2: 'mergeValue2']
+    }
+
+    def mergeWithForeignManifest() {
+        DefaultManifest baseManifest = new DefaultManifest(Mock(FileResolver))
+        baseManifest.attributes key1: 'value1'
+        Manifest foreign = new CustomManifestInternalWrapper(new DefaultManifest(Mock(FileResolver)).attributes( key2: 'value2'))
+        mergeSpec.from(foreign)
+
+        expect:
+        mergeSpec.merge(baseManifest, Mock(FileResolver)).attributes == [key1: 'value1', key2: 'value2'] + MANIFEST_VERSION_MAP
     }
 
     def mergeShouldWinByDefault() {

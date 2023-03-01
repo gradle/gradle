@@ -460,9 +460,10 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 Circular dependency between the following tasks:
 :pluginDependencyA:compileJava
 \\--- :pluginDependencyB:jar
-     \\--- :pluginDependencyB:classes
-          \\--- :pluginDependencyB:compileJava
-               \\--- :pluginDependencyA:compileJava (*)
+     +--- :pluginDependencyB:classes
+     |    \\--- :pluginDependencyB:compileJava
+     |         \\--- :pluginDependencyA:compileJava (*)
+     \\--- :pluginDependencyB:compileJava (*)
 
 (*) - details omitted (listed previously)
 """.trim())
@@ -634,6 +635,63 @@ plugins {
 
         then:
         executed ":pluginBuild:jar", ":foo:classes", ":foo:bar:classes"
+    }
+
+    def "can develop a plugin with multiple consumers when those consumers are accessed via undeclared dependency resolution and using configure-on-demand"() {
+        given:
+        buildA = multiProjectBuild("cod", ["a", "b", "c", "d"])
+        includePluginBuild pluginBuild
+
+        buildA.file("a/build.gradle") << """
+plugins {
+    id 'java-library'
+    id 'org.test.plugin.pluginBuild'
+}
+"""
+        buildA.file('b/build.gradle') << """
+plugins {
+    id 'java-library'
+    id 'org.test.plugin.pluginBuild'
+}
+"""
+        buildA.file("c/build.gradle") << """
+plugins {
+    id 'java-library'
+}
+dependencies {
+    implementation project(':a')
+}
+task resolve {
+    def compileClasspath = configurations.compileClasspath
+    doLast {
+        compileClasspath.files
+    }
+}
+"""
+        buildA.file("d/build.gradle") << """
+plugins {
+    id 'java-library'
+}
+dependencies {
+    implementation project(':b')
+}
+task resolve {
+    def compileClasspath = configurations.compileClasspath
+    doLast {
+        compileClasspath.files
+    }
+}
+"""
+
+        when:
+        args "--configure-on-demand", "--parallel"
+        execute(buildA, ":c:resolve", ":d:resolve")
+
+        then:
+        noExceptionThrown()
+
+        where:
+        iterations << (0..20).collect()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15068")

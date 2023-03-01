@@ -31,7 +31,7 @@ import org.gradle.testing.base.TestSuiteContainer;
  * A plugin that applies the {@link GoogleTestPlugin} and adds conventions on top of it.
  */
 @Incubating
-public class GoogleTestConventionPlugin implements Plugin<Project> {
+public abstract class GoogleTestConventionPlugin implements Plugin<Project> {
 
 
     @Override

@@ -5,8 +5,9 @@ tasks.register('clean', Delete) {
 }
 tasks.register('compile') {
     dependsOn 'clean'
+    def localClassesDir = classesDir
     doLast {
-        if (!classesDir.isDirectory()) {
+        if (!localClassesDir.isDirectory()) {
             println 'The class directory does not exist. I can not operate'
             // do something
         }

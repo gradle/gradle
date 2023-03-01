@@ -28,7 +28,7 @@ void createDeprecations(int iterations) {
 
 @groovy.transform.CompileStatic
 void nagUserOfDeprecated(String thing) {
-    org.gradle.internal.deprecation.DeprecationLogger.deprecate(thing).willBecomeAnErrorInGradle8().undocumented().nagUser();
+    org.gradle.internal.deprecation.DeprecationLogger.deprecate(thing).willBecomeAnErrorInGradle9().undocumented().nagUser();
 
 }
 

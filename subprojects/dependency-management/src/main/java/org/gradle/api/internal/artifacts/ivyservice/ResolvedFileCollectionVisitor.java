@@ -16,14 +16,25 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import com.google.common.collect.Sets;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedFileVisitor;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 
-public class ResolvedFileCollectionVisitor extends ResolvedFilesCollectingVisitor {
+import java.io.File;
+import java.util.Set;
+
+public class ResolvedFileCollectionVisitor implements ResolvedFileVisitor {
     private final FileCollectionStructureVisitor visitor;
+    private final Set<File> files = Sets.newLinkedHashSet();
+    private final Set<Throwable> failures = Sets.newLinkedHashSet();
 
     public ResolvedFileCollectionVisitor(FileCollectionStructureVisitor visitor) {
         this.visitor = visitor;
+    }
+
+    public Set<Throwable> getFailures() {
+        return failures;
     }
 
     @Override
@@ -32,13 +43,18 @@ public class ResolvedFileCollectionVisitor extends ResolvedFilesCollectingVisito
     }
 
     @Override
-    public void visitSpec(FileCollectionInternal spec) {
-        spec.visitStructure(visitor);
+    public void visitFile(File file) {
+        files.add(file);
+    }
+
+    @Override
+    public void visitFailure(Throwable failure) {
+        failures.add(failure);
     }
 
     @Override
     public void endVisitCollection(FileCollectionInternal.Source source) {
-        visitor.visitCollection(source, getFiles());
-        getFiles().clear();
+        visitor.visitCollection(source, files);
+        files.clear();
     }
 }

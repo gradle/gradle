@@ -36,6 +36,8 @@ import org.junit.Test
 
 class PrintAccessorsTest {
 
+    abstract class CustomConvention
+
     @Test
     fun `prints accessors for all schema entries`() {
 
@@ -47,7 +49,7 @@ class PrintAccessorsTest {
                             entry<Project, ExtraPropertiesExtension>("extra")
                         ),
                         conventions = listOf(
-                            entry<Project, @Suppress("deprecation") org.gradle.api.plugins.ApplicationPluginConvention>("application")
+                            entry<Project, CustomConvention>("customConvention")
                         ),
                         tasks = listOf(
                             entry<TaskContainer, Delete>("delete")

@@ -21,5 +21,5 @@ import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 /**
  * Options for Scala Compilation.
  */
-public class ScalaCompileOptions extends BaseScalaCompileOptions {
+public abstract class ScalaCompileOptions extends BaseScalaCompileOptions {
 }

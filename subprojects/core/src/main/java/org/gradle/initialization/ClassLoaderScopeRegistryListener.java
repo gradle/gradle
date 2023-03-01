@@ -35,7 +35,7 @@ import javax.annotation.Nullable;
 @EventScope(Scopes.UserHome.class)
 public interface ClassLoaderScopeRegistryListener {
 
-    void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId);
+    void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @Nullable ClassLoaderScopeOrigin origin);
 
     void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @Nullable HashCode implementationHash);
 

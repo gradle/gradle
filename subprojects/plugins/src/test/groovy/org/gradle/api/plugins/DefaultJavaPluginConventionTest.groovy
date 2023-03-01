@@ -37,14 +37,14 @@ class DefaultJavaPluginConventionTest extends Specification {
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def project = TestUtil.create(tmpDir).rootProject()
     def sourceSets = Stub(SourceSetContainer)
-    def toolchainSpec = TestUtil.objectFactory().newInstance(DefaultToolchainSpec)
+    def toolchainSpec = TestUtil.newInstance(DefaultToolchainSpec)
     private JavaPluginExtension extension
     private JavaPluginConvention convention
 
     def setup() {
         project.pluginManager.apply(ReportingBasePlugin)
-        extension = new DefaultJavaPluginExtension(project, sourceSets, toolchainSpec, Stub(JvmPluginServices))
-        convention = new DefaultJavaPluginConvention(project, extension)
+        extension = TestUtil.newInstance(DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec, Stub(JvmPluginServices))
+        convention = TestUtil.newInstance(DefaultJavaPluginConvention.class, project, extension)
     }
 
     def "default values"() {

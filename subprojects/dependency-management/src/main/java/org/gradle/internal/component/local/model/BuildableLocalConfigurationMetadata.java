@@ -15,9 +15,16 @@
  */
 package org.gradle.internal.component.local.model;
 
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
+
+import java.util.Collection;
 
 public interface BuildableLocalConfigurationMetadata {
     /**
@@ -43,7 +50,12 @@ public interface BuildableLocalConfigurationMetadata {
     void addFiles(LocalFileDependencyMetadata files);
 
     /**
-     * Enables dependency locking for this configuration.
+     * Adds some artifacts to this configuration. Artifacts are attached to the this configuration and each of its children.
      */
-    void enableLocking();
+    void addArtifacts(Collection<? extends PublishArtifact> artifacts);
+
+    /**
+     * Adds a variant to this component, extending from the given configuration. Every configuration should include at least one variant.
+     */
+    void addVariant(String name, VariantResolveMetadata.Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, Collection<? extends PublishArtifact> artifacts);
 }

@@ -278,4 +278,92 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         outputContains("thisTask = true")
         outputContains("bean.owner = true")
     }
+
+    def "retains Property identity for each task"() {
+        buildFile << """
+            abstract class SomeTask extends DefaultTask {
+                @Internal
+                abstract Property<String> getValue()
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value.getOrNull()
+                }
+            }
+
+            task ok(type: SomeTask) {
+                value = "42"
+                def valueRef = value
+                doFirst {
+                    valueRef.set("123")
+                }
+            }
+
+            task other {
+                mustRunAfter(tasks.ok)
+                def value = tasks.ok.value
+                doLast {
+                    println("ok.value = " + value.getOrNull())
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "ok", "other"
+
+        then:
+        outputContains("this.value = 123")
+        outputContains("ok.value = 42")
+
+        when:
+        configurationCacheRun "ok", "other"
+
+        then:
+        outputContains("this.value = 123")
+        outputContains("ok.value = 42")
+    }
+
+    def "retains ConfigurableFileCollection identity for each task"() {
+        buildFile << """
+            abstract class SomeTask extends DefaultTask {
+                @Internal
+                abstract ConfigurableFileCollection getValue()
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value*.name
+                }
+            }
+
+            task ok(type: SomeTask) {
+                value.from("file1.txt")
+                def valueRef = value
+                doFirst {
+                    valueRef.from("file2.txt")
+                }
+            }
+
+            task other {
+                mustRunAfter(tasks.ok)
+                def value = tasks.ok.value
+                doLast {
+                    println("ok.value = " + value*.name)
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "ok", "other"
+
+        then:
+        outputContains("this.value = [file1.txt, file2.txt]")
+        outputContains("ok.value = [file1.txt]")
+
+        when:
+        configurationCacheRun "ok", "other"
+
+        then:
+        outputContains("this.value = [file1.txt, file2.txt]")
+        outputContains("ok.value = [file1.txt]")
+    }
 }

@@ -43,8 +43,9 @@ dependencies {
 // end::reject-version-1-1[]
 
 tasks.register("printRejectConfig") {
+    val rejectConfig: FileCollection = configurations["rejectConfig"]
     doLast {
-        configurations["rejectConfig"].forEach { println("Resolved: ${it.name}") }
+        rejectConfig.forEach { println("Resolved: ${it.name}") }
     }
 }
 
@@ -77,8 +78,9 @@ dependencies {
 }
 
 tasks.register("printMetadataRulesConfig") {
+    val metadataRulesConfig: FileCollection = configurations["metadataRulesConfig"]
     doLast {
-        configurations["metadataRulesConfig"].forEach { println("Resolved: ${it.name}") }
+        metadataRulesConfig.forEach { println("Resolved: ${it.name}") }
     }
 }
 
@@ -103,8 +105,9 @@ dependencies {
 }
 
 tasks.register("printTargetConfig") {
+    val targetConfig: FileCollection = configurations["targetConfig"]
     doLast {
-        configurations["targetConfig"].forEach { println("Resolved: ${it.name}") }
+        targetConfig.forEach { println("Resolved: ${it.name}") }
     }
 }
 
@@ -131,7 +134,8 @@ dependencies {
 }
 
 tasks.register("resolveConfiguration") {
+    val sampleConfig: FileCollection = configurations["sampleConfig"]
     doLast {
-        configurations["sampleConfig"].forEach { println(it) }
+        sampleConfig.forEach { println(it) }
     }
 }

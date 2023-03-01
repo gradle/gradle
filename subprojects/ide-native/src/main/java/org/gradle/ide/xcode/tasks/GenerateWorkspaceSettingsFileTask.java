@@ -32,7 +32,7 @@ import org.gradle.work.DisableCachingByDefault;
  */
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateWorkspaceSettingsFileTask extends PropertyListGeneratorTask<XcodeWorkspaceSettingsFile> {
+public abstract class GenerateWorkspaceSettingsFileTask extends PropertyListGeneratorTask<XcodeWorkspaceSettingsFile> {
     @Override
     protected void configure(XcodeWorkspaceSettingsFile settingsFile) {
     }

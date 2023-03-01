@@ -18,14 +18,18 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 import groovy.util.NodeList;
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+
+import static java.util.stream.Collectors.toMap;
 
 // TODO: consider entryAttributes in equals, hashCode, and toString
 
@@ -108,17 +112,16 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
 
     @Override
     public void appendNode(Node node) {
-        addClasspathEntry(node, Maps.<String, Object>newLinkedHashMap());
+        addClasspathEntry(node, ImmutableMap.of());
     }
 
     protected Node addClasspathEntry(Node node, Map<String, ?> attributes) {
-        Map<String, Object> allAttributes = Maps.newLinkedHashMap();
-        for (String key : attributes.keySet()) {
-            Object value = attributes.get(key);
+        ImmutableMap.Builder<String, Object> allAttributes = ImmutableMap.builder();
+        attributes.forEach((key, value) -> {
             if (value != null && !String.valueOf(value).isEmpty()) {
                 allAttributes.put(key, value);
             }
-        }
+        });
         allAttributes.put("kind", getKind());
         allAttributes.put("path", path);
 
@@ -127,7 +130,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
             allAttributes.put("exported", true);
         }
 
-        Node entryNode = node.appendNode("classpathentry", allAttributes);
+        Node entryNode = node.appendNode("classpathentry", allAttributes.build());
         writeAccessRules(entryNode);
         writeEntryAttributes(entryNode);
         return entryNode;
@@ -154,18 +157,12 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         if (accessRules == null || accessRules.isEmpty()) {
             return;
         }
-        Node accessRulesNode;
-        NodeList accessRulesNodes = (NodeList) node.get("accessrules");
-        if (accessRulesNodes.size() == 0) {
-            accessRulesNode = node.appendNode("accessrules");
-        } else {
-            accessRulesNode = (Node) accessRulesNodes.get(0);
-        }
+        Node accessRulesNode = getAttributesNode(node, "accessrules");
         for (AccessRule rule : accessRules) {
-            Map<String, Object> attributes  = Maps.newLinkedHashMap();
-            attributes.put("kind", rule.getKind());
-            attributes.put("pattern", rule.getPattern());
-            accessRulesNode.appendNode("accessrule", attributes);
+            accessRulesNode.appendNode("accessrule",
+                ImmutableMap.of(
+                    "kind", rule.getKind(),
+                    "pattern", rule.getPattern()));
         }
     }
 
@@ -183,35 +180,33 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
     }
 
     public void writeEntryAttributes(Node node) {
-        Map<String, Object> effectiveEntryAttrs = Maps.newLinkedHashMap();
-        for (String key : entryAttributes.keySet()) {
-            Object value = entryAttributes.get(key);
-            if (value != null) {
-                effectiveEntryAttrs.put(key, value);
-            }
-        }
+        Map<String, Object> effectiveEntryAttrs = getEffectiveEntryAttrs();
 
         if (effectiveEntryAttrs.isEmpty()) {
             return;
         }
 
-        Node attributesNode;
-        NodeList attributesNodes = (NodeList) node.get("attributes");
-        if (attributesNodes.size() == 0) {
-            attributesNode = node.appendNode("attributes");
-        } else {
-            attributesNode = (Node) attributesNodes.get(0);
-        }
+        Node attributesNode = getAttributesNode(node, "attributes");
 
-        for (String key : effectiveEntryAttrs.keySet()) {
-            Object value = effectiveEntryAttrs.get(key);
-            Map<String, Object> attrs = Maps.newLinkedHashMap();
-            attrs.put("name", key);
-            attrs.put("value", value);
-            attributesNode.appendNode("attribute", attrs);
-        }
+        effectiveEntryAttrs.forEach((key, value) ->
+            attributesNode.appendNode("attribute", ImmutableMap.of(
+                "name", key,
+                "value", value)));
     }
 
+    private Map<String, Object> getEffectiveEntryAttrs() {
+        return entryAttributes.entrySet().stream()
+            .filter(entry -> entry.getValue() != null)
+            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (existing, replacement) -> existing, LinkedHashMap::new));
+    }
+
+    private static Node getAttributesNode(Node node, String attributes) {
+        NodeList attributesNodes = (NodeList) node.get(attributes);
+        if (attributesNodes.isEmpty()) {
+            return node.appendNode(attributes);
+        }
+        return (Node) attributesNodes.get(0);
+    }
     @Override
     public boolean equals(Object o) {
         if (this == o) {

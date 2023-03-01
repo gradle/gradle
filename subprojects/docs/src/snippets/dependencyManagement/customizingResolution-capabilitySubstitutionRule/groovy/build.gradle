@@ -21,7 +21,9 @@ configurations.testCompileClasspath {
 
 tasks.register('resolve') {
     inputs.files(configurations.testCompileClasspath)
+
+    def files = configurations.testCompileClasspath.files
     doLast {
-        println configurations.testCompileClasspath.files.name
+        println files.name
     }
 }

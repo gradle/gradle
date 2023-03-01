@@ -41,7 +41,6 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
         """
 
         withFileHelperInPluginBuild()
-        withLegacyWorkerPluginInPluginBuild()
         withTypedWorkerPluginInPluginBuild()
 
         lib.file('settings.gradle') << """
@@ -90,109 +89,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
         lib.file("build/workOutput").text == "foo"
 
         where:
-        pluginId << [ 'legacy-worker-plugin', 'typed-worker-plugin' ]
-    }
-
-    private void withLegacyWorkerPluginInPluginBuild() {
-        plugin.file("src/main/java/LegacyParameter.java") << """
-            import java.io.File;
-            import java.io.Serializable;
-
-            public class LegacyParameter implements Serializable {
-                private final File outputFile;
-
-                public LegacyParameter(File outputFile) {
-                    this.outputFile = outputFile;
-                }
-
-                public File getOutputFile() {
-                    return this.outputFile;
-               }
-            }
-        """
-
-        plugin.file('src/main/java/LegacyRunnable.java') << """
-            import javax.inject.Inject;
-            import java.io.File;
-            import org.gradle.test.FileHelper;
-
-            public class LegacyRunnable implements Runnable {
-                private File outputFile;
-
-                @Inject
-                public LegacyRunnable(LegacyParameter parameter) {
-                    this.outputFile = parameter.getOutputFile();
-                }
-
-                public void run() {
-                    FileHelper.write("foo", outputFile);
-                }
-            }
-        """
-
-        plugin.file('src/main/java/LegacyWorkerTask.java') << """
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Action;
-            import org.gradle.api.tasks.*;
-            import org.gradle.workers.*;
-            import javax.inject.Inject;
-            import java.io.File;
-
-            public class LegacyWorkerTask extends DefaultTask {
-                private final WorkerExecutor workerExecutor;
-                private File outputFile;
-
-                @Inject
-                public LegacyWorkerTask(WorkerExecutor workerExecutor) {
-                    this.workerExecutor = workerExecutor;
-                }
-
-                @TaskAction
-                public void runWork() {
-                    workerExecutor.submit(LegacyRunnable.class, new Action<WorkerConfiguration>() {
-                        public void execute(WorkerConfiguration config) {
-                            config.setIsolationMode(IsolationMode.NONE);
-                            config.params(new LegacyParameter(outputFile));
-                        }
-                    });
-                }
-
-                @OutputFile
-                File getOutputFile() {
-                    return outputFile;
-                }
-
-                void setOutputFile(File outputFile) {
-                    this.outputFile = outputFile;
-                }
-            }
-        """
-
-        plugin.file("src/main/java/LegacyWorkerPlugin.java") << """
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import java.io.File;
-
-            public class LegacyWorkerPlugin implements Plugin<Project> {
-                public void apply(Project project) {
-                    project.getTasks().create("runWork", LegacyWorkerTask.class)
-                        .setOutputFile(new File(project.getBuildDir(), "workOutput"));
-                }
-            }
-        """
-
-        plugin.file("build.gradle") << """
-            apply plugin: "java-gradle-plugin"
-
-            gradlePlugin {
-                plugins {
-                    LegacyWorkerPlugin {
-                        id = "org.gradle.test.legacy-worker-plugin"
-                        implementationClass = "LegacyWorkerPlugin"
-                    }
-                }
-            }
-        """
+        pluginId << [ 'typed-worker-plugin' ]
     }
 
     private void withTypedWorkerPluginInPluginBuild() {
@@ -237,11 +134,13 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
 
                 @TaskAction
                 public void runWork() {
-                    workerExecutor.noIsolation().submit(TypedWorkAction.class, new Action<TypedParameter>() {
+                    WorkQueue queue = workerExecutor.noIsolation();
+                    queue.submit(TypedWorkAction.class, new Action<TypedParameter>() {
                         public void execute(TypedParameter parameters) {
                             parameters.getOutputFile().set(outputFile);
                         }
                     });
+
                 }
 
                 @OutputFile

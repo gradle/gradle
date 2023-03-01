@@ -31,6 +31,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMe
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
@@ -56,12 +57,13 @@ public class DefaultVariant implements ConfigurationVariantInternal {
                           NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
                           FileCollectionFactory fileCollectionFactory,
                           ImmutableAttributesFactory cache,
-                          DomainObjectCollectionFactory domainObjectCollectionFactory) {
+                          DomainObjectCollectionFactory domainObjectCollectionFactory,
+                          TaskDependencyFactory taskDependencyFactory) {
         this.parentDisplayName = parentDisplayName;
         this.name = name;
         attributes = cache.mutable(parentAttributes);
         this.artifactNotationParser = artifactNotationParser;
-        artifacts = new DefaultPublishArtifactSet(getAsDescribable(), domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), fileCollectionFactory);
+        artifacts = new DefaultPublishArtifactSet(getAsDescribable(), domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), fileCollectionFactory, taskDependencyFactory);
     }
 
     @Override

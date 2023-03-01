@@ -20,17 +20,14 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-class NestedInputIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker, ExecutionOptimizationDeprecationFixture {
+class NestedInputIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
 
     def setup() {
         expectReindentedValidationMessage()
@@ -427,12 +424,18 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         }
     }
 
-    def "execution fails when a nested property throws an exception"() {
+    def "execution fails when a nested property throws an exception where property is a #description"() {
         buildFile << """
-            class TaskWithFailingNestedInput extends DefaultTask {
+            import javax.inject.Inject
+            import org.gradle.api.provider.ProviderFactory
+
+            abstract class TaskWithFailingNestedInput extends DefaultTask {
+                @Inject
+                abstract ProviderFactory getProviders()
+
                 @Nested
                 Object getNested() {
-                    throw new RuntimeException("BOOM")
+                    $propertyValue
                 }
 
                 @Input
@@ -456,16 +459,23 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         fails "myTask"
         failure.assertHasDescription("Execution failed for task ':myTask'.")
         failure.assertHasCause("BOOM")
+
+        where:
+        description                | propertyValue
+        "Java type"                | "throw new RuntimeException(\"BOOM\")"
+        "Provider"                 | "return providers.provider { throw new RuntimeException(\"BOOM\") }"
+        "Provider in a collection" | "return [providers.provider { throw new RuntimeException(\"BOOM\") }]"
+
     }
 
     @ValidationTestFor(
         ValidationProblemId.VALUE_NOT_SET
     )
-    def "null on nested bean is validated"() {
+    def "null on nested bean is validated #description"() {
         buildFile << """
             class TaskWithAbsentNestedInput extends DefaultTask {
                 @Nested
-                Object nested
+                $property
 
                 @Input
                 String input = "Hello"
@@ -488,14 +498,19 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         fails "myTask"
         failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'TaskWithAbsentNestedInput').")
         failureDescriptionContains(missingValueMessage { type('TaskWithAbsentNestedInput').property('nested') })
+
+        where:
+        description               | property
+        "for plain Java property" | "Object nested"
+        "for Provider property"   | "Provider<Object> nested = project.providers.provider { null }"
     }
 
-    def "null on optional nested bean is allowed"() {
+    def "null on optional nested bean is allowed #description"() {
         buildFile << """
             class TaskWithAbsentNestedInput extends DefaultTask {
                 @Nested
                 @Optional
-                Object nested
+                $property
 
                 @Input
                 String input = "Hello"
@@ -516,6 +531,11 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
         expect:
         succeeds "myTask"
+
+        where:
+        description               | property
+        "for plain Java property" | "Object nested"
+        "for Provider property"   | "Provider<Object> nested = project.providers.provider { null }"
     }
 
     def "changes to nested bean implementation are detected"() {
@@ -569,7 +589,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         executedAndNotSkipped task
     }
 
-    def "elements of nested iterable cannot be null"() {
+    def "elements of nested iterable cannot be #description"() {
         buildFile << """
             class TaskWithNestedIterable extends DefaultTask {
                 @Nested
@@ -583,13 +603,18 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             }
 
             task myTask(type: TaskWithNestedIterable) {
-                beans = [new NestedBean(input: 'input'), null]
+                beans = [new NestedBean(input: 'input'), $elementValue]
             }
         """
 
         expect:
         fails 'myTask'
-        failure.assertHasCause('Null is not allowed as nested property \'beans.$1\'')
+        failure.assertHasCause('Null value is not allowed for the nested collection property \'beans.$1\'')
+
+        where:
+        description | elementValue
+        "null"      | "null"
+        "absent"    | "project.providers.provider { null }"
     }
 
     def "nested iterable beans can be iterables themselves"() {
@@ -775,28 +800,19 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     @ValidationTestFor(
         ValidationProblemId.UNKNOWN_IMPLEMENTATION
     )
-    @ToBeFixedForConfigurationCache(because = "uses custom GroovyClassLoader")
     def "task with nested bean loaded with custom classloader disables execution optimizations"() {
         file("input.txt").text = "data"
         buildFile << taskWithNestedBeanFromCustomClassLoader()
 
         when:
-        expectImplementationUnknownDeprecation {
-            nestedProperty('bean')
-            unknownClassloader('NestedBean')
-        }
-        run "customTask"
+        fails "customTask"
         then:
         executedAndNotSkipped ":customTask"
-
-        when:
-        expectImplementationUnknownDeprecation {
+        failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'TaskWithNestedProperty').")
+        failureDescriptionContains(implementationUnknown {
             nestedProperty('bean')
             unknownClassloader('NestedBean')
-        }
-        run "customTask"
-        then:
-        executedAndNotSkipped ":customTask"
+        })
     }
 
     def "changes to nested domain object container are tracked"() {
@@ -935,7 +951,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         output.contains "Implementation of input property 'bean.action' has changed for task ':myTask'"
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/11703")
+    @Issue("https://github.com/gradle/gradle/issues/11703")
     def "nested bean from closure can be used with the build cache"() {
         def project1 = file("project1").createDir()
         def project2 = file("project2").createDir()
@@ -973,18 +989,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         withBuildCache().run 'myTask'
 
         then:
-        // TODO: Should be skipped(":myTask")
-        executedAndNotSkipped(':myTask')
+        skipped(':myTask')
         project2.file('build/tmp/myTask/output.txt').text == "hello"
-
-        // TODO: This can be removed when the above already worked
-        when:
-        executer.inDirectory(project2)
-        run 'clean'
-        executer.inDirectory(project2)
-        withBuildCache().run 'myTask'
-        then:
-        skipped(":myTask")
     }
 
     private TestFile nestedBeanWithAction(TestFile projectDir = temporaryFolder.testDirectory) {

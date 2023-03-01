@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import com.google.common.io.Files;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 
 import java.io.File;
@@ -25,7 +26,8 @@ public class FileBasedMavenArtifact extends AbstractMavenArtifact {
     private final File file;
     private final String extension;
 
-    public FileBasedMavenArtifact(File file) {
+    public FileBasedMavenArtifact(File file, TaskDependencyFactory taskDependencyFactory) {
+        super(taskDependencyFactory);
         this.file = file;
         extension = Files.getFileExtension(file.getName());
     }

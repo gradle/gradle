@@ -1,10 +1,5 @@
-> Task :resolve FAILED
-module-a-0.9.jar
-1 actionable task: 1 executed
-
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':resolve'.
 > Could not resolve all files for configuration ':publishedRuntimeClasspath'.
    > Could not find org.test:module-a:1.0.

@@ -18,12 +18,13 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
+
 /**
  * https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
  */
 class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
     static bomVersion = "2.0.4.RELEASE"
-    static bom = "'org.springframework.boot:spring-boot-dependencies:${bomVersion}'"
+    static bom = "'org.springframework.boot:spring-boot-dependencies:${bomVersion}'" // TODO:Finalize Upload Removal - Issue #21439
     // This comes from the BOM
     static springVersion = "5.0.8.RELEASE"
 
@@ -36,7 +37,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         settingsFile << """
             rootProject.name = 'springbootproject'
         """
-        def buildScript = """
+        buildFile << """
             plugins {
                 id "java"
                 ${dependencyManagementPlugin}
@@ -56,7 +57,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
             }
         """
         def resolve = new ResolveTestFixture(new TestFile(buildFile), 'testCompileClasspath')
-        resolve.prepare(buildScript)
+        resolve.prepare()
 
         when:
         runner('checkDep').build()
@@ -135,7 +136,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         where:
         bomSupportProvider                    | directBomDependency | reason1            | reason2            | reason3            | bomDeclaration                                        | dependencyManagementPlugin
         "gradle"                              | true                | "requested"        | "requested"        | "requested"        | "dependencies { implementation platform($bom) }"      | ""
-        "nebula recommender plugin"           | false               | "requested"        | "requested"        | "requested"        | "dependencyRecommendations { mavenBom module: $bom }" | "id 'nebula.dependency-recommender' version '${AbstractSmokeTest.TestedVersions.nebulaDependencyRecommender}'"
+        "nebula recommender plugin"           | false               | "requested"        | "requested"        | "requested"        | "dependencyRecommendations { mavenBom module: $bom }" | "id 'com.netflix.nebula.dependency-recommender' version '${AbstractSmokeTest.TestedVersions.nebulaDependencyRecommender}'"
         "spring dependency management plugin" | false               | "selected by rule" | "selected by rule" | "selected by rule" | "dependencyManagement { imports { mavenBom $bom } }"  | "id 'io.spring.dependency-management' version '${AbstractSmokeTest.TestedVersions.springDependencyManagement}'"
     }
 }

@@ -21,8 +21,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
@@ -37,11 +35,22 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
     private final FileCollection files;
     private final NotationParser<Object, MavenArtifact> mavenArtifactParser;
 
-    public DefaultMavenArtifactSet(String publicationName, NotationParser<Object, MavenArtifact> mavenArtifactParser, FileCollectionFactory fileCollectionFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public DefaultMavenArtifactSet(
+        String publicationName,
+        NotationParser<Object, MavenArtifact> mavenArtifactParser,
+        FileCollectionFactory fileCollectionFactory,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator
+    ) {
         super(MavenArtifact.class, collectionCallbackActionDecorator);
         this.publicationName = publicationName;
         this.mavenArtifactParser = mavenArtifactParser;
-        this.files = fileCollectionFactory.create(new ArtifactsTaskDependency(), new ArtifactsFileCollection());
+        this.files = fileCollectionFactory.create(
+            new ArtifactsFileCollection(), context -> {
+                for (MavenArtifact mavenArtifact : DefaultMavenArtifactSet.this) {
+                    context.add(mavenArtifact);
+                }
+            }
+        );
     }
 
     @Override
@@ -76,15 +85,6 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
                 files.add(artifact.getFile());
             }
             return files;
-        }
-    }
-
-    private class ArtifactsTaskDependency extends AbstractTaskDependency {
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            for (MavenArtifact mavenArtifact : DefaultMavenArtifactSet.this) {
-                context.add(mavenArtifact);
-            }
         }
     }
 }

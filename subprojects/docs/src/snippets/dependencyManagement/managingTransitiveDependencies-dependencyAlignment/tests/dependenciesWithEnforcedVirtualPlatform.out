@@ -39,6 +39,6 @@ compileClasspath - Compile classpath for source set 'main'.
      +--- com.fasterxml.jackson.core:jackson-core:2.9.5 -> 2.8.9
      \--- com.fasterxml.jackson.core:jackson-databind:2.9.5 -> 2.8.9 (*)
 
-(*) - dependencies omitted (listed previously)
+(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
 
 A web-based, searchable dependency report is available by adding the --scan option.

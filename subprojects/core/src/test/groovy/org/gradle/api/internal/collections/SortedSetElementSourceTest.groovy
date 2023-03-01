@@ -19,7 +19,7 @@ package org.gradle.api.internal.collections
 import org.gradle.api.Action
 
 
-class SortedSetElementSourceTest extends AbstractElementSourceTest {
+class SortedSetElementSourceTest extends ElementSourceSpec {
     ElementSource source = new SortedSetElementSource<CharSequence>()
 
     def setup() {

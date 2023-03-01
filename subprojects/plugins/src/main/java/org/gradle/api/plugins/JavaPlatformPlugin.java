@@ -31,7 +31,14 @@ import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.internal.java.DefaultJavaPlatformExtension;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
-import org.gradle.internal.component.external.model.DefaultShadowedCapability;
+import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
+import org.gradle.api.publish.ivy.IvyPublication;
+import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
+import org.gradle.api.publish.maven.MavenPublication;
+import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
+import org.gradle.api.publish.plugins.PublishingPlugin;
+import org.gradle.internal.component.external.model.ShadowedImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 
 import javax.inject.Inject;
@@ -45,7 +52,7 @@ import java.util.Set;
  * @since 5.2
  * @see <a href="https://docs.gradle.org/current/userguide/java_platform_plugin.html">Java Platform plugin reference</a>
  */
-public class JavaPlatformPlugin implements Plugin<Project> {
+public abstract class JavaPlatformPlugin implements Plugin<Project> {
     // Buckets of dependencies
     public static final String API_CONFIGURATION_NAME = "api";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
@@ -98,6 +105,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JvmEcosystemPlugin.class);
         createConfigurations(project);
         configureExtension(project);
+        configurePublishing(project);
     }
 
     private void createSoftwareComponent(Project project, Configuration apiElements, Configuration runtimeElements) {
@@ -109,7 +117,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
 
     private void createConfigurations(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
-        Capability enforcedCapability = new DefaultShadowedCapability(new ProjectDerivedCapability(project), "-derived-enforced-platform");
+        Capability enforcedCapability = new ShadowedImmutableCapability(new ProjectDerivedCapability(project), "-derived-enforced-platform");
 
         Configuration api = configurations.create(API_CONFIGURATION_NAME, AS_BUCKET);
         Configuration apiElements = createConsumableApi(project, configurations, api, API_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM);
@@ -182,6 +190,25 @@ public class JavaPlatformPlugin implements Plugin<Project> {
                 checkNoDependencies(parent, visited);
             }
         }
+    }
+
+    private void configurePublishing(Project project) {
+        project.getPlugins().withType(PublishingPlugin.class, plugin -> {
+            PublishingExtension publishing = project.getExtensions().getByType(PublishingExtension.class);
+
+            // Set up the default configurations used when mapping to resolved versions
+            publishing.getPublications().withType(IvyPublication.class, publication -> {
+                VersionMappingStrategyInternal strategy = ((IvyPublicationInternal) publication).getVersionMappingStrategy();
+                strategy.defaultResolutionConfiguration(Usage.JAVA_API, CLASSPATH_CONFIGURATION_NAME);
+                strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, CLASSPATH_CONFIGURATION_NAME);
+            });
+            publishing.getPublications().withType(MavenPublication.class, publication -> {
+                VersionMappingStrategyInternal strategy = ((MavenPublicationInternal) publication).getVersionMappingStrategy();
+                strategy.defaultResolutionConfiguration(Usage.JAVA_API, CLASSPATH_CONFIGURATION_NAME);
+                strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, CLASSPATH_CONFIGURATION_NAME);
+            });
+
+        });
     }
 
 }

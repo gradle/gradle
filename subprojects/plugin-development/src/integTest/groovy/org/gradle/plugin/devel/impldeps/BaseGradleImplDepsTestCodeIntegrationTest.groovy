@@ -21,12 +21,11 @@ import org.gradle.test.fixtures.file.TestFile
 class BaseGradleImplDepsTestCodeIntegrationTest extends BaseGradleImplDepsIntegrationTest  {
 
     protected TestFile productionCode() {
-        file("src/main/java/org/acme/TestPlugin.java") << """
-        package org.acme;
+        file("src/main/java/MyPlugin.java") << """
         import org.gradle.api.Project;
         import org.gradle.api.Plugin;
 
-        public class TestPlugin implements Plugin<Project> {
+        public class MyPlugin implements Plugin<Project> {
             public void apply(Project p) {}
         }
         """
@@ -38,16 +37,16 @@ class BaseGradleImplDepsTestCodeIntegrationTest extends BaseGradleImplDepsIntegr
         import org.gradle.testkit.runner.GradleRunner;
         import org.junit.Test;
         import static org.junit.Assert.assertTrue;
-        
+
         public abstract class BaseTestPluginTest {
             GradleRunner runner() {
                 return GradleRunner.create();
             }
 
-            @Test 
+            @Test
             void commonTest() {
                 assertTrue(true);
-            }         
+            }
         }
         """
     }

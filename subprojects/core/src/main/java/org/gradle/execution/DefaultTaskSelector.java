@@ -17,105 +17,76 @@ package org.gradle.execution;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.initialization.IncludedBuild;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
-import org.gradle.execution.taskpath.ResolvedTaskPath;
-import org.gradle.execution.taskpath.TaskPathResolver;
 import org.gradle.util.internal.NameMatcher;
 
-import javax.annotation.Nullable;
-import java.io.File;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultTaskSelector extends TaskSelector {
+public class DefaultTaskSelector implements TaskSelector {
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskSelector.class);
 
     private final TaskNameResolver taskNameResolver;
-    private final GradleInternal gradle;
     private final ProjectConfigurer configurer;
-    private final TaskPathResolver taskPathResolver = new TaskPathResolver();
 
-    public DefaultTaskSelector(GradleInternal gradle, TaskNameResolver taskNameResolver, ProjectConfigurer configurer) {
+    public DefaultTaskSelector(TaskNameResolver taskNameResolver, ProjectConfigurer configurer) {
         this.taskNameResolver = taskNameResolver;
-        this.gradle = gradle;
         this.configurer = configurer;
     }
 
-    public TaskSelection getSelection(String path) {
-        return getSelection(path, gradle.getDefaultProject());
-    }
-
-    public Spec<Task> getFilter(String path) {
-        final ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, gradle.getDefaultProject());
-        if (!taskPath.isQualified()) {
-            ProjectInternal targetProject = taskPath.getProject();
-            configurer.configure(targetProject);
-            if (taskNameResolver.tryFindUnqualifiedTaskCheaply(taskPath.getTaskName(), taskPath.getProject())) {
-                // An exact match in the target project - can just filter tasks by path to avoid configuring sub-projects at this point
-                return new TaskPathSpec(targetProject, taskPath.getTaskName());
+    @Override
+    public Spec<Task> getFilter(SelectionContext context, ProjectState project, String taskName, boolean includeSubprojects) {
+        if (includeSubprojects) {
+            // Try to delay configuring all the subprojects
+            configurer.configure(project.getMutableModel());
+            if (taskNameResolver.tryFindUnqualifiedTaskCheaply(taskName, project.getMutableModel())) {
+                // An exact match in the target project - can just filter tasks by path to avoid configuring subprojects at this point
+                return new TaskPathSpec(project.getMutableModel(), taskName);
             }
         }
 
-        final Set<Task> selectedTasks = getSelection(path, gradle.getDefaultProject()).getTasks();
-        return new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return !selectedTasks.contains(element);
-            }
-        };
+        final Set<Task> selectedTasks = getSelection(context, project, taskName, includeSubprojects).getTasks();
+        return element -> !selectedTasks.contains(element);
     }
 
-    public TaskSelection getSelection(@Nullable String projectPath, @Nullable File root, String path) {
-        if (root != null) {
-            ensureNotFromIncludedBuild(root);
-        }
-
-        ProjectInternal project = projectPath != null
-            ? gradle.getRootProject().findProject(projectPath)
-            : gradle.getDefaultProject();
-        return getSelection(path, project);
-    }
-
-    private void ensureNotFromIncludedBuild(File root) {
-        Set<File> includedRoots = new HashSet<File>();
-        for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
-            includedRoots.add(includedBuild.getProjectDir());
-        }
-        if (includedRoots.contains(root)) {
-            throw new TaskSelectionException("Can't launch tasks from included builds");
-        }
-    }
-
-    private TaskSelection getSelection(String path, ProjectInternal project) {
-        ResolvedTaskPath taskPath = taskPathResolver.resolvePath(path, project);
-        ProjectInternal targetProject = taskPath.getProject();
-        if (taskPath.isQualified()) {
-            configurer.configure(targetProject);
+    @Override
+    public TaskSelection getSelection(SelectionContext context, ProjectState targetProject, String taskName, boolean includeSubprojects) {
+        if (!includeSubprojects) {
+            configurer.configure(targetProject.getMutableModel());
         } else {
-            configurer.configureHierarchy(targetProject);
+            configurer.configureHierarchy(targetProject.getMutableModel());
         }
 
-        TaskSelectionResult tasks = taskNameResolver.selectWithName(taskPath.getTaskName(), taskPath.getProject(), !taskPath.isQualified());
+        TaskSelectionResult tasks = taskNameResolver.selectWithName(taskName, targetProject.getMutableModel(), includeSubprojects);
         if (tasks != null) {
-            LOGGER.info("Task name matched '{}'", taskPath.getTaskName());
-            return new TaskSelection(taskPath.getProject().getPath(), path, tasks);
+            LOGGER.info("Task name matched '{}'", taskName);
+            return new TaskSelection(targetProject.getProjectPath().getPath(), taskName, tasks);
         } else {
-            Map<String, TaskSelectionResult> tasksByName = taskNameResolver.selectAll(taskPath.getProject(), !taskPath.isQualified());
+            Map<String, TaskSelectionResult> tasksByName = taskNameResolver.selectAll(targetProject.getMutableModel(), includeSubprojects);
             NameMatcher matcher = new NameMatcher();
-            String actualName = matcher.find(taskPath.getTaskName(), tasksByName.keySet());
+            String actualName = matcher.find(taskName, tasksByName.keySet());
 
             if (actualName != null) {
-                LOGGER.info("Abbreviated task name '{}' matched '{}'", taskPath.getTaskName(), actualName);
-                return new TaskSelection(taskPath.getProject().getPath(), taskPath.getPrefix() + actualName, tasksByName.get(actualName));
+                LOGGER.info("Abbreviated task name '{}' matched '{}'", taskName, actualName);
+                return new TaskSelection(targetProject.getProjectPath().getPath(), taskName, tasksByName.get(actualName));
             }
 
-            throw new TaskSelectionException(matcher.formatErrorMessage("task", taskPath.getProject()));
+            String searchContext;
+            if (includeSubprojects && !targetProject.getChildProjects().isEmpty()) {
+                searchContext = targetProject.getDisplayName() + " and its subprojects";
+            } else {
+                searchContext = targetProject.getDisplayName().getDisplayName();
+            }
+
+            if (context.getOriginalPath().getPath().equals(taskName)) {
+                throw new TaskSelectionException(matcher.formatErrorMessage("Task", searchContext));
+            } else {
+                throw new TaskSelectionException(String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(), matcher.formatErrorMessage("task", searchContext)));
+            }
         }
     }
 

@@ -182,7 +182,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
             Plugin<?> pluginInstance = producePluginInstance(pluginClass);
 
             if (plugin.isHasRules()) {
-                target.applyImperativeRulesHybrid(pluginId, pluginInstance);
+                target.applyImperativeRulesHybrid(pluginId, pluginInstance, pluginClass);
             } else {
                 target.applyImperative(pluginId, pluginInstance);
             }

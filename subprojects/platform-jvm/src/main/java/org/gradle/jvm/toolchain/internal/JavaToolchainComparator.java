@@ -23,13 +23,17 @@ import java.util.Comparator;
 
 public class JavaToolchainComparator implements Comparator<JavaToolchain> {
 
+    public static Comparator<? super JavaToolchainInstantiationResult> forInstantiationResult() {
+        return Comparator.comparing(r -> r.getToolchain().get(), new JavaToolchainComparator());
+    }
+
     @Override
     public int compare(JavaToolchain o1, JavaToolchain o2) {
         return Comparator
             .comparing(JavaToolchain::isCurrentJvm)
             .thenComparing(JavaToolchain::isJdk)
             .thenComparing(this::extractVendor, Comparator.reverseOrder())
-            .thenComparing(JavaToolchain::getToolVersion)
+            .thenComparing(JavaToolchain::getToolchainVersion)
             // It is possible for different JDK builds to have exact same version. The input order
             // may change so the installation path breaks ties to keep sorted output consistent
             // between runs.

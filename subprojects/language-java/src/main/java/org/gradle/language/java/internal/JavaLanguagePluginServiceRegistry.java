@@ -83,6 +83,7 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     private static class JavaProjectScopeServices {
 
         public ToolchainToolFactory createToolFactory(ExecActionFactory generator) {
+            // TODO should we create all tools via this factory?
             return new ToolchainToolFactory() {
                 @Override
                 public <T> T create(Class<T> toolType, JavaToolchain toolchain) {

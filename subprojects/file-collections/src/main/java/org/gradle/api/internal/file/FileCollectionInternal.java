@@ -26,6 +26,8 @@ import java.io.File;
 import java.util.function.Supplier;
 
 public interface FileCollectionInternal extends FileCollection, TaskDependencyContainer {
+    String DEFAULT_COLLECTION_DISPLAY_NAME = "file collection";
+
     @Override
     FileCollectionInternal filter(Spec<? super File> filterSpec);
 

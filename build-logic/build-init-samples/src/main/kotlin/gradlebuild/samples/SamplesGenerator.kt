@@ -16,6 +16,8 @@
 
 package gradlebuild.samples
 
+import gradlebuild.toLowerCase
+import gradlebuild.toUpperCase
 import org.gradle.api.file.Directory
 import org.gradle.buildinit.plugins.internal.CompositeProjectInitDescriptor
 import org.gradle.buildinit.plugins.internal.InitSettings
@@ -140,13 +142,27 @@ Enter selection (default: JUnit 4) [1..4]
         val languagePluginDocsLink = if (descriptor.language === Language.KOTLIN)
             "link:https://kotlinlang.org/docs/reference/using-gradle.html[Kotlin Gradle plugin]"
         else
-            "link:{userManualPath}/${descriptor.language.name}_plugin.html[${descriptor.language} Plugin]"
+            "link:{userManualPath}/${descriptor.language.getName()}_plugin.html[${descriptor.language} Plugin]"
+
+        val pluginType = if (descriptor.componentType === ComponentType.LIBRARY) "Library" else "Application"
+        val configurationCacheCompatMatrixLink = "link:{userManualPath}/configuration_cache.html#config_cache:plugins:core"
+        val configurationCacheCompatibility = when (descriptor.language) {
+            Language.CPP -> {
+                "WARNING: The {cpp} $pluginType Plugin is not compatible with the $configurationCacheCompatMatrixLink[configuration cache]."
+            }
+            Language.SWIFT -> {
+                "WARNING: The Swift $pluginType Plugin is not compatible with the $configurationCacheCompatMatrixLink[configuration cache]."
+            }
+            else -> {
+                ""
+            }
+        }
 
         projectLayoutSetupRegistry.templateOperationFactory.newTemplateOperation()
             .withTemplate(templateFolder.template("$templateFragment.adoc"))
             .withTarget(settings.target.file("../README.adoc").asFile)
             .withBinding("language", descriptor.language.toString().replace("C++", "{cpp}"))
-            .withBinding("languageLC", descriptor.language.name.toLowerCase())
+            .withBinding("languageLC", descriptor.language.getName().toLowerCase())
             .withBinding("languageExtension", descriptor.language.extension)
             .withBinding("languageIndex", "" + (languages.indexOf(descriptor.language) + 1))
             .withBinding("componentType", descriptor.componentType.name.toLowerCase())
@@ -164,13 +180,14 @@ Enter selection (default: JUnit 4) [1..4]
             .withBinding("testFrameworkChoice", testFrameworkChoice)
             .withBinding("tasksExecuted", "" + tasksExecuted(descriptor))
             .withBinding("languagePluginDocsLink", "" + languagePluginDocsLink)
+            .withBinding("configurationCacheCompatibility", configurationCacheCompatibility)
             .create().generate()
     }
 
     private
     fun generateOutput(templateFolder: Directory, templateFragment: String, settings: InitSettings, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
         val subprojectName = settings.subprojects.first()
-        val languageName = descriptor.language.name.substring(0, 1).toUpperCase() + descriptor.language.name.substring(1)
+        val languageName = descriptor.language.getName().substring(0, 1).toUpperCase() + descriptor.language.getName().substring(1)
         val extraCompileJava = if (descriptor.language != Language.JAVA) """
      > Task :$subprojectName:compileJava NO-SOURCE
 

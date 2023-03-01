@@ -32,7 +32,7 @@ import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.resolve.ModuleVersionResolveException
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
+import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult
@@ -201,7 +201,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         def artifact = Mock(ComponentArtifactMetadata)
         def artifactId = Mock(ComponentArtifactIdentifier)
         def moduleSources = ImmutableModuleSources.of(Mock(ModuleSource))
-        def result = Mock(BuildableArtifactResolveResult)
+        def result = Mock(BuildableArtifactFileResolveResult)
         artifact.getId() >> artifactId
 
         when: 'repo is not disabled'
@@ -239,7 +239,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         def artifact = Mock(ComponentArtifactMetadata)
         def artifactId = Mock(ComponentArtifactIdentifier)
         def moduleSources = ImmutableModuleSources.of(Mock(ModuleSource))
-        def result = Mock(BuildableArtifactResolveResult)
+        def result = Mock(BuildableArtifactFileResolveResult)
         artifact.getId() >> artifactId
         delegate.resolveArtifact(artifact, moduleSources, result) >> { throw exception }
         repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false

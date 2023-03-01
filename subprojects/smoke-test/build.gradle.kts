@@ -3,6 +3,7 @@ import gradlebuild.basics.accessors.groovy
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
+import gradlebuild.basics.buildCommitId
 
 plugins {
     id("gradlebuild.internal.java")
@@ -54,14 +55,14 @@ tasks {
     val santaGitUri = "https://github.com/gradle/santa-tracker-android.git"
 
     val santaTracker by registering(RemoteProject::class) {
-        remoteUri.set(santaGitUri)
+        remoteUri = santaGitUri
         // Pinned from branch main
-        ref.set("1513dc23b6026c000f80b872b4346b1ba0f6dfa1")
+        ref = "180b7a91054d5fe5b617543bb2f74a3819537b7b"
     }
 
     val gradleBuildCurrent by registering(RemoteProject::class) {
-        remoteUri.set(rootDir.absolutePath)
-        ref.set(moduleIdentity.gradleBuildCommitId)
+        remoteUri = rootDir.absolutePath
+        ref = buildCommitId
     }
 
     val remoteProjects = arrayOf(santaTracker, gradleBuildCurrent)
@@ -170,8 +171,8 @@ plugins.withType<IdeaPlugin>().configureEach {
     val smokeTestCompileClasspath: Configuration by configurations
     val smokeTestRuntimeClasspath: Configuration by configurations
     model.module {
-        testSourceDirs = testSourceDirs + smokeTestSourceSet.groovy.srcDirs
-        testResourceDirs = testResourceDirs + smokeTestSourceSet.resources.srcDirs
+        testSources.from(smokeTestSourceSet.groovy.srcDirs)
+        testResources.from(smokeTestSourceSet.resources.srcDirs)
         scopes["TEST"]!!["plus"]!!.add(smokeTestCompileClasspath)
         scopes["TEST"]!!["plus"]!!.add(smokeTestRuntimeClasspath)
     }

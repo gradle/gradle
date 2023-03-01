@@ -72,7 +72,6 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
 
         then:
         validatePlugins()
-
     }
 
     void passingPlugins(Closure<Boolean> spec) {
@@ -81,7 +80,6 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
 
     void validatePlugins() {
         allPlugins.performValidation([
-            "-Dorg.gradle.internal.validate.external.plugins=true",
             "--no-parallel" // make sure we have consistent execution ordering as we skip cached tasks
         ])
     }
@@ -104,8 +102,4 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
             allPlugins.onPlugin(id, projectPath, spec)
         }
     }
-
 }
-
-
-

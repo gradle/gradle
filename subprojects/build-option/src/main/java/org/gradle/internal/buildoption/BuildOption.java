@@ -23,12 +23,12 @@ import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
- * Represents a option for a build provided by the user via Gradle property and/or a command line option.
+ * Represents an option for a build provided by the user via Gradle property and/or a command line option.
  *
  * @param <T> the type of object that ultimately expresses the option to consumers
  * @since 4.3
  */
-public interface BuildOption<T> {
+public interface BuildOption<T> extends Option {
 
     @Nullable
     String getGradleProperty();
@@ -38,45 +38,4 @@ public interface BuildOption<T> {
     void configure(CommandLineParser parser);
 
     void applyFromCommandLine(ParsedCommandLine options, T settings);
-
-    abstract class Value<T> {
-        public abstract boolean isExplicit();
-
-        public abstract T get();
-
-        /**
-         * Creates the default value for an option.
-         */
-        public static <T> Value<T> defaultValue(final T value) {
-            return new Value<T>() {
-                @Override
-                public boolean isExplicit() {
-                    return false;
-                }
-
-                @Override
-                public T get() {
-                    return value;
-                }
-            };
-        }
-
-        /**
-         * Creates an explicit value for an option.
-         */
-        public static <T> Value<T> value(final T value) {
-            return new Value<T>() {
-                @Override
-                public boolean isExplicit() {
-                    return true;
-                }
-
-                @Override
-                public T get() {
-                    return value;
-                }
-            };
-        }
-    }
-
 }

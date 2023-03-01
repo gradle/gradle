@@ -21,10 +21,12 @@ import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public abstract class ExecutionResult<T> {
     private static final Success<Void> SUCCESS = new Success<Void>() {
@@ -99,6 +101,28 @@ public abstract class ExecutionResult<T> {
             return SUCCESS;
         } else {
             return new Failure<>(ImmutableList.of(failure));
+        }
+    }
+
+    /**
+     * Applies the given action to each item in the given collection and collects the failures.
+     */
+    public static <T> ExecutionResult<Void> forEach(Iterable<T> items, Consumer<? super T> action) {
+        List<Throwable> failures = null;
+        for (T item : items) {
+            try {
+                action.accept(item);
+            } catch (Throwable t) {
+                if (failures == null) {
+                    failures = new ArrayList<>();
+                }
+                failures.add(t);
+            }
+        }
+        if (failures == null) {
+            return succeeded();
+        } else {
+            return maybeFailed(failures);
         }
     }
 

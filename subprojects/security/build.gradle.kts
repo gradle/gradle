@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":process-services"))
     implementation(project(":resources-http"))
     implementation(libs.guava)
+    implementation(libs.inject)
 
     api(libs.bouncycastlePgp)
 
@@ -33,6 +34,6 @@ dependencies {
     }
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/plugins/signing/type/pgp/**")
 }

@@ -5,6 +5,7 @@ tasks.register<Delete>("clean") {
 }
 tasks.register("compile") {
     dependsOn("clean")
+    val classesDir = classesDir
     doLast {
         if (!classesDir.isDirectory) {
             println("The class directory does not exist. I can not operate")

@@ -31,4 +31,11 @@ public interface GradleEnterprisePluginConfig {
 
     boolean isTaskExecutingBuild();
 
+    /**
+     * Whether the plugin was auto-applied via {@code --scan} without being explicitly applied.
+     *
+     * @since 8.0
+     */
+    boolean isAutoApplied();
+
 }

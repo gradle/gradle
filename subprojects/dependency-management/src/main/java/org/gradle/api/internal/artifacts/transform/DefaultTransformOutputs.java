@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.internal.file.PathToFileResolver;
@@ -29,36 +28,51 @@ import java.util.function.Consumer;
 
 public class DefaultTransformOutputs implements TransformOutputsInternal {
 
-    private final ImmutableList.Builder<File> outputsBuilder = ImmutableList.builder();
+    private final TransformationResult.OutputTypeInferringBuilder resultBuilder;
     private final Set<File> outputDirectories = new HashSet<>();
     private final Set<File> outputFiles = new HashSet<>();
     private final PathToFileResolver resolver;
     private final File inputArtifact;
     private final File outputDir;
-    private final String inputArtifactPrefix;
-    private final String outputDirPrefix;
 
     public DefaultTransformOutputs(File inputArtifact, File outputDir, FileLookup fileLookup) {
         this.resolver = fileLookup.getPathToFileResolver(outputDir);
         this.inputArtifact = inputArtifact;
         this.outputDir = outputDir;
-        this.inputArtifactPrefix = inputArtifact.getPath() + File.separator;
-        this.outputDirPrefix = outputDir.getPath() + File.separator;
+        this.resultBuilder = TransformationResult.builderFor(inputArtifact, outputDir);
     }
 
     @Override
-    public ImmutableList<File> getRegisteredOutputs() {
-        ImmutableList<File> outputs = outputsBuilder.build();
-        for (File output : outputs) {
-            TransformOutputsInternal.validateOutputExists(outputDirPrefix, output);
-            if (outputFiles.contains(output) && !output.isFile()) {
-                throw new InvalidUserDataException("Transform output file " + output.getPath() + " must be a file, but is not.");
+    public TransformationResult getRegisteredOutputs() {
+        TransformationResult result = resultBuilder.build();
+        result.visitOutputs(new TransformationResult.TransformationOutputVisitor() {
+            @Override
+            public void visitEntireInputArtifact() {
+                validate(inputArtifact);
             }
-            if (outputDirectories.contains(output) && !output.isDirectory()) {
-                throw new InvalidUserDataException("Transform output directory " + output.getPath() + " must be a directory, but is not.");
+
+            @Override
+            public void visitPartOfInputArtifact(String relativePath) {
+                validate(new File(inputArtifact, relativePath));
             }
-        }
-        return outputs;
+
+            @Override
+            public void visitProducedOutput(File outputLocation) {
+                validate(outputLocation);
+            }
+
+            private void validate(File output) {
+                validateOutputExists(outputDir, output);
+                if (outputFiles.contains(output) && !output.isFile()) {
+                    throw new InvalidUserDataException("Transform output file " + output.getPath() + " must be a file, but is not.");
+                }
+                if (outputDirectories.contains(output) && !output.isDirectory()) {
+                    throw new InvalidUserDataException("Transform output directory " + output.getPath() + " must be a directory, but is not.");
+                }
+            }
+        });
+
+        return result;
     }
 
     @Override
@@ -77,11 +91,17 @@ public class DefaultTransformOutputs implements TransformOutputsInternal {
 
     private File resolveAndRegister(Object path, Consumer<File> prepareOutputLocation) {
         File output = resolver.resolve(path);
-        OutputLocationType outputLocationType = TransformOutputsInternal.determineOutputLocationType(output, inputArtifact, inputArtifactPrefix, outputDir, outputDirPrefix);
-        if (outputLocationType == OutputLocationType.WORKSPACE) {
-            prepareOutputLocation.accept(output);
-        }
-        outputsBuilder.add(output);
+        resultBuilder.addOutput(output, prepareOutputLocation);
         return output;
     }
-}
+
+    private static void validateOutputExists(File outputDir, File output) {
+        if (!output.exists()) {
+            String outputAbsolutePath = output.getAbsolutePath();
+            String outputDirPrefix = outputDir.getAbsolutePath() + File.separator;
+            String reportedPath = outputAbsolutePath.startsWith(outputDirPrefix)
+                ? outputAbsolutePath.substring(outputDirPrefix.length())
+                : outputAbsolutePath;
+            throw new InvalidUserDataException("Transform output " + reportedPath + " must exist.");
+        }
+    }}

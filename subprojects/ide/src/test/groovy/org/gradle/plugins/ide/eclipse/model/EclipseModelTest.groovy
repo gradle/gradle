@@ -20,21 +20,27 @@ import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.PropertiesTransformer
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+import spock.lang.Subject
 
 class EclipseModelTest extends Specification {
 
-    EclipseModel model = new EclipseModel(Mock(ProjectInternal))
+    @Subject
+    EclipseModel model
+    def project = Mock(ProjectInternal) {
+        getTaskDependencyFactory() >> TestFiles.taskDependencyFactory()
+    }
 
     def setup() {
-        def project = Mock(org.gradle.api.Project)
         project.getObjects() >> TestUtil.objectFactory()
-        model.classpath = new EclipseClasspath(project)
+        model = TestUtil.newInstance(EclipseModel, project)
+        model.classpath = TestUtil.newInstance(EclipseClasspath, project)
     }
 
     def "enables setting path variables even if wtp is not configured"() {
@@ -51,7 +57,7 @@ class EclipseModelTest extends Specification {
 
     def "enables setting path variables even if wtp component is not configured"() {
         given:
-        model.wtp = new EclipseWtp()
+        model.wtp = TestUtil.newInstance(EclipseWtp)
         //for example when wtp+java applied but project is not a dependency to any war/ear.
         assert model.wtp.component == null
 
@@ -64,8 +70,8 @@ class EclipseModelTest extends Specification {
 
     def "enables setting path variables"() {
         given:
-        model.wtp = new EclipseWtp()
-        model.wtp.component = new EclipseWtpComponent(null, null)
+        model.wtp = TestUtil.newInstance(EclipseWtp)
+        model.wtp.component = TestUtil.newInstance(EclipseWtpComponent, project, Mock(XmlFileContentMerger))
 
         when:
         model.pathVariables(one: new File('.'))
@@ -80,7 +86,7 @@ class EclipseModelTest extends Specification {
         def xmlTransformer = Mock(XmlTransformer)
         def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
         def xmlAction = {} as Action<XmlProvider>
-        model.project = new EclipseProject(xmlMerger)
+        model.project = TestUtil.newInstance(EclipseProject, xmlMerger)
 
         when: "configure project"
         model.project({ p -> p.comment = 'something' } as Action<EclipseProject>)
@@ -132,7 +138,7 @@ class EclipseModelTest extends Specification {
         def propertiesTransformer = Mock(PropertiesTransformer)
         def propertiesMerger = Spy(PropertiesFileContentMerger, constructorArgs: [propertiesTransformer])
         def propertiesAction = {} as Action<Properties>
-        model.jdt = new EclipseJdt(propertiesMerger)
+        model.jdt = TestUtil.newInstance(EclipseJdt, propertiesMerger)
 
         when: "configure jdt"
         model.jdt({ jdt -> jdt.sourceCompatibility = JavaVersion.VERSION_1_9 } as Action<EclipseJdt>)
@@ -158,9 +164,9 @@ class EclipseModelTest extends Specification {
         def xmlTransformer = Mock(XmlTransformer)
         def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
         def xmlAction = {} as Action<XmlProvider>
-        def facet = new EclipseWtpFacet(xmlMerger)
-        def component = new EclipseWtpComponent(null, xmlMerger)
-        model.wtp = new EclipseWtp()
+        def facet = TestUtil.newInstance(EclipseWtpFacet, xmlMerger)
+        def component = TestUtil.newInstance(EclipseWtpComponent, project, xmlMerger)
+        model.wtp = TestUtil.newInstance(EclipseWtp)
 
         when: "configure wtp"
         model.wtp({ wtp ->

@@ -27,7 +27,7 @@ import java.util.function.Consumer;
 public interface IncludedBuildTaskResource {
 
     enum State {
-        Waiting(false), Success(true), Failed(true);
+        NotScheduled(true), Scheduled(false), Success(true), Failed(true);
 
         private final boolean complete;
 

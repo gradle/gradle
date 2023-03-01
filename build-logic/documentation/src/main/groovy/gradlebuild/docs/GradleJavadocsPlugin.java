@@ -87,6 +87,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             // TODO: This breaks the provider
             options.addStringOption("stylesheetfile", javadocs.getJavadocCss().get().getAsFile().getAbsolutePath());
             options.addStringOption("source", "8");
+            options.tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:");
             // TODO: This breaks the provider
             options.links(javadocs.getJavaApi().get().toString(), javadocs.getGroovyApi().get().toString());
 
@@ -112,12 +113,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                     @Override
                     public void execute(Task task) {
                         fs.copy(copySpec -> {
-                            // Commit http://hg.openjdk.java.net/jdk/jdk/rev/89dc31d7572b broke use of JSZip (https://bugs.openjdk.java.net/browse/JDK-8214856)
-                            // fixed in Java 12 by http://hg.openjdk.java.net/jdk/jdk/rev/b4982a22926b
-                            // TODO: Remove this script.js workaround when we distribute Gradle using JDK 12 or higher
-                            copySpec.from(extension.getSourceRoot().dir("js/javadoc"));
-
-                            // This is a work-around for https://bugs.openjdk.java.net/browse/JDK-8211194. Can be removed once that issue is fixed on JDK"s side
+                            // This is a work-around for https://bugs.openjdk.java.net/browse/JDK-8211194. Can be removed once that issue is fixed on JDK's side
                             // Since JDK 11, package-list is missing from javadoc output files and superseded by element-list file, but a lot of external tools still need it
                             // Here we generate this file manually
                             copySpec.from(generatedJavadocDirectory.file("element-list"), sub -> {
@@ -143,7 +139,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             // TODO: This is ugly
             task.setConfig(project.getResources().getText().fromFile(checkstyle.getConfigDirectory().file("checkstyle-api.xml")));
             task.setClasspath(layout.files());
-            task.getReports().getXml().setDestination(new File(checkstyle.getReportsDir(), "checkstyle-api.xml"));
+            task.getReports().getXml().getOutputLocation().set(new File(checkstyle.getReportsDir(), "checkstyle-api.xml"));
         });
     }
 }

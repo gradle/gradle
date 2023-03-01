@@ -15,13 +15,17 @@
  */
 
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.6.21"
+    id "org.jetbrains.kotlin.jvm" version "1.8.10"
 }
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+repositories {
+    mavenCentral()
+}
+
 // tag::configure[]
 tasks.withType(KotlinCompile).configureEach {
-    kotlinOptions.freeCompilerArgs += "-Xsam-conversions=class"
+    compilerOptions.freeCompilerArgs.add("-Xsam-conversions=class")
 }
 // tag::configure[]

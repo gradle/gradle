@@ -69,6 +69,8 @@ class ConfigurationCacheKey(
         if (buildActionRequirements.isRunsTasks) {
             appendRequestedTasks()
         }
+
+        putBoolean(startParameter.isOffline)
     }
 
     private

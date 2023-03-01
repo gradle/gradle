@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.http
 import org.gradle.authentication.http.BasicAuthentication
 import org.gradle.authentication.http.DigestAuthentication
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.hamcrest.CoreMatchers
@@ -31,6 +32,7 @@ import static org.gradle.test.fixtures.server.http.AuthScheme.NTLM
 
 class HttpAuthenticationDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     static String badCredentials = "credentials{username 'testuser'; password 'bad'}"
+    ResolveFailureTestFixture failedResolve = new ResolveFailureTestFixture(buildFile)
 
     def setup() {
         // by setting this to >1, we assert that an authentication error is NOT going to cause retries
@@ -64,8 +66,9 @@ dependencies {
     compile 'group:projectB:2.+'
 }
 task listJars {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar','projectB-2.3.jar']
+        assert files*.name == ['projectA-1.2.jar','projectB-2.3.jar']
     }
 }
 """
@@ -127,8 +130,9 @@ dependencies {
     compile 'group:projectD:4-SNAPSHOT'
 }
 task listJars {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-2.3.jar', 'projectC-3.1-SNAPSHOT.jar', 'projectD-4-SNAPSHOT.jar']
+        assert files*.name == ['projectA-1.2.jar', 'projectB-2.3.jar', 'projectC-3.1-SNAPSHOT.jar', 'projectD-4-SNAPSHOT.jar']
     }
 }
 """
@@ -188,8 +192,9 @@ dependencies {
     compile 'group:projectA:1.2'
 }
 task listJars {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+        assert files*.name == ['projectA-1.2.jar']
     }
 }
 """
@@ -206,7 +211,6 @@ task listJars {
         and:
         server.allHeaders.every { it.get("TestHttpHeaderName") == "TestHttpHeaderValue" }
     }
-
 
     @Issue("gradle/gradle#5571")
     void "can resolve dependencies from HTTP Maven repository authenticating with HTTP header with redirect"() {
@@ -232,8 +236,9 @@ dependencies {
     compile 'group:projectA:1.2'
 }
 task listJars {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+        assert files*.name == ['projectA-1.2.jar']
     }
 }
 """
@@ -274,23 +279,19 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task listJars {
-    doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
-    }
-}
 """
+        failedResolve.prepare()
 
         and:
         serverAuthScheme = authScheme
         server.allowGetOrHead('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
 
         then:
-        fails 'listJars'
+        fails 'checkDeps'
 
         and:
+        failedResolve.assertFailurePresent(failure)
         failure
-            .assertHasDescription('Execution failed for task \':listJars\'.')
             .assertResolutionFailure(':compile')
             .assertThatCause(CoreMatchers.containsString('Received status code 401 from server: Unauthorized'))
 
@@ -321,23 +322,19 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task listJars {
-    doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
-    }
-}
 """
+        failedResolve.prepare()
 
         and:
         serverAuthScheme = authScheme
         module.pom.allowGetOrHead('username', 'password')
 
         then:
-        fails 'listJars'
+        fails 'checkDeps'
 
         and:
+        failedResolve.assertFailurePresent(failure)
         failure
-            .assertHasDescription('Execution failed for task \':listJars\'.')
             .assertResolutionFailure(':compile')
             .assertThatCause(CoreMatchers.containsString('Received status code 401 from server: Unauthorized'))
 
@@ -374,23 +371,19 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task listJars {
-    doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
-    }
-}
 """
+        failedResolve.prepare()
 
         and:
         serverAuthScheme = authScheme
         server.allowGetOrHead('/repo/group/projectA/1.2/ivy-1.2.xml', 'username', 'password', module.ivyFile)
 
         then:
-        fails 'listJars'
+        fails 'checkDeps'
 
         and:
+        failedResolve.assertFailurePresent(failure)
         failure
-            .assertHasDescription('Execution failed for task \':listJars\'.')
             .assertResolutionFailure(':compile')
             .assertThatCause(CoreMatchers.containsString('Received status code 401 from server: Unauthorized'))
 
@@ -424,23 +417,19 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task listJars {
-    doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
-    }
-}
 """
+        failedResolve.prepare()
 
         and:
         serverAuthScheme = authScheme
         module.pom.allowGetOrHead('username', 'password')
 
         then:
-        fails 'listJars'
+        fails 'checkDeps'
 
         and:
+        failedResolve.assertFailurePresent(failure)
         failure
-            .assertHasDescription('Execution failed for task \':listJars\'.')
             .assertResolutionFailure(':compile')
             .assertThatCause(CoreMatchers.containsString('Received status code 401 from server: Unauthorized'))
 
@@ -469,12 +458,8 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task listJars {
-    doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
-    }
-}
 """
+        failedResolve.prepare()
 
         and:
         serverAuthScheme = HIDE_UNAUTHORIZED
@@ -482,11 +467,11 @@ task listJars {
         server.allowGetOrHead('/repo/group/projectA/1.2/projectA-1.2.jar', 'username', 'password', module.jarFile)
 
         then:
-        fails 'listJars'
+        fails 'checkDeps'
 
         and:
+        failedResolve.assertFailurePresent(failure)
         failure
-            .assertHasDescription('Execution failed for task \':listJars\'.')
             .assertResolutionFailure(':compile')
             .assertThatCause(CoreMatchers.containsString('Could not find group:projectA:1.2'))
     }
@@ -511,12 +496,8 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task listJars {
-    doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
-    }
-}
 """
+        failedResolve.prepare()
 
         and:
         serverAuthScheme = HIDE_UNAUTHORIZED
@@ -524,11 +505,11 @@ task listJars {
         module.artifact.allowGetOrHead('username', 'password')
 
         then:
-        fails 'listJars'
+        fails 'checkDeps'
 
         and:
+        failedResolve.assertFailurePresent(failure)
         failure
-            .assertHasDescription('Execution failed for task \':listJars\'.')
             .assertResolutionFailure(':compile')
             .assertThatCause(CoreMatchers.containsString('Could not find group:projectA:1.2'))
     }
@@ -545,8 +526,9 @@ dependencies {
     compile 'group:projectA:1.2'
 }
 task resolve {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+        assert files*.name == ['projectA-1.2.jar']
     }
 }
 """

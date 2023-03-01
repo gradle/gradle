@@ -24,14 +24,13 @@ import common.javaHome
 import common.requiresOs
 import common.toCapitalized
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import vcsroots.gradleMasterVersionedSettings
 import vcsroots.useAbsoluteVcs
 
 object PublishKotlinDslPlugin : BuildType({
     name = "Publish Kotlin DSL Plugin"
     id("Util_PublishKotlinDslPlugin")
     uuid = "${VersionedSettingsBranch.fromDslContext().branchName.toCapitalized()}_Util_PublishKotlinDslPlugin"
-    vcs.useAbsoluteVcs(gradleMasterVersionedSettings)
+    vcs.useAbsoluteVcs(VersionedSettingsBranch.fromDslContext().vcsRootId())
 
     requirements {
         requiresOs(Os.LINUX)

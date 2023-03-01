@@ -156,7 +156,7 @@
                             </span>
                             <div class="site-header__navigation-submenu">
                                 <div class="site-header__navigation-submenu-item" itemprop="name">
-                                    <a class="site-header__navigation-submenu-item-link" href="https://newsletter.gradle.com" itemprop="url">
+                                    <a class="site-header__navigation-submenu-item-link" href="https://newsletter.gradle.org" itemprop="url">
                                         <span class="site-header__navigation-submenu-item-link-text">Newsletter</span>
                                     </a>
                                 </div>
@@ -202,7 +202,7 @@
                         <header><strong>News</strong></header>
                         <ul class="site-footer__links-list">
                             <li itemprop="name"><a href="https://blog.gradle.org/" itemprop="url">Blog</a></li>
-                            <li itemprop="name"><a href="https://newsletter.gradle.com/" itemprop="url">Newsletter</a></li>
+                            <li itemprop="name"><a href="https://newsletter.gradle.org/" itemprop="url">Newsletter</a></li>
                             <li itemprop="name"><a href="https://twitter.com/gradle" itemprop="url">Twitter</a></li>
                         </ul>
                     </div>

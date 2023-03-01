@@ -28,7 +28,7 @@ import java.io.File;
  * Generated the Gradle CUnit launcher: main method and header.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class GenerateCUnitLauncher extends DefaultTask {
+public abstract class GenerateCUnitLauncher extends DefaultTask {
     private File sourceDir;
     private File headerDir;
 

@@ -17,22 +17,19 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
-import org.gradle.internal.actor.ActorFactory;
-import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.Factory;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,36 +38,63 @@ public class JUnitTestFramework implements TestFramework {
     private JUnitOptions options;
     private JUnitDetector detector;
     private final DefaultTestFilter filter;
+    private final boolean useImplementationDependencies;
+    private final Factory<File> testTaskTemporaryDir;
 
-    public JUnitTestFramework(Test testTask, DefaultTestFilter filter) {
+    public JUnitTestFramework(Test testTask, DefaultTestFilter filter, boolean useImplementationDependencies) {
+        this(filter, useImplementationDependencies, new JUnitOptions(), testTask.getTemporaryDirFactory());
+    }
+
+    private JUnitTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitOptions options, Factory<File> testTaskTemporaryDir) {
         this.filter = filter;
-        options = new JUnitOptions();
-        detector = new JUnitDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
+        this.useImplementationDependencies = useImplementationDependencies;
+        this.options = options;
+        this.testTaskTemporaryDir = testTaskTemporaryDir;
+        this.detector = new JUnitDetector(new ClassFileExtractionManager(testTaskTemporaryDir));
+    }
+
+    @UsedByScanPlugin("test-retry")
+    @Override
+    public TestFramework copyWithFilters(TestFilter newTestFilters) {
+        JUnitOptions copiedOptions = new JUnitOptions();
+        copiedOptions.copyFrom(options);
+
+        return new JUnitTestFramework(
+            (DefaultTestFilter) newTestFilters,
+            useImplementationDependencies,
+            copiedOptions,
+            testTaskTemporaryDir
+        );
     }
 
     @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
-        return new TestClassProcessorFactoryImpl(new JUnitSpec(
-            options.getIncludeCategories(), options.getExcludeCategories(),
-            filter.getIncludePatterns(), filter.getExcludePatterns(),
-            filter.getCommandLineIncludePatterns()));
+        return new JUnitTestClassProcessorFactory(new JUnitSpec(
+            filter.toSpec(), options.getIncludeCategories(), options.getExcludeCategories()));
     }
 
     @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
-        return new Action<WorkerProcessBuilder>() {
-            @Override
-            public void execute(WorkerProcessBuilder workerProcessBuilder) {
-                workerProcessBuilder.sharedPackages("junit.framework");
-                workerProcessBuilder.sharedPackages("junit.extensions");
-                workerProcessBuilder.sharedPackages("org.junit");
-            }
+        return workerProcessBuilder -> {
+            workerProcessBuilder.sharedPackages("junit.framework");
+            workerProcessBuilder.sharedPackages("junit.extensions");
+            workerProcessBuilder.sharedPackages("org.junit");
         };
     }
 
     @Override
-    public List<String> getTestWorkerImplementationModules() {
+    public List<String> getTestWorkerApplicationClasses() {
+        return Collections.singletonList("junit");
+    }
+
+    @Override
+    public List<String> getTestWorkerApplicationModules() {
         return Collections.emptyList();
+    }
+
+    @Override
+    public boolean getUseDistributionDependencies() {
+        return useImplementationDependencies;
     }
 
     @Override
@@ -94,16 +118,4 @@ public class JUnitTestFramework implements TestFramework {
         detector = null;
     }
 
-    private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
-        private final JUnitSpec spec;
-
-        public TestClassProcessorFactoryImpl(JUnitSpec spec) {
-            this.spec = spec;
-        }
-
-        @Override
-        public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            return new JUnitTestClassProcessor(spec, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), serviceRegistry.get(Clock.class));
-        }
-    }
 }

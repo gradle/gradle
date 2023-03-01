@@ -32,7 +32,7 @@ public abstract class DefaultAggregateTestReport implements AggregateTestReport 
     @Inject
     public DefaultAggregateTestReport(String name, TaskContainer tasks) {
         this.name = name;
-        reportTask = tasks.register(name, TestReport.class, new Action<TestReport>() { // no lambdas; this module enforces language level 6
+        reportTask = tasks.register(name, TestReport.class, new Action<TestReport>() {
             @Override
             public void execute(TestReport task) {
                 task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);

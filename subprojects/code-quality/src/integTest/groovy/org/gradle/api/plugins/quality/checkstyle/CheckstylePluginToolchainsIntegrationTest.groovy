@@ -16,19 +16,22 @@
 
 package org.gradle.api.plugins.quality.checkstyle
 
+import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.hamcrest.Matcher
+import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.CoreMatchers.containsString
-import static org.junit.Assume.assumeNotNull
 
 @TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
-class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationSpec {
+class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
 
     def setup() {
         executer.withArgument("--info")
@@ -73,6 +76,45 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
 
         then:
         outputContains("Running checkstyle with toolchain '${Jvm.current().javaHome.absolutePath}'")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21353")
+    def "uses current jdk if checkstyle plugin is not applied"() {
+        given:
+        goodCode()
+        writeDummyConfig()
+        setupExecutorForToolchains()
+        writeBuildFileWithoutApplyingCheckstylePlugin()
+        buildFile << """
+            Map<String, String> excludeProperties(String group, String module) {
+                return ["group": group, "module": module]
+            }
+            Configuration configuration = configurations.create("checkstyle")
+            configuration.exclude(excludeProperties("ant", "ant"))
+            configuration.exclude(excludeProperties("org.apache.ant", "ant"))
+            configuration.exclude(excludeProperties("org.apache.ant", "ant-launcher"))
+            configuration.exclude(excludeProperties("org.slf4j", "slf4j-api"))
+            configuration.exclude(excludeProperties("org.slf4j", "jcl-over-slf4j"))
+            configuration.exclude(excludeProperties("org.slf4j", "log4j-over-slf4j"))
+            configuration.exclude(excludeProperties("commons-logging", "commons-logging"))
+            configuration.exclude(excludeProperties("log4j", "log4j"))
+            dependencies.add("checkstyle", dependencies.create("com.puppycrawl.tools:checkstyle:$version"))
+            FileCollection checkstyleFileCollection = configuration
+
+            tasks.register("myCheckstyle", Checkstyle) {
+                checkstyleClasspath = checkstyleFileCollection
+                configFile = file("\$projectDir/config/checkstyle/checkstyle.xml")
+                configDirectory = file("\$projectDir/config/checkstyle")
+                source = fileTree("\$projectDir/src/main")
+                classpath = objects.fileCollection().from("\$buildDir/classes")
+            }
+"""
+
+        when:
+        succeeds("myCheckstyle")
+
+        then:
+        outputContains("Running checkstyle with toolchain '${Jvm.current().javaHome.absolutePath}'.")
     }
 
     def "respects memory options settings"() {
@@ -140,54 +182,69 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
     }
 
     Jvm setupExecutorForToolchains() {
-        Jvm jdk = AvailableJavaHomes.getDifferentVersion()
-        assumeNotNull(jdk)
-        executer.withArgument("-Porg.gradle.java.installations.paths=${jdk.javaHome.absolutePath}")
+        Jvm jdk = AvailableJavaHomes.getDifferentVersion(new Spec<JvmInstallationMetadata>() {
+            @Override
+            boolean isSatisfiedBy(JvmInstallationMetadata metadata) {
+                metadata.getLanguageVersion() >= CheckstyleCoverage.getMinimumSupportedJdkVersion(versionNumber)
+            }
+        })
+        withInstallations(jdk)
         return jdk
     }
 
     private void writeBuildFile() {
         buildFile << """
-    plugins {
-        id 'groovy'
-        id 'java'
-        id 'checkstyle'
+            plugins {
+                id 'groovy'
+                id 'java'
+                id 'checkstyle'
+            }
+
+            checkstyle {
+                toolVersion = '$version'
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            dependencies {
+                implementation localGroovy()
+            }
+        """
     }
 
-    checkstyle {
-        toolVersion = '$version'
-    }
+    private void writeBuildFileWithoutApplyingCheckstylePlugin() {
+        buildFile << """
+            plugins {
+                id 'groovy'
+                id 'java'
+            }
 
-    repositories {
-        ${mavenCentralRepository()}
-    }
+            repositories {
+                ${mavenCentralRepository()}
+            }
 
-    dependencies {
-        implementation localGroovy()
-    }
-"""
+            dependencies {
+                implementation localGroovy()
+            }
+        """
     }
 
     private void writeBuildFileWithToolchainsFromJavaPlugin(Jvm jvm) {
         writeBuildFile()
-        buildFile << """
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
-        }
-    }
-"""
+        configureJavaPluginToolchainVersion(jvm)
     }
 
     private void writeBuildFileWithToolchainsFromCheckstyleTask(Jvm jvm) {
         writeBuildFile()
         buildFile << """
-    tasks.withType(Checkstyle) {
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
-        }
-    }
-"""
+            tasks.withType(Checkstyle) {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
+                }
+            }
+        """
     }
 
     private void writeDummyConfig() {

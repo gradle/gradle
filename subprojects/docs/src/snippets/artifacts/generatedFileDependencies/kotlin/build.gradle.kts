@@ -17,9 +17,10 @@ tasks.register("compile") {
 }
 
 tasks.register("list") {
-    dependsOn(configurations["compileClasspath"])
+    val compileClasspath: FileCollection = configurations["compileClasspath"]
+    dependsOn(compileClasspath)
     doLast {
-        println("classpath = ${configurations["compileClasspath"].map { file: File -> file.name }}")
+        println("classpath = ${compileClasspath.map { file: File -> file.name }}")
     }
 }
 // end::generated-file-dependencies[]

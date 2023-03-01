@@ -47,7 +47,7 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildO
  *
  * @since 4.5
  */
-public class SwiftApplicationPlugin implements Plugin<Project> {
+public abstract class SwiftApplicationPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final ImmutableAttributesFactory attributesFactory;
@@ -88,7 +88,7 @@ public class SwiftApplicationPlugin implements Plugin<Project> {
                     .map(SwiftExecutable.class::cast)
                     .filter(binary -> !binary.isOptimized() && Architectures.forInput(binary.getTargetMachine().getArchitecture().getName()).equals(DefaultNativePlatform.host().getArchitecture()))
                     .findFirst()
-                    .orElse(application.getBinaries().get().stream()
+                    .orElseGet(() -> application.getBinaries().get().stream()
                             .filter(SwiftExecutable.class::isInstance)
                             .map(SwiftExecutable.class::cast)
                             .filter(binary -> !binary.isOptimized())

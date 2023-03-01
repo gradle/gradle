@@ -17,12 +17,12 @@ package gradlebuild
 
 import gradlebuild.samples.tasks.GenerateSample
 import org.gradle.buildinit.plugins.internal.modifiers.Language
-import org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
-import org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
-import org.gradle.buildinit.plugins.internal.modifiers.Language.SCALA
-import org.gradle.buildinit.plugins.internal.modifiers.Language.KOTLIN
-import org.gradle.buildinit.plugins.internal.modifiers.Language.SWIFT
 import org.gradle.buildinit.plugins.internal.modifiers.Language.CPP
+import org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
+import org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
+import org.gradle.buildinit.plugins.internal.modifiers.Language.KOTLIN
+import org.gradle.buildinit.plugins.internal.modifiers.Language.SCALA
+import org.gradle.buildinit.plugins.internal.modifiers.Language.SWIFT
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption
 import org.gradle.docs.samples.Dsl
 
@@ -43,8 +43,8 @@ multiProjectApplicationSampleLanguages.forEach { language ->
 }
 
 fun setupGeneratorTask(language: Language, kind: String, modularizationOption: ModularizationOption) {
-    val buildInitType = "${language.name}-$kind"
-    val capName = language.name.capitalize()
+    val buildInitType = "${language.getName()}-$kind"
+    val capName = language.getName().capitalize()
     val capKind = kind.capitalize().replace("y", "ie") + "s"
     val languageDisplayName = language.toString().replace("C++", "{cpp}")
     val sampleName = "building$capName$capKind" + if (modularizationOption.isMulti()) "MultiProject" else ""
@@ -52,15 +52,15 @@ fun setupGeneratorTask(language: Language, kind: String, modularizationOption: M
     val generateSampleTask = project.tasks.register<GenerateSample>("generateSample${sampleName.capitalize()}") {
         readmeTemplates.convention(layout.projectDirectory.dir("src/samples/readme-templates"))
         target.convention(layout.buildDirectory.dir("generated-samples/$buildInitType" + if (modularizationOption.isMulti()) "-with-libraries" else ""))
-        type.set(buildInitType)
-        modularization.set(modularizationOption)
+        type = buildInitType
+        modularization = modularizationOption
     }
     samples.publishedSamples.create(sampleName) {
-        dsls.set(setOf(Dsl.GROOVY, Dsl.KOTLIN))
-        sampleDirectory.set(generateSampleTask.flatMap { it.target })
-        displayName.set("Building $languageDisplayName $capKind$multiProjectSuffix")
-        description.set("Setup a $languageDisplayName $kind project$multiProjectSuffix step-by-step.")
-        category.set(language.toString())
+        dsls = setOf(Dsl.GROOVY, Dsl.KOTLIN)
+        sampleDirectory = generateSampleTask.flatMap { it.target }
+        displayName = "Building $languageDisplayName $capKind$multiProjectSuffix"
+        description = "Setup a $languageDisplayName $kind project$multiProjectSuffix step-by-step."
+        category = language.toString()
     }
 }
 

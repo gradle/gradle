@@ -17,11 +17,14 @@ package org.gradle.api.internal.artifacts.verification.verifier;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.verification.exceptions.InvalidGpgKeyIdsException;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -85,13 +88,15 @@ public class DependencyVerificationConfiguration {
         private final String version;
         private final String fileName;
         private final boolean regex;
+        private final String reason;
 
-        TrustCoordinates(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+        TrustCoordinates(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String reason) {
             this.group = group;
             this.name = name;
             this.version = version;
             this.fileName = fileName;
             this.regex = regex;
+            this.reason = reason;
         }
 
         public String getGroup() {
@@ -112,6 +117,10 @@ public class DependencyVerificationConfiguration {
 
         public boolean isRegex() {
             return regex;
+        }
+
+        public String getReason() {
+            return reason;
         }
 
         public boolean matches(ModuleComponentArtifactIdentifier id) {
@@ -155,7 +164,10 @@ public class DependencyVerificationConfiguration {
             if (!Objects.equals(version, that.version)) {
                 return false;
             }
-            return Objects.equals(fileName, that.fileName);
+            if (!Objects.equals(fileName, that.fileName)) {
+                return false;
+            }
+            return Objects.equals(reason, that.reason);
         }
 
         @Override
@@ -165,6 +177,7 @@ public class DependencyVerificationConfiguration {
             result = 31 * result + (version != null ? version.hashCode() : 0);
             result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
             result = 31 * result + (regex ? 1 : 0);
+            result = 31 * result + (reason != null ? reason.hashCode() : 0);
             return result;
         }
 
@@ -185,13 +198,17 @@ public class DependencyVerificationConfiguration {
             if (versionComparison != 0) {
                 return versionComparison;
             }
-            return compareNullableStrings(getFileName(), other.getFileName());
+            int fileNameComparison = compareNullableStrings(getFileName(), other.getFileName());
+            if (fileNameComparison != 0) {
+                return fileNameComparison;
+            }
+            return compareNullableStrings(getReason(), other.getReason());
         }
     }
 
     public static class TrustedArtifact extends TrustCoordinates implements Comparable<TrustedArtifact> {
-        TrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
-            super(group, name, version, fileName, regex);
+        TrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String reason) {
+            super(group, name, version, fileName, regex, reason);
         }
 
         @Override
@@ -204,8 +221,20 @@ public class DependencyVerificationConfiguration {
         private final String keyId;
 
         TrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
-            super(group, name, version, fileName, regex);
-            this.keyId = keyId;
+            super(group, name, version, fileName, regex, null);
+
+            // The key is 160 bits long, encoded in base32 (case-insensitive characters).
+            //
+            // Base32 gives us 4 bits per character, so the whole fingerprint will be:
+            // (160 bits) / (4 bits / character) = 40 characters
+            //
+            // By getting ASCII bytes (aka. strictly 1 byte per character, no variable-length magic)
+            // we can safely check if the fingerprint is of the correct length.
+            if (keyId.getBytes(StandardCharsets.US_ASCII).length < 40) {
+                throw new InvalidGpgKeyIdsException(Collections.singletonList(keyId));
+            } else {
+                this.keyId = keyId;
+            }
         }
 
         public String getKeyId() {

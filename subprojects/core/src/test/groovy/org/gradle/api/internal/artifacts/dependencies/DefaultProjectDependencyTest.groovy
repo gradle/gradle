@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.dependencies
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.artifacts.DependencyResolveContext
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException
@@ -32,7 +33,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
     private projectDependency
 
     def setup() {
-        projectDependency = new DefaultProjectDependency(project, null, false)
+        projectDependency = new DefaultProjectDependency(project, null, false, TestFiles.taskDependencyFactory())
         project.version = "1.2"
         project.group = "org.gradle"
     }
@@ -57,7 +58,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         conf.dependencies.add(dep1)
         superConf.dependencies.add(dep2)
 
-        projectDependency = new DefaultProjectDependency(project, "conf", true)
+        projectDependency = new DefaultProjectDependency(project, "conf", true, TestFiles.taskDependencyFactory())
 
         when:
         projectDependency.resolve(context)
@@ -71,7 +72,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
 
     void "if resolution context is not transitive it will not contain all dependencies"() {
         def context = Mock(DependencyResolveContext)
-        projectDependency = new DefaultProjectDependency(project, null, true)
+        projectDependency = new DefaultProjectDependency(project, null, true, TestFiles.taskDependencyFactory())
 
         when:
         projectDependency.resolve(context)
@@ -83,7 +84,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
 
     void "if dependency is not transitive the resolution context will not contain all dependencies"() {
         def context = Mock(DependencyResolveContext)
-        projectDependency = new DefaultProjectDependency(project, null, true)
+        projectDependency = new DefaultProjectDependency(project, null, true, TestFiles.taskDependencyFactory())
         projectDependency.setTransitive(false)
 
         when:
@@ -97,7 +98,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         def context = Mock(TaskDependencyResolveContext)
 
         def conf = project.configurations.create('conf')
-        projectDependency = new DefaultProjectDependency(project, 'conf', true)
+        projectDependency = new DefaultProjectDependency(project, 'conf', true, TestFiles.taskDependencyFactory())
 
         when:
         projectDependency.buildDependencies.visitDependencies(context)
@@ -114,20 +115,20 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         project.configurations.create('conf') {
             canBeConsumed = false
         }
-        projectDependency = new DefaultProjectDependency(project, 'conf', true)
+        projectDependency = new DefaultProjectDependency(project, 'conf', true, TestFiles.taskDependencyFactory())
 
         when:
         projectDependency.buildDependencies.visitDependencies(context)
 
         then:
         def e = thrown(ConfigurationNotConsumableException)
-        e.message == "Selected configuration 'conf' on 'root project 'test'' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+        e.message == "Selected configuration 'conf' on 'root project 'test-project'' but it can't be used as a project dependency because it isn't intended for consumption by other components."
     }
 
     void "does not build project dependencies if configured so"() {
         def context = Mock(TaskDependencyResolveContext)
         project.configurations.create('conf')
-        projectDependency = new DefaultProjectDependency(project, 'conf', false)
+        projectDependency = new DefaultProjectDependency(project, 'conf', false, TestFiles.taskDependencyFactory())
 
         when:
         projectDependency.buildDependencies.visitDependencies(context)
@@ -138,7 +139,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
 
     void "is self resolving dependency"() {
         def conf = project.configurations.create('conf')
-        projectDependency = new DefaultProjectDependency(project, 'conf', true)
+        projectDependency = new DefaultProjectDependency(project, 'conf', true, TestFiles.taskDependencyFactory())
 
         when:
         def files = projectDependency.resolve()
@@ -187,14 +188,14 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         assertThat(new DefaultProjectDependency(project, true),
             strictlyEqual(new DefaultProjectDependency(project, true)))
 
-        assertThat(new DefaultProjectDependency(project, "conf1", false),
-            strictlyEqual(new DefaultProjectDependency(project, "conf1", false)))
+        assertThat(new DefaultProjectDependency(project, "conf1", false, TestFiles.taskDependencyFactory()),
+            strictlyEqual(new DefaultProjectDependency(project, "conf1", false, TestFiles.taskDependencyFactory())))
 
         when:
-        def base = new DefaultProjectDependency(project, "conf1", true)
-        def differentConf = new DefaultProjectDependency(project, "conf2", true)
-        def differentBuildDeps = new DefaultProjectDependency(project, "conf1", false)
-        def differentProject = new DefaultProjectDependency(Mock(ProjectInternal), "conf1", true)
+        def base = new DefaultProjectDependency(project, "conf1", true, TestFiles.taskDependencyFactory())
+        def differentConf = new DefaultProjectDependency(project, "conf2", true, TestFiles.taskDependencyFactory())
+        def differentBuildDeps = new DefaultProjectDependency(project, "conf1", false, TestFiles.taskDependencyFactory())
+        def differentProject = new DefaultProjectDependency(Mock(ProjectInternal), "conf1", true, TestFiles.taskDependencyFactory())
 
         then:
         base != differentConf

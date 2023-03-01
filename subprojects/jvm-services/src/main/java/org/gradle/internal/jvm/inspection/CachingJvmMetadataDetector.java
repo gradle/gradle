@@ -17,26 +17,29 @@
 package org.gradle.internal.jvm.inspection;
 
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.jvm.toolchain.internal.InstallationLocation;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
-public class CachingJvmMetadataDetector implements JvmMetadataDetector {
+public class CachingJvmMetadataDetector implements JvmMetadataDetector, ConditionalInvalidation<JvmInstallationMetadata> {
 
-    private final Map<File, JvmInstallationMetadata> javaMetadata = new ConcurrentHashMap<>();
+    private final Map<File, JvmInstallationMetadata> javaMetadata = Collections.synchronizedMap(new HashMap<>());
     private final JvmMetadataDetector delegate;
 
     public CachingJvmMetadataDetector(JvmMetadataDetector delegate) {
         this.delegate = delegate;
-        getMetadata(Jvm.current().getJavaHome());
+        getMetadata(new InstallationLocation(Jvm.current().getJavaHome(), "current Java home"));
     }
 
     @Override
-    public JvmInstallationMetadata getMetadata(File javaHome) {
-        javaHome = resolveSymlink(javaHome);
-        return javaMetadata.computeIfAbsent(javaHome, delegate::getMetadata);
+    public JvmInstallationMetadata getMetadata(InstallationLocation javaInstallationLocation) {
+        File javaHome = resolveSymlink(javaInstallationLocation.getLocation());
+        return javaMetadata.computeIfAbsent(javaHome, file -> delegate.getMetadata(javaInstallationLocation));
     }
 
     private File resolveSymlink(File jdkPath) {
@@ -47,4 +50,10 @@ public class CachingJvmMetadataDetector implements JvmMetadataDetector {
         }
     }
 
+    @Override
+    public void invalidateItemsMatching(Predicate<JvmInstallationMetadata> predicate) {
+        synchronized (javaMetadata) {
+            javaMetadata.entrySet().removeIf(it -> predicate.test(it.getValue()));
+        }
+    }
 }

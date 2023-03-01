@@ -47,7 +47,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     private static final String OPTION_SOURCE = "source";
     private static final String OPTION_CLASSPATH = "classpath";
     private static final String OPTION_MODULE_PATH = "-module-path";
-    private static final String OPTION_SOURCE_PATH = "-source-path";
     private static final String OPTION_BOOTCLASSPATH = "bootclasspath";
     private static final String OPTION_EXTDIRS = "extdirs";
     private static final String OPTION_OUTPUTLEVEL = "outputLevel";
@@ -64,7 +63,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     private final JavadocOptionFileOption<String> source; // TODO bind with the sourceCompatibility property
     private final JavadocOptionFileOption<List<File>> classpath; // TODO link to runtime configuration ?
     private final JavadocOptionFileOption<List<File>> modulePath;
-    private final JavadocOptionFileOption<List<File>> sourcePath;
     private final JavadocOptionFileOption<List<File>> bootClasspath;
     private final JavadocOptionFileOption<List<File>> extDirs;
     private final JavadocOptionFileOption<JavadocOutputLevel> outputLevel;
@@ -97,7 +95,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         source = addStringOption(OPTION_SOURCE);
         classpath = addPathOption(OPTION_CLASSPATH);
         modulePath = addPathOption(OPTION_MODULE_PATH);
-        sourcePath = addPathOption(OPTION_SOURCE_PATH);
         bootClasspath = addPathOption(OPTION_BOOTCLASSPATH);
         extDirs = addPathOption(OPTION_EXTDIRS);
         outputLevel = addEnumOption(OPTION_OUTPUTLEVEL, JavadocOutputLevel.QUIET);
@@ -120,7 +117,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         source = optionFile.getOption(OPTION_SOURCE);
         classpath = optionFile.getOption(OPTION_CLASSPATH);
         modulePath = optionFile.getOption(OPTION_MODULE_PATH);
-        sourcePath = optionFile.getOption(OPTION_SOURCE_PATH);
         bootClasspath = optionFile.getOption(OPTION_BOOTCLASSPATH);
         extDirs = optionFile.getOption(OPTION_EXTDIRS);
         outputLevel = optionFile.getOption(OPTION_OUTPUTLEVEL);
@@ -370,28 +366,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     @Override
     public MinimalJavadocOptions modulePath(List<File> modulePath) {
         this.modulePath.getValue().addAll(modulePath);
-        return this;
-    }
-
-    @Override
-    public List<File> getSourcePath() {
-        return sourcePath.getValue();
-    }
-
-    @Override
-    public void setSourcePath(List<File> sourcePath) {
-        this.sourcePath.setValue(sourcePath);
-    }
-
-    @Override
-    public MinimalJavadocOptions sourcePath(List<File> sourcePath) {
-        this.sourcePath.getValue().addAll(sourcePath);
-        return this;
-    }
-
-    @Override
-    public MinimalJavadocOptions sourcePath(File... sourcePath) {
-        this.sourcePath.getValue().addAll(Arrays.asList(sourcePath));
         return this;
     }
 

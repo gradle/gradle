@@ -227,7 +227,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         """
         file("buildSrc/build.gradle") << """
             ${server.callFromBuild('buildsrc-build-script')}
-            assemble {
+            jar {
                 dependsOn {
                     // call during task graph calculation
                     ${server.callFromBuild('buildsrc-task-graph')}
@@ -237,9 +237,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
                     ${server.callFromBuild('buildsrc-task')}
                 }
             }
-            gradle.buildFinished {
-                ${server.callFromBuild('buildsrc-build-finished')}
-            }
         """
 
         given:
@@ -247,7 +244,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         def childBuildScript = server.expectAndBlock('buildsrc-build-script')
         def childTaskGraph = server.expectAndBlock('buildsrc-task-graph')
         def task1 = server.expectAndBlock('buildsrc-task')
-        def childBuildFinished = server.expectAndBlock('buildsrc-build-finished')
         def rootBuildScript = server.expectAndBlock('root-build-script')
         def task2 = server.expectAndBlock('task2')
         def rootBuildFinished = server.expectAndBlock('root-build-finished')
@@ -272,11 +268,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         task1.waitForAllPendingCalls()
         assertHasBuildPhase("0% INITIALIZING")
         task1.releaseAll()
-
-        and:
-        childBuildFinished.waitForAllPendingCalls()
-        assertHasBuildPhase("0% INITIALIZING")
-        childBuildFinished.releaseAll()
 
         and:
         rootBuildScript.waitForAllPendingCalls()
@@ -305,6 +296,8 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
             include 'util'
         """
         buildFile << """
+            import org.gradle.api.artifacts.transform.TransformParameters
+
             def usage = Attribute.of('usage', String)
             def artifactType = Attribute.of('artifactType', String)
 
@@ -328,10 +321,14 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
                 }
             }
 
-            class FileDoubler extends ArtifactTransform {
-                List<File> transform(File input) {
+            abstract class FileDoubler implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
                     ${server.callFromBuild('double-transform')}
-                    return [input, input]
+                    outputs.file(inputArtifact)
+                    outputs.file(inputArtifact)
                 }
             }
 
@@ -365,10 +362,9 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
             project(':util') {
                 dependencies {
                     compile project(':lib')
-                    registerTransform {
+                    registerTransform(FileDoubler) {
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "double")
-                        artifactTransform(FileDoubler)
                     }
                     registerTransform(FileSizer) {
                         from.attribute(artifactType, "double")
@@ -403,7 +399,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         def buildFinished = server.expectAndBlock('build-finished')
 
         when:
-        executer.expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
         gradle = executer.withTasks(":util:resolve").start()
 
         then:

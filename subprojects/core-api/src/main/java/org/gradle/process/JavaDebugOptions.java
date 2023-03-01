@@ -16,8 +16,10 @@
 
 package org.gradle.process;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
 /**
  * Contains a subset of the <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/jpda/conninv.html">Java Debug Wire Protocol</a> properties.
@@ -27,28 +29,51 @@ import org.gradle.api.tasks.Input;
 public interface JavaDebugOptions {
 
     /**
-     * Whether to attach a debug agent to the forked process.
+     * Should the debug agent start in the forked process? By default, this is false.
      */
-    @Input Property<Boolean> getEnabled();
+    @Input
+    Property<Boolean> getEnabled();
 
     /**
-     * The debug port.
-     */
-    @Input Property<Integer> getPort();
-
-    /**
-     * Whether a socket-attach or a socket-listen type of debugger is expected.
-     * <p>
-     * In socked-attach mode (server = true) the process actively waits for the debugger to connect after the JVM
-     * starts up. In socket-listen mode (server = false), the debugger should be already running before startup
-     * waiting for the JVM connecting to it.
+     * Host address to listen on or connect to when debug is enabled. By default, no host is set.
      *
-     * @return Whether the process actively waits for the debugger to be attached.
+     * <p>
+     * When run in {@link #getServer() server} mode, the process listens on the loopback address on Java 9+ and all interfaces on Java 8 and below by default.
+     * Setting host to {@code *} will make the process listen on all network interfaces. This is not supported on Java 8 and below.
+     * Setting host to anything else will make the process listen on that address.
+     * </p>
+     * <p>
+     * When run in {@link #getServer() client} mode, the process attempts to connect to the given host and {@link #getPort()}.
+     * </p>
+     *
+     * @since 7.6
      */
-    @Input Property<Boolean> getServer();
+    @Incubating
+    @Optional
+    @Input
+    Property<String> getHost();
 
     /**
-     * Whether the forked process should be suspended until the connection to the debugger is established.
+     * The debug port to listen on or connect to.
      */
-    @Input Property<Boolean> getSuspend();
+    @Input
+    Property<Integer> getPort();
+
+    /**
+     * Should the process listen for a debugger to attach (server) or immediately connect to an already running debugger (client)?
+     * <p>
+     * In server mode ({@code server = true}), the process listens for a debugger to connect after the JVM starts up.
+     * </p>
+     * <p>
+     * In client mode ({@code server = false}), the process attempts to connect to an already running debugger.
+     * </p>
+     */
+    @Input
+    Property<Boolean> getServer();
+
+    /**
+     * Should the process suspend until the connection to the debugger is established?
+     */
+    @Input
+    Property<Boolean> getSuspend();
 }

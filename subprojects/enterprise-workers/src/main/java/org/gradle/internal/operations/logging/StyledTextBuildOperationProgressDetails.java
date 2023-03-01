@@ -19,7 +19,7 @@ package org.gradle.internal.operations.logging;
 import java.util.List;
 
 /**
- * Build operation observer's view of {@link org.gradle.internal.logging.events.StyledTextOutputEvent}.
+ * Build operation observer's view of {@code org.gradle.internal.logging.events.StyledTextOutputEvent}.
  *
  * See LoggingBuildOperationProgressBroadcaster.
  *
@@ -36,7 +36,7 @@ public interface StyledTextBuildOperationProgressDetails {
     interface Span {
 
         /**
-         * Always a value name of {@link org.gradle.internal.logging.text.StyledTextOutput.Style}.
+         * Always a value name of {@code org.gradle.internal.logging.text.StyledTextOutput.Style}.
          */
         String getStyleName();
 

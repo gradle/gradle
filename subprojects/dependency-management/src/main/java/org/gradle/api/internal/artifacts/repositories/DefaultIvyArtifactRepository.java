@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModu
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.layout.AbstractRepositoryLayout;
@@ -78,8 +79,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
-    private Set<String> schemes = null;
+import static java.util.Collections.unmodifiableSet;
+
+public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository {
+    private volatile Set<String> schemes;
     private AbstractRepositoryLayout layout;
     private final DefaultUrlArtifactRepository urlArtifactRepository;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
@@ -116,8 +119,10 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         ObjectFactory objectFactory,
                                         DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                                         ChecksumService checksumService,
-                                        ProviderFactory providerFactory) {
-        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, providerFactory);
+                                        ProviderFactory providerFactory,
+                                        VersionParser versionParser
+    ) {
+        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, providerFactory, versionParser);
         this.fileResolver = fileResolver;
         this.urlArtifactRepository = urlArtifactRepositoryFactory.create("Ivy", this::getDisplayName);
         this.transportFactory = transportFactory;
@@ -148,7 +153,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return super.getDisplayName() + '(' + url + ')';
     }
 
-    @Override
     public IvyResolver createPublisher() {
         return createRealResolver();
     }
@@ -219,9 +223,13 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private Set<String> getSchemes() {
         if (schemes == null) {
             URI uri = getUrl();
-            schemes = new LinkedHashSet<>();
-            layout.addSchemes(uri, schemes);
-            additionalPatternsLayout.addSchemes(uri, schemes);
+            // use a local variable to prepare the set,
+            // so that other threads do not see the half-initialized
+            // list of schemes and fail in strange ways
+            Set<String> result = new LinkedHashSet<>();
+            layout.addSchemes(uri, result);
+            additionalPatternsLayout.addSchemes(uri, result);
+            schemes = unmodifiableSet(result);
         }
         return schemes;
     }
@@ -334,6 +342,14 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         additionalPatternsLayout.ivyPatterns.add(pattern);
     }
 
+    public Set<String> additionalArtifactPatterns() {
+        return additionalPatternsLayout.getArtifactPatterns();
+    }
+
+    public Set<String> additionalIvyPatterns() {
+        return additionalPatternsLayout.getIvyPatterns();
+    }
+
     @Override
     public void layout(String layoutName) {
         invalidateDescriptor();
@@ -360,9 +376,18 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         config.execute(layout);
     }
 
+    public AbstractRepositoryLayout getRepositoryLayout() {
+        return layout;
+    }
+
     @Override
     public IvyArtifactRepositoryMetaDataProvider getResolve() {
         return metaDataProvider;
+    }
+
+    public void setRepositoryLayout(AbstractRepositoryLayout layout) {
+        invalidateDescriptor();
+        this.layout = layout;
     }
 
     /**

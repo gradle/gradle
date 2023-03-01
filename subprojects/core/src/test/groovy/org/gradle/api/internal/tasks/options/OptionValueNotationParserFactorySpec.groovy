@@ -39,6 +39,15 @@ class OptionValueNotationParserFactorySpec extends Specification {
         parser.parseNotation("ABC") == TestEnum.ABC
     }
 
+    def "creates notationparser for handling handles integers"(){
+        given:
+        OptionValueNotationParserFactory factory = new OptionValueNotationParserFactory()
+        when:
+        def parser = factory.toComposite(Integer.class);
+        then:
+        parser.parseNotation("123") == 123
+    }
+
     def "fails on creating parser for unsupported"(){
         setup:
         OptionValueNotationParserFactory factory = new OptionValueNotationParserFactory()

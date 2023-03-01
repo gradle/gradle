@@ -19,13 +19,14 @@ package org.gradle.internal.jvm.inspection;
 enum ProbedSystemProperty {
 
     JAVA_HOME("java.home"),
-    VERSION("java.version"),
-    VENDOR("java.vendor"),
-    ARCH("os.arch"),
-    VM("java.vm.name"),
-    VM_VERSION("java.vm.version"),
-    RUNTIME("java.runtime.name"),
+    JAVA_VERSION("java.version"),
+    JAVA_VENDOR("java.vendor"),
+    RUNTIME_NAME("java.runtime.name"),
     RUNTIME_VERSION("java.runtime.version"),
+    VM_NAME("java.vm.name"),
+    VM_VERSION("java.vm.version"),
+    VM_VENDOR("java.vm.vendor"),
+    OS_ARCH("os.arch"),
     Z_ERROR("Internal"); // This line MUST be last!
 
     private final String key;

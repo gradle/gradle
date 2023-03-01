@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.publish;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
@@ -31,8 +32,8 @@ public class DecoratingPublishArtifact extends AbstractPublishArtifact implement
     private final PublishArtifact publishArtifact;
     private boolean classifierSet;
 
-    public DecoratingPublishArtifact(PublishArtifact publishArtifact) {
-        super(publishArtifact.getBuildDependencies());
+    public DecoratingPublishArtifact(TaskDependencyFactory taskDependencyFactory, PublishArtifact publishArtifact) {
+        super(taskDependencyFactory, publishArtifact.getBuildDependencies());
         this.publishArtifact = publishArtifact;
     }
 

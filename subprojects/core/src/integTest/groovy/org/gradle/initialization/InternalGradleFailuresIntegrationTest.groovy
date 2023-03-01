@@ -76,6 +76,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
     def "Error message due to unwritable native directory is not scary"() {
         given:
+        executer.withStacktraceEnabled()
         def nativeDir = executer.gradleUserHomeDir.file("native")
         nativeDir.touch()
         executer.withNoExplicitNativeServicesDir()

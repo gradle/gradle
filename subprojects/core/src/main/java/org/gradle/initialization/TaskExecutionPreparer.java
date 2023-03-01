@@ -17,7 +17,10 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
+
+import javax.annotation.Nullable;
 
 /**
  * Responsible for preparing `Gradle` instances for task execution. The result is passed to a {@link org.gradle.execution.BuildWorkExecutor} for execution. Prior to preparing for task execution, the `Gradle` instance has its projects configured by a {@link org.gradle.configuration.ProjectsPreparer}.
@@ -25,5 +28,5 @@ import org.gradle.execution.plan.ExecutionPlan;
  * <p>This includes resolving the entry tasks and calculating the task graph.</p>
  */
 public interface TaskExecutionPreparer {
-    void prepareForTaskExecution(GradleInternal gradle, ExecutionPlan plan);
+    void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan);
 }

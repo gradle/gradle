@@ -18,14 +18,15 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.SourceSet;
@@ -141,7 +142,7 @@ import java.util.Set;
  * }
  * </pre>
  */
-public class EclipseClasspath {
+public abstract class EclipseClasspath {
     private Iterable<SourceSet> sourceSets;
 
     private Collection<Configuration> plusConfigurations = new ArrayList<Configuration>();
@@ -245,6 +246,16 @@ public class EclipseClasspath {
     }
 
     /**
+     * The base output directory for source sets.
+     * <p>
+     * See {@link EclipseClasspath} for an example.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    public abstract Property<File> getBaseSourceOutputDir();
+
+    /**
      * Whether to download and associate source Jars with the dependency Jars. Defaults to true.
      * <p>
      * See {@link EclipseClasspath} for an example.
@@ -328,7 +339,7 @@ public class EclipseClasspath {
      * <p>
      * See {@link EclipseProject} for an example.
      */
-    public void file(Closure closure) {
+    public void file(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
         ConfigureUtil.configure(closure, file);
     }
 
@@ -352,7 +363,7 @@ public class EclipseClasspath {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
         boolean inferModulePath = false;
-        Task javaCompileTask = project.getTasks().findByName(JavaPlugin.COMPILE_JAVA_TASK_NAME);
+        Task javaCompileTask = project.getTasks().findByName(JvmConstants.COMPILE_JAVA_TASK_NAME);
         if (javaCompileTask instanceof JavaCompile) {
             JavaCompile javaCompile = (JavaCompile) javaCompileTask;
             inferModulePath = javaCompile.getModularity().getInferModulePath().get();
@@ -376,9 +387,7 @@ public class EclipseClasspath {
 
     public FileReferenceFactory getFileReferenceFactory() {
         FileReferenceFactory referenceFactory = new FileReferenceFactory();
-        for (Map.Entry<String, File> entry : pathVariables.entrySet()) {
-            referenceFactory.addPathVariable(entry.getKey(), entry.getValue());
-        }
+        pathVariables.forEach((key, value) -> referenceFactory.addPathVariable(key, value));
         return referenceFactory;
     }
 
@@ -388,7 +397,6 @@ public class EclipseClasspath {
      *
      * @since 6.8
      */
-    @Incubating
     public Property<Boolean> getContainsTestFixtures() {
         return containsTestFixtures;
     }

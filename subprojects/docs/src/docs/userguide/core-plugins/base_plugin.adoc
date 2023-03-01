@@ -23,8 +23,8 @@ The Base Plugin provides some tasks and conventions that are common to most buil
 
 .Applying the Base Plugin
 ====
-include::sample[dir="snippets/base/basePlugin/groovy",files="build.gradle[tags=apply-base-plugin]"]
 include::sample[dir="snippets/base/basePlugin/kotlin",files="build.gradle.kts[tags=apply-base-plugin]"]
+include::sample[dir="snippets/base/basePlugin/groovy",files="build.gradle[tags=apply-base-plugin]"]
 ====
 
 [[sec:base_tasks]]
@@ -48,7 +48,7 @@ Intended to build everything, including running all tests, producing the product
 Assembles those artifacts attached to the named configuration. For example, `buildArchives` will execute any task that is required to create any artifact attached to the `archives` configuration.
 
 `clean__Task__` — task rule::
-Removes the <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>> of a task, e.g. `cleanJar` will delete the JAR file produced by the `jar` task of the Java Plugin.
+Removes the <<incremental_build.adoc#sec:task_inputs_outputs,defined outputs>> of a task, e.g. `cleanJar` will delete the JAR file produced by the `jar` task of the Java Plugin.
 
 
 [[sec:base_plugin_configurations]]
@@ -74,8 +74,8 @@ This allows to configure the following properties inside a dedicated DSL block.
 
 .Using the `base` extension
 ====
-include::sample[dir="snippets/files/archivesChangedBaseName/groovy",files="build.gradle[tags=base-plugin-config]"]
 include::sample[dir="snippets/files/archivesChangedBaseName/kotlin",files="build.gradle.kts[tags=base-plugin-config]"]
+include::sample[dir="snippets/files/archivesChangedBaseName/groovy",files="build.gradle[tags=base-plugin-config]"]
 ====
 
 `archivesName` — default: `$project.name`::

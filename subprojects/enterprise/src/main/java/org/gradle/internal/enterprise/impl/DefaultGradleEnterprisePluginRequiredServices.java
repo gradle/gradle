@@ -22,15 +22,21 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scopes.Gradle.class)
 public class DefaultGradleEnterprisePluginRequiredServices implements GradleEnterprisePluginRequiredServices {
 
     private final UserInputHandler userInputHandler;
     private final StyledTextOutputFactory styledTextOutputFactory;
+    private final DefaultGradleEnterprisePluginBackgroundJobExecutors backgroundJobExecutors;
 
-    public DefaultGradleEnterprisePluginRequiredServices(UserInputHandler userInputHandler, StyledTextOutputFactory styledTextOutputFactory) {
+    public DefaultGradleEnterprisePluginRequiredServices(
+        UserInputHandler userInputHandler,
+        StyledTextOutputFactory styledTextOutputFactory,
+        DefaultGradleEnterprisePluginBackgroundJobExecutors backgroundJobExecutors
+    ) {
         this.userInputHandler = userInputHandler;
         this.styledTextOutputFactory = styledTextOutputFactory;
+        this.backgroundJobExecutors = backgroundJobExecutors;
     }
 
     @Override
@@ -41,5 +47,10 @@ public class DefaultGradleEnterprisePluginRequiredServices implements GradleEnte
     @Override
     public StyledTextOutputFactory getStyledTextOutputFactory() {
         return styledTextOutputFactory;
+    }
+
+    @Override
+    public DefaultGradleEnterprisePluginBackgroundJobExecutors getBackgroundJobExecutors() {
+        return backgroundJobExecutors;
     }
 }

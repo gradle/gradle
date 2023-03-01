@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.ResolveException;
@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenci
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.FinalizableValue;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.util.Path;
 
@@ -34,9 +35,8 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
-public interface ConfigurationInternal extends ResolveContext, Configuration, DeprecatableConfiguration, DependencyMetaDataProvider {
+public interface ConfigurationInternal extends ResolveContext, DeprecatableConfiguration, DependencyMetaDataProvider, FinalizableValue, Configuration {
     enum InternalState {
         UNRESOLVED,
         BUILD_DEPENDENCIES_RESOLVED,
@@ -88,7 +88,15 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     boolean isCanBeMutated();
 
-    void preventFromFurtherMutation();
+    /**
+     * Locks the configuration for mutation
+     * <p>
+     * Any invalid state at this point will be added to the returned list of exceptions.
+     * Handling these becomes the responsibility of the caller.
+     *
+     * @return a list of validation failures when not empty
+     */
+    List<? extends GradleException> preventFromFurtherMutationLenient();
 
     /**
      * Reports whether this configuration uses {@link org.gradle.api.Incubating Incubating} attributes types, such as {@link org.gradle.api.attributes.Category#VERIFICATION}.
@@ -107,8 +115,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     @Nullable
     ConfigurationInternal getConsistentResolutionSource();
 
-    Supplier<List<DependencyConstraint>> getConsistentResolutionConstraints();
-
     /**
      * Decorates a resolve exception with more context. This can be used
      * to give hints to the user when a resolution error happens.
@@ -116,6 +122,39 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      * @return a decorated resolve exception, or the same exception
      */
     ResolveException maybeAddContext(ResolveException e);
+
+    /**
+     * Test if this configuration can either be declared against or extends another
+     * configuration which can be declared against.
+     *
+     * @return {@code true} if so; {@code false} otherwise
+     */
+    default boolean isDeclarableAgainstByExtension() {
+        return isDeclarableAgainstByExtension(this);
+    }
+
+    /**
+     * Returns the role used to create this configuration and set its initial allowed usage.
+     */
+    ConfigurationRole getRoleAtCreation();
+
+    /**
+     * Test if the given configuration can either be declared against or extends another
+     * configuration which can be declared against.
+     * This method should probably be made {@code private} when upgrading to Java 9.
+     *
+     * @param configuration the configuration to test
+     * @return {@code true} if so; {@code false} otherwise
+     */
+    static boolean isDeclarableAgainstByExtension(ConfigurationInternal configuration) {
+        if (configuration.isCanBeDeclaredAgainst()) {
+            return true;
+        } else {
+            return configuration.getExtendsFrom().stream()
+                    .map(ConfigurationInternal.class::cast)
+                    .anyMatch(ci -> ci.isDeclarableAgainstByExtension());
+        }
+    }
 
     interface VariantVisitor {
         // The artifacts to use when this configuration is used as a configuration

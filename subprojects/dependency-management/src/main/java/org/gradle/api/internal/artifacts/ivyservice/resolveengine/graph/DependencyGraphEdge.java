@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.VariantArtifactResolveState;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -38,7 +38,7 @@ public interface DependencyGraphEdge extends ResolvedGraphDependency {
 
     boolean contributesArtifacts();
 
-    List<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata targetConfiguration);
+    List<ComponentArtifactMetadata> getArtifacts(VariantArtifactResolveState targetVariant);
 
     ImmutableAttributes getAttributes();
 

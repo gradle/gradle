@@ -17,8 +17,6 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -27,6 +25,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -37,12 +37,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-
+@ServiceScope(Scopes.Build.class)
 public class JavaInstallationRegistry {
     private final BuildOperationExecutor executor;
-    private final Supplier<Set<InstallationLocation>> installations;
+    private final Installations installations;
     private final Logger logger;
     private final OperatingSystem os;
 
@@ -54,7 +55,7 @@ public class JavaInstallationRegistry {
     private JavaInstallationRegistry(List<InstallationSupplier> suppliers, Logger logger, BuildOperationExecutor executor, OperatingSystem os) {
         this.logger = logger;
         this.executor = executor;
-        this.installations = Suppliers.memoize(() -> collectInBuildOperation(suppliers));
+        this.installations = new Installations(() -> collectInBuildOperation(suppliers));
         this.os = os;
     }
 
@@ -71,12 +72,17 @@ public class JavaInstallationRegistry {
         return installations.get();
     }
 
+    public void addInstallation(InstallationLocation installation) {
+       installations.add(installation);
+    }
+
     private Set<InstallationLocation> collectInstallations(List<InstallationSupplier> suppliers) {
         return suppliers.parallelStream()
             .map(InstallationSupplier::get)
             .flatMap(Set::stream)
             .filter(this::installationExists)
             .map(this::canonicalize)
+            .filter(this::installationHasExecutable)
             .filter(distinctByKey(InstallationLocation::getLocation))
             .collect(Collectors.toSet());
     }
@@ -94,12 +100,20 @@ public class JavaInstallationRegistry {
         return true;
     }
 
+    boolean installationHasExecutable(InstallationLocation installationLocation) {
+        if (!hasJavaExecutable(installationLocation.getLocation())) {
+            logger.warn("Path for java installation {} does not contain a java executable", installationLocation.getDisplayName());
+            return false;
+        }
+        return true;
+    }
+
     private InstallationLocation canonicalize(InstallationLocation location) {
         final File file = location.getLocation();
         try {
             final File canonicalFile = file.getCanonicalFile();
             final File javaHome = findJavaHome(canonicalFile);
-            return new InstallationLocation(javaHome, location.getSource());
+            return new InstallationLocation(javaHome, location.getSource(), location.isAutoProvisioned());
         } catch (IOException e) {
             throw new GradleException(String.format("Could not canonicalize path to java installation: %s.", file), e);
         }
@@ -144,6 +158,34 @@ public class JavaInstallationRegistry {
                 .displayName("Toolchain detection")
                 .progressDisplayName("Detecting local java toolchains");
         }
+    }
+
+    private static class Installations {
+
+        private final Supplier<Set<InstallationLocation>> initializer;
+
+        private Set<InstallationLocation> locations = null;
+
+        Installations(Supplier<Set<InstallationLocation>> initializer) {
+            this.initializer = initializer;
+        }
+
+        synchronized Set<InstallationLocation> get() {
+            initIfNeeded();
+            return locations;
+        }
+
+        synchronized void add(InstallationLocation location) {
+            initIfNeeded();
+            locations.add(location);
+        }
+
+        private void initIfNeeded() {
+            if (locations == null) {
+                locations = initializer.get();
+            }
+        }
+
     }
 
 }

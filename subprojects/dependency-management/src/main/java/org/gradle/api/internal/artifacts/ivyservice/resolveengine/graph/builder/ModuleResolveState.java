@@ -109,7 +109,7 @@ class ModuleResolveState implements CandidateModule {
         this.rootModule = rootModule;
         this.pendingDependencies = new PendingDependencies(id);
         this.selectorStateResolver = selectorStateResolver;
-        this.selectors = new ModuleSelectors<>(versionComparator);
+        this.selectors = new ModuleSelectors<>(versionComparator, versionParser);
         this.conflictResolution = conflictResolution;
         this.attributeDesugaring = attributeDesugaring;
     }
@@ -302,6 +302,7 @@ class ModuleResolveState implements CandidateModule {
     }
 
     public ComponentState getVersion(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
+        assert id.getModule().equals(this.id);
         ComponentState moduleRevision = versions.get(id);
         if (moduleRevision == null) {
             moduleRevision = new ComponentState(idGenerator.generateId(), this, id, componentIdentifier, metaDataResolver, attributeDesugaring);
@@ -462,9 +463,9 @@ class ModuleResolveState implements CandidateModule {
 
     void maybeCreateVirtualMetadata(ResolveState resolveState) {
         for (ComponentState componentState : versions.values()) {
-            if (componentState.getMetadata() == null) {
+            if (componentState.getMetadataOrNull() == null) {
                 // TODO LJA Using the root as the NodeState here is a bit of a cheat, investigate if we can track the proper NodeState
-                componentState.setMetadata(new LenientPlatformResolveMetadata((ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState));
+                componentState.setState(LenientPlatformGraphResolveState.of((ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState));
             }
         }
     }

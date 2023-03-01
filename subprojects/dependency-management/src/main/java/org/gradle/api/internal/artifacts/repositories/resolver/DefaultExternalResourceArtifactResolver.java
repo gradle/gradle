@@ -101,7 +101,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
                 continue;
             }
             ExternalResourceName moduleDir = resourcePattern.toModuleVersionPath(normalizeComponentId(artifact));
-            ExternalResourceName location = moduleDir.resolve(artifact.getRelativeUrl());
+            ExternalResourceName location = moduleDir.resolve(normalizeRelativeUrl(artifact));
             result.attempted(location);
             LOGGER.debug("Loading {}", location);
             LocallyAvailableResourceCandidates localCandidates = locallyAvailableResourceFinder.findCandidates(artifact);
@@ -115,6 +115,16 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             }
         }
         return null;
+    }
+
+    private String normalizeRelativeUrl(UrlBackedArtifactMetadata artifact) {
+        ModuleComponentIdentifier componentId = artifact.getComponentId();
+        if (componentId instanceof MavenUniqueSnapshotComponentIdentifier) {
+            // We need to replace the `-SNAPSHOT` in the relative URL but only for the version part
+            MavenUniqueSnapshotComponentIdentifier snapshotComponentId = (MavenUniqueSnapshotComponentIdentifier) componentId;
+            return artifact.getRelativeUrl().replace("-" + snapshotComponentId.getSnapshotVersion(), "-" + snapshotComponentId.getTimestampedVersion());
+        }
+        return artifact.getRelativeUrl();
     }
 
     private ModuleComponentIdentifier normalizeComponentId(UrlBackedArtifactMetadata artifact) {

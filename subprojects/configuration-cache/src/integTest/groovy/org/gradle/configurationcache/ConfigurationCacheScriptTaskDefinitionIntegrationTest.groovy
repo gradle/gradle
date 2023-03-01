@@ -18,9 +18,11 @@ package org.gradle.configurationcache
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 
+import java.util.concurrent.CopyOnWriteArrayList
+
 class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements TasksWithInputsAndOutputs {
 
-    def "task can have doFirst/doLast Groovy script closures"() {
+    def "task can have actions defined using Groovy script closures"() {
         given:
         settingsFile << """
             include 'a', 'b'
@@ -82,7 +84,7 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
     }
 
-    def "task can have doFirst/doLast anonymous Groovy script actions"() {
+    def "task can have actions defined using anonymous Groovy script actions"() {
         given:
         buildFile << """
             tasks.register("some") {
@@ -133,7 +135,7 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         result.groupedOutput.task(":other").assertOutputContains("OTHER")
     }
 
-    def "task can have doFirst/doLast Kotlin script lambdas"() {
+    def "task can have actions defined using Kotlin script lambdas"() {
         given:
         settingsFile << """
             include 'a', 'b'
@@ -194,6 +196,46 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
 
         then:
         result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
+    }
+
+    def "each task receives its own copy of outer Groovy closure state"() {
+        given:
+        buildFile << """
+            def values1 = new ${CopyOnWriteArrayList.name}()
+            tasks.register("one") {
+                def values2 = new ${CopyOnWriteArrayList.name}()
+                doFirst {
+                    values1.add(1)
+                    values2.add(2)
+                }
+                doLast {
+                    println "values1=" + values1
+                    println "values2=" + values2
+                }
+            }
+            tasks.register("two") {
+                doFirst {
+                    values1.add(12)
+                    println "values1=" + values1
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun ":one", ":two"
+
+        then:
+        result.groupedOutput.task(":one").assertOutputContains("values1=[1]")
+        result.groupedOutput.task(":one").assertOutputContains("values2=[2]")
+        result.groupedOutput.task(":two").assertOutputContains("values1=[12]")
+
+        when:
+        configurationCacheRun ":one", ":two"
+
+        then:
+        result.groupedOutput.task(":one").assertOutputContains("values1=[1]")
+        result.groupedOutput.task(":one").assertOutputContains("values2=[2]")
+        result.groupedOutput.task(":two").assertOutputContains("values1=[12]")
     }
 
     def "problem when closure defined in Kotlin script captures state from the script"() {

@@ -21,9 +21,14 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
         // Working tasks that would otherwise be matched by filters below
         task.name in listOf(
             "publishLocalPublicationToLocalRepository",
-            "validateExternalPlugins",
+            "publishEmbeddedKotlinPluginMarkerMavenPublicationToTestRepository",
+            "publishKotlinDslBasePluginMarkerMavenPublicationToTestRepository",
+            "publishKotlinDslCompilerSettingsPluginMarkerMavenPublicationToTestRepository",
+            "publishKotlinDslPluginMarkerMavenPublicationToTestRepository",
+            "publishKotlinDslPrecompiledScriptPluginsPluginMarkerMavenPublicationToTestRepository",
+            "publishPluginMavenPublicationToTestRepository",
+            "publishPluginsToTestRepository",
         ) -> false
-        task.name.startsWith("validatePluginWithId") -> false
 
         // Core tasks
         task.name in listOf(
@@ -41,12 +46,11 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
         task.name in listOf(
             "updateInitPluginTemplateVersionFile",
             "resolveAllDependencies",
+            "quickCheck",
         ) -> true
         task.name.endsWith("Wrapper") -> true
-        task.name in listOf("docs", "stageDocs", "docsTest", "serveDocs") -> true
+        task.name in listOf("docs", "stageDocs", "serveDocs") -> true
         task.name.startsWith("userguide") -> true
-        task.name.contains("Sample") -> true
-        task.name.contains("Snippet") -> true
         task.name == "samplesMultiPage" -> true
         task.typeSimpleName in listOf(
             "KtsProjectGeneratorTask",

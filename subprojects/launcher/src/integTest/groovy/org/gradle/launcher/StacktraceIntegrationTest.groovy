@@ -23,7 +23,6 @@ class StacktraceIntegrationTest extends AbstractIntegrationSpec {
     def setup () {
         buildFile << 'throw new RuntimeException("show stacktrace was " + gradle.startParameter.showStacktrace)'
         settingsFile << 'rootProject.name = "stacktrace-integration-test-sample"'
-        executer.withStacktraceDisabled() // AbstractIntegrationSpec uses --stacktrace in the test builds by default
     }
 
     def "no stacktrace is present in the output by default"() {

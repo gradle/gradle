@@ -34,7 +34,7 @@ import java.io.File;
  */
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFiltersFile> {
+public abstract class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFiltersFile> {
     private DefaultVisualStudioProject visualStudioProject;
 
     @Override

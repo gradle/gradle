@@ -236,8 +236,8 @@ class GradleModuleMetadataAvailableAtIntegrationTest extends AbstractModuleDepen
                     result.allComponents {
                         if (id instanceof ModuleComponentIdentifier && id.module == 'moduleA') {
                             found = true
-                            assert variant.owner.module == 'moduleA'
                             assert variants.size() == 1
+                            assert variants[0].owner.module == 'moduleA'
                             def externalVariant = variants[0].externalVariant
                             assert externalVariant.present
                             assert externalVariant.get().owner.module == 'external'
@@ -297,8 +297,8 @@ class GradleModuleMetadataAvailableAtIntegrationTest extends AbstractModuleDepen
                     result.allComponents {
                         if (id instanceof ModuleComponentIdentifier && id.module == 'moduleA') {
                             found = true
-                            assert variant.owner.module == 'moduleA'
                             assert variants.size() == 1
+                            assert variants[0].owner.module == 'moduleA'
                             def externalVariant = variants[0].externalVariant
                             assert !externalVariant.present
                         } else {

@@ -17,15 +17,12 @@
 package org.gradle.integtests.samples.antmigration
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.internal.reflect.problems.ValidationProblemId
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.junit.Rule
 
-class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest implements ExecutionOptimizationDeprecationFixture {
+class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
@@ -62,16 +59,13 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest impl
 
         then: "The JARs are copied to the destination directory"
         dslDir.file('build/libs/our-custom.jar').isFile()
-        dslDir.file('build/libs/log4j-1.2.8.jar').isFile()
-        dslDir.file('build/libs/commons-io-2.1.jar').isFile()
+        dslDir.file('build/libs/awesome-framework-2.0.jar').isFile()
+        dslDir.file('build/libs/utility-library-1.0.jar').isFile()
 
         where:
         dsl << ['groovy', 'kotlin']
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IMPLICIT_DEPENDENCY
-    )
     @UsesSample("antMigration/fileDeps")
     def "can use task properties to link tasks (#dsl)"() {
         given: "A sample Java project"

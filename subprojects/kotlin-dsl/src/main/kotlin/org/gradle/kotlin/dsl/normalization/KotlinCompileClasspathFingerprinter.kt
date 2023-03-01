@@ -21,9 +21,9 @@ import org.gradle.api.internal.changedetection.state.AbiExtractingClasspathResou
 import org.gradle.api.internal.changedetection.state.CachingResourceHasher
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService
 import org.gradle.api.internal.changedetection.state.ZipHasher
-import org.gradle.api.tasks.CompileClasspathNormalizer
-import org.gradle.api.tasks.FileNormalizer
-import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter
+import org.gradle.internal.execution.FileCollectionSnapshotter
+import org.gradle.internal.execution.model.InputNormalizer
+import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter
 import org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter
@@ -31,6 +31,7 @@ import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.kotlin.dsl.support.loggerFor
 
 
+internal
 class KotlinCompileClasspathFingerprinter(
     cacheService: ResourceSnapshotterCacheService,
     fileCollectionSnapshotter: FileCollectionSnapshotter,
@@ -46,8 +47,8 @@ class KotlinCompileClasspathFingerprinter(
 ),
     CompileClasspathFingerprinter {
 
-    override fun getRegisteredType(): Class<out FileNormalizer> {
-        return CompileClasspathNormalizer::class.java
+    override fun getNormalizer(): FileNormalizer {
+        return InputNormalizer.COMPILE_CLASSPATH
     }
 }
 

@@ -19,7 +19,6 @@ package org.gradle.internal.configurationcache.options
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.operations.trace.BuildOperationRecord
 import spock.lang.IgnoreIf
 
 @IgnoreIf({ GradleContextualExecuter.configCache })
@@ -65,14 +64,6 @@ class ConfigurationCacheSettingsFinalizedBuildOperationIntegTest extends Abstrac
     }
 
     List<ConfigurationCacheSettingsFinalizedProgressDetails> events() {
-        List<BuildOperationRecord.Progress> events = []
-        operations.walk {
-            events.addAll(it.progress.findAll {
-                ConfigurationCacheSettingsFinalizedProgressDetails.isAssignableFrom(it.detailsType)
-            })
-        }
-        events.collect {
-            { -> it.details.enabled } as ConfigurationCacheSettingsFinalizedProgressDetails
-        }
+        return operations.progress(ConfigurationCacheSettingsFinalizedProgressDetails).details
     }
 }

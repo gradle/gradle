@@ -19,35 +19,47 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.actor.ActorFactory;
-import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.io.Serializable;
-import java.lang.reflect.Constructor;
+import java.util.Collections;
 import java.util.List;
 
 @UsedByScanPlugin("test-retry")
 public class JUnitPlatformTestFramework implements TestFramework {
     private final JUnitPlatformOptions options;
     private final DefaultTestFilter filter;
+    private final boolean useImplementationDependencies;
 
-    public JUnitPlatformTestFramework(DefaultTestFilter filter) {
+    public JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies) {
+        this(filter, useImplementationDependencies, new JUnitPlatformOptions());
+    }
+
+    private JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitPlatformOptions options) {
         this.filter = filter;
-        this.options = new JUnitPlatformOptions();
+        this.useImplementationDependencies = useImplementationDependencies;
+        this.options = options;
+    }
+
+    @UsedByScanPlugin("test-retry")
+    @Override
+    public TestFramework copyWithFilters(TestFilter newTestFilters) {
+        JUnitPlatformOptions copiedOptions = new JUnitPlatformOptions();
+        copiedOptions.copyFrom(options);
+
+        return new JUnitPlatformTestFramework(
+            (DefaultTestFilter) newTestFilters,
+            useImplementationDependencies,
+            copiedOptions
+        );
     }
 
     @Override
@@ -55,24 +67,30 @@ public class JUnitPlatformTestFramework implements TestFramework {
         if (!JavaVersion.current().isJava8Compatible()) {
             throw new UnsupportedJavaRuntimeException("Running JUnit Platform requires Java 8+, please configure your test java executable with Java 8 or higher.");
         }
-        return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(options,
-            filter.getIncludePatterns(), filter.getExcludePatterns(),
-            filter.getCommandLineIncludePatterns()));
+        return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(
+            filter.toSpec(), options.getIncludeEngines(), options.getExcludeEngines(),
+            options.getIncludeTags(), options.getExcludeTags()
+        ));
     }
 
     @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
-        return new Action<WorkerProcessBuilder>() {
-            @Override
-            public void execute(@Nonnull WorkerProcessBuilder workerProcessBuilder) {
-                workerProcessBuilder.sharedPackages("org.junit");
-            }
-        };
+        return workerProcessBuilder -> workerProcessBuilder.sharedPackages("org.junit");
     }
 
     @Override
-    public List<String> getTestWorkerImplementationModules() {
+    public List<String> getTestWorkerApplicationClasses() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<String> getTestWorkerApplicationModules() {
         return ImmutableList.of("junit-platform-engine", "junit-platform-launcher", "junit-platform-commons");
+    }
+
+    @Override
+    public boolean getUseDistributionDependencies() {
+        return useImplementationDependencies;
     }
 
     @Override
@@ -90,25 +108,4 @@ public class JUnitPlatformTestFramework implements TestFramework {
         // this test framework doesn't hold any state
     }
 
-    static class JUnitPlatformTestClassProcessorFactory implements WorkerTestClassProcessorFactory, Serializable {
-        private final JUnitPlatformSpec spec;
-
-        JUnitPlatformTestClassProcessorFactory(JUnitPlatformSpec spec) {
-            this.spec = spec;
-        }
-
-        @Override
-        public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            try {
-                IdGenerator<?> idGenerator = serviceRegistry.get(IdGenerator.class);
-                Clock clock = serviceRegistry.get(Clock.class);
-                ActorFactory actorFactory = serviceRegistry.get(ActorFactory.class);
-                Class<?> clazz = getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor");
-                Constructor<?> constructor = clazz.getConstructor(JUnitPlatformSpec.class, IdGenerator.class, ActorFactory.class, Clock.class);
-                return (TestClassProcessor) constructor.newInstance(spec, idGenerator, actorFactory, clock);
-            } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-    }
 }

@@ -4,8 +4,8 @@ This sample shows how a Spring Boot Web application can be built with Gradle.
 The application was generated using the https://start.spring.io/#!type=gradle-project[Spring Initializr].
 
 ====
-include::sample[dir="groovy",files="app/build.gradle[]"]
 include::sample[dir="kotlin",files="app/build.gradle.kts[]"]
+include::sample[dir="groovy",files="app/build.gradle[]"]
 ====
 
 To build and run the application:
@@ -34,3 +34,5 @@ BUILD SUCCESSFUL
 
 For more information, we suggest reading link:{userManualPath}/getting_started.html[Getting Started with Gradle].
 You can also find https://spring.io/guides[Spring Boot related information inside the guides provided by the Spring team].
+
+// TODO:Finalize Upload Removal - Issue #21439

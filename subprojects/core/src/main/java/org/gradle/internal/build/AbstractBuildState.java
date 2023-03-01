@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.Describables;
@@ -71,6 +72,16 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     }
 
     @Override
+    public void resetLifecycle() {
+        projectStateRegistry.get().discardProjectsFor(this);
+        workGraphController.get().resetState();
+        buildLifecycleController.get().resetLifecycle();
+        for (HoldsProjectState service : buildLifecycleController.get().getGradle().getServices().getAll(HoldsProjectState.class)) {
+            service.discardAll();
+        }
+    }
+
+    @Override
     public void assertCanAdd(IncludedBuildSpec includedBuildSpec) {
         throw new UnsupportedOperationException("Cannot include build '" + includedBuildSpec.rootDir.getName() + "' in " + getBuildIdentifier() + ". This is not supported yet.");
     }
@@ -96,6 +107,11 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     @Override
     public void ensureProjectsLoaded() {
         getBuildController().loadSettings();
+    }
+
+    @Override
+    public boolean isProjectsLoaded() {
+        return getProjectStateRegistry().findProjectsFor(getBuildIdentifier()) != null;
     }
 
     @Override

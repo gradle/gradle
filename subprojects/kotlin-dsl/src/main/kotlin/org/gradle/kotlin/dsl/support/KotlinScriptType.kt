@@ -28,13 +28,14 @@ enum class KotlinScriptType {
 }
 
 
-data class KotlinScriptTypeMatch(
+data class KotlinScriptTypeMatch private constructor(
     val scriptType: KotlinScriptType,
     val match: Match
 ) {
 
     companion object {
 
+        internal
         fun forFile(file: File): KotlinScriptTypeMatch? =
             forName(file.name)
 
@@ -60,10 +61,12 @@ sealed class Match {
 
     abstract fun matches(candidate: String): Boolean
 
+    internal
     data class Whole(override val value: String) : Match() {
         override fun matches(candidate: String) = candidate == value
     }
 
+    internal
     data class Suffix(override val value: String) : Match() {
         override fun matches(candidate: String) = candidate.endsWith(value)
     }

@@ -30,15 +30,17 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.util.internal.RelativePathUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
-public class DefaultJavaPluginConvention extends JavaPluginConvention implements HasPublicType {
+public abstract class DefaultJavaPluginConvention extends JavaPluginConvention implements HasPublicType {
 
     private final ProjectInternal project;
     private final JavaPluginExtension extension;
 
+    @Inject
     public DefaultJavaPluginConvention(ProjectInternal project, JavaPluginExtension extension) {
         this.project = project;
         this.extension = extension;
@@ -164,7 +166,7 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
         return extension.getAutoTargetJvmDisabled();
     }
 
-    private File getReportsDir() {
+    File getReportsDir() {
         // This became public API by accident as Groovy has access to private methods and we show an example in our docs
         // see subprojects/docs/src/snippets/java/customDirs/groovy/build.gradle
         // and https://docs.gradle.org/current/userguide/java_testing.html#test_reporting

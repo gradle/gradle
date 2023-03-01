@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
 class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
-    def "variant annotation on property with illegal type type raises error"() {
+    def "variant annotation on property with illegal type raises error"() {
         buildFile << """
         @Managed
         interface SampleBinary extends BinarySpec {
@@ -40,7 +40,7 @@ class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause "Invalid managed model type SampleBinary: @Variant annotation only allowed for properties of type String and org.gradle.api.Named, but property has type java.lang.Integer (invalid property: variantProp)"
     }
 
-    def "variant annotation on property with primitive type type raises error"() {
+    def "variant annotation on property with primitive type raises error"() {
         buildFile << """
         @Managed
         interface SampleBinary extends BinarySpec {

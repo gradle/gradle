@@ -19,6 +19,9 @@ package org.gradle.launcher.continuous
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import spock.lang.Ignore
 
+import static org.gradle.util.TestPrecondition.MAC_OS_X
+import static org.gradle.util.TestPrecondition.NOT_MAC_OS_X_M1
+
 class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def upstreamSource, downstreamSource
@@ -41,6 +44,14 @@ class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegratio
 
         upstreamSource = file("upstream/src/main/java/Upstream.java") << "class Upstream {}"
         downstreamSource = file("downstream/src/main/java/Downstream.java").createFile() << "class Downstream extends Upstream {}"
+
+        // MacOS builds with Intel machines can be too fast on CI and
+        // changes generated during build are picked up only after the build which retriggers the build
+        // Fix for issue: https://github.com/gradle/gradle-private/issues/3728
+        if (MAC_OS_X.fulfilled && NOT_MAC_OS_X_M1.fulfilled) {
+            def quietPeriod = 250
+            waitAtEndOfBuildForQuietPeriod(quietPeriod)
+        }
     }
 
     def "changes to upstream project triggers build of downstream"() {

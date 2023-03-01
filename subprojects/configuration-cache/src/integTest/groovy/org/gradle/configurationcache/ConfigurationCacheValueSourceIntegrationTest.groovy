@@ -16,7 +16,52 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.process.ShellScript
+import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
+
 class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    def "value source without parameters can be used as task input"() {
+         given:
+         def configurationCache = newConfigurationCacheFixture()
+
+         buildFile("""
+            import org.gradle.api.provider.*
+
+            abstract class GreetValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                String obtain() {
+                    return "Hello!"
+                }
+            }
+
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract Property<String> getGreeting()
+
+                @TaskAction void run() { println greeting.get() }
+            }
+
+            def greetValueSource = providers.of(GreetValueSource) {}
+            tasks.register("greet", MyTask) {
+                greeting = greetValueSource
+            }
+        """)
+
+        when:
+        configurationCacheRun "greet"
+
+        then:
+        configurationCache.assertStateStored()
+        output.contains("Hello!")
+
+        when:
+        configurationCacheRun "greet"
+
+        then:
+        configurationCache.assertStateLoaded()
+        output.contains("Hello!")
+    }
 
     def "#usage property from properties file used as build logic input"() {
         given:
@@ -250,5 +295,233 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
             withInput("Build file 'build.gradle': system property 'some.property'")
             ignoringUnexpectedInputs()
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22305")
+    def "evaluating a value source parameter does not enable input tracking inside the value source"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile.text = """
+
+            import org.gradle.api.provider.*
+
+            abstract class MySource implements ValueSource<String, Parameters> {
+                interface Parameters extends ValueSourceParameters {
+                    Property<String> getValue()
+                }
+                @Override String obtain() {
+                    def suffix = parameters.value.orElse("").get()
+                    return System.getProperty("my.property") + suffix
+                }
+            }
+
+            def someProp = providers.systemProperty("some.property")
+
+            def vsResult = providers.of(MySource) {
+                parameters.value = someProp
+            }
+
+            println("ValueSource result = \${vsResult.get()}")
+        """
+
+        when:
+        configurationCacheRun("-Dsome.property=1", "-Dmy.property=value")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("result = value1")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': system property 'some.property'")
+            withInput("Build file 'build.gradle': value from custom source 'MySource'")
+        }
+    }
+
+    def "value source can use standard process API"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        ShellScript testScript = ShellScript.builder().printText("Hello, world").writeTo(testDirectory, "script")
+
+        settingsFile("""
+            enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
+        """)
+        buildFile.text = """
+            import ${ByteArrayOutputStream.name}
+            import org.gradle.api.provider.*
+
+            abstract class ProcessSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Override String obtain() {
+                    def baos = new ByteArrayOutputStream()
+                    def process = ${ShellScript.cmdToStringLiteral(testScript.getRelativeCommandLine(testDirectory))}.execute()
+                    process.waitForProcessOutput(baos, System.err)
+                    return baos.toString().trim()
+                }
+            }
+
+            def vsResult = providers.of(ProcessSource) {}
+            println("ValueSource result = \${vsResult.get()}")
+        """
+
+        when:
+        configurationCacheRun()
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("ValueSource result = Hello, world")
+    }
+
+    def "value source can read mutated system property inputs at configuration time"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+        import org.gradle.api.provider.*
+
+        abstract class IdentitySource implements ValueSource<String, Parameters> {
+            interface Parameters extends ValueSourceParameters {
+                Property<String> getValue()
+            }
+
+            @Override String obtain() {
+                return parameters.value.orNull
+            }
+        }
+
+        def vsResult = providers.of(IdentitySource) {
+            parameters.value = providers.systemProperty("property")
+        }
+
+        System.setProperty("property", "someValue")
+
+        println("configuration value = \${vsResult.getOrElse("NO VALUE")}")
+
+        tasks.register("echo") {
+            doLast {
+                println("execution value = \${vsResult.getOrElse("NO VALUE")}")
+            }
+        }
+
+        defaultTasks "echo"
+        """)
+
+        when:
+        configurationCacheRun()
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("configuration value = someValue")
+        outputContains("execution value = someValue")
+
+        when:
+        configurationCacheRun()
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("execution value = someValue")
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/23689")
+    def "value source can read mutated system property at configuration time with Java API"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+        import org.gradle.api.provider.*
+
+        abstract class SystemPropSource implements ValueSource<String, ValueSourceParameters.None> {
+            @Override String obtain() {
+                return System.getProperty("property")
+            }
+        }
+
+        def vsResult = providers.of(SystemPropSource) {}
+
+        System.setProperty('property', 'someValue')
+
+        println("configuration value = \${vsResult.getOrElse("NO VALUE")}")
+
+        tasks.register("echo") {
+            doLast {
+                println("execution value = \${vsResult.getOrElse("NO VALUE")}")
+            }
+        }
+
+        defaultTasks "echo"
+        """)
+
+        when:
+        configurationCacheRun()
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("configuration value = someValue")
+        outputContains("execution value = someValue")
+
+        when:
+        configurationCacheRun()
+
+        then:
+        // TODO(mlopatkin) This behavior is correct but suboptimal, as we're never going to have a cache hit.
+        //  We may want to warn the user about it.
+        configurationCache.assertStateStored()
+        outputContains("configuration value = someValue")
+        outputContains("execution value = someValue")
+    }
+
+    def "value source changes its value invalidating the cache if its input #providerType provider changes"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+        import org.gradle.api.provider.*
+
+        abstract class IdentitySource implements ValueSource<String, Parameters> {
+            interface Parameters extends ValueSourceParameters {
+                Property<String> getValue()
+            }
+
+            @Override String obtain() {
+                return parameters.value.orNull
+            }
+        }
+
+        def vsResult = providers.of(IdentitySource) {
+            parameters.value = providers.$providerType("property")
+        }
+
+        println("configuration value = \${vsResult.getOrElse("NO VALUE")}")
+
+        tasks.register("echo") {
+            doLast {
+                println("execution value = \${vsResult.getOrElse("NO VALUE")}")
+            }
+        }
+
+        defaultTasks "echo"
+        """)
+
+        when:
+        configurationCacheRun("${setterSwitch}property=someValue")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("configuration value = someValue")
+        outputContains("execution value = someValue")
+
+        when:
+        configurationCacheRun("${setterSwitch}property=someValue")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("execution value = someValue")
+
+        when:
+        configurationCacheRun("${setterSwitch}property=newValue")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("configuration value = newValue")
+        outputContains("execution value = newValue")
+
+        where:
+        providerType     | setterSwitch
+        "systemProperty" | "-D"
+        "gradleProperty" | "-P"
     }
 }

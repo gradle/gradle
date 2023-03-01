@@ -16,13 +16,11 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
 
 class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishIntegTest {
 
-    @ToBeFixedForConfigurationCache
     def "can attach custom artifacts"() {
         given:
         createBuildScripts("""
@@ -101,7 +99,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
      * Fails with module metadata.
      * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
      */
-    @ToBeFixedForConfigurationCache
     def "can modify artifacts added from component"() {
         given:
         createBuildScripts("""
@@ -144,7 +141,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
      * Fails with module metadata.
      * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
      */
-    @ToBeFixedForConfigurationCache
     def "can override artifacts added from component"() {
         given:
         createBuildScripts("""
@@ -202,7 +198,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         failure.assertHasCause("Cannot publish module metadata where component artifacts are modified.")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure custom artifacts when creating"() {
         given:
         createBuildScripts("""
@@ -273,7 +268,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can attach custom file artifacts with map notation"() {
         given:
         createBuildScripts("""
@@ -431,6 +425,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
 
             task customFileTask {
                 ext.outputFile = file('customFile-1.0-docs.html')
+                def outputFile = ext.outputFile
                 doLast {
                     outputFile << '<html/>'
                 }
@@ -440,6 +435,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
                 ext.outputFile = project.objects.fileProperty()
                 outputs.file(outputFile)
                 outputFile.set(file('regularFile-1.0.reg'))
+                def outputFile = outputFile
                 doLast {
                     outputFile.get().getAsFile() << 'foo'
                 }
@@ -483,9 +479,11 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
     def "can attach an arbitrary task provider as an artifact if it has a single output file"() {
         createBuildScripts("""
             def customTask = tasks.register("myTask") {
+                def buildDir = buildDir
                 outputs.file("\${buildDir}/output.txt")
+                def outputFile = file("\${buildDir}/output.txt")
                 doLast {
-                    file("\${buildDir}/output.txt") << 'custom task'
+                    outputFile << 'custom task'
                 }
             }
             publications {
@@ -502,7 +500,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         executedAndNotSkipped ":myTask", ":publish"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reasonable error message when an arbitrary task provider as an artifact has more than one output file"() {
         createBuildScripts("""
             def customTask = tasks.register("myTask") {
@@ -582,8 +579,10 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             }
 
             task resolve {
+                def foo = configurations.foo
                 doLast {
-                    println "Output: \${configurations.foo.files.name}"
+                    println "Output: \${foo.files.name}"
+                    assert foo.files*.name.contains("srcLicenseDir")
                 }
             }
         """

@@ -273,17 +273,15 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         task.addTestOutputListener(Stub(TestOutputListener))
 
         then:
-        !task.testListenerInternalBroadcaster.isEmpty()
-        !task.testOutputListenerBroadcaster.isEmpty()
-        !task.testListenerInternalBroadcaster.isEmpty()
+        task.testListenerBroadcaster.size() == 2
+        task.testOutputListenerBroadcaster.size() == 2
 
         when:
         task.executeTests()
 
         then:
-        task.testListenerInternalBroadcaster.isEmpty()
-        task.testOutputListenerBroadcaster.isEmpty()
-        task.testListenerInternalBroadcaster.isEmpty()
+        task.testListenerBroadcaster.size() == 1
+        task.testOutputListenerBroadcaster.size() == 1
     }
 
     def "removes listeners even if execution fails"() {
@@ -301,9 +299,8 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         ex.message == "Boo!"
 
         and:
-        task.testListenerInternalBroadcaster.isEmpty()
-        task.testOutputListenerBroadcaster.isEmpty()
-        task.testListenerInternalBroadcaster.isEmpty()
+        task.testListenerBroadcaster.size() == 1
+        task.testOutputListenerBroadcaster.size() == 1
     }
 
     def "reports all test failures for multiple suites"() {
