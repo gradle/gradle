@@ -30,6 +30,7 @@ import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -73,7 +74,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         jacocoAggregation.setTransitive(true);
 
         ObjectFactory objects = project.getObjects();
-        Configuration codeCoverageResultsConf = configurations.resolvable("aggregateCodeCoverageReportResults");
+        @SuppressWarnings("deprecation") Configuration codeCoverageResultsConf = configurations.createWithRole("aggregateCodeCoverageReportResults", ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE);
         codeCoverageResultsConf.setDescription("Graph needed for the aggregated JaCoCo coverage report.");
         codeCoverageResultsConf.extendsFrom(jacocoAggregation);
         codeCoverageResultsConf.setVisible(false);

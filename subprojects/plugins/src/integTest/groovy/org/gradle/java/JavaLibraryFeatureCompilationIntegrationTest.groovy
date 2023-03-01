@@ -564,7 +564,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
                 [apiElements, runtimeElements].each {
                     assert it.canBeConsumed == true
                     assert it.canBeResolved == false
-                    assert it.canBeDeclaredAgainst == false
+                    assert it.canBeDeclaredAgainst == true
 
                     assert it.declarationAlternatives == null
                     assert it.resolutionAlternatives == null
