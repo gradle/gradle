@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 /**
- * The roles here all meant to be temporary roles used for migration only, to be removed in Gradle 9.0.
+ * The roles here are all meant to be temporary roles used for migration only, to be removed in Gradle 9.0.
  * <p>
  * While we currently (Gradle 8.x) have to support the legacy behavior of configurations, we want to encode
  * the knowledge of what the minimally required intended behavior is, so that we easily migrate to the
