@@ -89,6 +89,27 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         assertUsageLockedFailure('custom')
     }
 
+    def "can prevent usage mutation of roleless configuration meant for consumption"() {
+        given:
+        buildFile << """
+            configurations {
+                testConf {
+                    canBeConsumed = true
+                    canBeResolved = false
+                    canBeDeclaredAgainst = false
+                    preventUsageMutation()
+                    canBeConsumed = false
+                }
+            }
+        """
+
+        expect:
+        fails 'help'
+
+        and:
+        assertUsageLockedFailure('testConf')
+    }
+
     def "can prevent usage mutation of roleless configuration #configuration added by java plugin meant for resolution"() {
         given:
         buildFile << """
