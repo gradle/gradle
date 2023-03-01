@@ -126,8 +126,16 @@ abstract class ToolingApiSpecification extends Specification {
         file("build.gradle")
     }
 
+    TestFile getPropertiesFile() {
+        file("gradle.properties")
+    }
+
     TestFile getBuildFileKts() {
         file("build.gradle.kts")
+    }
+
+    TestFile getBuildKotlinFile() {
+        getBuildFileKts()
     }
 
     TestFile getSettingsFile() {
