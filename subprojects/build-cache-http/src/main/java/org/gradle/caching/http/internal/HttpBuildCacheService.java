@@ -29,10 +29,9 @@ import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.protocol.HTTP;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCacheEntryReader;
-import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.internal.NextGenBuildCacheService;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpClientResponse;
@@ -49,7 +48,7 @@ import java.util.Set;
 /**
  * Build cache implementation that delegates to a service accessible via HTTP.
  */
-public class HttpBuildCacheService implements BuildCacheService {
+public class HttpBuildCacheService implements NextGenBuildCacheService {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpBuildCacheService.class);
     static final String BUILD_CACHE_CONTENT_TYPE = "application/vnd.gradle.build-cache-artifact.v1";
 
@@ -129,7 +128,7 @@ public class HttpBuildCacheService implements BuildCacheService {
     }
 
     @Override
-    public void store(BuildCacheKey key, final BuildCacheEntryWriter output) throws BuildCacheException {
+    public void store(BuildCacheKey key, NextGenWriter writer) throws BuildCacheException {
         final URI uri = root.resolve(key.getHashCode());
         HttpPut httpPut = new HttpPut(uri);
         if (useExpectContinue) {
@@ -146,7 +145,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
             @Override
             public long getContentLength() {
-                return output.getSize();
+                return writer.getSize();
             }
 
             @Override
@@ -156,7 +155,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
             @Override
             public void writeTo(OutputStream outstream) throws IOException {
-                output.writeTo(outstream);
+                writer.writeTo(outstream);
             }
 
             @Override

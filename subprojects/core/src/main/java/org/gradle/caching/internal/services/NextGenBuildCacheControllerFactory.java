@@ -24,6 +24,7 @@ import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.configuration.BuildCache;
+import org.gradle.caching.internal.NextGenBuildCacheService;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.DefaultNextGenBuildCacheAccess;
 import org.gradle.caching.internal.controller.GZipNextGenBuildCacheAccess;
@@ -103,8 +104,40 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
 
     private static NextGenBuildCacheHandler resolveService(@Nullable DescribedBuildCacheService<? extends BuildCache, ? extends BuildCacheService> describedService) {
         return describedService != null && describedService.config.isEnabled()
-            ? new DefaultNextGenBuildCacheHandler(describedService.service, describedService.config.isPush())
+            ? new DefaultNextGenBuildCacheHandler(makeCompatible(describedService.service), describedService.config.isPush())
             : DISABLED_BUILD_CACHE_HANDLER;
+    }
+
+    private static NextGenBuildCacheService makeCompatible(BuildCacheService service) {
+        if (service instanceof NextGenBuildCacheService) {
+            return (NextGenBuildCacheService) service;
+        }
+        return new NextGenBuildCacheService() {
+            @Override
+            public boolean contains(BuildCacheKey key) {
+                return load(key, __ -> {});
+            }
+
+            @Override
+            public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
+                return service.load(key, reader);
+            }
+
+            @Override
+            public void store(BuildCacheKey key, BuildCacheEntryWriter legacyWriter) throws BuildCacheException {
+                service.store(key, legacyWriter);
+            }
+
+            @Override
+            public void store(BuildCacheKey key, NextGenWriter writer) throws BuildCacheException {
+                service.store(key, writer);
+            }
+
+            @Override
+            public void close() throws IOException {
+                service.close();
+            }
+        };
     }
 
     private static final NextGenBuildCacheHandler DISABLED_BUILD_CACHE_HANDLER = new NextGenBuildCacheHandler() {
@@ -129,7 +162,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         }
 
         @Override
-        public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+        public void store(BuildCacheKey key, NextGenBuildCacheService.NextGenWriter writer) throws BuildCacheException {
         }
 
         @Override
@@ -138,10 +171,10 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
     };
 
     private static class DefaultNextGenBuildCacheHandler implements NextGenBuildCacheHandler {
-        private final BuildCacheService service;
+        private final NextGenBuildCacheService service;
         private final boolean pushEnabled;
 
-        public DefaultNextGenBuildCacheHandler(BuildCacheService service, boolean pushEnabled) {
+        public DefaultNextGenBuildCacheHandler(NextGenBuildCacheService service, boolean pushEnabled) {
             this.service = service;
             this.pushEnabled = pushEnabled;
         }
@@ -167,7 +200,7 @@ public final class NextGenBuildCacheControllerFactory extends AbstractBuildCache
         }
 
         @Override
-        public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+        public void store(BuildCacheKey key, NextGenBuildCacheService.NextGenWriter writer) throws BuildCacheException {
             if (pushEnabled) {
                 service.store(key, writer);
             }

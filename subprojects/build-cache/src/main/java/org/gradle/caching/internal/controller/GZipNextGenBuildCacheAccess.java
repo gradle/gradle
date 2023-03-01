@@ -18,8 +18,8 @@ package org.gradle.caching.internal.controller;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
-import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.NextGenBuildCacheService;
 import org.gradle.internal.file.BufferProvider;
 
 import java.io.IOException;
@@ -53,7 +53,7 @@ public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     @Override
     public <T> void store(Map<BuildCacheKey, T> entries, StoreHandler<T> handler) {
         delegate.store(entries, payload -> {
-            BuildCacheEntryWriter delegateWriter = handler.handle(payload);
+            NextGenBuildCacheService.NextGenWriter delegateWriter = handler.handle(payload);
             // TODO Make this more performant for large files
             UnsynchronizedByteArrayOutputStream compressed = new UnsynchronizedByteArrayOutputStream((int) (delegateWriter.getSize() * 1.2));
             try (GZIPOutputStream zipOutput = new GZIPOutputStream(compressed)) {
@@ -64,7 +64,7 @@ public class GZipNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 throw new UncheckedIOException(e);
             }
 
-            return new BuildCacheEntryWriter() {
+            return new NextGenBuildCacheService.NextGenWriter() {
                 @Override
                 public InputStream openStream() {
                     return compressed.toInputStream();
