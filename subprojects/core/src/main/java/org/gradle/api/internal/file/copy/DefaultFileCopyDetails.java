@@ -51,7 +51,6 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     private boolean excluded;
 
     private Property<FileAccessPermissions> permissions;
-    private Integer mode;
     private DuplicatesStrategy duplicatesStrategy;
 
     @Inject
@@ -160,10 +159,6 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
             return permissions.get().toMode();
         }
 
-        if (mode != null) {
-            return mode;
-        }
-
         Integer specMode = getSpecMode();
         if (specMode != null) {
             return specMode;
@@ -203,7 +198,8 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     @Override
     public void setMode(int mode) {
-        this.mode = mode;
+        FileAccessPermissions permissions = objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, mode);
+        getPermissions().set(permissions);
     }
 
     @Override
