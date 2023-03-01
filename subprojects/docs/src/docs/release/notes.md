@@ -110,6 +110,11 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
+- [Build launched via TAPI ignores logger level settings of target build](https://github.com/gradle/gradle/issues/19340) 
+  
+  `org.gradle.logging.loglevel` settings in `gradle.properties` are now recognized when a build is executed with the Tooling API
+
+
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
