@@ -85,6 +85,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         };
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(this);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
+        this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.discardAll());
+        this.whenObjectRemoved(x -> rootComponentMetadataBuilder.discardAll());
     }
 
     @Override

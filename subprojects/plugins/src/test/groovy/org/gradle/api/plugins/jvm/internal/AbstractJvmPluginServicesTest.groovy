@@ -69,9 +69,6 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
     )
 
     def setup() {
-        services.inject(
-            project,
-            sourceSets
-        )
+        services.inject(project)
     }
 }
