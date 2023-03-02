@@ -243,9 +243,9 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         ClassName className = ClassName.bestGuess(interceptedCallable.getOwner().getClassName());
         String callableNameForDocComment = interceptedCallable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR ? className.simpleName() : interceptedCallable.getCallableName();
         code.add("/** \n * Intercepting $L: {@link $T#$L(", callableKindString, className, callableNameForDocComment);
-        List<ParameterInfo> methodParameters = params.stream().filter(parameter -> parameter.getKind() == ParameterKindInfo.METHOD_PARAMETER).collect(Collectors.toList());
+        List<ParameterInfo> methodParameters = params.stream().filter(parameter -> parameter.getKind().isSourceParameter()).collect(Collectors.toList());
         methodParameters.forEach(parameter -> {
-            code.add("$T", typeName(parameter.getParameterType()));
+            code.add("$L", parameterTypeForJavadoc(parameter));
             if (parameter != methodParameters.get(methodParameters.size() - 1)) {
                 code.add(", ");
             }
@@ -254,7 +254,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
         code.add(" * Intercepted by {@link $T#$L(", ClassName.bestGuess(request.getImplementationInfo().getOwner().getClassName()), request.getImplementationInfo().getName());
         params.forEach(parameter -> {
-            code.add("$T", typeName(parameter.getParameterType()));
+            code.add("$L", parameterTypeForJavadoc(parameter));
             if (parameter != params.get(params.size() - 1)) {
                 code.add(", ");
             }
@@ -273,6 +273,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     }
 
     // TODO: move validation earlier?
+
     private static void generateInterceptedInvocation(CallInterceptionRequest request, FieldSpec implTypeField, CodeBlock.Builder method) {
         CallableInfo callable = request.getInterceptedCallable();
         String implementationName = request.getImplementationInfo().getName();
@@ -284,7 +285,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             generateInvocationAfterConstructor(implTypeField, method, callable, implementationName, implementationDescriptor);
         }
     }
-
     private static void generateInvocationAfterConstructor(FieldSpec implOwnerField, CodeBlock.Builder code, CallableInfo callable, String implementationName, String implementationDescriptor) {
         if (callable.getKind() != CallableKindInfo.AFTER_CONSTRUCTOR) {
             throw new IllegalArgumentException("expected after-constructor interceptor");
@@ -390,7 +390,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
     private static String standardCallableDescriptor(CallableInfo callableInfo) {
         Type[] parameterTypes = callableInfo.getParameters().stream()
-            .filter(it -> it.getKind() == ParameterKindInfo.METHOD_PARAMETER)
+            .filter(it -> it.getKind().isSourceParameter())
             .map(ParameterInfo::getParameterType).toArray(Type[]::new);
         Type returnType = callableInfo.getReturnType();
         return Type.getMethodDescriptor(returnType, parameterTypes);
@@ -409,6 +409,13 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             Stream.of(Type.getType(int.class), Type.getType(Object.class))
         ).toArray(Type[]::new);
         return Type.getMethodDescriptor(returnType, argumentTypesWithDefault);
+    }
+
+    private static CodeBlock parameterTypeForJavadoc(ParameterInfo parameterInfo) {
+        if (parameterInfo.getKind() == ParameterKindInfo.VARARG_METHOD_PARAMETER) {
+            return CodeBlock.of("$T...", typeName(parameterInfo.getParameterType().getElementType()));
+        }
+        return CodeBlock.of("$T", typeName(parameterInfo.getParameterType()));
     }
 
     private static class Failure extends RuntimeException {

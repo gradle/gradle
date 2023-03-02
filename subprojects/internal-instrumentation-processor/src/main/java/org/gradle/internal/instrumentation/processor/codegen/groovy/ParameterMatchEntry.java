@@ -30,7 +30,7 @@ class ParameterMatchEntry {
     }
 
     enum Kind {
-        RECEIVER_AS_CLASS, RECEIVER, PARAMETER
+        RECEIVER_AS_CLASS, RECEIVER, PARAMETER, VARARG
     }
 
     @Override

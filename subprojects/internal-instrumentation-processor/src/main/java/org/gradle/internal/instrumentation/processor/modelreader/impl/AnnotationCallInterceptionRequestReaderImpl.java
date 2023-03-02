@@ -43,6 +43,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -155,18 +156,31 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
     }
 
     private static List<ParameterInfo> extractParameters(ExecutableElement methodElement) {
-        return methodElement.getParameters().stream()
-            .map(AnnotationCallInterceptionRequestReaderImpl::extractParameter)
-            .collect(Collectors.toList());
+        List<ParameterInfo> list = new ArrayList<>();
+        List<? extends VariableElement> parameters = methodElement.getParameters();
+        for (int i = 0; i < parameters.size(); i++) {
+            VariableElement variableElement = parameters.get(i);
+            boolean isVararg = methodElement.isVarArgs() && i == parameters.size() - 1;
+            ParameterInfo parameterInfo = extractParameter(variableElement, isVararg);
+            list.add(parameterInfo);
+        }
+        return list;
     }
 
-    private static ParameterInfo extractParameter(VariableElement parameterElement) {
+    private static ParameterInfo extractParameter(VariableElement parameterElement, boolean isVararg) {
         Type parameterType = extractType(parameterElement.asType());
-        ParameterKindInfo parameterKindInfo = extractParameterKind(parameterElement);
+        ParameterKindInfo parameterKindInfo = extractParameterKind(parameterElement, isVararg);
+
+        if (parameterKindInfo == ParameterKindInfo.VARARG_METHOD_PARAMETER) {
+            if (parameterType.getSort() != Type.ARRAY) {
+                throw new Failure("a @" + ParameterKind.VarargParameter.class.getSimpleName() + " parameter must have an array type");
+            }
+        }
+
         return new ParameterInfoImpl(parameterElement.getSimpleName().toString(), parameterType, parameterKindInfo);
     }
 
-    private static ParameterKindInfo extractParameterKind(VariableElement parameterElement) {
+    private static ParameterKindInfo extractParameterKind(VariableElement parameterElement, boolean isVararg) {
         List<Annotation> kindAnnotations = Stream.of(PARAMETER_KIND_ANNOTATION_CLASSES)
             .map(parameterElement::getAnnotation)
             .filter(Objects::nonNull)
@@ -175,9 +189,13 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         if (kindAnnotations.size() > 1) {
             throw new Failure("More than one parameter kind annotations present: " + kindAnnotations);
         } else if (kindAnnotations.size() == 0) {
-            return ParameterKindInfo.METHOD_PARAMETER;
+            return isVararg ? ParameterKindInfo.VARARG_METHOD_PARAMETER : ParameterKindInfo.METHOD_PARAMETER;
         } else {
-            return ParameterKindInfo.fromAnnotation(kindAnnotations.get(0));
+            ParameterKindInfo parameterKindInfo = ParameterKindInfo.fromAnnotation(kindAnnotations.get(0));
+            if (isVararg && parameterKindInfo != ParameterKindInfo.VARARG_METHOD_PARAMETER) {
+                throw new Failure("a vararg parameter can only be @" + ParameterKind.VarargParameter.class.getSimpleName() + " (maybe implicitly)");
+            }
+            return parameterKindInfo;
         }
     }
 
@@ -227,6 +245,7 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
     private static final Class<? extends Annotation>[] PARAMETER_KIND_ANNOTATION_CLASSES = Cast.uncheckedNonnullCast(Stream.of(
         ParameterKind.Receiver.class,
         ParameterKind.CallerClassName.class,
-        ParameterKind.KotlinDefaultMask.class
+        ParameterKind.KotlinDefaultMask.class,
+        ParameterKind.VarargParameter.class
     ).toArray(Class[]::new));
 }
