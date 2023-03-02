@@ -218,8 +218,7 @@ class Codecs(
                 propertyFactory,
                 filePropertyFactory,
                 nestedProviderCodecForFingerprint(
-                    valueSourceProviderFactory,
-                    flowProviders)
+                    valueSourceProviderFactory)
             )
         }
     }
@@ -294,12 +293,11 @@ class Codecs(
      */
     private
     fun nestedProviderCodecForFingerprint(
-        valueSourceProviderFactory: ValueSourceProviderFactory,
-        flowProviders: FlowProviders
+        valueSourceProviderFactory: ValueSourceProviderFactory
     ) = FixedValueReplacingProviderCodec(
         ValueSourceProviderCodec(valueSourceProviderFactory),
         UnsupportedFingerprintBuildServiceProviderCodec,
-        FlowProvidersCodec(flowProviders)
+        UnsupportedFingerprintFlowProviders
     )
 
     private
