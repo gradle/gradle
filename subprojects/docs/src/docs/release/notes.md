@@ -1,8 +1,16 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This is the first patch release for Gradle 8.0.
+This is the second patch release for Gradle 8.0.
 
 It fixes the following issues:
+* [#23698](https://github.com/gradle/gradle/issues/23698) Gradle 8 RC2 runs out of metaspace
+* [#23962](https://github.com/gradle/gradle/issues/23962) Java/Scala build with no explicit toolchain: build fails with Gradle 8.0.1 / Scala 2.13
+* [#23990](https://github.com/gradle/gradle/issues/23990) Gradle 8.0.+ silently dropped support for custom compilers in `JavaCompile`
+* [#24031](https://github.com/gradle/gradle/issues/24031) InstrumentingTransformer generates different class files in Gradle 8 and 7.6 which leads to Remote Build-Cache misses
+* [#24109](https://github.com/gradle/gradle/issues/24109) Extending an already resolved configuration no longer works correctly
+* [#24122](https://github.com/gradle/gradle/issues/24122) Update configuration cache state for some plugins
+
+Issues fixed in the first patch release: 
 * [#21551](https://github.com/gradle/gradle/issues/21551) Document integration of Scala plugin with toolchains and problems with `target` flag
 * [#23888](https://github.com/gradle/gradle/issues/23888) `--no-rebuild` suddenly gone without new deprecation cycle and without the reason for its undeprecation being void
 * [#23905](https://github.com/gradle/gradle/issues/23905) Gradle 8.0 fails Scala build with isBlank not found in String class error
