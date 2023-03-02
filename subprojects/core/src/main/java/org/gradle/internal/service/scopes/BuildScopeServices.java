@@ -135,7 +135,7 @@ import org.gradle.initialization.Environment;
 import org.gradle.initialization.EnvironmentChangeTracker;
 import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.initialization.IGradlePropertiesLoader;
+import org.gradle.initialization.GradlePropertiesLoader;
 import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.NotifyingBuildLoader;
@@ -154,6 +154,10 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ResolvedBuildLayout;
+import org.gradle.initialization.properties.DefaultProjectPropertiesLoader;
+import org.gradle.initialization.properties.DefaultSystemPropertiesInstaller;
+import org.gradle.initialization.properties.ProjectPropertiesLoader;
+import org.gradle.initialization.properties.SystemPropertiesInstaller;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
@@ -352,21 +356,30 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected GradlePropertiesController createGradlePropertiesController(
-        IGradlePropertiesLoader propertiesLoader
+        GradlePropertiesLoader propertiesLoader,
+        SystemPropertiesInstaller systemPropertiesInstaller,
+        ProjectPropertiesLoader projectPropertiesLoader
     ) {
-        return new DefaultGradlePropertiesController(propertiesLoader);
+        return new DefaultGradlePropertiesController(propertiesLoader, systemPropertiesInstaller, projectPropertiesLoader);
     }
 
-    protected IGradlePropertiesLoader createGradlePropertiesLoader(
-        Environment environment,
+    protected ProjectPropertiesLoader createProjectPropertiesLoader(
+        Environment environment
+    ) {
+        return new DefaultProjectPropertiesLoader((StartParameterInternal) get(StartParameter.class), environment);
+    }
+
+    protected GradlePropertiesLoader createGradlePropertiesLoader(
+        Environment environment
+    ) {
+        return new DefaultGradlePropertiesLoader((StartParameterInternal) get(StartParameter.class), environment);
+    }
+
+    protected SystemPropertiesInstaller createSystemPropertiesInstaller(
         EnvironmentChangeTracker environmentChangeTracker,
         GradleInternal gradleInternal
     ) {
-        return new DefaultGradlePropertiesLoader(
-            (StartParameterInternal) get(StartParameter.class),
-            environment,
-            environmentChangeTracker,
-            gradleInternal);
+        return new DefaultSystemPropertiesInstaller(environmentChangeTracker, (StartParameterInternal) get(StartParameter.class), gradleInternal);
     }
 
     protected ValueSourceProviderFactory createValueSourceProviderFactory(

@@ -17,13 +17,13 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.initialization.properties.GradlePropertiesInternal;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-class DefaultGradleProperties implements GradleProperties {
+public class DefaultGradleProperties implements GradlePropertiesInternal {
     private final Map<String, Object> defaultProperties;
     private final Map<String, Object> overrideProperties;
     private final ImmutableMap<String, Object> gradleProperties;
@@ -60,5 +60,15 @@ class DefaultGradleProperties implements GradleProperties {
         result.putAll(properties);
         result.putAll(overrideProperties);
         return result;
+    }
+
+    @Override
+    public Map<String, Object> getDefaultProperties() {
+        return defaultProperties;
+    }
+
+    @Override
+    public Map<String, Object> getOverrideProperties() {
+        return overrideProperties;
     }
 }
