@@ -22,7 +22,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
@@ -32,8 +31,10 @@ import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.internal.tasks.scala.DefaultScalaPluginExtension;
 import org.gradle.api.model.ObjectFactory;
@@ -110,25 +111,23 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
         Usage incrementalAnalysisUsage = objectFactory.named(Usage.class, "incremental-analysis");
         Category incrementalAnalysisCategory = objectFactory.named(Category.class, "scala-analysis");
-        configureConfigurations(project, incrementalAnalysisCategory, incrementalAnalysisUsage, scalaPluginExtension);
+        configureConfigurations((ProjectInternal) project, incrementalAnalysisCategory, incrementalAnalysisUsage, scalaPluginExtension);
 
         configureCompileDefaults(project, scalaRuntime, (DefaultJavaPluginExtension) javaPluginExtension(project));
-        configureSourceSetDefaults(project, incrementalAnalysisCategory, incrementalAnalysisUsage);
+        configureSourceSetDefaults((ProjectInternal) project, incrementalAnalysisCategory, incrementalAnalysisUsage);
         configureScaladoc(project, scalaRuntime);
     }
 
-    private void configureConfigurations(final Project project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage, ScalaPluginExtension scalaPluginExtension) {
+    private void configureConfigurations(final ProjectInternal project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage, ScalaPluginExtension scalaPluginExtension) {
         DependencyHandler dependencyHandler = project.getDependencies();
 
-        ConfigurationInternal plugins = (ConfigurationInternal) project.getConfigurations().create(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME);
+        Configuration plugins = project.getConfigurations().resolvableBucket(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME);
         plugins.setTransitive(false);
-        plugins.setCanBeConsumed(false);
         jvmEcosystemUtilities.configureAsRuntimeClasspath(plugins);
 
-        Configuration zinc = project.getConfigurations().create(ZINC_CONFIGURATION_NAME);
+        Configuration zinc = project.getConfigurations().resolvableBucket(ZINC_CONFIGURATION_NAME);
         zinc.setVisible(false);
         zinc.setDescription("The Zinc incremental compiler to be used for this Scala project.");
-        zinc.setCanBeConsumed(false);
 
         zinc.getResolutionStrategy().eachDependency(rule -> {
             if (rule.getRequested().getGroup().equals("com.typesafe.zinc") && rule.getRequested().getName().equals("zinc")) {
@@ -157,11 +156,9 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             version.reject(Log4jBannedVersion.LOG4J2_CORE_VULNERABLE_VERSION_RANGE);
         })));
 
-        final Configuration incrementalAnalysisElements = project.getConfigurations().create("incrementalScalaAnalysisElements");
+        @SuppressWarnings("deprecation") final Configuration incrementalAnalysisElements = project.getConfigurations().createWithRole("incrementalScalaAnalysisElements", ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE);
         incrementalAnalysisElements.setVisible(false);
         incrementalAnalysisElements.setDescription("Incremental compilation analysis files");
-        incrementalAnalysisElements.setCanBeResolved(false);
-        incrementalAnalysisElements.setCanBeConsumed(true);
         incrementalAnalysisElements.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
         incrementalAnalysisElements.getAttributes().attribute(CATEGORY_ATTRIBUTE, incrementalAnalysisCategory);
 
@@ -173,7 +170,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void configureSourceSetDefaults(final Project project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage) {
+    private void configureSourceSetDefaults(final ProjectInternal project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage) {
         javaPluginExtension(project).getSourceSets().all(sourceSet -> {
 
             ScalaSourceDirectorySet scalaSource = getScalaSourceDirectorySet(sourceSet);
@@ -205,13 +202,11 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         return scalaSourceSet.getScala();
     }
 
-    private static Configuration createIncrementalAnalysisConfigurationFor(ConfigurationContainer configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
+    private static Configuration createIncrementalAnalysisConfigurationFor(RoleBasedConfigurationContainerInternal configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
         Configuration classpath = configurations.getByName(sourceSet.getImplementationConfigurationName());
-        Configuration incrementalAnalysis = configurations.create("incrementalScalaAnalysisFor" + sourceSet.getName());
+        @SuppressWarnings("deprecation") Configuration incrementalAnalysis = configurations.createWithRole("incrementalScalaAnalysisFor" + sourceSet.getName(), ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE);
         incrementalAnalysis.setVisible(false);
         incrementalAnalysis.setDescription("Incremental compilation analysis files for " + ((DefaultSourceSet) sourceSet).getDisplayName());
-        incrementalAnalysis.setCanBeResolved(true);
-        incrementalAnalysis.setCanBeConsumed(false);
         incrementalAnalysis.extendsFrom(classpath);
         incrementalAnalysis.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
         incrementalAnalysis.getAttributes().attribute(CATEGORY_ATTRIBUTE, incrementalAnalysisCategory);
