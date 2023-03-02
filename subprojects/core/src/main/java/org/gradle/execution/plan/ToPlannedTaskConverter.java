@@ -44,6 +44,11 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
         org.gradle.api.internal.project.taskfactory.TaskIdentity<?> delegate = taskNode.getTask().getTaskIdentity();
         return new TaskIdentity() {
             @Override
+            public NodeType getNodeType() {
+                return NodeType.TASK;
+            }
+
+            @Override
             public String getBuildPath() {
                 return delegate.getBuildPath();
             }
