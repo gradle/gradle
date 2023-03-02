@@ -621,6 +621,7 @@ All of them match the consumer attributes:
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':b:default', consumable was true and is now false. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
         fails ':a:checkDebug'
 
         then:
@@ -712,6 +713,7 @@ All of them match the consumer attributes:
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':b:default', consumable was true and is now false. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
         fails ':a:checkDebug'
 
         then:
