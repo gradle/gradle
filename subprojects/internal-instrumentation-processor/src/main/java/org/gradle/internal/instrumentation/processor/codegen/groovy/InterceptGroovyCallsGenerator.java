@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -50,6 +51,7 @@ import static org.gradle.internal.instrumentation.processor.codegen.SignatureUti
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.PARAMETER;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER;
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.RECEIVER_AS_CLASS;
+import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.VARARG;
 
 public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentationClassGenerator {
     @Override
@@ -180,23 +182,33 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             void visit(SignatureTree current, int paramIndex) {
                 CallInterceptionRequest leafInCurrent = current.getLeafOrNull();
                 if (leafInCurrent != null) {
-                    generateInvocation(leafInCurrent, paramIndex);
+                    generateInvocationWhenArgsMatched(leafInCurrent, paramIndex);
                 }
                 Map<ParameterMatchEntry, SignatureTree> children = current.getChildrenByMatchEntry();
                 if (!children.isEmpty()) {
                     boolean hasParamMatchers = children.keySet().stream().anyMatch(it -> it.kind == PARAMETER);
-                    if (hasParamMatchers) { // is not the receiver
+                    if (hasParamMatchers) { // is not the receiver or vararg
                         result.addStatement("Object arg$1L = invocation.getArgument($1L)", paramIndex);
                     }
-                    children.forEach((entry, child) -> generateChecksAndVisitSubtree(paramIndex, entry, child, paramIndex));
+                    // Visit non-vararg invocations first and varargs after:
+                    children.forEach((entry, child) -> {
+                        if (entry.kind != VARARG) {
+                            generateNormalCallChecksAndVisitSubtree(entry, child, paramIndex);
+                        }
+                    });
+                    children.forEach((entry, child) -> {
+                        if (entry.kind == VARARG) {
+                            generateVarargCheckAndInvocation(entry, child, paramIndex);
+                        }
+                    });
                 }
             }
 
-            private void generateInvocation(CallInterceptionRequest request, int argCount) {
+            private void generateInvocationWhenArgsMatched(CallInterceptionRequest request, int argCount) {
                 TypeName implementationOwner = TypeUtils.typeName(request.getImplementationInfo().getOwner());
                 result.beginControlFlow("if (invocation.getArgsCount() == $L)", argCount);
                 CodeBlock argsCode = prepareInvocationArgs(request);
-                emitInvocationCode(request, implementationOwner, argsCode);
+                emitInvocationCodeWithReturn(request, implementationOwner, argsCode);
                 result.endControlFlow();
             }
 
@@ -212,7 +224,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
                 ).flatMap(Function.identity()).collect(CodeBlock.joining(", "));
             }
 
-            private void emitInvocationCode(CallInterceptionRequest request, TypeName implementationOwner, CodeBlock argsCode) {
+            private void emitInvocationCodeWithReturn(CallInterceptionRequest request, TypeName implementationOwner, CodeBlock argsCode) {
                 String implementationName = request.getImplementationInfo().getName();
                 if (request.getInterceptedCallable().getKind() == CallableKindInfo.AFTER_CONSTRUCTOR) {
                     result.addStatement("$1T result = new $1T($2L)", TypeUtils.typeName(request.getInterceptedCallable().getOwner()), paramVariablesStack.stream().collect(CodeBlock.joining(", ")));
@@ -227,15 +239,44 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
                 }
             }
 
-            private void generateChecksAndVisitSubtree(int argCount, ParameterMatchEntry entry, SignatureTree child, int paramIndex) {
+            private void generateVarargCheckAndInvocation(ParameterMatchEntry entry, SignatureTree child, int paramIndex) {
+                TypeName entryParamType = TypeUtils.typeName(entry.type);
+
+                result.add("// Trying to match the vararg invocation\n");
+                CodeBlock varargVariable = CodeBlock.of("varargValues");
+                result.addStatement("$1T[] $2L = new $1T[invocation.getArgsCount() - $3L]", entryParamType, varargVariable, paramIndex);
+                CodeBlock varargMatched = CodeBlock.of("varargMatched");
+                result.addStatement("boolean $L = true", varargMatched);
+                result.beginControlFlow("for (int argIndex = $1L; argIndex < invocation.getArgsCount(); argIndex++)", paramIndex);
+
+                CodeBlock nextArg = CodeBlock.of("nextArg");
+                result.addStatement("Object $L = invocation.getArgument(argIndex)", nextArg);
+                result.beginControlFlow("if ($L instanceof $T)", nextArg, entryParamType);
+                result.addStatement("$1L[argIndex - $2L] = ($3T) $4L", varargVariable, paramIndex, entryParamType, nextArg);
+                result.nextControlFlow("else");
+                result.addStatement("$L = false", varargMatched);
+                result.addStatement("break");
+                result.endControlFlow();
+
+                result.endControlFlow();
+                result.beginControlFlow("if ($L)", varargMatched);
+                paramVariablesStack.push(varargVariable);
+                CallInterceptionRequest request = Objects.requireNonNull(child.getLeafOrNull());
+                emitInvocationCodeWithReturn(request, TypeUtils.typeName(request.getImplementationInfo().getOwner()), prepareInvocationArgs(request));
+                paramVariablesStack.pop();
+                result.endControlFlow();
+            }
+
+            private void generateNormalCallChecksAndVisitSubtree(ParameterMatchEntry entry, SignatureTree child, int paramIndex) {
                 CodeBlock argExpr = entry.kind == RECEIVER || entry.kind == RECEIVER_AS_CLASS
                     ? CodeBlock.of("receiver")
                     : CodeBlock.of("arg$L", paramIndex);
 
-                int childArgCount = argCount + 1;
+                int childArgCount = paramIndex + 1;
                 TypeName entryChildType = TypeUtils.typeName(entry.type);
                 CodeBlock matchExpr = entry.kind == RECEIVER_AS_CLASS ?
                     CodeBlock.of("$L.equals($T.class)", argExpr, entryChildType) :
+                    // Vararg fits here, too:
                     CodeBlock.of("$L instanceof $T", argExpr, entryChildType.box());
                 result.beginControlFlow("if ($L)", matchExpr);
                 boolean shouldPopParameter = false;

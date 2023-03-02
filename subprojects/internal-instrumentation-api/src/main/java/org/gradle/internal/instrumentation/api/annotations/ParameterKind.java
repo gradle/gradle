@@ -36,4 +36,9 @@ public class ParameterKind {
     @Target(ElementType.PARAMETER)
     public @interface KotlinDefaultMask {
     }
+
+    @Retention(RetentionPolicy.SOURCE)
+    @Target(ElementType.PARAMETER)
+    public @interface VarargParameter {
+    }
 }
