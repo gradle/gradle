@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.fixture
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.apache.commons.io.output.TeeOutputStream
-import org.gradle.api.GradleException
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
@@ -138,7 +137,7 @@ abstract class ToolingApiSpecification extends Specification {
 
     private validateKotlinCompatibility() {
         if (targetGradleDistribution && !targetGradleDistribution.supportsKotlinScript) {
-            throw new GradleException("The current Gradle target version ($targetGradleDistribution.version) does not support execution of Kotlin build scripts.")
+            throw new RuntimeException("The current Gradle target version ($targetGradleDistribution.version) does not support execution of Kotlin build scripts.")
         }
     }
 

@@ -179,6 +179,5 @@ public interface GradleDistribution {
     /**
      * Returns true if it as a Gradle version that supports Kotlin scripts
      */
-
     boolean isSupportsKotlinScript();
 }
