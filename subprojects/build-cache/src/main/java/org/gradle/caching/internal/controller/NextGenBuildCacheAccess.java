@@ -16,8 +16,8 @@
 
 package org.gradle.caching.internal.controller;
 
-import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.NextGenBuildCacheService;
 
 import java.io.Closeable;
 import java.io.InputStream;
@@ -33,6 +33,6 @@ public interface NextGenBuildCacheAccess extends Closeable {
     }
 
     interface StoreHandler<T> {
-        BuildCacheEntryWriter handle(T payload);
+        NextGenBuildCacheService.NextGenWriter handle(T payload);
     }
 }

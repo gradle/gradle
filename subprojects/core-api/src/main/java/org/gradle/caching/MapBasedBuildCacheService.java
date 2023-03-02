@@ -35,11 +35,6 @@ public class MapBasedBuildCacheService implements BuildCacheService {
     }
 
     @Override
-    public boolean contains(BuildCacheKey key) {
-        return delegate.containsKey(key.getHashCode());
-    }
-
-    @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
         final byte[] bytes = delegate.get(key.getHashCode());
         if (bytes == null) {

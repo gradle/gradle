@@ -19,10 +19,9 @@ package org.gradle.caching.local.internal;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.gradle.caching.BuildCacheEntryReader;
-import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.BuildCacheService;
+import org.gradle.caching.internal.NextGenBuildCacheService;
 import org.h2.Driver;
 
 import java.io.IOException;
@@ -34,7 +33,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class H2BuildCacheService implements BuildCacheService {
+public class H2BuildCacheService implements NextGenBuildCacheService {
 
     private final HikariDataSource dataSource;
 
@@ -94,7 +93,7 @@ public class H2BuildCacheService implements BuildCacheService {
     }
 
     @Override
-    public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+    public void store(BuildCacheKey key, NextGenWriter writer) throws BuildCacheException {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement("insert ignore into filestore.catalog(entry_key, entry_size, entry_content) values (?, ?, ?)")) {
                 try (InputStream input = writer.openStream()) {

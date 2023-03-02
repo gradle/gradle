@@ -24,7 +24,7 @@ import org.gradle.caching.BuildCacheService;
 
 import java.io.IOException;
 
-public class NoOpBuildCacheService implements BuildCacheService {
+public class NoOpBuildCacheService implements NextGenBuildCacheService {
     public static final BuildCacheService INSTANCE = new NoOpBuildCacheService();
 
     private NoOpBuildCacheService() {
@@ -41,7 +41,11 @@ public class NoOpBuildCacheService implements BuildCacheService {
     }
 
     @Override
-    public void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
+    public void store(BuildCacheKey key, BuildCacheEntryWriter legacyWriter) throws BuildCacheException {
+    }
+
+    @Override
+    public void store(BuildCacheKey key, NextGenWriter writer) throws BuildCacheException {
     }
 
     @Override
