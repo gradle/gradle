@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.configuration
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.agents.AgentStatus
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.process.internal.JvmOptions
@@ -36,6 +37,9 @@ class BuildProcessTest extends Specification {
 
     private def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     private def currentJvm = Stub(JavaInfo)
+    private def agentStatus = Stub(AgentStatus) {
+        isAgentInstrumentationEnabled() >> true
+    }
 
     def "current and requested build vm match if vm arguments match"() {
         given:
@@ -45,7 +49,7 @@ class BuildProcessTest extends Specification {
         currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
 
         when:
-        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+        def buildProcess = createBuildProcess(currentJvmOptions)
 
         then:
         buildProcess.configureForBuild(buildParameters(["-Xms16m", "-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError"]))
@@ -59,7 +63,7 @@ class BuildProcessTest extends Specification {
         currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
 
         when:
-        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+        def buildProcess = createBuildProcess(currentJvmOptions)
 
         then:
         !buildProcess.configureForBuild(buildParameters(["-Xms16m", "-Xmx256m", "-XX:+HeapDumpOnOutOfMemoryError"]))
@@ -67,7 +71,7 @@ class BuildProcessTest extends Specification {
 
     def "current and requested build vm match if java home matches"() {
         when:
-        def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory))
+        def buildProcess = createBuildProcess()
 
         then:
         buildProcess.configureForBuild(buildParameters(currentJvm))
@@ -81,7 +85,7 @@ class BuildProcessTest extends Specification {
         currentJvmOptions.setAllJvmArgs(["-Dfile.encoding=$notDefaultEncoding", "-Xmx100m", "-XX:SomethingElse"])
 
         when:
-        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+        def buildProcess = createBuildProcess(currentJvmOptions)
 
         then:
         !buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=$notDefaultEncoding"])) //only properties match
@@ -100,7 +104,7 @@ class BuildProcessTest extends Specification {
         def emptyRequest = buildParameters([])
 
         when:
-        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+        def buildProcess = createBuildProcess(currentJvmOptions)
 
         then:
         buildProcess.configureForBuild(emptyRequest)
@@ -113,7 +117,7 @@ class BuildProcessTest extends Specification {
         def defaultRequest = buildParameters(null as Iterable)
 
         when:
-        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+        def buildProcess = createBuildProcess(currentJvmOptions)
 
         then:
         !buildProcess.configureForBuild(defaultRequest)
@@ -126,7 +130,7 @@ class BuildProcessTest extends Specification {
         def requestWithDefaults = buildParameters((Iterable) null)
 
         when:
-        def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory))
+        def buildProcess = createBuildProcess()
 
         then:
         requestWithDefaults.getEffectiveJvmArgs().containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
@@ -142,7 +146,7 @@ class BuildProcessTest extends Specification {
         def requestWithMutableArgument = buildParameters(["-Dfoo=bar"])
 
         when:
-        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+        def buildProcess = createBuildProcess(currentJvmOptions)
 
         then:
         buildProcess.configureForBuild(requestWithMutableArgument)
@@ -154,7 +158,7 @@ class BuildProcessTest extends Specification {
         currentJvmOptions.setAllJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"])
 
         when:
-        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+        def buildProcess = createBuildProcess(currentJvmOptions)
 
         then:
         !buildProcess.configureForBuild(buildParameters(["-Xms10m", "-Dfoo=bar", "-Dbaz"]))
@@ -171,7 +175,7 @@ class BuildProcessTest extends Specification {
         debugDisabled.setDebug(false)
 
         when:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory))
+        BuildProcess buildProcess = createBuildProcess()
 
         then:
         !buildProcess.configureForBuild(debugEnabled)
@@ -186,7 +190,7 @@ class BuildProcessTest extends Specification {
         currentJvmOptions.setAllJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"])
 
         when:
-        def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
+        def buildProcess = createBuildProcess(currentJvmOptions)
 
         then:
         buildProcess.configureForBuild(buildParameters(["-Dfile.encoding=${Charset.defaultCharset().name()}"]))
@@ -202,11 +206,11 @@ class BuildProcessTest extends Specification {
         def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
 
         when:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory))
+        BuildProcess buildProcess = createBuildProcess()
 
         then:
-        buildProcess.configureForBuild(buildParameters([], [ "file.encoding" : Charset.defaultCharset().name() ]))
-        !buildProcess.configureForBuild(buildParameters([], [ "file.encoding" : notDefaultEncoding.toString() ]))
+        buildProcess.configureForBuild(buildParameters([], ["file.encoding": Charset.defaultCharset().name()]))
+        !buildProcess.configureForBuild(buildParameters([], ["file.encoding": notDefaultEncoding.toString()]))
     }
 
     def "sets all mutable system properties before running build"() {
@@ -214,7 +218,7 @@ class BuildProcessTest extends Specification {
         def parameters = buildParameters(["-Dfoo=bar", "-Dbaz"])
 
         then:
-        new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory)).configureForBuild(parameters)
+        createBuildProcess().configureForBuild(parameters)
 
         and:
         System.getProperty('foo') == 'bar'
@@ -226,7 +230,7 @@ class BuildProcessTest extends Specification {
         def emptyBuildParameters = buildParameters([])
 
         when:
-        new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory)).configureForBuild(emptyBuildParameters)
+        createBuildProcess().configureForBuild(emptyBuildParameters)
 
         then:
         !emptyBuildParameters.getEffectiveJvmArgs().containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
@@ -237,10 +241,45 @@ class BuildProcessTest extends Specification {
         def parametersWithDefaults = buildParameters(DaemonParameters.DEFAULT_JVM_ARGS)
 
         when:
-        def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory))
+        def buildProcess = createBuildProcess()
 
         then:
         !buildProcess.configureForBuild(parametersWithDefaults)
+    }
+
+    def "instrumentation agent status is considered during matching"() {
+        given:
+        def desiredParameters = buildParameters([])
+        desiredParameters.setApplyInstrumentationAgent(desiredInstrumentationStatus)
+
+        when:
+        def currentAgentStatus = Stub(AgentStatus) {
+            isAgentInstrumentationEnabled() >> agentApplied
+        }
+        BuildProcess buildProcess = createBuildProcess(currentAgentStatus)
+
+        then:
+        buildProcess.configureForBuild(desiredParameters) == expectProcessToBeUsable
+
+        where:
+        desiredInstrumentationStatus | agentApplied || expectProcessToBeUsable
+        // process without the agent applied can be used if no agent instrumentation is requested
+        false                        | false        || true
+        // process with the agent applied can be used if no agent instrumentation is requested.
+        // We expect the code to avoid using the agent in this case
+        false                        | true         || true
+        // process without the agent applied cannot be used if the agent instrumentation is requested
+        true                         | false        || false
+        // process with the agent applied can be used if the agent instrumentation is requested
+        true                         | true         || true
+    }
+
+    private BuildProcess createBuildProcess(AgentStatus agentStatus) {
+        return createBuildProcess(new JvmOptions(fileCollectionFactory), agentStatus)
+    }
+
+    private BuildProcess createBuildProcess(JvmOptions jvmOptions = new JvmOptions(fileCollectionFactory), AgentStatus agentStatus = this.agentStatus) {
+        return new BuildProcess(currentJvm, jvmOptions, agentStatus)
     }
 
     private DaemonParameters buildParameters(Iterable<String> jvmArgs) {

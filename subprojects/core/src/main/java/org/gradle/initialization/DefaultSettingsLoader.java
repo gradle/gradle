@@ -28,6 +28,7 @@ import org.gradle.initialization.buildsrc.BuildSrcDetector;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -76,7 +77,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
     private boolean useEmptySettings(ProjectSpec spec, SettingsInternal loadedSettings, StartParameter startParameter) {
         // Never use empty settings when the settings were explicitly set
         @SuppressWarnings("deprecation")
-        File customSettingsFile = startParameter.getSettingsFile();
+        File customSettingsFile = DeprecationLogger.whileDisabled(startParameter::getSettingsFile);
         if (customSettingsFile != null) {
             return false;
         }
@@ -106,7 +107,9 @@ public class DefaultSettingsLoader implements SettingsLoader {
     @SuppressWarnings("deprecation") // StartParameter.setSettingsFile() and StartParameter.getBuildFile()
     private SettingsState createEmptySettings(GradleInternal gradle, StartParameter startParameter, ClassLoaderScope classLoaderScope) {
         StartParameterInternal noSearchParameter = (StartParameterInternal) startParameter.newInstance();
-        noSearchParameter.setSettingsFile(null);
+        DeprecationLogger.whileDisabled(() ->
+            noSearchParameter.setSettingsFile(null)
+        );
         noSearchParameter.useEmptySettings();
         noSearchParameter.doNotSearchUpwards();
         BuildLayout layout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(noSearchParameter));
@@ -114,10 +117,10 @@ public class DefaultSettingsLoader implements SettingsLoader {
 
         // Set explicit build file, if required
         @SuppressWarnings("deprecation")
-        File customBuildFile = noSearchParameter.getBuildFile();
+        File customBuildFile = DeprecationLogger.whileDisabled(noSearchParameter::getBuildFile);
         if (customBuildFile != null) {
             ProjectDescriptor rootProject = state.getSettings().getRootProject();
-            rootProject.setBuildFileName(noSearchParameter.getBuildFile().getName());
+            rootProject.setBuildFileName(customBuildFile.getName());
         }
         return state;
     }

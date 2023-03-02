@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.tooling
 
+import org.gradle.api.logging.LogLevel
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -37,6 +38,10 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
+import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.LOG_LEVEL_TEST_SCRIPT
+import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.runLogScript
+import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.validateLogs
+
 class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
@@ -52,8 +57,14 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         settingsFile.touch()
     }
 
+    void setupLoggingTest() {
+        propertiesFile << "org.gradle.logging.level=quiet"
+        buildFile << LOG_LEVEL_TEST_SCRIPT
+    }
+
+
     def "tooling api uses to the current version of gradle when none has been specified"() {
-        projectDir.file('build.gradle') << "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
+        buildFile << "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
 
         when:
         GradleProject model = toolingApi.withConnection { connection -> connection.getModel(GradleProject.class) }
@@ -63,7 +74,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "tooling api output reports 'CONFIGURE SUCCESSFUL' for model requests"() {
-        projectDir.file('build.gradle') << "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
+        buildFile << "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
 
         when:
         def stdOut = new ByteArrayOutputStream()
@@ -98,11 +109,32 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         stdOut.toString().contains("CONFIGURE SUCCESSFUL")
     }
 
+    def "tooling api uses log level set in arguments over gradle.properties"() {
+        given:
+        setupLoggingTest()
+
+        when:
+        def stdOut = runLogScript(toolingApi, arguments)
+        then:
+        validateLogs(stdOut, expectedLevel)
+
+        where:
+        expectedLevel  | arguments
+        LogLevel.QUIET | []
+        LogLevel.INFO  | ["--info"]
+        LogLevel.INFO  | ["-Dorg.gradle.logging.level=info"]
+    }
+
     def "tooling api uses the wrapper properties to determine which version to use"() {
-        projectDir.file('build.gradle').text = """
-wrapper { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
-task check { doLast { assert gradle.gradleVersion == '${otherVersion.version.version}' } }
-"""
+        buildFile << """
+        wrapper {
+            distributionUrl = '${otherVersion.binDistribution.toURI()}'
+        }
+        task check {
+            doLast {
+                assert gradle.gradleVersion == '${otherVersion.version.version}'
+            }
+        }"""
         executer.withTasks('wrapper').run()
 
         when:
@@ -116,13 +148,13 @@ task check { doLast { assert gradle.gradleVersion == '${otherVersion.version.ver
     }
 
     def "tooling api searches up from the project directory to find the wrapper properties"() {
-        projectDir.file('settings.gradle') << "include 'child'"
-        projectDir.file('build.gradle') << """
-wrapper { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
-allprojects {
-    task check { doLast { assert gradle.gradleVersion == '${otherVersion.version.version}' } }
-}
-"""
+        settingsFile << "include 'child'"
+        buildFile << """
+        wrapper { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
+        allprojects {
+            task check { doLast { assert gradle.gradleVersion == '${otherVersion.version.version}' } }
+        }
+        """
         projectDir.file('child').createDir()
         executer.withTasks('wrapper').run()
 
@@ -139,7 +171,7 @@ allprojects {
     }
 
     def "can specify a gradle installation to use"() {
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
+        buildFile << "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
         toolingApi.withConnector { connector ->
@@ -152,7 +184,7 @@ allprojects {
     }
 
     def "can specify a gradle distribution to use"() {
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
+        buildFile << "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
         toolingApi.withConnector { connector ->
@@ -165,7 +197,7 @@ allprojects {
     }
 
     def "can specify a gradle version to use"() {
-        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${otherVersion.version.version}'"
+        buildFile << "assert gradle.gradleVersion == '${otherVersion.version.version}'"
 
         when:
         toolingApi.withConnector { GradleConnector connector ->
@@ -180,7 +212,6 @@ allprojects {
     @Issue("GRADLE-2419")
     def "tooling API does not hold JVM open"() {
         given:
-        def buildFile = projectDir.file("build.gradle")
         def startTimeoutMs = 90000
         def stateChangeTimeoutMs = 15000
         def stopTimeoutMs = 10000

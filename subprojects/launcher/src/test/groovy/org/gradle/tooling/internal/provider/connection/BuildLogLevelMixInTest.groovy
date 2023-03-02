@@ -16,55 +16,37 @@
 
 package org.gradle.tooling.internal.provider.connection
 
+
 import org.gradle.api.logging.LogLevel
 import spock.lang.Specification
 
 class BuildLogLevelMixInTest extends Specification {
 
     final parameters = Mock(ProviderOperationParameters)
-    final mixin = new BuildLogLevelMixIn(parameters)
 
-    def "knows build log level for mixed set of arguments"() {
-        when:
-        parameters.getArguments() >> args
-        parameters.getVerboseLogging() >> false
-
-        then:
-        mixin.getBuildLogLevel() == logLevel
-
-        where:
-        args                     | logLevel
-        ['-i']                   | LogLevel.INFO
-        ['-q']                   | LogLevel.QUIET
-        ['-w']                   | LogLevel.WARN
-        ['foo', '--info', 'bar'] | LogLevel.INFO
-        ['-i', 'foo', 'bar']     | LogLevel.INFO
-        ['foo', 'bar', '-i']     | LogLevel.INFO
-    }
-
-    def "verbose flag is only used when no log level arguments"() {
+    def "knows build log level for mixed set of arguments (or not arguments)"() {
         when:
         parameters.getArguments() >> args
         parameters.getVerboseLogging() >> verbose
+        def mixin = new BuildLogLevelMixIn(parameters)
 
         then:
         mixin.getBuildLogLevel() == logLevel
 
         where:
-        args                    | verbose | logLevel
-        ['-q']                  | false   | LogLevel.QUIET
-        ['-q']                  | true    | LogLevel.QUIET
-        ['noLogLevelArguments'] | true    | LogLevel.DEBUG
-        null                    | false   | LogLevel.LIFECYCLE
-        null                    | true    | LogLevel.DEBUG
-    }
+        args                                | verbose | logLevel
+        ['-i']                              | false   | LogLevel.INFO
+        ['no log level arguments']          | false   | null
+        null                                | false   | null
+        ['-q']                              | false   | LogLevel.QUIET
+        ['-w']                              | false   | LogLevel.WARN
+        ['foo', '--info', 'bar']            | false   | LogLevel.INFO
+        ['-i', 'foo', 'bar']                | false   | LogLevel.INFO
+        ['foo', 'bar', '-i']                | false   | LogLevel.INFO
+        ['-Dorg.gradle.logging.level=info'] | false   | LogLevel.INFO
+        ['-q']                              | true    | LogLevel.QUIET
+        ['no log level arguments']          | true    | LogLevel.DEBUG
+        null                                | true    | LogLevel.DEBUG
 
-    def "default log level is lifecycle"() {
-        when:
-        parameters.getArguments() >> ['no log level arguments']
-        parameters.getVerboseLogging() >> false
-
-        then:
-        mixin.getBuildLogLevel() == LogLevel.LIFECYCLE
     }
 }

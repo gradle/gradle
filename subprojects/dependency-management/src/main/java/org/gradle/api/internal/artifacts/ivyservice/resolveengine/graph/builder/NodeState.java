@@ -49,7 +49,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.external.model.ShadowedCapability;
+import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
@@ -634,11 +634,14 @@ public class NodeState implements DependencyGraphNode {
 
         DependencySubstitutionInternal details = substitutionResult.getResult();
         if (details != null && details.isUpdated()) {
-            ArtifactSelectionDetailsInternal artifactSelectionDetails = details.getArtifactSelectionDetails();
-            if (artifactSelectionDetails.isUpdated()) {
-                return dependencyState.withTargetAndArtifacts(details.getTarget(), artifactSelectionDetails.getTargetSelectors(), details.getRuleDescriptors());
-            }
-            return dependencyState.withTarget(details.getTarget(), details.getRuleDescriptors());
+            // This caching works because our substitutionResult are cached themselves
+            return dependencyState.withSubstitution(substitutionResult, result -> {
+                ArtifactSelectionDetailsInternal artifactSelectionDetails = details.getArtifactSelectionDetails();
+                if (artifactSelectionDetails.isUpdated()) {
+                    return dependencyState.withTargetAndArtifacts(details.getTarget(), artifactSelectionDetails.getTargetSelectors(), details.getRuleDescriptors());
+                }
+                return dependencyState.withTarget(details.getTarget(), details.getRuleDescriptors());
+            });
         }
         return dependencyState;
     }

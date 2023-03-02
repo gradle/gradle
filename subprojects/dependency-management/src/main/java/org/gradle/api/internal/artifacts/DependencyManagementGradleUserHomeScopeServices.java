@@ -22,16 +22,17 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCaches;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceServices;
+import org.gradle.api.internal.artifacts.transform.ToPlannedTransformConverter;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
-import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
+import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.internal.Try;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
@@ -41,6 +42,10 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
 public class DependencyManagementGradleUserHomeScopeServices {
+
+    ToPlannedNodeConverter createToPlannedTransformConverter() {
+        return new ToPlannedTransformConverter();
+    }
 
     DefaultArtifactCaches.WritableArtifactCacheLockingParameters createWritableArtifactCacheLockingParameters(FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions) {
         return new DefaultArtifactCaches.WritableArtifactCacheLockingParameters() {
@@ -62,10 +67,9 @@ public class DependencyManagementGradleUserHomeScopeServices {
         DefaultArtifactCaches.WritableArtifactCacheLockingParameters parameters,
         ListenerManager listenerManager,
         DocumentationRegistry documentationRegistry,
-        CleanupActionDecorator cleanupActionDecorator,
         CacheConfigurationsInternal cacheConfigurations
     ) {
-        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(cacheBuilderFactory, unscopedCacheBuilderFactory, parameters, documentationRegistry, cleanupActionDecorator, cacheConfigurations);
+        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(cacheBuilderFactory, unscopedCacheBuilderFactory, parameters, documentationRegistry, cacheConfigurations);
         listenerManager.addListener(new BuildAdapter() {
             @SuppressWarnings("deprecation")
             @Override
@@ -102,7 +106,6 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
-        CleanupActionDecorator cleanupActionDecorator,
         CacheConfigurationsInternal cacheConfigurations
     ) {
         return new ImmutableTransformationWorkspaceServices(
@@ -113,7 +116,6 @@ public class DependencyManagementGradleUserHomeScopeServices {
             fileAccessTimeJournal,
             executionHistoryStore,
             crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful),
-            cleanupActionDecorator,
             cacheConfigurations
         );
     }

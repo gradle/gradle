@@ -78,6 +78,7 @@ class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorInt
             new Thread({
                 while (true) {
                     sleep 1000
+                    println "checking..."
                     if (new File("${TextUtil.normaliseFileSeparators(startFile.absolutePath)}").exists()) {
                         println "beep..."
                     }

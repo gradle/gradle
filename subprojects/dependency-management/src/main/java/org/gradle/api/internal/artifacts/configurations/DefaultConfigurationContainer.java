@@ -50,8 +50,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration>
-    implements RoleBasedConfigurationContainerInternal, ConfigurationsProvider {
+public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration> implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
 
     @SuppressWarnings("deprecation")
@@ -86,6 +85,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         };
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(this);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
+        this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.discardAll());
+        this.whenObjectRemoved(x -> rootComponentMetadataBuilder.discardAll());
     }
 
     @Override
@@ -159,7 +160,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockUsage, Action<? super ConfigurationInternal> configureAction) {
+    public Configuration createWithRole(String name, ConfigurationRole role, boolean lockUsage, Action<? super Configuration> configureAction) {
         assertMutable("createWithRole(String, ConfigurationRole, boolean, Action)");
         assertCanAdd(name);
         ConfigurationInternal object = doCreate(name, role, lockUsage);

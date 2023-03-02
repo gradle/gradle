@@ -35,7 +35,7 @@ import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
-import org.gradle.internal.agents.AgentControl
+import org.gradle.internal.agents.AgentStatus
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
@@ -82,7 +82,8 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
     private val scriptFileResolverListeners: ScriptFileResolverListeners,
-    private val remoteScriptUpToDateChecker: RemoteScriptUpToDateChecker
+    private val remoteScriptUpToDateChecker: RemoteScriptUpToDateChecker,
+    private val agentStatus: AgentStatus,
 ) : Stoppable {
 
     interface Host {
@@ -297,7 +298,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             get() = modelParameters.isIntermediateModelCache
 
         override val instrumentationAgentUsed: Boolean
-            get() = AgentControl.isInstrumentationAgentApplied()
+            get() = agentStatus.isAgentInstrumentationEnabled
 
         override fun hashCodeOf(file: File) =
             fileSystemAccess.read(file.absolutePath).hash
@@ -342,7 +343,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             get() = modelParameters.isInvalidateCoupledProjects
 
         override val instrumentationAgentUsed: Boolean
-            get() = AgentControl.isInstrumentationAgentApplied()
+            get() = agentStatus.isAgentInstrumentationEnabled
 
         override fun gradleProperty(propertyName: String): String? =
             gradleProperties.find(propertyName)?.uncheckedCast()

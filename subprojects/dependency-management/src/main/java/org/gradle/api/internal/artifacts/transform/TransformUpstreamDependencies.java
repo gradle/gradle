@@ -17,10 +17,17 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.Try;
 
+import javax.annotation.Nullable;
+
 public interface TransformUpstreamDependencies extends TaskDependencyContainer {
+
+    @Nullable
+    ConfigurationIdentity getConfigurationIdentity();
+
     /**
      * Returns a collection containing the future artifacts for the given transformation step.
      */

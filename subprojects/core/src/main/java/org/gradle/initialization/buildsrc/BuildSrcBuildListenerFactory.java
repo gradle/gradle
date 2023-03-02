@@ -80,8 +80,7 @@ public class BuildSrcBuildListenerFactory {
         @Override
         public void applyTasksTo(Context context, ExecutionPlan plan) {
             rootProjectState.applyToMutableState(rootProject -> {
-                classpathConfiguration = rootProject.getConfigurations().create("buildScriptClasspath");
-                classpathConfiguration.setCanBeConsumed(false);
+                classpathConfiguration = rootProject.getConfigurations().resolvableBucket("buildScriptClasspath");
                 resolver.prepareClassPath(classpathConfiguration, rootProject.getDependencies());
                 classpathConfiguration.getDependencies().add(rootProject.getDependencies().create(rootProject));
                 plan.addEntryTasks(TaskDependencyUtil.getDependenciesForInternalUse(classpathConfiguration.getBuildDependencies(), null));

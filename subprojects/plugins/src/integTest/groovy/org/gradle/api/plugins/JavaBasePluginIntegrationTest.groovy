@@ -118,4 +118,24 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDeprecationWarning("consistentResolution(Action) was called without the presence of the java component. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Apply a JVM component plugin such as: java-library, application, groovy, or scala Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#java_extension_without_java_component")
         succeeds("help")
     }
+
+    def "source set output classes dirs are instances of ConfigurableFileCollection"() {
+        given:
+        buildFile << """
+            plugins {
+                id("java-base")
+            }
+
+            sourceSets {
+                sources
+            }
+
+            task verify {
+                assert sourceSets.sources.output.classesDirs instanceof ConfigurableFileCollection
+            }
+        """
+
+        expect:
+        succeeds "verify"
+    }
 }

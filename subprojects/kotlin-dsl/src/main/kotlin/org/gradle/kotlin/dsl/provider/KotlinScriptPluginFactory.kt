@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.provider
 
+import org.gradle.StartParameter
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
@@ -23,6 +24,7 @@ import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.deprecation.DeprecationLogger
 
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.execution.defaultEvalOptions
@@ -34,7 +36,8 @@ import javax.inject.Inject
 
 @Suppress("unused") // The name of this class is hardcoded in Gradle
 class KotlinScriptPluginFactory @Inject internal constructor(
-    private val kotlinScriptEvaluator: KotlinScriptEvaluator
+    private val kotlinScriptEvaluator: KotlinScriptEvaluator,
+    private val startParameter: StartParameter
 ) : ScriptPluginFactory {
 
     override fun create(
@@ -43,10 +46,12 @@ class KotlinScriptPluginFactory @Inject internal constructor(
         targetScope: ClassLoaderScope,
         baseScope: ClassLoaderScope,
         topLevelScript: Boolean
-    ): ScriptPlugin =
+    ): ScriptPlugin {
+        if (startParameter.isConfigureOnDemand) {
+            warnAboutConfigurationOnDemand()
+        }
 
-        KotlinScriptPlugin(scriptSource) { target ->
-
+        return KotlinScriptPlugin(scriptSource) { target ->
             kotlinScriptEvaluator
                 .evaluate(
                     target,
@@ -58,11 +63,20 @@ class KotlinScriptPluginFactory @Inject internal constructor(
                     kotlinScriptOptions()
                 )
         }
+    }
 
     private
     fun kotlinScriptOptions(): EnumSet<EvalOption> =
         if (inLenientMode()) lenientModeScriptOptions
         else defaultEvalOptions
+
+    private
+    fun warnAboutConfigurationOnDemand() {
+        DeprecationLogger.deprecateBehaviour("Using the configuration on demand feature with the Kotlin DSL.")
+            .willBecomeAnErrorInGradle9()
+            .withUserManual("kotlin_dsl", "kotdsl:limitations")
+            .nagUser()
+    }
 }
 
 

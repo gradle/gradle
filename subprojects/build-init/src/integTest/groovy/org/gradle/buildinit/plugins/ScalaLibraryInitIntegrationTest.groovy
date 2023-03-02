@@ -87,6 +87,23 @@ class ScalaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationS
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
+        when:
+        run('init', '--type', 'scala-library', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        gradlePropertiesGenerated()
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.lib.LibrarySuite", "someLibraryMethod is always true")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     def "source generation is skipped when scala sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/scala/org/acme/SampleMain.scala") << """
