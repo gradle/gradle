@@ -33,7 +33,6 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -109,16 +108,6 @@ public class TestNGTestFramework implements TestFramework {
     @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
         return workerProcessBuilder -> workerProcessBuilder.sharedPackages("org.testng");
-    }
-
-    @Override
-    public List<String> getTestWorkerApplicationClasses() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public List<String> getTestWorkerApplicationModules() {
-        return Collections.emptyList();
     }
 
     @Override
