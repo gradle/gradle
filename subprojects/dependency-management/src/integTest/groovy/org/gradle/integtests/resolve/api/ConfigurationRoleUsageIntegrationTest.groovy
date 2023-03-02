@@ -19,8 +19,9 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 
-class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
+class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
     // region Roleless (Implicit LEGACY Role) Configurations
     def "default usage for roleless configuration is to allow anything"() {
         given:
@@ -165,9 +166,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':buildSrc:implementation', consumable was false and is now true. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':buildSrc:implementation', resolvable was false and is now true. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':buildSrc:implementation', declarable against was true and is now false. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        expectConsumableChanging(':buildSrc:implementation', true)
+        expectResolvableChanging(':buildSrc:implementation', true)
+        expectDeclarableAgainstChanging(':buildSrc:implementation', false)
         succeeds 'myTask'
     }
 
@@ -207,12 +208,12 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':projectA:implementation', consumable was false and is now true. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':projectA:implementation', resolvable was false and is now true. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':projectA:implementation', declarable against was true and is now false. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':projectB:implementation', consumable was false and is now true. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':projectB:implementation', resolvable was false and is now true. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
-        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':projectB:implementation', declarable against was true and is now false. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        expectConsumableChanging(':projectA:implementation', true)
+        expectResolvableChanging(':projectA:implementation', true)
+        expectDeclarableAgainstChanging(':projectA:implementation', false)
+        expectConsumableChanging(':projectB:implementation', true)
+        expectResolvableChanging(':projectB:implementation', true)
+        expectDeclarableAgainstChanging(':projectB:implementation', false)
         succeeds 'help'
     }
     // endregion Roleless (Implicit LEGACY Role) Configurations
@@ -523,7 +524,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
 
         expect: "the build succeeds and a deprecation warning is logged if the configuration is not allowed to change"
         if (!allowed) {
-            executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':$configuration', resolvable was false and is now true. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+            expectResolvableChanging(":$configuration", true)
         }
         succeeds 'help'
 
@@ -598,7 +599,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':detachedConfiguration1', resolvable was true and is now false. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        expectResolvableChanging(':detachedConfiguration1', false)
         run "help"
     }
     // endregion Warnings

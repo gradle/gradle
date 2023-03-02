@@ -18,11 +18,12 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 @FluidDependenciesResolveTest
-abstract class AbstractConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
 
     abstract String getTypeDefs()
 
@@ -621,7 +622,7 @@ All of them match the consumer attributes:
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':b:default', consumable was true and is now false. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        expectChangingUsage(':b:default')
         fails ':a:checkDebug'
 
         then:
@@ -713,7 +714,7 @@ All of them match the consumer attributes:
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':b:default', consumable was true and is now false. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        expectChangingUsage(':b:default')
         fails ':a:checkDebug'
 
         then:
