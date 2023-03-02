@@ -98,34 +98,6 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     // This behavior will be removed in Gradle 9.0
     @Deprecated
-    def "detached configurations may have project dependency on self"() {
-        given:
-        settingsFile << """
-            rootProject.name = 'test'
-        """
-
-        buildFile << """
-            plugins {
-                id 'java-library'
-            }
-            
-            def detached = project.configurations.detachedConfiguration()
-            detached.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-            detached.dependencies.add(project.dependencies.create(project))
-           
-            task checkDependencies {
-                doLast {
-                    assert detached.resolvedConfiguration.getFirstLevelModuleDependencies().moduleName.contains('test')
-                }
-            }
-        """
-
-        expect:
-        run "checkDependencies"
-    }
-
-    // This behavior will be removed in Gradle 9.0
-    @Deprecated
     def "detached configurations can contain artifacts and resolve them during a self-dependency scenario"() {
         given:
         settingsFile << """
