@@ -18,11 +18,10 @@ package org.gradle.configurationcache
 
 
 import org.gradle.configurationcache.fixtures.SystemPropertiesCompositeBuildFixture
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
-import static org.gradle.initialization.IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX
+import static org.gradle.initialization.GradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
+import static org.gradle.initialization.GradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX
 
 class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -152,7 +151,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19793")
-    @ToBeImplemented("Fails with 'GradleProperties has not been loaded yet.' accessing gradle properties on a warm cache")
     def "gradle properties must be accessible from task in included build"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
