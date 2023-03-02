@@ -166,6 +166,12 @@ import static org.gradle.api.internal.artifacts.configurations.ConfigurationInte
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
+/**
+ * The default {@link Configuration} implementation.
+ * <p>
+ * After initialization, when allowed usages are changed warnings will be emitted, except for the special cases
+ * noted in {@link #canChangeUsageWithoutWarning()}.  Initialization is complete when the {@link #roleAtCreation} field is set.
+ */
 @SuppressWarnings("rawtypes")
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConfiguration.class);
@@ -237,7 +243,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean declarationDeprecated;
     private boolean usageCanBeMutated = true;
     private final ConfigurationRole roleAtCreation;
-    private boolean warnOnChangingUsage = false; // TODO: This should always be true in Gradle 8.1, and can be removed
 
     private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
@@ -345,8 +350,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.path = domainObjectContext.projectPath(name);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
 
-        this.roleAtCreation = roleAtCreation;
-
         this.canBeConsumed = roleAtCreation.isConsumable();
         this.canBeResolved = roleAtCreation.isResolvable();
         this.canBeDeclaredAgainst = roleAtCreation.isDeclarableAgainst();
@@ -363,9 +366,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (roleAtCreation.isDeclarationAgainstDeprecated()) {
             deprecateForDeclarationAgainst();
         }
+
         if (lockUsage) {
             preventUsageMutation();
         }
+
+        // Until the role at creation is set, changing usage won't trigger warnings
+        this.roleAtCreation = roleAtCreation;
     }
 
     private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -1708,11 +1715,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Optional.of(new DefaultLenientConfiguration.ArtifactResolveException(type, getIdentityPath().toString(), getDisplayName(), failures));
     }
 
-    @VisibleForTesting
-    public void setWarnOnChangingUsage(boolean warnOnChangingUsage) {
-        this.warnOnChangingUsage = warnOnChangingUsage;
-    }
-
     private void assertIsResolvable() {
         if (!canBeResolved) {
             throw new IllegalStateException("Resolving dependency configuration '" + name + "' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends '" + name + "' should be resolved.");
@@ -1786,17 +1788,40 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void logChangingUsage(String usage, boolean allowed) {
-        String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
-        if (warnOnChangingUsage) {
+    private void warnOnChangingUsage(String usage, boolean allowed) {
+        if (!canChangeUsageWithoutWarning()) {
+            String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
             DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), describeChangingUsage(usage, allowed)))
                     .withAdvice("Usage should be fixed upon creation.")
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "configurations_allowed_usage")
                     .nagUser();
-        } else if (LOGGER.isInfoEnabled()) {
-            LOGGER.info(String.format(msgTemplate, getDisplayName(), describeChangingUsage(usage, allowed)));
         }
+    }
+
+    /**
+     * This is a temporary method to allow us to avoid warning on changing usage for {@link ConfigurationRoles#LEGACY} roles,
+     * and for the {@code apiElements} and {@code runtimeElements} configurations.  This is temporary as the eventual goal
+     * is the usage be fixed upon creation.
+     * <p>
+     * The legacy role is a special case, and should never allow for changing usage.  Detached configurations are another special case,
+     * and should always warn on changing usage, even if they are in the legacy role.
+     * <p>
+     * The configurations named here are changed by the Kotlin plugin, and we don't want to produce a large number of deprecation warnings
+     * that cannot be avoided for this.  This method is temporary, so the duplication of the configuration names defined in
+     * {@link JavaPlatformPlugin} (which are not available to be referenced directly from here) is unfortunately, but not a showstopper -
+     * this method is temporary.
+     * <p>
+     * Finally, while {#roleAtCreation} is {@code null}, we are still initializing, so don't warn then.
+     */
+    @SuppressWarnings({"JavadocReference", "deprecation"})
+    private boolean canChangeUsageWithoutWarning() {
+        return !isDetachedConfiguration()
+                && (roleAtCreation == null || roleAtCreation == ConfigurationRoles.LEGACY || name.equals("apiElements") || name .equals("runtimeElements"));
+    }
+
+    private boolean isDetachedConfiguration() {
+        return this.configurationsProvider instanceof DetachedConfigurationsProvider;
     }
 
     private String describeChangingUsage(String usage, boolean allowed) {
@@ -1828,7 +1853,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (canBeConsumed != allowed) {
             validateMutation(MutationType.USAGE);
             canBeConsumed = allowed;
-            logChangingUsage("consumable", allowed);
+            warnOnChangingUsage("consumable", allowed);
         }
     }
 
@@ -1842,7 +1867,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (canBeResolved != allowed) {
             validateMutation(MutationType.USAGE);
             canBeResolved = allowed;
-            logChangingUsage("resolvable", allowed);
+            warnOnChangingUsage("resolvable", allowed);
         }
     }
 
@@ -1856,7 +1881,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (canBeDeclaredAgainst != allowed) {
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
-            logChangingUsage("declarable against", allowed);
+            warnOnChangingUsage("declarable against", allowed);
         }
     }
 
@@ -1888,7 +1913,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         validateMutation(MutationType.USAGE);
         this.declarationAlternatives = ImmutableList.copyOf(alternativesForDeclaring);
         if (!declarationDeprecated) {
-            logChangingUsage("deprecated for declaration against", true);
+            warnOnChangingUsage("deprecated for declaration against", true);
         }
         declarationDeprecated = true;
         return this;
@@ -1899,7 +1924,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         validateMutation(MutationType.USAGE);
         this.resolutionAlternatives = ImmutableList.copyOf(alternativesForResolving);
         if (!consumptionDeprecated) {
-            logChangingUsage("deprecated for resolution", true);
+            warnOnChangingUsage("deprecated for resolution", true);
         }
         resolutionDeprecated = true;
         return this;
@@ -1910,7 +1935,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         validateMutation(MutationType.USAGE);
         this.consumptionDeprecation = deprecation.apply(DeprecationLogger.deprecateConfiguration(name).forConsumption());
         if (!consumptionDeprecated) {
-            logChangingUsage("deprecated for consumption", true);
+            warnOnChangingUsage("deprecated for consumption", true);
         }
         consumptionDeprecated = true;
         return this;
