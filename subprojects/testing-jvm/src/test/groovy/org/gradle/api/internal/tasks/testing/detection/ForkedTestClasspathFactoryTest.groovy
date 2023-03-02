@@ -40,8 +40,11 @@ class ForkedTestClasspathFactoryTest extends Specification {
         getExternalModule(_) >> { module(it[0], true) }
     }
 
-    def runtimeClasses = new TestClassDetector()
-    ForkedTestClasspathFactory underTest = new ForkedTestClasspathFactory(moduleRegistry, (cls, mod) -> this.runtimeClasses)
+    def runtimeClasses = Spy(TestClassDetector)
+    def classDetectorFactory = Mock(ForkedTestClasspathFactory.ClassDetectorFactory) {
+        apply(_, _) >> { runtimeClasses }
+    }
+    ForkedTestClasspathFactory underTest = new ForkedTestClasspathFactory(moduleRegistry, classDetectorFactory)
 
     def "creates a limited implementation classpath"() {
         when:
@@ -55,6 +58,8 @@ class ForkedTestClasspathFactoryTest extends Specification {
         classpath.implementationClasspath.findAll { it.toString().endsWith("-internal.jar") }.size() == NUM_INTERNAL_JARS
         classpath.implementationClasspath.findAll { it.toString().endsWith("-external.jar") }.size() == NUM_EXTERNAL_JARS
         classpath.implementationModulepath.isEmpty()
+
+        0 * classDetectorFactory._
     }
 
     def "adds framework dependencies to classpath when test is not module"() {
@@ -87,6 +92,102 @@ class ForkedTestClasspathFactoryTest extends Specification {
         classpath.implementationModulepath == [new URL("file://impl-mod-external.jar")]
     }
 
+    def "does not load framework dependencies from distribution if they are on the test runtime classpath already with matching jar names"() {
+        when:
+        def framework = newFramework(true, ["app-cls"], ["app-mod"], ["impl-cls"], ["impl-mod"])
+        def classpath = underTest.create([
+            new File("app-cls-1.0.jar"), new File("app-mod-1.0.jar"), new File("impl-cls-1.0.jar"), new File("impl-mod-1.0.jar")
+        ], [], framework, true)
+
+        then:
+        classpath.applicationClasspath == [new File("app-cls-1.0.jar"), new File("app-mod-1.0.jar"), new File("impl-cls-1.0.jar"), new File("impl-mod-1.0.jar")]
+        classpath.applicationModulepath.isEmpty()
+        classpath.implementationClasspath.size() == NUM_INTERNAL_JARS + NUM_EXTERNAL_JARS
+        classpath.implementationClasspath.findAll { it.toString().endsWith("-internal.jar") }.size() == NUM_INTERNAL_JARS
+        classpath.implementationClasspath.findAll { it.toString().endsWith("-external.jar") }.size() == NUM_EXTERNAL_JARS
+        classpath.implementationModulepath.isEmpty()
+
+        0 * classDetectorFactory._
+    }
+
+    def "does not load framework dependencies from distribution if they are on the test runtime modulepath already with matching jar names"() {
+        when:
+        def framework = newFramework(true, ["app-cls"], ["app-mod"], ["impl-cls"], ["impl-mod"])
+        def classpath = underTest.create([], [
+            new File("app-cls-1.0.jar"), new File("app-mod-1.0.jar"), new File("impl-cls-1.0.jar"), new File("impl-mod-1.0.jar")
+        ], framework, true)
+
+        then:
+        classpath.applicationClasspath.isEmpty()
+        classpath.applicationModulepath == [new File("app-cls-1.0.jar"), new File("app-mod-1.0.jar"), new File("impl-cls-1.0.jar"), new File("impl-mod-1.0.jar")]
+        classpath.implementationClasspath.size() == NUM_INTERNAL_JARS + NUM_EXTERNAL_JARS
+        classpath.implementationClasspath.findAll { it.toString().endsWith("-internal.jar") }.size() == NUM_INTERNAL_JARS
+        classpath.implementationClasspath.findAll { it.toString().endsWith("-external.jar") }.size() == NUM_EXTERNAL_JARS
+        classpath.implementationModulepath.isEmpty()
+
+        0 * classDetectorFactory._
+    }
+
+    def "loads a subset of framework dependencies from distribution if some are already available with matching jar names"() {
+        when:
+        def framework = newFramework(true, ["a", "b"], ["c", "d"], ["e", "f"], ["g", "h"])
+        def classpath = underTest.create(cp.collect { new File("$it-1.0.jar") }, mp.collect { new File("$it-1.0.jar") }, framework, true)
+
+        def allTestRuntime = cp + mp
+        def loadedAppCp = (["a", "b"] - allTestRuntime).collect { new File("$it-external.jar") }
+        def loadedAppMp = (["c", "d"] - allTestRuntime).collect { new File("$it-external.jar") }
+        def loadedImplCp = (["e", "f"] - allTestRuntime).collect { new URL("file://$it-external.jar") }
+        def loadedImplMp = (["g", "h"] - allTestRuntime).collect { new URL("file://$it-external.jar") }
+
+        then:
+        classpath.applicationClasspath.takeRight(loadedAppCp.size()) == loadedAppCp
+        classpath.applicationModulepath.takeRight(loadedAppMp.size()) == loadedAppMp
+        classpath.implementationClasspath.takeRight(loadedImplCp.size()) == loadedImplCp
+        classpath.implementationModulepath.takeRight(loadedImplMp.size()) == loadedImplMp
+
+        where:
+        cp                   | mp
+        ["a", "d", "e", "h"] | []
+        []                   | ["a", "d", "e", "h"]
+        ["b", "c", "f", "g"] | []
+        []                   | ["b", "c", "f", "g"]
+    }
+
+    def "can detect class names from classloader if jar names not found"() {
+        given:
+        classes.forEach(runtimeClasses::add)
+
+        when:
+        def framework = newFramework(true, ["a", "b"], ["c", "d"], ["e", "f"], ["g", "h"])
+        def classpath = underTest.create(cp.collect { new File("$it-1.0.jar") }, mp.collect { new File("$it-1.0.jar") }, framework, true)
+
+        def allTestRuntime =  cp + mp + classes
+        def loadedAppCp = (["a", "b"] - allTestRuntime).collect { new File("$it-external.jar") }
+        def loadedAppMp = (["c", "d"] - allTestRuntime).collect { new File("$it-external.jar") }
+        def loadedImplCp = (["e", "f"] - allTestRuntime).collect { new URL("file://$it-external.jar") }
+        def loadedImplMp = (["g", "h"] - allTestRuntime).collect { new URL("file://$it-external.jar") }
+
+        then:
+        (["a", "b", "c", "d", "e", "f", "g", "h"] - (cp + mp)).forEach {
+            1 * runtimeClasses.hasClass("org.$it")
+        }
+        0 * runtimeClasses.hasClass(_)
+
+        classpath.applicationClasspath.takeRight(loadedAppCp.size()) == loadedAppCp
+        classpath.applicationModulepath.takeRight(loadedAppMp.size()) == loadedAppMp
+        classpath.implementationClasspath.takeRight(loadedImplCp.size()) == loadedImplCp
+        classpath.implementationModulepath.takeRight(loadedImplMp.size()) == loadedImplMp
+
+        where:
+        cp                   | mp                   | classes
+        []                   | []                   | []
+        ["a", "d", "e", "h"] | []                   | ["b", "c", "f", "g"]
+        []                   | ["a", "d", "e", "h"] | ["b", "c", "f", "g"]
+        ["b", "c", "f", "g"] | []                   | ["b", "c", "f", "g"]
+        []                   | ["b", "c", "f", "g"] | ["b", "c", "f", "g"]
+        []                   | []                   | ["a", "b", "c", "d", "e", "f", "g", "h"]
+    }
+
     def module(String module, boolean external) {
         String extra = external ? "external" : "internal"
         return Mock(Module) {
@@ -107,7 +208,7 @@ class ForkedTestClasspathFactoryTest extends Specification {
         List<String> implModules
     ) {
         def asDistModule = { String name ->
-            new TestFrameworkDistributionModule(name, Pattern.compile("$name-1.*\\.jar"), "org.example.$name")
+            new TestFrameworkDistributionModule(name, Pattern.compile("$name-1.*\\.jar"), "org.$name")
         }
         return Mock(TestFramework) {
             getUseDistributionDependencies() >> useDependencies

@@ -29,7 +29,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.CollectionUtils;
 import org.jetbrains.annotations.VisibleForTesting;
 
@@ -91,7 +90,7 @@ public class ForkedTestClasspathFactory {
         AdditionalClasspath filtered = filterAdditionalClasspath(classpath, modulepath, unfiltered);
 
         // The test's runtimeClasspath already includes the test framework's implementation modules.
-        // No need to load anything ourselves.
+        // No need to load anything extra ourselves.
         if (filtered.isEmpty()) {
             return new ForkedTestClasspath(
                 ImmutableList.copyOf(classpath), ImmutableList.copyOf(modulepath),
@@ -99,11 +98,13 @@ public class ForkedTestClasspathFactory {
             );
         }
 
-        DeprecationLogger.deprecateIndirectUsage("The automatic loading of test framework implementation dependencies")
-            .withAdvice("Declare the desired test framework directly on the test suite or explicitly declare the test framework implementation dependencies on the test's runtime classpath.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "test_framework_implementation_dependencies")
-            .nagUser();
+        // TODO #13955: Enable this deprecation in 8.2
+        // We don't have enough time in 8.1 to write the documentation and update our own tests.
+//        DeprecationLogger.deprecateIndirectUsage("The automatic loading of test framework implementation dependencies")
+//            .withAdvice("Declare the desired test framework directly on the test suite or explicitly declare the test framework implementation dependencies on the test's runtime classpath.")
+//            .willBeRemovedInGradle9()
+//            .withUpgradeGuideSection(8, "test_framework_implementation_dependencies")
+//            .nagUser();
 
         if (isModule) {
             return new ForkedTestClasspath(
@@ -231,6 +232,14 @@ public class ForkedTestClasspathFactory {
         }
     }
 
+    /**
+     * Filters the provided {@code unfiltered} additional classpath to only contain modules which are not already
+     * present in {@code classpath} and {@code modulepath}. This operates in a two-step process. First, it attempts
+     * to parse the names the jars in the provided classpath to quickly determine if the additional modules already
+     * exist. This is brittle and prone to errors, but much faster than the second step. If this step fails to filter
+     * all additional modules, the second step creates a {@link ClassLoader} based on the provided classpath and
+     * modulepath and attempts to discover the modules which are already present.
+     */
     private AdditionalClasspath filterAdditionalClasspath(Iterable<? extends File> classpath, Iterable<? extends File> modulepath, AdditionalClasspath unfiltered) {
         AdditionalClasspath fastFiltered = filterFast(classpath, modulepath, unfiltered);
 
@@ -241,6 +250,9 @@ public class ForkedTestClasspathFactory {
         return filterSlow(classpath, modulepath, fastFiltered);
     }
 
+    /**
+     * Filters additional modules based on jar file names.
+     */
     private AdditionalClasspath filterFast(Iterable<? extends File> classpath, Iterable<? extends File> modulepath, AdditionalClasspath unfiltered) {
         AdditionalClasspath mutable = new AdditionalClasspath(
             new ArrayList<>(unfiltered.applicationClasspath),
@@ -272,6 +284,9 @@ public class ForkedTestClasspathFactory {
         return mutable;
     }
 
+    /**
+     * Filters additional modules by constructing a {@link ClassLoader} and attempting to load classes from the additional modules.
+     */
     private AdditionalClasspath filterSlow(Iterable<? extends File> classpath, Iterable<? extends File> modulepath, AdditionalClasspath unfiltered) {
         try (ClassDetector classDetector = classDetectorFactory.apply(classpath, modulepath)) {
             return new AdditionalClasspath(
@@ -315,13 +330,6 @@ public class ForkedTestClasspathFactory {
             // avoid parsing the entire class file and any referenced classes.
             String path = className.replace('.', '/').concat(".class");
             return classLoader.findResource(path) != null;
-
-//            try {
-//                classLoader.loadClass(className);
-//                return true;
-//            } catch (ClassNotFoundException e) {
-//                return false;
-//            }
         }
 
         @Override
