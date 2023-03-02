@@ -34,10 +34,10 @@ import org.apache.commons.io.input.UnsynchronizedByteArrayInputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.DefaultBuildCacheKey;
+import org.gradle.caching.internal.NextGenBuildCacheService;
 import org.gradle.caching.internal.controller.CacheManifest.ManifestEntry;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
@@ -357,7 +357,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
                     (a, b) -> a)
                 );
 
-            cacheAccess.store(manifestIndex, manifestEntry -> new BuildCacheEntryWriter() {
+            cacheAccess.store(manifestIndex, manifestEntry -> new NextGenBuildCacheService.NextGenWriter() {
                 @Override
                 public InputStream openStream() throws IOException {
                     // TODO Replace with "Files.newInputStream()" as it seems to be more efficient
@@ -384,7 +384,7 @@ public class NextGenBuildCacheController implements BuildCacheController {
             String manifestJson = gson.toJson(manifest);
             byte[] bytes = manifestJson.getBytes(StandardCharsets.UTF_8);
 
-            return new BuildCacheEntryWriter() {
+            return new NextGenBuildCacheService.NextGenWriter() {
                 @Override
                 public InputStream openStream() {
                     return new UnsynchronizedByteArrayInputStream(bytes);

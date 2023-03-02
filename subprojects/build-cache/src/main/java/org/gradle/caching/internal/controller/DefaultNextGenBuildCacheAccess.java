@@ -19,8 +19,8 @@ package org.gradle.caching.internal.controller;
 import com.google.common.io.Closer;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
-import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.NextGenBuildCacheService;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedThreadPoolExecutor;
 import org.gradle.internal.file.BufferProvider;
@@ -162,7 +162,7 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
                 // Mirror data in local cache
                 // TODO Do we need to support local push = false?
                 if (local.canStore()) {
-                    local.store(key, new BuildCacheEntryWriter() {
+                    local.store(key, new NextGenBuildCacheService.NextGenWriter() {
                         @Override
                         public InputStream openStream() {
                             return data.toInputStream();
@@ -211,10 +211,15 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
             }
 
             LOGGER.warn("Storing {} in remote (size: {})", key, data.size());
-            remote.store(key, new BuildCacheEntryWriter() {
+            remote.store(key, new NextGenBuildCacheService.NextGenWriter() {
                 @Override
                 public InputStream openStream() {
                     return data.toInputStream();
+                }
+
+                @Override
+                public void writeTo(OutputStream output) throws IOException {
+                    data.writeTo(output);
                 }
 
                 @Override
