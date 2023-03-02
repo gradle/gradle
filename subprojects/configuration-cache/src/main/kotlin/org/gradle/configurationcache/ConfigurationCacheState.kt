@@ -58,8 +58,10 @@ import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChang
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.BuildStructureOperationProject
+import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.ProjectsIdentifiedProgressDetails
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
+import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
@@ -297,6 +299,10 @@ class ConfigurationCacheState(
             val buildPath = read() as Path
             rootBuild.addIncludedBuild(definition, settingsFile, buildPath)
         }
+
+        val settingDir = build.gradle.serviceOf<BuildLayout>().settingsDir //why not build.gradle.settings.settingsDir?
+        build.gradle.serviceOf<GradlePropertiesController>().loadGradlePropertiesFrom(settingDir, false)
+
         // Decode the build state using the contextualized IO service for the build
         return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(stateFileFor((build.state as NestedBuildState).buildDefinition), build)
     }
