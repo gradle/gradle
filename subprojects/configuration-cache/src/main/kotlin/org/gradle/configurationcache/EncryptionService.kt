@@ -54,7 +54,9 @@ interface EncryptionConfiguration {
 
 
 enum class EncryptionStrategy(val id: Int, val encrypted: Boolean) {
-    None(0, false), Streams(1, true), Encoding(2, true);
+    None(0, false),
+    Streams(1, true),
+    Encoding(2, true);
 
     companion object {
         fun forId(encryptionStrategyId: Int): EncryptionStrategy =
@@ -126,6 +128,7 @@ class SimpleEncryptionService(startParameter: ConfigurationCacheStartParameter) 
             Hashing.sha512().newHasher().apply {
                 putBytes(it.encoded)
                 putString(encryptionAlgorithm.transformation)
+                putInt(encryptionStrategy.id)
             }.hash()
         } ?: Hashing.newHasher().hash()
     }
