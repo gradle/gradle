@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.build;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.Task;
@@ -53,6 +54,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         // build has finished and should do no further work
         Finished
     }
+
+    public static final ImmutableList<State> CONFIGURATION_STATES = ImmutableList.of(State.Configure, State.TaskSchedule, State.ReadyToRun);
 
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
@@ -131,12 +134,12 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public ExecutionResult<Void> beforeModelReset() {
-        return state.finish(State.ReadyToReset, failures -> fireBeforeModelDiscarded(false));
+        return state.transition(CONFIGURATION_STATES, State.ReadyToReset, failures -> fireBeforeModelDiscarded(false));
     }
 
     @Override
     public ExecutionResult<Void> beforeModelDiscarded(boolean failed) {
-        return state.finish(State.Finished, failures -> fireBeforeModelDiscarded(failed));
+        return state.transition(State.BuildFinishHooks, State.Finished, failures -> fireBeforeModelDiscarded(failed));
     }
 
     private ExecutionResult<Void> fireBeforeModelDiscarded(boolean failed) {
@@ -214,7 +217,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public ExecutionResult<Void> finishBuild(@Nullable Throwable failure) {
-        return state.finish(State.BuildFinishHooks, stageFailures -> {
+        return state.transition(CONFIGURATION_STATES, State.BuildFinishHooks, stageFailures -> {
             // Fire the build finished events even if nothing has happened to this build, because quite a lot of internal infrastructure
             // adds listeners and expects to see a build finished event. Infrastructure should not be using the public listener types
             // In addition, they almost all should be using a build tree scoped event instead of a build scoped event
