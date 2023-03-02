@@ -427,4 +427,37 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
     private TestFile scriptFileFor(ScriptTarget target) {
         file(target.fileName)
     }
+
+    def "value source with task result provider cannot be obtained at configuration time"() {
+        given:
+        buildFile("""
+        import org.gradle.api.provider.*
+
+        abstract class ResultSource implements ValueSource<String, Params> {
+            interface Params extends ValueSourceParameters {
+                Property<RequestedTasksResult> getTasksResult();
+            }
+
+            @Override String obtain() {
+                return "I'm not using my parameter"
+            }
+        }
+
+        interface FlowProvidersGetter {
+            @Inject FlowProviders getFlowProviders()
+        }
+
+        def flowProviders = objects.newInstance(FlowProvidersGetter).flowProviders
+
+        providers.of(ResultSource) {
+            parameters.tasksResult = flowProviders.requestedTasksResult
+        }.get()
+
+        """)
+
+        expect:
+        configurationCacheFails()
+        // TODO(mlopatkin) The error message can be improved.
+        failureHasCause(~/Could not isolate value ResultSource(.*) of type ResultSource.Params/)
+    }
 }
