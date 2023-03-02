@@ -24,7 +24,6 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import javax.crypto.KeyGenerator
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
@@ -47,7 +46,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         keyStorePath = new TestFile(keyStoreFolder, "test.keystore")
         keyStorePassword = "gradle-keystore-pwd"
         keyPassword = "gradle-key-pwd"
-        encryptionKey = Base64.encoder.encodeToString(KeyGenerator.getInstance("AES").generateKey().encoded)
+        encryptionKey = 'qYEI1ig+IFWLxy6/xbYAN8Qg9l9EW0FkB5ZfuwizaX8='
     }
 
     def "configuration cache can be loaded without errors if encryption is #status, #encryptionTransformation, useEnvVar = #useEnvVar"() {
@@ -140,9 +139,9 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         isFoundInDirectory(cacheDir, "SENSITIVE".getBytes()) == !enabled
         where:
         encrypted       |   strategy
-        "encrypted"     |   EncryptionStrategy.Encoding
-        "encrypted"     |   EncryptionStrategy.Streams
         "unencrypted"   |   EncryptionStrategy.None
+        "encrypted"     |   EncryptionStrategy.Streams
+        "encrypted"     |   EncryptionStrategy.Encoding
     }
 
     private boolean isFoundInDirectory(File startDir, byte[] toFind) {
@@ -251,7 +250,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
     def "encryption disabled if key in env var is invalid"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
-        def invalidEncryptionKey = Base64.encoder.encodeToString("some random key".getBytes(StandardCharsets.UTF_8))
+        def invalidEncryptionKey = Base64.encoder.encodeToString("not a valid key".getBytes(StandardCharsets.UTF_8))
 
         when:
         executer.withStackTraceChecksDisabled()
@@ -261,6 +260,24 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         configurationCache.assertStateStored()
         outputContains("Encryption was requested but could not be enabled")
         outputContains("Calculating task graph as no configuration cache is available for tasks: help")
+    }
+
+    def "new configuration cache entry if env var key changes"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        def differentKey = "O6lTi7qNmAAIookBZGqHqyDph882NPQOXW5P5K2yupM="
+
+        when:
+        runWithEncryption(true, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_VAR): this.encryptionKey])
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        runWithEncryption(true, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_VAR): differentKey])
+
+        then:
+        configurationCache.assertStateStored()
     }
 
     void runWithEncryption(
@@ -285,9 +302,9 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
             "-Dorg.gradle.configuration-cache.internal.key-store-password=${keyStorePassword}",
             "-Dorg.gradle.configuration-cache.internal.key-password=${keyPassword}"
         ]
-        def allArgs = tasks.toList() + args + additionalArgs.toList()
+        def allArgs = tasks + args + additionalArgs
         executer.withEnvironmentVars(additionalVars)
-        configurationCacheRun(*(allArgs.collect(Object::toString)))
+        configurationCacheRun(*allArgs)
     }
 
     boolean isSubArray(byte[] contents, byte[] toFind) {
