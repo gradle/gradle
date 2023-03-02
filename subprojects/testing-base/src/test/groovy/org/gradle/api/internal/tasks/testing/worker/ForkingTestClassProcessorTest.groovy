@@ -21,6 +21,7 @@ import org.gradle.api.Action
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.remote.ObjectConnection
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.process.JavaForkOptions
@@ -123,8 +124,58 @@ class ForkingTestClassProcessorTest extends Specification {
         notThrown(ExecException)
     }
 
+    def "captures and rethrows unrecoverable exceptions thrown by the connection"() {
+        def handler
+        def processor = newProcessor()
+
+        when:
+        processor.processTestClass(Mock(TestClassRunInfo))
+
+        then:
+        1 * workerProcess.getConnection() >> Stub(ObjectConnection) {
+            addUnrecoverableErrorHandler(_) >> { args -> handler = args[0] }
+            addOutgoing(_) >> Stub(RemoteTestClassProcessor)
+        }
+
+        when:
+        def unexpectedException = new Throwable('BOOM!')
+        handler.execute(unexpectedException)
+
+        and:
+        processor.stop()
+
+        then:
+        def e = thrown(DefaultMultiCauseException)
+        e.causes.contains(unexpectedException)
+    }
+
+    def "ignores unrecoverable exceptions after stopNow() is called"() {
+        def handler
+        def processor = newProcessor()
+
+        when:
+        processor.processTestClass(Mock(TestClassRunInfo))
+
+        then:
+        1 * workerProcess.getConnection() >> Stub(ObjectConnection) {
+            addUnrecoverableErrorHandler(_) >> { args -> handler = args[0] }
+            addOutgoing(_) >> Stub(RemoteTestClassProcessor)
+        }
+
+        when:
+        processor.stopNow()
+        def unexpectedException = new Throwable('BOOM!')
+        handler.execute(unexpectedException)
+
+        and:
+        processor.stop()
+
+        then:
+        noExceptionThrown()
+    }
+
     def newProcessor(
-            ForkedTestClasspath classpath = new ForkedTestClasspath(ImmutableList.of(), ImmutableList.of(), ImmutableList.of(), ImmutableList.of())
+        ForkedTestClasspath classpath = new ForkedTestClasspath(ImmutableList.of(), ImmutableList.of(), ImmutableList.of(), ImmutableList.of())
     ) {
         return new ForkingTestClassProcessor(
             workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestClassProcessorFactory),
