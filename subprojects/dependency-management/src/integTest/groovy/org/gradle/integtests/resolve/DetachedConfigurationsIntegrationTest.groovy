@@ -67,7 +67,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         run "checkDependencies"
     }
 
-    def "detached configurations may have project dependencies"() {
+    def "detached configurations may have dependencies on other projects"() {
         given:
         settingsFile << "include 'other'"
         buildFile << """
