@@ -1788,8 +1788,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void maybeWarnOnChangingUsage(String usage, boolean current) {
-        if (!isSpecialCaseOfChangingUsage(current)) {
+    private void maybeWarnOnChangingUsage(String usage, boolean current, boolean isDeprecationChange) {
+        boolean isRestrictingUsage = isDeprecationChange || (!isDeprecationChange && current);
+        if (!isSpecialCaseOfChangingUsage(isRestrictingUsage)) {
             String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
             DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), describeChangingUsage(usage, current)))
                     .withAdvice("Usage should be fixed upon creation.")
@@ -1817,11 +1818,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      * This method is temporary, so the duplication of the configuration names defined in
      * {@link JavaPlatformPlugin}, which are not available to be referenced directly from here, is unfortunate, but not a showstopper.
      *
-     * @param current the current status of the usage flag; after the change
+     * @param isRestrictingUsage {@code true} if the allowed usage after the change is more restrictive than before, {@code false} otherwise
      */
     @SuppressWarnings({"JavadocReference", "deprecation"})
-    private boolean isSpecialCaseOfChangingUsage(boolean current) {
-        boolean isRestrictingUsage = !current;
+    private boolean isSpecialCaseOfChangingUsage(boolean isRestrictingUsage) {
         boolean isInitializing = roleAtCreation == null;
         boolean isLegacyRole = roleAtCreation == ConfigurationRoles.LEGACY;
         boolean isDetachedConfiguration = this.configurationsProvider instanceof DetachedConfigurationsProvider;
@@ -1859,7 +1859,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (canBeConsumed != allowed) {
             validateMutation(MutationType.USAGE);
             canBeConsumed = allowed;
-            maybeWarnOnChangingUsage("consumable", allowed);
+            maybeWarnOnChangingUsage("consumable", allowed, false);
         }
     }
 
@@ -1873,7 +1873,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (canBeResolved != allowed) {
             validateMutation(MutationType.USAGE);
             canBeResolved = allowed;
-            maybeWarnOnChangingUsage("resolvable", allowed);
+            maybeWarnOnChangingUsage("resolvable", allowed, false);
         }
     }
 
@@ -1887,7 +1887,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (canBeDeclaredAgainst != allowed) {
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
-            maybeWarnOnChangingUsage("declarable against", allowed);
+            maybeWarnOnChangingUsage("declarable against", allowed, false);
         }
     }
 
@@ -1919,7 +1919,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         validateMutation(MutationType.USAGE);
         this.declarationAlternatives = ImmutableList.copyOf(alternativesForDeclaring);
         if (!declarationDeprecated) {
-            maybeWarnOnChangingUsage("deprecated for declaration against", true);
+            maybeWarnOnChangingUsage("deprecated for declaration against", true, true);
         }
         declarationDeprecated = true;
         return this;
@@ -1930,7 +1930,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         validateMutation(MutationType.USAGE);
         this.resolutionAlternatives = ImmutableList.copyOf(alternativesForResolving);
         if (!consumptionDeprecated) {
-            maybeWarnOnChangingUsage("deprecated for resolution", true);
+            maybeWarnOnChangingUsage("deprecated for resolution", true, true);
         }
         resolutionDeprecated = true;
         return this;
@@ -1941,7 +1941,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         validateMutation(MutationType.USAGE);
         this.consumptionDeprecation = deprecation.apply(DeprecationLogger.deprecateConfiguration(name).forConsumption());
         if (!consumptionDeprecated) {
-            maybeWarnOnChangingUsage("deprecated for consumption", true);
+            maybeWarnOnChangingUsage("deprecated for consumption", true, true);
         }
         consumptionDeprecated = true;
         return this;
