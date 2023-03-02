@@ -50,4 +50,9 @@ public class ToPlannedTransformConverter implements ToPlannedNodeConverter {
             dependencyLookup.findNodeDependencies(transformationNode)
         );
     }
+
+    @Override
+    public String toString() {
+        return "ToPlannedTransformConverter(" + getSupportedNodeType().getSimpleName() + ")";
+    }
 }

@@ -101,4 +101,9 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
             .map(this::getNodeIdentity)
             .collect(Collectors.toList());
     }
+
+    @Override
+    public String toString() {
+        return "ToPlannedTaskConverter(" + getSupportedNodeType().getSimpleName() + ")";
+    }
 }
