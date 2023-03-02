@@ -20,10 +20,11 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
+import org.gradle.api.internal.capabilities.CapabilitiesMetadataInternal;
 
 import java.util.List;
 
-public class DefaultMutableCapabilities implements MutableCapabilitiesMetadata {
+public class DefaultMutableCapabilities implements MutableCapabilitiesMetadata, CapabilitiesMetadataInternal {
     private final List<Capability> descriptors;
 
     public DefaultMutableCapabilities(List<Capability> descriptors) {
@@ -37,7 +38,7 @@ public class DefaultMutableCapabilities implements MutableCapabilitiesMetadata {
                 throw new InvalidUserDataException("Cannot add capability " + group + ":" + name + " with version " + version + " because it's already defined with version " + descriptor.getVersion());
             }
         }
-        descriptors.add(new ImmutableCapability(group, name, version));
+        descriptors.add(new DefaultImmutableCapability(group, name, version));
     }
 
     @Override
@@ -54,5 +55,4 @@ public class DefaultMutableCapabilities implements MutableCapabilitiesMetadata {
     public List<? extends Capability> getCapabilities() {
         return ImmutableList.copyOf(descriptors);
     }
-
 }

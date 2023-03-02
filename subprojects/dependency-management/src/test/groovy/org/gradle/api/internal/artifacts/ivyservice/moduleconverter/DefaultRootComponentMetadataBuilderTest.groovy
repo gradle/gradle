@@ -31,7 +31,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata
+import org.gradle.internal.component.local.model.DefaultLocalConfigurationMetadata
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -50,7 +50,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     }
     ProjectStateRegistry projectStateRegistry = Mock()
 
-    DefaultLocalComponentMetadata.DefaultLocalConfigurationMetadata configurationMetadata = Mock()
+    DefaultLocalConfigurationMetadata configurationMetadata = Mock()
 
     def mid = DefaultModuleIdentifier.newId('foo', 'bar')
 

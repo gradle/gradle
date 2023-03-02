@@ -40,7 +40,7 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<Connection
         ClassPath classPath = DefaultClassPath.of(operationParameters.getInjectedPluginClasspath());
 
         DaemonParameters daemonParameters = parameters.getDaemonParameters();
-        BuildActionParameters actionParameters = new DefaultBuildActionParameters(parameters.getTapiSystemProperties(), daemonParameters.getEnvironmentVariables(), SystemProperties.getInstance().getCurrentDir(), operationParameters.getBuildLogLevel(), daemonParameters.isEnabled(), classPath);
+        BuildActionParameters actionParameters = new DefaultBuildActionParameters(parameters.getTapiSystemProperties(), daemonParameters.getEnvironmentVariables(), SystemProperties.getInstance().getCurrentDir(), action.getStartParameter().getLogLevel(), daemonParameters.isEnabled(), classPath);
         return executer.execute(action, actionParameters, buildRequestContext);
     }
 }

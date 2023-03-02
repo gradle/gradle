@@ -16,29 +16,29 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.Library;
 
-import java.io.File;
-import java.util.LinkedList;
 import java.util.List;
+
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 /**
  * Eclipse calls them 'class folders' on java build path -&gt; libraries tab
  */
 public class ClassFoldersCreator {
     public List<Library> create(EclipseClasspath classpath) {
-        List<Library> out = new LinkedList<Library>();
-        FileReferenceFactory fileReferenceFactory = classpath.getFileReferenceFactory();
-
-        if(classpath.getClassFolders() != null) {
-            for (File folder : classpath.getClassFolders()) {
-                Library library = new Library(fileReferenceFactory.fromFile(folder));
-                library.setExported(true);
-                out.add(library);
-            }
+        if (classpath.getClassFolders() == null) {
+            return ImmutableList.of();
         }
 
-        return out;
+        FileReferenceFactory fileReferenceFactory = classpath.getFileReferenceFactory();
+        return classpath.getClassFolders().stream()
+            .map(folder -> {
+                Library library = new Library(fileReferenceFactory.fromFile(folder));
+                library.setExported(true);
+                return library;
+            }).collect(toImmutableList());
     }
 }

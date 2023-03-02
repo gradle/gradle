@@ -244,10 +244,11 @@ public abstract class JavaPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaBasePlugin.class);
         project.getPluginManager().apply("org.gradle.jvm-test-suite");
 
-        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-
         // Create the 'java' component.
-        JvmSoftwareComponentInternal component = objectFactory.newInstance(DefaultJvmSoftwareComponent.class, "java", javaExtension);
+        JvmSoftwareComponentInternal component = objectFactory.newInstance(
+            DefaultJvmSoftwareComponent.class,
+            JvmConstants.JAVA_COMPONENT_NAME, SourceSet.MAIN_SOURCE_SET_NAME
+        );
         project.getComponents().add(component);
 
         // Set the 'java' component as the project's default.
@@ -255,6 +256,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         defaultConfiguration.extendsFrom(component.getRuntimeElementsConfiguration());
         ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(component);
 
+        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
 
         configureBuiltInTest(project, component);
@@ -307,9 +309,9 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
     private static void configureBuild(Project project) {
         project.getTasks().named(JavaBasePlugin.BUILD_NEEDED_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, true,
-            JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+            JavaBasePlugin.BUILD_NEEDED_TASK_NAME, JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
         project.getTasks().named(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, false,
-            JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+            JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
     }
 
     /**

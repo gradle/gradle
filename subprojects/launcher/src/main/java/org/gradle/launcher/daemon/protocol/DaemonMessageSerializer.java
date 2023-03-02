@@ -281,12 +281,10 @@ public class DaemonMessageSerializer {
     private static class BuildActionParametersSerializer implements Serializer<BuildActionParameters> {
         private final Serializer<LogLevel> logLevelSerializer;
         private final Serializer<List<File>> classPathSerializer;
-
         BuildActionParametersSerializer() {
             logLevelSerializer = new BaseSerializerFactory().getSerializerFor(LogLevel.class);
             classPathSerializer = new ListSerializer<>(FILE_SERIALIZER);
         }
-
         @Override
         public void write(Encoder encoder, BuildActionParameters parameters) throws Exception {
             FILE_SERIALIZER.write(encoder, parameters.getCurrentDir());
@@ -296,7 +294,6 @@ public class DaemonMessageSerializer {
             encoder.writeBoolean(parameters.isUseDaemon()); // Can probably skip this
             classPathSerializer.write(encoder, parameters.getInjectedPluginClasspath().getAsFiles());
         }
-
         @Override
         public BuildActionParameters read(Decoder decoder) throws Exception {
             File currentDir = FILE_SERIALIZER.read(decoder);

@@ -290,7 +290,7 @@ hamcrest-core-1.3.jar
 
         and: "appears as optional dependency in Maven POM"
         MavenPom pom = new MavenPom(file("build/repo/com/acme/root/1.3/root-1.3.pom"))
-        pom.scope("compile") {
+        pom.scope("runtime") {
             assertOptionalDependencies(
                 "org.apache.commons:commons-lang3:3.9"
             )
@@ -508,11 +508,13 @@ hamcrest-core-1.3.jar
 
     protected void dumpCompileAndRuntimeTestClasspath() {
         buildFile << """
-            void printClasspathFile(File it) {
-                if (it.absolutePath.contains('intTestHomeDir')) {
-                    println it.name
-                } else {
-                    println it.absolutePath.substring(it.absolutePath.lastIndexOf('build') + 6).replace(File.separatorChar, (char) '/')
+            class Utils {
+                static void printClasspathFile(File it) {
+                    if (it.absolutePath.contains('intTestHomeDir')) {
+                        println it.name
+                    } else {
+                        println it.absolutePath.substring(it.absolutePath.lastIndexOf('build') + 6).replace(File.separatorChar, (char) '/')
+                    }
                 }
             }
 
@@ -520,7 +522,7 @@ hamcrest-core-1.3.jar
                doFirst {
                    println "Test compile classpath"
                    println "---"
-                   classpath.each { printClasspathFile(it) }
+                   classpath.each { Utils.printClasspathFile(it) }
                    println "---"
                }
             }
@@ -529,7 +531,7 @@ hamcrest-core-1.3.jar
                doFirst {
                   println "Test runtime classpath"
                   println "---"
-                  classpath.each { printClasspathFile(it) }
+                  classpath.each { Utils.printClasspathFile(it) }
                   println "---"
                }
             }

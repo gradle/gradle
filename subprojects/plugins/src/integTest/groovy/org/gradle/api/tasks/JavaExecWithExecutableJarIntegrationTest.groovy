@@ -53,9 +53,10 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
 
             task runWithJavaExec {
                 dependsOn jar
+                def cp = files(jar)
                 doLast {
                     project.javaexec {
-                        classpath = files(jar)
+                        classpath = cp
                         args "hello", "world"
                     }
                 }
@@ -64,9 +65,10 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
             task runWithExecOperations {
                 dependsOn jar
                 def execOps = services.get(ExecOperations)
+                def cp = files(jar)
                 doLast {
                     execOps.javaexec {
-                        classpath = files(jar)
+                        classpath = cp
                         args "hello", "world"
                     }
                 }
@@ -100,7 +102,7 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1346")
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
+    @UnsupportedWithConfigurationCache(iterationMatchers = ".* project\\.javaexec")
     def "helpful message when jar is not executable with #method"() {
 
         when:

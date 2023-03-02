@@ -39,11 +39,13 @@ import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.DefaultGlobalCacheLocations;
 import org.gradle.cache.internal.FileContentCacheFactory;
-import org.gradle.cache.internal.GradleUserHomeCacheCleanupActionDecorator;
 import org.gradle.cache.internal.GradleUserHomeCleanupServices;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.cache.internal.LegacyCacheCleanupEnablement;
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
+import org.gradle.execution.plan.ToPlannedNodeConverter;
+import org.gradle.execution.plan.ToPlannedTaskConverter;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
@@ -113,8 +115,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         }
     }
 
-    GradleUserHomeCacheCleanupActionDecorator createCacheCleanupDecorator(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
-        return new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeDirProvider);
+    ToPlannedNodeConverter createToPlannedTransformConverter() {
+        return new ToPlannedTaskConverter();
     }
 
     DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(GlobalCacheDir globalCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
@@ -224,7 +226,10 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         return new DefaultTimeoutHandler(executorFactory.createScheduled("execution timeouts", 1), currentBuildOperationRef);
     }
 
-    protected CacheConfigurationsInternal createCachesConfiguration(ObjectFactory objectFactory) {
-        return objectFactory.newInstance(DefaultCacheConfigurations.class, objectFactory);
+    LegacyCacheCleanupEnablement createLegacyCacheCleanupEnablement(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
+        return new LegacyCacheCleanupEnablement(gradleUserHomeDirProvider);
+    }
+    protected CacheConfigurationsInternal createCachesConfiguration(ObjectFactory objectFactory, LegacyCacheCleanupEnablement legacyCacheCleanupEnablement) {
+        return objectFactory.newInstance(DefaultCacheConfigurations.class, legacyCacheCleanupEnablement);
     }
 }

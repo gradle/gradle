@@ -37,7 +37,6 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
@@ -178,11 +177,7 @@ class ConfigurationCacheHost internal constructor(
         fun createSettings(): SettingsState {
             val baseClassLoaderScope = gradle.classLoaderScope
             val classLoaderScope = baseClassLoaderScope.createChild("settings", null)
-            val settingsSource = if (settingsFile == null) {
-                TextResourceScriptSource(StringTextResource("settings", ""))
-            } else {
-                TextResourceScriptSource(service<TextFileResourceLoader>().loadFile("settings file", settingsFile))
-            }
+            val settingsSource = TextResourceScriptSource(service<TextFileResourceLoader>().loadFile("settings file", settingsFile))
             lateinit var services: SettingsScopeServices
             val serviceRegistryFactory = object : ServiceRegistryFactory {
                 override fun createFor(domainObject: Any): ServiceRegistry {

@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
@@ -126,9 +127,10 @@ allprojects {
         buildFile << """
 project(':a') {
     task writeOutputFile {
+        def outputDir = file('build')
         doLast {
-            file('build').mkdirs()
-            file('build/output.txt') << "${outputValue}"
+            outputDir.mkdirs()
+            new File(outputDir, 'output.txt') << "${outputValue}"
         }
     }
 }
@@ -180,6 +182,7 @@ project(':c') {
         jarsNotBuilt 'a', 'b', 'c'
     }
 
+    @ToBeFixedForConfigurationCache(because = "test can't handle parallel task execution")
     @IgnoreIf({GradleContextualExecuter.parallel})  // 'c' + 'd' _may_ be built with parallel executer
     def "project dependency a->[b,c] and c->d and b fails"() {
         projectDependency from: 'a', to: ['b', 'c']
