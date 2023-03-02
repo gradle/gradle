@@ -20,8 +20,11 @@ package org.gradle.api.internal.tasks.testing.detection
 import org.gradle.api.internal.classpath.Module
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.tasks.testing.TestFramework
+import org.gradle.api.internal.tasks.testing.TestFrameworkDistributionModule
 import org.gradle.internal.classpath.ClassPath
 import spock.lang.Specification
+
+import java.util.regex.Pattern
 
 /**
  * Tests {@link ForkedTestClasspathFactory}.
@@ -37,7 +40,8 @@ class ForkedTestClasspathFactoryTest extends Specification {
         getExternalModule(_) >> { module(it[0], true) }
     }
 
-    ForkedTestClasspathFactory underTest = new ForkedTestClasspathFactory(moduleRegistry)
+    def runtimeClasses = new TestClassDetector()
+    ForkedTestClasspathFactory underTest = new ForkedTestClasspathFactory(moduleRegistry, (cls, mod) -> this.runtimeClasses)
 
     def "creates a limited implementation classpath"() {
         when:
@@ -102,12 +106,32 @@ class ForkedTestClasspathFactoryTest extends Specification {
         List<String> implClasses,
         List<String> implModules
     ) {
+        def asDistModule = { String name ->
+            new TestFrameworkDistributionModule(name, Pattern.compile("$name-1.*\\.jar"), "org.example.$name")
+        }
         return Mock(TestFramework) {
             getUseDistributionDependencies() >> useDependencies
-            getWorkerApplicationClasspathModuleNames() >> appClasses
-            getWorkerApplicationModulepathModuleNames() >> appModules
-            getWorkerImplementationClasspathModuleNames() >> implClasses
-            getWorkerImplementationModulepathModuleNames() >> implModules
+            getWorkerApplicationClasspathModules() >> appClasses.collect { asDistModule(it) }
+            getWorkerApplicationModulepathModules() >> appModules.collect { asDistModule(it) }
+            getWorkerImplementationClasspathModules() >> implClasses.collect { asDistModule(it) }
+            getWorkerImplementationModulepathModules() >> implModules.collect { asDistModule(it) }
         }
+    }
+
+    static class TestClassDetector implements ForkedTestClasspathFactory.ClassDetector {
+
+        Set<String> testClasses = []
+
+        void add(String className) {
+            testClasses.add(className)
+        }
+
+        @Override
+        boolean hasClass(String className) {
+            return testClasses.contains(className)
+        }
+
+        @Override
+        void close() throws IOException {}
     }
 }
