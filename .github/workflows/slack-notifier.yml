@@ -8,7 +8,6 @@ on:
 jobs:
   send-slack-notification:
     if: ${{ github.event.label.name == 'in:ide' || github.event.label.name == 'in:eclipse-plugin' || github.event.label.name == 'in:idea-plugin' || github.event.label.name == 'in:tooling-api' }}
-    runs-on: ubuntu-latest
     steps:
       - name: Send Slack notification about issues with specific labels
         id: slack
