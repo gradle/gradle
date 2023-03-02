@@ -44,7 +44,7 @@ public interface GradlePropertiesController {
      * @param settingsDir directory where to look for the {@code gradle.properties} file
      * @throws IllegalStateException if called with a different argument in the same build
      */
-    void loadGradlePropertiesFrom(File settingsDir);
+    void loadGradlePropertiesFrom(File settingsDir, boolean setSystemProperties);
 
     /**
      * Unloads the properties so the next call to {@link #loadGradlePropertiesFrom(File)} would reload them and
