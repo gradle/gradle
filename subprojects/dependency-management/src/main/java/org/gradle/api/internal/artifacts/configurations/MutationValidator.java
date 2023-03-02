@@ -46,7 +46,12 @@ public interface MutationValidator {
         /**
          * The mutation of the role of the configuration (can be queries, resolved, ...)
          */
-        ROLE("role");
+        ROLE("role"),
+
+        /**
+         * The mutation of the hierarchy of the configuration, i.e. which configurations this configuration extends from.
+         */
+        HIERARCHY("hierarchy");
 
         private final String displayName;
 
