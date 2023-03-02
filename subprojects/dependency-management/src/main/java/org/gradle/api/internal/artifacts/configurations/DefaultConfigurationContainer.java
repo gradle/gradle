@@ -50,8 +50,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration>
-    implements ConfigurationContainerInternal, ConfigurationsProvider {
+public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration> implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
 
     @SuppressWarnings("deprecation")

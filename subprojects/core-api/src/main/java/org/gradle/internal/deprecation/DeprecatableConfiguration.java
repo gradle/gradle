@@ -70,7 +70,7 @@ public interface DeprecatableConfiguration extends Configuration {
     DeprecatableConfiguration deprecateForConsumption(Function<DeprecationMessageBuilder.DeprecateConfiguration, DeprecationMessageBuilder.WithDocumentation> deprecation);
 
     /**
-     * Convinience method for {@link #deprecateForConsumption(Function)} which uses the default messaging behavior.
+     * Convenience method for {@link #deprecateForConsumption(Function)} which uses the default messaging behavior.
      *
      * @return this configuration
     */
