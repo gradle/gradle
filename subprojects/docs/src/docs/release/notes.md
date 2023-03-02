@@ -58,8 +58,9 @@ More details can be found in the [Gradle Wrapper](userguide/gradle_wrapper.html#
 
 #### Experimental Property assignment for Kotlin scripts
 
-It's now possible to use experimental Property assignment for Kotlin scripts.
-This reduces the verbosity of Kotlin DSL when recommended [lazy property types](userguide/lazy_configuration.html#lazy_properties) are used in tasks and extensions.
+It is now possible to use the `=` operator to assign values to `Property` types in Kotlin scripts as an alternative to the `set()` method:
+This reduces the verbosity of Kotlin DSL when [lazy property types](userguide/lazy_configuration.html#lazy_properties) are used to configure tasks and extensions.
+It also makes Kotlin DSL behavior consistent with Groovy DSL behavior, where using `=` to assign lazy properties has always been available.
 
 ```kotlin
 interface Extension {
@@ -67,7 +68,7 @@ interface Extension {
 }
 
 extension {
-    // Old way, with `.set()` method call (still supported)
+    // Using the `set()` method call
     description.set("Hello Property")
     // Gradle 8.1+ with Property assignment enabled
     description = "Hello Property"
