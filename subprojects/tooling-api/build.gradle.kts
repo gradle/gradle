@@ -55,7 +55,6 @@ dependencies {
     }
 
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":ide")))
