@@ -104,4 +104,35 @@ task checkResolveParentThenChild {
         succeeds "checkResolveChild"
         succeeds "checkResolveParentThenChild"
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/24109")
+    def "can resolve configuration after extending a resolved configuration"() {
+        given:
+        mavenRepo.module("org", "foo").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                superConfiguration
+                subConfiguration
+            }
+            dependencies {
+                superConfiguration 'org:foo:1.0'
+            }
+
+            task resolve {
+                println configurations.superConfiguration.files.collect { it.name }
+                configurations.subConfiguration.extendsFrom(configurations.superConfiguration)
+                println configurations.subConfiguration.files.collect { it.name }
+            }
+        """
+
+        when:
+        succeeds("resolve")
+
+        then:
+        output.contains("[foo-1.0.jar]\n[foo-1.0.jar]")
+    }
 }
