@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.model.gradle;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.ProjectIdentifier;
@@ -73,4 +74,14 @@ public interface BasicGradleProject extends Model, ProjectModel {
      * @return The child projects of this project, or the empty set if there are no child projects.
      */
     DomainObjectSet<? extends BasicGradleProject> getChildren();
+
+    /**
+     * Returns a path to the project for the full build tree
+     *
+     * @return a path to the project for the full build tree
+     *
+     * @since 8.1
+     */
+    @Incubating
+    String getBuildTreePath();
 }

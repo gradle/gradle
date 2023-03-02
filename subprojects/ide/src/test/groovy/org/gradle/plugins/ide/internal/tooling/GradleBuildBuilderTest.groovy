@@ -74,8 +74,8 @@ class GradleBuildBuilderTest extends Specification {
         def rootProject = Mock(ProjectState)
         rootProject.projectPath >> Path.ROOT
 
-        def includeProject1 = Mock(ProjectState)
-        includeProject1.projectPath >> Path.ROOT
+        def includedProject1 = Mock(ProjectState)
+        includedProject1.projectPath >> Path.ROOT
 
         def includedProject2 = Mock(ProjectState)
         includedProject2.projectPath >> Path.ROOT
@@ -100,14 +100,19 @@ class GradleBuildBuilderTest extends Specification {
         def includedBuild2 = Mock(IncludedBuildInternal)
 
         rootProject.childProjects >> [].toSet()
-        includeProject1.childProjects >> [].toSet()
+        rootProject.identityPath >> Path.path(":some:identity:path")
+
+        includedProject1.childProjects >> [].toSet()
+        includedProject1.identityPath >> Path.path(":some:identity:path")
         includedProject2.childProjects >> [].toSet()
+        includedProject2.identityPath >> Path.path(":some:identity:path")
 
         rootBuild.includedBuilds() >> [includedBuild1]
 
         rootBuildState.mutableModel >> rootBuild
         rootBuildState.buildRootDir >> rootDir
         rootBuildState.projects >> rootProjects
+        rootBuildState.identityPath >> Path.path(":some:identity:path")
 
         includedBuild1.target >> includedBuildState1
         includedBuild2.target >> includedBuildState2
@@ -119,10 +124,10 @@ class GradleBuildBuilderTest extends Specification {
         rootProjects.allProjects >> [rootProject].toSet()
         rootProjects.rootProject >> rootProject
 
-        projects1.allProjects >> [includeProject1].toSet()
-        projects1.rootProject >> includeProject1
+        projects1.allProjects >> [includedProject1].toSet()
+        projects1.rootProject >> includedProject1
 
-        projects2.allProjects >> [includeProject1].toSet()
+        projects2.allProjects >> [includedProject1].toSet()
         projects2.rootProject >> includedProject2
 
         build1.includedBuilds() >> [includedBuild2]
