@@ -20,7 +20,7 @@ abstract class MyTask : DefaultTask() {
     }
 }
 
-val extension = extensions.create<MyExtension>("myExtension").apply {
+val extension = extensions.create<MyExtension>("extension").apply {
     input.set("Hello Property") // <1>
     output.set(file("build/myTask/output.txt"))
     input = "Hello Property" // <2>

@@ -707,15 +707,15 @@ tasks.create("myTask") {
 
 Gradle's Kotlin DSL supports Property assignment as an experimental feature that can be enabled by adding `systemProp.org.gradle.unsafe.kotlin.assignment=true` to the `gradle.properties` file.
 Property assignment reduces the verbosity for Kotlin DSL when <<lazy_configuration#lazy_properties,lazy properties>> are used.
-Property assignment works for properties that are _final_ and have type _Property_ or _ConfigurableFileCollection_.
-Property assignment should be preferred over custom property setters since it makes Kotlin DSL code style consistent.
+Property assignment works for properties that are `final` and have type `Property` or `ConfigurableFileCollection`.
+Once the feature is released out of experimental status, using the `=` operator will be the preferred way over calling `set()` in Kotlin DSL.
 
 .Kotlin Property assignment
 ====
 include::sample[dir="snippets/kotlinDsl/assignment/kotlin",files="build.gradle.kts[tags=assignment]"]
 ====
-<1> Set value old way, with `.set()` method (still supported)
-<2> Set value with Property assignment with `=` operator
+<1> Set value with the `.set()` method
+<2> Set value with lazy property assignment using the `=` operator
 <3> Property assignment also supports lazy values
 
 [CAUTION]
