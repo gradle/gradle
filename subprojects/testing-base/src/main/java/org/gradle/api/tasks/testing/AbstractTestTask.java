@@ -112,7 +112,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private TestReporter testReporter;
     private boolean ignoreFailures;
     private boolean failFast;
-    private final Property<Boolean> failIfNoTest;
+    private final Property<Boolean> successWithoutTest;
 
     public AbstractTestTask() {
         Instantiator instantiator = getInstantiator();
@@ -122,7 +122,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testOutputListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestOutputListener.class);
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
         binaryResultsDirectory = getProject().getObjects().directoryProperty();
-        failIfNoTest = getProject().getObjects().property(Boolean.class).convention((Boolean)null);
+        successWithoutTest = getProject().getObjects().property(Boolean.class).convention((Boolean)null);
 
         reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, this);
         reports.getJunitXml().getRequired().set(true);
@@ -485,9 +485,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
         } else if (testCountLogger.getTotalTests() == 0) {
-            if (failIfNoTest.getOrNull() == null) {
-                getLogger().warn("There is no test to run. In 9.0, the behaviour will change to fail in this case. You can use 'test --fail-if-no-test' to set the behaviour.");
-            } else if (failIfNoTest.get() || shouldFailOnNoMatchingTests()) {
+            if (successWithoutTest.getOrNull() == null) {
+                getLogger().warn("There is no test to run. In 9.0, the behaviour will change to fail in this case. You can use 'test --success-without-test' to set the behaviour.");
+            } else if (!successWithoutTest.get() || shouldFailOnNoMatchingTests()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
             }
         }
@@ -574,20 +574,39 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     /**
-     * Indicates if this task will fail if there is no test to run.
+     * Indicates if this task will succeed when there is no test to run.
      *
-     * @return whether this task will fail if there is no test to run
+     * @return whether this task will succeed when there is no test to run
      */
-    Property<Boolean> getFailIfNoTest() {
-        return failIfNoTest;
+    Property<Boolean> getSuccessWithoutTest() {
+        return successWithoutTest;
     }
 
     /**
-     * Sets if the task will fail when there is no test to run.
+     * Sets the task to succeed when there is no test to run.
      */
-    void setFailIfNoTest(Boolean failIfNoTest) {
-        this.failIfNoTest.set(failIfNoTest);
-        this.failIfNoTest.finalizeValue();
+    void setSuccessWithoutTest(Boolean successWithoutTest) {
+        this.successWithoutTest.set(successWithoutTest);
+        this.successWithoutTest.finalizeValue();
+    }
+
+    /**
+     * Indicates if this task will fail when there is no test to run.
+     *
+     * @return whether this task will fail when there is no test to run
+     */
+    Property<Boolean> getNoSuccessWithoutTest() {
+        Property<Boolean> successWithoutTest = getSuccessWithoutTest();
+        Property<Boolean> noSuccessWithoutTest = getProject().getObjects().property(Boolean.class);
+        return successWithoutTest.isPresent() ? noSuccessWithoutTest.value(!successWithoutTest.get()) : noSuccessWithoutTest;
+    }
+
+    /**
+     * Sets the task to fail when there is no test to run.
+     */
+    void setNoSuccessWithoutTest(Boolean noSuccessWithoutTest) {
+        this.successWithoutTest.set(!noSuccessWithoutTest);
+        this.successWithoutTest.finalizeValue();
     }
 
     /**

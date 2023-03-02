@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.options;
 
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.typeconversion.BooleanFromCharSequenceNotationConverter;
 import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
 import org.gradle.internal.typeconversion.IntegerFromCharSequenceNotationConverter;
 import org.gradle.internal.typeconversion.NotationConverter;
@@ -35,8 +34,6 @@ public class OptionValueNotationParserFactory {
             return new NotationConverterToNotationParserAdapter<>(converter);
         } else if (targetType.isAssignableFrom(Integer.class)) {
             return new NotationConverterToNotationParserAdapter<>(Cast.uncheckedCast(new IntegerFromCharSequenceNotationConverter()));
-        } else if (targetType.isAssignableFrom(Boolean.class) || targetType.isAssignableFrom(Boolean.TYPE)) {
-            return new NotationConverterToNotationParserAdapter<>(Cast.uncheckedCast(new BooleanFromCharSequenceNotationConverter()));
         }
 
         throw new OptionValidationException(String.format("Don't know how to convert strings to type '%s'.", targetType.getName()));

@@ -529,24 +529,55 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     /**
-     * Sets if the task will fail when there is no test to run.
+     * Sets the task to succeed when there is no test to run.
+     *
+     * Opposite of {@link #setNoSuccessWithoutTest(Boolean)},
+     * the underlying value is finalized after one of the methods is called.
      */
-    @Option(option = "fail-if-no-test", description = "Sets if task fails when there is no test to run.")
+    @Option(option = "success-without-test", description = "Sets task to succeed when there is no test to run.")
     @Override
-    public void setFailIfNoTest(Boolean failIfNoTest) {
-        super.setFailIfNoTest(failIfNoTest);
+    public void setSuccessWithoutTest(Boolean successWithoutTest) {
+        super.setSuccessWithoutTest(successWithoutTest);
     }
 
     /**
-     * Indicates if this task will fail when there is no test to run
+     * Indicates if this task will succeed when there is no test to run.
      *
-     * @return whether this task will fail when there is no test to run
+     * Inverses {@link #getNoSuccessWithoutTest()}.
+     *
+     * @return whether this task will succeed when there is no test to run
      */
     @Input
     @Optional
     @Override
-    public Property<Boolean> getFailIfNoTest() {
-        return super.getFailIfNoTest();
+    public Property<Boolean> getSuccessWithoutTest() {
+        return super.getSuccessWithoutTest();
+    }
+
+    /**
+     * Sets the task to fail when there is no test to run.
+     *
+     * Opposite of {@link #setSuccessWithoutTest(Boolean)},
+     * the underlying value is finalized after one of the methods is called.
+     */
+    @Option(option = "no-success-without-test", description = "Sets task to fail when there is no test to run.")
+    @Override
+    public void setNoSuccessWithoutTest(Boolean noSuccessWithoutTest) {
+        super.setSuccessWithoutTest(!noSuccessWithoutTest);
+    }
+
+    /**
+     * Indicates if this task will fail when there is no test to run.
+     *
+     * Inverses {@link #getSuccessWithoutTest()}.
+     *
+     * @return whether this task will succeed when there is no test to run
+     */
+    @Input
+    @Optional
+    @Override
+    public Property<Boolean> getNoSuccessWithoutTest() {
+        return super.getNoSuccessWithoutTest();
     }
 
     /**

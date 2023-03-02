@@ -30,14 +30,14 @@ class TestTaskNoTestsFailTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning("There is no test to run. In 9.0, the behaviour will change to fail in this case. You can use 'test --fail-if-no-test' to set the behaviour.")
+        executer.expectDeprecationWarning("There is no test to run. In 9.0, the behaviour will change to fail in this case. You can use 'test --success-without-test' to set the behaviour.")
         succeeds("test")
 
         then:
         noExceptionThrown()
     }
 
-    def "test --fail-if-no-test=true fails if there is no test"() {
+    def "test --success-without-test succeeds without warning if there is no test"() {
         buildFile << "apply plugin: 'java'"
 
         file("src/test/java/NotATest.java") << """
@@ -45,27 +45,27 @@ class TestTaskNoTestsFailTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run("test", "--fail-if-no-test=true")
+        succeeds("test", "--success-without-test")
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "test --no-success-without-test fails if there is no test"() {
+        buildFile << "apply plugin: 'java'"
+
+        file("src/test/java/NotATest.java") << """
+            public class NotATest {}
+        """
+
+        when:
+        run("test", "--no-success-without-test")
 
         then:
         UnexpectedBuildFailure buildFailure = thrown(UnexpectedBuildFailure)
         Throwable exception = buildFailure.cause.cause.cause
         exception.class.is(TestExecutionException.class)
         exception.message.startsWith("No tests found for given includes: ")
-    }
-
-    def "test --fail-if-no-test=false succeeds without warning if there is no test"() {
-        buildFile << "apply plugin: 'java'"
-
-        file("src/test/java/NotATest.java") << """
-            public class NotATest {}
-        """
-
-        when:
-        succeeds("test", "--fail-if-no-test=false")
-
-        then:
-        noExceptionThrown()
     }
 
     def "test is skipped if there is no test file"() {
@@ -80,13 +80,25 @@ class TestTaskNoTestsFailTest extends AbstractIntegrationSpec {
         skipped(":test")
     }
 
-    def "test --fail-if-no-test=false is skipped if there is no test file"() {
+    def "test --success-without-test is skipped if there is no test file"() {
         buildFile << "apply plugin: 'java'"
 
         file("src/test/java/not_a_test.txt")
 
         when:
-        succeeds("test", "--fail-if-no-test=false")
+        succeeds("test", "--success-without-test")
+
+        then:
+        skipped(":test")
+    }
+
+    def "test --no-success-without-test is skipped if there is no test file"() {
+        buildFile << "apply plugin: 'java'"
+
+        file("src/test/java/not_a_test.txt")
+
+        when:
+        succeeds("test", "--no-success-without-test")
 
         then:
         skipped(":test")

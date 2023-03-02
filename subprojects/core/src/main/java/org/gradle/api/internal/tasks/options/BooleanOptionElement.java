@@ -24,9 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A flag that can take zero or one arguments.
- * Without an argument, the option is set to true, otherwise the argument
- * must be true or false and the option is set accordingly.
+ * A flag, does not take an argument.
  */
 public class BooleanOptionElement extends AbstractOptionElement {
     private final PropertySetter setter;
