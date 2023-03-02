@@ -87,7 +87,7 @@ TODO - Java lambdas are supported, and unsupported captured values are reported.
 TODO - File collections queried at configuration time are treated as configuration inputs.
 TODO - File system repositories are fully supported including dynamic versions in Maven, Maven local, and Ivy repositories
 
-#### Build Init plugin incubating option changes
+### Build Init plugin incubating option changes
 
 When using the `init` task with the `--incubating` option, [parallel project execution](userguide/multi_project_configuration_and_execution.html#sec:parallel_execution) and [task output caching](userguide/build_cache.html) will be enabled for the generated project (by creating a `gradle.properties` file and setting the appropriate flags in it).
 
