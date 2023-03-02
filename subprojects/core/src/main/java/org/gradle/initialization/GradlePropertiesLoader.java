@@ -15,11 +15,11 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.initialization.properties.GradlePropertiesInternal;
 
 import java.io.File;
 
-public interface IGradlePropertiesLoader {
+public interface GradlePropertiesLoader {
 
     String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
 
@@ -30,5 +30,5 @@ public interface IGradlePropertiesLoader {
      *
      * @since 6.2
      */
-    GradleProperties loadGradleProperties(File rootDir);
+    GradlePropertiesInternal loadGradleProperties(File rootDir);
 }
