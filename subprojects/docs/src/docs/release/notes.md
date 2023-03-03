@@ -192,7 +192,7 @@ The standalone script compilation is also configured to skip the pre-release che
 The `kotlin-dsl` plugin is now published to the Gradle Plugin Portal with proper licensing information in its metadata.
 The plugin is published under the same license as the Gradle Build Tool: the Apache License  Version 2.0.
 
-This makes it easier to use the `kotlin-dsl` plugin in an enterprise setting where published licensing information is required. 
+This makes using the `kotlin-dsl` plugin easier in an enterprise setting where published licensing information is required. 
 
 #### Precompiled Kotlin script plugins improvements
 
