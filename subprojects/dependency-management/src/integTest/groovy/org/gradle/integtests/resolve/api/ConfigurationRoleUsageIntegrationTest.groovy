@@ -530,6 +530,12 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         configuration << ['api', 'implementation', 'compileOnly', 'runtimeOnly', 'archives']
     }
 
+    /**
+     * This test ensures that the Kotlin plugin will not emit deprecation warnings when it prevents these configurations created by the
+     * Java plugin from being consumed.
+     *
+     * @see <a href="https://github.com/JetBrains/kotlin/blob/4be359ba02fba4c5539ba50392126b5367fa9169/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/jvm/KotlinJvmTarget.kt#L101">KotlinJvmTarget.kt</a>
+     */
     def "setting consumable = false is permitted without warning for special cases to support Kotlin plugin (can change #configuration usage without warning = #allowed)"() {
         given: "a buildscript which attempts to change a configuration's usage"
         buildFile << """
