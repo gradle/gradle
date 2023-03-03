@@ -239,6 +239,31 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         'deprecated resolvable' | "deprecatedResolvable('custom')"  || true        | true          | true              | true                  | false                 | true
     }
 
+    def "can prevent usage mutation of role-based configuration #configuration added by java plugin meant for consumption"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            configurations {
+                $configuration {
+                    assert canBeConsumed == true
+                    preventUsageMutation()
+                    canBeConsumed = false
+                }
+            }
+        """
+
+        expect:
+        fails 'help'
+
+        and:
+        assertUsageLockedFailure(configuration, 'Intended Consumable')
+
+        where:
+        configuration << ['runtimeElements', 'apiElements']
+    }
+
     def "can prevent usage mutation of role-based configuration #role"() {
         given:
         buildFile << """

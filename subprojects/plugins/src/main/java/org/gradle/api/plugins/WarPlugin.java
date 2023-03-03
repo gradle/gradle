@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.java.WebApplication;
@@ -97,7 +98,7 @@ public abstract class WarPlugin implements Plugin<Project> {
 
         PublishArtifact warArtifact = new LazyPublishArtifact(war, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(warArtifact);
-        configureConfigurations(project, project.getConfigurations(), component);
+        configureConfigurations(((ProjectInternal) project).getConfigurations(), component);
         configureComponent(project, warArtifact);
     }
 
@@ -113,18 +114,16 @@ public abstract class WarPlugin implements Plugin<Project> {
             .withUpgradeGuideSection(8, "war_plugin_configure_configurations")
             .nagUser();
 
-        configureConfigurations(project, configurationContainer, component);
+        configureConfigurations((RoleBasedConfigurationContainerInternal) configurationContainer, component);
     }
 
-    private void configureConfigurations(Project project, ConfigurationContainer configurationContainer, JvmSoftwareComponentInternal component) {
-        Configuration providedCompileConfiguration = configurationContainer.create(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
+    private void configureConfigurations(RoleBasedConfigurationContainerInternal configurationContainer, JvmSoftwareComponentInternal component) {
+        Configuration providedCompileConfiguration = configurationContainer.resolvableBucket(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
             setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
-        providedCompileConfiguration.setCanBeConsumed(false);
 
-        Configuration providedRuntimeConfiguration = configurationContainer.create(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
+        Configuration providedRuntimeConfiguration = configurationContainer.resolvableBucket(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
             extendsFrom(providedCompileConfiguration).
             setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
-        providedRuntimeConfiguration.setCanBeConsumed(false);
 
         component.getImplementationConfiguration().extendsFrom(providedCompileConfiguration);
         component.getRuntimeClasspathConfiguration().extendsFrom(providedRuntimeConfiguration);

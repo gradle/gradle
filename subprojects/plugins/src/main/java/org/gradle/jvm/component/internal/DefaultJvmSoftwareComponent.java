@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
@@ -30,6 +29,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -109,7 +109,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         this.jvmPluginServices = jvmPluginServices;
 
         TaskContainer tasks = project.getTasks();
-        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
+        RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
         PluginContainer plugins = project.getPlugins();
         ExtensionContainer extensions = project.getExtensions();
 
@@ -232,7 +232,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         return apiElementsConfiguration;
     }
 
-    private Configuration createSourceElements(ConfigurationContainer configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, SourceSet sourceSet) {
+    private Configuration createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, SourceSet sourceSet) {
 
         // TODO: Why are we using this non-standard name? For the `java` component, this
         // equates to `mainSourceElements` instead of `sourceElements` as one would expect.
@@ -240,11 +240,9 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         // of the component's API?
         String variantName = sourceSet.getName() + SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX;
 
-        Configuration variant = configurations.create(variantName);
+        @SuppressWarnings("deprecation") Configuration variant = configurations.createWithRole(variantName, ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE);
         variant.setDescription("List of source directories contained in the Main SourceSet.");
         variant.setVisible(false);
-        variant.setCanBeResolved(false);
-        variant.setCanBeConsumed(true);
         variant.extendsFrom(implementation);
 
         variant.attributes(attributes -> {

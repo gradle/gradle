@@ -372,8 +372,8 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         ignoreWhenJUnitPlatform()
 
         given:
-        file('src/test/java/MyTest.java') << standaloneTestClass()
-        file("src/test/java/Slow.java") << """public interface Slow {}"""
+        file('src/customTest/java/MyTest.java') << standaloneTestClass()
+        file("src/customTest/java/Slow.java") << """public interface Slow {}"""
 
         settingsFile << "rootProject.name = 'Sample'"
         buildFile << """apply plugin: 'java'
