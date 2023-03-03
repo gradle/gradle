@@ -99,12 +99,15 @@ ADD RELEASE FEATURES ABOVE
 
 ## Tooling API improvements
 
-- [Build launched via TAPI ignores logger level settings of target build](https://github.com/gradle/gradle/issues/19340)
+#### Build launched via TAPI applies log level settings of target build set in gradle.properties
 
-  `org.gradle.logging.loglevel` settings in `gradle.properties` are now recognized when a build is executed with the Tooling API.
-  This was a problem caused executions triggered from within the IDE to ignore loglevel settings in `gradle.properties`. 
-  A workaround had to be implemented. This workaround can be avoid from 8.1 onwards.  
-
+  When executing a build via the Tooling API (typically from within an IDE such as IntelliJ), the log level settings provided in the project's `gradle.properties` file have been ignored till now.
+  The IDE vendors had to workaround this short coming by setting the log level in other ways to meet user expectations 
+  (e.g. with parsing `gradle.properties` and applying corresponding command line options to the build execution.
+  
+  The improved Tooling API now reads the `org.gradle.logging.loglevel` setting in the project's `gradle.properties` and applies it as expected to the build execution.
+  
+  Learn more about the [Choosing a log level](userguide/logging.html#sec:choosing_a_log_level) in Gradle.  
 
 ## Promoted features
 
