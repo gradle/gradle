@@ -1791,7 +1791,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void maybeWarnOnChangingUsage(String usage, boolean current) {
         if (!isSpecialCaseOfChangingUsage(usage, current)) {
             String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
-            DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), describeChangingUsage(usage, current)))
+            String changingUsage = usage + " was " + !current + " and is now " + current;
+            
+            DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), changingUsage))
                     .withAdvice("Usage should be fixed upon creation.")
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "configurations_allowed_usage")
@@ -1829,10 +1831,6 @@ since users cannot create non-legacy configurations and there is no current publ
         boolean isPermittedConfigurationChangeForKotlin = name.equals("apiElements") || name.equals("runtimeElements") && usage.equals("consumable") && !current;
 
         return isInitializing || isDetachedConfiguration || isLegacyRole || isPermittedConfigurationChangeForKotlin;
-    }
-
-    private String describeChangingUsage(String usage, boolean current) {
-        return usage + " was " + !current + " and is now " + current;
     }
 
     @Override
