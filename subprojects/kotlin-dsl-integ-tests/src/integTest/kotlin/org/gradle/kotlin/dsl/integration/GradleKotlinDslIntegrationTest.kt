@@ -247,7 +247,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                 "https://docs.gradle.org/current/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
         )
         executer.expectDocumentedDeprecationWarning(
-            "The Project.getConvention method has been deprecated. " +
+            "The Project.getConvention() method has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_7.html#all_convention_deprecation"

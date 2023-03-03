@@ -585,7 +585,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     @Deprecated
     public Convention getConvention() {
-        DeprecationLogger.deprecateMethod(AbstractTask.class, "getConvention")
+        DeprecationLogger.deprecateMethod(AbstractTask.class, "getConvention()")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "all_convention_deprecation")
             .nagUser();
