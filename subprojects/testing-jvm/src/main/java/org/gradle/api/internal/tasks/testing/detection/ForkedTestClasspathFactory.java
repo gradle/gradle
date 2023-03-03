@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -30,7 +31,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.util.internal.CollectionUtils;
-import org.jetbrains.annotations.VisibleForTesting;
 
 import java.io.Closeable;
 import java.io.File;
