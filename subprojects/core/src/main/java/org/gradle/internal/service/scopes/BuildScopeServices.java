@@ -135,7 +135,7 @@ import org.gradle.initialization.Environment;
 import org.gradle.initialization.EnvironmentChangeTracker;
 import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.initialization.GradlePropertiesLoader;
+import org.gradle.initialization.IGradlePropertiesLoader;
 import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.NotifyingBuildLoader;
@@ -356,7 +356,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected GradlePropertiesController createGradlePropertiesController(
-        GradlePropertiesLoader propertiesLoader,
+        IGradlePropertiesLoader propertiesLoader,
         SystemPropertiesInstaller systemPropertiesInstaller,
         ProjectPropertiesLoader projectPropertiesLoader
     ) {
@@ -369,7 +369,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectPropertiesLoader((StartParameterInternal) get(StartParameter.class), environment);
     }
 
-    protected GradlePropertiesLoader createGradlePropertiesLoader(
+    protected IGradlePropertiesLoader createGradlePropertiesLoader(
         Environment environment
     ) {
         return new DefaultGradlePropertiesLoader((StartParameterInternal) get(StartParameter.class), environment);
