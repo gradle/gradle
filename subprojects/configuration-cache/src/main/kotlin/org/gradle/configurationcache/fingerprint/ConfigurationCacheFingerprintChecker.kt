@@ -25,6 +25,7 @@ import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.extensions.fileSystemEntryType
 import org.gradle.configurationcache.extensions.filterKeysByPrefix
 import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.configurationcache.logger
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
@@ -284,11 +285,19 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
     private
     fun checkFingerprintValueIsUpToDate(obtainedValue: ObtainedValue): InvalidationReason? {
-        val valueSource = host.instantiateValueSourceOf(obtainedValue)
-        if (obtainedValue.value.get() != valueSource.obtain()) {
-            return buildLogicInputHasChanged(valueSource)
+        return obtainedValue.value.map { fingerprintedValue ->
+            val valueSource = host.instantiateValueSourceOf(obtainedValue)
+            if (fingerprintedValue != valueSource.obtain()) {
+                buildLogicInputHasChanged(valueSource)
+            } else {
+                null
+            }
+        }.getOrMapFailure { failure ->
+            // This can only happen if someone ignored configuration cache problems and still stored the entry.
+            // We're invalidating the cache to save the user a manual "rm -rf .gradle/configuration-cache", as there is no way out.
+            logger.info("The build logic input of type ${obtainedValue.valueSourceType} cannot be checked because it failed when storing the entry", failure)
+            buildLogicInputFailed(obtainedValue, failure)
         }
-        return null
     }
 
     private
@@ -312,6 +321,10 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         (valueSource as? Describable)?.let {
             it.displayName + " has changed"
         } ?: "a build logic input of type '${unpackType(valueSource).simpleName}' has changed"
+
+    private
+    fun buildLogicInputFailed(obtainedValue: ObtainedValue, failure: Throwable): InvalidationReason =
+        "a build logic input of type '${obtainedValue.valueSourceType.simpleName}' failed when storing the entry with $failure"
 
     private
     class ProjectInvalidationState {
