@@ -160,7 +160,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
     }
 
-
     def "chained transform operations are captured"() {
         settingsFile << """
             include 'producer', 'consumer'
@@ -706,23 +705,19 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         )
 
         def executeTransformationOps = getExecuteTransformOperations(2)
-        with(executeTransformationOps[0].details) {
-            matchTransformationIdentity(transformationIdentity, expectedTransformId1)
-            transformType == "MakeGreen"
-            sourceAttributes == [color: "blue", artifactType: "jar"]
-
-            transformerName == "MakeGreen"
-            subjectName == "producer.out1.jar (project :producer)"
-        }
-
-        with(executeTransformationOps[1].details) {
-            matchTransformationIdentity(transformationIdentity, expectedTransformId2)
-            transformType == "MakeGreen"
-            sourceAttributes == [color: "blue", artifactType: "jar"]
-
-            transformerName == "MakeGreen"
-            subjectName == "producer.out2.jar (project :producer)"
-        }
+        // Order of scheduling/execution is not guaranteed between the transforms
+        checkExecuteTransformOperation(executeTransformationOps, expectedTransformId1, [
+            transformType: "MakeGreen",
+            sourceAttributes: [color: "blue", artifactType: "jar"],
+            transformerName: "MakeGreen",
+            subjectName: "producer.out1.jar (project :producer)",
+        ])
+        checkExecuteTransformOperation(executeTransformationOps, expectedTransformId2, [
+            transformType: "MakeGreen",
+            sourceAttributes: [color: "blue", artifactType: "jar"],
+            transformerName: "MakeGreen",
+            subjectName: "producer.out2.jar (project :producer)",
+        ])
     }
 
     def "failing transform"() {
@@ -895,7 +890,20 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def operations = buildOperations.all(ExecuteScheduledTransformationStepBuildOperationType)
         assert operations.every { (it.failure != null) == expectFailure }
         assert operations.size() == expectOperationsCount
-        // Sort to guarantee the stable order for details checks
-        return operations.toSorted { it.details.transformationIdentity.transformationNodeId }
+        return operations
+    }
+
+    void checkExecuteTransformOperation(List<BuildOperationRecord> executeOperations, TransformationIdentityWithoutId expectedTransformId, Map<String, Object> expectedDetails) {
+        def matchedOperations = executeOperations.findAll { matchTransformationIdentity(it.details.transformationIdentity, expectedTransformId) }
+        assert matchedOperations.size() == 1
+        def operation = matchedOperations[0]
+
+        with(operation.details) {
+            assert transformType == expectedDetails.transformType
+            assert sourceAttributes == expectedDetails.sourceAttributes
+
+            assert transformerName == expectedDetails.transformerName
+            assert subjectName == expectedDetails.subjectName
+        }
     }
 }
