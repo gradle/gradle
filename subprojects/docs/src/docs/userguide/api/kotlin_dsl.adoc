@@ -703,50 +703,33 @@ tasks.create("myTask") {
 
 
 [[kotdsl:assignment]]
-== Kotlin Property assignment
+== Kotlin lazy property assignment
 
-Gradle's Kotlin DSL supports Property assignment as an experimental feature that can be enabled by adding `systemProp.org.gradle.unsafe.kotlin.assignment=true` to the `gradle.properties` file.
-Property assignment reduces the verbosity for Kotlin DSL when <<lazy_configuration#lazy_properties,lazy properties>> are used.
-Property assignment works for properties that are `final` and have type `Property` or `ConfigurableFileCollection`.
-Once the feature is released out of experimental status, using the `=` operator will be the preferred way over calling `set()` in Kotlin DSL.
+Gradle's Kotlin DSL supports lazy property assignment using the `=` operator as an experimental feature that can be enabled by adding `systemProp.org.gradle.unsafe.kotlin.assignment=true` to the `gradle.properties` file.
+Lazy property assignment reduces the verbosity for Kotlin DSL when <<lazy_configuration#lazy_properties,lazy properties>> are used.
+It works for properties that are publicly seen as `final` (without a setter) and have type `Property` or `ConfigurableFileCollection`.
+Since properties have to be `final`, our general recommendation is to not implement custom setters for properties with lazy types and if possible implement such properties via an abstract getter.
 
-.Kotlin Property assignment
+Once the feature is released out of experimental status, using the `=` operator will be the preferred way to calling `set()` in the Kotlin DSL.
+
+.Kotlin lazy property assignment
 ====
 include::sample[dir="snippets/kotlinDsl/assignment/kotlin",files="build.gradle.kts[tags=assignment]"]
 ====
 <1> Set value with the `.set()` method
 <2> Set value with lazy property assignment using the `=` operator
-<3> Property assignment also supports lazy values
+<3> The `=` operator can be used also for assigning lazy values
 
 [CAUTION]
 ====
-Enabling Kotlin Property assignment will fail your build if `allWarningsAsErrors` feature is enabled for the Kotlin compiler for build logic, since the Kotlin compiler plugin is still experimental.
-====
-
-=== How Property assignment works?
-
-Property assignment is implemented via a Kotlin compiler plugin, and it works similarly to operator overloads that are natively supported by the Kotlin language, e.g. `+=`.
-The main difference from overloading other Kotlin operators is that it works just for final properties.
-
-The assignment overload is declared as an extension method, e.g.:
-
-.KotlinAssignmentExtensions.kt
-[source,kotlin]
-```
-fun <T> Property<T>.assign(value: T?) = this.set(value)
-```
-
-Because the Property assignment feature is implemented as a compiler plugin, you can easily inspect the declaration of the assignment overload in the IDE, by highlighting the `=` and inspecting the declaration, e.g. in the IntelliJ you can use _Go To Declaration_.
-
-[NOTE]
-====
-While it's possible to implement custom `=` overloads, it's not recommended in public plugins, due to possible conflicts and Kotlin DSL code style consistency in general.
+Enabling lazy property assignment will fail your build if link:https://kotlinlang.org/docs/gradle-compiler-options.html#attributes-common-to-jvm-js-and-js-dce[allWarningsAsErrors] option is enabled for the Kotlin compiler for build logic, since the Kotlin compiler plugin is still experimental.
 ====
 
 === IDE support
 
-Property assignment is supported from IntelliJ 2022.3 and from Android Studio Giraffe.
-For IDE to correctly detect the Kotlin assignment `systemProp.org.gradle.unsafe.kotlin.assignment=true` has to be added to the root project `gradle.properties` file (also for all included builds).
+Lazy property assignment is supported from IntelliJ 2022.3 and from Android Studio Giraffe.
+The IDE integration is not stable yet.
+For IDE to detect the Kotlin assignment, `systemProp.org.gradle.unsafe.kotlin.assignment=true` has to be added to the root project `gradle.properties` file (also for all included builds).
 Additionally, after the property value is changed, the project has to be reopened.
 In future releases, we will work on improving the IDE experience and remove these requirements.
 
