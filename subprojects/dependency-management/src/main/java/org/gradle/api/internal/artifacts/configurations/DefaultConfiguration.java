@@ -170,7 +170,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * The default {@link Configuration} implementation.
  * <p>
  * After initialization, when the allowed usage is changed then warnings will be emitted, except for the special cases
- * noted in {@link #isSpecialCaseOfChangingUsage(boolean)}}.  Initialization is complete when the {@link #roleAtCreation} field is set.
+ * noted in {@link #isSpecialCaseOfChangingUsage(String, boolean)}}.  Initialization is complete when the {@link #roleAtCreation} field is set.
  */
 @SuppressWarnings("rawtypes")
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
@@ -1789,7 +1789,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void maybeWarnOnChangingUsage(String usage, boolean current) {
-        if (!isSpecialCaseOfChangingUsage()) {
+        if (!isSpecialCaseOfChangingUsage(usage, current)) {
             String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
             DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), describeChangingUsage(usage, current)))
                     .withAdvice("Usage should be fixed upon creation.")
@@ -1810,21 +1810,24 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      *     <li>While {#roleAtCreation} is {@code null}, we are still initializing, so we should NOT warn.</li>
      *     <li>Changes to the usage of the detached configurations should NOT warn (this done by the Kotlin plugin).</li>
      *     <li>The legacy role is a special case, and should NOT warn when changing usage (due to the permissiveness of the legacy role, this change will always be a further restriction).</li>
-     *     <li>Changing usage on the {@code apiElements} and {@code runtimeElements} configurations should NOT warn (this is done by the Kotlin plugin).</li>
+     *     <li>Setting consumable usage to false on the {@code apiElements} and {@code runtimeElements} configurations should NOT warn (this is done by the Kotlin plugin).</li>
      *     <li>All other usage changes should warn.</li>
      * </ol>
      * <p>
      * This method is temporary, so the duplication of the configuration names defined in
      * {@link JavaPlatformPlugin}, which are not available to be referenced directly from here, is unfortunate, but not a showstopper.
+     *
+     * @param usage the name usage that is being changed
+     * @param current the current value of the usage after the change
      */
     @SuppressWarnings({"JavadocReference", "deprecation"})
-    private boolean isSpecialCaseOfChangingUsage() {
+    private boolean isSpecialCaseOfChangingUsage(String usage, boolean current) {
         boolean isInitializing = roleAtCreation == null;
         boolean isLegacyRole = roleAtCreation == ConfigurationRoles.LEGACY;
         boolean isDetachedConfiguration = this.configurationsProvider instanceof DetachedConfigurationsProvider;
-        boolean isPermittedConfiguration = name.equals("apiElements") || name .equals("runtimeElements");
+        boolean isPermittedConfigurationChangeForKotlin = name.equals("apiElements") || name.equals("runtimeElements") && usage.equals("consumable") && !current;
 
-        return isInitializing || isDetachedConfiguration || isLegacyRole || isPermittedConfiguration;
+        return isInitializing || isDetachedConfiguration || isLegacyRole || isPermittedConfigurationChangeForKotlin;
     }
 
     private String describeChangingUsage(String usage, boolean current) {
