@@ -55,6 +55,7 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
                 systemProperties.testSysProperty = 'value'
                 systemProperties.projectDir = projectDir
                 environment.TEST_ENV_VAR = 'value'
+                testLogging.showStandardStreams = true
             }
         """
     }
@@ -92,21 +93,21 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         """
 
         addClasspathTest("""
-            assert jars.get(0).endsWith("junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar");
-            assert jars.get(1).endsWith("junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar");
-            assert jars.get(2).endsWith("junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar");
-            assert jars.get(3).endsWith("junit-platform-engine-${JUNIT_PLATFORM_VERSION}.jar");
-            assert jars.get(4).endsWith("junit-platform-commons-${JUNIT_PLATFORM_VERSION}.jar");
-            assert jars.get(5).endsWith("junit-jupiter-${JUNIT_JUPITER_VERSION}.jar");
-            assert jars.get(6).endsWith("opentest4j-${OPENTEST4J_VERSION}.jar");
+            assertEquals(jars.get(0), "junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar");
+            assertEquals(jars.get(1), "junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar");
+            assertEquals(jars.get(2), "junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar");
+            assertEquals(jars.get(3), "junit-platform-engine-${JUNIT_PLATFORM_VERSION}.jar");
+            assertEquals(jars.get(4), "junit-platform-commons-${JUNIT_PLATFORM_VERSION}.jar");
+            assertEquals(jars.get(5), "junit-jupiter-${JUNIT_JUPITER_VERSION}.jar");
+            assertEquals(jars.get(6), "opentest4j-${OPENTEST4J_VERSION}.jar");
 
             // And then the distribution-loaded launcher
-            assert jars.get(7).endsWith("junit-platform-launcher-${JUnitCoverage.LATEST_PLATFORM_VERSION}.jar");
-            assert jars.size() == 8;
+            assertEquals(jars.get(7), "junit-platform-launcher-${JUnitCoverage.LATEST_PLATFORM_VERSION}.jar");
+            assertEquals(jars.size(), 8);
         """)
 
         expect:
-        succeeds "test"
+        succeeds "test", '--stacktrace'
     }
 
     def "does not load junit-platform-launcher from distribution when it is on the classpath already"() {
@@ -120,15 +121,15 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         """
 
         addClasspathTest("""
-            assert jars.get(0).endsWith("junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar");
-            assert jars.get(1).endsWith("junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar");
-            assert jars.get(2).endsWith("junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar");
-            assert jars.get(3).endsWith("junit-platform-launcher-${JUNIT_PLATFORM_VERSION}.jar");
-            assert jars.get(4).endsWith("junit-platform-engine-${JUNIT_PLATFORM_VERSION}.jar");
-            assert jars.get(5).endsWith("junit-platform-commons-${JUNIT_PLATFORM_VERSION}.jar");
-            assert jars.get(6).endsWith("junit-jupiter-${JUNIT_JUPITER_VERSION}.jar");
-            assert jars.get(7).endsWith("opentest4j-${OPENTEST4J_VERSION}.jar");
-            assert jars.size() == 8;
+            assertEquals(jars.get(0), "junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar");
+            assertEquals(jars.get(1), "junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar");
+            assertEquals(jars.get(2), "junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar");
+            assertEquals(jars.get(3), "junit-platform-launcher-${JUNIT_PLATFORM_VERSION}.jar");
+            assertEquals(jars.get(4), "junit-platform-engine-${JUNIT_PLATFORM_VERSION}.jar");
+            assertEquals(jars.get(5), "junit-platform-commons-${JUNIT_PLATFORM_VERSION}.jar");
+            assertEquals(jars.get(6), "junit-jupiter-${JUNIT_JUPITER_VERSION}.jar");
+            assertEquals(jars.get(7), "opentest4j-${OPENTEST4J_VERSION}.jar");
+            assertEquals(jars.size(), 8);
         """)
 
         expect:
@@ -164,15 +165,15 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         """
 
         addClasspathTest("""
-            assert jars.get(0).endsWith("renamed-junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar");
-            assert jars.get(1).endsWith("renamed-junit-platform-launcher-${JUNIT_PLATFORM_VERSION}.jar");
-            assert jars.get(2).endsWith("renamed-junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar");
-            assert jars.get(3).endsWith("renamed-junit-platform-commons-${JUNIT_PLATFORM_VERSION}.jar");
-            assert jars.get(4).endsWith("renamed-junit-jupiter-${JUNIT_JUPITER_VERSION}.jar");
-            assert jars.get(5).endsWith("renamed-junit-platform-engine-${JUNIT_PLATFORM_VERSION}.jar");
-            assert jars.get(6).endsWith("opentest4j-${OPENTEST4J_VERSION}.jar");
-            assert jars.get(7).endsWith("renamed-junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar");
-            assert jars.size() == 8;
+            assertEquals(jars.get(0), "renamed-junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar");
+            assertEquals(jars.get(1), "renamed-junit-platform-launcher-${JUNIT_PLATFORM_VERSION}.jar");
+            assertEquals(jars.get(2), "renamed-junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar");
+            assertEquals(jars.get(3), "renamed-junit-platform-commons-${JUNIT_PLATFORM_VERSION}.jar");
+            assertEquals(jars.get(4), "renamed-junit-jupiter-${JUNIT_JUPITER_VERSION}.jar");
+            assertEquals(jars.get(5), "renamed-junit-platform-engine-${JUNIT_PLATFORM_VERSION}.jar");
+            assertEquals(jars.get(6), "opentest4j-${OPENTEST4J_VERSION}.jar");
+            assertEquals(jars.get(7), "renamed-junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar");
+            assertEquals(jars.size(), 8);
         """)
 
         expect:
@@ -191,6 +192,8 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
             import java.util.regex.Pattern;
             import java.util.stream.Collectors;
 
+            import static org.junit.jupiter.api.Assertions.assertEquals;
+
             public class ClasspathCheckingTest {
                 @org.junit.jupiter.api.Test
                 public void checkEnvironment() {
@@ -205,29 +208,26 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
                     List<String> classpath;
                     if (isJava9) {
-                        classpath = Arrays.asList(System.getProperty("java.class.path").split(Pattern.quote(File.pathSeparator)));
+                        classpath = Arrays.stream(System.getProperty("java.class.path").split(Pattern.quote(File.pathSeparator)))
+                            .map(path -> new File(path).getName())
+                            .collect(Collectors.toList());
                     } else {
                         classpath = Arrays.stream(((URLClassLoader) ClassLoader.getSystemClassLoader()).getURLs())
-                            .map(URL::getPath)
+                            .map(url -> new File(url.getPath()).getName())
                             .collect(Collectors.toList());
                     }
 
                     try {
-                        // The worker jar is first on the classpath.
-                        String workerJar = classpath.get(0);
-                        assert workerJar.endsWith("gradle-worker.jar");
-
-                        // After, we expect the test runtime classpath.
-                        String testClasses = classpath.get(1);
-                        assert testClasses.endsWith("test") || testClasses.endsWith("test/");
+                        assertEquals(classpath.get(0), "gradle-worker.jar");
+                        assertEquals(classpath.get(1), "test");
 
                         // Any remaining jars should be verified by the individual test.
                         List<String> jars = classpath.subList(2, classpath.size());
 
                         ${testCode}
                     } catch (AssertionError e) {
-                        String output = "Expectation failed. Actual Jars:\\n" + String.join("\\n", classpath);
-                        throw new RuntimeException(output, e);
+                        System.err.println(e.getMessage() + "\\nActual Jars:\\n- " + String.join("\\n- ", classpath));
+                        throw e;
                     }
                 }
             }
