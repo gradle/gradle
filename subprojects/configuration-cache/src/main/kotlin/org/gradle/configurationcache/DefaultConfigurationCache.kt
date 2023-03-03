@@ -47,6 +47,7 @@ import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.util.Path
 import java.io.File
+import java.io.OutputStream
 
 
 class DefaultConfigurationCache internal constructor(
@@ -419,13 +420,13 @@ class DefaultConfigurationCache internal constructor(
     private
     fun startCollectingCacheFingerprint() {
         cacheFingerprintController.maybeStartCollectingFingerprint(store.assignSpoolFile(StateType.BuildFingerprint), store.assignSpoolFile(StateType.ProjectFingerprint)) {
-            cacheFingerprintWriterContextFor(it)
+            cacheFingerprintWriterContextFor(encryptionService.outputStream(it.stateType, it.file::outputStream))
         }
     }
 
     private
-    fun cacheFingerprintWriterContextFor(stateFile: ConfigurationCacheStateStore.StateFile): DefaultWriteContext {
-        val (context, codecs) = cacheIO.writerContextFor(stateFile, "fingerprint")
+    fun cacheFingerprintWriterContextFor(outputStream: OutputStream): DefaultWriteContext {
+        val (context, codecs) = cacheIO.writerContextFor(outputStream, "fingerprint")
         return context.apply {
             push(IsolateOwner.OwnerHost(host), codecs.fingerprintTypesCodec())
         }
@@ -489,7 +490,7 @@ class DefaultConfigurationCache internal constructor(
     private
     fun <T> readFingerprintFile(fingerprintFile: ConfigurationCacheStateFile, action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T): T =
         encryptionService.inputStream(fingerprintFile.stateType, fingerprintFile::inputStream).use { inputStream ->
-            cacheIO.withReadContextFor(fingerprintFile.stateType, inputStream) { codecs ->
+            cacheIO.withReadContextFor(inputStream) { codecs ->
                 withIsolate(IsolateOwner.OwnerHost(host), codecs.fingerprintTypesCodec()) {
                     action(object : ConfigurationCacheFingerprintController.Host {
                         override val valueSourceProviderFactory: ValueSourceProviderFactory

@@ -27,9 +27,9 @@ import java.io.OutputStream;
 import java.util.Map;
 
 public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implements FlushableEncoder, Closeable {
-    protected Map<String, Integer> strings;
+    private Map<String, Integer> strings;
 
-    protected final Output output;
+    private final Output output;
 
     public StringDeduplicatingKryoBackedEncoder(OutputStream outputStream) {
         this(outputStream, 4096);
@@ -104,7 +104,9 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
         }
     }
 
-    @Override
+    /**
+     * Returns the total number of bytes written by this encoder, some of which may still be buffered.
+     */
     public long getWritePosition() {
         return output.total();
     }

@@ -104,11 +104,6 @@ public interface Encoder {
      */
     void writeNullableString(@Nullable CharSequence value) throws IOException;
 
-    /**
-     * Returns the total number of bytes written by this encoder, some of which may still be buffered.
-     */
-    long getWritePosition();
-
     interface EncodeAction<T> {
         void write(T target) throws Exception;
     }
