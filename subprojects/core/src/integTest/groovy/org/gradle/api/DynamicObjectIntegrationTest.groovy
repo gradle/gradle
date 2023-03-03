@@ -67,7 +67,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         )
 
         expectProjectConventionDeprecationWarnings()
-        expectConventionDeprecationWarnings(2)
+        expectConventionTypeDeprecationWarnings(2)
 
         expect:
         succeeds("testTask")
@@ -105,7 +105,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         )
 
         expectProjectConventionDeprecationWarnings()
-        expectConventionDeprecationWarnings()
+        expectConventionTypeDeprecationWarnings()
 
         expect:
         succeeds("testTask")
@@ -126,7 +126,7 @@ class ConventionBean {
 '''
 
         expectProjectConventionDeprecationWarnings()
-        expectConventionDeprecationWarnings(2)
+        expectConventionTypeDeprecationWarnings(2)
 
         expect:
         succeeds()
@@ -290,7 +290,8 @@ assert 'overridden value' == global
             }
 '''
 
-        expectConventionDeprecationWarnings(7)
+        expectConventionTypeDeprecationWarnings(7)
+        expectAbstractTaskConventionDeprecationWarnings(3)
 
         expect:
         succeeds("defaultTask")
@@ -463,7 +464,7 @@ assert 'overridden value' == global
         """
 
         expectProjectConventionDeprecationWarnings()
-        expectConventionDeprecationWarnings(2)
+        expectConventionTypeDeprecationWarnings(2)
 
         expect:
         succeeds()
@@ -904,7 +905,7 @@ task print(type: MyTask) {
         """
 
         expectProjectConventionDeprecationWarnings(4)
-        expectConventionDeprecationWarnings()
+        expectConventionTypeDeprecationWarnings(4)
 
         expect:
         succeeds()
@@ -1075,10 +1076,21 @@ task print(type: MyTask) {
         }
     }
 
-    private void expectConventionDeprecationWarnings(int repeated = 1) {
+    private void expectConventionTypeDeprecationWarnings(int repeated = 1) {
         repeated.times {
             executer.expectDocumentedDeprecationWarning(
                 "The org.gradle.api.plugins.Convention type has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#all_convention_deprecation"
+            )
+        }
+    }
+
+    private void expectAbstractTaskConventionDeprecationWarnings(int repeated = 1) {
+        repeated.times {
+            executer.expectDocumentedDeprecationWarning(
+                "The AbstractTask.getConvention() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Consult the upgrading guide for further information: " +
                     "https://docs.gradle.org/current/userguide/upgrading_version_7.html#all_convention_deprecation"
