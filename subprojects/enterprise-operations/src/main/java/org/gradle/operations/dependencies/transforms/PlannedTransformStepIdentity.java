@@ -48,6 +48,11 @@ public interface PlannedTransformStepIdentity extends NodeIdentity {
     ComponentIdentifier getComponentId();
 
     /**
+     * Full set of attributes of the artifact before the transformation.
+     */
+    Map<String, String> getSourceAttributes();
+
+    /**
      * Target attributes of the transformed artifact.
      * <p>
      * The attributes include all source attributes of the artifact before the transformation,
