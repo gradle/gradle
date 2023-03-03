@@ -30,7 +30,7 @@ import java.util.Map;
  *
  * @since 8.1
  */
-public interface TransformationIdentity extends NodeIdentity {
+public interface PlannedTransformStepIdentity extends NodeIdentity {
 
     /**
      * Path of an included build of the consumer project.

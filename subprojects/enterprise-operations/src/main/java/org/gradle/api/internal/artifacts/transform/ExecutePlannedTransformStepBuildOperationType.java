@@ -27,14 +27,14 @@ import java.util.Map;
  * Encompasses the execution of a transformation node.
  * A transformation node runs only one transformation step, though possibly on multiple files.
  */
-public class ExecuteScheduledTransformationStepBuildOperationType implements BuildOperationType<ExecuteScheduledTransformationStepBuildOperationType.Details, ExecuteScheduledTransformationStepBuildOperationType.Result> {
+public class ExecutePlannedTransformStepBuildOperationType implements BuildOperationType<ExecutePlannedTransformStepBuildOperationType.Details, ExecutePlannedTransformStepBuildOperationType.Result> {
 
     public interface Details {
 
         /**
          * The identity of the transformation executed in this operation.
          */
-        TransformationIdentity getTransformationIdentity();
+        PlannedTransformStepIdentity getPlannedTransformStepIdentity();
 
         /**
          * Full set of attributes of the artifact before the transformation.

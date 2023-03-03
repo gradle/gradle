@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationType
+import org.gradle.api.internal.artifacts.transform.ExecutePlannedTransformStepBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -2639,14 +2639,14 @@ Found the following transforms:
         outputContains("After transformer FileSizer on lib.jar (project :lib)")
 
         and:
-        def executeTransformationOp = buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)
+        def executeTransformationOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
         executeTransformationOp.failure == null
         executeTransformationOp.displayName == "Transform lib.jar (project :lib) with FileSizer"
         with(executeTransformationOp.details) {
             transformerName == "FileSizer"
             subjectName == "lib.jar (project :lib)"
-            with(transformationIdentity) {
-                nodeType == "ARTIFACT_TRANSFORM"
+            with(plannedTransformStepIdentity) {
+                nodeType == "TRANSFORM_STEP"
                 buildPath == ":"
                 projectPath == ":app"
                 componentId == [buildPath: ":", projectPath: ":lib"]
@@ -2712,14 +2712,14 @@ Found the following transforms:
         outputContains("After transformer BrokenTransform on lib.jar (project :lib)")
 
         and:
-        def executeTransformationOp = buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)
+        def executeTransformationOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
         executeTransformationOp.failure != null
         executeTransformationOp.displayName == "Transform lib.jar (project :lib) with BrokenTransform"
         with(executeTransformationOp.details) {
             transformerName == "BrokenTransform"
             subjectName == "lib.jar (project :lib)"
-            with(transformationIdentity) {
-                nodeType == "ARTIFACT_TRANSFORM"
+            with(plannedTransformStepIdentity) {
+                nodeType == "TRANSFORM_STEP"
                 buildPath == ":"
                 projectPath == ":app"
                 componentId == [buildPath: ":", projectPath: ":lib"]
