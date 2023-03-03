@@ -124,7 +124,6 @@ public class Instrumented {
                 new BooleanGetBooleanInterceptor(),
                 new SystemGetenvInterceptor(),
                 new RuntimeExecInterceptor(),
-                new FilesReadStringInterceptor(),
                 new ProcessGroovyMethodsExecuteInterceptor(),
                 new ProcessBuilderStartInterceptor(),
                 new ProcessBuilderStartPipelineInterceptor()
@@ -423,7 +422,7 @@ public class Instrumented {
     }
 
     public static String filesReadString(Path file, Charset charset, String consumer) throws Throwable {
-        listener().fileOpened(file.toFile(), consumer);
+        FileUtils.tryReportFileOpened(file, consumer);
         return (String) FILES_READ_STRING_PATH_CHARSET.get().invokeExact(file, charset);
     }
 
@@ -806,32 +805,6 @@ public class Instrumented {
                 }
             }
             return Optional.empty();
-        }
-    }
-
-    private static class FilesReadStringInterceptor extends ClassBoundCallInterceptor {
-        public FilesReadStringInterceptor() {
-            super(Files.class, InterceptScope.methodsNamed("readString"));
-        }
-
-        @Override
-        protected Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable {
-            if (invocation.getArgsCount() >= 1 && invocation.getArgsCount() <= 2) {
-                Object arg0 = invocation.getArgument(0);
-                if (arg0 instanceof Path) {
-                    Path arg0Path = (Path) arg0;
-                    if (invocation.getArgsCount() == 1) {
-                        return Instrumented.filesReadString(arg0Path, consumer);
-                    } else if (invocation.getArgsCount() == 2) {
-                        Object arg1 = invocation.getArgument(1);
-                        if (arg1 instanceof Charset) {
-                            Charset arg1Charset = (Charset) arg1;
-                            return Instrumented.filesReadString(arg0Path, arg1Charset, consumer);
-                        }
-                    }
-                }
-            }
-            return invocation.callOriginal();
         }
     }
 

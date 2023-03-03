@@ -41,9 +41,6 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -120,17 +117,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final Type PROCESS_GROOVY_METHODS_TYPE = getType(ProcessGroovyMethods.class);
     private static final Type STRING_ARRAY_TYPE = getType(String[].class);
     private static final Type FILE_TYPE = getType(File.class);
-    private static final Type PATH_TYPE = getType(Path.class);
-    private static final Type CHARSET_TYPE = getType(Charset.class);
     private static final Type LIST_TYPE = getType(List.class);
-
-    private static final Type FILES_TYPE = getType(Files.class);
-    // readString(Path) -> filesReadString(Path, String)
-    private static final String RETURN_STRING_FROM_PATH = getMethodDescriptor(STRING_TYPE, PATH_TYPE);
-    private static final String RETURN_STRING_FROM_PATH_STRING = getMethodDescriptor(STRING_TYPE, PATH_TYPE, STRING_TYPE);
-    // readString(Path, Charset) -> filesReadString(Path, Charset, String)
-    private static final String RETURN_STRING_FROM_PATH_CHARSET = getMethodDescriptor(STRING_TYPE, PATH_TYPE, CHARSET_TYPE);
-    private static final String RETURN_STRING_FROM_PATH_CHARSET_STRING = getMethodDescriptor(STRING_TYPE, PATH_TYPE, CHARSET_TYPE, STRING_TYPE);
 
     // ProcessBuilder().start() -> start(ProcessBuilder, String)
     private static final String RETURN_PROCESS = getMethodDescriptor(PROCESS_TYPE);
@@ -453,17 +440,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 _LDC(binaryClassNameOf(className));
                 _INVOKESTATIC(INSTRUMENTED_TYPE, "execute", instrumentedDescriptor.get());
                 return true;
-            } else if (owner.equals(FILES_TYPE.getInternalName())) {
-                if (name.equals("readString") && descriptor.equals(RETURN_STRING_FROM_PATH)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "filesReadString", RETURN_STRING_FROM_PATH_STRING);
-                    return true;
-                }
-                if (name.equals("readString") && descriptor.equals(RETURN_STRING_FROM_PATH_CHARSET)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "filesReadString", RETURN_STRING_FROM_PATH_CHARSET_STRING);
-                    return true;
-                }
             }
             if (owner.equals(PROCESS_BUILDER_TYPE.getInternalName()) && name.equals("startPipeline") && descriptor.equals(RETURN_LIST_FROM_LIST)) {
                 _LDC(binaryClassNameOf(className));
