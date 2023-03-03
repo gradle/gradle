@@ -146,7 +146,7 @@ This makes it easier to spot usages of deprecated members in your build scripts.
 w: build.gradle.kts:4:5: 'getter for uploadTaskName: String!' is deprecated. Deprecated in Java
 ```
 
-Moreover, Kotlin DSL script compilation errors are now always reported in the file order
+Moreover, Kotlin DSL script compilation errors are now always reported in the file order.
 This makes it easier to figure out the first root cause of a script compilation failure.
 
 ```text
