@@ -35,7 +35,9 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
             ${mavenCentralRepository()}
 
-            project.setProperty('applicationDefaultJvmArgs', ['-DFOO=42'])
+            application {
+                applicationDefaultJvmArgs = ['-DFOO=42']
+            }
 
             dependencies {
                 implementation 'org.springframework.boot:spring-boot-starter'
