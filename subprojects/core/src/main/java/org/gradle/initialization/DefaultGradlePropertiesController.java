@@ -106,9 +106,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             }
 
             Map<String, Object> projectProperties = projectPropertiesLoader.loadProjectProperties();
-
             loadedProperties.updateOverrideProperties(projectProperties);
-
             return new Loaded(loadedProperties, settingsDir);
         }
 
