@@ -172,7 +172,7 @@ The [Kotlin DSL Plugin](userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin) provide
 ##### Easier customization of Kotlin options
 
 Thanks to the Kotlin Gradle Plugin now using Gradle lazy properties, the `kotlin-dsl` plugin does not use `afterEvaluate {}` for configuring Kotlin compiler options anymore.
-This allows for easier customization of Kotlin options in your build logic without requiring to also use `afterEvaluate {}`.
+This allows for easier customization of Kotlin options in your build logic without requiring `afterEvaluate {}`.
 
 ```kotlin
 plugins {
