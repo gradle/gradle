@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.component;
+package org.gradle.operations.dependencies.configurations;
+
+import javax.annotation.Nullable;
 
 /**
- * A marker interface for identifiers for a component instance.
- * <p>
- * There are various sub-interfaces that expose specific details about the identifier.
+ * Identifies a configuration.
+ *
+ * @since 8.1
  */
-public interface ComponentIdentifier {
+public interface ConfigurationIdentity {
+
+    String getBuildPath();
+
+    @Nullable
+    String getProjectPath();
+
+    String getName();
+
 }

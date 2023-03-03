@@ -524,4 +524,28 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         "systemProperty" | "-D"
         "gradleProperty" | "-P"
     }
+
+    def "value source with non-serializable output"() {
+        buildFile("""
+        import org.gradle.api.provider.*
+
+        abstract class BrokenSource implements ValueSource<Thread, ValueSourceParameters.None> {
+            @Override Thread obtain() {
+                return new Thread()
+            }
+        }
+
+        providers.of(BrokenSource) {}.get()
+        """)
+
+        when:
+        configurationCacheFails()
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': cannot serialize object of type 'java.lang.Thread', a subtype of 'java.lang.Thread', as these are not supported with the configuration cache.")
+            problemsWithStackTraceCount = 0
+        }
+    }
 }
