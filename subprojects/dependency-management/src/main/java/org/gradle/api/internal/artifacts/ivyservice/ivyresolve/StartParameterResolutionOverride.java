@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumAndSignatureVerificationOverride;
@@ -32,7 +33,6 @@ import org.gradle.api.internal.artifacts.verification.signatures.BuildTreeDefine
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.resources.ResourceException;
@@ -268,8 +268,8 @@ public class StartParameterResolutionOverride {
         }
 
         @Override
-        public void buildFinished(Gradle gradle) {
-            delegate.buildFinished(gradle);
+        public void buildFinished(GradleInternal model) {
+            delegate.buildFinished(model);
         }
 
         @Override

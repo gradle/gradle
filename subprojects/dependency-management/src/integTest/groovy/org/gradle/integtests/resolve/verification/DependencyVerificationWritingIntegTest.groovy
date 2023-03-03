@@ -38,7 +38,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         then:
         assertMetadataExists()
         hasNoModules()
-
     }
 
     def "warns if trying to generate with an unknown checksum type (#checksums)"() {
