@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
@@ -28,12 +29,16 @@ public class DefaultExtraExecutionGraphDependenciesResolverFactory implements Ex
     private final DomainObjectContext owner;
     private final FilteredResultFactory filteredResultFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final ConfigurationIdentity configurationIdentity;
     private final ResolutionResultProvider<ResolutionResult> resolutionResultProvider;
 
-    public DefaultExtraExecutionGraphDependenciesResolverFactory(ResolutionResultProvider<ResolutionResult> resolutionResultProvider,
-                                                                 DomainObjectContext owner,
-                                                                 CalculatedValueContainerFactory calculatedValueContainerFactory,
-                                                                 FilteredResultFactory filteredResultFactory) {
+    public DefaultExtraExecutionGraphDependenciesResolverFactory(
+        ConfigurationIdentity configurationIdentity, ResolutionResultProvider<ResolutionResult> resolutionResultProvider,
+        DomainObjectContext owner,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        FilteredResultFactory filteredResultFactory
+    ) {
+        this.configurationIdentity = configurationIdentity;
         this.resolutionResultProvider = resolutionResultProvider;
         this.owner = owner;
         this.filteredResultFactory = filteredResultFactory;
@@ -45,6 +50,6 @@ public class DefaultExtraExecutionGraphDependenciesResolverFactory implements Ex
         if (!transformation.requiresDependencies()) {
             return NO_DEPENDENCIES_RESOLVER;
         }
-        return new DefaultTransformUpstreamDependenciesResolver(componentIdentifier, resolutionResultProvider, owner, filteredResultFactory, calculatedValueContainerFactory);
+        return new DefaultTransformUpstreamDependenciesResolver(componentIdentifier, configurationIdentity, resolutionResultProvider, owner, filteredResultFactory, calculatedValueContainerFactory);
     }
 }

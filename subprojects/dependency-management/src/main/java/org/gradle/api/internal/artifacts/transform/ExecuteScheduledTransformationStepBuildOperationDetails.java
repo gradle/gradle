@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 
+import java.util.Map;
+
 public class ExecuteScheduledTransformationStepBuildOperationDetails implements ExecuteScheduledTransformationStepBuildOperationType.Details, CustomOperationTraceSerialization {
 
     private final TransformationNode transformationNode;
@@ -36,6 +38,21 @@ public class ExecuteScheduledTransformationStepBuildOperationDetails implements 
     }
 
     @Override
+    public TransformationIdentity getTransformationIdentity() {
+        return transformationNode.getNodeIdentity();
+    }
+
+    @Override
+    public Map<String, String> getSourceAttributes() {
+        return AttributesToMapConverter.convertToMap(transformationNode.getSourceAttributes());
+    }
+
+    @Override
+    public Class<?> getTransformType() {
+        return transformationNode.getTransformationStep().getTransformer().getImplementationClass();
+    }
+
+    @Override
     public String getTransformerName() {
         return transformerName;
     }
@@ -48,6 +65,9 @@ public class ExecuteScheduledTransformationStepBuildOperationDetails implements 
     @Override
     public Object getCustomOperationTraceSerializableModel() {
         ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
+        builder.put("transformationIdentity", getTransformationIdentity());
+        builder.put("sourceAttributes", getSourceAttributes());
+        builder.put("transformType", getTransformType());
         builder.put("transformerName", transformerName);
         builder.put("subjectName", subjectName);
         return builder.build();

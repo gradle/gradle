@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -83,13 +84,18 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
     }
 
     private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
+        AttributeContainer sourceAttributes;
         ResolvedArtifactSet sourceArtifacts;
-        if (variantDefinition.getPrevious() != null) {
-            sourceArtifacts = transformedProjectArtifacts(componentIdentifier, sourceVariant, variantDefinition.getPrevious(), dependenciesResolverFactory);
+        VariantDefinition previous = variantDefinition.getPrevious();
+        if (previous != null) {
+            sourceAttributes = previous.getTargetAttributes();
+            sourceArtifacts = transformedProjectArtifacts(componentIdentifier, sourceVariant, previous, dependenciesResolverFactory);
         } else {
+            sourceAttributes = sourceVariant.getAttributes();
             sourceArtifacts = sourceVariant.getArtifacts();
         }
-        return new TransformedProjectArtifactSet(componentIdentifier, sourceArtifacts, variantDefinition, sourceVariant.getCapabilities().getCapabilities(), dependenciesResolverFactory, transformationNodeFactory);
+        ComponentVariantIdentifier targetComponentVariant = new ComponentVariantIdentifier(componentIdentifier, variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities().getCapabilities());
+        return new TransformedProjectArtifactSet(targetComponentVariant, sourceArtifacts, sourceAttributes, variantDefinition, dependenciesResolverFactory, transformationNodeFactory);
     }
 
     private interface Factory {

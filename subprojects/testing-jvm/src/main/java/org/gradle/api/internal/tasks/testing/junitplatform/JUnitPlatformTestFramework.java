@@ -30,7 +30,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 
 @UsedByScanPlugin("test-retry")
@@ -79,12 +78,7 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     @Override
-    public List<String> getTestWorkerApplicationClasses() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public List<String> getTestWorkerApplicationModules() {
+    public List<String> getWorkerApplicationModulepathModuleNames() {
         return ImmutableList.of("junit-platform-engine", "junit-platform-launcher", "junit-platform-commons");
     }
 

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -467,7 +466,6 @@ dependencies {
         (lines.find { it.startsWith 'set CLASSPATH=' } - 'set CLASSPATH=').split(';').collect([] as Set) { it - '%APP_HOME%\\lib\\' }
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/21505")
     def "run task honors applicationDefaultJvmArgs"() {
         given:

@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import spock.lang.Issue
 
@@ -33,6 +34,8 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
             }
 
             ${mavenCentralRepository()}
+
+            project.setProperty('applicationDefaultJvmArgs', ['-DFOO=42'])
 
             dependencies {
                 implementation 'org.springframework.boot:spring-boot-starter'
@@ -54,6 +57,7 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
             public class Application {
                 public static void main(String[] args) {
                     SpringApplication.run(Application.class, args);
+                    System.out.println("FOO: " + System.getProperty("FOO"));
                 }
             }
         """.stripIndent()
@@ -90,6 +94,7 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         then:
         runResult.task(':bootRun').outcome == SUCCESS
+        runResult.output.contains("FOO: 42")
     }
 
     @Override

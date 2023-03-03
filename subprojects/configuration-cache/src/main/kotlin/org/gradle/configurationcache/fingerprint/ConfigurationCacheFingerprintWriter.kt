@@ -623,7 +623,7 @@ class ConfigurationCacheFingerprintWriter(
     private
     fun reportDirectoryContentInput(directory: File, consumer: String?) {
         reportInput(consumer, null) {
-            text("directory content")
+            text("directory content ")
             reference(host.displayNameOf(directory))
         }
     }
@@ -631,7 +631,7 @@ class ConfigurationCacheFingerprintWriter(
     private
     fun reportFileSystemEntryInput(file: File, consumer: String?) {
         reportInput(consumer, null) {
-            text("file system entry")
+            text("file system entry ")
             reference(host.displayNameOf(file))
         }
     }

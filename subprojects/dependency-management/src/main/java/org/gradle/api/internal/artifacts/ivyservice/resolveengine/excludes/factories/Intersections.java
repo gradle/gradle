@@ -212,6 +212,13 @@ class Intersections {
                 return left;
             }
             return factory.nothing();
+        } else if (right instanceof ModuleSetExclude) {
+            ModuleSetExclude moduleSetExclude = (ModuleSetExclude) right;
+            if (moduleSetExclude.getModules().contains(left.getModuleId().getName())) {
+                return left;
+            } else {
+                return factory.nothing();
+            }
         }
         return null;
     }

@@ -891,7 +891,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
         if (dependenciesResolverFactory == null) {
-            dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
+            dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(getIdentity(), new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
                 (attributes, filter) -> {
                     ImmutableAttributes fullAttributes = attributesFactory.concat(configurationAttributes.asImmutable(), attributes);
                     return new ResolutionBackedFileCollection(
@@ -1568,6 +1568,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private ConfigurationIdentity getIdentity() {
+        String name = getName();
+        String projectPath = domainObjectContext.getProjectPath() == null ? null : domainObjectContext.getProjectPath().toString();
+        String buildPath = domainObjectContext.getBuildPath().toString();
+        return new DefaultConfigurationIdentity(buildPath, projectPath, name);
+    }
+
     private static class ConfigurationDescription implements Describable {
         private final Path identityPath;
 
@@ -1581,7 +1588,46 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private static class DefaultConfigurationIdentity implements ConfigurationIdentity {
+        private final String buildPath;
+        private final String projectPath;
+        private final String name;
+
+        public DefaultConfigurationIdentity(String buildPath, @Nullable String projectPath, String name) {
+            this.buildPath = buildPath;
+            this.projectPath = projectPath;
+            this.name = name;
+        }
+
+        @Override
+        public String getBuildPath() {
+            return buildPath;
+        }
+
+        @Nullable
+        @Override
+        public String getProjectPath() {
+            return projectPath;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String toString() {
+            Path path = Path.path(buildPath);
+            if (projectPath != null) {
+                path = path.append(Path.path(projectPath));
+            }
+            path = path.child(name);
+            return "Configuration '" + path.toString() + "'";
+        }
+    }
+
     private class DefaultResolutionResultProvider implements ResolutionResultProvider<ResolutionResult> {
+
         @Override
         public ResolutionResult getTaskDependencyValue() {
             return getResultsForBuildDependencies().getResolutionResult();
@@ -1594,6 +1640,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private class VisitedArtifactsSetProvider implements ResolutionResultProvider<VisitedArtifactSet> {
+
         @Override
         public VisitedArtifactSet getTaskDependencyValue() {
             assertIsResolvable();
