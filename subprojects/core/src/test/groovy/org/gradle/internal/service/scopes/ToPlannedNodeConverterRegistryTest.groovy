@@ -41,6 +41,12 @@ class ToPlannedNodeConverterRegistryTest extends Specification {
         def foundConverter = registry.getConverter(new TestNode())
         then:
         foundConverter.is(testConverter)
+
+        // verify caching works
+        when:
+        foundConverter = registry.getConverter(new TestNode())
+        then:
+        foundConverter.is(testConverter)
     }
 
     def "finds converter for node of sub type"() {
@@ -63,6 +69,12 @@ class ToPlannedNodeConverterRegistryTest extends Specification {
 
         when:
         def foundConverter = registry.getConverter(Stub(Node))
+        then:
+        foundConverter == null
+
+        // Verify caching works
+        when:
+        foundConverter = registry.getConverter(Stub(Node))
         then:
         foundConverter == null
     }
