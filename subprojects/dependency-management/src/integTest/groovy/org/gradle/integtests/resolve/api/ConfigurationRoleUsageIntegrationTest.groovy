@@ -508,7 +508,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
     // endregion Role-Based Configurations
 
     // region Warnings
-    def "changing usage produces warnings except for permitted configurations (can change #configuration usage without warning = #allowed)"() {
+    def "changing usage for configuration #configuration produces warnings"() {
         given: "a buildscript which attempts to change a configuration's usage"
         buildFile << """
             plugins {
@@ -522,21 +522,64 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
 
+        expect: "the build succeeds and a deprecation warning is logged"
+        expectResolvableChanging(":$configuration", true)
+        succeeds 'help'
+
+        where: "a non-exhaustive list of configurations is tested"
+        configuration << ['api', 'implementation', 'compileOnly', 'runtimeOnly', 'archives']
+    }
+
+    def "setting consumable = false is permitted without warning for special cases to support Kotlin plugin (can change #configuration usage without warning = #allowed)"() {
+        given: "a buildscript which attempts to change a configuration's usage"
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+        
+            configurations {
+                $configuration {
+                    assert canBeConsumed
+                    canBeConsumed = false
+                }
+            }
+        """
+
         expect: "the build succeeds and a deprecation warning is logged if the configuration is not allowed to change"
         if (!allowed) {
-            expectResolvableChanging(":$configuration", true)
+            expectConsumableChanging(":$configuration", false)
         }
         succeeds 'help'
 
         where: "a non-exhaustive list of configurations is tested"
-        configuration       || allowed
-        'apiElements'       || true
-        'runtimeElements'   || true
-        'api'               || false
-        'implementation'    || false
-        'compileOnly'       || false
-        'runtimeOnly'       || false
-        'archives'          || false
+        configuration           || allowed
+        'apiElements'           || true
+        'runtimeElements'       || true
+        'mainSourceElements'    || false
+        'archives'              || false
+    }
+
+    def "changing consumable to true always warns for non-LEGACY configurations (can not change #configuration usage)"() {
+        given: "a buildscript which attempts to change a configuration's usage"
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+        
+            configurations {
+                $configuration {
+                    assert !canBeConsumed
+                    canBeConsumed = true
+                }
+            }
+        """
+
+        expect:
+        expectConsumableChanging(":$configuration", true)
+        succeeds 'help'
+
+        where: "a non-exhaustive list of configurations is tested"
+        configuration << ['api', 'implementation']
     }
 
     def "changing usage for custom configuration in the legacy role is allowed"() {
