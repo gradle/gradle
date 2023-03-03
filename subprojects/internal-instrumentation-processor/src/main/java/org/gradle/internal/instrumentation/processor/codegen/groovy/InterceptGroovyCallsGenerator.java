@@ -88,7 +88,10 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
                 if (callable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR) {
                     constructorRequests.computeIfAbsent(request.getInterceptedCallable().getOwner(), key -> new ArrayList<>()).add(request);
                 } else {
-                    namedRequests.computeIfAbsent(callable.getCallableName(), key -> new ArrayList<>()).add(request);
+                    String nameKey = callable.getKind() == CallableKindInfo.GROOVY_PROPERTY
+                        ? "get" + TextUtil.capitalize(callable.getCallableName())
+                        : callable.getCallableName();
+                    namedRequests.computeIfAbsent(nameKey, key -> new ArrayList<>()).add(request);
                 }
             }
         });
@@ -153,20 +156,21 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
     }
 
     private static CodeBlock namedCallableScopesArgs(String name, List<CallInterceptionRequest> requests) {
+        List<CodeBlock> scopeExpressions = new ArrayList<>();
+
+        List<CallInterceptionRequest> propertyRequests = requests.stream().filter(it -> it.getInterceptedCallable().getKind() == CallableKindInfo.GROOVY_PROPERTY).collect(Collectors.toList());
+        propertyRequests.forEach(request -> {
+            String propertyName = request.getInterceptedCallable().getCallableName();
+            String getterName = "get" + TextUtil.capitalize(propertyName);
+            scopeExpressions.add(CodeBlock.of("$1T.readsOfPropertiesNamed($2S)", INTERCEPTED_SCOPE_CLASS, propertyName));
+            scopeExpressions.add(CodeBlock.of("$1T.methodsNamed($2S)", INTERCEPTED_SCOPE_CLASS, getterName));
+        });
+
         List<CallableKindInfo> callableKinds = requests.stream().map(it -> it.getInterceptedCallable().getKind()).distinct().collect(Collectors.toList());
-        CodeBlock.Builder scopes = CodeBlock.builder();
-        boolean isFirstScope = true;
-        if (callableKinds.contains(CallableKindInfo.GROOVY_PROPERTY)) {
-            scopes.add("$1T.readsOfPropertiesNamed($2S), $1T.methodsNamed($3S)", INTERCEPTED_SCOPE_CLASS, name, "get" + TextUtil.capitalize(name));
-            isFirstScope = false;
-        }
         if (callableKinds.contains(CallableKindInfo.STATIC_METHOD) | callableKinds.contains(CallableKindInfo.INSTANCE_METHOD)) {
-            if (!isFirstScope) {
-                scopes.add(", ");
-            }
-            scopes.add(CodeBlock.of("$T.methodsNamed($S)", INTERCEPTED_SCOPE_CLASS, name));
+            scopeExpressions.add(CodeBlock.of("$T.methodsNamed($S)", INTERCEPTED_SCOPE_CLASS, name));
         }
-        return scopes.build();
+        return scopeExpressions.stream().distinct().collect(CodeBlock.joining(", "));
     }
 
     private static CodeBlock generateCodeFromInterceptorSignatureTree(SignatureTree tree) {
