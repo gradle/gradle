@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerThreadRegistry;
@@ -31,6 +33,7 @@ import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -48,6 +51,9 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion;
     private final DocumentationRegistry documentationRegistry;
     private boolean stoppedNow;
+    private final Set<Throwable> unrecoverableExceptions = Sets.newHashSet();
+
+
 
     public ForkingTestClassProcessor(
         WorkerThreadRegistry workerThreadRegistry,
@@ -113,6 +119,19 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
         ObjectConnection connection = workerProcess.getConnection();
         connection.useParameterSerializers(TestEventSerializer.create());
+        connection.addUnrecoverableErrorHandler(new Action<Throwable>() {
+            @Override
+            public void execute(Throwable throwable) {
+                lock.lock();
+                try {
+                    if (!stoppedNow) {
+                        unrecoverableExceptions.add(throwable);
+                    }
+                } finally {
+                    lock.unlock();
+                }
+            }
+        });
         connection.addIncoming(TestResultProcessor.class, resultProcessor);
         RemoteTestClassProcessor remoteProcessor = connection.addOutgoing(RemoteTestClassProcessor.class);
         connection.connect();
@@ -146,6 +165,8 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
                 completion.leaseFinish();
             }
         }
+
+        maybeRethrowUnrecoverableExceptions();
     }
 
     @Override
@@ -158,6 +179,18 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             }
         } finally {
             lock.unlock();
+        }
+    }
+
+    /**
+     * If there are communication errors while receiving test results from the test worker,
+     * we can get in a situation where a test appears skipped even though it actually failed.
+     * We want to capture the communication errors and be sure to fail the test execution so
+     * as to avoid any false positives.
+     */
+    private void maybeRethrowUnrecoverableExceptions() {
+        if (!unrecoverableExceptions.isEmpty()) {
+            throw new DefaultMultiCauseException("Unexpected errors were encountered while processing test results that may result in some results being incorrect or incomplete.", unrecoverableExceptions);
         }
     }
 }
