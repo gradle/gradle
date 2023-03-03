@@ -40,7 +40,6 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -98,6 +97,19 @@ public class ForkedTestClasspathFactory {
             );
         }
 
+        return getClasspathWithAdditionalModules(classpath, modulepath, filtered, isModule);
+    }
+
+    /**
+     * Creates a classpath for the forked process which injects the additional modules from
+     * {@code additional} into the classpath provided by {@code classpath} and {@code modulepath}.
+     */
+    private ForkedTestClasspath getClasspathWithAdditionalModules(
+        Iterable<? extends File> classpath,
+        Iterable<? extends File> modulepath,
+        AdditionalClasspath additional,
+        boolean isModule
+    ) {
         // TODO #13955: Enable this deprecation in 8.2
         // We don't have enough time in 8.1 to write the documentation and update our own tests.
 //        DeprecationLogger.deprecateIndirectUsage("The automatic loading of test framework implementation dependencies")
@@ -108,20 +120,20 @@ public class ForkedTestClasspathFactory {
 
         if (isModule) {
             return new ForkedTestClasspath(
-                pathWithAdditionalModules(classpath, filtered.applicationClasspath),
-                pathWithAdditionalModules(modulepath, filtered.applicationModulepath),
-                withImplementation(loadDistributionUrls(filtered.implementationClasspath)),
-                loadDistributionUrls(filtered.implementationModulepath)
+                pathWithAdditionalModules(classpath, additional.applicationClasspath),
+                pathWithAdditionalModules(modulepath, additional.applicationModulepath),
+                withImplementation(loadDistributionUrls(additional.implementationClasspath)),
+                loadDistributionUrls(additional.implementationModulepath)
             );
         } else {
             // For non-module tests, add all additional distribution modules to the classpath.
             List<TestFrameworkDistributionModule> additionalApplicationClasspath = ImmutableList.<TestFrameworkDistributionModule>builder()
-                .addAll(filtered.applicationClasspath)
-                .addAll(filtered.applicationModulepath)
+                .addAll(additional.applicationClasspath)
+                .addAll(additional.applicationModulepath)
                 .build();
             List<TestFrameworkDistributionModule> additionalImplementationClasspath = ImmutableList.<TestFrameworkDistributionModule>builder()
-                .addAll(filtered.implementationClasspath)
-                .addAll(filtered.implementationModulepath)
+                .addAll(additional.implementationClasspath)
+                .addAll(additional.implementationModulepath)
                 .build();
 
             return new ForkedTestClasspath(
@@ -288,7 +300,7 @@ public class ForkedTestClasspathFactory {
      * Filters additional modules by constructing a {@link ClassLoader} and attempting to load classes from the additional modules.
      */
     private AdditionalClasspath filterSlow(Iterable<? extends File> classpath, Iterable<? extends File> modulepath, AdditionalClasspath unfiltered) {
-        try (ClassDetector classDetector = classDetectorFactory.apply(classpath, modulepath)) {
+        try (ClassDetector classDetector = classDetectorFactory.create(classpath, modulepath)) {
             return new AdditionalClasspath(
                 classDetector.withoutDetectedModules(unfiltered.applicationClasspath),
                 classDetector.withoutDetectedModules(unfiltered.applicationModulepath),
@@ -314,7 +326,9 @@ public class ForkedTestClasspathFactory {
         }
     }
 
-    public interface ClassDetectorFactory extends BiFunction<Iterable<? extends File>, Iterable<? extends File>, ClassDetector> {}
+    public interface ClassDetectorFactory {
+        ClassDetector create(Iterable<? extends File> classpath, Iterable<? extends File> modulepath);
+    }
 
     public static class ClassLoadingClassDetector implements ClassDetector {
         private final URLClassLoader classLoader;
