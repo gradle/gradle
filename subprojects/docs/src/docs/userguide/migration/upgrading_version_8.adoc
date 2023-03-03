@@ -105,7 +105,7 @@ Starting in Gradle 9.0, this method will be removed without replacement.
 
 By default, when applying the link:java_plugin.html[`java`] plugin, the `testClassesDirs`
 and `classpath` of all `Test` tasks have the same convention. Unless otherwise changed,
-the default behavior is to execute the tests from the default `test` link:jvm_test_suite_plugin.html[`TestSuite`] 
+the default behavior is to execute the tests from the default `test` link:jvm_test_suite_plugin.html[`TestSuite`]
 by configuring the task with the `classpath` and `testClassesDirs` from the `test` suite.
 This behavior will be removed in Gradle 9.0.
 
@@ -367,6 +367,11 @@ beforeSettings {
 ----
 =====
 ====
+
+[no_relative_paths_for_java_executables]
+==== Deprecated using relative paths to specify Java executables
+Using relative file paths to point to Java executables is now deprecated and will become an error in Gradle 9.
+This is done to reduce confusion about what such relative paths should resolve against.
 
 === Changes in the IDE integration
 
