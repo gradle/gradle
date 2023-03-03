@@ -19,8 +19,6 @@ package org.gradle.operations.dependencies.transforms;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.NotUsedByScanPlugin;
 
-import java.util.Map;
-
 /**
  * A {@link BuildOperationType} for executing a scheduled transformation step.
  * <p>
@@ -37,11 +35,6 @@ public class ExecutePlannedTransformStepBuildOperationType implements BuildOpera
          * The identity of the transformation executed in this operation.
          */
         PlannedTransformStepIdentity getPlannedTransformStepIdentity();
-
-        /**
-         * Full set of attributes of the artifact before the transformation.
-         */
-        Map<String, String> getSourceAttributes();
 
         /**
          * Class of the transformer action implementation provided as part of transform registration.
