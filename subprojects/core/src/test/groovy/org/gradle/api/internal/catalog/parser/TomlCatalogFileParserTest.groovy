@@ -33,6 +33,7 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import java.nio.file.Paths
 import java.util.function.Supplier
 
 class TomlCatalogFileParserTest extends Specification implements VersionCatalogErrorMessages {
@@ -412,17 +413,13 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
     }
 
     private void parse(String name) {
-        TomlCatalogFileParser.parse(toml(name), builder)
+        def tomlResource = getClass().getResource("/org/gradle/api/internal/catalog/parser/${name}.toml").toURI()
+        // Paths might be unusual, but we need it because of 1.8
+        def tomlPath = Paths.get(tomlResource)
+
+        TomlCatalogFileParser.parse(tomlPath, builder)
         model = builder.build()
         assert model != null: "Expected model to be generated but it wasn't"
-    }
-
-    private static InputStream toml(String name) {
-        return TomlCatalogFileParserTest.class.getResourceAsStream("${name}.toml").withReader("utf-8") {
-            String text = it.text
-            // we're using an in-memory input stream to make sure we don't accidentally leak descriptors in tests
-            return new ByteArrayInputStream(text.getBytes("utf-8"))
-        }
     }
 
     @CompileStatic
