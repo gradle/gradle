@@ -1788,9 +1788,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void maybeWarnOnChangingUsage(String usage, boolean current, boolean isDeprecationChange) {
-        boolean isRestrictingUsage = isDeprecationChange || (!isDeprecationChange && current);
-        if (!isSpecialCaseOfChangingUsage(isRestrictingUsage)) {
+    private void maybeWarnOnChangingUsage(String usage, boolean current) {
+        if (!isSpecialCaseOfChangingUsage()) {
             String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
             DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), describeChangingUsage(usage, current)))
                     .withAdvice("Usage should be fixed upon creation.")
@@ -1809,7 +1808,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      * <p>
      * <ol>
      *     <li>While {#roleAtCreation} is {@code null}, we are still initializing, so we should NOT warn.</li>
-     *     <li>Detached configuration that have their usage further restricted should NOT warn (this done by the Kotlin plugin).</li>
+     *     <li>Changes to the usage of the detached configurations should NOT warn (this done by the Kotlin plugin).</li>
      *     <li>The legacy role is a special case, and should NOT warn when changing usage (due to the permissiveness of the legacy role, this change will always be a further restriction).</li>
      *     <li>Changing usage on the {@code apiElements} and {@code runtimeElements} configurations should NOT warn (this is done by the Kotlin plugin).</li>
      *     <li>All other usage changes should warn.</li>
@@ -1817,17 +1816,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      * <p>
      * This method is temporary, so the duplication of the configuration names defined in
      * {@link JavaPlatformPlugin}, which are not available to be referenced directly from here, is unfortunate, but not a showstopper.
-     *
-     * @param isRestrictingUsage {@code true} if the allowed usage after the change is more restrictive than before, {@code false} otherwise
      */
     @SuppressWarnings({"JavadocReference", "deprecation"})
-    private boolean isSpecialCaseOfChangingUsage(boolean isRestrictingUsage) {
+    private boolean isSpecialCaseOfChangingUsage() {
         boolean isInitializing = roleAtCreation == null;
         boolean isLegacyRole = roleAtCreation == ConfigurationRoles.LEGACY;
         boolean isDetachedConfiguration = this.configurationsProvider instanceof DetachedConfigurationsProvider;
         boolean isPermittedConfiguration = name.equals("apiElements") || name .equals("runtimeElements");
 
-        return isInitializing || (isDetachedConfiguration && isRestrictingUsage) || isLegacyRole || isPermittedConfiguration;
+        return isInitializing || isDetachedConfiguration || isLegacyRole || isPermittedConfiguration;
     }
 
     private String describeChangingUsage(String usage, boolean current) {
@@ -1859,7 +1856,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (canBeConsumed != allowed) {
             validateMutation(MutationType.USAGE);
             canBeConsumed = allowed;
-            maybeWarnOnChangingUsage("consumable", allowed, false);
+            maybeWarnOnChangingUsage("consumable", allowed);
         }
     }
 
@@ -1873,7 +1870,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (canBeResolved != allowed) {
             validateMutation(MutationType.USAGE);
             canBeResolved = allowed;
-            maybeWarnOnChangingUsage("resolvable", allowed, false);
+            maybeWarnOnChangingUsage("resolvable", allowed);
         }
     }
 
@@ -1887,7 +1884,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (canBeDeclaredAgainst != allowed) {
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
-            maybeWarnOnChangingUsage("declarable against", allowed, false);
+            maybeWarnOnChangingUsage("declarable against", allowed);
         }
     }
 
@@ -1919,7 +1916,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         validateMutation(MutationType.USAGE);
         this.declarationAlternatives = ImmutableList.copyOf(alternativesForDeclaring);
         if (!declarationDeprecated) {
-            maybeWarnOnChangingUsage("deprecated for declaration against", true, true);
+            maybeWarnOnChangingUsage("deprecated for declaration against", true);
         }
         declarationDeprecated = true;
         return this;
@@ -1930,7 +1927,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         validateMutation(MutationType.USAGE);
         this.resolutionAlternatives = ImmutableList.copyOf(alternativesForResolving);
         if (!consumptionDeprecated) {
-            maybeWarnOnChangingUsage("deprecated for resolution", true, true);
+            maybeWarnOnChangingUsage("deprecated for resolution", true);
         }
         resolutionDeprecated = true;
         return this;
@@ -1941,7 +1938,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         validateMutation(MutationType.USAGE);
         this.consumptionDeprecation = deprecation.apply(DeprecationLogger.deprecateConfiguration(name).forConsumption());
         if (!consumptionDeprecated) {
-            maybeWarnOnChangingUsage("deprecated for consumption", true, true);
+            maybeWarnOnChangingUsage("deprecated for consumption", true);
         }
         consumptionDeprecated = true;
         return this;
