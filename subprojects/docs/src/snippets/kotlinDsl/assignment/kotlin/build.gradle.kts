@@ -1,34 +1,30 @@
 plugins {
-    `base`
+    `java-library`
 }
 
 // tag::assignment[]
-interface MyExtension {
-    val input: Property<String>
-    val output: RegularFileProperty
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
-abstract class MyTask : DefaultTask() {
+abstract class WriteJavaVersionTask : DefaultTask() {
     @get:Input
-    abstract val input: Property<String>
+    abstract val javaVersion: Property<String>
     @get:OutputFile
     abstract val output: RegularFileProperty
 
     @TaskAction
     fun execute() {
-        output.get().asFile.writeText(input.get())
+        output.get().asFile.writeText("Java version: ${input.get()}")
     }
 }
 
-val extension = extensions.create<MyExtension>("extension").apply {
-    input.set("Hello Property") // <1>
-    output.set(file("build/myTask/output.txt"))
-    input = "Hello Property" // <2>
-    ouput = file("build/myTask/output.txt")
-}
-
-tasks.register<MyTask>("myTask") {
-    input = extension.input // <3>
-    output = extension.output
+tasks.register<WriteJavaVersionTask>("writeJavaVersion") {
+    javaVersion.set("17") // <1>
+    javaVersion = "17" // <2>
+    javaVersion = java.toolchain.languageVersion.map { it.toString() } // <3>
+    output = file("build/writeJavaVersion/javaVersion.txt")
 }
 // end::assignment[]
