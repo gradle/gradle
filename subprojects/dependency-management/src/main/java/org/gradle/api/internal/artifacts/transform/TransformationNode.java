@@ -142,12 +142,12 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             }
 
             @Override
-            public String getBuildPath() {
+            public String getConsumerBuildPath() {
                 return consumerBuildPath;
             }
 
             @Override
-            public String getProjectPath() {
+            public String getConsumerProjectPath() {
                 return consumerProjectPath;
             }
 
