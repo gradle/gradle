@@ -27,8 +27,8 @@ public class DefaultTaskSuccessResult extends AbstractTaskResult implements Inte
     private final boolean upToDate;
     private final boolean fromCache;
 
-    public DefaultTaskSuccessResult(long startTime, long endTime, boolean upToDate, boolean fromCache, String outcomeDescription, boolean incremental, List<String> executionReasons) {
-        super(startTime, endTime, outcomeDescription, incremental, executionReasons);
+    public DefaultTaskSuccessResult(long startTime, long endTime, boolean upToDate, boolean fromCache, String outcomeDescription, boolean incremental, List<String> executionReasons, String taskIdentityPath) {
+        super(startTime, endTime, outcomeDescription, incremental, executionReasons, taskIdentityPath);
         this.upToDate = upToDate;
         this.fromCache = fromCache;
     }
