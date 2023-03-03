@@ -1823,8 +1823,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @SuppressWarnings({"JavadocReference", "deprecation"})
     private boolean isSpecialCaseOfChangingUsage(String usage, boolean current) {
         boolean isInitializing = roleAtCreation == null;
-        boolean isLegacyRole = roleAtCreation == ConfigurationRoles.LEGACY;
         boolean isDetachedConfiguration = this.configurationsProvider instanceof DetachedConfigurationsProvider;
+        boolean isLegacyRole = roleAtCreation == ConfigurationRoles.LEGACY;
         boolean isPermittedConfigurationChangeForKotlin = name.equals("apiElements") || name.equals("runtimeElements") && usage.equals("consumable") && !current;
 
         return isInitializing || isDetachedConfiguration || isLegacyRole || isPermittedConfigurationChangeForKotlin;
