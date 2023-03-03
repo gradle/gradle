@@ -169,7 +169,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 /**
  * The default {@link Configuration} implementation.
  * <p>
- * After initialization, when the allowed usage is changed then warnings will be emitted, except for the special cases
+ * After initialization, when the allowed usage is changed then role-related deprecation warnings will be emitted, except for the special cases
  * noted in {@link #isSpecialCaseOfChangingUsage(String, boolean)}}.  Initialization is complete when the {@link #roleAtCreation} field is set.
  */
 @SuppressWarnings("rawtypes")
