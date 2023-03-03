@@ -209,7 +209,7 @@ This makes it easier to use Gradle plugins that react to `--offline` from precom
 
 Building precompiled script plugins is now less verbose and does not clutter the console output.
 
-The output is captured and only shown in case of failure.
+The output is captured and only shown in case of failures.
 
 ##### Better validation of name and path
 
