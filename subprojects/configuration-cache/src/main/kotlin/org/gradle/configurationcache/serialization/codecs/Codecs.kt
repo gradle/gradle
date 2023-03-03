@@ -119,103 +119,128 @@ class Codecs(
     flowProviders: FlowProviders,
 ) {
     private
-    val userTypesBindings = Bindings.of {
+    val userTypesBindings: Bindings
+    private
+    val fingerprintUserTypesBindings: Bindings
 
-        unsupportedTypes()
+    init {
+        fun makeUserTypeBindings(providersBlock: BindingsBuilder.() -> Unit) = Bindings.of {
+            unsupportedTypes()
 
-        baseTypes()
+            baseTypes()
 
-        bind(HASHCODE_SERIALIZER)
+            bind(HASHCODE_SERIALIZER)
 
-        providerTypes(
-            propertyFactory,
-            filePropertyFactory,
-            valueSourceProviderFactory,
-            buildStateRegistry,
-            flowProviders
-        )
+            providersBlock()
 
-        bind(ListenerBroadcastCodec(listenerManager))
-        bind(LoggerCodec)
+            bind(ListenerBroadcastCodec(listenerManager))
+            bind(LoggerCodec)
 
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory)
+            fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory)
 
-        bind(ApiTextResourceAdapterCodec)
+            bind(ApiTextResourceAdapterCodec)
 
-        bind(ClosureCodec)
-        bind(GroovyMetaClassCodec)
-        bind(SerializedLambdaParametersCheckingCodec)
+            bind(ClosureCodec)
+            bind(GroovyMetaClassCodec)
+            bind(SerializedLambdaParametersCheckingCodec)
 
-        // Dependency management types
-        bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter))
-        bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
-        bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
-        bind(ComponentVariantIdentifierCodec)
-        bind(InitialTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
-        bind(ChainedTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
-        bind(TransformationStepCodec(inputFingerprinter))
-        bind(TransformationChainCodec())
-        bind(DefaultTransformerCodec(fileLookup, actionScheme))
-        bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
-        bind(TransformStepSpecCodec)
-        bind(PublishArtifactLocalArtifactMetadataCodec)
-        bind(TransformedProjectArtifactSetCodec())
-        bind(TransformedExternalArtifactSetCodec())
-        bind(CalculateArtifactsCodec(calculatedValueContainerFactory))
-        bind(TransformedArtifactCodec(calculatedValueContainerFactory))
-        bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, calculatedValueContainerFactory))
-        bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
-        bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
-        bind(FinalizeTransformDependenciesNodeCodec())
-        bind(ResolveArtifactNodeCodec)
-        bind(WorkNodeActionCodec)
-        bind(CapabilitySerializer())
+            // Dependency management types
+            bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter))
+            bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
+            bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
+            bind(ComponentVariantIdentifierCodec)
+            bind(InitialTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
+            bind(ChainedTransformationNodeCodec(buildOperationExecutor, calculatedValueContainerFactory))
+            bind(TransformationStepCodec(inputFingerprinter))
+            bind(TransformationChainCodec())
+            bind(DefaultTransformerCodec(fileLookup, actionScheme))
+            bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
+            bind(TransformStepSpecCodec)
+            bind(PublishArtifactLocalArtifactMetadataCodec)
+            bind(TransformedProjectArtifactSetCodec())
+            bind(TransformedExternalArtifactSetCodec())
+            bind(CalculateArtifactsCodec(calculatedValueContainerFactory))
+            bind(TransformedArtifactCodec(calculatedValueContainerFactory))
+            bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, calculatedValueContainerFactory))
+            bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
+            bind(IsolateTransformerParametersNodeCodec(parameterScheme, isolatableFactory, buildOperationExecutor, classLoaderHierarchyHasher, fileCollectionFactory, documentationRegistry))
+            bind(FinalizeTransformDependenciesNodeCodec())
+            bind(ResolveArtifactNodeCodec)
+            bind(WorkNodeActionCodec)
+            bind(CapabilitySerializer())
 
-        bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
-        bind(DestinationRootCopySpecCodec(fileResolver))
+            bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
+            bind(DestinationRootCopySpecCodec(fileResolver))
 
-        bind(TaskReferenceCodec)
+            bind(TaskReferenceCodec)
 
-        bind(CachedEnvironmentStateCodec)
+            bind(CachedEnvironmentStateCodec)
 
-        bind(IsolatedManagedValueCodec(managedFactoryRegistry))
-        bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))
-        bind(IsolatedJavaSerializedValueSnapshotCodec)
-        bind(IsolatedArrayCodec)
-        bind(IsolatedSetCodec)
-        bind(IsolatedListCodec)
-        bind(IsolatedMapCodec)
-        bind(MapEntrySnapshotCodec)
-        bind(IsolatedEnumValueSnapshotCodec)
-        bind(StringValueSnapshotCodec)
-        bind(IntegerValueSnapshotCodec)
-        bind(FileValueSnapshotCodec)
-        bind(BooleanValueSnapshotCodec)
-        bind(NullValueSnapshotCodec)
+            bind(IsolatedManagedValueCodec(managedFactoryRegistry))
+            bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))
+            bind(IsolatedJavaSerializedValueSnapshotCodec)
+            bind(IsolatedArrayCodec)
+            bind(IsolatedSetCodec)
+            bind(IsolatedListCodec)
+            bind(IsolatedMapCodec)
+            bind(MapEntrySnapshotCodec)
+            bind(IsolatedEnumValueSnapshotCodec)
+            bind(StringValueSnapshotCodec)
+            bind(IntegerValueSnapshotCodec)
+            bind(FileValueSnapshotCodec)
+            bind(BooleanValueSnapshotCodec)
+            bind(NullValueSnapshotCodec)
 
-        bind(ServicesCodec())
+            bind(ServicesCodec())
 
-        bind(ProxyCodec)
+            bind(ProxyCodec)
 
-        // Java serialization integration
-        bind(unsupported<Externalizable>(NotYetImplementedJavaSerialization))
-        bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
+            // Java serialization integration
+            bind(unsupported<Externalizable>(NotYetImplementedJavaSerialization))
+            bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
 
-        bind(BeanSpecCodec)
+            bind(BeanSpecCodec)
+        }
+
+        userTypesBindings = makeUserTypeBindings {
+            providerTypes(
+                propertyFactory,
+                filePropertyFactory,
+                nestedProviderCodec(
+                    valueSourceProviderFactory,
+                    buildStateRegistry,
+                    flowProviders)
+            )
+        }
+
+        fingerprintUserTypesBindings = makeUserTypeBindings {
+            providerTypes(
+                propertyFactory,
+                filePropertyFactory,
+                nestedProviderCodecForFingerprint(
+                    valueSourceProviderFactory)
+            )
+        }
     }
 
-    fun userTypesCodec(): Codec<Any?> = userTypesBindings.append {
+    private
+    fun Bindings.completeWithReentrantBeanCodec() = append {
         // This protects the BeanCodec against StackOverflowErrors but
         // we can still get them for the other codecs, for instance,
         // with deeply nested Lists, deeply nested Maps, etc.
+        // The reentrant codec is stateful, and cannot be cached because of it.
         bind(reentrant(BeanCodec))
     }.build()
+
+    fun userTypesCodec(): Codec<Any?> = userTypesBindings.completeWithReentrantBeanCodec()
+
+    fun fingerprintTypesCodec(): Codec<Any?> = fingerprintUserTypesBindings.completeWithReentrantBeanCodec()
 
     private
     val internalTypesBindings = Bindings.of {
         baseTypes()
 
-        providerTypes(propertyFactory, filePropertyFactory, valueSourceProviderFactory, buildStateRegistry, flowProviders)
+        providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(valueSourceProviderFactory, buildStateRegistry, flowProviders))
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory)
 
         bind(TaskInAnotherBuildCodec(includedTaskGraph))
@@ -238,11 +263,8 @@ class Codecs(
     fun BindingsBuilder.providerTypes(
         propertyFactory: PropertyFactory,
         filePropertyFactory: FilePropertyFactory,
-        valueSourceProviderFactory: ValueSourceProviderFactory,
-        buildStateRegistry: BuildStateRegistry,
-        flowProviders: FlowProviders
+        nestedCodec: FixedValueReplacingProviderCodec
     ) {
-        val nestedCodec = FixedValueReplacingProviderCodec(valueSourceProviderFactory, buildStateRegistry, flowProviders)
         bind(ListPropertyCodec(propertyFactory, nestedCodec))
         bind(SetPropertyCodec(propertyFactory, nestedCodec))
         bind(MapPropertyCodec(propertyFactory, nestedCodec))
@@ -251,6 +273,32 @@ class Codecs(
         bind(PropertyCodec(propertyFactory, nestedCodec))
         bind(ProviderCodec(nestedCodec))
     }
+
+    /**
+     * Returns a Codec for Provider implementations suitable for all Provider implementations.
+     */
+    private
+    fun nestedProviderCodec(
+        valueSourceProviderFactory: ValueSourceProviderFactory,
+        buildStateRegistry: BuildStateRegistry,
+        flowProviders: FlowProviders
+    ) = FixedValueReplacingProviderCodec(
+        ValueSourceProviderCodec(valueSourceProviderFactory),
+        BuildServiceProviderCodec(buildStateRegistry),
+        FlowProvidersCodec(flowProviders)
+    )
+
+    /**
+     * Returns a Codec for Provider implementations supported in the fingerprinting context. For example, BuildServiceProviders are not supported.
+     */
+    private
+    fun nestedProviderCodecForFingerprint(
+        valueSourceProviderFactory: ValueSourceProviderFactory
+    ) = FixedValueReplacingProviderCodec(
+        ValueSourceProviderCodec(valueSourceProviderFactory),
+        UnsupportedFingerprintBuildServiceProviderCodec,
+        UnsupportedFingerprintFlowProviders
+    )
 
     private
     fun BindingsBuilder.fileCollectionTypes(

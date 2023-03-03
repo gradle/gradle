@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.operations.dependencies.transforms;
 
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.NotUsedByScanPlugin;
@@ -26,15 +26,17 @@ import java.util.Map;
  * <p>
  * Encompasses the execution of a transformation node.
  * A transformation node runs only one transformation step, though possibly on multiple files.
+ *
+ * @since 8.1
  */
-public class ExecuteScheduledTransformationStepBuildOperationType implements BuildOperationType<ExecuteScheduledTransformationStepBuildOperationType.Details, ExecuteScheduledTransformationStepBuildOperationType.Result> {
+public class ExecutePlannedTransformStepBuildOperationType implements BuildOperationType<ExecutePlannedTransformStepBuildOperationType.Details, ExecutePlannedTransformStepBuildOperationType.Result> {
 
     public interface Details {
 
         /**
          * The identity of the transformation executed in this operation.
          */
-        TransformationIdentity getTransformationIdentity();
+        PlannedTransformStepIdentity getPlannedTransformStepIdentity();
 
         /**
          * Full set of attributes of the artifact before the transformation.
@@ -42,9 +44,9 @@ public class ExecuteScheduledTransformationStepBuildOperationType implements Bui
         Map<String, String> getSourceAttributes();
 
         /**
-         * Type of the transformer implementation used during transform registration.
+         * Class of the transformer action implementation provided as part of transform registration.
          */
-        Class<?> getTransformType();
+        Class<?> getTransformActionClass();
 
         /**
          * Returns the display name of the transformer.

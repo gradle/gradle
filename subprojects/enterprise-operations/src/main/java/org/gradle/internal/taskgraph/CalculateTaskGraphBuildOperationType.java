@@ -120,7 +120,6 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
          */
         List<PlannedTask> getTaskPlan();
 
-
         /**
          * Returns all identifiable nodes of requested types in the execution graph in no particular order.
          * <p>
