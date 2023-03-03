@@ -884,7 +884,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             //     return mapping;
             // }
             addLazyGetter("getConventionMapping", CONVENTION_MAPPING_TYPE, RETURN_CONVENTION_MAPPING, null, MAPPING_FIELD, CONVENTION_MAPPING_TYPE, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                // GENERATE new ConventionAwareHelper(this, getConvention())
+                // GENERATE new ConventionAwareHelper(this, getConventionWhileDisabledDeprecationLogger())
                 _NEW(CONVENTION_AWARE_HELPER_TYPE);
                 _DUP();
                 _ALOAD(0);
