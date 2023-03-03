@@ -16,7 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.initialization.properties.GradlePropertiesInternal;
+import org.gradle.initialization.properties.MutableGradleProperties;
 
 import java.io.File;
 import java.util.HashMap;
@@ -36,11 +36,11 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     }
 
     @Override
-    public GradlePropertiesInternal loadGradleProperties(File rootDir) {
+    public MutableGradleProperties loadGradleProperties(File rootDir) {
         return loadProperties(rootDir);
     }
 
-    GradlePropertiesInternal loadProperties(File rootDir) {
+    MutableGradleProperties loadProperties(File rootDir) {
         Map<String, Object> defaultProperties = new HashMap<>();
         Map<String, Object> overrideProperties = new HashMap<>();
 

@@ -20,9 +20,7 @@ import org.gradle.api.internal.properties.GradleProperties;
 
 import java.util.Map;
 
-public interface GradlePropertiesInternal extends GradleProperties {
+public interface MutableGradleProperties extends GradleProperties {
 
-    Map<String, Object> getDefaultProperties();
-
-    Map<String, Object> getOverrideProperties();
+    void updateOverrideProperties(Map<String, Object> properties);
 }

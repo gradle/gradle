@@ -19,6 +19,7 @@ package org.gradle.initialization.properties;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.initialization.EnvironmentChangeTracker;
 
 import java.util.Map;
@@ -44,12 +45,11 @@ public class DefaultSystemPropertiesInstaller implements SystemPropertiesInstall
     }
 
     @Override
-    public void setSystemPropertiesFrom(GradlePropertiesInternal gradleProperties) {
+    public void setSystemPropertiesFrom(GradleProperties gradleProperties) {
         // TODO:configuration-cache What happens when a system property is set from a Gradle property and
         //    that same system property is then used to set a Gradle property from an included build?
         //    e.g., included-build/gradle.properties << systemProp.org.gradle.project.fromSystemProp=42
-        setSystemPropertiesFromGradleProperties(gradleProperties.getDefaultProperties());
-        setSystemPropertiesFromGradleProperties(gradleProperties.getOverrideProperties());
+        setSystemPropertiesFromGradleProperties(gradleProperties.getProperties());
         setSystemPropertiesFromStartParameter();
     }
 

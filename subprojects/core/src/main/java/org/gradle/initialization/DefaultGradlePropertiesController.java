@@ -17,7 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.initialization.properties.GradlePropertiesInternal;
+import org.gradle.initialization.properties.MutableGradleProperties;
 import org.gradle.initialization.properties.ProjectPropertiesLoader;
 import org.gradle.initialization.properties.SystemPropertiesInstaller;
 
@@ -54,7 +54,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         state = new NotLoaded();
     }
 
-    public void overrideWith(GradlePropertiesInternal gradleProperties) {
+    public void overrideWith(GradleProperties gradleProperties) {
         state = state.overrideWith(gradleProperties);
     }
 
@@ -71,6 +71,11 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             return gradleProperties().mergeProperties(properties);
         }
 
+        @Override
+        public Map<String, Object> getProperties() {
+            return gradleProperties().getProperties();
+        }
+
         private GradleProperties gradleProperties() {
             return state.gradleProperties();
         }
@@ -78,58 +83,53 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
     private interface State {
 
-        GradlePropertiesInternal gradleProperties();
+        GradleProperties gradleProperties();
 
         State loadGradlePropertiesFrom(File settingsDir, boolean setSystemProperties);
 
-        State overrideWith(GradlePropertiesInternal gradleProperties);
+        State overrideWith(GradleProperties gradleProperties);
     }
 
     private class NotLoaded implements State {
 
         @Override
-        public GradlePropertiesInternal gradleProperties() {
+        public GradleProperties gradleProperties() {
             throw new IllegalStateException("GradleProperties has not been loaded yet.");
         }
 
         @Override
         public State loadGradlePropertiesFrom(File settingsDir, boolean setSystemProperties) {
-            GradlePropertiesInternal loadedProperties = propertiesLoader.loadGradleProperties(settingsDir);
+            MutableGradleProperties loadedProperties = propertiesLoader.loadGradleProperties(settingsDir);
 
             if (setSystemProperties) {
                 systemPropertiesInstaller.setSystemPropertiesFrom(loadedProperties);
             }
 
-            GradlePropertiesInternal projectProperties = projectPropertiesLoader.loadProjectProperties();
+            Map<String, Object> projectProperties = projectPropertiesLoader.loadProjectProperties();
 
-            Map<String, Object> effectiveDefaultProperties = loadedProperties.getDefaultProperties();
-            loadedProperties.getOverrideProperties().putAll(projectProperties.getOverrideProperties());
-            Map<String, Object> effectiveOverrideProperties = loadedProperties.getOverrideProperties();
+            loadedProperties.updateOverrideProperties(projectProperties);
 
-            return new Loaded(
-                new DefaultGradleProperties(effectiveDefaultProperties, effectiveOverrideProperties),
-                settingsDir
-            );
+            return new Loaded(loadedProperties, settingsDir);
         }
 
         @Override
-        public State overrideWith(GradlePropertiesInternal gradleProperties) {
+        public State overrideWith(GradleProperties gradleProperties) {
             return new Overridden(gradleProperties);
         }
     }
 
     private static class Loaded implements State {
 
-        private final GradlePropertiesInternal gradleProperties;
+        private final GradleProperties gradleProperties;
         private final File propertiesDir;
 
-        public Loaded(GradlePropertiesInternal gradleProperties, File propertiesDir) {
+        public Loaded(MutableGradleProperties gradleProperties, File propertiesDir) {
             this.gradleProperties = gradleProperties;
             this.propertiesDir = propertiesDir;
         }
 
         @Override
-        public GradlePropertiesInternal gradleProperties() {
+        public GradleProperties gradleProperties() {
             return gradleProperties;
         }
 
@@ -147,21 +147,21 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
 
         @Override
-        public State overrideWith(GradlePropertiesInternal gradleProperties) {
+        public State overrideWith(GradleProperties gradleProperties) {
             throw new IllegalStateException("GradleProperties has already been loaded and cannot be overridden.");
         }
     }
 
     private static class Overridden implements State {
 
-        private final GradlePropertiesInternal gradleProperties;
+        private final GradleProperties gradleProperties;
 
-        public Overridden(GradlePropertiesInternal gradleProperties) {
+        public Overridden(GradleProperties gradleProperties) {
             this.gradleProperties = gradleProperties;
         }
 
         @Override
-        public GradlePropertiesInternal gradleProperties() {
+        public GradleProperties gradleProperties() {
             return gradleProperties;
         }
 
@@ -171,7 +171,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
 
         @Override
-        public State overrideWith(GradlePropertiesInternal gradleProperties) {
+        public State overrideWith(GradleProperties gradleProperties) {
             return new Overridden(gradleProperties);
         }
     }

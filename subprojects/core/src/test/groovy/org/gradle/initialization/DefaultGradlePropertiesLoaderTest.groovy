@@ -299,7 +299,7 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
         "value" == properties["prop2"]
 
         when:
-        properties = loadPropertiesFrom(otherSettingsDir).mergeProperties(emptyMap())
+        properties = loadPropertiesFrom(otherSettingsDir).getProperties()
 
         then:
         "otherValue" == properties["prop1"]
