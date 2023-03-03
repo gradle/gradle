@@ -1809,7 +1809,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      * <ol>
      *     <li>While {#roleAtCreation} is {@code null}, we are still initializing, so we should NOT warn.</li>
      *     <li>Changes to the usage of the detached configurations should NOT warn (this done by the Kotlin plugin).</li>
-     *     <li>The legacy role is a special case, and should NOT warn when changing usage (due to the permissiveness of the legacy role, this change will always be a further restriction).</li>
+     *     <li>Configurations with a legacy role should NOT warn when changing usage, 
+since users cannot create non-legacy configurations and there is no current public API for setting roles upon creation</li>
      *     <li>Setting consumable usage to false on the {@code apiElements} and {@code runtimeElements} configurations should NOT warn (this is done by the Kotlin plugin).</li>
      *     <li>All other usage changes should warn.</li>
      * </ol>
