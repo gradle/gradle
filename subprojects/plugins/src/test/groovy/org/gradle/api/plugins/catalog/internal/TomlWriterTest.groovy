@@ -105,7 +105,6 @@ format.version = "1.1"
             Interners.newStrongInterner(),
             Interners.newStrongInterner(),
             TestUtil.objectFactory(),
-            TestUtil.providerFactory(),
             Stub(Supplier))
 
         TomlCatalogFileParser.parse(path, builder)
