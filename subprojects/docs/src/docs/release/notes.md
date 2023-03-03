@@ -185,7 +185,7 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 ```
 
-The standalone script compilation is also now configured to skip the pre-release check in order to allow referencing Kotlin code compiled with more recent Kotlin language versions on a best-effort basis.
+The standalone script compilation is also configured to skip the pre-release check to allow referencing Kotlin code compiled with more recent Kotlin language versions on a best-effort basis.
 
 ##### Published with proper licensing information
 
