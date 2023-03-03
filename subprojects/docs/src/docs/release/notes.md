@@ -187,7 +187,7 @@ The output is captured and only shown in case of failures.
 ##### Better validation of name and path
 
 Precompiled script plugins must respect documented [naming conventions](userguide/kotlin_dsl.html#script_file_names).
-When they do not, Gradle now fails with an explicit and helpful error message.
+Gradle will now fail with an explicit and helpful error message when naming conventions are not followed.
 For example:
 
 ```text
