@@ -1816,7 +1816,7 @@ since users cannot create non-legacy configurations and there is no current publ
      * </ol>
      * <p>
      * This method is temporary, so the duplication of the configuration names defined in
-     * {@link JavaPlatformPlugin}, which are not available to be referenced directly from here, is unfortunate, but not a showstopper.
+     * {@link JvmConstants}, which are not available to be referenced directly from here, is unfortunate, but not a showstopper.
      *
      * @param usage the name usage that is being changed
      * @param current the current value of the usage after the change
