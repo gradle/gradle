@@ -19,7 +19,7 @@ import org.gradle.initialization.properties.GradlePropertiesInternal;
 
 import java.io.File;
 
-public interface GradlePropertiesLoader {
+public interface IGradlePropertiesLoader {
 
     String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
 

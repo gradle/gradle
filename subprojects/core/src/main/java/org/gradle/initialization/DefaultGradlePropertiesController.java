@@ -29,11 +29,11 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
     private State state = new NotLoaded();
     private final GradleProperties sharedGradleProperties = new SharedGradleProperties();
-    private final GradlePropertiesLoader propertiesLoader;
+    private final IGradlePropertiesLoader propertiesLoader;
     private final SystemPropertiesInstaller systemPropertiesInstaller;
     private final ProjectPropertiesLoader projectPropertiesLoader;
 
-    public DefaultGradlePropertiesController(GradlePropertiesLoader propertiesLoader, SystemPropertiesInstaller systemPropertiesInstaller, ProjectPropertiesLoader projectPropertiesLoader) {
+    public DefaultGradlePropertiesController(IGradlePropertiesLoader propertiesLoader, SystemPropertiesInstaller systemPropertiesInstaller, ProjectPropertiesLoader projectPropertiesLoader) {
         this.propertiesLoader = propertiesLoader;
         this.systemPropertiesInstaller = systemPropertiesInstaller;
         this.projectPropertiesLoader = projectPropertiesLoader;
