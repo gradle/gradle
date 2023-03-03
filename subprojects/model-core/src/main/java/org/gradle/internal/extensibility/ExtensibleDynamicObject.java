@@ -19,7 +19,6 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -142,10 +141,11 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     @Override
     @Deprecated
     public Convention getConvention() {
-        DeprecationLogger.deprecateType(org.gradle.api.internal.HasConvention.class)
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "all_convention_deprecation")
-            .nagUser();
+// TODO nag once KGP doesn't register conventions anymore
+//        DeprecationLogger.deprecateType(org.gradle.api.internal.HasConvention.class)
+//            .willBeRemovedInGradle9()
+//            .withUpgradeGuideSection(7, "all_convention_deprecation")
+//            .nagUser();
         return convention;
     }
 
