@@ -25,6 +25,6 @@ tasks.register<WriteJavaVersionTask>("writeJavaVersion") {
     javaVersion.set("17") // <1>
     javaVersion = "17" // <2>
     javaVersion = java.toolchain.languageVersion.map { it.toString() } // <3>
-    output = file("build/writeJavaVersion/javaVersion.txt")
+    output = layout.buildDirectory.file("writeJavaVersion/javaVersion.txt")
 }
 // end::assignment[]
