@@ -780,12 +780,30 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addExtensionsProperty() {
-            // GENERATE public ExtensionContainer getExtensions() { return getConvention(); }
-            addGetter("getExtensions", EXTENSION_CONTAINER_TYPE, RETURN_EXTENSION_CONTAINER, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
-                // GENERATE getConvention()
+        public void addNoDeprecationConventionPrivateGetter() {
+            // GENERATE private Convention getConventionWhileDisabledDeprecationLogger() {
+            //     return DeprecationLogger.whileDisabled { getConvention() }
+            // }
+            privateSyntheticMethod("getConventionWhileDisabledDeprecationLogger", RETURN_CONVENTION, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
-                _INVOKEVIRTUAL(generatedType, "getConvention", RETURN_CONVENTION);
+                _INVOKEDYNAMIC("create", getMethodDescriptor(FACTORY_TYPE, generatedType), LAMBDA_BOOTSTRAP_HANDLE, Arrays.asList(
+                    RETURN_OBJECT_METHOD_TYPE,
+                    new Handle(H_INVOKEVIRTUAL, generatedType.getInternalName(), "getConvention", RETURN_CONVENTION, false),
+                    RETURN_CONVENTION_METHOD_TYPE
+                ));
+                _INVOKESTATIC(DEPRECATION_LOGGER_TYPE, "whileDisabled", DEPRECATION_LOGGER_WHILE_DISABLED_FACTORY_METHOD);
+                _CHECKCAST(CONVENTION_TYPE);
+                _ARETURN();
+            }});
+        }
+
+        @Override
+        public void addExtensionsProperty() {
+            // GENERATE public ExtensionContainer getExtensions() { return getConventionWhileDisabledDeprecationLogger(); }
+            addGetter("getExtensions", EXTENSION_CONTAINER_TYPE, RETURN_EXTENSION_CONTAINER, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+                // GENERATE getConventionWhileDisabledDeprecationLogger()
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, "getConventionWhileDisabledDeprecationLogger", RETURN_CONVENTION);
             }});
         }
 
@@ -860,21 +878,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             addField(ACC_PRIVATE | ACC_TRANSIENT, MAPPING_FIELD, CONVENTION_MAPPING_FIELD_DESCRIPTOR);
             hasMappingField = true;
             // END
-
-            // GENERATE private Convention getConventionWhileDisabledDeprecationLogger() {
-            //     return DeprecationLogger.whileDisabled { getConvention() }
-            // }
-            privateSyntheticMethod("getConventionWhileDisabledDeprecationLogger", RETURN_CONVENTION, methodVisitor -> new LocalMethodVisitorScope(methodVisitor) {{
-                _ALOAD(0);
-                _INVOKEDYNAMIC("create", getMethodDescriptor(FACTORY_TYPE, generatedType), LAMBDA_BOOTSTRAP_HANDLE, Arrays.asList(
-                    RETURN_OBJECT_METHOD_TYPE,
-                    new Handle(H_INVOKEVIRTUAL, generatedType.getInternalName(), "getConvention", RETURN_CONVENTION, false),
-                    RETURN_CONVENTION_METHOD_TYPE
-                ));
-                _INVOKESTATIC(DEPRECATION_LOGGER_TYPE, "whileDisabled", DEPRECATION_LOGGER_WHILE_DISABLED_FACTORY_METHOD);
-                _CHECKCAST(CONVENTION_TYPE);
-                _ARETURN();
-            }});
 
             // GENERATE public ConventionMapping getConventionMapping() {
             //     if (mapping == null) {
@@ -1902,6 +1905,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void mixInDynamicAware() {
+        }
+
+        @Override
+        public void addNoDeprecationConventionPrivateGetter() {
         }
 
         @Override
