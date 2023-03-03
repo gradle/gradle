@@ -40,7 +40,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         return loadProperties(rootDir);
     }
 
-    MutableGradleProperties loadProperties(File rootDir) {
+    private MutableGradleProperties loadProperties(File rootDir) {
         Map<String, Object> defaultProperties = new HashMap<>();
         Map<String, Object> overrideProperties = new HashMap<>();
 

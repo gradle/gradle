@@ -300,7 +300,10 @@ class ConfigurationCacheState(
             rootBuild.addIncludedBuild(definition, settingsFile, buildPath)
         }
 
-        val settingDir = build.gradle.serviceOf<BuildLayout>().settingsDir //why not build.gradle.settings.settingsDir?
+        val settingDir = build.gradle.serviceOf<BuildLayout>().settingsDir
+        // Load Gradle properties from file but skip applying system properties defined here.
+        // System properties from the file may be mutated by the build logic, and the execution-time values are already restored by the EnvironmentChangeTracker.
+        // Applying properties from file overwrite these modifications.
         build.gradle.serviceOf<GradlePropertiesController>().loadGradlePropertiesFrom(settingDir, false)
 
         // Decode the build state using the contextualized IO service for the build
