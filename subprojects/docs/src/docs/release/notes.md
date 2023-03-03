@@ -207,7 +207,7 @@ This makes it easier to use Gradle plugins that react to `--offline` from precom
 
 ##### Less verbose compilation
 
-Building precompiled script plugins is now less verbose and do not clutter the console output.
+Building precompiled script plugins is now less verbose and does not clutter the console output.
 
 The output is captured and only shown in case of failure.
 
