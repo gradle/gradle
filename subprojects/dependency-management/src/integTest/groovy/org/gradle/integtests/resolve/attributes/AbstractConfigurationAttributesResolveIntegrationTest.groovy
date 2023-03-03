@@ -622,7 +622,7 @@ All of them match the consumer attributes:
         """
 
         when:
-        expectChangingUsage(':b:default')
+        expectConsumableChanging(':b:default', false)
         fails ':a:checkDebug'
 
         then:
@@ -714,7 +714,7 @@ All of them match the consumer attributes:
         """
 
         when:
-        expectChangingUsage(':b:default')
+        expectConsumableChanging(':b:default', false)
         fails ':a:checkDebug'
 
         then:
