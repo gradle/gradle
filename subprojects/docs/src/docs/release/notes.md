@@ -364,6 +364,9 @@ The `War.getWebAppDirectory()` method is now considered stable.
 
 ### Promoted features in the `Settings` API
 
+The `includeBuild` methods in `Settings.pluginManagement` are now stable.
+They are the recommended way of including builds that contribute build logic.
+
 The methods `Settings.dependencyResolutionManagement(Action)` and `Settings.getDependencyResolutionManagement()` are now considered stable.
 
 All the methods in `DependencyResolutionManagement` are now stable, except the ones for central repository declaration.
