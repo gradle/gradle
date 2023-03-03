@@ -17,10 +17,9 @@
 package org.gradle.internal.classpath.declarations;
 
 import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.instrumentation.api.annotations.CallInterceptors;
+import org.gradle.internal.instrumentation.api.annotations.CallableKind.InstanceMethod;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
-import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.Receiver;
@@ -30,12 +29,11 @@ import java.io.FileFilter;
 import java.io.FilenameFilter;
 
 @SuppressWarnings("NewMethodNamingConvention")
-@CallInterceptors
 @SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
 @SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME)
 public class FileInterceptorsDeclaration {
     @InterceptCalls
-    @CallableKind.InstanceMethod
+    @InstanceMethod
     public static File[] intercept_listFiles(
         @Receiver File thisFile,
         @CallerClassName String consumer
@@ -44,7 +42,7 @@ public class FileInterceptorsDeclaration {
     }
 
     @InterceptCalls
-    @CallableKind.InstanceMethod
+    @InstanceMethod
     public static File[] intercept_listFiles(
         @Receiver File thisFile,
         FileFilter fileFilter,
@@ -54,7 +52,7 @@ public class FileInterceptorsDeclaration {
     }
 
     @InterceptCalls
-    @CallableKind.InstanceMethod
+    @InstanceMethod
     public static File[] intercept_listFiles(
         @Receiver File thisFile,
         FilenameFilter fileFilter,
@@ -64,7 +62,7 @@ public class FileInterceptorsDeclaration {
     }
 
     @InterceptCalls
-    @CallableKind.InstanceMethod
+    @InstanceMethod
     public static boolean intercept_exists(
         @Receiver File thisFile,
         @CallerClassName String consumer
@@ -73,7 +71,7 @@ public class FileInterceptorsDeclaration {
     }
 
     @InterceptCalls
-    @CallableKind.InstanceMethod
+    @InstanceMethod
     public static boolean intercept_isFile(
         @Receiver File thisFile,
         @CallerClassName String consumer
@@ -82,11 +80,42 @@ public class FileInterceptorsDeclaration {
     }
 
     @InterceptCalls
-    @CallableKind.InstanceMethod
+    @InstanceMethod
     public static boolean intercept_isDirectory(
         @Receiver File thisFile,
         @CallerClassName String consumer
     ) {
         return Instrumented.fileIsDirectory(thisFile, consumer);
+    }
+
+    @InterceptCalls
+    @InstanceMethod
+    public static String[] intercept_list(
+        @Receiver File thisFile,
+        @CallerClassName String consumer
+    ) {
+        Instrumented.directoryContentObserved(thisFile, consumer);
+        return thisFile.list();
+    }
+
+    @InterceptCalls
+    @InstanceMethod
+    public static String[] intercept_list(
+        @Receiver File thisFile,
+        FilenameFilter filenameFilter,
+        @CallerClassName String consumer
+    ) {
+        Instrumented.directoryContentObserved(thisFile, consumer);
+        return thisFile.list(filenameFilter);
+    }
+
+    @InterceptCalls
+    @InstanceMethod
+    public static long intercept_length(
+        @Receiver File thisFile,
+        @CallerClassName String consumer
+    ) {
+        Instrumented.fileOpened(thisFile, consumer);
+        return thisFile.length();
     }
 }

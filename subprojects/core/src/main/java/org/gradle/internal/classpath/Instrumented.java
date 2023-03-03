@@ -367,33 +367,41 @@ public class Instrumented {
         return builder.start();
     }
 
-    public static boolean fileExists(File file, String consumer) {
+    public static void fileSystemEntryObserved(File file, String consumer) {
         listener().fileSystemEntryObserved(file, consumer);
+    }
+
+    public static boolean fileExists(File file, String consumer) {
+        fileSystemEntryObserved(file, consumer);
         return file.exists();
     }
 
     public static boolean fileIsFile(File file, String consumer) {
-        listener().fileSystemEntryObserved(file, consumer);
+        fileSystemEntryObserved(file, consumer);
         return file.isFile();
     }
 
     public static boolean fileIsDirectory(File file, String consumer) {
-        listener().fileSystemEntryObserved(file, consumer);
+        fileSystemEntryObserved(file, consumer);
         return file.isDirectory();
     }
 
-    public static File[] fileListFiles(File file, String consumer) {
+    public static void directoryContentObserved(File file, String consumer) {
         listener().directoryContentObserved(file, consumer);
+    }
+
+    public static File[] fileListFiles(File file, String consumer) {
+        directoryContentObserved(file, consumer);
         return file.listFiles();
     }
 
     public static File[] fileListFiles(File file, FileFilter fileFilter, String consumer) {
-        listener().directoryContentObserved(file, consumer);
+        directoryContentObserved(file, consumer);
         return file.listFiles(fileFilter);
     }
 
     public static File[] fileListFiles(File file, FilenameFilter fileFilter, String consumer) {
-        listener().directoryContentObserved(file, consumer);
+        directoryContentObserved(file, consumer);
         return file.listFiles(fileFilter);
     }
 
