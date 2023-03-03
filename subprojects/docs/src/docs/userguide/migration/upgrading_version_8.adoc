@@ -50,7 +50,7 @@ This is a potentially breaking change if you are consuming the console output of
 === Deprecations
 
 [[configurations_allowed_usage]]
-==== Allowed configurations usage
+==== Mutating core plugin configuration usage
 
 The allowed usage of a configuration should be immutable after creation.
 Mutating the allowed usage on a configuration created by a Gradle core plugin is deprecated.
