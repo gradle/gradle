@@ -596,7 +596,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public ExtensionContainer getExtensions() {
-        return getConvention();
+        return DeprecationLogger.whileDisabled(this::getConvention);
     }
 
     @Internal
