@@ -32,11 +32,6 @@ import java.util.Map;
  */
 public interface TransformationIdentity extends NodeIdentity {
 
-    @Override
-    default NodeType getNodeType() {
-        return NodeType.ARTIFACT_TRANSFORM;
-    }
-
     /**
      * Path of an included build of the consumer project.
      */
@@ -55,7 +50,8 @@ public interface TransformationIdentity extends NodeIdentity {
     /**
      * Target attributes of the transformed artifact.
      * <p>
-     * The attributes include the source attributes of the artifact before the transformation and
+     * The attributes include all source attributes of the artifact before the transformation,
+     * values for some of which have been changed by the transformation.
      */
     Map<String, String> getTargetAttributes();
 
