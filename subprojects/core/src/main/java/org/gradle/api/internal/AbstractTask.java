@@ -589,18 +589,21 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "all_convention_deprecation")
             .nagUser();
-        return getConventionVia("Task.convention");
+        return getConventionVia("Task.convention", false);
     }
 
     @Internal
     @Override
     public ExtensionContainer getExtensions() {
-        return getConventionVia("Task.extensions");
+        return getConventionVia("Task.extensions", true);
     }
 
-    private Convention getConventionVia(String invocationDescription) {
+    private Convention getConventionVia(String invocationDescription, boolean disableDeprecationForConventionAccess) {
         notifyConventionAccess(invocationDescription);
         assertDynamicObject();
+        if (disableDeprecationForConventionAccess) {
+            return DeprecationLogger.whileDisabled(() -> extensibleDynamicObject.getConvention());
+        }
         return extensibleDynamicObject.getConvention();
     }
 
