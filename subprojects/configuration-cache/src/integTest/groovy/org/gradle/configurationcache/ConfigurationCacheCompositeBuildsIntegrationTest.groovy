@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-import groovy.test.NotYetImplemented
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -47,8 +46,6 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         configurationCache.assertStateLoaded()
     }
 
-    //TODO-RC need to investigate this regression
-    @NotYetImplemented
     def "can use lib produced by included build"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
