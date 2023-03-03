@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -42,6 +41,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

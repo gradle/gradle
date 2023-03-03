@@ -122,7 +122,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
 
     private static class WorkerDaemonServices extends WorkerSharedUserHomeScopeServices {
 
-        // TODO: configuration-cache - deprecate workers access to ProviderFactory?
+        // TODO:configuration-cache - deprecate workers access to ProviderFactory?
         ProviderFactory createProviderFactory() {
             return new DefaultProviderFactory();
         }

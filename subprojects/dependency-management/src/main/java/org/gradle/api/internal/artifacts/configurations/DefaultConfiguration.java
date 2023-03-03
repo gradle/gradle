@@ -136,6 +136,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerThreadRegistry;
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;

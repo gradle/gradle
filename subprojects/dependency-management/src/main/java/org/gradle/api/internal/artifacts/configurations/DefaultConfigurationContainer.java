@@ -50,8 +50,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration>
-    implements ConfigurationContainerInternal, ConfigurationsProvider {
+public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration> implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
 
     @SuppressWarnings("deprecation")
@@ -120,7 +119,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         String name = nextDetachedConfigurationName();
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         @SuppressWarnings("deprecation")
-        DefaultConfiguration detachedConfiguration = newConfiguration(name, detachedConfigurationsProvider, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), ConfigurationRoles.LEGACY, false);
+        DefaultConfiguration detachedConfiguration = newConfiguration(name, detachedConfigurationsProvider, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), ConfigurationRolesForMigration.LEGACY_TO_INTENDED_RESOLVABLE_BUCKET, false);
         copyAllTo(detachedConfiguration, dependencies);
         detachedConfigurationsProvider.setTheOnlyConfiguration(detachedConfiguration);
         return detachedConfiguration;

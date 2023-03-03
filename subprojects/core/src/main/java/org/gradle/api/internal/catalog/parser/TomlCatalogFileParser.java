@@ -35,6 +35,8 @@ import org.tomlj.TomlTable;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -79,31 +81,33 @@ public class TomlCatalogFileParser {
         "rejectAll"
     );
 
-    public static void parse(InputStream in, VersionCatalogBuilder builder) throws IOException {
+    public static void parse(Path catalogFilePath, VersionCatalogBuilder builder) throws IOException {
         StrictVersionParser strictVersionParser = new StrictVersionParser(Interners.newStrongInterner());
-        TomlParseResult result = Toml.parse(in);
-        assertNoParseErrors(result, builder);
-        TomlTable metadataTable = result.getTable(METADATA_KEY);
-        verifyMetadata(builder, metadataTable);
-        TomlTable librariesTable = result.getTable(LIBRARIES_KEY);
-        TomlTable bundlesTable = result.getTable(BUNDLES_KEY);
-        TomlTable versionsTable = result.getTable(VERSIONS_KEY);
-        TomlTable pluginsTable = result.getTable(PLUGINS_KEY);
-        Sets.SetView<String> unknownTle = Sets.difference(result.keySet(), TOP_LEVEL_ELEMENTS);
-        if (!unknownTle.isEmpty()) {
-            throwVersionCatalogProblem(builder, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec ->
-                spec.withShortDescription(() -> "Unknown top level elements " + unknownTle)
-                    .happensBecause(() -> "TOML file contains an unexpected top-level element")
-                    .addSolution(() -> "Make sure the top-level elements of your TOML file is one of " + oxfordListOf(TOP_LEVEL_ELEMENTS, "or"))
-                    .documented());
+        try (InputStream inputStream = Files.newInputStream(catalogFilePath)) {
+            TomlParseResult result = Toml.parse(inputStream);
+            assertNoParseErrors(result, catalogFilePath, builder);
+            TomlTable metadataTable = result.getTable(METADATA_KEY);
+            verifyMetadata(builder, metadataTable);
+            TomlTable librariesTable = result.getTable(LIBRARIES_KEY);
+            TomlTable bundlesTable = result.getTable(BUNDLES_KEY);
+            TomlTable versionsTable = result.getTable(VERSIONS_KEY);
+            TomlTable pluginsTable = result.getTable(PLUGINS_KEY);
+            Sets.SetView<String> unknownTle = Sets.difference(result.keySet(), TOP_LEVEL_ELEMENTS);
+            if (!unknownTle.isEmpty()) {
+                throwVersionCatalogProblem(builder, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec ->
+                    spec.withShortDescription(() -> "Unknown top level elements " + unknownTle)
+                        .happensBecause(() -> "TOML file contains an unexpected top-level element")
+                        .addSolution(() -> "Make sure the top-level elements of your TOML file is one of " + oxfordListOf(TOP_LEVEL_ELEMENTS, "or"))
+                        .documented());
+            }
+            parseLibraries(librariesTable, builder, strictVersionParser);
+            parsePlugins(pluginsTable, builder, strictVersionParser);
+            parseBundles(bundlesTable, builder);
+            parseVersions(versionsTable, builder, strictVersionParser);
         }
-        parseLibraries(librariesTable, builder, strictVersionParser);
-        parsePlugins(pluginsTable, builder, strictVersionParser);
-        parseBundles(bundlesTable, builder);
-        parseVersions(versionsTable, builder, strictVersionParser);
     }
 
-    private static void assertNoParseErrors(TomlParseResult result, VersionCatalogBuilder builder) {
+    private static void assertNoParseErrors(TomlParseResult result, Path catalogFilePath, VersionCatalogBuilder builder) {
         if (result.hasErrors()) {
             List<TomlParseError> errors = result.errors();
             throwVersionCatalogProblem(builder, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec ->
@@ -114,7 +118,9 @@ public class TomlCatalogFileParser {
                             if (reason.length() > 0) {
                                 reason.append("\n");
                             }
-                            reason.append("At line ")
+                            reason.append("In file '")
+                                .append(catalogFilePath.toAbsolutePath())
+                                .append("' at line ")
                                 .append(error.position().line()).append(", column ")
                                 .append(error.position().column())
                                 .append(": ")
