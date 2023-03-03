@@ -21,13 +21,13 @@ import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 
 import java.util.Map;
 
-public class ExecuteScheduledTransformationStepBuildOperationDetails implements ExecuteScheduledTransformationStepBuildOperationType.Details, CustomOperationTraceSerialization {
+public class ExecutePlannedTransformStepBuildOperationDetails implements ExecutePlannedTransformStepBuildOperationType.Details, CustomOperationTraceSerialization {
 
     private final TransformationNode transformationNode;
     private final String transformerName;
     private final String subjectName;
 
-    public ExecuteScheduledTransformationStepBuildOperationDetails(TransformationNode transformationNode, String transformerName, String subjectName) {
+    public ExecutePlannedTransformStepBuildOperationDetails(TransformationNode transformationNode, String transformerName, String subjectName) {
         this.transformationNode = transformationNode;
         this.transformerName = transformerName;
         this.subjectName = subjectName;
@@ -38,7 +38,7 @@ public class ExecuteScheduledTransformationStepBuildOperationDetails implements 
     }
 
     @Override
-    public TransformationIdentity getTransformationIdentity() {
+    public PlannedTransformStepIdentity getPlannedTransformStepIdentity() {
         return transformationNode.getNodeIdentity();
     }
 
@@ -65,7 +65,7 @@ public class ExecuteScheduledTransformationStepBuildOperationDetails implements 
     @Override
     public Object getCustomOperationTraceSerializableModel() {
         ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-        builder.put("transformationIdentity", getTransformationIdentity());
+        builder.put("plannedTransformStepIdentity", getPlannedTransformStepIdentity());
         builder.put("sourceAttributes", getSourceAttributes());
         builder.put("transformType", getTransformType());
         builder.put("transformerName", transformerName);

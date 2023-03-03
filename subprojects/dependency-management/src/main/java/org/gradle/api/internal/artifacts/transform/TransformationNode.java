@@ -66,7 +66,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
     protected final TransformUpstreamDependencies upstreamDependencies;
     private final long transformationNodeId;
 
-    private TransformationIdentity cachedIdentity;
+    private PlannedTransformStepIdentity cachedIdentity;
 
     public static ChainedTransformationNode chained(
         ComponentVariantIdentifier targetComponentVariant,
@@ -119,14 +119,14 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         return sourceAttributes;
     }
 
-    public TransformationIdentity getNodeIdentity() {
+    public PlannedTransformStepIdentity getNodeIdentity() {
         if (cachedIdentity == null) {
             cachedIdentity = createIdentity();
         }
         return cachedIdentity;
     }
 
-    private TransformationIdentity createIdentity() {
+    private PlannedTransformStepIdentity createIdentity() {
         String consumerBuildPath = transformationStep.getOwningProject().getBuildPath().toString();
         String consumerProjectPath = transformationStep.getOwningProject().getIdentityPath().toString();
         ComponentIdentifier componentId = getComponentIdentifier(targetComponentVariant.getComponentId());
@@ -135,10 +135,10 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             .map(TransformationNode::convertCapability)
             .collect(Collectors.toList());
 
-        return new TransformationIdentity() {
+        return new PlannedTransformStepIdentity() {
             @Override
             public NodeType getNodeType() {
-                return NodeType.ARTIFACT_TRANSFORM;
+                return NodeType.TRANSFORM_STEP;
             }
 
             @Override
@@ -483,7 +483,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             return BuildOperationDescriptor.displayName("Transform " + basicName)
                 .progressDisplayName(TRANSFORMING_PROGRESS_PREFIX + basicName)
                 .metadata(BuildOperationCategory.TRANSFORM)
-                .details(new ExecuteScheduledTransformationStepBuildOperationDetails(TransformationNode.this, transformerName, subjectName));
+                .details(new ExecutePlannedTransformStepBuildOperationDetails(TransformationNode.this, transformerName, subjectName));
         }
 
         protected abstract String describeSubject();
@@ -497,7 +497,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         protected abstract TransformationSubject transform();
     }
 
-    private static final ExecuteScheduledTransformationStepBuildOperationType.Result RESULT = new ExecuteScheduledTransformationStepBuildOperationType.Result() {
+    private static final ExecutePlannedTransformStepBuildOperationType.Result RESULT = new ExecutePlannedTransformStepBuildOperationType.Result() {
     };
 
 }

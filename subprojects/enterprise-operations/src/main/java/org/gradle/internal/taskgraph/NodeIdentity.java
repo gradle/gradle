@@ -25,7 +25,7 @@ public interface NodeIdentity {
 
     enum NodeType {
         TASK,
-        ARTIFACT_TRANSFORM
+        TRANSFORM_STEP
     }
 
     NodeType getNodeType();
