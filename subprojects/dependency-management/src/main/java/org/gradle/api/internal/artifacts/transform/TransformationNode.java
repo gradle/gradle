@@ -21,12 +21,8 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.component.OpaqueComponentIdentifier;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
-import org.gradle.api.internal.capabilities.Capability;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -46,6 +42,12 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
+import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType;
+import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
+import org.gradle.operations.dependencies.variants.Capability;
+import org.gradle.operations.dependencies.variants.ComponentIdentifier;
+import org.gradle.operations.dependencies.variants.OpaqueComponentIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -215,7 +217,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
     private static ComponentIdentifier getComponentIdentifier(org.gradle.api.artifacts.component.ComponentIdentifier componentId) {
         if (componentId instanceof ProjectComponentIdentifier) {
             ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) componentId;
-            return new org.gradle.api.internal.artifacts.component.ProjectComponentIdentifier() {
+            return new org.gradle.operations.dependencies.variants.ProjectComponentIdentifier() {
                 @Override
                 public String getBuildPath() {
                     return projectComponentIdentifier.getBuild().getName();
@@ -233,7 +235,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             };
         } else if (componentId instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) componentId;
-            return new org.gradle.api.internal.artifacts.component.ModuleComponentIdentifier() {
+            return new org.gradle.operations.dependencies.variants.ModuleComponentIdentifier() {
                 @Override
                 public String getGroup() {
                     return moduleComponentIdentifier.getGroup();

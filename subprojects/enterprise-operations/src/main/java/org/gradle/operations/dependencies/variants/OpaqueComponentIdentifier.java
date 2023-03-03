@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.component;
+package org.gradle.operations.dependencies.variants;
 
 /**
- * An identifier for a component instance which is available as a module version.
- **/
-public interface ModuleComponentIdentifier extends ComponentIdentifier {
+ * An opaque immutable identifier for a component instance.
+ *
+ * @since 8.1
+ */
+public interface OpaqueComponentIdentifier extends ComponentIdentifier {
 
-    String getGroup();
+    String getDisplayName();
 
-    String getModule();
-
-    String getVersion();
+    String getClassName();
 
 }

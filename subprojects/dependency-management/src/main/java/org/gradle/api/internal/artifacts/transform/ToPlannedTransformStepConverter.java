@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
 
 /**
  * A converter from {@link TransformationNode} to {@link CalculateTaskGraphBuildOperationType.PlannedNode}.

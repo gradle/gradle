@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
+import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType;
+import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
 
 import java.util.Map;
 

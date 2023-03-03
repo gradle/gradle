@@ -29,7 +29,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
-import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
@@ -71,6 +70,7 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata
 import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity
 
 
 class LocalFileDependencyBackedArtifactSetCodec(

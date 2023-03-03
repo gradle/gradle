@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.operations.dependencies.transforms;
 
-import org.gradle.api.internal.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity;
-import org.gradle.api.internal.capabilities.Capability;
 import org.gradle.internal.taskgraph.NodeIdentity;
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
+import org.gradle.operations.dependencies.variants.Capability;
+import org.gradle.operations.dependencies.variants.ComponentIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.List;

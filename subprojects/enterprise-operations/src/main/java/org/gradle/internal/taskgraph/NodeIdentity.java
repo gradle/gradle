@@ -20,6 +20,8 @@ package org.gradle.internal.taskgraph;
  * The identity of a node in the execution graph.
  * <p>
  * Needs to be unique across all the execution graphs of the current build.
+ *
+ * @since 8.1
  */
 public interface NodeIdentity {
 
