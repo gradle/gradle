@@ -23,6 +23,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 
@@ -132,8 +133,13 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
         return returnValue;
     }
 
+    @Deprecated
     @Override
     public Convention getConvention() {
+        DeprecationLogger.deprecateType(org.gradle.api.internal.HasConvention.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "all_convention_deprecation")
+            .nagUser();
         return _convention;
     }
 
