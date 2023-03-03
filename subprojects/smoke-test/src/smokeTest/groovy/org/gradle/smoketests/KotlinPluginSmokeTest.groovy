@@ -485,7 +485,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
             VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
             runner.expectDeprecationWarningIf(
-                agpVersionNumber < VersionNumber.parse("7.4.0") || (agpVersionNumber >= VersionNumber.parse("7.4.0") && kotlinVersionNumber < VersionNumber.parse("1.7.0")),
+                agpVersionNumber < VersionNumber.parse("7.4.0") || (agpVersionNumber >= VersionNumber.parse("7.4.0") && kotlinVersionNumber < VersionNumber.parse("1.7.22")),
                 CONVENTION_TYPE_DEPRECATION,
                 ""
             )
