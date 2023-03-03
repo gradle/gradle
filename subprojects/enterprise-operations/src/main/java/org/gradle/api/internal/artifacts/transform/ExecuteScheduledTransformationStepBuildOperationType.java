@@ -31,14 +31,19 @@ public class ExecuteScheduledTransformationStepBuildOperationType implements Bui
 
     public interface Details {
 
+        /**
+         * The identity of the transformation executed in this operation.
+         */
         TransformationIdentity getTransformationIdentity();
 
+        /**
+         * Full set of attributes of the artifact before the transformation.
+         */
         Map<String, String> getSourceAttributes();
 
-        Map<String, String> getFromAttributes();
-
-        Map<String, String> getToAttributes();
-
+        /**
+         * Type of the transformer implementation used during transform registration.
+         */
         Class<?> getTransformType();
 
         /**

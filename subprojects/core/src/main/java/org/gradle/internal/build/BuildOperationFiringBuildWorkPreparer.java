@@ -16,7 +16,6 @@
 
 package org.gradle.internal.build;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
@@ -30,19 +29,16 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
+import org.gradle.internal.service.scopes.ToPlannedNodeConverterRegistry;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -59,12 +55,12 @@ import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer {
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildWorkPreparer delegate;
-    private final ConverterRegistry converterRegistry;
+    private final ToPlannedNodeConverterRegistry converterRegistry;
 
-    public BuildOperationFiringBuildWorkPreparer(BuildOperationExecutor buildOperationExecutor, BuildWorkPreparer delegate, List<ToPlannedNodeConverter> converters) {
+    public BuildOperationFiringBuildWorkPreparer(BuildOperationExecutor buildOperationExecutor, BuildWorkPreparer delegate, ToPlannedNodeConverterRegistry converterRegistry) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;
-        this.converterRegistry = new ConverterRegistry(converters);
+        this.converterRegistry = converterRegistry;
     }
 
     @Override
@@ -87,10 +83,10 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
         private final GradleInternal gradle;
         private final ExecutionPlan plan;
         private final Consumer<? super ExecutionPlan> action;
-        private final ConverterRegistry converterRegistry;
+        private final ToPlannedNodeConverterRegistry converterRegistry;
         private final NodeDependencyLookup dependencyLookup;
 
-        public PopulateWorkGraph(BuildWorkPreparer delegate, GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action, ConverterRegistry converterRegistry) {
+        public PopulateWorkGraph(BuildWorkPreparer delegate, GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action, ToPlannedNodeConverterRegistry converterRegistry) {
             this.delegate = delegate;
             this.gradle = gradle;
             this.plan = plan;
@@ -204,9 +200,9 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
     private static class NodeDependencyLookup implements ToPlannedNodeConverter.DependencyLookup {
 
-        private final ConverterRegistry converterRegistry;
+        private final ToPlannedNodeConverterRegistry converterRegistry;
 
-        private NodeDependencyLookup(ConverterRegistry converterRegistry) {
+        private NodeDependencyLookup(ToPlannedNodeConverterRegistry converterRegistry) {
             this.converterRegistry = converterRegistry;
         }
 
@@ -258,71 +254,6 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             }
             NodeIdentity nodeIdentity = converter.getNodeIdentity(node);
             return isDependencyNode.test(nodeIdentity) ? nodeIdentity : null;
-        }
-    }
-
-    private static class ConverterRegistry {
-
-        private final List<ToPlannedNodeConverter> converters;
-
-        private final Map<Class<?>, ToPlannedNodeConverter> convertersByNodeType = new HashMap<>();
-        private final Set<Class<?>> unsupportedNodeTypes = new HashSet<>();
-
-        private ConverterRegistry(List<ToPlannedNodeConverter> converters) {
-            validateConverters(converters);
-            this.converters = ImmutableList.copyOf(converters);
-
-            for (ToPlannedNodeConverter converter : this.converters) {
-                convertersByNodeType.put(converter.getSupportedNodeType(), converter);
-            }
-        }
-
-        /**
-         * Returns a converter for the given node, or null if there is no converter for the node.
-         */
-        @Nullable
-        public ToPlannedNodeConverter getConverter(Node node) {
-            Class<? extends Node> nodeType = node.getClass();
-            ToPlannedNodeConverter converter = convertersByNodeType.get(nodeType);
-            if (converter != null) {
-                return converter;
-            }
-
-            if (unsupportedNodeTypes.contains(nodeType)) {
-                return null;
-            }
-
-            for (ToPlannedNodeConverter converterCandidate : converters) {
-                Class<? extends Node> supportedNodeType = converterCandidate.getSupportedNodeType();
-                if (supportedNodeType.isAssignableFrom(nodeType)) {
-                    converter = converterCandidate;
-                    break;
-                }
-            }
-
-            if (converter != null) {
-                convertersByNodeType.put(nodeType, converter);
-            } else {
-                unsupportedNodeTypes.add(nodeType);
-            }
-
-            return converter;
-        }
-
-        private static void validateConverters(List<ToPlannedNodeConverter> converters) {
-            for (ToPlannedNodeConverter converter1 : converters) {
-                Class<? extends Node> supportedNodeType1 = converter1.getSupportedNodeType();
-                for (ToPlannedNodeConverter converter2 : converters) {
-                    if (converter1 == converter2) {
-                        continue;
-                    }
-
-                    Class<? extends Node> supportedNodeType2 = converter2.getSupportedNodeType();
-                    if (supportedNodeType1.isAssignableFrom(supportedNodeType2) || supportedNodeType2.isAssignableFrom(supportedNodeType1)) {
-                        throw new IllegalStateException("Converter " + converter1 + " is not compatible with converter " + converter2);
-                    }
-                }
-            }
         }
     }
 }
