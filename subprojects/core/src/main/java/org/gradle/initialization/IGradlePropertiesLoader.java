@@ -15,7 +15,7 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.initialization.properties.GradlePropertiesInternal;
+import org.gradle.initialization.properties.MutableGradleProperties;
 
 import java.io.File;
 
@@ -30,5 +30,5 @@ public interface IGradlePropertiesLoader {
      *
      * @since 6.2
      */
-    GradlePropertiesInternal loadGradleProperties(File rootDir);
+    MutableGradleProperties loadGradleProperties(File rootDir);
 }

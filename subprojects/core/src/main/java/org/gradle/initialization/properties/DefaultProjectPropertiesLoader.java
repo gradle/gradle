@@ -17,7 +17,6 @@
 package org.gradle.initialization.properties;
 
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.initialization.DefaultGradleProperties;
 import org.gradle.initialization.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,15 +38,14 @@ public class DefaultProjectPropertiesLoader implements ProjectPropertiesLoader {
     }
 
     @Override
-    public GradlePropertiesInternal loadProjectProperties() {
-        Map<String, Object> defaultProperties = new HashMap<>();
-        Map<String, Object> overrideProperties = new HashMap<>();
+    public Map<String, Object> loadProjectProperties() {
+        Map<String, Object> properties = new HashMap<>();
 
-        overrideProperties.putAll(projectPropertiesFromEnvironmentVariables());
-        overrideProperties.putAll(projectPropertiesFromSystemProperties());
-        overrideProperties.putAll(startParameter.getProjectProperties());
+        properties.putAll(projectPropertiesFromEnvironmentVariables());
+        properties.putAll(projectPropertiesFromSystemProperties());
+        properties.putAll(startParameter.getProjectProperties());
 
-        return new DefaultGradleProperties(defaultProperties, overrideProperties);
+        return properties;
     }
 
     private Map<String, String> projectPropertiesFromSystemProperties() {

@@ -16,11 +16,13 @@
 
 package org.gradle.initialization.properties;
 
+import java.util.Map;
+
 public interface ProjectPropertiesLoader {
 
     String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
 
     String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
 
-    GradlePropertiesInternal loadProjectProperties();
+    Map<String, Object> loadProjectProperties();
 }

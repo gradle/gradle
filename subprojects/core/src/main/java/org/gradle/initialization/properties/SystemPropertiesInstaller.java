@@ -16,7 +16,9 @@
 
 package org.gradle.initialization.properties;
 
+import org.gradle.api.internal.properties.GradleProperties;
+
 public interface SystemPropertiesInstaller {
 
-    void setSystemPropertiesFrom(GradlePropertiesInternal gradleProperties);
+    void setSystemPropertiesFrom(GradleProperties gradleProperties);
 }
