@@ -206,6 +206,41 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         configurationCache.assertStateStored()
     }
 
+    def "exception thrown from ValueSource becomes problem if the exception is #exceptionHandlerDescritpion"() {
+        given:
+        buildFile("""
+            import org.gradle.api.provider.*
+
+            abstract class BrokenValueSource implements ValueSource<String, ValueSourceParameters.None>, Describable {
+                @Override String obtain() { throw new RuntimeException("Broken!") }
+                @Override String getDisplayName() { "some name" }
+            }
+
+            try {
+                providers.of(BrokenValueSource) {}.get()
+            } catch (Throwable ex) {
+                $exceptionHandlerImpl
+            }
+        """)
+
+        when:
+        configurationCacheFails()
+
+        then:
+        outputContains("Configuration cache entry discarded with 1 problem.")
+        failure.assertHasFailures(expectedFailuresCount)
+        problems.assertFailureHasProblems(failure) {
+            totalProblemsCount == 1
+            problemsWithStackTraceCount == 1
+            withProblem("Build file 'build.gradle': line 5: failed to compute value with custom source 'BrokenValueSource' (some name) with java.lang.RuntimeException: Broken!")
+        }
+
+        where:
+        exceptionHandlerDescritpion | exceptionHandlerImpl | expectedFailuresCount
+        "rethrown"                  | "throw ex"           | 2  // The original exception propagates and fails the build, and configuration cache problem is reported too.
+        "ignored"                   | "// ignored"         | 1  // Only the configuration cache problem is reported
+    }
+
     def "ValueSource can use #accessor without making it an input"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
