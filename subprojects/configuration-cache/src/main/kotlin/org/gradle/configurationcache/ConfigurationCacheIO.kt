@@ -45,11 +45,14 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
 import java.io.File
 import java.io.InputStream
+import java.io.OutputStream
 
 
 @ServiceScope(Scopes.Gradle::class)
@@ -167,7 +170,7 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultReadContext.(ConfigurationCacheState) -> T
     ): T {
-        return withReadContextFor(stateFile.stateType, encryptionService.inputStream(stateFile.stateType, stateFile::inputStream)) { codecs ->
+        return withReadContextFor(encryptionService.inputStream(stateFile.stateType, stateFile::inputStream)) { codecs ->
             ConfigurationCacheState(codecs, stateFile, eventEmitter, host).run {
                 action(this)
             }
@@ -179,8 +182,9 @@ class ConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend DefaultWriteContext.(ConfigurationCacheState) -> T
     ): T {
+
         val build = host.currentBuild
-        val (context, codecs) = writerContextFor(stateFile.stateFile, build.gradle.owner.displayName.displayName + " state")
+        val (context, codecs) = writerContextFor(encryptionService.outputStream(stateFile.stateType, stateFile::outputStream), build.gradle.owner.displayName.displayName + " state")
         return context.useToRun {
             runWriteOperation {
                 action(ConfigurationCacheState(codecs, stateFile, eventEmitter, host))
@@ -207,8 +211,8 @@ class ConfigurationCacheIO internal constructor(
     }
 
     internal
-    fun writerContextFor(stateFile: ConfigurationCacheStateStore.StateFile, profile: String): Pair<DefaultWriteContext, Codecs> =
-        encryptionService.encoder(stateFile.stateType, { encryptionService.outputStream(stateFile.stateType, stateFile.file::outputStream) }).let { encoder ->
+    fun writerContextFor(outputStream: OutputStream, profile: String): Pair<DefaultWriteContext, Codecs> =
+        KryoBackedEncoder(outputStream).let { encoder ->
             writeContextFor(
                 encoder,
                 loggingTracerFor(profile, encoder),
@@ -217,7 +221,7 @@ class ConfigurationCacheIO internal constructor(
         }
 
     private
-    fun loggingTracerFor(profile: String, encoder: Encoder) =
+    fun loggingTracerFor(profile: String, encoder: KryoBackedEncoder) =
         loggingTracerLogLevel()?.let { level ->
             LoggingTracer(profile, encoder::getWritePosition, logger, level)
         }
@@ -239,11 +243,10 @@ class ConfigurationCacheIO internal constructor(
 
     internal
     fun <R> withReadContextFor(
-        stateType: StateType,
         inputStream: InputStream,
         readOperation: suspend DefaultReadContext.(Codecs) -> R
     ): R =
-        readerContextFor(stateType, inputStream).let { (context, codecs) ->
+        readerContextFor(inputStream).let { (context, codecs) ->
             context.use {
                 context.run {
                     initClassLoader(javaClass.classLoader)
@@ -258,9 +261,8 @@ class ConfigurationCacheIO internal constructor(
 
     private
     fun readerContextFor(
-        stateType: StateType,
         inputStream: InputStream,
-    ) = readerContextFor(encryptionService.decoder(stateType) { inputStream })
+    ) = readerContextFor(KryoBackedDecoder(inputStream))
 
     internal
     fun readerContextFor(

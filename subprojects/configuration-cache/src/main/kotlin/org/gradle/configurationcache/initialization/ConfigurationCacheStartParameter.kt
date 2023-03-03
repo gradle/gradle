@@ -18,12 +18,10 @@ package org.gradle.configurationcache.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.configurationcache.EncryptionStrategy
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
-import org.gradle.internal.buildoption.IntegerInternalOption
 import org.gradle.internal.buildoption.StringInternalOption
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
@@ -46,15 +44,7 @@ class ConfigurationCacheStartParameter(
 
     val taskExecutionAccessPreStable: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")).get()
 
-    val encryptionStrategy: Int = options.getOption(IntegerInternalOption("org.gradle.configuration-cache.internal.encryption-strategy", EncryptionStrategy.Encoding.id)).get()
-
-    val keystorePath: String? = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.key-store-path", null)).get()
-
-    val keystorePassword: String? = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.key-store-password", null)).get()
-
-    val keyAlias: String = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.key-alias", "gradle-secret")).get()
-
-    val keyPassword: String = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.key-password", "")).get()
+    val encryptionRequested: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.encryption", true)).get()
 
     val encryptionAlgorithm: String = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.AES_ECB_PADDING.transformation)).get()
 

@@ -18,12 +18,14 @@ package org.gradle.internal.serialize
 
 class StreamBackedCodecTest extends AbstractCodecTest {
     @Override
-    protected Encoder createEncoder(OutputStream outputStream) {
-        return new OutputStreamBackedEncoder(outputStream)
+    void encodeTo(OutputStream outputStream, Closure<Encoder> closure) {
+        def encoder = new OutputStreamBackedEncoder(outputStream)
+        closure.call(encoder)
     }
 
     @Override
-    protected InputStreamBackedDecoder createDecoder(InputStream inputStream) {
-        return new InputStreamBackedDecoder(inputStream)
+    void decodeFrom(InputStream inputStream, Closure<Decoder> closure) {
+        def decoder = new InputStreamBackedDecoder(inputStream)
+        closure.call(decoder)
     }
 }

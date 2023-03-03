@@ -32,9 +32,9 @@ import java.io.InputStream;
  */
 public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implements Decoder, Closeable {
     public static final int INITIAL_CAPACITY = 32;
-    protected final Input input;
+    private final Input input;
     private final InputStream inputStream;
-    protected String[] strings;
+    private String[] strings;
     private long extraSkipped;
 
     public StringDeduplicatingKryoBackedDecoder(InputStream inputStream) {
@@ -70,9 +70,9 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
         }
     }
 
-    protected RuntimeException maybeEndOfStream(KryoException e) throws EOFException {
+    private RuntimeException maybeEndOfStream(KryoException e) throws EOFException {
         if (e.getMessage().equals("Buffer underflow.")) {
-            throw (EOFException) new EOFException().initCause(e);
+            throw (EOFException) (new EOFException().initCause(e));
         }
         throw e;
     }
