@@ -271,6 +271,37 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         outputContains("configuration cache cannot be reused because a build logic input of type 'BrokenValueSource' failed when storing the entry with java.lang.RuntimeException: Broken!.")
     }
 
+    def "exception thrown from ValueSource when computing its value for fingerprint checking fails the build"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            import org.gradle.api.provider.*
+
+            abstract class SometimesBrokenValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Override String obtain() {
+                    if (Boolean.getBoolean("should.fail")) {
+                        throw new RuntimeException("Broken!")
+                    }
+                    return "not broken"
+                }
+            }
+
+            providers.of(SometimesBrokenValueSource) {}.get()
+        """)
+
+        when:
+        configurationCacheRun()
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheFails("-Dshould.fail=true")
+
+        then:
+        failure.assertHasDescription("Broken!")
+    }
+
     def "ValueSource can use #accessor without making it an input"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
