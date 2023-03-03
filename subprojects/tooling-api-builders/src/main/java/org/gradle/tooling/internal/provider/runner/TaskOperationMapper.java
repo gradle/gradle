@@ -120,18 +120,19 @@ class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperat
         long endTime = finishEvent.getEndTime();
         ExecuteTaskBuildOperationType.Result result = (ExecuteTaskBuildOperationType.Result) finishEvent.getResult();
         boolean incremental = result != null && result.isIncremental();
+        String taskIdentityPath = task.getIdentityPath().getPath();
 
         if (state.getUpToDate()) {
-            return new DefaultTaskSuccessResult(startTime, endTime, true, state.isFromCache(), state.getSkipMessage(), incremental, Collections.emptyList());
+            return new DefaultTaskSuccessResult(startTime, endTime, true, state.isFromCache(), state.getSkipMessage(), incremental, Collections.emptyList(), taskIdentityPath);
         } else if (state.getSkipped()) {
-            return new DefaultTaskSkippedResult(startTime, endTime, state.getSkipMessage(), incremental);
+            return new DefaultTaskSkippedResult(startTime, endTime, state.getSkipMessage(), incremental, taskIdentityPath);
         } else {
             List<String> executionReasons = result != null ? result.getUpToDateMessages() : null;
             Throwable failure = finishEvent.getFailure();
             if (failure == null) {
-                return new DefaultTaskSuccessResult(startTime, endTime, false, state.isFromCache(), "SUCCESS", incremental, executionReasons);
+                return new DefaultTaskSuccessResult(startTime, endTime, false, state.isFromCache(), "SUCCESS", incremental, executionReasons, taskIdentityPath);
             } else {
-                return new DefaultTaskFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), incremental, executionReasons);
+                return new DefaultTaskFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), incremental, executionReasons, taskIdentityPath);
             }
         }
     }

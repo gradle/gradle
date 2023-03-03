@@ -26,7 +26,7 @@ public class DefaultJavaCompileTaskSuccessResult extends DefaultTaskSuccessResul
     private final List<InternalAnnotationProcessorResult> annotationProcessorResults;
 
     public DefaultJavaCompileTaskSuccessResult(DefaultTaskSuccessResult delegate, List<InternalAnnotationProcessorResult> annotationProcessorResults) {
-        super(delegate.getStartTime(), delegate.getEndTime(), delegate.isUpToDate(), delegate.isFromCache(), delegate.getOutcomeDescription(), delegate.isIncremental(), delegate.getExecutionReasons());
+        super(delegate.getStartTime(), delegate.getEndTime(), delegate.isUpToDate(), delegate.isFromCache(), delegate.getOutcomeDescription(), delegate.isIncremental(), delegate.getExecutionReasons(), delegate.getTaskIdentityPath());
         this.annotationProcessorResults = annotationProcessorResults;
     }
 
