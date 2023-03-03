@@ -165,8 +165,8 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                 if (entry.getName().endsWith(".class")) {
                     ClassReader reader = new ClassReader(entry.getContent());
                     ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-                    Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter);
-                    reader.accept(chain.right, /* required for LocalVariablesSorter */ ClassReader.EXPAND_FRAMES);
+                    Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter, new ClassData(reader));
+                    reader.accept(chain.right, 0);
                     byte[] bytes = classWriter.toByteArray();
                     builder.put(chain.left.getPathString(), bytes, entry.getCompressionMethod());
                 } else {

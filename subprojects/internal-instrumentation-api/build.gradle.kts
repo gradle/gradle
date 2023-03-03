@@ -24,5 +24,6 @@ dependencies {
 
     implementation(libs.groovy)
     implementation(libs.asm)
+    implementation(libs.asmTree)
     implementation(libs.asmCommons)
 }
