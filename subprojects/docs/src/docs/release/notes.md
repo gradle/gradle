@@ -103,37 +103,6 @@ plugins {
 
 If you were using a workaround for this before, see the [corresponding section](userguide/upgrading_version_8.html#kotlin_dsl_plugins_catalogs_workaround) in the upgrading guide.
 
-#### Easier access to extensions on the `Gradle` object 
-
-The `Gradle` type now declares that it is `ExtensionAware`.
-This allows access to extensions without casting to `ExtensionAware` from Kotlin.
-This can be useful in [initialization scripts](userguide/init_scripts.html).
-
-```kotlin
-// Assuming the Gradle object has an extension of type MyExtension
-configure<MyExtension> {
-    someProperty.set("value")
-}
-
-// Assuming the Gradle object has an optional extra property named 'myOption'
-val myOption: String? by extra
-```
-
-See the [ExtensionAware](dsl/org.gradle.api.plugins.ExtensionAware.html#org.gradle.api.plugins.ExtensionAware) type documentation for more information.
-
-#### Easier configuration of `Test.forkEvery` from Kotlin
-
-It is now easier to configure the `forkEvery` property of `Test` tasks from Kotlin to set the maximum number of test classes to execute in a forked test process.
-The property nullability is now coherent and instead of requiring to use its `setForkEvery(<number>)` setter you can now simply assign it a value:
-
-```kotlin
-tasks.test {
-    forkEvery = 8
-}
-```
-
-See the [Test.forkEvery](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery) property documentation for more information.
-
 #### Kotlin script compilation improvements
 
 Gradle [Kotlin DSL scripts](userguide/kotlin_dsl.html#sec:scripts) are compiled by Gradle during the configuration phase of your build.
@@ -227,6 +196,37 @@ Precompiled script 'src/main/kotlin/settings.gradle.kts' file name is invalid, p
 
 Moreover, `.gradle.kts` files present in resources `src/main/resources` are not considered as precompiled script plugins anymore.
 This makes it easier to ship Gradle Kotlin DSL scripts in plugins resources.
+
+#### Easier access to extensions on the `Gradle` object
+
+The `Gradle` type now declares that it is `ExtensionAware`.
+This allows access to extensions without casting to `ExtensionAware` from Kotlin.
+This can be useful in [initialization scripts](userguide/init_scripts.html).
+
+```kotlin
+// Assuming the Gradle object has an extension of type MyExtension
+configure<MyExtension> {
+    someProperty.set("value")
+}
+
+// Assuming the Gradle object has an optional extra property named 'myOption'
+val myOption: String? by extra
+```
+
+See the [ExtensionAware](dsl/org.gradle.api.plugins.ExtensionAware.html#org.gradle.api.plugins.ExtensionAware) type documentation for more information.
+
+#### Easier configuration of `Test.forkEvery` from Kotlin
+
+It is now easier to configure the `forkEvery` property of `Test` tasks from Kotlin to set the maximum number of test classes to execute in a forked test process.
+The property nullability is now coherent and instead of requiring to use its `setForkEvery(<number>)` setter you can now simply assign it a value:
+
+```kotlin
+tasks.test {
+    forkEvery = 8
+}
+```
+
+See the [Test.forkEvery](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery) property documentation for more information.
 
 ### Build Init plugin incubating option changes
 
