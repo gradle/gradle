@@ -89,7 +89,7 @@ TODO - File system repositories are fully supported including dynamic versions i
 
 ### Kotlin DSL improvements
 
-Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the Groovy DSL with an enhanced editing experience in supported IDEs — superior content assistance, refactoring, documentation and more.
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the Groovy DSL with an enhanced editing experience in supported IDEs — superior content assistance, refactoring, documentation, and more.
 
 #### Version catalogs for plugins in the `plugins {}` block
 
