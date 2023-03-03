@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.file.FileType
+import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matcher
 import spock.lang.Issue
@@ -2639,23 +2639,23 @@ Found the following transforms:
         outputContains("After transformer FileSizer on lib.jar (project :lib)")
 
         and:
-        def executeTransformationOp = buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)
+        def executeTransformationOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
         executeTransformationOp.failure == null
         executeTransformationOp.displayName == "Transform lib.jar (project :lib) with FileSizer"
         with(executeTransformationOp.details) {
             transformerName == "FileSizer"
             subjectName == "lib.jar (project :lib)"
-            with(transformationIdentity) {
-                nodeType == "ARTIFACT_TRANSFORM"
-                buildPath == ":"
-                projectPath == ":app"
+            with(plannedTransformStepIdentity) {
+                nodeType == "TRANSFORM_STEP"
+                consumerBuildPath == ":"
+                consumerProjectPath == ":app"
                 componentId == [buildPath: ":", projectPath: ":lib"]
                 targetAttributes == [artifactType: "size", usage: "api"]
                 capabilities == [[group: "root", name: "lib", version: "unspecified"]]
                 artifactName == "lib.jar"
                 dependenciesConfigurationIdentity == null
             }
-            transformType == "FileSizer"
+            transformActionClass == "FileSizer"
             sourceAttributes == [artifactType: "jar", usage: "api"]
         }
     }
@@ -2712,23 +2712,23 @@ Found the following transforms:
         outputContains("After transformer BrokenTransform on lib.jar (project :lib)")
 
         and:
-        def executeTransformationOp = buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)
+        def executeTransformationOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
         executeTransformationOp.failure != null
         executeTransformationOp.displayName == "Transform lib.jar (project :lib) with BrokenTransform"
         with(executeTransformationOp.details) {
             transformerName == "BrokenTransform"
             subjectName == "lib.jar (project :lib)"
-            with(transformationIdentity) {
-                nodeType == "ARTIFACT_TRANSFORM"
-                buildPath == ":"
-                projectPath == ":app"
+            with(plannedTransformStepIdentity) {
+                nodeType == "TRANSFORM_STEP"
+                consumerBuildPath == ":"
+                consumerProjectPath == ":app"
                 componentId == [buildPath: ":", projectPath: ":lib"]
                 targetAttributes == [artifactType: "size", usage: "api"]
                 capabilities == [[group: "root", name: "lib", version: "unspecified"]]
                 artifactName == "lib.jar"
                 dependenciesConfigurationIdentity == null
             }
-            transformType == "BrokenTransform"
+            transformActionClass == "BrokenTransform"
             sourceAttributes == [artifactType: "jar", usage: "api"]
         }
     }
@@ -2822,6 +2822,6 @@ Found the following transforms:
                     println "capabilities: " + artifacts.collect { it.variant.capabilities }
                 }
             }
-"""
+        """
     }
 }

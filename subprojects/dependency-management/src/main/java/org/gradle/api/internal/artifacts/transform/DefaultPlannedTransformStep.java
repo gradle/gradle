@@ -18,28 +18,29 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.taskgraph.NodeIdentity;
+import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
 
 import java.util.List;
 
 /**
  * A {@link CalculateTaskGraphBuildOperationType.PlannedNode} for a {@link TransformationNode}.
  */
-public class DefaultPlannedTransform implements CalculateTaskGraphBuildOperationType.PlannedNode {
+public class DefaultPlannedTransformStep implements CalculateTaskGraphBuildOperationType.PlannedNode {
 
-    private final TransformationIdentity transformationIdentity;
+    private final PlannedTransformStepIdentity identity;
     private final List<? extends NodeIdentity> dependencies;
 
-    public DefaultPlannedTransform(
-        TransformationIdentity transformationIdentity,
+    public DefaultPlannedTransformStep(
+        PlannedTransformStepIdentity identity,
         List<? extends NodeIdentity> dependencies
     ) {
-        this.transformationIdentity = transformationIdentity;
+        this.identity = identity;
         this.dependencies = dependencies;
     }
 
     @Override
-    public TransformationIdentity getNodeIdentity() {
-        return transformationIdentity;
+    public PlannedTransformStepIdentity getNodeIdentity() {
+        return identity;
     }
 
     @Override
@@ -49,6 +50,6 @@ public class DefaultPlannedTransform implements CalculateTaskGraphBuildOperation
 
     @Override
     public String toString() {
-        return transformationIdentity.toString();
+        return identity.toString();
     }
 }

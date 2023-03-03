@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.configurations;
+package org.gradle.operations.dependencies.variants;
 
 import javax.annotation.Nullable;
 
 /**
- * Identifies a configuration.
+ * A capability provided by a component.
+ *
+ * @since 8.1
  */
-public interface ConfigurationIdentity {
+public interface Capability {
 
-    String getBuildPath();
-
-    @Nullable
-    String getProjectPath();
+    String getGroup();
 
     String getName();
 
+    @Nullable
+    String getVersion();
 }
