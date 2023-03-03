@@ -232,14 +232,12 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         // The zero at the end of the configuration comes from the previous implementation;
         // Multiple files could be imported, and all members of the list were given their own configuration, postfixed by the index in the array.
         // After moving this into a single-file import, we didn't want to break the lock files generated for the configuration, so we simply kept the zero.
-        Configuration cnf = drs.getConfigurationContainer().create("incomingCatalogFor" + StringUtils.capitalize(name) + "0");
+        Configuration cnf = drs.getConfigurationContainer().resolvableBucket("incomingCatalogFor" + StringUtils.capitalize(name) + "0");
         cnf.getResolutionStrategy().activateDependencyLocking();
         cnf.attributes(attrs -> {
             attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
             attrs.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERSION_CATALOG));
         });
-        cnf.setCanBeResolved(true);
-        cnf.setCanBeConsumed(false);
         return cnf;
     }
 
