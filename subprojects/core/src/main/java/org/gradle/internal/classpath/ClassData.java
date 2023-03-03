@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.api.jvmbytecode;
+package org.gradle.internal.classpath;
 
-import org.objectweb.asm.tree.MethodNode;
+import org.gradle.internal.lazy.Lazy;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.tree.ClassNode;
 
-import java.util.function.Supplier;
+public class ClassData {
+    ClassData(ClassReader reader) {
+        lazyClassNode = Lazy.unsafe().of(() -> {
+            ClassNode classNode = new ClassNode();
+            reader.accept(classNode, 0);
+            return classNode;
+        });
+    }
 
-public interface JvmBytecodeCallInterceptor {
-    boolean visitMethodInsn(
-            String className,
-            int opcode,
-            String owner,
-            String name,
-            String descriptor,
-            boolean isInterface,
-            Supplier<MethodNode> readMethodNode
-    );
+    private final Lazy<ClassNode> lazyClassNode;
+
+    public ClassNode readClassAsNode() {
+        return lazyClassNode.get();
+    }
 }

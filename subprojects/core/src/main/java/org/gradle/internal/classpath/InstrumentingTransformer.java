@@ -29,7 +29,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.classpath.declarations.InterceptorDeclaration;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
-import org.gradle.internal.instrumentation.utils.LocalVariablesSorterWithDroppedVariables;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.objectweb.asm.ClassVisitor;
@@ -37,6 +37,8 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.MethodNode;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -55,8 +57,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Supplier;
 
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
@@ -245,19 +249,21 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     }
 
     @Override
-    public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) {
-        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor)));
+    public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) {
+        return Pair.of(entry.getPath(), new InstrumentingVisitor(new InstrumentingBackwardsCompatibilityVisitor(visitor), classData::readClassAsNode));
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
         String className;
+        private final Supplier<ClassNode> classAsNode;
         private final List<LambdaFactoryDetails> lambdaFactories = new ArrayList<>();
         private boolean hasGroovyCallSites;
         private boolean hasDeserializeLambda;
         private boolean isInterface;
 
-        public InstrumentingVisitor(ClassVisitor visitor) {
+        public InstrumentingVisitor(ClassVisitor visitor, Supplier<ClassNode> classAsNode) {
             super(ASM_LEVEL, visitor);
+            this.classAsNode = classAsNode;
         }
 
         public void addSerializedLambda(LambdaFactoryDetails lambdaFactoryDetails) {
@@ -280,8 +286,13 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return super.visitMethod(access, RENAMED_DESERIALIZE_LAMBDA, descriptor, signature, exceptions);
             }
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
-            LocalVariablesSorterWithDroppedVariables sorter = LocalVariablesSorterWithDroppedVariables.create(access, descriptor, methodVisitor);
-            return new InstrumentingMethodVisitor(this, methodVisitor, sorter);
+            Lazy<MethodNode> asMethodNode = Lazy.unsafe().of(() -> {
+                Optional<MethodNode> methodNode = classAsNode.get().methods.stream().filter(method ->
+                        Objects.equals(method.name, name) && Objects.equals(method.desc, descriptor) && Objects.equals(method.signature, signature)
+                ).findFirst();
+                return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
+            });
+            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode);
         }
 
         @Override
@@ -363,18 +374,20 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static class InstrumentingMethodVisitor extends MethodVisitorScope {
         private final InstrumentingVisitor owner;
         private final String className;
+        private final Lazy<MethodNode> asNode;
 
         private final JvmBytecodeCallInterceptor generatedInterceptor;
 
-        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor originalMethodVisitor, LocalVariablesSorterWithDroppedVariables localVariablesSorter) {
-            super(localVariablesSorter);
+        public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode) {
+            super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
+            this.asNode = asNode;
 
             try {
                 generatedInterceptor = (JvmBytecodeCallInterceptor) Class.forName(InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
-                    .getConstructor(MethodVisitor.class, LocalVariablesSorterWithDroppedVariables.class)
-                    .newInstance(originalMethodVisitor, localVariablesSorter);
+                        .getConstructor(MethodVisitor.class)
+                        .newInstance(methodVisitor);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
@@ -391,7 +404,8 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             if (opcode == INVOKESPECIAL && visitINVOKESPECIAL(owner, name, descriptor)) {
                 return;
             }
-            if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface)) {
+
+            if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface, asNode)) {
                 return;
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);

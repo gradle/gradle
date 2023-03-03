@@ -26,6 +26,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -141,7 +142,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             }
 
             @Override
-            public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) throws IOException {
+            public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) throws IOException {
                 String renamed = entry.getPath().getLastName();
                 if (renamed.startsWith(RemappingScriptSource.MAPPED_SCRIPT)) {
                     renamed = className + renamed.substring(RemappingScriptSource.MAPPED_SCRIPT.length());

@@ -394,7 +394,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
 
         and:
         1 * transform.applyConfigurationTo(_) >> { Hasher hasher -> hasher.putInt(123) }
-        1 * transform.apply(_, _) >> { entry, visitor ->
+        1 * transform.apply(_, _, _) >> { entry, visitor, data ->
             assert entry.name == "a.class"
             Pair.of(entry.path, visitor)
         }

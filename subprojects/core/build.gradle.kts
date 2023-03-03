@@ -63,7 +63,7 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.guava)
     implementation(libs.inject)
-    implementation(libs.asm)
+    implementation(libs.asmTree)
     implementation(libs.asmCommons)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
