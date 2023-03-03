@@ -177,7 +177,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             }
 
             @Override
-            public long getTransformationNodeId() {
+            public long getTransformStepNodeId() {
                 return transformationNodeId;
             }
 

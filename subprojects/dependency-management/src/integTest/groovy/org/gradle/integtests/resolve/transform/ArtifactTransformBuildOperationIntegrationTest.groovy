@@ -856,7 +856,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             case TASK:
                 return new TypedNodeId(nodeType: TASK, nodeIdInType: nodeIdentity.taskId.toString())
             case TRANSFORM_STEP:
-                return new TypedNodeId(nodeType: TRANSFORM_STEP, nodeIdInType: nodeIdentity.transformationNodeId)
+                return new TypedNodeId(nodeType: TRANSFORM_STEP, nodeIdInType: nodeIdentity.transformStepNodeId)
             default:
                 throw new IllegalArgumentException("Unknown node type: ${nodeIdentity.nodeType}")
         }

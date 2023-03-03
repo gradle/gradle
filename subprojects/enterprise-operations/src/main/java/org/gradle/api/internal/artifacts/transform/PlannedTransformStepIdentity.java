@@ -80,6 +80,6 @@ public interface PlannedTransformStepIdentity extends NodeIdentity {
     /**
      * An opaque identifier distinguishes between different transformation nodes in case other identity properties are the same.
      */
-    long getTransformationNodeId();
+    long getTransformStepNodeId();
 
 }
