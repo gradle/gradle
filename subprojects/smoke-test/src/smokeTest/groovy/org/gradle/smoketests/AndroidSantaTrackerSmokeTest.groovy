@@ -149,6 +149,15 @@ class SantaTrackerConfigurationCacheWorkaround {
             androidAnalyticsSetting.parentFile.mkdirs()
             androidAnalyticsSetting.createNewFile()
         }
+        File androidCacheDir = new File(System.getProperty("user.home"), ".android/cache")
+        if (!androidCacheDir.exists()) {
+            androidCacheDir.mkdirs()
+        }
+        File androidLock = new File(gradleHome, "android.lock")
+        if (!androidLock.exists()) {
+            androidLock.parentFile.mkdirs()
+            androidLock.createNewFile()
+        }
         def androidFakeDependency = new File(gradleHome, "android/FakeDependency.jar")
         if (!androidFakeDependency.exists()) {
             androidFakeDependency.parentFile.mkdirs()
