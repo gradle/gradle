@@ -47,6 +47,10 @@ For example, the use of deprecated APIs in Kotlin DSL will emit warnings each ti
 
 This is a potentially breaking change if you are consuming the console output of Gradle builds.
 
+==== Kotlin Gradle Plugin, Android Gradle Plugin and Gradle's Configuration Cache
+
+Starting with Gradle 8.1, using the configuration cache on a build that uses both the Kotlin Gradle Plugin and the Android Gradle Plugin requires using the Kotlin Gradle Plugin >= 1.8.0.
+
 === Deprecations
 
 [[custom_configuration_roles]]
