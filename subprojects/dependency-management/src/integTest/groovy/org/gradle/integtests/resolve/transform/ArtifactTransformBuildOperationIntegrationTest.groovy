@@ -48,8 +48,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     static class PlannedTransformStepIdentityWithoutId {
-        String buildPath
-        String projectPath
+        String consumerBuildPath
+        String consumerProjectPath
         Map<String, String> componentId
         Map<String, String> targetAttributes
         List<Map<String, String>> capabilities
@@ -130,8 +130,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         List<PlannedNode> plannedNodes = getPlannedNodes(1)
 
         def expectedTransformId = new PlannedTransformStepIdentityWithoutId([
-            buildPath: ":",
-            projectPath: ":consumer",
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
@@ -192,8 +192,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def plannedNodes = getPlannedNodes(2)
 
         def expectedTransformId1 = new PlannedTransformStepIdentityWithoutId([
-            buildPath: ":",
-            projectPath: ":consumer",
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
             targetAttributes: [color: "red", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
@@ -202,8 +202,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         ])
 
         def expectedTransformId2 = new PlannedTransformStepIdentityWithoutId([
-            buildPath: ":",
-            projectPath: ":consumer",
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
@@ -273,8 +273,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def plannedNodes = getPlannedNodes(2)
 
         def expectedTransformId1 = new PlannedTransformStepIdentityWithoutId([
-            buildPath: ":",
-            projectPath: ":consumer",
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
             targetAttributes: [color: "red", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
@@ -283,8 +283,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         ])
 
         def expectedTransformId2 = new PlannedTransformStepIdentityWithoutId([
-            buildPath: ":",
-            projectPath: ":consumer",
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
@@ -363,8 +363,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def plannedNodes = getPlannedNodes(1)
 
         def expectedTransformId1 = new PlannedTransformStepIdentityWithoutId([
-            buildPath: ":",
-            projectPath: ":consumer",
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
@@ -425,8 +425,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def plannedNodes = getPlannedNodes(2)
 
         def expectedTransformId1 = new PlannedTransformStepIdentityWithoutId([
-            buildPath: ":",
-            projectPath: ":consumer",
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
             targetAttributes: [color: "red", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
@@ -435,8 +435,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         ])
 
         def expectedTransformId2 = new PlannedTransformStepIdentityWithoutId([
-            buildPath: ":",
-            projectPath: ":consumer",
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
@@ -547,8 +547,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def plannedNodes = getPlannedNodes(2)
 
         def expectedTransformId1 = new PlannedTransformStepIdentityWithoutId([
-            buildPath: ":",
-            projectPath: ":consumer",
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
             targetAttributes: [color: "red", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
@@ -557,8 +557,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         ])
 
         def expectedTransformId2 = new PlannedTransformStepIdentityWithoutId([
-            buildPath: ":",
-            projectPath: ":consumer",
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
@@ -675,8 +675,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def plannedNodes = getPlannedNodes(2)
 
         def expectedTransformId1 = new PlannedTransformStepIdentityWithoutId([
-            buildPath: ":",
-            projectPath: ":consumer",
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
@@ -685,8 +685,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         ])
 
         def expectedTransformId2 = new PlannedTransformStepIdentityWithoutId([
-            buildPath: ":",
-            projectPath: ":consumer",
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
@@ -769,8 +769,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def plannedNodes = getPlannedNodes(1)
 
         def expectedTransformId1 = new PlannedTransformStepIdentityWithoutId([
-            buildPath: ":",
-            projectPath: ":consumer",
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
@@ -870,8 +870,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
     boolean matchTransformationIdentity(actual, PlannedTransformStepIdentityWithoutId expected) {
         actual.nodeType.toString() == TRANSFORM_STEP &&
-            actual.buildPath == expected.buildPath &&
-            actual.projectPath == expected.projectPath &&
+            actual.consumerBuildPath == expected.consumerBuildPath &&
+            actual.consumerProjectPath == expected.consumerProjectPath &&
             actual.componentId == expected.componentId &&
             actual.targetAttributes == expected.targetAttributes &&
             actual.capabilities == expected.capabilities &&
@@ -882,8 +882,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     void verifyTransformationIdentity(actual, PlannedTransformStepIdentityWithoutId expected) {
         verifyAll(actual) {
             nodeType.toString() == TRANSFORM_STEP
-            buildPath == expected.buildPath
-            projectPath == expected.projectPath
+            consumerBuildPath == expected.consumerBuildPath
+            consumerProjectPath == expected.consumerProjectPath
             componentId == expected.componentId
             targetAttributes == expected.targetAttributes
             capabilities == expected.capabilities

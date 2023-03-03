@@ -2647,8 +2647,8 @@ Found the following transforms:
             subjectName == "lib.jar (project :lib)"
             with(plannedTransformStepIdentity) {
                 nodeType == "TRANSFORM_STEP"
-                buildPath == ":"
-                projectPath == ":app"
+                consumerBuildPath == ":"
+                consumerProjectPath == ":app"
                 componentId == [buildPath: ":", projectPath: ":lib"]
                 targetAttributes == [artifactType: "size", usage: "api"]
                 capabilities == [[group: "root", name: "lib", version: "unspecified"]]
@@ -2720,8 +2720,8 @@ Found the following transforms:
             subjectName == "lib.jar (project :lib)"
             with(plannedTransformStepIdentity) {
                 nodeType == "TRANSFORM_STEP"
-                buildPath == ":"
-                projectPath == ":app"
+                consumerBuildPath == ":"
+                consumerProjectPath == ":app"
                 componentId == [buildPath: ":", projectPath: ":lib"]
                 targetAttributes == [artifactType: "size", usage: "api"]
                 capabilities == [[group: "root", name: "lib", version: "unspecified"]]

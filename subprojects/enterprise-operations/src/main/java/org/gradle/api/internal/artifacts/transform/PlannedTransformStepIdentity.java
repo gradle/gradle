@@ -35,12 +35,12 @@ public interface PlannedTransformStepIdentity extends NodeIdentity {
     /**
      * Path of an included build of the consumer project.
      */
-    String getBuildPath();
+    String getConsumerBuildPath();
 
     /**
      * Consumer project path within the build.
      */
-    String getProjectPath();
+    String getConsumerProjectPath();
 
     /**
      * The component identifier of the transformed artifact.
