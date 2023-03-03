@@ -194,7 +194,7 @@ The plugin is published under the same license as the Gradle Build Tool: the Apa
 
 This makes using the `kotlin-dsl` plugin easier in an enterprise setting where published licensing information is required. 
 
-#### Precompiled Kotlin script plugins improvements
+#### Precompiled Kotlin script plugin improvements
 
 In addition to plugins written as standalone projects, Gradle also allows you to provide build logic written in Kotlin as [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins).
 You write these as `*.gradle.kts` files in `src/main/kotlin` directory.
