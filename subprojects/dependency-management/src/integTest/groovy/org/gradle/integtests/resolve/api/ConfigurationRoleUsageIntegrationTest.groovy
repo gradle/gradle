@@ -584,8 +584,8 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         expectConsumableChanging(":$configuration", true)
         succeeds 'help'
 
-        where: "a non-exhaustive list of configurations is tested"
-        configuration << ['api', 'implementation']
+        where:
+        configuration << ['api', 'implementation', 'runtimeOnly', 'compileOnly', 'compileOnlyApi', 'runtimeClasspath', 'compileClasspath']
     }
 
     def "changing usage for custom configuration in the legacy role is allowed"() {
