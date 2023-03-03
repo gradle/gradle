@@ -56,11 +56,6 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
      */
     public interface TaskIdentity extends NodeIdentity {
 
-        @Override
-        default NodeType getNodeType() {
-            return NodeType.TASK;
-        }
-
         String getBuildPath();
 
         String getTaskPath();

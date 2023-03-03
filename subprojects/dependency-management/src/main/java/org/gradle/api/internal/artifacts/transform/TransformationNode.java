@@ -137,6 +137,11 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
         return new TransformationIdentity() {
             @Override
+            public NodeType getNodeType() {
+                return NodeType.ARTIFACT_TRANSFORM;
+            }
+
+            @Override
             public String getBuildPath() {
                 return consumerBuildPath;
             }
