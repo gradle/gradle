@@ -9,6 +9,7 @@ It fixes the following issues:
 * [#24031](https://github.com/gradle/gradle/issues/24031) InstrumentingTransformer generates different class files in Gradle 8 and 7.6 which leads to Remote Build-Cache misses
 * [#24109](https://github.com/gradle/gradle/issues/24109) Extending an already resolved configuration no longer works correctly
 * [#24122](https://github.com/gradle/gradle/issues/24122) Update configuration cache state for some plugins
+* [#24129](https://github.com/gradle/gradle/issues/24129) includeBuild in PluginManagementSpec deincubated in Gradle 8, docs still say it's incubating
 
 Issues fixed in the first patch release: 
 * [#21551](https://github.com/gradle/gradle/issues/21551) Document integration of Scala plugin with toolchains and problems with `target` flag
@@ -363,6 +364,9 @@ The `ScalaSourceDirectorySet` interface is now considered stable.
 The `War.getWebAppDirectory()` method is now considered stable.
 
 ### Promoted features in the `Settings` API
+
+The `includeBuild` methods in `Settings.pluginManagement` are now stable.
+They are the recommended way of including builds that contribute build logic.
 
 The methods `Settings.dependencyResolutionManagement(Action)` and `Settings.getDependencyResolutionManagement()` are now considered stable.
 
