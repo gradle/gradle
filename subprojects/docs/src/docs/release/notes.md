@@ -232,6 +232,21 @@ See the [Test.forkEvery](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.a
 
 When using the `init` task with the `--incubating` option, [parallel project execution](userguide/multi_project_configuration_and_execution.html#sec:parallel_execution) and [task output caching](userguide/build_cache.html) will be enabled for the generated project (by creating a `gradle.properties` file and setting the appropriate flags in it).
 
+### Lazy configuration of system properties
+
+It is now possible to configure system properties via Gradle lazy properties.
+This applies to any `JavaForkOptions` such as with the `JavaExec` or `Test` tasks, or when using the `ExecOperations.javaExec {}` service.
+
+For example, this allows to wire system properties from another task output while carrying task dependencies:
+
+```kotlin
+tasks.test {
+    systemProperty("foo", tasks.another.map { it.outputFile.asFile().get().readText() })
+}
+```
+
+For more information see the [Lazy Configuration](userguide/lazy_configuration.html) chapter in the user manual and the reference documentation for [JavaExec.systemProperties](dsl/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:systemProperties), [Test.systemProperties](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:systemProperties) or [ExecOperations.javaExec](javadoc/org/gradle/process/ExecOperations.html#javaexec-org.gradle.api.Action-).
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
