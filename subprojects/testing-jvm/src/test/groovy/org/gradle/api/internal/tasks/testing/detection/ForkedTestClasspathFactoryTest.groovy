@@ -42,7 +42,7 @@ class ForkedTestClasspathFactoryTest extends Specification {
 
     def runtimeClasses = Spy(TestClassDetector)
     def classDetectorFactory = Mock(ForkedTestClasspathFactory.ClassDetectorFactory) {
-        apply(_, _) >> { runtimeClasses }
+        create(_, _) >> { runtimeClasses }
     }
     ForkedTestClasspathFactory underTest = new ForkedTestClasspathFactory(moduleRegistry, classDetectorFactory)
 

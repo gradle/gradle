@@ -91,20 +91,23 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         """
 
         addClasspathTest("""
-            assertEquals(jars.get(0), "junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar");
-            assertEquals(jars.get(1), "junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar");
-            assertEquals(jars.get(2), "junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar");
-            assertEquals(jars.get(3), "junit-platform-engine-${JUNIT_PLATFORM_VERSION}.jar");
-            assertEquals(jars.get(4), "junit-platform-commons-${JUNIT_PLATFORM_VERSION}.jar");
-            assertEquals(jars.get(5), "junit-jupiter-${JUNIT_JUPITER_VERSION}.jar");
-            assertEquals(jars.get(6), "opentest4j-${OPENTEST4J_VERSION}.jar");
+            Set<String> jarSet = new HashSet<>(Arrays.asList(
+                "junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar",
+                "junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar",
+                "junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar",
+                "junit-platform-engine-${JUNIT_PLATFORM_VERSION}.jar",
+                "junit-platform-commons-${JUNIT_PLATFORM_VERSION}.jar",
+                "junit-jupiter-${JUNIT_JUPITER_VERSION}.jar",
+                "opentest4j-${OPENTEST4J_VERSION}.jar"
+            ));
+            assertTrue(jars.containsAll(jarSet));
+            jars.removeAll(jarSet);
 
             // The distribtuion-loaded jar can vary in version, since the GE test acceleration
             // plugins inject their own versions of these libraries during integration tests.
             // See: https://github.com/gradle/gradle/pull/21494
-            assertTrue(jars.get(7).startsWith("junit-platform-launcher-1."));
-
-            assertEquals(jars.size(), 8);
+            assertTrue(jars.iterator().next().startsWith("junit-platform-launcher-1."));
+            assertEquals(jars.size(), 1);
         """)
 
         expect:
@@ -122,15 +125,17 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         """
 
         addClasspathTest("""
-            assertEquals(jars.get(0), "junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar");
-            assertEquals(jars.get(1), "junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar");
-            assertEquals(jars.get(2), "junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar");
-            assertEquals(jars.get(3), "junit-platform-launcher-${JUNIT_PLATFORM_VERSION}.jar");
-            assertEquals(jars.get(4), "junit-platform-engine-${JUNIT_PLATFORM_VERSION}.jar");
-            assertEquals(jars.get(5), "junit-platform-commons-${JUNIT_PLATFORM_VERSION}.jar");
-            assertEquals(jars.get(6), "junit-jupiter-${JUNIT_JUPITER_VERSION}.jar");
-            assertEquals(jars.get(7), "opentest4j-${OPENTEST4J_VERSION}.jar");
-            assertEquals(jars.size(), 8);
+            // The order of the renamed jars do not appear deterministic between machines.
+            new HashSet<>(jars).equals(new HashSet<>(Arrays.asList(
+                "junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar",
+                "junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar",
+                "junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar",
+                "junit-platform-launcher-${JUNIT_PLATFORM_VERSION}.jar",
+                "junit-platform-engine-${JUNIT_PLATFORM_VERSION}.jar",
+                "junit-platform-commons-${JUNIT_PLATFORM_VERSION}.jar",
+                "junit-jupiter-${JUNIT_JUPITER_VERSION}.jar",
+                "opentest4j-${OPENTEST4J_VERSION}.jar"
+            )));
         """)
 
         expect:
@@ -167,7 +172,7 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
         addClasspathTest("""
             // The order of the renamed jars do not appear deterministic between machines.
-            jars.containsAll(Arrays.asList(
+            new HashSet<>(jars).equals(new HashSet<>(Arrays.asList(
                 "renamed-junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar",
                 "renamed-junit-platform-launcher-${JUNIT_PLATFORM_VERSION}.jar",
                 "renamed-junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar",
@@ -176,8 +181,7 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
                 "renamed-junit-platform-engine-${JUNIT_PLATFORM_VERSION}.jar",
                 "opentest4j-${OPENTEST4J_VERSION}.jar",
                 "renamed-junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar"
-            ));
-            assertEquals(jars.size(), 8);
+            )));
         """)
 
         expect:
@@ -191,8 +195,11 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
             import java.io.File;
             import java.net.URL;
             import java.net.URLClassLoader;
+            import java.util.ArrayList;
             import java.util.Arrays;
+            import java.util.HashSet;
             import java.util.List;
+            import java.util.Set;
             import java.util.regex.Pattern;
             import java.util.stream.Collectors;
 
@@ -227,7 +234,7 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
                         assertEquals(classpath.get(1), "test");
 
                         // Any remaining jars should be verified by the individual test.
-                        List<String> jars = classpath.subList(2, classpath.size());
+                        List<String> jars = new ArrayList<>(classpath.subList(2, classpath.size()));
 
                         ${testCode}
                     } catch (AssertionError e) {
