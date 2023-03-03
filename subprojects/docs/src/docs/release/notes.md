@@ -123,7 +123,7 @@ See the [ExtensionAware](dsl/org.gradle.api.plugins.ExtensionAware.html#org.grad
 
 #### Easier configuration of `Test.forkEvery` from Kotlin
 
-It is now easier to configure the `forkEvery` property of `Test` tasks from Kotlin.
+It is now easier to configure the `forkEvery` property of `Test` tasks from Kotlin to set the maximum number of test classes to execute in a forked test process.
 The property nullability is now coherent and instead of requiring to use its `setForkEvery(<number>)` setter you can now simply assign it a value:
 
 ```kotlin
