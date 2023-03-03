@@ -116,7 +116,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         runner.withArguments(runner.arguments + "--continue")
         runner.deprecations(SantaTrackerDeprecations) {
             expectProjectConventionDeprecationWarning(agpVersion)
-            expectConventionTypeDeprecationWarning(agpVersion)
+            expectAndroidConventionTypeDeprecationWarning(agpVersion)
         }
         def result = runner.buildAndFail()
 
@@ -134,7 +134,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         if (GradleContextualExecuter.notConfigCache) {
             runner.deprecations(SantaTrackerDeprecations) {
                 expectProjectConventionDeprecationWarning(agpVersion)
-                expectConventionTypeDeprecationWarning(agpVersion)
+                expectAndroidConventionTypeDeprecationWarning(agpVersion)
             }
         }
         result = runner.buildAndFail()
