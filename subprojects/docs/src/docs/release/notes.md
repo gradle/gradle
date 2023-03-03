@@ -56,11 +56,9 @@ More details can be found in the [Gradle Wrapper](userguide/gradle_wrapper.html#
 
 ### Kotlin DSL
 
-#### Experimental Property assignment for Kotlin scripts
+#### Experimental lazy property assignment for Kotlin scripts
 
 It is now possible to use the `=` operator to assign values to `Property` types in Kotlin scripts as an alternative to the `set()` method:
-This reduces the verbosity of Kotlin DSL when [lazy property types](userguide/lazy_configuration.html#lazy_properties) are used to configure tasks and extensions.
-It also makes Kotlin DSL behavior consistent with Groovy DSL behavior, where using `=` to assign lazy properties has always been available.
 
 ```kotlin
 interface Extension {
@@ -70,18 +68,15 @@ interface Extension {
 extension {
     // Using the `set()` method call
     description.set("Hello Property")
-    // Gradle 8.1+ with Property assignment enabled
+    // Gradle 8.1+ with lazy property assignment enabled
     description = "Hello Property"
 }
 ```
 
-You can enable Kotlin assignment by adding `systemProp.org.gradle.unsafe.kotlin.assignment=true` to the `gradle.properties` file.
-For IntelliJ IDEA support that property has to be set in the project root `gradle.properties` file (also for all included builds).
-Additionally, when the property's value is changed, the project has to be reopened in IntelliJ.
-Property assignment is supported from IntelliJ 2022.3 and from Android Studio Giraffe.
+This reduces the verbosity of Kotlin DSL when [lazy property types](userguide/lazy_configuration.html#lazy_properties) are used to configure tasks and extensions.
+It also makes Kotlin DSL behavior consistent with Groovy DSL behavior, where using `=` to assign lazy properties has always been available.
 
-Enabling this feature will fail your build if `allWarningsAsErrors` feature is enabled for Kotlin compiler for build logic.
-
+Lazy property assignment for Kotlin scripts is experimental opt-in feature.
 For more information, see [Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:assignment).
 
 <!--
