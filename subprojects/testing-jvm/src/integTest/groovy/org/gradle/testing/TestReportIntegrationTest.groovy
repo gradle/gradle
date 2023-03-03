@@ -101,13 +101,11 @@ public class LoggingTest {
 
     def "merges report with duplicated classes and methods"() {
         given:
-        ignoreWhenJupiter()
+        ignoreWhenJUnitPlatform()
         buildFile << """
 $junitSetup
 def test = tasks.named('test', Test)
 test.configure {
-    classpath = tasks.test.classpath
-    testClassesDirs = tasks.test.testClassesDirs
     ignoreFailures true
     useJUnit {
         excludeCategories 'org.gradle.testing.SuperClassTests'
@@ -115,29 +113,44 @@ test.configure {
     }
 }
 
-def superTest = tasks.register('superTest', Test) {
-    classpath = tasks.test.classpath
-    testClassesDirs = tasks.test.testClassesDirs
-    ignoreFailures true
-    systemProperty 'category', 'super'
-    useJUnit {
-        includeCategories 'org.gradle.testing.SuperClassTests'
-    }
-}
-
-def subTest = tasks.register('subTest', Test) {
-    classpath = tasks.test.classpath
-    testClassesDirs = tasks.test.testClassesDirs
-    ignoreFailures true
-    systemProperty 'category', 'sub'
-    useJUnit {
-        includeCategories 'org.gradle.testing.SubClassTests'
+testing {
+    suites {
+        superTest(JvmTestSuite) {
+            useJUnit()
+            sources.java.srcDirs(testing.suites.test.sources.allJava.srcDirs)
+            targets.all {
+                testTask.configure {
+                    ignoreFailures true
+                    systemProperty 'category', 'super'
+                    testFramework {
+                        includeCategories 'org.gradle.testing.SuperClassTests'
+                    }
+                }
+            }
+        }
+        subTest(JvmTestSuite) {
+            useJUnit()
+            sources.java.srcDirs(testing.suites.test.sources.allJava.srcDirs)
+            targets.all {
+                testTask.configure {
+                    ignoreFailures true
+                    systemProperty 'category', 'sub'
+                    testFramework {
+                        includeCategories 'org.gradle.testing.SubClassTests'
+                    }
+                }
+            }
+        }
     }
 }
 
 def testReport = tasks.register('testReport', TestReport) {
     destinationDirectory = reporting.baseDirectory.dir('allTests')
-    testResults.from(test, superTest, subTest)
+    testResults.from([
+        testing.suites.test.targets.test.testTask,
+        testing.suites.superTest.targets.superTest.testTask,
+        testing.suites.subTest.targets.subTest.testTask
+    ])
 }
 
 tasks.named('build').configure { it.dependsOn testReport }

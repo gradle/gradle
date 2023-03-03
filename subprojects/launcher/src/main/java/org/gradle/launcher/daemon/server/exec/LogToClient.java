@@ -84,13 +84,11 @@ public class LogToClient extends BuildCommandOnly {
                         dispatcher.submit(event);
                     }
                 }
-
                 private boolean isProgressEvent(OutputEvent event) {
                     return event instanceof ProgressStartEvent || event instanceof ProgressEvent || event instanceof ProgressCompleteEvent;
                 }
-
                 private boolean isMatchingBuildLogLevel(OutputEvent event) {
-                    return event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0;
+                    return buildLogLevel != null && event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0;
                 }
             };
             LOGGER.debug(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS);

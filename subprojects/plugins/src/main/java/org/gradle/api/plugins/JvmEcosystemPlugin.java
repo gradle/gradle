@@ -57,7 +57,7 @@ public abstract class JvmEcosystemPlugin implements Plugin<Project> {
         project.getExtensions().add(SourceSetContainer.class, "sourceSets", sourceSets);
         configureVariantDerivationStrategy(p);
         configureSchema(p);
-        jvmPluginServices.inject(p, sourceSets);
+        jvmPluginServices.inject(p);
     }
 
     private void configureVariantDerivationStrategy(ProjectInternal project) {

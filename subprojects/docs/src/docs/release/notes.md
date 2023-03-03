@@ -13,6 +13,7 @@ We would like to thank the following community members for their contributions t
 [Attila Király](https://github.com/akiraly),
 [Björn Kautler](https://github.com/Vampire),
 [DJtheRedstoner](https://github.com/DJtheRedstoner),
+[Gabriel Feo](https://github.com/gabrielfeo)
 [JayaKrishnan Nair K](https://github.com/jknair0),
 [kackey0-1](https://github.com/kackey0-1),
 [Martin Bonnin](https://github.com/martinbonnin),
@@ -21,7 +22,8 @@ We would like to thank the following community members for their contributions t
 [Sebastian Schuberth](https://github.com/sschuberth),
 [valery1707](https://github.com/valery1707),
 [Xin Wang](https://github.com/scaventz),
-[Yanshun Li](https://github.com/Chaoba)
+[Yanshun Li](https://github.com/Chaoba),
+[Thrillpool](https://github.com/Thrillpool)
 
 ## Upgrade instructions
 
@@ -85,6 +87,10 @@ TODO - Java lambdas are supported, and unsupported captured values are reported.
 TODO - File collections queried at configuration time are treated as configuration inputs.
 TODO - File system repositories are fully supported including dynamic versions in Maven, Maven local, and Ivy repositories
 
+#### Build Init plugin incubating option changes
+
+When using the `init` task with the `--incubating` option, [parallel project execution](userguide/multi_project_configuration_and_execution.html#sec:parallel_execution) and [task output caching](userguide/build_cache.html) will be enabled for the generated project (by creating a `gradle.properties` file and setting the appropriate flags in it).
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
@@ -115,6 +121,6 @@ We love getting contributions from the Gradle community. For information on cont
 ## Reporting problems
 
 If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines.
-If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
+If you're not sure that you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).

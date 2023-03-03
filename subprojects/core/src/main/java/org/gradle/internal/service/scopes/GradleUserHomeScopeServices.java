@@ -44,6 +44,8 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LegacyCacheCleanupEnablement;
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
+import org.gradle.execution.plan.ToPlannedNodeConverter;
+import org.gradle.execution.plan.ToPlannedTaskConverter;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
@@ -111,6 +113,14 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         for (PluginServiceRegistry plugin : globalServices.getAll(PluginServiceRegistry.class)) {
             plugin.registerGradleUserHomeServices(registration);
         }
+    }
+
+    ToPlannedNodeConverterRegistry createToPlannedNodeConverterRegistry(List<ToPlannedNodeConverter> converters) {
+        return new ToPlannedNodeConverterRegistry(converters);
+    }
+
+    ToPlannedNodeConverter createToPlannedTransformConverter() {
+        return new ToPlannedTaskConverter();
     }
 
     DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(GlobalCacheDir globalCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {

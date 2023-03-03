@@ -110,6 +110,11 @@ If you need to check on [CI](http://builds.gradle.org/) status as an external co
 
 ## Useful tips
 
+### How Gradle Works
+
+We have [a series of blog](https://blog.gradle.org/how-gradle-works-1) that explains how Gradle works.
+This may help you better understand and contribute to Gradle.
+
 ### Debugging Gradle
 
 You can debug Gradle by adding `-Dorg.gradle.debug=true` to the command-line. Gradle will wait for you to attach a debugger at `localhost:5005` by default.

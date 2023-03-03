@@ -55,8 +55,6 @@ import java.util.regex.Pattern;
 
 import static org.gradle.api.attributes.DocsType.JAVADOC;
 import static org.gradle.api.attributes.DocsType.SOURCES;
-import static org.gradle.api.plugins.JavaPlugin.JAVADOC_ELEMENTS_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.SOURCES_ELEMENTS_CONFIGURATION_NAME;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
 public class DefaultJavaPluginExtension implements JavaPluginExtension {
@@ -214,11 +212,11 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         maybeEmitMissingJavaComponentDeprecation("withJavadocJar()");
 
         if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-            JvmPluginsHelper.getJavaComponent(project).enableJavadocJarVariant();
+            JavaPluginHelper.getJavaComponent(project).enableJavadocJarVariant();
         } else {
             SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
             JvmPluginsHelper.createDocumentationVariantWithArtifact(
-                JAVADOC_ELEMENTS_CONFIGURATION_NAME,
+                main.getJavadocElementsConfigurationName(),
                 null,
                 JAVADOC,
                 ImmutableList.of(),
@@ -234,11 +232,11 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         maybeEmitMissingJavaComponentDeprecation("withSourcesJar()");
 
         if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-            JvmPluginsHelper.getJavaComponent(project).enableSourcesJarVariant();
+            JavaPluginHelper.getJavaComponent(project).enableSourcesJarVariant();
         } else {
             SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
             JvmPluginsHelper.createDocumentationVariantWithArtifact(
-                SOURCES_ELEMENTS_CONFIGURATION_NAME,
+                main.getSourcesElementsConfigurationName(),
                 null,
                 SOURCES,
                 ImmutableList.of(),
@@ -305,8 +303,8 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
             this.configurations = configurations;
 
             if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-                JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
-                JvmTestSuite defaultTestSuite = JvmPluginsHelper.getDefaultTestSuite(project);
+                JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
+                JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
 
                 mainCompileClasspath = component.getCompileClasspathConfiguration();
                 mainRuntimeClasspath = component.getRuntimeClasspathConfiguration();
