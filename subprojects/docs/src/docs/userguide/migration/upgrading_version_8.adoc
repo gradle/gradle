@@ -59,8 +59,12 @@ This includes calling any of the following `Configuration` methods:
 - `setCanBeConsumed(boolean)`
 - `setCanBeResolved(boolean)`
 
-This will now emit a deprecation warning, except for certain special cases which deal with legacy configurations or make allowances for the existing behavior of popular plugins.
-Configurations created by non-core plugins should not be affected by this change.
+These methods now emit deprecation warnings on these configurations, except for certain special cases which make allowances for the existing behavior of popular plugins.
+This rule does not yet apply to detached configurations or configurations created
+in buildscripts and third-party plugins.
+Calling `setCanBeConsumed(false)` on `apiElements` or `runtimeElements`
+is not yet deprecated in order to avoid warnings that would be otherwise emitted when
+using select popular third-party plugins.
 
 This change is part of a larger ongoing effort to make the intended behavior of configurations more consistent and predictable, and to unlock further speed and memory improvements in this area of Gradle.
 
