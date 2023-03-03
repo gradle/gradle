@@ -249,6 +249,14 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Promoted features in the Provider API
+The `ValueSource` API is no longer incubating. The following classes and methods are now considered stable:
+* [`ProviderFactory.of(Class, Action)`](javadoc/org/gradle/api/provider/ProviderFactory.html#of-java.lang.Class-org.gradle.api.Action-)
+* [`ValueSource`](javadoc/org/gradle/api/provider/ValueSource.html)
+* [`ValueSourceParameters`](javadoc/org/gradle/api/provider/ValueSourceParameters.html)
+* [`ValueSourceParameters.None`](javadoc/org/gradle/api/provider/ValueSourceParameters.None.html)
+* [`ValueSourceSpec`](javadoc/org/gradle/api/provider/ValueSourceSpec.html)
+
 ## Fixed issues
 
 ## Known issues
