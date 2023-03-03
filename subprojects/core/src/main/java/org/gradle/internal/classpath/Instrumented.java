@@ -125,7 +125,6 @@ public class Instrumented {
                 new SystemGetenvInterceptor(),
                 new RuntimeExecInterceptor(),
                 new FilesReadStringInterceptor(),
-                new FileTextInterceptor(),
                 new ProcessGroovyMethodsExecuteInterceptor(),
                 new ProcessBuilderStartInterceptor(),
                 new ProcessBuilderStartPipelineInterceptor()
@@ -829,30 +828,6 @@ public class Instrumented {
                             Charset arg1Charset = (Charset) arg1;
                             return Instrumented.filesReadString(arg0Path, arg1Charset, consumer);
                         }
-                    }
-                }
-            }
-            return invocation.callOriginal();
-        }
-    }
-
-    private static class FileTextInterceptor extends CallInterceptor {
-        public FileTextInterceptor() {
-            super(InterceptScope.readsOfPropertiesNamed("text"), InterceptScope.methodsNamed("getText"));
-        }
-
-        @Override
-        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
-            Object receiver = invocation.getReceiver();
-            if (receiver instanceof File) {
-                File receiverFile = (File) receiver;
-                if (invocation.getArgsCount() == 0) {
-                    return groovyFileGetText(receiverFile, consumer);
-                } else if (invocation.getArgsCount() == 1) {
-                    Object arg0 = invocation.getArgument(0);
-                    if (arg0 instanceof String) {
-                        String arg0String = (String) arg0;
-                        return groovyFileGetText(receiverFile, arg0String, consumer);
                     }
                 }
             }
