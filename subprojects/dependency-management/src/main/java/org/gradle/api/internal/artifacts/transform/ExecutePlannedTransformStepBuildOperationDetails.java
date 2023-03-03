@@ -48,7 +48,7 @@ public class ExecutePlannedTransformStepBuildOperationDetails implements Execute
     }
 
     @Override
-    public Class<?> getTransformType() {
+    public Class<?> getTransformActionClass() {
         return transformationNode.getTransformationStep().getTransformer().getImplementationClass();
     }
 
@@ -67,7 +67,7 @@ public class ExecutePlannedTransformStepBuildOperationDetails implements Execute
         ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
         builder.put("plannedTransformStepIdentity", getPlannedTransformStepIdentity());
         builder.put("sourceAttributes", getSourceAttributes());
-        builder.put("transformType", getTransformType());
+        builder.put("transformActionClass", getTransformActionClass());
         builder.put("transformerName", transformerName);
         builder.put("subjectName", subjectName);
         return builder.build();
