@@ -21,8 +21,6 @@ import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType;
 import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
 
-import java.util.Map;
-
 public class ExecutePlannedTransformStepBuildOperationDetails implements ExecutePlannedTransformStepBuildOperationType.Details, CustomOperationTraceSerialization {
 
     private final TransformationNode transformationNode;
@@ -45,11 +43,6 @@ public class ExecutePlannedTransformStepBuildOperationDetails implements Execute
     }
 
     @Override
-    public Map<String, String> getSourceAttributes() {
-        return AttributesToMapConverter.convertToMap(transformationNode.getSourceAttributes());
-    }
-
-    @Override
     public Class<?> getTransformActionClass() {
         return transformationNode.getTransformationStep().getTransformer().getImplementationClass();
     }
@@ -68,7 +61,6 @@ public class ExecutePlannedTransformStepBuildOperationDetails implements Execute
     public Object getCustomOperationTraceSerializableModel() {
         ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
         builder.put("plannedTransformStepIdentity", getPlannedTransformStepIdentity());
-        builder.put("sourceAttributes", getSourceAttributes());
         builder.put("transformActionClass", getTransformActionClass());
         builder.put("transformerName", transformerName);
         builder.put("subjectName", subjectName);
