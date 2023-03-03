@@ -188,6 +188,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
                 if (!children.isEmpty()) {
                     boolean hasParamMatchers = children.keySet().stream().anyMatch(it -> it.kind == PARAMETER);
                     if (hasParamMatchers) { // is not the receiver or vararg
+                        result.beginControlFlow("if (invocation.getArgsCount() > $L)", paramIndex);
                         result.addStatement("Object arg$1L = invocation.getArgument($1L)", paramIndex);
                     }
                     // Visit non-vararg invocations first and varargs after:
@@ -196,6 +197,9 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
                             generateNormalCallChecksAndVisitSubtree(entry, child, paramIndex);
                         }
                     });
+                    if (hasParamMatchers) {
+                        result.endControlFlow();
+                    }
                     children.forEach((entry, child) -> {
                         if (entry.kind == VARARG) {
                             generateVarargCheckAndInvocation(entry, child, paramIndex);
