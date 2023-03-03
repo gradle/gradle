@@ -17,7 +17,6 @@
 package org.gradle.internal.classpath;
 
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
-import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.file.RelativePath;
@@ -124,13 +123,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final Type PATH_TYPE = getType(Path.class);
     private static final Type CHARSET_TYPE = getType(Charset.class);
     private static final Type LIST_TYPE = getType(List.class);
-
-    private static final Type RESOURCE_GROOVY_METHODS_TYPE = getType(ResourceGroovyMethods.class);
-    // file.text -(Groovy compiler)-> ResourceGroovyMethods.getText(File) -> groovyFileGetText(File, String)
-    private static final String RETURN_STRING_FROM_FILE = getMethodDescriptor(STRING_TYPE, FILE_TYPE);
-    private static final String RETURN_STRING_FROM_FILE_STRING = getMethodDescriptor(STRING_TYPE, FILE_TYPE, STRING_TYPE);
-    // file.getText(String charset) -(Groovy compiler)-> ResourceGroovyMethods.getText(File, String) -> groovyFileGetText(File, String, String)
-    private static final String RETURN_STRING_FROM_FILE_STRING_STRING = getMethodDescriptor(STRING_TYPE, FILE_TYPE, STRING_TYPE, STRING_TYPE);
 
     private static final Type FILES_TYPE = getType(Files.class);
     // readString(Path) -> filesReadString(Path, String)
@@ -470,16 +462,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 if (name.equals("readString") && descriptor.equals(RETURN_STRING_FROM_PATH_CHARSET)) {
                     _LDC(binaryClassNameOf(className));
                     _INVOKESTATIC(INSTRUMENTED_TYPE, "filesReadString", RETURN_STRING_FROM_PATH_CHARSET_STRING);
-                    return true;
-                }
-            } else if (owner.equals(RESOURCE_GROOVY_METHODS_TYPE.getInternalName())) {
-                if (name.equals("getText") && descriptor.equals(RETURN_STRING_FROM_FILE)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyFileGetText", RETURN_STRING_FROM_FILE_STRING);
-                    return true;
-                } else if (name.equals("getText") && descriptor.equals(RETURN_STRING_FROM_FILE_STRING)) {
-                    _LDC(binaryClassNameOf(className));
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyFileGetText", RETURN_STRING_FROM_FILE_STRING_STRING);
                     return true;
                 }
             }
