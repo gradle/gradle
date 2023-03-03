@@ -382,7 +382,7 @@ The Kotlin DSL provides the `withConvention(T::class) {}` extension function to 
 include::sample[dir="snippets/kotlinDsl/sourceSetConvention/kotlin",files="build.gradle.kts[tags=source-set-convention]"]
 ====
 
-This technique is most commonly required for source sets that are added by language plugins that did not migrate to extensions yet.
+This technique is primarily necessary for source sets added by language plugins that have yet to be migrated to extensions.
 
 [[kotdsl:multi_project_builds]]
 [[sec:multi_project_builds]]
