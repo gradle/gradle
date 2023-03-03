@@ -17,13 +17,13 @@
 package org.gradle.integtests.resolve.transform
 
 import groovy.transform.EqualsAndHashCode
-import org.gradle.api.internal.artifacts.transform.ExecutePlannedTransformStepBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode
 import org.gradle.internal.taskgraph.NodeIdentity
+import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType
 
 import java.util.function.Predicate
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.operations.dependencies.transforms;
 
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.NotUsedByScanPlugin;

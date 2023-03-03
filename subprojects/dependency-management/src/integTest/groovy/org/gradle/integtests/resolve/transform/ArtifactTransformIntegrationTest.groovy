@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.api.internal.artifacts.transform.ExecutePlannedTransformStepBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.file.FileType
+import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matcher
 import spock.lang.Issue
