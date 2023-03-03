@@ -49,26 +49,20 @@ This is a potentially breaking change if you are consuming the console output of
 
 === Deprecations
 
-[[custom_configuration_roles]]
-==== Custom configuration roles
-
-// TODO: There is currently no API for users to provide "custom roles" or even
-// any roles at all other than the existing role-mutating methods. We should revisit
-// this deprecation log and section when we introduce a public API for creating
-// locked-role configurations.
-
-Custom roles have been deprecated.
-Use a pre-defined role instead.
-
 [[configurations_allowed_usage]]
 ==== Allowed configurations usage
 
-The usage of configurations should be fixed at creation.
-Mutating the allowed usage on a configuration is deprecated.
+The allowed usage of a configuration should be immutable after creation.
+Mutating the allowed usage on a configuration created by a Gradle core plugin is deprecated.
 This includes calling any of the following `Configuration` methods:
 
 - `setCanBeConsumed(boolean)`
 - `setCanBeResolved(boolean)`
+
+This will now emit a deprecation warning, except for certain special cases which deal with legacy configurations or make allowances for the existing behavior of popular plugins.
+Custom configurations created by non-core plugins should not be affected by this change.
+
+This change is part of a larger ongoing effort to make the intended behavior of configurations more consistent and predictable, and to unlock further speed and memory improvements in this area of Gradle.
 
 The ability to change the allowed usage of a configuration after creation will be removed in Gradle 9.0.
 
