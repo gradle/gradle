@@ -79,8 +79,8 @@ class DefaultEncryptionService(startParameter: ConfigurationCacheStartParameter)
             try {
                 keySource!!.getKey().also {
                     val keyLength = it.encoded.size
-                    if (keyLength < 32) {
-                        throw InvalidKeyException("Encryption key length is $keyLength bytes, but must be at least 32 bytes long")
+                    if (keyLength < 16) {
+                        throw InvalidKeyException("Encryption key length is $keyLength bytes, but must be at least 16 bytes long")
                     }
                     // acquire a cipher just to validate the key
                     encryptionAlgorithm.newSession(it).encryptingCipher {}

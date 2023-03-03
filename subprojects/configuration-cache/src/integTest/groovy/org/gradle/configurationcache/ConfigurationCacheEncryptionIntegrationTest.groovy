@@ -193,7 +193,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
     def "encryption disabled if requested but key is not long enough"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
-        def insufficientlyLongEncryptionKey = Base64.encoder.encodeToString("0123456789012345".getBytes(StandardCharsets.UTF_8))
+        def insufficientlyLongEncryptionKey = Base64.encoder.encodeToString("01234567".getBytes(StandardCharsets.UTF_8))
 
         when:
         runWithEncryption(true, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_KEY): insufficientlyLongEncryptionKey])
