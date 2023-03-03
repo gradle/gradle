@@ -18,7 +18,6 @@ package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.testing.fixture.JUnitCoverage
 
 import static org.hamcrest.CoreMatchers.containsString
 
@@ -35,7 +34,6 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
     // The versions tested against here are intentionally different than the version of junit-platform-launcher
     // that Gradle will load from the distribution. This way, we can use the version on the application classpath
     // to determine whether the launcher was loaded from the distribution or from the test runtime classpath.
-    // The version which Gradle loads from the distribution should be the same as `JUnitCoverage#LATEST_PLATFORM_VERSION`
     private static final JUNIT_JUPITER_VERSION = '5.8.1'
     private static final JUNIT_PLATFORM_VERSION = '1.8.1'
     private static final OPENTEST4J_VERSION = '1.2.0'
@@ -101,13 +99,16 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
             assertEquals(jars.get(5), "junit-jupiter-${JUNIT_JUPITER_VERSION}.jar");
             assertEquals(jars.get(6), "opentest4j-${OPENTEST4J_VERSION}.jar");
 
-            // And then the distribution-loaded launcher
-            assertEquals(jars.get(7), "junit-platform-launcher-${JUnitCoverage.LATEST_PLATFORM_VERSION}.jar");
+            // The distribtuion-loaded jar can vary in version, since the GE test acceleration
+            // plugins inject their own versions of these libraries during integration tests.
+            // See: https://github.com/gradle/gradle/pull/21494
+            assertTrue(jars.get(7).startsWith("junit-platform-launcher-1."));
+
             assertEquals(jars.size(), 8);
         """)
 
         expect:
-        succeeds "test", '--stacktrace'
+        succeeds "test"
     }
 
     def "does not load junit-platform-launcher from distribution when it is on the classpath already"() {
@@ -165,14 +166,17 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         """
 
         addClasspathTest("""
-            assertEquals(jars.get(0), "renamed-junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar");
-            assertEquals(jars.get(1), "renamed-junit-platform-launcher-${JUNIT_PLATFORM_VERSION}.jar");
-            assertEquals(jars.get(2), "renamed-junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar");
-            assertEquals(jars.get(3), "renamed-junit-platform-commons-${JUNIT_PLATFORM_VERSION}.jar");
-            assertEquals(jars.get(4), "renamed-junit-jupiter-${JUNIT_JUPITER_VERSION}.jar");
-            assertEquals(jars.get(5), "renamed-junit-platform-engine-${JUNIT_PLATFORM_VERSION}.jar");
-            assertEquals(jars.get(6), "opentest4j-${OPENTEST4J_VERSION}.jar");
-            assertEquals(jars.get(7), "renamed-junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar");
+            // The order of the renamed jars do not appear deterministic between machines.
+            jars.containsAll(Arrays.asList(
+                "renamed-junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar",
+                "renamed-junit-platform-launcher-${JUNIT_PLATFORM_VERSION}.jar",
+                "renamed-junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar",
+                "renamed-junit-platform-commons-${JUNIT_PLATFORM_VERSION}.jar",
+                "renamed-junit-jupiter-${JUNIT_JUPITER_VERSION}.jar",
+                "renamed-junit-platform-engine-${JUNIT_PLATFORM_VERSION}.jar",
+                "opentest4j-${OPENTEST4J_VERSION}.jar",
+                "renamed-junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar"
+            ));
             assertEquals(jars.size(), 8);
         """)
 
@@ -193,6 +197,7 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
             import java.util.stream.Collectors;
 
             import static org.junit.jupiter.api.Assertions.assertEquals;
+            import static org.junit.jupiter.api.Assertions.assertTrue;
 
             public class ClasspathCheckingTest {
                 @org.junit.jupiter.api.Test
