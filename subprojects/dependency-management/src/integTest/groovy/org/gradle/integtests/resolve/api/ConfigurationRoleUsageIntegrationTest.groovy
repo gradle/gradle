@@ -590,7 +590,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds 'help'
     }
 
-    def "changing usage on detached configurations warns"() {
+    def "changing usage on detached configurations does not warn"() {
         given:
         buildFile << """
             def detached = project.configurations.detachedConfiguration()
@@ -599,7 +599,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         expect:
-        expectResolvableChanging(':detachedConfiguration1', false)
         run "help"
     }
     // endregion Warnings
