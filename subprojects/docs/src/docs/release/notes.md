@@ -203,7 +203,7 @@ You write these as `*.gradle.kts` files in `src/main/kotlin` directory.
 
 Building precompiled script plugins now respects the [--offline](userguide/command_line_interface.html#sec:command_line_execution_options) command line execution option.
 
-This makes it easier to use Gradle plugins that react to `--offline` from precompiled script plugins.
+This makes using Gradle plugins that react to `--offline` from precompiled script plugins easier.
 
 ##### Less verbose compilation
 
