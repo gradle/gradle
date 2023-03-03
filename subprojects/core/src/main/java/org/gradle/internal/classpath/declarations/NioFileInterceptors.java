@@ -27,27 +27,28 @@ import org.gradle.internal.instrumentation.api.annotations.ParameterKind.VarargP
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 
-import javax.annotation.Nullable;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.spi.FileSystemProvider;
 import java.nio.file.spi.FileTypeDetector;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import static org.gradle.internal.classpath.FileUtils.optionsAllowReading;
+import static org.gradle.internal.classpath.FileUtils.tryReportDirectoryContentObserved;
+import static org.gradle.internal.classpath.FileUtils.tryReportFileOpened;
+import static org.gradle.internal.classpath.FileUtils.tryReportFileSystemEntryObserved;
 
 @SuppressWarnings("NewMethodNamingConvention")
 @SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
@@ -157,6 +158,25 @@ public class NioFileInterceptors {
             tryReportFileOpened(path, consumer);
         }
         return Files.newInputStream(path, options);
+    }
+
+    @InterceptCalls
+    @StaticMethod(ofClass = Files.class)
+    public static String intercept_readString(
+        Path path,
+        @CallerClassName String consumer
+    ) throws Throwable {
+        return Instrumented.filesReadString(path, consumer);
+    }
+
+    @InterceptCalls
+    @StaticMethod(ofClass = Files.class)
+    public static String intercept_readString(
+        Path path,
+        Charset charset,
+        @CallerClassName String consumer
+    ) throws Throwable {
+        return Instrumented.filesReadString(path, charset, consumer);
     }
 
     @InterceptCalls
@@ -339,61 +359,5 @@ public class NioFileInterceptors {
             tryReportFileOpened(path, consumer);
         }
         return FileChannel.open(path, Cast.uncheckedCast(options), attrs);
-    }
-
-    /**
-     * Checks if the channel created with the given options will have read access of the file content.
-     * See the contract of {@link Files#newByteChannel(Path, OpenOption...)}.
-     */
-    private static boolean optionsAllowReading(OpenOption[] options) {
-        boolean hasReadMode = false;
-        boolean hasAnotherMode = false;
-
-        for (OpenOption option : options) {
-            if (option == StandardOpenOption.READ) {
-                hasReadMode = true;
-            }
-            if (option == StandardOpenOption.APPEND || option == StandardOpenOption.WRITE) {
-                hasAnotherMode = true;
-            }
-        }
-
-        return hasReadMode || !hasAnotherMode;
-    }
-
-    private static boolean optionsAllowReading(Set<?> options) {
-        return optionsAllowReading(Cast.<Set<OpenOption>>uncheckedNonnullCast(options).toArray(new OpenOption[0]));
-    }
-
-    private static void tryReportFileOpened(Path path, String consumer) {
-        File file = toFileIfAvailable(path);
-        if (file != null) {
-            Instrumented.fileOpened(file, consumer);
-        }
-    }
-
-    private static void tryReportDirectoryContentObserved(Path path, String consumer) {
-        File file = toFileIfAvailable(path);
-        if (file != null) {
-            Instrumented.directoryContentObserved(file, consumer);
-        }
-    }
-
-    private static void tryReportFileSystemEntryObserved(Path path, String consumer) {
-        File file = toFileIfAvailable(path);
-        if (file != null) {
-            Instrumented.fileSystemEntryObserved(file, consumer);
-        }
-    }
-
-    /**
-     * Returns the result of {@link Path#toFile()} if that will not throw an exception, null otherwise.
-     */
-    @Nullable
-    private static File toFileIfAvailable(Path path) {
-        if (path.getFileSystem() == FileSystems.getDefault()) {
-            return path.toFile();
-        }
-        return null;
     }
 }
