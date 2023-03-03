@@ -152,7 +152,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         with(executeTransformationOps[0].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId)
-            transformType == "MakeGreen"
+            transformActionClass == "MakeGreen"
             sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeGreen"
@@ -224,7 +224,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def executeTransformationOps = getExecuteTransformOperations(2)
         with(executeTransformationOps[0].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
-            transformType == "MakeColor"
+            transformActionClass == "MakeColor"
             sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeColor"
@@ -233,7 +233,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         with(executeTransformationOps[1].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
-            transformType == "MakeColor"
+            transformActionClass == "MakeColor"
             sourceAttributes == [color: "red", artifactType: "jar"]
 
             transformerName == "MakeColor"
@@ -306,7 +306,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         with(executeTransformationOps[0].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
-            transformType == "MakeRed"
+            transformActionClass == "MakeRed"
             sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeRed"
@@ -315,7 +315,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         with(executeTransformationOps[1].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
-            transformType == "MakeGreen"
+            transformActionClass == "MakeGreen"
             sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeGreen"
@@ -383,7 +383,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         with(buildOperations.only(ExecutePlannedTransformStepBuildOperationType).details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
-            transformType == "MakeGreen"
+            transformActionClass == "MakeGreen"
             sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeGreen"
@@ -457,7 +457,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def executeTransformationOps = getExecuteTransformOperations(2)
         with(executeTransformationOps[0].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
-            transformType == "MakeRed"
+            transformActionClass == "MakeRed"
             sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeRed"
@@ -466,7 +466,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         with(executeTransformationOps[1].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
-            transformType == "MakeGreen"
+            transformActionClass == "MakeGreen"
             sourceAttributes == [color: "red", artifactType: "jar"]
 
             transformerName == "MakeGreen"
@@ -579,7 +579,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def executeTransformationOps = getExecuteTransformOperations(2)
         with(executeTransformationOps[0].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
-            transformType == "MakeColor"
+            transformActionClass == "MakeColor"
             sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeColor"
@@ -588,7 +588,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         with(executeTransformationOps[1].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
-            transformType == "MakeColor"
+            transformActionClass == "MakeColor"
             sourceAttributes == [color: "red", artifactType: "jar"]
 
             transformerName == "MakeColor"
@@ -707,13 +707,13 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def executeTransformationOps = getExecuteTransformOperations(2)
         // Order of scheduling/execution is not guaranteed between the transforms
         checkExecuteTransformOperation(executeTransformationOps, expectedTransformId1, [
-            transformType: "MakeGreen",
+            transformActionClass: "MakeGreen",
             sourceAttributes: [color: "blue", artifactType: "jar"],
             transformerName: "MakeGreen",
             subjectName: "producer.out1.jar (project :producer)",
         ])
         checkExecuteTransformOperation(executeTransformationOps, expectedTransformId2, [
-            transformType: "MakeGreen",
+            transformActionClass: "MakeGreen",
             sourceAttributes: [color: "blue", artifactType: "jar"],
             transformerName: "MakeGreen",
             subjectName: "producer.out2.jar (project :producer)",
@@ -792,7 +792,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         with(executeTransformationOp.details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
-            transformType == "MakeGreen"
+            transformActionClass == "MakeGreen"
             sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeGreen"
@@ -914,7 +914,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def operation = matchedOperations[0]
 
         verifyAll(operation.details) {
-            transformType == expectedDetails.transformType
+            transformActionClass == expectedDetails.transformActionClass
             sourceAttributes == expectedDetails.sourceAttributes
 
             transformerName == expectedDetails.transformerName

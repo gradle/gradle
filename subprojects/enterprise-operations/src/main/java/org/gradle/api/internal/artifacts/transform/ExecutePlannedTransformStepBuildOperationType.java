@@ -26,6 +26,8 @@ import java.util.Map;
  * <p>
  * Encompasses the execution of a transformation node.
  * A transformation node runs only one transformation step, though possibly on multiple files.
+ *
+ * @since 8.1
  */
 public class ExecutePlannedTransformStepBuildOperationType implements BuildOperationType<ExecutePlannedTransformStepBuildOperationType.Details, ExecutePlannedTransformStepBuildOperationType.Result> {
 
@@ -42,9 +44,9 @@ public class ExecutePlannedTransformStepBuildOperationType implements BuildOpera
         Map<String, String> getSourceAttributes();
 
         /**
-         * Type of the transformer implementation used during transform registration.
+         * Class of the transformer action implementation provided as part of transform registration.
          */
-        Class<?> getTransformType();
+        Class<?> getTransformActionClass();
 
         /**
          * Returns the display name of the transformer.

@@ -2655,7 +2655,7 @@ Found the following transforms:
                 artifactName == "lib.jar"
                 dependenciesConfigurationIdentity == null
             }
-            transformType == "FileSizer"
+            transformActionClass == "FileSizer"
             sourceAttributes == [artifactType: "jar", usage: "api"]
         }
     }
@@ -2728,7 +2728,7 @@ Found the following transforms:
                 artifactName == "lib.jar"
                 dependenciesConfigurationIdentity == null
             }
-            transformType == "BrokenTransform"
+            transformActionClass == "BrokenTransform"
             sourceAttributes == [artifactType: "jar", usage: "api"]
         }
     }
@@ -2822,6 +2822,6 @@ Found the following transforms:
                     println "capabilities: " + artifacts.collect { it.variant.capabilities }
                 }
             }
-"""
+        """
     }
 }
