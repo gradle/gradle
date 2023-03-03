@@ -16,8 +16,12 @@
 
 package org.gradle.initialization.properties;
 
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.util.Map;
 
+@ServiceScope(Scopes.Build.class)
 public interface ProjectPropertiesLoader {
 
     String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";

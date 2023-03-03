@@ -17,7 +17,10 @@
 package org.gradle.initialization.properties;
 
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scopes.Build.class)
 public interface SystemPropertiesInstaller {
 
     void setSystemPropertiesFrom(GradleProperties gradleProperties);
