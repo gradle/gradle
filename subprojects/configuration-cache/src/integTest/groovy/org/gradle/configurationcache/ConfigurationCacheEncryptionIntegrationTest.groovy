@@ -60,6 +60,28 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         true        | "AES/CBC/PKCS5PADDING"
     }
 
+    def "configuration cache encryption is #status with option #options"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        runWithEncryption(status, ["help"], ["--info"] + options)
+
+        then:
+        configurationCache.assertStateStored()
+        status == containsLine(result.output, "Encryption of the configuration cache is enabled.")
+
+        where:
+        status  | options
+        true    | []
+        false   | ["--no-configuration-cache-encryption"]
+        true    | ["--configuration-cache-encryption"]
+        true    | ["-Dorg.gradle.configuration-cache.encryption=true"]
+        false   | ["-Dorg.gradle.configuration-cache.encryption=false"]
+        true    | ["--configuration-cache-encryption", "-Dorg.gradle.configuration-cache.encryption=false"]
+        false   | ["--no-configuration-cache-encryption", "-Dorg.gradle.configuration-cache.encryption=true"]
+    }
+
     def "configuration cache is #encrypted if enabled=#enabled"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
@@ -123,9 +145,9 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         isFoundInDirectory(cacheDir, "sensitive".getBytes()) == !enabled
         isFoundInDirectory(cacheDir, "SENSITIVE".getBytes()) == !enabled
         where:
-        encrypted       |   enabled
-        "unencrypted"   |   false
-        "encrypted"     |   true
+        encrypted       |   enabled | options
+        "encrypted"     |   true    | ["--configuration-cache-encryption"]
+        "unencrypted"   |   false   | ["--no-configuration-cache-encryption"]
     }
 
     private boolean isFoundInDirectory(File startDir, byte[] toFind) {
@@ -230,7 +252,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         Map<String, String> envVars = [:]
     ) {
         def args = [
-            "-Dorg.gradle.configuration-cache.internal.encryption=${enabled}"
+            "--${enabled ? "" : "no-"}configuration-cache-encryption"
         ]
         def allArgs = tasks + args + additionalArgs
         if (enabled && !envVars.containsKey(GRADLE_ENCRYPTION_KEY_ENV_KEY)) {
