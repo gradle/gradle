@@ -21,7 +21,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.reflect.TypeOf;
@@ -50,7 +49,8 @@ import java.util.function.BiFunction;
 import static java.lang.String.format;
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
-public class DefaultConvention implements Convention, ExtensionContainerInternal {
+@Deprecated
+public class DefaultConvention implements org.gradle.api.plugins.Convention, ExtensionContainerInternal {
     private static final TypeOf<ExtraPropertiesExtension> EXTRA_PROPERTIES_EXTENSION_TYPE = typeOf(ExtraPropertiesExtension.class);
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
@@ -65,6 +65,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
     }
 
+    @Deprecated
     @Override
     public Map<String, Object> getPlugins() {
         if (plugins == null) {
@@ -82,6 +83,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         return extensionsDynamicObject;
     }
 
+    @Deprecated
     @Override
     public <T> T getPlugin(Class<T> type) {
         T value = findPlugin(type);
@@ -92,6 +94,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         return value;
     }
 
+    @Deprecated
     @Override
     public <T> T findPlugin(Class<T> type) throws IllegalStateException {
         logConventionDeprecation();
@@ -389,7 +392,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     }
 
     private static void logConventionDeprecation() {
-        DeprecationLogger.deprecateType(Convention.class)
+        DeprecationLogger.deprecateType(org.gradle.api.plugins.Convention.class)
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "all_convention_deprecation")
             .nagUser();

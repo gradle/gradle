@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.plugins.Convention;
-
 /**
  * Demarcates objects that expose a convention.
  *
@@ -28,6 +26,5 @@ import org.gradle.api.plugins.Convention;
  */
 @Deprecated
 public interface HasConvention {
-    @Deprecated
-    Convention getConvention();
+    org.gradle.api.plugins.Convention getConvention();
 }

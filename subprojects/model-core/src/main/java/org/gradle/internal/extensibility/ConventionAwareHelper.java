@@ -21,7 +21,6 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.plugins.Convention;
 import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DocumentedFailure;
@@ -39,7 +38,7 @@ import static org.gradle.util.internal.GUtil.uncheckedCall;
 @SuppressWarnings("deprecation")
 public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.internal.HasConvention {
     //prefix internal fields with _ so that they don't get into the way of propertyMissing()
-    private final Convention _convention;
+    private final org.gradle.api.plugins.Convention _convention;
     private final IConventionAware _source;
     // These are properties that could have convention mapping applied to them
     private final Set<String> _propertyNames;
@@ -48,7 +47,7 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
 
     private final Map<String, MappedPropertyImpl> _mappings = new HashMap<String, MappedPropertyImpl>();
 
-    public ConventionAwareHelper(IConventionAware source, Convention convention) {
+    public ConventionAwareHelper(IConventionAware source, org.gradle.api.plugins.Convention convention) {
         this._source = source;
         this._convention = convention;
         this._propertyNames = JavaPropertyReflectionUtil.propertyNames(source);
@@ -76,7 +75,7 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
     public MappedProperty map(String propertyName, final Closure<?> value) {
         return map(propertyName, new MappedPropertyImpl() {
             @Override
-            public Object doGetValue(Convention convention, IConventionAware conventionAwareObject) {
+            public Object doGetValue(org.gradle.api.plugins.Convention convention, IConventionAware conventionAwareObject) {
                 switch (value.getMaximumNumberOfParameters()) {
                     case 0:
                         return value.call();
@@ -93,7 +92,7 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
     public MappedProperty map(String propertyName, final Callable<?> value) {
         return map(propertyName, new MappedPropertyImpl() {
             @Override
-            public Object doGetValue(Convention convention, IConventionAware conventionAwareObject) {
+            public Object doGetValue(org.gradle.api.plugins.Convention convention, IConventionAware conventionAwareObject) {
                 return uncheckedCall(value);
             }
         });
@@ -135,7 +134,7 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
 
     @Deprecated
     @Override
-    public Convention getConvention() {
+    public org.gradle.api.plugins.Convention getConvention() {
         DeprecationLogger.deprecateType(org.gradle.api.internal.HasConvention.class)
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "all_convention_deprecation")
@@ -148,7 +147,7 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
         private boolean cache;
         private Object cachedValue;
 
-        public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+        public Object getValue(org.gradle.api.plugins.Convention convention, IConventionAware conventionAwareObject) {
             if (!cache) {
                 return doGetValue(convention, conventionAwareObject);
             }
@@ -165,6 +164,6 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
             cachedValue = null;
         }
 
-        abstract Object doGetValue(Convention convention, IConventionAware conventionAwareObject);
+        abstract Object doGetValue(org.gradle.api.plugins.Convention convention, IConventionAware conventionAwareObject);
     }
 }

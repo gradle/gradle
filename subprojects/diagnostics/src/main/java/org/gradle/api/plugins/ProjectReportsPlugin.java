@@ -44,10 +44,9 @@ public abstract class ProjectReportsPlugin implements Plugin<Project> {
 
         DeprecationLogger.whileDisabled(new Runnable() {
             @Override
+            @SuppressWarnings("deprecation")
             public void run() {
-                @SuppressWarnings("deprecation")
-                Convention projectConvention = project.getConvention();
-                projectConvention.getPlugins().put("projectReports", convention);
+                project.getConvention().getPlugins().put("projectReports", convention);
             }
         });
 

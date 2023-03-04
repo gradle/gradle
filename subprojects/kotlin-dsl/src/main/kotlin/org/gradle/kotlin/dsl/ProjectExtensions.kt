@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDepend
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.api.internal.file.FileCollectionInternal
 
-import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginAware
 
 import org.gradle.api.tasks.TaskContainer
@@ -80,43 +79,52 @@ inline fun <reified T : Plugin<Project>> Project.apply() =
 
 
 /**
- * Executes the given configuration block against the [plugin convention]
- * [Convention.getPlugin] or extension of the specified type.
+ * Executes the given configuration block against the [project extension]
+ * [org.gradle.api.plugins.ExtensionAware] of the specified type.
  *
+ * If no extension is found, configures a project convention if available.
  * Note, that the concept of conventions is deprecated and scheduled for
- * removal in Gradle 8.
+ * removal in Gradle 9.
  *
- * @param T the plugin convention type.
+ * @param T the project extension type.
  * @param configuration the configuration block.
- * @see [Convention.getPlugin]
+ * @see [org.gradle.api.plugins.ExtensionAware]
  */
 inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit): Unit =
     @Suppress("deprecation")
     typeOf<T>().let { type ->
-        val c: Convention = DeprecationLogger.whileDisabled(Factory { convention })!!
+        val c: org.gradle.api.plugins.Convention = DeprecationLogger.whileDisabled(Factory { convention })!!
         c.findByType(type)?.let(configuration) ?: c.findPlugin<T>()?.let(configuration) ?: c.configure(type, configuration)
     }
 
 
 /**
- * Returns the plugin convention or extension of the specified type.
+ * Returns the [project extension][org.gradle.api.plugins.ExtensionAware] of the specified type.
  *
+ * If no extension is found, returns a project convention if available.
  * Note, that the concept of conventions is deprecated and scheduled for
- * removal in Gradle 8.
+ * removal in Gradle 9.
+ *
+ * @param T the project extension type.
+ * @see [org.gradle.api.plugins.ExtensionAware]
  */
 inline fun <reified T : Any> Project.the(): T =
     @Suppress("deprecation")
     typeOf<T>().let { type ->
-        val c: Convention = DeprecationLogger.whileDisabled(Factory { convention })!!
+        val c: org.gradle.api.plugins.Convention = DeprecationLogger.whileDisabled(Factory { convention })!!
         c.findByType(type) ?: c.findPlugin(T::class.java) ?: c.getByType(type)
     }
 
 
 /**
- * Returns the plugin convention or extension of the specified type.
+ * Returns the [project extension][org.gradle.api.plugins.ExtensionAware] of the specified type.
  *
+ * If no extension is found, returns a project convention if available.
  * Note, that the concept of conventions is deprecated and scheduled for
- * removal in Gradle 8.
+ * removal in Gradle 9.
+ *
+ * @param T the project extension type.
+ * @see [org.gradle.api.plugins.ExtensionAware]
  */
 @Suppress("deprecation")
 fun <T : Any> Project.the(extensionType: KClass<T>): T {
