@@ -2650,13 +2650,13 @@ Found the following transforms:
                 consumerBuildPath == ":"
                 consumerProjectPath == ":app"
                 componentId == [buildPath: ":", projectPath: ":lib"]
+                sourceAttributes == [artifactType: "jar", usage: "api"]
                 targetAttributes == [artifactType: "size", usage: "api"]
                 capabilities == [[group: "root", name: "lib", version: "unspecified"]]
                 artifactName == "lib.jar"
                 dependenciesConfigurationIdentity == null
             }
             transformActionClass == "FileSizer"
-            sourceAttributes == [artifactType: "jar", usage: "api"]
         }
     }
 
@@ -2723,13 +2723,13 @@ Found the following transforms:
                 consumerBuildPath == ":"
                 consumerProjectPath == ":app"
                 componentId == [buildPath: ":", projectPath: ":lib"]
+                sourceAttributes == [artifactType: "jar", usage: "api"]
                 targetAttributes == [artifactType: "size", usage: "api"]
                 capabilities == [[group: "root", name: "lib", version: "unspecified"]]
                 artifactName == "lib.jar"
                 dependenciesConfigurationIdentity == null
             }
             transformActionClass == "BrokenTransform"
-            sourceAttributes == [artifactType: "jar", usage: "api"]
         }
     }
 
