@@ -74,7 +74,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -587,7 +586,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Deprecated
     @Override
-    public Convention getConvention() {
+    public org.gradle.api.plugins.Convention getConvention() {
         DeprecationLogger.deprecateMethod(Project.class, "getConvention()")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "all_convention_deprecation")
