@@ -21,7 +21,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
@@ -41,12 +40,13 @@ fun conventionPluginOf(target: Any, name: String) =
     conventionPluginByName(conventionOf(target), name)
 
 
-fun conventionPluginByName(convention: Convention, name: String): Any =
+@Suppress("deprecation")
+fun conventionPluginByName(convention: org.gradle.api.plugins.Convention, name: String): Any =
     convention.plugins[name] ?: throw IllegalStateException("A convention named '$name' could not be found.")
 
 
 @Suppress("deprecation")
-fun conventionOf(target: Any): Convention = when (target) {
+fun conventionOf(target: Any): org.gradle.api.plugins.Convention = when (target) {
     is Project -> DeprecationLogger.whileDisabled(Factory { target.convention })!!
     is org.gradle.api.internal.HasConvention -> DeprecationLogger.whileDisabled(Factory { target.convention })!!
     else -> throw IllegalStateException("Object `$target` doesn't support conventions!")
