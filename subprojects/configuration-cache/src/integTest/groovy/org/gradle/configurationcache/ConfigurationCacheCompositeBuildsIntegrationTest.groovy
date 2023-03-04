@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.test.fixtures.file.TestFile
