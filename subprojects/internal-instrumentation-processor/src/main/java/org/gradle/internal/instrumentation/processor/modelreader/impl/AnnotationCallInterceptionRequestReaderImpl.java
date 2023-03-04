@@ -235,17 +235,17 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         }
     }
 
-    private static final Class<? extends Annotation>[] CALLABLE_KIND_ANNOTATION_CLASSES = Cast.uncheckedNonnullCast(Stream.of(
+    private static final Class<? extends Annotation>[] CALLABLE_KIND_ANNOTATION_CLASSES = Cast.uncheckedNonnullCast(new Class<?>[]{
         CallableKind.InstanceMethod.class,
         CallableKind.StaticMethod.class,
         CallableKind.AfterConstructor.class,
         CallableKind.GroovyProperty.class
-    ).toArray(Class[]::new));
+    });
 
-    private static final Class<? extends Annotation>[] PARAMETER_KIND_ANNOTATION_CLASSES = Cast.uncheckedNonnullCast(Stream.of(
+    private static final Class<? extends Annotation>[] PARAMETER_KIND_ANNOTATION_CLASSES = Cast.uncheckedNonnullCast(new Class<?>[]{
         ParameterKind.Receiver.class,
         ParameterKind.CallerClassName.class,
         ParameterKind.KotlinDefaultMask.class,
         ParameterKind.VarargParameter.class
-    ).toArray(Class[]::new));
+    });
 }
