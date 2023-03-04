@@ -145,9 +145,9 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         isFoundInDirectory(cacheDir, "sensitive".getBytes()) == !enabled
         isFoundInDirectory(cacheDir, "SENSITIVE".getBytes()) == !enabled
         where:
-        encrypted       |   enabled | options
-        "encrypted"     |   true    | ["--configuration-cache-encryption"]
-        "unencrypted"   |   false   | ["--no-configuration-cache-encryption"]
+        encrypted       |   enabled
+        "encrypted"     |   true
+        "unencrypted"   |   false
     }
 
     private boolean isFoundInDirectory(File startDir, byte[] toFind) {
