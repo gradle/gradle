@@ -46,7 +46,7 @@ public abstract class ConventionTask extends DefaultTask implements IConventionA
     @SuppressWarnings("deprecation")
     public ConventionMapping getConventionMapping() {
         if (conventionMapping == null) {
-            Convention convention = DeprecationLogger.whileDisabled(() -> getConvention());
+            Convention convention = DeprecationLogger.whileDisabled(this::getConvention);
             conventionMapping = new ConventionAwareHelper(this, convention);
         }
         return conventionMapping;
