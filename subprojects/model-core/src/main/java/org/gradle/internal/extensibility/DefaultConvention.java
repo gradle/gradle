@@ -76,7 +76,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     @Override
     public DynamicObject getExtensionsAsDynamicObject() {
         // This implementation of Convention doesn't log a deprecation warning
-        // because is mixes both extensions and conventions.
+        // because it mixes both extensions and conventions.
         // Instead, the returned object logs a deprecation warning when
         // a convention is actually accessed.
         return extensionsDynamicObject;
