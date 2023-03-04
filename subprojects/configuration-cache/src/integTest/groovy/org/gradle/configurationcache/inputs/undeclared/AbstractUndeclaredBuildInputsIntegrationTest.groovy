@@ -303,6 +303,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         "constructing a file input stream"              | (TestFile it) -> { UndeclaredFileAccess.fileInputStreamConstructor(testFilePath(it)) }
         "constructing a byte channel"                   | (TestFile it) -> { UndeclaredFileAccess.filesNewByteChannel(testFilePath(it)) }
         "constructing a byte channel with open options" | (TestFile it) -> { UndeclaredFileAccess.filesNewByteChannelWithOpenOptions(testFilePath(it)) }
+        "reading lines from a file"                     | (TestFile it) -> { UndeclaredFileAccess.fileReadLines(testFilePath(it)) }
     }
 }
 
