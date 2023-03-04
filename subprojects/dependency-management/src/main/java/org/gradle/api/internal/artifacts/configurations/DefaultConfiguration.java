@@ -422,7 +422,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
-        validateMutation(MutationType.DEPENDENCIES);
+        validateMutation(MutationType.HIERARCHY);
         for (Configuration configuration : this.extendsFrom) {
             if (inheritedArtifacts != null) {
                 inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
@@ -444,7 +444,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration extendsFrom(Configuration... extendsFrom) {
-        validateMutation(MutationType.DEPENDENCIES);
+        validateMutation(MutationType.HIERARCHY);
         for (Configuration configuration : extendsFrom) {
             if (configuration.getHierarchy().contains(this)) {
                 throw new InvalidUserDataException(String.format(
