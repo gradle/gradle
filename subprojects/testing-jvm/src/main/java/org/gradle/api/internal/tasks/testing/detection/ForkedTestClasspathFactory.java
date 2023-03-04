@@ -97,7 +97,19 @@ public class ForkedTestClasspathFactory {
             );
         }
 
-        return getClasspathWithAdditionalModules(classpath, modulepath, filtered, isModule);
+        // There are some framework implementation dependencies which are not present on the testRuntimeClasspath.
+        // It is not sufficient to just load the missing modules, since some classes which are referenced
+        // by the loaded modules may exist in the versions of the present dependencies from the test classpath.
+        // For example, junit-platform-launcher 1.7+ depends on ClassNamePatternFilterUtils from junit-platform-commons 1.7+.
+        // If the test classpath contains junit-platform-commons 1.6, then the test process will fail to load the required
+        // class.
+        //
+        // So, even if some framework dependencies are already present on the test classpath, we still need to load
+        // the entire set of framework implementation dependencies from the distribution in order to ensure that all implementation
+        // dependencies on the classpath share a version. This can _still_ lead to duplicates on the classpath, but it is at least
+        // avoidable if the user adds junit-platform-launcher to their test runtime classpath, which they should be doing, since
+        // distribution loading is deprecated in Gradle 8.2.
+        return getClasspathWithAdditionalModules(classpath, modulepath, unfiltered, isModule);
     }
 
     /**
