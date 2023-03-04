@@ -32,6 +32,7 @@ import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGenerator.GenerationResult.HasFailures.FailureInfo;
+import org.gradle.internal.instrumentation.processor.codegen.JavadocUtils;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassGenerator;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.MethodVisitor;
@@ -231,33 +232,8 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     }
 
     private static void documentInterceptorGeneratedCode(CallInterceptionRequest request, CodeBlock.Builder code) {
-        CallableInfo interceptedCallable = request.getInterceptedCallable();
-        List<ParameterInfo> params = interceptedCallable.getParameters();
-
-        String callableKindString = interceptedCallable.getKind() == CallableKindInfo.STATIC_METHOD ? "static method" :
-            interceptedCallable.getKind() == CallableKindInfo.INSTANCE_METHOD ? "instance method" :
-                interceptedCallable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR ? "constructor (getting notified after it)" : null;
-
-        ClassName className = ClassName.bestGuess(interceptedCallable.getOwner().getClassName());
-        String callableNameForDocComment = interceptedCallable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR ? className.simpleName() : interceptedCallable.getCallableName();
-        code.add("/** \n * Intercepting $L: {@link $T#$L(", callableKindString, className, callableNameForDocComment);
-        List<ParameterInfo> methodParameters = params.stream().filter(parameter -> parameter.getKind().isSourceParameter()).collect(Collectors.toList());
-        methodParameters.forEach(parameter -> {
-            code.add("$L", parameterTypeForJavadoc(parameter));
-            if (parameter != methodParameters.get(methodParameters.size() - 1)) {
-                code.add(", ");
-            }
-        });
-        code.add(")}\n");
-
-        code.add(" * Intercepted by {@link $T#$L(", ClassName.bestGuess(request.getImplementationInfo().getOwner().getClassName()), request.getImplementationInfo().getName());
-        params.forEach(parameter -> {
-            code.add("$L", parameterTypeForJavadoc(parameter));
-            if (parameter != params.get(params.size() - 1)) {
-                code.add(", ");
-            }
-        });
-        code.add(")}\n*/\n");
+        code.add("/** \n * Intercepting $L: $L\n", JavadocUtils.callableKindForJavadoc(request), JavadocUtils.interceptedCallableLink(request));
+        code.add(" * Intercepted by $L\n*/\n", JavadocUtils.interceptorImplementationLink(request));
     }
 
     private static CodeBlock matchOpcodeExpression(CallableInfo interceptedCallable) {
@@ -408,13 +384,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             Stream.of(Type.getType(int.class), Type.getType(Object.class))
         ).toArray(Type[]::new);
         return Type.getMethodDescriptor(returnType, argumentTypesWithDefault);
-    }
-
-    private static CodeBlock parameterTypeForJavadoc(ParameterInfo parameterInfo) {
-        if (parameterInfo.getKind() == ParameterKindInfo.VARARG_METHOD_PARAMETER) {
-            return CodeBlock.of("$T...", typeName(parameterInfo.getParameterType().getElementType()));
-        }
-        return CodeBlock.of("$T", typeName(parameterInfo.getParameterType()));
     }
 
     private static class Failure extends RuntimeException {
