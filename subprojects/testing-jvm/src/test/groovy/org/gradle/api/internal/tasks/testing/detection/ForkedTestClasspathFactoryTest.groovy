@@ -128,44 +128,59 @@ class ForkedTestClasspathFactoryTest extends Specification {
         0 * classDetectorFactory._
     }
 
-    def "loads a subset of framework dependencies from distribution if some are already available with matching jar names"() {
+    def "loads all framework dependencies from distribution even if some are already available with matching jar names"() {
         when:
-        def framework = newFramework(true, ["a", "b"], ["c", "d"], ["e", "f"], ["g", "h"])
-        def classpath = underTest.create(cp.collect { new File("$it-1.0.jar") }, mp.collect { new File("$it-1.0.jar") }, framework, true)
+        def cpFiles = cp.collect { new File("$it-1.0.jar") }
+        def mpFiles = mp.collect { new File("$it-1.0.jar") }
 
-        def allTestRuntime = cp + mp
-        def loadedAppCp = (["a", "b"] - allTestRuntime).collect { new File("$it-external.jar") }
-        def loadedAppMp = (["c", "d"] - allTestRuntime).collect { new File("$it-external.jar") }
-        def loadedImplCp = (["e", "f"] - allTestRuntime).collect { new URL("file://$it-external.jar") }
-        def loadedImplMp = (["g", "h"] - allTestRuntime).collect { new URL("file://$it-external.jar") }
+        def framework = newFramework(true, ["a", "b"], ["c", "d"], ["e", "f"], ["g", "h"])
+        def classpath = underTest.create(cpFiles, mpFiles, framework, true)
 
         then:
-        classpath.applicationClasspath.takeRight(loadedAppCp.size()) == loadedAppCp
-        classpath.applicationModulepath.takeRight(loadedAppMp.size()) == loadedAppMp
-        classpath.implementationClasspath.takeRight(loadedImplCp.size()) == loadedImplCp
-        classpath.implementationModulepath.takeRight(loadedImplMp.size()) == loadedImplMp
+        if (loadsAll) {
+            assert classpath.applicationClasspath.takeRight(2) == ["a", "b"].collect { new File("$it-external.jar") }
+            assert classpath.applicationModulepath.takeRight(2) == ["c", "d"].collect { new File("$it-external.jar") }
+            assert classpath.implementationClasspath.takeRight(2) == ["e", "f"].collect { new URL("file://$it-external.jar") }
+            assert classpath.implementationModulepath.takeRight(2) == ["g", "h"].collect { new URL("file://$it-external.jar") }
+        } else {
+            assert classpath.applicationClasspath == cpFiles
+            assert classpath.applicationModulepath == mpFiles
+            assert classpath.implementationClasspath.size() == 25
+            assert classpath.implementationModulepath.isEmpty()
+        }
 
         where:
-        cp                   | mp
-        ["a", "d", "e", "h"] | []
-        []                   | ["a", "d", "e", "h"]
-        ["b", "c", "f", "g"] | []
-        []                   | ["b", "c", "f", "g"]
+        cp                                       | mp                                       | loadsAll
+        []                                       | []                                       | true
+        ["test"]                                 | []                                       | true
+        ["m", "q"]                               | ["l", "t"]                               | true
+        ["a"]                                    | []                                       | true
+        []                                       | ["a"]                                    | true
+        ["c"]                                    | []                                       | true
+        []                                       | ["c"]                                    | true
+        ["e"]                                    | []                                       | true
+        []                                       | ["e"]                                    | true
+        ["g"]                                    | []                                       | true
+        []                                       | ["g"]                                    | true
+        ["test", "a"]                            | []                                       | true
+        []                                       | ["test", "a"]                            | true
+        ["a", "b", "c", "d"]                     | ["e", "f", "g", "h"]                     | false
+        ["a", "b", "c", "d", "e", "f", "g", "h"] | []                                       | false
+        []                                       | ["a", "b", "c", "d", "e", "f", "g", "h"] | false
+        ["a", "c", "e", "g"]                     | ["b", "d", "f", "h"]                     | false
+        ["b", "d", "f", "h"]                     | ["a", "c", "e", "g"]                     | false
     }
 
     def "can detect class names from classloader if jar names not found"() {
         given:
-        classes.forEach(runtimeClasses::add)
+        classes.forEach(it -> runtimeClasses.add("org.$it"))
 
         when:
-        def framework = newFramework(true, ["a", "b"], ["c", "d"], ["e", "f"], ["g", "h"])
-        def classpath = underTest.create(cp.collect { new File("$it-1.0.jar") }, mp.collect { new File("$it-1.0.jar") }, framework, true)
+        def cpFiles = cp.collect { new File("$it-1.0.jar") }
+        def mpFiles = mp.collect { new File("$it-1.0.jar") }
 
-        def allTestRuntime =  cp + mp + classes
-        def loadedAppCp = (["a", "b"] - allTestRuntime).collect { new File("$it-external.jar") }
-        def loadedAppMp = (["c", "d"] - allTestRuntime).collect { new File("$it-external.jar") }
-        def loadedImplCp = (["e", "f"] - allTestRuntime).collect { new URL("file://$it-external.jar") }
-        def loadedImplMp = (["g", "h"] - allTestRuntime).collect { new URL("file://$it-external.jar") }
+        def framework = newFramework(true, ["a", "b"], ["c", "d"], ["e", "f"], ["g", "h"])
+        def classpath = underTest.create(cpFiles, mpFiles, framework, true)
 
         then:
         (["a", "b", "c", "d", "e", "f", "g", "h"] - (cp + mp)).forEach {
@@ -173,19 +188,35 @@ class ForkedTestClasspathFactoryTest extends Specification {
         }
         0 * runtimeClasses.hasClass(_)
 
-        classpath.applicationClasspath.takeRight(loadedAppCp.size()) == loadedAppCp
-        classpath.applicationModulepath.takeRight(loadedAppMp.size()) == loadedAppMp
-        classpath.implementationClasspath.takeRight(loadedImplCp.size()) == loadedImplCp
-        classpath.implementationModulepath.takeRight(loadedImplMp.size()) == loadedImplMp
+        then:
+        if (loadsAll) {
+            assert classpath.applicationClasspath.takeRight(2) == ["a", "b"].collect { new File("$it-external.jar") }
+            assert classpath.applicationModulepath.takeRight(2) == ["c", "d"].collect { new File("$it-external.jar") }
+            assert classpath.implementationClasspath.takeRight(2) == ["e", "f"].collect { new URL("file://$it-external.jar") }
+            assert classpath.implementationModulepath.takeRight(2) == ["g", "h"].collect { new URL("file://$it-external.jar") }
+        } else {
+            assert classpath.applicationClasspath == cpFiles
+            assert classpath.applicationModulepath == mpFiles
+            assert classpath.implementationClasspath.size() == 25
+            assert classpath.implementationModulepath.isEmpty()
+        }
 
         where:
-        cp                   | mp                   | classes
-        []                   | []                   | []
-        ["a", "d", "e", "h"] | []                   | ["b", "c", "f", "g"]
-        []                   | ["a", "d", "e", "h"] | ["b", "c", "f", "g"]
-        ["b", "c", "f", "g"] | []                   | ["b", "c", "f", "g"]
-        []                   | ["b", "c", "f", "g"] | ["b", "c", "f", "g"]
-        []                   | []                   | ["a", "b", "c", "d", "e", "f", "g", "h"]
+        cp                   | mp                   | classes                                   | loadsAll
+        []                   | []                   | []                                        | true
+        []                   | []                   | ["a"]                                     | true
+        []                   | []                   | ["b"]                                     | true
+        []                   | []                   | ["c"]                                     | true
+        []                   | []                   | ["d"]                                     | true
+        []                   | []                   | ["e"]                                     | true
+        []                   | []                   | ["f"]                                     | true
+        []                   | []                   | ["g"]                                     | true
+        []                   | []                   | ["h"]                                     | true
+        ["b", "c", "f", "g"] | []                   | ["b", "c", "f", "g"]                      | true
+        []                   | ["b", "c", "f", "g"] | ["b", "c", "f", "g"]                      | true
+        ["a", "d", "e", "h"] | []                   | ["b", "c", "f", "g"]                      | false
+        []                   | ["a", "d", "e", "h"] | ["b", "c", "f", "g"]                      | false
+        []                   | []                   | ["a", "b", "c", "d", "e", "f", "g", "h"]  | false
     }
 
     def module(String module, boolean external) {
