@@ -20,7 +20,6 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.reflect.HasPublicType;
@@ -45,7 +44,7 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
     private DynamicObject dynamicObject;
     private ExtensionContainer extensionContainer;
     private ConventionMapping conventionMapping;
-    private Convention convention;
+    private org.gradle.api.plugins.Convention convention;
 
     private final Object object;
 
@@ -63,7 +62,7 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
 
     @Override
     @Deprecated
-    public Convention getConvention() {
+    public org.gradle.api.plugins.Convention getConvention() {
 // TODO nag once KGP doesn't register conventions anymore
 //        DeprecationLogger.deprecateType(org.gradle.api.internal.HasConvention.class)
 //            .willBeRemovedInGradle9()

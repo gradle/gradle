@@ -32,7 +32,6 @@ import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.support.LazyGroovySupport;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.services.ServiceReference;
@@ -416,7 +415,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final static Type DYNAMIC_OBJECT_TYPE = getType(DynamicObject.class);
         private final static Type CONVENTION_MAPPING_TYPE = getType(ConventionMapping.class);
         private final static Type GROOVY_OBJECT_TYPE = getType(GroovyObject.class);
-        private final static Type CONVENTION_TYPE = getType(Convention.class);
+        @SuppressWarnings("deprecation")
+        private final static Type CONVENTION_TYPE = getType(org.gradle.api.plugins.Convention.class);
         private final static Type ASM_BACKED_CLASS_GENERATOR_TYPE = getType(AsmBackedClassGenerator.class);
         private final static Type ABSTRACT_DYNAMIC_OBJECT_TYPE = getType(AbstractDynamicObject.class);
         private final static Type EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE = getType(MixInExtensibleDynamicObject.class);
