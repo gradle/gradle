@@ -93,6 +93,8 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
         addClasspathTest("""
             Set<String> jarSet = new HashSet<>(Arrays.asList(
+                "gradle-worker.jar",
+                "test",
                 "junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar",
                 "junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar",
                 "junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar",
@@ -131,6 +133,8 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
         addClasspathTest("""
             assertTrue(new HashSet<>(jars).equals(new HashSet<>(Arrays.asList(
+                "gradle-worker.jar",
+                "test",
                 "junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar",
                 "junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar",
                 "junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar",
@@ -177,6 +181,8 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
         addClasspathTest("""
             assertTrue(new HashSet<>(jars).equals(new HashSet<>(Arrays.asList(
+                "gradle-worker.jar",
+                "test",
                 "renamed-junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar",
                 "renamed-junit-platform-launcher-${JUNIT_PLATFORM_VERSION}.jar",
                 "renamed-junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar",
@@ -235,12 +241,8 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
                     }
 
                     try {
-                        assertEquals(classpath.get(0), "gradle-worker.jar");
-                        assertEquals(classpath.get(1), "test");
-
                         // Any remaining jars should be verified by the individual test.
-                        List<String> jars = new ArrayList<>(classpath.subList(2, classpath.size()));
-
+                        List<String> jars = new ArrayList<>(classpath);
                         ${testCode}
                     } catch (AssertionError e) {
                         System.err.println(e.getMessage() + "\\nActual Jars:\\n- " + String.join("\\n- ", classpath));
