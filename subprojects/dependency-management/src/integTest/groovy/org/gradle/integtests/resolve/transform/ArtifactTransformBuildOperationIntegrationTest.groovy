@@ -51,6 +51,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         String consumerBuildPath
         String consumerProjectPath
         Map<String, String> componentId
+        Map<String, String> sourceAttributes
         Map<String, String> targetAttributes
         List<Map<String, String>> capabilities
         String artifactName
@@ -133,6 +134,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             consumerBuildPath: ":",
             consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "blue", artifactType: "jar"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
             artifactName: "producer.jar",
@@ -153,7 +155,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         with(executeTransformationOps[0].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId)
             transformActionClass == "MakeGreen"
-            sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeGreen"
             subjectName == "producer.jar (project :producer)"
@@ -195,6 +196,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             consumerBuildPath: ":",
             consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "blue", artifactType: "jar"],
             targetAttributes: [color: "red", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
             artifactName: "producer.jar",
@@ -205,6 +207,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             consumerBuildPath: ":",
             consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "red", artifactType: "jar"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
             artifactName: "producer.jar",
@@ -225,7 +228,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         with(executeTransformationOps[0].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
             transformActionClass == "MakeColor"
-            sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeColor"
             subjectName == "producer.jar (project :producer)"
@@ -234,7 +236,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         with(executeTransformationOps[1].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
             transformActionClass == "MakeColor"
-            sourceAttributes == [color: "red", artifactType: "jar"]
 
             transformerName == "MakeColor"
             subjectName == "producer.jar (project :producer)"
@@ -276,6 +277,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             consumerBuildPath: ":",
             consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "blue", artifactType: "jar"],
             targetAttributes: [color: "red", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
             artifactName: "producer.jar",
@@ -286,6 +288,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             consumerBuildPath: ":",
             consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "blue", artifactType: "jar"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
             artifactName: "producer.jar",
@@ -307,7 +310,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         with(executeTransformationOps[0].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
             transformActionClass == "MakeRed"
-            sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeRed"
             subjectName == "producer.jar (project :producer)"
@@ -316,7 +318,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         with(executeTransformationOps[1].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
             transformActionClass == "MakeGreen"
-            sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeGreen"
             subjectName == "producer.jar (project :producer)"
@@ -366,6 +367,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             consumerBuildPath: ":",
             consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "blue", artifactType: "jar"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
             artifactName: "producer.jar",
@@ -384,7 +386,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         with(buildOperations.only(ExecutePlannedTransformStepBuildOperationType).details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
             transformActionClass == "MakeGreen"
-            sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeGreen"
             subjectName == "producer.jar (project :producer)"
@@ -428,6 +429,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             consumerBuildPath: ":",
             consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "blue", artifactType: "jar"],
             targetAttributes: [color: "red", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
             artifactName: "producer.jar",
@@ -438,6 +440,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             consumerBuildPath: ":",
             consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "red", artifactType: "jar"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
             artifactName: "producer.jar",
@@ -458,7 +461,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         with(executeTransformationOps[0].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
             transformActionClass == "MakeRed"
-            sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeRed"
             subjectName == "producer.jar (project :producer)"
@@ -467,7 +469,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         with(executeTransformationOps[1].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
             transformActionClass == "MakeGreen"
-            sourceAttributes == [color: "red", artifactType: "jar"]
 
             transformerName == "MakeGreen"
             subjectName == "producer.jar (project :producer)"
@@ -550,6 +551,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             consumerBuildPath: ":",
             consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "blue", artifactType: "jar"],
             targetAttributes: [color: "red", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
             artifactName: "producer.jar",
@@ -560,6 +562,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             consumerBuildPath: ":",
             consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "red", artifactType: "jar"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
             artifactName: "producer.jar",
@@ -580,7 +583,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         with(executeTransformationOps[0].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
             transformActionClass == "MakeColor"
-            sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeColor"
             subjectName == "producer.jar (project :producer)"
@@ -589,7 +591,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         with(executeTransformationOps[1].details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId2)
             transformActionClass == "MakeColor"
-            sourceAttributes == [color: "red", artifactType: "jar"]
 
             transformerName == "MakeColor"
             subjectName == "producer.jar (project :producer)"
@@ -678,6 +679,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             consumerBuildPath: ":",
             consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "blue", artifactType: "jar"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
             artifactName: "producer.out1.jar",
@@ -688,6 +690,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             consumerBuildPath: ":",
             consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "blue", artifactType: "jar"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
             artifactName: "producer.out2.jar",
@@ -708,13 +711,11 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         // Order of scheduling/execution is not guaranteed between the transforms
         checkExecuteTransformOperation(executeTransformationOps, expectedTransformId1, [
             transformActionClass: "MakeGreen",
-            sourceAttributes: [color: "blue", artifactType: "jar"],
             transformerName: "MakeGreen",
             subjectName: "producer.out1.jar (project :producer)",
         ])
         checkExecuteTransformOperation(executeTransformationOps, expectedTransformId2, [
             transformActionClass: "MakeGreen",
-            sourceAttributes: [color: "blue", artifactType: "jar"],
             transformerName: "MakeGreen",
             subjectName: "producer.out2.jar (project :producer)",
         ])
@@ -772,6 +773,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             consumerBuildPath: ":",
             consumerProjectPath: ":consumer",
             componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "blue", artifactType: "jar"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
             artifactName: "producer.jar",
@@ -793,7 +795,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         with(executeTransformationOp.details) {
             verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
             transformActionClass == "MakeGreen"
-            sourceAttributes == [color: "blue", artifactType: "jar"]
 
             transformerName == "MakeGreen"
             subjectName == "producer.jar (project :producer)"
@@ -873,6 +874,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             actual.consumerBuildPath == expected.consumerBuildPath &&
             actual.consumerProjectPath == expected.consumerProjectPath &&
             actual.componentId == expected.componentId &&
+            actual.sourceAttributes == expected.sourceAttributes &&
             actual.targetAttributes == expected.targetAttributes &&
             actual.capabilities == expected.capabilities &&
             actual.artifactName == expected.artifactName &&
@@ -885,6 +887,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             consumerBuildPath == expected.consumerBuildPath
             consumerProjectPath == expected.consumerProjectPath
             componentId == expected.componentId
+            sourceAttributes == expected.sourceAttributes
             targetAttributes == expected.targetAttributes
             capabilities == expected.capabilities
             artifactName == expected.artifactName
@@ -915,7 +918,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         verifyAll(operation.details) {
             transformActionClass == expectedDetails.transformActionClass
-            sourceAttributes == expectedDetails.sourceAttributes
 
             transformerName == expectedDetails.transformerName
             subjectName == expectedDetails.subjectName
