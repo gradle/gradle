@@ -48,7 +48,7 @@ public interface MutationValidator {
          */
         USAGE("usage"),
 
-	/**
+        /**
          * The mutation of the role of the configuration (can be queries, resolved, ...)
          */
         ROLE("role"),
