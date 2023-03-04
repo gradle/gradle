@@ -45,12 +45,6 @@ interface EncryptionConfiguration {
 }
 
 
-enum class EncryptionStrategy(val id: Int, val encrypted: Boolean) {
-    None(0, false),
-    Streams(1, true);
-}
-
-
 /**
  * A service for encrypting/decrypting streams.
  */
@@ -66,10 +60,7 @@ internal
 class DefaultEncryptionService(startParameter: ConfigurationCacheStartParameter) : EncryptionService {
 
     private
-    val encryptionStrategy: EncryptionStrategy = if (startParameter.encryptionRequested) EncryptionStrategy.Streams else EncryptionStrategy.None
-
-    private
-    val encryptingRequested: Boolean = encryptionStrategy.encrypted
+    val encryptingRequested: Boolean = startParameter.encryptionRequested
 
     private
     val secretKey: SecretKey? by lazy {
@@ -94,9 +85,6 @@ class DefaultEncryptionService(startParameter: ConfigurationCacheStartParameter)
             }
     }
 
-    private
-    val shouldEncrypt: Boolean by lazy { encryptingRequested && secretKey != null }
-
     override
     val encryptionAlgorithm: EncryptionAlgorithm by lazy {
         SupportedEncryptionAlgorithm.byTransformation(startParameter.encryptionAlgorithm)
@@ -111,24 +99,23 @@ class DefaultEncryptionService(startParameter: ConfigurationCacheStartParameter)
     }
 
     override val isEncrypting: Boolean
-        get() = shouldEncrypt
+        by lazy { encryptingRequested && secretKey != null }
 
     override val encryptionKeyHashCode: HashCode by lazy {
         secretKey?.let {
             Hashing.sha512().newHasher().apply {
                 putBytes(it.encoded)
                 putString(encryptionAlgorithm.transformation)
-                putInt(encryptionStrategy.id)
             }.hash()
         } ?: Hashing.newHasher().hash()
     }
 
     private
     fun shouldEncryptStreams(stateType: StateType) =
-        encryptionStrategy == EncryptionStrategy.Streams && isStateEncryptable(stateType)
+        isEncrypting && isStateEncryptable(stateType)
 
     private
-    fun isStateEncryptable(stateType: StateType) = shouldEncrypt && stateType.encryptable
+    fun isStateEncryptable(stateType: StateType) = isEncrypting && stateType.encryptable
 
     override fun outputStream(stateType: StateType, output: () -> OutputStream): OutputStream =
         if (shouldEncryptStreams(stateType))
