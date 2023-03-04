@@ -182,6 +182,31 @@ abstract class UndeclaredFileAccess extends BuildInputRead {
         }
     }
 
+    static UndeclaredFileAccess fileReadLines(String filePath) {
+        new UndeclaredFileAccess(filePath) {
+            @Override
+            String getKotlinExpression() {
+                "File(\"$filePath\").readLines()"
+            }
+
+            @Override
+            String getJavaExpression() {
+                """((Supplier<Object>) () -> {
+                    try {
+                        return Files.readAllLines(new File("$filePath").toPath());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).get()"""
+            }
+
+            @Override
+            String getGroovyExpression() {
+                // TODO test the GroovyResourceMethods and dynamic calls once supported
+                "kotlin.io.FilesKt.readLines(new File(\"$filePath\"), StandardCharsets.UTF_8)"
+            }
+        }
+    }
 
     static UndeclaredFileAccess directoryContentWithFileFilter(String directoryPath) {
         new UndeclaredFileAccess(directoryPath) {

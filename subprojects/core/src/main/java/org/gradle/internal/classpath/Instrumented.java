@@ -45,7 +45,6 @@ import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -55,8 +54,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.gradle.internal.classpath.InstrumentedUtil.findStaticOrThrowError;
-import static org.gradle.internal.classpath.InstrumentedUtil.kotlinDefaultMethodType;
+import static org.gradle.internal.classpath.MethodHandleUtils.findStaticOrThrowError;
+import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
 
 public class Instrumented {
     private static final Listener NO_OP = new Listener() {
@@ -414,7 +413,7 @@ public class Instrumented {
     }
 
     private static final Lazy<MethodHandle> FILESKT_READ_TEXT_DEFAULT =
-        Lazy.locking().of(() -> findStaticOrThrowError(FilesKt.class, "readText$default", kotlinDefaultMethodType(String.class, File.class, Charset.class)));
+        lazyKotlinStaticDefaultHandle(FilesKt.class, "readText", String.class, File.class, Charset.class);
 
     public static String filesReadString(Path file, String consumer) throws Throwable {
         listener().fileOpened(file.toFile(), consumer);
@@ -911,23 +910,3 @@ public class Instrumented {
         }
     }
 }
-
-class InstrumentedUtil {
-    static MethodHandle findStaticOrThrowError(Class<?> refc, String name, MethodType methodType) {
-        try {
-            return MethodHandles.lookup().findStatic(refc, name, methodType);
-        } catch (NoSuchMethodException e) {
-            throw new NoSuchMethodError(e.getMessage());
-        } catch (IllegalAccessException e) {
-            throw new IllegalAccessError(e.getMessage());
-        }
-    }
-
-    static MethodType kotlinDefaultMethodType(Class<?> returnType, Class<?>... parameterTypes) {
-        Class<?>[] defaultParameterTypes = Arrays.copyOf(parameterTypes, parameterTypes.length + 2);
-        defaultParameterTypes[parameterTypes.length] = int.class; // default value mask
-        defaultParameterTypes[parameterTypes.length + 1] = Object.class; // default signature marker
-        return MethodType.methodType(returnType, defaultParameterTypes);
-    }
-}
-
