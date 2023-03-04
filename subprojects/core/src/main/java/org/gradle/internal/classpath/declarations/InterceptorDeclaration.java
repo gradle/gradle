@@ -16,8 +16,26 @@
 
 package org.gradle.internal.classpath.declarations;
 
+import org.gradle.internal.instrumentation.api.annotations.CallableDefinition;
+import org.gradle.internal.instrumentation.api.annotations.CallableKind;
+import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
+import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
+import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
+
+@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
+@SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME)
 public class InterceptorDeclaration {
     public static final String JVM_BYTECODE_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.InterceptorDeclaration_JvmBytecodeImpl";
     public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.InterceptorDeclaration_GroovyInterceptorsImpl";
+
+    /**
+     * Make sure that there is at least one interceptor declaration so the classes are generated and the integration works.
+     * TODO this interceptor may be removed once others are added
+     */
+    @InterceptCalls
+    @CallableKind.StaticMethod(ofClass = InterceptorDeclaration.class)
+    @CallableDefinition.Name("emptyStubToEnsureClassGeneration")
+    public static void stub() {
+    }
 }
 
