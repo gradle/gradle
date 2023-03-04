@@ -44,7 +44,7 @@ class ConfigurationCacheStartParameter(
 
     val taskExecutionAccessPreStable: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")).get()
 
-    val encryptionRequested: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.encryption", true)).get()
+    val encryptionRequested: Boolean = startParameter.isConfigurationCacheEncryption
 
     val encryptionAlgorithm: String = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.AES_ECB_PADDING.transformation)).get()
 
