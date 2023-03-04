@@ -24,7 +24,6 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static java.util.Collections.emptyMap
-import static org.gradle.api.Project.SYSTEM_PROP_PREFIX
 import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
 import static org.gradle.initialization.IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX
 
@@ -108,43 +107,6 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
         then:
         "settings value" == properties["settingsProp"]
     }
-
-//    def mergeAddsPropertiesFromEnvironmentVariablesWithPrefix() {
-//        given:
-//        prefixedEnvironmentVariables = [
-//            (ENV_PROJECT_PROPERTIES_PREFIX + "envProp"): "env value"
-//        ]
-//
-//        when:
-//        def properties = loadAndMergePropertiesWith(emptyMap())
-//
-//        then:
-//        "env value" == properties["envProp"]
-//    }
-
-//    def mergeAddsPropertiesFromSystemPropertiesWithPrefix() {
-//        given:
-//        prefixedSystemProperties = [
-//            (SYSTEM_PROJECT_PROPERTIES_PREFIX + "systemProp"): "system value"
-//        ]
-//
-//        when:
-//        def properties = loadAndMergePropertiesWith(emptyMap())
-//
-//        then:
-//        "system value" == properties["systemProp"]
-//    }
-
-//    def mergeAddsPropertiesFromStartParameter() {
-//        given:
-//        projectPropertiesArgs = ["paramProp": "param value"]
-//
-//        when:
-//        def properties = loadAndMergePropertiesWith(emptyMap())
-//
-//        then:
-//        "param value" == properties["paramProp"]
-//    }
 
     def projectPropertiesHavePrecedenceOverInstallationPropertiesFile() {
         given:
@@ -299,15 +261,6 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
         then:
         "otherValue" == properties["prop1"]
         properties["prop2"].is null
-    }
-
-    def buildSystemProperties() {
-        given:
-        System.setProperty("gradle-loader-test", "value")
-
-        expect:
-        System.getProperties().containsKey("gradle-loader-test")
-        "value" == System.getProperties().get("gradle-loader-test")
     }
 
     def startParameterSystemPropertiesHavePrecedenceOverPropertiesFiles() {
