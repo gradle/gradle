@@ -1409,7 +1409,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ExtensionContainerInternal getExtensions() {
-        return DeprecationLogger.whileDisabled(() -> (ExtensionContainerInternal) getConvention());
+        return (ExtensionContainerInternal) DeprecationLogger.whileDisabled(this::getConvention);
     }
 
     // Not part of the public API
