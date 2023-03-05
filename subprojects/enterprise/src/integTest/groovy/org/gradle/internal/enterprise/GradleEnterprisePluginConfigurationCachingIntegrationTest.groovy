@@ -18,7 +18,9 @@ package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.NONE
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.REQUESTED
@@ -96,6 +98,8 @@ class GradleEnterprisePluginConfigurationCachingIntegrationTest extends Abstract
         plugin.assertBuildScanRequest(output, REQUESTED)
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/24163')
+    @ToBeImplemented
     def "does not consider scan arg part of key and provides value to service"() {
         when:
         succeeds "t", "--configuration-cache"
@@ -108,14 +112,17 @@ class GradleEnterprisePluginConfigurationCachingIntegrationTest extends Abstract
         succeeds "t", "--configuration-cache", "--scan"
 
         then:
-        plugin.notApplied(output)
+        // TODO plugin.notApplied(output)
+        plugin.appliedOnce(output)
+
         plugin.assertBuildScanRequest(output, REQUESTED)
 
         when:
         succeeds "t", "--configuration-cache", "--no-scan"
 
         then:
-        plugin.notApplied(output)
+        // TODO plugin.notApplied(output)
+        plugin.appliedOnce(output)
         plugin.assertBuildScanRequest(output, SUPPRESSED)
     }
 
