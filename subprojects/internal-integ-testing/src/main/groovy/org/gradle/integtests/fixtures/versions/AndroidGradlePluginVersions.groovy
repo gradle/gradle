@@ -57,7 +57,7 @@ class AndroidGradlePluginVersions {
         }
     """
 
-    private static final VersionNumber AGP_8_0 = VersionNumber.parse('7.0.0')
+    private static final VersionNumber AGP_8_0 = VersionNumber.parse('8.0.0')
     private static final VersionNumber AGP_7_0 = VersionNumber.parse('7.0.0')
     private static final VersionNumber AGP_7_3 = VersionNumber.parse('7.3.0')
     private static final VersionNumber KOTLIN_1_6_20 = VersionNumber.parse('1.6.20')
