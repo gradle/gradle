@@ -16,8 +16,12 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
+import org.gradle.profiler.ScenarioContext
 
 import javax.annotation.Nullable
 
@@ -27,8 +31,6 @@ class AndroidTestProject implements TestProject {
     private static final KotlinGradlePluginVersions KGP_VERSIONS = new KotlinGradlePluginVersions()
     private static final String AGP_STABLE_TARGET_VERSION = "7.3"
     private static final String AGP_LATEST_TARGET_VERSION = "7.3"
-    // AGP 7.3+ support only KGP 1.6.20+
-    private static final String KGP_STABLE_TARGET_VERSION = "1.6.21"
     public static final LARGE_ANDROID_BUILD = new AndroidTestProject(
         templateName: 'largeAndroidBuild'
     )
@@ -66,28 +68,50 @@ class AndroidTestProject implements TestProject {
     void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
     }
 
-    static void useStableKotlinVersion(CrossVersionPerformanceTestRunner runner) {
-        runner.args.add("-DkotlinVersion=$KGP_STABLE_TARGET_VERSION")
+    static void useKotlinLatestStableVersion(CrossVersionPerformanceTestRunner runner) {
+        runner.args.add("-DkotlinVersion=${KGP_VERSIONS.latestStable}")
     }
 
-    static void useLatestKotlinVersion(CrossVersionPerformanceTestRunner runner) {
+    static void useKotlinLatestVersion(CrossVersionPerformanceTestRunner runner) {
         runner.args.add("-DkotlinVersion=${KGP_VERSIONS.latest}")
     }
 
-    static void useStableAgpVersion(CrossVersionPerformanceTestRunner runner) {
+    static void useAgpLatestStableVersion(CrossVersionPerformanceTestRunner runner) {
         configureForLatestAgpVersionOfMinor(runner, AGP_STABLE_TARGET_VERSION)
     }
 
-    static void useStableAgpVersion(GradleBuildExperimentSpec.GradleBuilder builder) {
-        configureForLatestAgpVersionOfMinor(builder, AGP_STABLE_TARGET_VERSION)
-    }
-
-    static void useLatestAgpVersion(CrossVersionPerformanceTestRunner runner) {
+    static void useAgpLatestVersion(CrossVersionPerformanceTestRunner runner) {
         configureForLatestAgpVersionOfMinor(runner, AGP_LATEST_TARGET_VERSION)
     }
 
-    static void configureForLatestAgpVersionOfMinor(CrossVersionPerformanceTestRunner runner, String lowerBound) {
-        runner.args.add("-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}")
+    private static void configureForLatestAgpVersionOfMinor(CrossVersionPerformanceTestRunner runner, String lowerBound) {
+
+        def agpVersion = AGP_VERSIONS.getLatestOfMinor(lowerBound)
+        runner.args.add("-DagpVersion=${agpVersion}")
+
+        def buildJavaHome = AvailableJavaHomes.getJdk(AGP_VERSIONS.getMinimumJavaVersionFor(agpVersion)).javaHome
+        runner.addBuildMutator { invocation -> new JavaHomeMutator(invocation, buildJavaHome) }
+
+        def minimumGradle = AGP_VERSIONS.getMinimumGradleBaseVersionFor(agpVersion)
+        if (minimumGradle != null) {
+            runner.minimumBaseVersion = minimumGradle
+        }
+    }
+
+    static class JavaHomeMutator implements BuildMutator {
+        private final File buildJavaHome
+        private final InvocationSettings invocation
+
+        JavaHomeMutator(InvocationSettings invocation, File buildJavaHome) {
+            this.invocation = invocation
+            this.buildJavaHome = buildJavaHome
+        }
+
+        @Override
+        void beforeScenario(ScenarioContext context) {
+            def gradleProps = new File(invocation.projectDir, "gradle.properties")
+            gradleProps << "\norg.gradle.java.home=${buildJavaHome.absolutePath.replace("\\", "/")}\n"
+        }
     }
 
     @Override

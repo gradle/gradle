@@ -39,14 +39,11 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         def testProject = AndroidTestProject.projectFor(runner.testProject)
         testProject.configure(runner)
-        AndroidTestProject.useStableAgpVersion(runner)
-        AndroidTestProject.useStableKotlinVersion(runner)
+        AndroidTestProject.useAgpLatestStableVersion(runner)
+        AndroidTestProject.useKotlinLatestStableVersion(runner)
         runner.warmUpRuns = 20
         runner.runs = 20
-        // AGP 7.3 requires Gradle 7.4
-        runner.minimumBaseVersion = "7.4"
         runner.setupAndroidStudioSync()
-        configureProjectJavaHomeToJdk11()
 
         when:
         def result = runner.run()

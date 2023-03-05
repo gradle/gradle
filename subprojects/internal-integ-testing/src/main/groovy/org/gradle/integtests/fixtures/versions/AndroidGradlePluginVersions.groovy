@@ -20,6 +20,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.internal.Factory
 import org.gradle.util.internal.VersionNumber
 
+import javax.annotation.Nullable
+
 import static org.junit.Assume.assumeTrue
 
 
@@ -119,6 +121,14 @@ class AndroidGradlePluginVersions {
         return properties
     }
 
+    @Nullable
+    String getMinimumGradleBaseVersionFor(String agpVersion) {
+        if (VersionNumber.parse(agpVersion) >= AGP_7_3) {
+            return '7.4'
+        }
+        return null
+    }
+
     static void assumeCurrentJavaVersionIsSupportedBy(String agpVersion) {
         VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
         JavaVersion current = JavaVersion.current()
@@ -130,7 +140,11 @@ class AndroidGradlePluginVersions {
         }
     }
 
-    private static JavaVersion getMinimumJavaVersionFor(VersionNumber agpVersion) {
+    static JavaVersion getMinimumJavaVersionFor(String agpVersion) {
+        return getMinimumJavaVersionFor(VersionNumber.parse(agpVersion))
+    }
+
+    static JavaVersion getMinimumJavaVersionFor(VersionNumber agpVersion) {
         if (agpVersion.baseVersion < AGP_7_0) {
             return JavaVersion.VERSION_1_8
         }
