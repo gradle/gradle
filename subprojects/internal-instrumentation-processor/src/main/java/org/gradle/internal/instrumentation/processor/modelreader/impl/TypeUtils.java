@@ -21,16 +21,16 @@ import org.objectweb.asm.Type;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
 
-class TypeUtils {
-    static Type extractType(TypeMirror typeMirror) {
+public class TypeUtils {
+    public static Type extractType(TypeMirror typeMirror) {
         return typeMirror.accept(new TypeMirrorToType(), null);
     }
 
-    static Type extractReturnType(ExecutableElement methodElement) {
+    public static Type extractReturnType(ExecutableElement methodElement) {
         return extractType(methodElement.getReturnType());
     }
 
-    static String extractMethodDescriptor(ExecutableElement methodElement) {
+    public static String extractMethodDescriptor(ExecutableElement methodElement) {
         return Type.getMethodDescriptor(
             extractReturnType(methodElement),
             methodElement.getParameters().stream().map(it -> extractType(it.asType())).toArray(Type[]::new)
