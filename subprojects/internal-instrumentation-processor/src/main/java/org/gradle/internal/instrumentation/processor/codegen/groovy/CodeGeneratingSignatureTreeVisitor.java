@@ -156,7 +156,11 @@ class CodeGeneratingSignatureTreeVisitor {
         if (entry.kind != RECEIVER_AS_CLASS) {
             shouldPopParameter = true;
             CodeBlock paramVariable = CodeBlock.of("$LTyped", argExpr);
-            result.addStatement("$2T $1L = ($2T) $3L", paramVariable, entryChildType, argExpr);
+            if (!entryChildType.equals(TypeName.OBJECT)) {
+                result.addStatement("$2T $1L = ($2T) $3L", paramVariable, entryChildType, argExpr);
+            } else {
+                result.addStatement("$2T $1L = $3L", paramVariable, entryChildType, argExpr);
+            }
             paramVariablesStack.push(paramVariable);
         }
         visit(child, childArgCount);
