@@ -66,16 +66,16 @@ class AndroidTestProject implements TestProject {
     void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
     }
 
-    static void useKotlinLatestStableVersion(CrossVersionPerformanceTestRunner runner) {
-        runner.args.add("-DkotlinVersion=${KGP_VERSIONS.latestStable}")
+    static void useKotlinLatestStableOrRcVersion(CrossVersionPerformanceTestRunner runner) {
+        runner.args.add("-DkotlinVersion=${KGP_VERSIONS.latestStableOrRC}")
     }
 
     static void useKotlinLatestVersion(CrossVersionPerformanceTestRunner runner) {
         runner.args.add("-DkotlinVersion=${KGP_VERSIONS.latest}")
     }
 
-    static void useAgpLatestStableVersion(CrossVersionPerformanceTestRunner runner) {
-        configureForAgpVersion(runner, AGP_VERSIONS.latestStable)
+    static void useAgpLatestStableOrRcVersion(CrossVersionPerformanceTestRunner runner) {
+        configureForAgpVersion(runner, AGP_VERSIONS.latestStableOrRC)
     }
 
     static void useAgpLatestVersion(CrossVersionPerformanceTestRunner runner) {
