@@ -218,12 +218,11 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         """
 
         when:
-        def versionNumber = VersionNumber.parse(kotlinVersion)
-        def result = runner(false, versionNumber, ':tasks')
-            .expectDeprecationWarning("The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the testResults method instead. See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.", '')
-            .expectDeprecationWarning("The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.", '')
+        def result = runner(false, VersionNumber.parse(kotlinVersion), ':tasks')
             .deprecations(KotlinDeprecations) {
                 expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+                expectTestReportReportOnDeprecation(kotlinVersion)
+                expectTestReportDestinationDirOnDeprecation(kotlinVersion)
             }
             .build()
 
@@ -431,6 +430,30 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Consult the upgrading guide for further information: " +
                     "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations",
+                ""
+            )
+        }
+
+        void expectTestReportReportOnDeprecation(String version) {
+            VersionNumber versionNumber = VersionNumber.parse(version)
+            runner.expectDeprecationWarningIf(
+                versionNumber.baseVersion < VersionNumber.parse("1.8.20"),
+                "The TestReport.reportOn(Object...) method has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Please use the testResults method instead. " +
+                    "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.",
+                ""
+            )
+        }
+
+        void expectTestReportDestinationDirOnDeprecation(String version) {
+            VersionNumber versionNumber = VersionNumber.parse(version)
+            runner.expectDeprecationWarningIf(
+                versionNumber.baseVersion < VersionNumber.parse("1.8.20"),
+                "The TestReport.destinationDir property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Please use the destinationDirectory property instead. " +
+                    "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.",
                 ""
             )
         }
