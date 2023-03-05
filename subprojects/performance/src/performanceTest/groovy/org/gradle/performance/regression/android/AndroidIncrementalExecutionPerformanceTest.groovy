@@ -42,8 +42,8 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
 
     def setup() {
         testProject = AndroidTestProject.findProjectFor(runner.testProject) as IncrementalAndroidTestProject
-        AndroidTestProject.useAgpLatestVersion(runner)
-        AndroidTestProject.useKotlinLatestVersion(runner)
+        AndroidTestProject.useAgpLatestStableVersion(runner)
+        AndroidTestProject.useKotlinLatestStableVersion(runner)
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.args.addAll(["--no-build-cache", "--no-scan"])
         runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheProblemsOption.PROPERTY_NAME}=warn")
