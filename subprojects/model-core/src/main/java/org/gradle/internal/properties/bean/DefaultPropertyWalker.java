@@ -115,39 +115,73 @@ public class DefaultPropertyWalker implements PropertyWalker {
                 return (TaskDependencyContainer) cachedInvoker.get();
             }
             if (isBuildable()) {
-                return context -> {
-                    Object dependency = cachedInvoker.get();
-                    if (dependency != null) {
-                        context.add(dependency);
-                    }
-                };
+                return new BuildableTaskDependencyContainer(cachedInvoker);
             }
             if (isMap()) {
-                return context -> {
-                    Object dependency = cachedInvoker.get();
-                    if (dependency instanceof Map) {
-                        Map<Object, Object> map = Cast.uncheckedCast(dependency);
-                        addCollectionDependencies(map.values(), context);
-                    }
-                };
+                return new MapTaskDependencyContainer(cachedInvoker);
             }
             if (isList() || isSet()) {
-                return context -> {
-                    Object dependency = cachedInvoker.get();
-                    if (dependency instanceof Collection) {
-                        addCollectionDependencies(Cast.uncheckedCast(dependency), context);
-                    }
-                };
+                return new CollectionTaskDependencyContainer(cachedInvoker);
             }
             return TaskDependencyContainer.EMPTY;
         }
 
+        private static class BuildableTaskDependencyContainer implements TaskDependencyContainer {
+
+            private final Supplier<Object> cachedInvoker;
+
+            private BuildableTaskDependencyContainer(Supplier<Object> cachedInvoker) {
+                this.cachedInvoker = cachedInvoker;
+            }
+
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                Object dependency = cachedInvoker.get();
+                if (dependency != null) {
+                    context.add(dependency);
+                }
+            }
+        }
+
+        private static class MapTaskDependencyContainer implements TaskDependencyContainer {
+
+            private final Supplier<Object> cachedInvoker;
+
+            private MapTaskDependencyContainer(Supplier<Object> cachedInvoker) {
+                this.cachedInvoker = cachedInvoker;
+            }
+
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                Object dependency = cachedInvoker.get();
+                if (dependency instanceof Map) {
+                    Map<Object, Object> map = Cast.uncheckedCast(dependency);
+                    addCollectionDependencies(map.values(), context);
+                }
+            }
+        }
+
+        private static class CollectionTaskDependencyContainer implements TaskDependencyContainer {
+
+            private final Supplier<Object> cachedInvoker;
+
+            private CollectionTaskDependencyContainer(Supplier<Object> cachedInvoker) {
+                this.cachedInvoker = cachedInvoker;
+            }
+
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                Object dependency = cachedInvoker.get();
+                if (dependency instanceof Collection) {
+                    addCollectionDependencies(Cast.uncheckedCast(dependency), context);
+                }
+            }
+        }
+
         private static <T> void addCollectionDependencies(Collection<T> collection, TaskDependencyResolveContext context) {
-            if (!collection.isEmpty()) {
-                for (T element : collection) {
-                    if (element instanceof TaskDependencyContainer) {
-                        context.add(element);
-                    }
+            for (T element : collection) {
+                if (element instanceof TaskDependencyContainer) {
+                    context.add(element);
                 }
             }
         }
