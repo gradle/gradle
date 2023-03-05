@@ -176,7 +176,7 @@ class AndroidGradlePluginVersions {
             return JavaVersion.VERSION_1_8
         }
         if (agpVersion.baseVersion < AGP_8_0) {
-            JavaVersion.VERSION_11
+            return JavaVersion.VERSION_11
         }
         return JavaVersion.VERSION_17
     }
