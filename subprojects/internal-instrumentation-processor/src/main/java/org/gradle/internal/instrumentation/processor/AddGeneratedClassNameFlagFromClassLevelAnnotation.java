@@ -26,33 +26,40 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class AddGeneratedClassNameFlagFromClassLevelAnnotation implements RequestPostProcessorExtension {
-    public AddGeneratedClassNameFlagFromClassLevelAnnotation(Class<? extends Annotation> interceptCallsAnnotation, Class<? extends Annotation> generatedClassNameProvidingAnnotation, Function<String, RequestExtra> produceFlagForGeneratedClassName) {
-        this.interceptCallsAnnotation = interceptCallsAnnotation;
+    public AddGeneratedClassNameFlagFromClassLevelAnnotation(
+        Predicate<? super CallInterceptionRequest> shouldAddExtraToRequestPredicate,
+        Class<? extends Annotation> generatedClassNameProvidingAnnotation,
+        Function<String, RequestExtra> produceFlagForGeneratedClassName
+    ) {
+        this.shouldAddExtraToRequestPredicate = shouldAddExtraToRequestPredicate;
+
         this.generatedClassNameProvidingAnnotation = generatedClassNameProvidingAnnotation;
         this.produceFlagForGeneratedClassName = produceFlagForGeneratedClassName;
     }
 
-    private final Class<? extends Annotation> interceptCallsAnnotation;
+    private final Predicate<? super CallInterceptionRequest> shouldAddExtraToRequestPredicate;
     private final Class<? extends Annotation> generatedClassNameProvidingAnnotation;
     private final Function<String, RequestExtra> produceFlagForGeneratedClassName;
 
     @Override
-    public CallInterceptionRequest postProcessRequest(CallInterceptionRequest originalRequest) {
+    public Collection<CallInterceptionRequest> postProcessRequest(CallInterceptionRequest originalRequest) {
         Optional<ExecutableElement> maybeOriginatingElement = originalRequest.getRequestExtras().getByType(OriginatingElement.class)
             .map(OriginatingElement::getElement);
 
         if (!maybeOriginatingElement.isPresent()) {
-            return originalRequest;
+            return Collections.singletonList(originalRequest);
         }
-        ExecutableElement originatingElement = maybeOriginatingElement.get();
 
-        boolean shouldPostProcess = AnnotationUtils.findMetaAnnotationMirror(originatingElement, interceptCallsAnnotation).isPresent();
+        boolean shouldPostProcess = shouldAddExtraToRequestPredicate.test(originalRequest);
         if (!shouldPostProcess) {
-            return originalRequest;
+            return Collections.singletonList(originalRequest);
         }
 
         Element enclosingElement = maybeOriginatingElement.get().getEnclosingElement();
@@ -61,6 +68,25 @@ public class AddGeneratedClassNameFlagFromClassLevelAnnotation implements Reques
             generatedClassName.ifPresent(annotationValue -> originalRequest.getRequestExtras().add(produceFlagForGeneratedClassName.apply((String) annotationValue.getValue())));
         });
 
-        return originalRequest;
+        return Collections.singletonList(originalRequest);
+    }
+
+    public static Predicate<CallInterceptionRequest> ifHasAnnotation(Class<? extends Annotation> annotationType) {
+        return request -> {
+            Optional<ExecutableElement> maybeOriginatingElement = request.getRequestExtras()
+                .getByType(OriginatingElement.class)
+                .map(OriginatingElement::getElement);
+
+            if (!maybeOriginatingElement.isPresent()) {
+                return false;
+            }
+
+            ExecutableElement originatingElement = maybeOriginatingElement.get();
+            return AnnotationUtils.findMetaAnnotationMirror(originatingElement, annotationType).isPresent();
+        };
+    }
+
+    public static Predicate<CallInterceptionRequest> ifHasExtraOfType(Class<? extends RequestExtra> extraType) {
+        return request -> request.getRequestExtras().getByType(extraType).isPresent();
     }
 }

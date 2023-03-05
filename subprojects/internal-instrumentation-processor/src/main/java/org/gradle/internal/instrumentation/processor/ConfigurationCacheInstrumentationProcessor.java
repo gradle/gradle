@@ -26,12 +26,18 @@ import org.gradle.internal.instrumentation.processor.codegen.jvmbytecode.Interce
 import org.gradle.internal.instrumentation.processor.extensibility.ClassLevelAnnotationsContributor;
 import org.gradle.internal.instrumentation.processor.extensibility.CodeGeneratorContributor;
 import org.gradle.internal.instrumentation.processor.extensibility.InstrumentationProcessorExtension;
+import org.gradle.internal.instrumentation.processor.features.withstaticreference.WithExtensionReferencesExtra;
+import org.gradle.internal.instrumentation.processor.features.withstaticreference.WithExtensionReferencesPostProcessor;
+import org.gradle.internal.instrumentation.processor.features.withstaticreference.WithExtensionReferencesReader;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationCallInterceptionRequestReaderImpl;
 
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import java.util.Arrays;
 import java.util.Collection;
+
+import static org.gradle.internal.instrumentation.processor.AddGeneratedClassNameFlagFromClassLevelAnnotation.ifHasAnnotation;
+import static org.gradle.internal.instrumentation.processor.AddGeneratedClassNameFlagFromClassLevelAnnotation.ifHasExtraOfType;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrumentationProcessor {
@@ -43,8 +49,14 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
 
             new AnnotationCallInterceptionRequestReaderImpl(),
 
-            new AddGeneratedClassNameFlagFromClassLevelAnnotation(InterceptJvmCalls.class, SpecificJvmCallInterceptors.class, RequestExtra.InterceptJvmCalls::new),
-            new AddGeneratedClassNameFlagFromClassLevelAnnotation(InterceptGroovyCalls.class, SpecificGroovyCallInterceptors.class, RequestExtra.InterceptGroovyCalls::new),
+            new WithExtensionReferencesReader(),
+            new WithExtensionReferencesPostProcessor(),
+            new AddGeneratedClassNameFlagFromClassLevelAnnotation(
+                ifHasExtraOfType(WithExtensionReferencesExtra.ProducedSynthetically.class), SpecificJvmCallInterceptors.class, RequestExtra.InterceptJvmCalls::new
+            ),
+
+            new AddGeneratedClassNameFlagFromClassLevelAnnotation(ifHasAnnotation(InterceptJvmCalls.class), SpecificJvmCallInterceptors.class, RequestExtra.InterceptJvmCalls::new),
+            new AddGeneratedClassNameFlagFromClassLevelAnnotation(ifHasAnnotation(InterceptGroovyCalls.class), SpecificGroovyCallInterceptors.class, RequestExtra.InterceptGroovyCalls::new),
 
             (CodeGeneratorContributor) InterceptJvmCallsGenerator::new,
             (CodeGeneratorContributor) InterceptGroovyCallsGenerator::new

@@ -123,7 +123,7 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
     private List<CallInterceptionRequest> postProcessRequests(List<CallInterceptionRequestReader.Result.Success> successResults) {
         List<CallInterceptionRequest> requests = successResults.stream().map(CallInterceptionRequestReader.Result.Success::getRequest).collect(Collectors.toList());
         for (RequestPostProcessorExtension postProcessor : getExtensionsByType(RequestPostProcessorExtension.class)) {
-            requests = requests.stream().map(postProcessor::postProcessRequest).collect(Collectors.toList());
+            requests = requests.stream().flatMap(request -> postProcessor.postProcessRequest(request).stream()).collect(Collectors.toList());
         }
         return requests;
     }

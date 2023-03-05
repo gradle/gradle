@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.processor.extensibility;
+package org.gradle.internal.instrumentation.processor.features.withstaticreference;
 
-import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.gradle.internal.instrumentation.model.RequestExtra;
+import org.objectweb.asm.Type;
 
-import java.util.Collection;
+public class WithExtensionReferencesExtra implements RequestExtra {
+    public final Type ownerType;
+    public final String methodName;
 
-public interface RequestPostProcessorExtension extends InstrumentationProcessorExtension {
-    Collection<CallInterceptionRequest> postProcessRequest(CallInterceptionRequest originalRequest);
+    public WithExtensionReferencesExtra(Type ownerType, String methodName) {
+        this.ownerType = ownerType;
+        this.methodName = methodName;
+    }
+
+    public static class ProducedSynthetically implements RequestExtra {
+    }
 }
