@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath.declarations;
 
+import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind.GroovyProperty;
@@ -27,8 +28,14 @@ import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInt
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.features.withstaticreference.WithExtensionReferences;
 
+import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.util.List;
+import java.util.regex.Pattern;
 
 @SuppressWarnings("NewMethodNamingConvention")
 @SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
@@ -55,5 +62,395 @@ public class GroovyFileInterceptors {
         return Instrumented.groovyFileGetText(self, charset, consumer);
     }
 
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static void intercept_eachByte(
+        @Receiver File self,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        ResourceGroovyMethods.eachByte(self, closure);
+    }
 
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static void intercept_eachByte(
+        @Receiver File self,
+        int bufferLen,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        ResourceGroovyMethods.eachByte(self, bufferLen, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static void intercept_eachDir(
+        @Receiver File self,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.directoryContentObserved(self, consumer);
+        ResourceGroovyMethods.eachDir(self, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static void intercept_eachDirMatch(
+        @Receiver File self,
+        Object nameFilter,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.directoryContentObserved(self, consumer);
+        ResourceGroovyMethods.eachDirMatch(self, nameFilter, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static void intercept_eachFile(
+        @Receiver File self,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.directoryContentObserved(self, consumer);
+        ResourceGroovyMethods.eachFile(self, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static void intercept_eachFileMatch(
+        @Receiver File self,
+        Object nameFilter,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.directoryContentObserved(self, consumer);
+        ResourceGroovyMethods.eachFileMatch(self, nameFilter, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static void intercept_eachLine(
+        @Receiver File self,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        ResourceGroovyMethods.eachLine(self, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static void intercept_eachLine(
+        @Receiver File self,
+        String charset,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        ResourceGroovyMethods.eachLine(self, charset, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static void intercept_eachLine(
+        @Receiver File self,
+        int firstLine,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        ResourceGroovyMethods.eachLine(self, firstLine, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static void intercept_eachLine(
+        @Receiver File self,
+        String charset,
+        int firstLine,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        ResourceGroovyMethods.eachLine(self, charset, firstLine, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static void intercept_eachObject(
+        @Receiver File self,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException, ClassNotFoundException {
+        Instrumented.fileOpened(self, consumer);
+        ResourceGroovyMethods.eachObject(self, closure);
+    }
+
+    @InterceptGroovyCalls
+    @GroovyProperty
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static byte[] intercept_bytes(
+        @Receiver File self,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.getBytes(self);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static InputStream intercept_newInputStream(
+        @Receiver File self,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.newInputStream(self);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static DataInputStream intercept_newDataInputStream(
+        @Receiver File self,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.newDataInputStream(self);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static ObjectInputStream intercept_newObjectInputStream(
+        @Receiver File self,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.newObjectInputStream(self);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static ObjectInputStream intercept_newObjectInputStream(
+        @Receiver File self,
+        ClassLoader classLoader,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.newObjectInputStream(self, classLoader);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static BufferedReader intercept_newReader(
+        @Receiver File self,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.newReader(self);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static BufferedReader intercept_newReader(
+        @Receiver File self,
+        String charset,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.newReader(self, charset);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static byte[] intercept_readBytes(
+        @Receiver File self,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.readBytes(self);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static List<String> intercept_readLines(
+        @Receiver File self,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.readLines(self);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static List<String> intercept_readLines(
+        @Receiver File self,
+        String charset,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.readLines(self, charset);
+    }
+
+    @InterceptGroovyCalls
+    @GroovyProperty
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static long intercept_size(
+        @Receiver File self,
+        @CallerClassName String consumer
+    ) {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.size(self);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static Object intercept_splitEachLine(
+        @Receiver File self,
+        Pattern pattern,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.splitEachLine(self, pattern, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static Object intercept_splitEachLine(
+        @Receiver File self,
+        Pattern pattern,
+        String charset,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.splitEachLine(self, pattern, charset, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static Object intercept_splitEachLine(
+        @Receiver File self,
+        String regex,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.splitEachLine(self, regex, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static Object intercept_splitEachLine(
+        @Receiver File self,
+        String regex,
+        String charset,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.splitEachLine(self, regex, charset, closure);
+    }
+
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static Object intercept_withInputStream(
+        @Receiver File self,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.withInputStream(self, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static Object intercept_withDataInputStream(
+        @Receiver File self,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.withDataInputStream(self, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static Object intercept_withObjectInputStream(
+        @Receiver File self,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.withObjectInputStream(self, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static Object intercept_withObjectInputStream(
+        @Receiver File self,
+        ClassLoader classLoader,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.withObjectInputStream(self, classLoader, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static Object intercept_withReader(
+        @Receiver File self,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.withReader(self, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static Object intercept_withReader(
+        @Receiver File self,
+        String charset,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.fileOpened(self, consumer);
+        return ResourceGroovyMethods.withReader(self, charset, closure);
+    }
 }
