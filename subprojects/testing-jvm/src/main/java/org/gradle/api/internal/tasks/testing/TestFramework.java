@@ -68,7 +68,7 @@ public interface TestFramework extends Closeable {
     Action<WorkerProcessBuilder> getWorkerConfigurationAction();
 
     /**
-     * Returns a list of distribution module names that the test worker requires on the application classpath.
+     * Returns a list of distribution modules that the test worker requires on the application classpath.
      * These dependencies are loaded from the Gradle distribution.
      *
      * Application classes specified by {@link WorkerProcessBuilder#sharedPackages} are
@@ -77,12 +77,12 @@ public interface TestFramework extends Closeable {
      * @see #getUseDistributionDependencies()
      */
     @Internal
-    default List<String> getWorkerApplicationClasspathModuleNames() {
+    default List<TestFrameworkDistributionModule> getWorkerApplicationClasspathModules() {
         return Collections.emptyList();
     }
 
     /**
-     * Returns a list of distribution module names that the test worker requires on the application modulepath if it runs as a module.
+     * Returns a list of distribution modules that the test worker requires on the application modulepath if it runs as a module.
      * These dependencies are loaded from the Gradle distribution.
      *
      * Application classes specified by {@link WorkerProcessBuilder#sharedPackages} are
@@ -91,29 +91,29 @@ public interface TestFramework extends Closeable {
      * @see #getUseDistributionDependencies()
      */
     @Internal
-    default List<String> getWorkerApplicationModulepathModuleNames() {
+    default List<TestFrameworkDistributionModule> getWorkerApplicationModulepathModules() {
         return Collections.emptyList();
     }
 
     /**
-     * Returns a list of distribution module names that the test worker requires on implementation the classpath.
+     * Returns a list of distribution modules that the test worker requires on implementation the classpath.
      * These dependencies are loaded from the Gradle distribution.
      *
      * @see #getUseDistributionDependencies()
      */
     @Internal
-    default List<String> getWorkerImplementationClasspathModuleNames() {
+    default List<TestFrameworkDistributionModule> getWorkerImplementationClasspathModules() {
         return Collections.emptyList();
     }
 
     /**
-     * Returns a list of distribution module names that the test worker requires on the implementation modulepath if it runs as a module.
+     * Returns a list of distribution modules that the test worker requires on the implementation modulepath if it runs as a module.
      * These dependencies are loaded from the Gradle distribution.
      *
      * @see #getUseDistributionDependencies()
      */
     @Internal
-    default List<String> getWorkerImplementationModulepathModuleNames() {
+    default List<TestFrameworkDistributionModule> getWorkerImplementationModulepathModules() {
         return Collections.emptyList();
     }
 
