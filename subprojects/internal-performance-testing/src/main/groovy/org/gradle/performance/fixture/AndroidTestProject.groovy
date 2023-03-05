@@ -74,6 +74,10 @@ class AndroidTestProject implements TestProject {
         runner.args.add("-DkotlinVersion=${KGP_VERSIONS.latest}")
     }
 
+    static void useAgpLatestOfMinorVersion(CrossVersionPerformanceTestRunner runner, String lowerBound) {
+        configureForAgpVersion(runner, AGP_VERSIONS.getLatestOfMinor(lowerBound))
+    }
+
     static void useAgpLatestStableOrRcVersion(CrossVersionPerformanceTestRunner runner) {
         configureForAgpVersion(runner, AGP_VERSIONS.latestStableOrRC)
     }
