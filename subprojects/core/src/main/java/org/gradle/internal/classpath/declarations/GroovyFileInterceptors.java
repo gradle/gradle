@@ -18,16 +18,14 @@ package org.gradle.internal.classpath.declarations;
 
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.instrumentation.api.annotations.CallableDefinition.Name;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind.GroovyProperty;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind.InstanceMethod;
-import org.gradle.internal.instrumentation.api.annotations.CallableKind.StaticMethod;
-import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
 import org.gradle.internal.instrumentation.api.annotations.InterceptGroovyCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.Receiver;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
+import org.gradle.internal.instrumentation.api.annotations.features.withstaticreference.WithExtensionReferences;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +36,7 @@ import java.io.IOException;
 public class GroovyFileInterceptors {
     @InterceptGroovyCalls
     @GroovyProperty
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static String intercept_text(
         @Receiver File self,
         @CallerClassName String consumer
@@ -47,6 +46,7 @@ public class GroovyFileInterceptors {
 
     @InterceptGroovyCalls
     @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static String intercept_getText(
         @Receiver File self,
         String charset,
@@ -55,24 +55,5 @@ public class GroovyFileInterceptors {
         return Instrumented.groovyFileGetText(self, charset, consumer);
     }
 
-    @InterceptCalls
-    @StaticMethod(ofClass = ResourceGroovyMethods.class)
-    @Name("getText")
-    public static String interceptStaticallyCompiledGetText(
-        File file,
-        @CallerClassName String consumer
-    ) throws IOException {
-        return Instrumented.groovyFileGetText(file, consumer);
-    }
 
-    @InterceptCalls
-    @StaticMethod(ofClass = ResourceGroovyMethods.class)
-    @Name("getText")
-    public static String interceptStaticallyCompiledGetText(
-        File file,
-        String charset,
-        @CallerClassName String consumer
-    ) throws IOException {
-        return Instrumented.groovyFileGetText(file, charset, consumer);
-    }
 }
