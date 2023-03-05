@@ -194,19 +194,6 @@ abstract class AbstractSmokeTest extends Specification {
 
         final List<String> versions
 
-        String latest() {
-            versions.last()
-        }
-
-        String latestStable() {
-            versions.reverse().find { version ->
-                !version.containsIgnoreCase("rc") &&
-                !version.containsIgnoreCase("beta") &&
-                !version.containsIgnoreCase("alpha") &&
-                !version.containsIgnoreCase("milestone")
-            }
-        }
-
         private Versions(String... given) {
             versions = Arrays.asList(given)
         }
