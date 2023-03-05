@@ -29,8 +29,6 @@ class AndroidTestProject implements TestProject {
 
     private static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
     private static final KotlinGradlePluginVersions KGP_VERSIONS = new KotlinGradlePluginVersions()
-    private static final String AGP_STABLE_TARGET_VERSION = "7.3"
-    private static final String AGP_LATEST_TARGET_VERSION = "7.3"
     public static final LARGE_ANDROID_BUILD = new AndroidTestProject(
         templateName: 'largeAndroidBuild'
     )
@@ -77,16 +75,15 @@ class AndroidTestProject implements TestProject {
     }
 
     static void useAgpLatestStableVersion(CrossVersionPerformanceTestRunner runner) {
-        configureForLatestAgpVersionOfMinor(runner, AGP_STABLE_TARGET_VERSION)
+        configureForAgpVersion(runner, AGP_VERSIONS.latestStable)
     }
 
     static void useAgpLatestVersion(CrossVersionPerformanceTestRunner runner) {
-        configureForLatestAgpVersionOfMinor(runner, AGP_LATEST_TARGET_VERSION)
+        configureForAgpVersion(runner, AGP_VERSIONS.latest)
     }
 
-    private static void configureForLatestAgpVersionOfMinor(CrossVersionPerformanceTestRunner runner, String lowerBound) {
+    private static void configureForAgpVersion(CrossVersionPerformanceTestRunner runner, String agpVersion) {
 
-        def agpVersion = AGP_VERSIONS.getLatestOfMinor(lowerBound)
         runner.args.add("-DagpVersion=${agpVersion}")
 
         def buildJavaHome = AvailableJavaHomes.getJdk(AGP_VERSIONS.getMinimumJavaVersionFor(agpVersion)).javaHome
