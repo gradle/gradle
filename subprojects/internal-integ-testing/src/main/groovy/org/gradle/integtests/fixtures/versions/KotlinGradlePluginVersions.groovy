@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures.versions
 
+import org.gradle.util.internal.VersionNumber
+
 /**
  * Kotlin Gradle Plugin Versions.
  */
@@ -31,4 +33,51 @@ class KotlinGradlePluginVersions {
     List<String> getLatests() {
         return LATEST_VERSIONS
     }
+
+    String getLatest() {
+        return latests.last()
+    }
+
+    List<String> getLatestsStable() {
+        return latests
+            .collect { VersionNumber.parse(it) }
+            .findAll { it.baseVersion == it }
+            .collect { it.toString() }
+    }
+
+    String getLatestStable() {
+        return latestsStable.last()
+    }
+
+    List<String> getLatestsStableOrRC() {
+        return latests.findAll {
+            def lowerCaseVersion = it.toLowerCase(Locale.US)
+            !lowerCaseVersion.contains('-m') && !(lowerCaseVersion.contains('-beta'))
+        }
+    }
+
+    String getLatestStableOrRC() {
+        return latestsStableOrRC.last()
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

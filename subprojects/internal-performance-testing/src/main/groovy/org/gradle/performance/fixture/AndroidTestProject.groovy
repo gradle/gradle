@@ -71,7 +71,7 @@ class AndroidTestProject implements TestProject {
     }
 
     static void useLatestKotlinVersion(CrossVersionPerformanceTestRunner runner) {
-        runner.args.add("-DkotlinVersion=${KGP_VERSIONS.getLatests().last()}")
+        runner.args.add("-DkotlinVersion=${KGP_VERSIONS.latest}")
     }
 
     static void useStableAgpVersion(CrossVersionPerformanceTestRunner runner) {

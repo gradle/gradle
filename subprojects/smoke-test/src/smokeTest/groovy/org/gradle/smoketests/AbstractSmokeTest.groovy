@@ -100,10 +100,7 @@ abstract class AbstractSmokeTest extends Specification {
         static androidGradle = Versions.of(*AGP_VERSIONS.getLatestsFromMinorPlusNightly("4.0"))
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
-        static kotlin = Versions.of(*KOTLIN_VERSIONS.latests.findAll {
-            def lowerCaseVersion = it.toLowerCase(Locale.US)
-            !lowerCaseVersion.contains('-m') && !(lowerCaseVersion.contains('-beta'))
-        })
+        static kotlin = Versions.of(*KOTLIN_VERSIONS.latestsStableOrRC)
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = [
