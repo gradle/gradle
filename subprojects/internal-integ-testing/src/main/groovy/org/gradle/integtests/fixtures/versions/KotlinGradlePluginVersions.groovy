@@ -60,24 +60,3 @@ class KotlinGradlePluginVersions {
         return latestsStableOrRC.last()
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
