@@ -34,8 +34,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
-        AndroidTestProject.useAgpLatestStableVersion(runner)
-        AndroidTestProject.useKotlinLatestStableVersion(runner)
+        AndroidTestProject.useAgpLatestStableOrRcVersion(runner)
+        AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
     }
 
     @RunFor([
