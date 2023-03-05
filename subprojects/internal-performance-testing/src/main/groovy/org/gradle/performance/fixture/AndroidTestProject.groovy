@@ -86,16 +86,8 @@ class AndroidTestProject implements TestProject {
         configureForLatestAgpVersionOfMinor(runner, AGP_LATEST_TARGET_VERSION)
     }
 
-    static void useLatestAgpVersion(GradleBuildExperimentSpec.GradleBuilder builder) {
-        configureForLatestAgpVersionOfMinor(builder, AGP_LATEST_TARGET_VERSION)
-    }
-
     static void configureForLatestAgpVersionOfMinor(CrossVersionPerformanceTestRunner runner, String lowerBound) {
         runner.args.add("-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}")
-    }
-
-    static void configureForLatestAgpVersionOfMinor(GradleBuildExperimentSpec.GradleBuilder builder, String lowerBound) {
-        builder.invocation.args("-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}")
     }
 
     @Override
