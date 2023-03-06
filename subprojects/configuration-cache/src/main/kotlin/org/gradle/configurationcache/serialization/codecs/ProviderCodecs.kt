@@ -43,12 +43,14 @@ import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.flow.BuildWorkResultProvider
 import org.gradle.configurationcache.serialization.Codec
+import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.decodePreservingSharedIdentity
 import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
 import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
+import org.gradle.configurationcache.serialization.logPropertyProblem
 import org.gradle.configurationcache.serialization.readClassOf
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.internal.build.BuildStateRegistry
@@ -136,6 +138,12 @@ class FlowProvidersCodec(
 ) : Codec<BuildWorkResultProvider> {
 
     override suspend fun WriteContext.encode(value: BuildWorkResultProvider) {
+        if (isolate.owner !is IsolateOwner.OwnerFlowScope) {
+            logPropertyProblem("serialize") {
+                reference(BuildWorkResultProvider::class)
+                text(" can only be used as input to flow actions.")
+            }
+        }
     }
 
     override suspend fun ReadContext.decode(): BuildWorkResultProvider {

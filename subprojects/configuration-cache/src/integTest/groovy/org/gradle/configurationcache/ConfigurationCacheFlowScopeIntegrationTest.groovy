@@ -428,6 +428,43 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
         file(target.fileName)
     }
 
+    def "task cannot depend on buildWorkResult, fails with clear message and problem is reported"() {
+        given:
+        buildFile '''
+            abstract class Fails extends DefaultTask {
+
+                @Input abstract Property<String> getColor()
+
+                @TaskAction void wontRun() {
+                    assert false
+                }
+            }
+
+            abstract class FailsPlugin implements Plugin<Project> {
+
+                @Inject abstract FlowProviders getFlowProviders()
+
+                void apply(Project target) {
+                    target.tasks.register('fails', Fails)  {
+                        color = flowProviders.buildWorkResult.map {
+                            it.failure.present ? 'red' : 'green'
+                        }
+                    }
+                }
+            }
+
+            apply type: FailsPlugin
+        '''
+
+        when:
+        configurationCacheFails 'fails'
+
+        then:
+        failureHasCause "Failed to calculate the value of task ':fails' property 'color'."
+        failureHasCause "Cannot access the value of 'BuildWorkResult' before it becomes available!"
+        failureDescriptionStartsWith "Configuration cache problems found in this build"
+    }
+
     def "value source with task result provider cannot be obtained at configuration time"() {
         given:
         buildFile("""
