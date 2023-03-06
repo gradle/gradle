@@ -18,15 +18,13 @@ package org.gradle.api.internal.artifacts.configurations
 
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.configurations.ConfigurationRole.RoleDescriber
-
 class RoleDescriberSpec extends Specification {
     def "can describe usage for role"() {
         given:
         def role = ConfigurationRole.forUsage(false, true, true, false, true, false)
 
         expect:
-        RoleDescriber.describeRole(role) == "\tResolvable - this configuration can be resolved by this project to a set of files (but this behavior is marked deprecated)\n" +
+        UsageDescriber.describeRole(role) == "\tResolvable - this configuration can be resolved by this project to a set of files (but this behavior is marked deprecated)\n" +
                 "\tDeclarable Against - this configuration can have dependencies added to it"
     }
 
@@ -35,6 +33,6 @@ class RoleDescriberSpec extends Specification {
         def role = ConfigurationRole.forUsage(false, false, false, false, false, false)
 
         expect:
-        RoleDescriber.describeRole(role) == "\tThis configuration does not allow any usage"
+        UsageDescriber.describeRole(role) == "\tThis configuration does not allow any usage"
     }
 }
