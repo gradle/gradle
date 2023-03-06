@@ -783,6 +783,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         "Gradle.addBuildListener"                     | "gradle.addBuildListener(new BuildAdapter())"
         "Gradle.addListener"                          | "gradle.addListener(new BuildAdapter())"
         "Gradle.buildFinished"                        | "gradle.buildFinished {}"
+        "Gradle.useLogger"                            | "gradle.useLogger(new TaskExecutionAdapter())"
         "TaskExecutionGraph.addTaskExecutionListener" | "gradle.taskGraph.addTaskExecutionListener(new TaskExecutionAdapter())"
         "TaskExecutionGraph.beforeTask"               | "gradle.taskGraph.beforeTask {}"
         "TaskExecutionGraph.afterTask"                | "gradle.taskGraph.afterTask {}"
@@ -817,6 +818,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         "Gradle.afterProject"                            | "gradle.afterProject {}"
         "Gradle.projectsEvaluated"                       | "gradle.projectsEvaluated {}"
         "Gradle.taskGraph.whenReady"                     | "gradle.taskGraph.whenReady {}"
+        "Gradle.useLogger(ProjectEvaluationListener)"    | "gradle.useLogger(new ProjectEvaluationAdapter())"
+        "Gradle.useLogger(TaskExecutionGraphListener)"   | "gradle.useLogger({g -> } as TaskExecutionGraphListener)"
     }
 
     def "summarizes unsupported properties"() {

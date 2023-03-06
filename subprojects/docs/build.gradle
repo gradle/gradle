@@ -722,6 +722,8 @@ tasks.named("docsTest") { task ->
                 "snippet-ide-idea-additional-test-sources_kotlin_ideaAdditionalTestSources.sample",
                 "snippet-ide-idea_groovy_projectWithXml.sample",
                 "snippet-ide-idea_kotlin_projectWithXml.sample",
+                "snippet-init-scripts-custom-logger_groovy_customLogger.groovy.sample",
+                "snippet-init-scripts-custom-logger_kotlin_customLogger.kotlin.sample",
                 "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-all.sample",
                 "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-model-task.sample",
                 "snippet-model-rules-configure-as-required_groovy_modelDslConfigureRuleRunWhenRequired.sample",
