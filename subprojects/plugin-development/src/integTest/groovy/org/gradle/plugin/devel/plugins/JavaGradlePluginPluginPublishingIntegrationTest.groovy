@@ -183,9 +183,11 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
             publishing {
                 afterEvaluate {
                     publications {
-                        getByName("pluginMaven"){
-                            configure{
+                        getByName("pluginMaven") {
+                            configure {
                                 artifactId = "foo-new"
+                                groupId = "com.example.foo.new"
+                                version = "1.2.3"
                             }
                         }
                     }
@@ -198,11 +200,13 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
 
 
         then:
-        mavenRepo.module('com.example', 'foo-new', '1.0').assertPublished()
+        mavenRepo.module('com.example.foo.new', 'foo-new', '1.2.3').assertPublished()
 
         def module = mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0')
         module.assertPublished()
         module.getPomFile().text.contains('foo-new')
+        module.getPomFile().text.contains('com.example.foo.new')
+        module.getPomFile().text.contains('1.2.3')
     }
 
     @ToBeFixedForConfigurationCache(because = "publishing")
