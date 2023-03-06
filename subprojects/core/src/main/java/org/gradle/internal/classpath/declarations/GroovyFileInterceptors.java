@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath.declarations;
 
+import groovy.io.FileType;
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.gradle.internal.classpath.Instrumented;
@@ -127,6 +128,19 @@ public class GroovyFileInterceptors {
     @InterceptGroovyCalls
     @InstanceMethod
     @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static void intercept_eachFile(
+        @Receiver File self,
+        FileType fileType,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.directoryContentObserved(self, consumer);
+        ResourceGroovyMethods.eachFile(self, fileType, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
     public static void intercept_eachFileMatch(
         @Receiver File self,
         Object nameFilter,
@@ -135,6 +149,20 @@ public class GroovyFileInterceptors {
     ) throws IOException {
         Instrumented.directoryContentObserved(self, consumer);
         ResourceGroovyMethods.eachFileMatch(self, nameFilter, closure);
+    }
+
+    @InterceptGroovyCalls
+    @InstanceMethod
+    @WithExtensionReferences(toClass = ResourceGroovyMethods.class)
+    public static void intercept_eachFileMatch(
+        @Receiver File self,
+        FileType fileType,
+        Object nameFilter,
+        Closure<?> closure,
+        @CallerClassName String consumer
+    ) throws IOException {
+        Instrumented.directoryContentObserved(self, consumer);
+        ResourceGroovyMethods.eachFileMatch(self, fileType, nameFilter, closure);
     }
 
     @InterceptGroovyCalls
