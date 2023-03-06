@@ -24,6 +24,9 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX;
+import static org.gradle.initialization.IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX;
+
 public class DefaultProjectPropertiesLoader implements ProjectPropertiesLoader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultProjectPropertiesLoader.class);

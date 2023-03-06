@@ -18,7 +18,6 @@ package org.gradle.configurationcache
 
 
 import org.gradle.configurationcache.fixtures.SystemPropertiesCompositeBuildFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX

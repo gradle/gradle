@@ -24,9 +24,5 @@ import java.util.Map;
 @ServiceScope(Scopes.Build.class)
 public interface ProjectPropertiesLoader {
 
-    String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
-
-    String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
-
     Map<String, Object> loadProjectProperties();
 }
