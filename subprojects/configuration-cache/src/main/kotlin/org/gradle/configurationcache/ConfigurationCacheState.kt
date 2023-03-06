@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.cache.Cleanup
 import org.gradle.api.cache.MarkingStrategy
 import org.gradle.api.file.FileCollection
-import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.api.flow.FlowScope
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.FeaturePreviews
@@ -76,6 +75,7 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.util.Path
@@ -300,14 +300,18 @@ class ConfigurationCacheState(
             rootBuild.addIncludedBuild(definition, settingsFile, buildPath)
         }
 
-        val settingDir = build.gradle.serviceOf<BuildLayout>().settingsDir
-        // Load Gradle properties from file but skip applying system properties defined here.
-        // System properties from the file may be mutated by the build logic, and the execution-time values are already restored by the EnvironmentChangeTracker.
-        // Applying properties from file overwrite these modifications.
-        build.gradle.serviceOf<GradlePropertiesController>().loadGradlePropertiesFrom(settingDir, false)
-
+        build.gradle.loadGradleProperties()
         // Decode the build state using the contextualized IO service for the build
         return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(stateFileFor((build.state as NestedBuildState).buildDefinition), build)
+    }
+
+    private
+    fun GradleInternal.loadGradleProperties() {
+        val settingDir = serviceOf<BuildLayout>().settingsDir
+        // Load Gradle properties from a file but skip applying system properties defined here.
+        // System properties from the file may be mutated by the build logic, and the execution-time values are already restored by the EnvironmentChangeTracker.
+        // Applying properties from file overwrites these modifications.
+        serviceOf<GradlePropertiesController>().loadGradlePropertiesFrom(settingDir, false)
     }
 
     private
@@ -328,6 +332,7 @@ class ConfigurationCacheState(
             val ownerIdentifier = readNonNull<BuildIdentifier>()
             rootBuild.getBuildSrcOf(ownerIdentifier)
         }
+        build.gradle.loadGradleProperties()
         // Decode the build state using the contextualized IO service for the build
         return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(stateFileFor((build.state as NestedBuildState).buildDefinition), build)
     }
