@@ -17,9 +17,11 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.specs.AndSpec;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.internal.properties.PropertyVisitor;
 
@@ -36,6 +38,13 @@ public interface TaskOutputsInternal extends TaskOutputs {
     void visitRegisteredProperties(PropertyVisitor visitor);
 
     AndSpec<? super TaskInternal> getUpToDateSpec();
+
+    AndSpec<? super TaskInternal> getStoreInCacheSpec();
+
+    /**
+     * Called after the task finishes executing. If the spec returns false, the outputs will not be stored in the cache.
+     */
+    void storeInCacheWhen(Spec<? super Task> spec);
 
     void setPreviousOutputFiles(FileCollection previousOutputFiles);
 

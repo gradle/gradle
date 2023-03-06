@@ -97,6 +97,10 @@ public interface ExecutionEngine {
         // TODO Parametrize UnitOfWork with this generated result
         @Nullable
         Object getOutput();
+
+        default boolean canStoreOutputsInCache() {
+            return true;
+        }
     }
 
     /**

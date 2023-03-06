@@ -138,8 +138,14 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
         }
         AfterExecutionResult result = executeWithoutCache(cacheableWork.work, context);
         result.getExecution().ifSuccessfulOrElse(
-            executionResult -> result.getAfterExecutionState()
-                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime())),
+            executionResult -> {
+                if (executionResult.canStoreOutputsInCache()) {
+                    result.getAfterExecutionState()
+                        .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime()));
+                } else {
+                    LOGGER.debug("Not storing result of {} in cache because reuse of its outputs was disabled", cacheableWork.getDisplayName());
+                }
+            },
             failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
         );
         return result;
