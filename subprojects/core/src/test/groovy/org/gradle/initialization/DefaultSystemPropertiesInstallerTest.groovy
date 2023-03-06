@@ -60,7 +60,7 @@ class DefaultSystemPropertiesInstallerTest extends Specification {
 
     def "track loaded properties"() {
         given:
-        _ * gradle.isRootBuild() >> isRootBuild
+        gradle.isRootBuild() >> isRootBuild
 
         when:
         systemPropertiesInstaller.setSystemPropertiesFrom(loadedGradleProperties)

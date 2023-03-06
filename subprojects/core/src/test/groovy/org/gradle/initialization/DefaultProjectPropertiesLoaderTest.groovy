@@ -32,14 +32,14 @@ class DefaultProjectPropertiesLoaderTest extends Specification {
     private Map<String, String> projectPropertiesArgs = emptyMap()
 
     private final StartParameterInternal startParameter = Mock(StartParameterInternal) {
-        projectProperties >> { projectPropertiesArgs }
+        getProjectProperties() >> { projectPropertiesArgs }
     }
 
     private final Environment environment = Mock(Environment) {
-        systemProperties >> Mock(Environment.Properties) {
+        getSystemProperties() >> Mock(Environment.Properties) {
             byNamePrefix(SYSTEM_PROJECT_PROPERTIES_PREFIX) >> { prefixedSystemProperties }
         }
-        variables >> Mock(Environment.Properties) {
+        getVariables() >> Mock(Environment.Properties) {
             byNamePrefix(ENV_PROJECT_PROPERTIES_PREFIX) >> { prefixedEnvironmentVariables }
         }
     }
