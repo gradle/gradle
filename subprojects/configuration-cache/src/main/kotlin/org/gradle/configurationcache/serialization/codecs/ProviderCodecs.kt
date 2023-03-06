@@ -41,7 +41,7 @@ import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.flow.RequestedTasksResultProvider
+import org.gradle.configurationcache.flow.BuildWorkResultProvider
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -62,7 +62,7 @@ internal
 class FixedValueReplacingProviderCodec(
     valueSourceProviderCodec: Codec<ValueSourceProvider<*, *>>,
     buildServiceProviderCodec: Codec<BuildServiceProvider<*, *>>,
-    flowProvidersCodec: Codec<RequestedTasksResultProvider>,
+    flowProvidersCodec: Codec<BuildWorkResultProvider>,
 ) {
     private
     val providerWithChangingValueCodec = Bindings.of {
@@ -133,13 +133,13 @@ class FixedValueReplacingProviderCodec(
 internal
 class FlowProvidersCodec(
     private val flowProviders: FlowProviders
-) : Codec<RequestedTasksResultProvider> {
+) : Codec<BuildWorkResultProvider> {
 
-    override suspend fun WriteContext.encode(value: RequestedTasksResultProvider) {
+    override suspend fun WriteContext.encode(value: BuildWorkResultProvider) {
     }
 
-    override suspend fun ReadContext.decode(): RequestedTasksResultProvider {
-        return flowProviders.requestedTasksResult.uncheckedCast()
+    override suspend fun ReadContext.decode(): BuildWorkResultProvider {
+        return flowProviders.buildWorkResult.uncheckedCast()
     }
 }
 

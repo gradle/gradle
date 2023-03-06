@@ -25,11 +25,11 @@ import java.util.Optional;
  * Summary of the result of executing the
  * {@link StartParameter#getTaskRequests() requested tasks}.
  *
- * @see FlowProviders#getRequestedTasksResult()
+ * @see FlowProviders#getBuildWorkResult()
  * @since 8.1
  */
 @Incubating
-public interface RequestedTasksResult {
+public interface BuildWorkResult {
 
     /**
      * A summary of the failure(s) that occurred as Gradle tried to execute the requested tasks.
