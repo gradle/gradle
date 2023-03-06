@@ -238,6 +238,18 @@ ADD RELEASE FEATURES ABOVE
 
 -->
 
+## Tooling API improvements
+
+#### Build launched via TAPI applies log level settings of target build set in gradle.properties
+
+  When executing a build via the Tooling API (typically from within an IDE such as IntelliJ), the log level settings provided in the project's `gradle.properties` file have been ignored till now.
+  The IDE vendors had to workaround this short coming by setting the log level in other ways to meet user expectations 
+  (e.g. with parsing `gradle.properties` and applying corresponding command line options to the build execution.
+  
+  The improved Tooling API now reads the `org.gradle.logging.loglevel` setting in the project's `gradle.properties` and applies it as expected to the build execution.
+  
+  Learn more about the [Choosing a log level](userguide/logging.html#sec:choosing_a_log_level) in Gradle.  
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -258,6 +270,10 @@ The `ValueSource` API is no longer incubating. The following classes and methods
 * [`ValueSourceSpec`](javadoc/org/gradle/api/provider/ValueSourceSpec.html)
 
 ## Fixed issues
+
+<!--
+This section will be populated automatically
+-->
 
 ## Known issues
 
