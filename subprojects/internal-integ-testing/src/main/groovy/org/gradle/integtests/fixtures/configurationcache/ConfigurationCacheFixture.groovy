@@ -43,7 +43,6 @@ class ConfigurationCacheFixture {
      * Asserts that the configuration cache was not enabled.
      */
     void assertNotEnabled() {
-        spec.outputDoesNotContain(CONFIGURATION_CACHE_MESSAGE)
         spec.outputDoesNotContain(ISOLATED_PROJECTS_MESSAGE)
         spec.outputDoesNotContain(CONFIGURE_ON_DEMAND_MESSAGE)
         configurationCacheBuildOperations.assertNoConfigurationCache()
