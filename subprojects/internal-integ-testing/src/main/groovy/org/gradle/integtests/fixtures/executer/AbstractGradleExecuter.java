@@ -65,6 +65,7 @@ import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.TextUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -175,7 +176,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean disablePluginRepositoryMirror = false;
 
     private int expectedGenericDeprecationWarnings;
-    private final List<String> expectedDeprecationWarnings = new ArrayList<>();
+    private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
     private boolean jdkWarningChecksOn = false;
@@ -1301,13 +1302,21 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     private static class ResultAssertion implements Action<ExecutionResult> {
         private int expectedGenericDeprecationWarnings;
-        private final List<String> expectedDeprecationWarnings;
+        private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings;
         private final boolean expectStackTraces;
         private final boolean checkDeprecations;
         private final boolean checkJdkWarnings;
 
+        /**
+         * The last deprecation warning that was matched. This is used to advance lines in the output being scanned
+         * by the length of lines in the match.  It will <strong>not</strong> be set back to {@code null} after the
+         * first match is found.
+         */
+        @Nullable
+        private ExpectedDeprecationWarning lastMatchedDeprecationWarning = null;
+
         private ResultAssertion(
-            int expectedGenericDeprecationWarnings, List<String> expectedDeprecationWarnings,
+            int expectedGenericDeprecationWarnings, List<ExpectedDeprecationWarning> expectedDeprecationWarnings,
             boolean expectStackTraces, boolean checkDeprecations, boolean checkJdkWarnings
         ) {
             this.expectedGenericDeprecationWarnings = expectedGenericDeprecationWarnings;
@@ -1417,11 +1426,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                     i++;
                 } else if (isDeprecationMessageInHelpDescription(line)) {
                     i++;
-                } else if (matchesExpectedMultilineDeprecationWarning(lines, i).isPresent()) {
-                    i = skipMultilineDeprecationWarning(lines, i);
-                } else if (removeFirstExpectedDeprecationWarning(line)) {
-                    // Deprecation warning is expected
-                    i++;
+                } else if (removeFirstExpectedDeprecationWarning(lines, i)) {
+                    i += lastMatchedDeprecationWarning.getNumLines();
                     i = skipStackTrace(lines, i);
                 } else if (line.matches(".*\\s+deprecated.*") && !isConfigurationAllowedUsageChangingInfoLogMessage(line)) {
                     if (checkDeprecations && expectedGenericDeprecationWarnings <= 0) {
@@ -1442,29 +1448,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             }
         }
 
-        // TODO: Clean all this up.  We need a custom expected warning type to handle multiline warnings without this complexity
-        private Optional<String> matchesExpectedMultilineDeprecationWarning(List<String> lines, int i) {
-            return expectedDeprecationWarnings.stream()
-                    .filter(expectedWarning -> expectedWarning.contains("\n")) // Quickcheck for only multiline warnings
-                    .filter(expectedWarning -> {
-                        int numLinesInExpectedWarning = numNewlinesIn(expectedWarning);
-                        String actualLines = String.join("\n", lines.subList(i, Math.min(i + numLinesInExpectedWarning + 1, lines.size())));
-                        return actualLines.equals(expectedWarning);
-                    }).findFirst();
-        }
-
-        private int skipMultilineDeprecationWarning(List<String> lines, int i) {
-            String expectedWarning = matchesExpectedMultilineDeprecationWarning(lines, i)
-                    .orElseThrow(() -> new AssertionError("Expected multiline deprecation warning not found"));
-            expectedDeprecationWarnings.remove(expectedWarning);
-            int numLinesInExpectedWarning = numNewlinesIn(expectedWarning);
-            return i + numLinesInExpectedWarning + 2;
-        }
-
-        private int numNewlinesIn(String s) {
-            return s.split("\n").length - 1;
-        }
-
         /**
          * Changes to a configuration's allowed usage contain the string "deprecated" and thus will trigger
          * false positive identification as Deprecation warnings by the logic in {@link #validate(String, String)};
@@ -1482,9 +1465,31 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                     && !line.contains("This behavior has been deprecated.");
         }
 
-        private boolean removeFirstExpectedDeprecationWarning(String line) {
-            return expectedDeprecationWarnings.stream().filter(line::contains).findFirst()
-                .map(expectedDeprecationWarnings::remove).orElse(false);
+        /**
+         * Removes the first matching expected deprecation warning from the list of expected deprecations stored
+         * in {@link #expectedDeprecationWarnings} as a side-effect; conditional on a matching deprecation warning
+         * being already present in that collection.
+         * <p>
+         * A match means that the first n lines starting at {@code startIdx} match the lines of the
+         * expected deprecation warning.  If there are not n lines starting at {@code startIdx} left in
+         * the list of lines, then no match is made.
+         * <p>
+         * As a <em>second</em> side-effect, the last matched deprecation warning is stored in the
+         * {@link #lastMatchedDeprecationWarning} field.
+         *
+         * @param lines the lines of the output
+         * @param startIdx the index of the current line of the output to check for a match
+         * @return {@code true} if a matching deprecation warning was removed; {@code false} otherwise
+         */
+        private boolean removeFirstExpectedDeprecationWarning(List<String> lines, int startIdx) {
+            Optional<ExpectedDeprecationWarning> matchedWarning = expectedDeprecationWarnings.stream()
+                    .filter(warning -> warning.matchesNextLines(lines, startIdx))
+                    .findFirst();
+            if (matchedWarning.isPresent()) {
+                lastMatchedDeprecationWarning = matchedWarning.get();
+                expectedDeprecationWarnings.remove(lastMatchedDeprecationWarning);
+            }
+            return matchedWarning.isPresent();
         }
 
         private static int skipStackTrace(List<String> lines, int i) {
@@ -1513,14 +1518,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter expectDeprecationWarning(String warning) {
+    public GradleExecuter expectDeprecationWarning(ExpectedDeprecationWarning warning) {
         expectedDeprecationWarnings.add(warning);
         return this;
     }
 
     @Override
-    public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
-        return expectDeprecationWarning(normalizeDocumentationLink(warning));
+    public GradleExecuter expectDocumentedDeprecationWarning(ExpectedDeprecationWarning warning) {
+        return expectDeprecationWarning(normalizeDocumentationLink(warning.getMessage()));
     }
 
     @Override
