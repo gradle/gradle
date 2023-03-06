@@ -57,7 +57,7 @@ public final class ExpectedDeprecationWarning {
      */
     public boolean matchesNextLines(List<String> lines, int startIndex) {
         if (numLines == 1) {
-            return lines.get(startIndex).contains(message); // Quicker match for single-line warnings
+            return lines.get(startIndex).equals(message); // Quicker match for single-line warnings
         } else {
             String actualLines = String.join("\n", lines.subList(startIndex, Math.min(startIndex + numLines, lines.size())));
             return message.equals(actualLines);
