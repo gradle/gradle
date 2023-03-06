@@ -79,8 +79,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         if (!startParameter.isConfigurationCacheQuiet) {
             if (modelParameters.isIsolatedProjects) {
                 IncubationLogger.incubatingFeatureUsed("Isolated projects")
-            } else if (modelParameters.isConfigurationCache) {
-                IncubationLogger.incubatingFeatureUsed("Configuration cache")
             }
         }
         if (!modelParameters.isIsolatedProjects && modelParameters.isConfigureOnDemand) {
