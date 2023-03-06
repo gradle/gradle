@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.capabilities;
-
-import javax.annotation.Nullable;
+package org.gradle.operations.dependencies.variants;
 
 /**
- * A capability provided by a component.
+ * A marker interface for identifiers for a component instance.
+ * <p>
+ * There are various sub-interfaces that expose specific details about the identifier.
  *
  * @since 8.1
  */
-public interface Capability {
-
-    String getGroup();
-
-    String getName();
-
-    @Nullable
-    String getVersion();
+public interface ComponentIdentifier {
 }

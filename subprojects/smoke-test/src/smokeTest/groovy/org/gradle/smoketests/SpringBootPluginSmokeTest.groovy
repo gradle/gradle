@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import spock.lang.Issue
 
@@ -34,11 +35,13 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
             ${mavenCentralRepository()}
 
+            project.setProperty('applicationDefaultJvmArgs', ['-DFOO=42'])
+
             dependencies {
                 implementation 'org.springframework.boot:spring-boot-starter'
                 testImplementation 'org.springframework.boot:spring-boot-starter-test'
             }
-            
+
             tasks.named('test') {
                 useJUnitPlatform()
             }
@@ -46,23 +49,24 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         file('src/main/java/example/Application.java') << """
             package example;
-            
+
             import org.springframework.boot.SpringApplication;
             import org.springframework.boot.autoconfigure.SpringBootApplication;
-            
+
             @SpringBootApplication
             public class Application {
                 public static void main(String[] args) {
                     SpringApplication.run(Application.class, args);
+                    System.out.println("FOO: " + System.getProperty("FOO"));
                 }
             }
         """.stripIndent()
         file("src/test/java/example/ApplicationTest.java") << """
             package example;
-            
+
             import org.junit.jupiter.api.Test;
             import org.springframework.boot.test.context.SpringBootTest;
-            
+
             @SpringBootTest
             class ApplicationTest {
                 @Test
@@ -83,6 +87,7 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         then:
         runResult.task(':bootRun').outcome == SUCCESS
+        runResult.output.contains("FOO: 42")
     }
 
     @Override

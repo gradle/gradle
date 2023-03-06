@@ -26,6 +26,7 @@ import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -77,6 +78,8 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         dm.getDefaultLibrariesExtensionName().finalizeValue();
         String defaultLibrary = dm.getDefaultLibrariesExtensionName().get();
         File dependenciesFile = new File(settings.getSettingsDir(), "gradle/libs.versions.toml");
+        // Notify the CC
+        Instrumented.fileObserved(dependenciesFile, getClass().getName());
         if (dependenciesFile.exists()) {
             dm.versionCatalogs(catalogs -> {
                 VersionCatalogBuilder builder = catalogs.findByName(defaultLibrary);

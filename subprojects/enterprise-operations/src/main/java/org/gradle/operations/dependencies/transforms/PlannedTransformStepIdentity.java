@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.operations.dependencies.transforms;
 
-import org.gradle.api.internal.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity;
-import org.gradle.api.internal.capabilities.Capability;
 import org.gradle.internal.taskgraph.NodeIdentity;
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
+import org.gradle.operations.dependencies.variants.Capability;
+import org.gradle.operations.dependencies.variants.ComponentIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -30,22 +30,17 @@ import java.util.Map;
  *
  * @since 8.1
  */
-public interface TransformationIdentity extends NodeIdentity {
-
-    @Override
-    default NodeType getNodeType() {
-        return NodeType.ARTIFACT_TRANSFORM;
-    }
+public interface PlannedTransformStepIdentity extends NodeIdentity {
 
     /**
      * Path of an included build of the consumer project.
      */
-    String getBuildPath();
+    String getConsumerBuildPath();
 
     /**
      * Consumer project path within the build.
      */
-    String getProjectPath();
+    String getConsumerProjectPath();
 
     /**
      * The component identifier of the transformed artifact.
@@ -53,9 +48,15 @@ public interface TransformationIdentity extends NodeIdentity {
     ComponentIdentifier getComponentId();
 
     /**
+     * Full set of attributes of the artifact before the transformation.
+     */
+    Map<String, String> getSourceAttributes();
+
+    /**
      * Target attributes of the transformed artifact.
      * <p>
-     * The attributes include the source attributes of the artifact before the transformation and
+     * The attributes include all source attributes of the artifact before the transformation,
+     * values for some of which have been changed by the transformation.
      */
     Map<String, String> getTargetAttributes();
 
@@ -84,6 +85,6 @@ public interface TransformationIdentity extends NodeIdentity {
     /**
      * An opaque identifier distinguishes between different transformation nodes in case other identity properties are the same.
      */
-    long getTransformationNodeId();
+    long getTransformStepNodeId();
 
 }

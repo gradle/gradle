@@ -147,6 +147,11 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
                         cachedValue.reevaluate();
                     }
                 }
+            } else if (type == MutationType.HIERARCHY) {
+                // The hierarchy is provided to the configuration metadata on construction. Since it is not
+                // computed lazily, there is no lazy value to invalidate. Thus, we need to recompute the
+                // entire component in order to reconstruct new configuration metadatas with new hierarchy values.
+                cachedValue = null;
             }
         }
 

@@ -59,6 +59,7 @@ import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
+import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
@@ -119,6 +120,7 @@ class ConfigurationCacheFingerprintWriter(
         fun hashCodeOf(file: File): HashCode
         fun hashCodeOfDirectoryContent(file: File): HashCode
         fun displayNameOf(file: File): String
+        fun reportProblem(exception: Throwable? = null, documentationSection: DocumentationSection? = null, message: StructuredMessageBuilder)
         fun reportInput(input: PropertyProblem)
         fun location(consumer: String?): PropertyTrace
     }
@@ -381,6 +383,18 @@ class ConfigurationCacheFingerprintWriter(
         obtainedValue: ValueSourceProviderFactory.ValueListener.ObtainedValue<T, P>,
         source: org.gradle.api.provider.ValueSource<T, P>
     ) {
+        obtainedValue.value.failure.ifPresent { exception ->
+            host.reportProblem(exception) {
+                text("failed to compute value with custom source ")
+                reference(obtainedValue.valueSourceType)
+                source.displayNameIfAvailable?.let {
+                    text(" ($it)")
+                }
+                text(" with ")
+                text(exception.toString())
+            }
+        }
+
         // TODO(https://github.com/gradle/gradle/issues/22494) ValueSources become part of the fingerprint even if they are only obtained
         //  inside other value sources. This is not really necessary for the correctness and causes excessive cache invalidation.
         when (val parameters = obtainedValue.valueSourceParameters) {
@@ -426,17 +440,26 @@ class ConfigurationCacheFingerprintWriter(
             }
 
             else -> {
-                sink().write(ValueSource(obtainedValue.uncheckedCast()))
+                // Custom ValueSource implementations may fail to serialize here.
+                // Writing with explicit trace helps to avoid attributing these failures to "Gradle runtime".
+                // TODO(mlopatkin): can we do even better and pinpoint the exact stacktrace in case of failure?
+                val trace = locationFor(null)
+                sink().write(ValueSource(obtainedValue.uncheckedCast()), trace)
                 reportUniqueValueSourceInput(
-                    displayName = when (source) {
-                        is Describable -> source.displayName
-                        else -> null
-                    },
+                    trace,
+                    displayName = source.displayNameIfAvailable,
                     typeName = obtainedValue.valueSourceType.simpleName
                 )
             }
         }
     }
+
+    private
+    val org.gradle.api.provider.ValueSource<*, *>.displayNameIfAvailable: String?
+        get() = when (this) {
+            is Describable -> displayName
+            else -> null
+        }
 
     private
     fun isSystemPropertyLoaded(key: String): Boolean {
@@ -572,16 +595,16 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun reportUniqueValueSourceInput(displayName: String?, typeName: String) {
+    fun reportUniqueValueSourceInput(trace: PropertyTrace, displayName: String?, typeName: String) {
         // We assume different types won't ever produce identical display names
         if (reportedValueSources.add(displayName ?: typeName)) {
-            reportValueSourceInput(displayName, typeName)
+            reportValueSourceInput(trace, displayName, typeName)
         }
     }
 
     private
-    fun reportValueSourceInput(displayName: String?, typeName: String) {
-        reportInput(consumer = null, documentationSection = null) {
+    fun reportValueSourceInput(trace: PropertyTrace, displayName: String?, typeName: String) {
+        reportInput(trace, documentationSection = null) {
             text("value from custom source ")
             reference(typeName)
             displayName?.let {
@@ -718,9 +741,18 @@ class ConfigurationCacheFingerprintWriter(
         documentationSection: DocumentationSection?,
         messageBuilder: StructuredMessage.Builder.() -> Unit
     ) {
+        reportInput(locationFor(consumer), documentationSection, messageBuilder)
+    }
+
+    private
+    fun reportInput(
+        trace: PropertyTrace,
+        documentationSection: DocumentationSection?,
+        messageBuilder: StructuredMessage.Builder.() -> Unit
+    ) {
         host.reportInput(
             PropertyProblem(
-                locationFor(consumer),
+                trace,
                 StructuredMessage.build(messageBuilder),
                 null,
                 documentationSection = documentationSection
@@ -787,7 +819,7 @@ class ConfigurationCacheFingerprintWriter(
             }
         }
 
-        abstract fun write(value: ConfigurationCacheFingerprint)
+        abstract fun write(value: ConfigurationCacheFingerprint, trace: PropertyTrace? = null)
 
         fun inputFile(file: File) =
             InputFile(
@@ -804,8 +836,8 @@ class ConfigurationCacheFingerprintWriter(
         host: Host,
         private val writer: ScopedFingerprintWriter<ConfigurationCacheFingerprint>
     ) : Sink(host) {
-        override fun write(value: ConfigurationCacheFingerprint) {
-            writer.write(value)
+        override fun write(value: ConfigurationCacheFingerprint, trace: PropertyTrace?) {
+            writer.write(value, trace)
         }
 
         fun initScripts(initScripts: List<File>) {
@@ -824,8 +856,8 @@ class ConfigurationCacheFingerprintWriter(
         private val project: Path,
         private val writer: ScopedFingerprintWriter<ProjectSpecificFingerprint>
     ) : Sink(host) {
-        override fun write(value: ConfigurationCacheFingerprint) {
-            writer.write(ProjectSpecificFingerprint.ProjectFingerprint(project, value))
+        override fun write(value: ConfigurationCacheFingerprint, trace: PropertyTrace?) {
+            writer.write(ProjectSpecificFingerprint.ProjectFingerprint(project, value), trace)
         }
     }
 

@@ -134,6 +134,28 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         ]
     }
 
+    def "discards component metadata when hierarchy changes"() {
+        componentIdentifierFactory.createComponentIdentifier(_) >> {
+            new DefaultModuleComponentIdentifier(mid, '1.0')
+        }
+        def root = builder.toRootComponentMetaData()
+
+        def conf = root.getConfiguration("conf")
+        assert conf.needsReevaluate()
+        conf.realizeDependencies()
+        assert !conf.needsReevaluate()
+
+        when:
+        builder.validator.validateMutation(MutationValidator.MutationType.HIERARCHY)
+        def otherRoot = builder.toRootComponentMetaData()
+        def otherConf = otherRoot.getConfiguration("conf")
+
+        then:
+        root != otherRoot
+        conf != otherConf
+        otherConf.needsReevaluate()
+    }
+
     def "does not reevaluate component metadata when #mutationType change"() {
         componentIdentifierFactory.createComponentIdentifier(_) >> {
             new DefaultModuleComponentIdentifier(mid, '1.0')

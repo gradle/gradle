@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.component;
+package org.gradle.operations.dependencies.variants;
 
 /**
  * An identifier for a component instance that is built as part of the current build.
+ *
+ * @since 8.1
  */
 public interface ProjectComponentIdentifier extends ComponentIdentifier {
 
