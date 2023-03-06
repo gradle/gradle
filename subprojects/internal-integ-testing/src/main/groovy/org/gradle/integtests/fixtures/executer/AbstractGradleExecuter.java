@@ -82,6 +82,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -1416,6 +1417,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                     i++;
                 } else if (isDeprecationMessageInHelpDescription(line)) {
                     i++;
+                } else if (matchesExpectedMultilineDeprecationWarning(lines, i).isPresent()) {
+                    i = skipMultilineDeprecationWarning(lines, i);
                 } else if (removeFirstExpectedDeprecationWarning(line)) {
                     // Deprecation warning is expected
                     i++;
@@ -1437,6 +1440,29 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                     i++;
                 }
             }
+        }
+
+        // TODO: Clean all this up.  We need a custom expected warning type to handle multiline warnings without this complexity
+        private Optional<String> matchesExpectedMultilineDeprecationWarning(List<String> lines, int i) {
+            return expectedDeprecationWarnings.stream()
+                    .filter(expectedWarning -> expectedWarning.contains("\n")) // Quickcheck for only multiline warnings
+                    .filter(expectedWarning -> {
+                        int numLinesInExpectedWarning = numNewlinesIn(expectedWarning);
+                        String actualLines = String.join("\n", lines.subList(i, Math.min(i + numLinesInExpectedWarning + 1, lines.size())));
+                        return actualLines.equals(expectedWarning);
+                    }).findFirst();
+        }
+
+        private int skipMultilineDeprecationWarning(List<String> lines, int i) {
+            String expectedWarning = matchesExpectedMultilineDeprecationWarning(lines, i)
+                    .orElseThrow(() -> new AssertionError("Expected multiline deprecation warning not found"));
+            expectedDeprecationWarnings.remove(expectedWarning);
+            int numLinesInExpectedWarning = numNewlinesIn(expectedWarning);
+            return i + numLinesInExpectedWarning + 2;
+        }
+
+        private int numNewlinesIn(String s) {
+            return s.split("\n").length - 1;
         }
 
         /**

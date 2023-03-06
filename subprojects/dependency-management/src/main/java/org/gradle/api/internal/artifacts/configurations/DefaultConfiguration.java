@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
@@ -146,6 +147,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -576,6 +578,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public boolean contains(File file) {
+        maybeWarnOnDeprecatedUsage("contains", ProperMethodUsage.RESOLVABLE);
         return intrinsicFiles.contains(file);
     }
 
@@ -1583,6 +1586,26 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return new DefaultConfigurationIdentity(buildPath, projectPath, name);
     }
 
+    private void maybeWarnOnDeprecatedUsage(String methodName, ProperMethodUsage... properUsages) {
+        for (ProperMethodUsage properUsage : properUsages) {
+            if (properUsage.isProperUsage(this)) {
+                return;
+            }
+        }
+
+        String msgTemplate = "Calling configuration method '%s' is deprecated for configuration '%s', which has permitted usage(s):\n" +
+                "%s\n" +
+                "This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): '%s'.";
+        String currentUsageDesc = UsageDescriber.describeCurrentUsage(this);
+        String properUsageDesc = ProperMethodUsage.summarizeProperUsage(properUsages);
+
+        DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, methodName, getName(), currentUsageDesc, properUsageDesc))
+                .withAdvice("Configurations should only be used as permitted.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecated_configuration_usage")
+                .nagUser();
+    }
+
     private static class ConfigurationDescription implements Describable {
         private final Path identityPath;
 
@@ -1758,6 +1781,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration attributes(Action<? super AttributeContainer> action) {
+        maybeWarnOnDeprecatedUsage("attributes", ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE);
         action.execute(configurationAttributes);
         return this;
     }
@@ -2435,6 +2459,57 @@ since users cannot create non-legacy configurations and there is no current publ
         @Override
         public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
             return DefaultConfiguration.this.mapFailure(type, failures);
+        }
+    }
+
+    private enum ProperMethodUsage {
+        CONSUMABLE {
+            @Override
+            boolean isAllowed(ConfigurationInternal configuration) {
+                return configuration.isCanBeConsumed();
+            }
+
+            @Override
+            boolean isDeprecated(ConfigurationInternal configuration) {
+                return configuration.isDeprecatedForConsumption();
+            }
+        },
+        RESOLVABLE {
+            @Override
+            boolean isAllowed(ConfigurationInternal configuration) {
+                return configuration.isCanBeResolved();
+            }
+
+            @Override
+            boolean isDeprecated(ConfigurationInternal configuration) {
+                return configuration.isDeprecatedForResolution();
+            }
+        },
+        DECLARABLE_AGAINST {
+            @Override
+            boolean isAllowed(ConfigurationInternal configuration) {
+                return configuration.isCanBeDeclaredAgainst();
+            }
+
+            @Override
+            boolean isDeprecated(ConfigurationInternal configuration) {
+                return configuration.isDeprecatedForDeclarationAgainst();
+            }
+        };
+
+        abstract boolean isAllowed(ConfigurationInternal configuration);
+        abstract boolean isDeprecated(ConfigurationInternal configuration);
+
+        boolean isProperUsage(ConfigurationInternal configuration) {
+            return isAllowed(configuration) && !isDeprecated(configuration);
+        }
+
+        public static String summarizeProperUsage(ProperMethodUsage... properUsages) {
+            return Arrays.stream(properUsages)
+                    .map(ProperMethodUsage::name)
+                    .map(s -> s.replace('_', ' '))
+                    .map(WordUtils::capitalizeFully)
+                    .collect(Collectors.joining(", "));
         }
     }
 }

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.configurations
 
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.configurations.ConfigurationRole.RoleDescriber.*
+import static UsageDescriber.*
 
 class ConfigurationRoleSpec extends Specification {
     def "can find predefined role #role"() {
