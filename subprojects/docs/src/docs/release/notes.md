@@ -76,7 +76,7 @@ extension {
 This reduces the verbosity of Kotlin DSL when [lazy property types](userguide/lazy_configuration.html#lazy_properties) are used to configure tasks and extensions.
 It also makes Kotlin DSL behavior consistent with Groovy DSL behavior, where using `=` to assign lazy properties has always been available.
 
-Lazy property assignment for Kotlin scripts is experimental opt-in feature.
+Lazy property assignment for Kotlin scripts is an experimental opt-in feature.
 For more information, see [Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:assignment).
 
 <!--
