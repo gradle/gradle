@@ -116,6 +116,10 @@ sealed class IsolateOwner {
 
     abstract val delegate: Any
 
+    class OwnerFlowScope(override val delegate: Gradle) : IsolateOwner() {
+        override fun <T> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
+    }
+
     class OwnerTask(override val delegate: Task) : IsolateOwner() {
         override fun <T> service(type: Class<T>): T = (delegate.project as ProjectInternal).services.get(type)
     }
