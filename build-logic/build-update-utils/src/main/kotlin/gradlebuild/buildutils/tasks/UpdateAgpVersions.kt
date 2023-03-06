@@ -53,7 +53,10 @@ abstract class UpdateAgpVersions : DefaultTask() {
         val dbf = DocumentBuilderFactory.newInstance()
         val properties = Properties().apply {
 
-            val latests = dbf.fetchLatests(minimumSupportedMinor.get())
+            val latests = dbf.fetchLatests(
+                minimumSupportedMinor.get(),
+                "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/maven-metadata.xml"
+            )
             setProperty("latests", latests.joinToString(","))
 
             if (fetchNightly.get()) {
@@ -68,8 +71,8 @@ abstract class UpdateAgpVersions : DefaultTask() {
     }
 
     private
-    fun DocumentBuilderFactory.fetchLatests(minimumSupported: String): List<String> {
-        var latests = fetchVersionsFromMavenMetadata("https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/maven-metadata.xml")
+    fun DocumentBuilderFactory.fetchLatests(minimumSupported: String, mavenMetadataUrl: String): List<String> {
+        var latests = fetchVersionsFromMavenMetadata(mavenMetadataUrl)
             .groupBy { it.take(3) }
             .map { (_, versions) -> versions.first() }
         latests = (latests + minimumSupported).sorted()
@@ -81,19 +84,21 @@ abstract class UpdateAgpVersions : DefaultTask() {
     fun DocumentBuilderFactory.fetchNightly(): String =
         fetchVersionsFromMavenMetadata("https://repo.gradle.org/gradle/ext-snapshots-local/com/android/tools/build/gradle/maven-metadata.xml")
             .first()
+}
 
-    private
-    fun DocumentBuilderFactory.fetchVersionsFromMavenMetadata(url: String): List<String> =
-        newDocumentBuilder()
-            .parse(url)
-            .getElementsByTagName("version").let { versions ->
-                (0 until versions.length)
-                    .map { idx -> (versions.item(idx) as Element).textContent }
-                    .reversed()
-            }
 
-    private
-    fun Properties.store(file: java.io.File, comment: String? = null) {
-        PropertiesUtils.store(this, file, comment, Charsets.ISO_8859_1, "\n")
-    }
+internal
+fun DocumentBuilderFactory.fetchVersionsFromMavenMetadata(url: String): List<String> =
+    newDocumentBuilder()
+        .parse(url)
+        .getElementsByTagName("version").let { versions ->
+            (0 until versions.length)
+                .map { idx -> (versions.item(idx) as Element).textContent }
+                .reversed()
+        }
+
+
+internal
+fun Properties.store(file: java.io.File, comment: String? = null) {
+    PropertiesUtils.store(this, file, comment, Charsets.ISO_8859_1, "\n")
 }
