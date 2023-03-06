@@ -806,15 +806,17 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         postBuildOutputContains("Configuration cache entry stored.")
 
         where:
-        registrationPoint                     | code
-        "Gradle.addProjectEvaluationListener" | "gradle.addProjectEvaluationListener(new ProjectEvaluationAdapter())"
-        "Gradle.addListener"                  | "gradle.addListener(new ProjectEvaluationAdapter())"
-        "Gradle.beforeSettings"               | "gradle.beforeSettings {}"
-        "Gradle.settingsEvaluated"            | "gradle.settingsEvaluated {}"
-        "Gradle.projectsLoaded"               | "gradle.projectsLoaded {}"
-        "Gradle.beforeProject"                | "gradle.beforeProject {}"
-        "Gradle.afterProject"                 | "gradle.afterProject {}"
-        "Gradle.projectsEvaluated"            | "gradle.projectsEvaluated {}"
+        registrationPoint                                | code
+        "Gradle.addProjectEvaluationListener"            | "gradle.addProjectEvaluationListener(new ProjectEvaluationAdapter())"
+        "Gradle.addListener(ProjectEvaluationListener)"  | "gradle.addListener(new ProjectEvaluationAdapter())"
+        "Gradle.addListener(TaskExecutionGraphListener)" | "gradle.addListener({g -> } as TaskExecutionGraphListener)"
+        "Gradle.beforeSettings"                          | "gradle.beforeSettings {}"
+        "Gradle.settingsEvaluated"                       | "gradle.settingsEvaluated {}"
+        "Gradle.projectsLoaded"                          | "gradle.projectsLoaded {}"
+        "Gradle.beforeProject"                           | "gradle.beforeProject {}"
+        "Gradle.afterProject"                            | "gradle.afterProject {}"
+        "Gradle.projectsEvaluated"                       | "gradle.projectsEvaluated {}"
+        "Gradle.taskGraph.whenReady"                     | "gradle.taskGraph.whenReady {}"
     }
 
     def "summarizes unsupported properties"() {
