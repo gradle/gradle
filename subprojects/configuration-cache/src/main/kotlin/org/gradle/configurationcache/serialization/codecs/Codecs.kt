@@ -120,6 +120,7 @@ class Codecs(
 ) {
     private
     val userTypesBindings: Bindings
+
     private
     val fingerprintUserTypesBindings: Bindings
 
@@ -209,7 +210,8 @@ class Codecs(
                 nestedProviderCodec(
                     valueSourceProviderFactory,
                     buildStateRegistry,
-                    flowProviders)
+                    flowProviders
+                )
             )
         }
 
@@ -218,7 +220,8 @@ class Codecs(
                 propertyFactory,
                 filePropertyFactory,
                 nestedProviderCodecForFingerprint(
-                    valueSourceProviderFactory)
+                    valueSourceProviderFactory
+                )
             )
         }
     }
