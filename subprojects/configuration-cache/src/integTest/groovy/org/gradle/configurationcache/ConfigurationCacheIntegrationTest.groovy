@@ -22,8 +22,6 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRe
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import spock.lang.Issue
 
-import static org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption.Value.*
-
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "configuration cache is out of incubation"() {
@@ -37,77 +35,6 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         result.assertHasPostBuildOutput("Configuration cache entry stored.")
         !output.contains("Configuration cache is an incubating feature.")
     }
-
-
-    def "can enable configuration cache using incubating and final variants"() {
-
-        given:
-        buildFile """
-        task check {
-            assert gradle.startParameter.configurationCache.get() == ${ccOn}
-            assert ${maxProblems == _ } || gradle.startParameter.configurationCacheMaxProblems == ${maxProblems}
-            assert ${problemsAs == _ } || gradle.startParameter.configurationCacheProblems.name() == "${problemsAs}"
-            assert ${quiet == _ } || gradle.startParameter.configurationCacheQuiet == ${quiet}
-            assert ${debug == _ } || gradle.startParameter.configurationCacheDebug == ${debug}
-            assert ${recreate == _ } || gradle.startParameter.configurationCacheRecreateCache == ${recreate}
-        }
-        """
-
-        when:
-        run(task, *options)
-
-        then:
-        if (ccOn) {
-            result.assertHasPostBuildOutput("Configuration cache entry stored.")
-        }
-
-        where:
-        task    | ccOn  | problemsAs| maxProblems   | quiet | recreate  | debug | options
-        "help"  | true  | WARN      | 100           | true  | true      | true  | ["-Dorg.gradle.configuration-cache=true", "-Dorg.gradle.configuration-cache.problems=warn", "-Dorg.gradle.configuration-cache.max-problems=100", "-Dorg.gradle.configuration-cache.quiet=true", "-Dorg.gradle.configuration-cache.recreate-cache=true", "-Dorg.gradle.configuration-cache.debug=true" ]
-        "help"  | true  | WARN      | 100           | true  | true      | true  | ["-Dorg.gradle.unsafe.configuration-cache=true", "-Dorg.gradle.unsafe.configuration-cache-problems=warn", "-Dorg.gradle.unsafe.configuration-cache.max-problems=100", "-Dorg.gradle.unsafe.configuration-cache.quiet=true", "-Dorg.gradle.unsafe.configuration-cache.recreate-cache=true", "-Dorg.gradle.unsafe.configuration-cache.debug=true" ]
-        "help"  | false | WARN      | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache-problems=warn"]
-        "help"  | false | _         | 100           | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache.max-problems=100"]
-        "help"  | false | _         | _             | _     | true      | _     | ["-Dorg.gradle.unsafe.configuration-cache.recreate-cache=true"]
-        "help"  | false | _         | _             | true  | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache.quiet=true"]
-        "help"  | false | _         | _             | _     | _         | true  | ["-Dorg.gradle.unsafe.configuration-cache.debug=true"]
-        "help"  | true  | _         | _             | _     | _         | _     | ["--configuration-cache"]
-        "help"  | true  | _         | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache=true"]
-        "help"  | false | _         | _             | _     | _         | _     | ["--no-configuration-cache"]
-        "help"  | false | _         | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache=false"]
-    }
-
-    def "can use finalized and incubating variants"() {
-
-        given:
-        buildFile """task check {
-            assert gradle.startParameter.configurationCache.get() == ${expected}
-        }
-        """
-
-        when:
-        run(task, *options)
-
-        then:
-        if (expected) {
-            result.assertHasPostBuildOutput("Configuration cache entry stored.")
-        }
-
-        where:
-        task           | expected   | options
-        "help"         | true       | ["-Dorg.gradle.configuration-cache=true"]
-        "help"         | true       | ["-Dorg.gradle.unsafe.configuration-cache=true"]
-        "help"         | false      | ["-Dorg.gradle.configuration-cache=false"]
-        "help"         | false      | ["-Dorg.gradle.unsafe.configuration-cache=false"]
-        "help"         | false      | ["--no-configuration-cache"]
-        "help"         | false      | ["--no-configuration-cache"]
-        "help"         | true       | ["--configuration-cache"]
-
-        // "help"         | { it.configurationCacheProblems == WARN }              | ["-Dorg.gradle.configuration-cache.problems=WARN"]
-        // "help"         | { it.configurationCacheProblems == WARN }              | ["-Dorg.gradle.unsafe.configuration-cache-problems=WARN"]
-        // "help"         | { it.configurationCacheMaxProblems == 100 }               | ["-Dorg.gradle.configuration-cache.max-problems=100"]
-        // "help"         | { it.configurationCacheMaxProblems == 100 }               | ["-Dorg.gradle.unsafe.configuration-cache.max-problems=100"]
-    }
-
 
     def "configuration cache for Help plugin task '#task' on empty project"() {
         given:
