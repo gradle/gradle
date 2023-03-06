@@ -25,6 +25,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
@@ -411,7 +412,8 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     private void notifyListenerRegistration(String registrationPoint, Object listener) {
-        if (listener instanceof InternalListener || listener instanceof ProjectEvaluationListener) {
+        // TODO(mlopatkin) This also allows listeners like "MyListener implements TaskExecutionListener, ProjectEvaluationListener"
+        if (listener instanceof InternalListener || listener instanceof ProjectEvaluationListener || listener instanceof TaskExecutionGraphListener) {
             return;
         }
         getListenerManager().getBroadcaster(BuildScopeListenerRegistrationListener.class)
