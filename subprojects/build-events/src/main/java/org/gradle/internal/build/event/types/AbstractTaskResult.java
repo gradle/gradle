@@ -24,13 +24,11 @@ public abstract class AbstractTaskResult extends AbstractResult implements Inter
 
     private final boolean incremental;
     private final List<String> executionReasons;
-    private final String taskIdentityPath;
 
-    protected AbstractTaskResult(long startTime, long endTime, String outcomeDescription, boolean incremental, List<String> executionReasons, String taskIdentityPath) {
+    protected AbstractTaskResult(long startTime, long endTime, String outcomeDescription, boolean incremental, List<String> executionReasons) {
         super(startTime, endTime, outcomeDescription);
         this.incremental = incremental;
         this.executionReasons = executionReasons;
-        this.taskIdentityPath = taskIdentityPath;
     }
 
     @Override
@@ -43,7 +41,4 @@ public abstract class AbstractTaskResult extends AbstractResult implements Inter
         return executionReasons;
     }
 
-    public String getTaskIdentityPath() {
-        return taskIdentityPath;
-    }
 }
