@@ -35,10 +35,10 @@ public interface GradlePropertiesController {
     GradleProperties getGradleProperties();
 
     /**
-     * Loads the immutable set of {@link GradleProperties} from the given directory and
+     * Loads the set of {@link GradleProperties} from the given directory and
      * makes it available to the build.
      *
-     * Optionally sets a system properties after load. 
+     * Optionally sets a system properties after load.
      *
      * This method should be called only once per build but multiple calls with the
      * same argument are allowed.

@@ -26,7 +26,7 @@ public interface IGradlePropertiesLoader {
     String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
 
     /**
-     * Loads the immutable set of Gradle properties.
+     * Loads the set of Gradle properties.
      *
      * @since 6.2
      */
