@@ -76,8 +76,11 @@ class DefaultConfigurationContainerTest extends Specification {
     }
     private ComponentSelectorConverter componentSelectorConverter = Mock()
     private DomainObjectContext domainObjectContext = new RootScriptDomainObjectContext()
+    private DefaultRootComponentMetadataBuilder metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
+        getValidator() >> Mock(MutationValidator)
+    }
     private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
-        create(_) >> Mock(DefaultRootComponentMetadataBuilder)
+        create(_) >> metadataBuilder
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
