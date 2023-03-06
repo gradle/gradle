@@ -22,8 +22,7 @@ import org.gradle.api.Incubating;
 import java.util.Optional;
 
 /**
- * Summary of the result of executing the
- * {@link StartParameter#getTaskRequests() requested tasks}.
+ * Summary result of the execution of the work scheduled for the current build.
  *
  * @see FlowProviders#getBuildWorkResult()
  * @since 8.1
@@ -32,7 +31,8 @@ import java.util.Optional;
 public interface BuildWorkResult {
 
     /**
-     * A summary of the failure(s) that occurred as Gradle tried to execute the requested tasks.
+     * A summary of the configuration time and execution time failure(s) that occurred as Gradle tried to execute the
+     * scheduled work.
      *
      * @return {@link Optional#empty() empty} when no failures occur.
      */
