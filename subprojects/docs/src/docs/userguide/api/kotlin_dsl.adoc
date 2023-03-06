@@ -722,13 +722,12 @@ include::sample[dir="snippets/kotlinDsl/assignment/kotlin",files="build.gradle.k
 
 [CAUTION]
 ====
-Enabling lazy property assignment will fail your build if link:https://kotlinlang.org/docs/gradle-compiler-options.html#attributes-common-to-jvm-js-and-js-dce[allWarningsAsErrors] option is enabled for the Kotlin compiler for build logic, since the Kotlin compiler plugin is still experimental.
+Enabling lazy property assignment will fail your build if the Kotlin compiler `allWarningsAsErrors` option is enabled for the build logic, since the Kotlin compiler plugin is still experimental and emits a warning.
 ====
 
 === IDE support
 
 Lazy property assignment is supported from IntelliJ 2022.3 and from Android Studio Giraffe.
-The IDE integration is not stable yet.
 For IDE to detect the Kotlin assignment, `systemProp.org.gradle.unsafe.kotlin.assignment=true` has to be added to the root project `gradle.properties` file (also for all included builds).
 Additionally, the project has to be reopened after the property value is changed.
 In future releases, we will work on improving the IDE experience and remove these requirements.
