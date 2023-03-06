@@ -85,4 +85,4 @@ build-logic-commons/         @gradle/bt-developer-productivity
 build-logic-settings/        @gradle/bt-developer-productivity
 subprojects/*/build.gradle*  @gradle/bt-developer-productivity
 build.gradle*                @gradle/bt-developer-productivity
-setting.gradle*              @gradle/bt-developer-productivity
+settings.gradle*              @gradle/bt-developer-productivity
