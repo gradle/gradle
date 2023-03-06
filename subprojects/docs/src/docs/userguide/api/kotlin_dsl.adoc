@@ -708,7 +708,7 @@ tasks.create("myTask") {
 Gradle's Kotlin DSL supports lazy property assignment using the `=` operator as an experimental feature that can be enabled by adding `systemProp.org.gradle.unsafe.kotlin.assignment=true` to the `gradle.properties` file.
 Lazy property assignment reduces the verbosity for Kotlin DSL when <<lazy_configuration#lazy_properties,lazy properties>> are used.
 It works for properties that are publicly seen as `final` (without a setter) and have type `Property` or `ConfigurableFileCollection`.
-Since properties have to be `final`, our general recommendation is to not implement custom setters for properties with lazy types and if possible implement such properties via an abstract getter.
+Since properties have to be `final`, our general recommendation is not to implement custom setters for properties with lazy types and, if possible, implement such properties via an abstract getter.
 
 Once the feature is released out of experimental status, using the `=` operator will be the preferred way to calling `set()` in the Kotlin DSL.
 
