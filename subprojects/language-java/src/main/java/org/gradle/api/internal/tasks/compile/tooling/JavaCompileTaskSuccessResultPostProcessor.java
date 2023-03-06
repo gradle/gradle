@@ -16,8 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.tooling;
 
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType;
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.build.event.OperationResultPostProcessor;
 import org.gradle.internal.build.event.types.AbstractTaskResult;
 import org.gradle.internal.build.event.types.DefaultAnnotationProcessorResult;
@@ -25,7 +29,6 @@ import org.gradle.internal.build.event.types.DefaultJavaCompileTaskSuccessResult
 import org.gradle.internal.build.event.types.DefaultTaskSuccessResult;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
-import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult.InternalAnnotationProcessorResult;
 
@@ -36,6 +39,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class JavaCompileTaskSuccessResultPostProcessor implements OperationResultPostProcessor {
+    private static final Logger LOGGER = Logging.getLogger(JavaCompileTaskSuccessResultPostProcessor.class);
 
     private final Map<String, CompileJavaBuildOperationType.Result> results = new ConcurrentHashMap<>();
 
@@ -56,10 +60,14 @@ public class JavaCompileTaskSuccessResultPostProcessor implements OperationResul
     }
 
     @Override
-    public AbstractTaskResult process(AbstractTaskResult taskResult, OperationIdentifier taskBuildOperationId) {
-        CompileJavaBuildOperationType.Result compileResult = results.remove(taskResult.getTaskIdentityPath());
-        if (taskResult instanceof DefaultTaskSuccessResult && compileResult != null) {
-            return new DefaultJavaCompileTaskSuccessResult((DefaultTaskSuccessResult) taskResult, toAnnotationProcessorResults(compileResult.getAnnotationProcessorDetails()));
+    public AbstractTaskResult process(AbstractTaskResult taskResult, TaskInternal taskInternal) {
+        CompileJavaBuildOperationType.Result compileResult = results.remove(taskInternal.getIdentityPath().getPath());
+        if (taskResult instanceof DefaultTaskSuccessResult) {
+            if (compileResult != null) {
+                return new DefaultJavaCompileTaskSuccessResult((DefaultTaskSuccessResult) taskResult, toAnnotationProcessorResults(compileResult.getAnnotationProcessorDetails()));
+            } else if (taskInternal instanceof JavaCompile) {
+                LOGGER.info("No compile result for " + taskInternal.getIdentityPath());
+            }
         }
         return taskResult;
     }
