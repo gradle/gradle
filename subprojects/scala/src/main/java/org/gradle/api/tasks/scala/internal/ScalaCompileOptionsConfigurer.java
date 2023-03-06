@@ -36,13 +36,20 @@ import java.util.Set;
 public class ScalaCompileOptionsConfigurer {
 
     private static final int FALLBACK_JVM_TARGET = 8;
+
+    /**
+     * Support for these flags in different minor releases of Scala varies,
+     * but we need to detect as many variants as possible to avoid overriding the target or release.
+     */
     private static final List<String> TARGET_DEFINING_PARAMETERS = Arrays.asList(
         // Scala 2
-        "-target:", "--target:",
+        "-target", "--target",
         // Scala 2 and 3
-        "-release:", "--release:",
+        "-release", "--release",
         // Scala 3
-        "-Xtarget:", "-java-output-version:", "-Xunchecked-java-output-version:"
+        "-java-output-version", "--java-output-version",
+        "-Xunchecked-java-output-version", "--Xunchecked-java-output-version",
+        "-Xtarget", "--Xtarget"
     );
 
     private static final VersionNumber PLAIN_TARGET_FORMAT_SINCE_VERSION = VersionNumber.parse("2.13.1");
@@ -76,7 +83,8 @@ public class ScalaCompileOptionsConfigurer {
     }
 
     private static boolean hasTargetDefiningParameter(List<String> additionalParameters) {
-        return additionalParameters.stream().anyMatch(s -> TARGET_DEFINING_PARAMETERS.stream().anyMatch(s::startsWith));
+        return additionalParameters.stream()
+            .anyMatch(s -> TARGET_DEFINING_PARAMETERS.stream().anyMatch(param -> param.equals(s) || s.startsWith(param + ":")));
     }
 
     /**

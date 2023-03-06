@@ -17,7 +17,6 @@
 package org.gradle.configurationcache.serialization.codecs.transform
 
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.BoundTransformationStep
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
@@ -31,6 +30,7 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.internal.Try
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity
 
 
 sealed class TransformStepSpec(val transformation: TransformationStep) {

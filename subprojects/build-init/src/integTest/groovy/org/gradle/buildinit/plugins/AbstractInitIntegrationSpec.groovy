@@ -83,6 +83,10 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         subprojectDir.file("src/test/resources").assertIsDir()
     }
 
+    protected void gradlePropertiesGenerated() {
+        targetDir.file("gradle.properties").assertIsFile()
+    }
+
     protected ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {
         ScriptDslFixture.of(dsl, targetDir, subprojectName())
     }

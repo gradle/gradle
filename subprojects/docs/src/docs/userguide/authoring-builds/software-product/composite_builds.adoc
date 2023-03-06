@@ -91,9 +91,11 @@ include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/include-pl
 include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-plugin-build",files="settings.gradle[tags=include-build]"]
 ====
 
-NOTE: Including plugin builds via the plugin management block is an incubating feature.
-You may also use the stable `includeBuild` mechanism outside `pluginManagement` to include plugin builds.
-However, this does not support all use cases and including plugin builds like that will be deprecated once the new mechanism is stable.
+[NOTE]
+====
+You may also use the `includeBuild` mechanism outside `pluginManagement` to include plugin builds.
+However, this does not support all use cases and including plugin builds like that might be deprecated in a future Gradle version.
+====
 
 [[included_builds]]
 === Restrictions on included builds

@@ -17,10 +17,10 @@
 package org.gradle.plugin.use.resolve.internal
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.groovy.scripts.TextResourceScriptSource
@@ -46,7 +46,7 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
         getResolvedConfiguration() >> resolvedConfiguration
         setTransitive(false) >> {}
     }
-    def configurations = Mock(ConfigurationContainer) {
+    def configurations = Mock(RoleBasedConfigurationContainerInternal) {
         detachedConfiguration(_) >> configuration
     }
 

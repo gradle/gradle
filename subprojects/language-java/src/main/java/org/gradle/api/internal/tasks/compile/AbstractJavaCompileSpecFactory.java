@@ -42,17 +42,7 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         }
 
         if (compileOptions.isFork()) {
-            File customJavaHome = compileOptions.getForkOptions().getJavaHome();
-            if (customJavaHome != null) {
-                return getCommandLineSpec(Jvm.forHome(customJavaHome).getJavacExecutable());
-            }
-
-            String customExecutable = compileOptions.getForkOptions().getExecutable();
-            if (customExecutable != null) {
-                return getCommandLineSpec(JavaExecutableUtils.resolveExecutable(customExecutable));
-            }
-
-            return getForkingSpec(Jvm.current().getJavaHome());
+            return chooseSpecFromCompileOptions(Jvm.current().getJavaHome());
         }
 
         return getDefaultSpec();
@@ -65,13 +55,7 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         }
 
         if (compileOptions.isFork()) {
-            // Presence of the fork options means that the user has explicitly requested a command-line compiler
-            if (compileOptions.getForkOptions().getJavaHome() != null || compileOptions.getForkOptions().getExecutable() != null) {
-                // We use the toolchain path because the fork options must agree with the selected toolchain
-                return getCommandLineSpec(Jvm.forHome(toolchainJavaHome).getJavacExecutable());
-            }
-
-            return getForkingSpec(toolchainJavaHome);
+            return chooseSpecFromCompileOptions(toolchainJavaHome);
         }
 
         if (!toolchain.isCurrentJvm()) {
@@ -79,6 +63,20 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         }
 
         return getDefaultSpec();
+    }
+
+    private T chooseSpecFromCompileOptions(File fallbackJavaHome) {
+        File forkJavaHome = compileOptions.getForkOptions().getJavaHome();
+        if (forkJavaHome != null) {
+            return getCommandLineSpec(Jvm.forHome(forkJavaHome).getJavacExecutable());
+        }
+
+        String forkExecutable = compileOptions.getForkOptions().getExecutable();
+        if (forkExecutable != null) {
+            return getCommandLineSpec(JavaExecutableUtils.resolveExecutable(forkExecutable));
+        }
+
+        return getForkingSpec(fallbackJavaHome);
     }
 
     abstract protected T getCommandLineSpec(File executable);

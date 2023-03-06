@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestFramework;
+import org.gradle.api.internal.tasks.testing.TestFrameworkDistributionModule;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
@@ -32,9 +33,18 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @UsedByScanPlugin("test-retry")
 public class JUnitTestFramework implements TestFramework {
+
+    private static final List<TestFrameworkDistributionModule> DISTRIBUTION_MODULES =
+        Collections.singletonList(new TestFrameworkDistributionModule(
+            "junit",
+            Pattern.compile("junit-4.*\\.jar"),
+            "org.junit.runner.Runner"
+        ));
+
     private JUnitOptions options;
     private JUnitDetector detector;
     private final DefaultTestFilter filter;
@@ -83,13 +93,8 @@ public class JUnitTestFramework implements TestFramework {
     }
 
     @Override
-    public List<String> getTestWorkerApplicationClasses() {
-        return Collections.singletonList("junit");
-    }
-
-    @Override
-    public List<String> getTestWorkerApplicationModules() {
-        return Collections.emptyList();
+    public List<TestFrameworkDistributionModule> getWorkerImplementationClasspathModules() {
+        return DISTRIBUTION_MODULES;
     }
 
     @Override

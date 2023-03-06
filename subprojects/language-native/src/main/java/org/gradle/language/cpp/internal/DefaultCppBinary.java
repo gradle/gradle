@@ -18,11 +18,12 @@ package org.gradle.language.cpp.internal;
 
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -54,7 +55,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Property<CppCompile> compileTaskProperty;
     private final NativeVariantIdentity identity;
 
-    public DefaultCppBinary(Names names, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+    public DefaultCppBinary(Names names, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, RoleBasedConfigurationContainerInternal configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objects, componentImplementation);
         this.baseName = baseName;
         this.sourceFiles = sourceFiles;
@@ -66,8 +67,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
 
         // TODO - reduce duplication with Swift binary
 
-        includePathConfiguration = configurations.create(names.withPrefix("cppCompile"));
-        includePathConfiguration.setCanBeConsumed(false);
+        includePathConfiguration = configurations.resolvableBucket(names.withPrefix("cppCompile"));
         includePathConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
         includePathConfiguration.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
         includePathConfiguration.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
@@ -75,8 +75,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         includePathConfiguration.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
         includePathConfiguration.extendsFrom(getImplementationDependencies());
 
-        Configuration nativeLink = configurations.create(names.withPrefix("nativeLink"));
-        nativeLink.setCanBeConsumed(false);
+        Configuration nativeLink = configurations.resolvableBucket(names.withPrefix("nativeLink"));
         nativeLink.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_LINK));
         nativeLink.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
         nativeLink.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
@@ -84,8 +83,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         nativeLink.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
         nativeLink.extendsFrom(getImplementationDependencies());
 
-        Configuration nativeRuntime = configurations.create(names.withPrefix("nativeRuntime"));
-        nativeRuntime.setCanBeConsumed(false);
+        @SuppressWarnings("deprecation") Configuration nativeRuntime = configurations.createWithRole(names.withPrefix("nativeRuntime"), ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE);
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_RUNTIME));
         nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
         nativeRuntime.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());

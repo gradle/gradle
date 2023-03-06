@@ -55,6 +55,7 @@ import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultProjectLayout;
@@ -204,7 +205,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private DependencyHandler dependencyHandler;
 
-    private ConfigurationContainer configurationContainer;
+    private RoleBasedConfigurationContainerInternal configurationContainer;
 
     private ArtifactHandler artifactHandler;
 
@@ -571,24 +572,16 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return artifactHandler;
     }
 
-    public void setArtifactHandler(ArtifactHandler artifactHandler) {
-        this.artifactHandler = artifactHandler;
-    }
-
     @Inject
     @Override
     public abstract RepositoryHandler getRepositories();
 
     @Override
-    public ConfigurationContainer getConfigurations() {
+    public RoleBasedConfigurationContainerInternal getConfigurations() {
         if (configurationContainer == null) {
-            configurationContainer = services.get(ConfigurationContainer.class);
+            configurationContainer = services.get(RoleBasedConfigurationContainerInternal.class);
         }
         return configurationContainer;
-    }
-
-    public void setConfigurationContainer(ConfigurationContainer configurationContainer) {
-        this.configurationContainer = configurationContainer;
     }
 
     @Deprecated
@@ -1057,10 +1050,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Inject
     public abstract DependencyFactory getDependencyFactory();
 
-    public void setDependencyHandler(DependencyHandler dependencyHandler) {
-        this.dependencyHandler = dependencyHandler;
-    }
-
     @Override
     public ProjectEvaluationListener getProjectEvaluationBroadcaster() {
         return evaluationListener.getSource();
@@ -1128,6 +1117,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
      *
      * @see AsmBackedClassGenerator.ClassBuilderImpl#addDynamicMethods
      */
+    @SuppressWarnings("JavadocReference")
     @Nullable
     public Object getProperty(String propertyName) {
         return property(propertyName);
@@ -1140,6 +1130,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
      *
      * @see AsmBackedClassGenerator.ClassBuilderImpl#addDynamicMethods
      */
+    @SuppressWarnings("JavadocReference")
     @Nullable
     public Object invokeMethod(String name, Object args) {
         if (args instanceof Object[]) {

@@ -28,9 +28,13 @@ import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.extensions.directoryContentHash
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
+import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.PropertyProblem
+import org.gradle.configurationcache.problems.StructuredMessage
+import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
@@ -84,6 +88,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val scriptFileResolverListeners: ScriptFileResolverListeners,
     private val remoteScriptUpToDateChecker: RemoteScriptUpToDateChecker,
     private val agentStatus: AgentStatus,
+    private val problems: ConfigurationCacheProblems
 ) : Stoppable {
 
     interface Host {
@@ -314,6 +319,9 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override fun reportInput(input: PropertyProblem) =
             report.onInput(input)
+
+        override fun reportProblem(exception: Throwable?, documentationSection: DocumentationSection?, message: StructuredMessageBuilder) =
+            problems.onProblem(problemFactory.problem(StructuredMessage.build(message), exception, documentationSection))
 
         override fun location(consumer: String?) =
             problemFactory.locationForCaller(consumer)

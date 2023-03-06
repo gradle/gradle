@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.component;
+package org.gradle.api.internal.tasks.testing;
+
+import org.gradle.api.GradleException;
+
+import javax.annotation.Nullable;
 
 /**
- * An opaque immutable identifier for a component instance.
+ *  Thrown when there is an error while serializing/deserializing a test result.
  */
-public interface OpaqueComponentIdentifier extends ComponentIdentifier {
-
-    String getDisplayName();
-
-    String getClassName();
-
+public class TestFailureSerializationException extends GradleException {
+    public TestFailureSerializationException(String message, @Nullable Throwable cause) {
+        super(message, cause);
+    }
 }

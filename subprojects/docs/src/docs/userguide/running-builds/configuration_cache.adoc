@@ -317,10 +317,10 @@ link:{gradle-issues}13488[[.red]#✖#]:: <<xctest_plugin.adoc#xctest_plugin,XCTe
 
 a|
 [horizontal]
-link:{gradle-issues}13463[[.green]#✓#]:: <<application_plugin.adoc#application_plugin,Application>>
+link:{gradle-issues}13463[[.yellow]#⚠#]:: <<application_plugin.adoc#application_plugin,Application>>
 link:{gradle-issues}13466[[.green]#✓#]:: <<war_plugin.adoc#war_plugin,WAR>>
 link:{gradle-issues}13467[[.red]#✖#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
-link:{gradle-issues}13468[[.green]#✓#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
+link:{gradle-issues}13468[[.yellow]#⚠#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
 link:{gradle-issues}13469[[.red]#✖#]:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
 link:{gradle-issues}13464[[.green]#✓#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
 link:{gradle-issues}13465[[.green]#✓#]:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
@@ -1094,3 +1094,13 @@ include::sample[dir="snippets/configurationCache/topLevel/kotlin",files="build.g
 <2> Define the variable in a smaller scope.
 
 See link:{gradle-issues}22879[gradle/gradle#22879].
+
+[[config_cache:not_yet_implemented:build_services_in_fingerprint]]
+=== Using build services to invalidate the configuration cache
+
+Currently, it is not possible to use a `BuildServiceProvider` or provider derived of it with `map` or `flatMap` as a parameter for the `ValueSource`, if the value of the `ValueSource` is accessed at configuration time.
+The same applies such `ValueSource` is obtained in a task that executes as part of configuration phase, for example tasks of the `buildSrc` build or included builds contributing plugins.
+Note that using a `@ServiceReference` or storing `BuildServiceProvider` in an `@Internal`-annotated property of a task is safe.
+Generally speaking, this limitation makes it impossible to use a `BuildService` to invalidate the configuration cache.
+
+See link:{gradle-issues}24085[gradle/gradle#24085].

@@ -109,4 +109,10 @@ class ConfigurationCacheStartParameter(
 
     val includedBuilds: List<File>
         get() = startParameter.includedBuilds
+
+    val isBuildScan: Boolean
+        get() = startParameter.isBuildScan
+
+    val isNoBuildScan: Boolean
+        get() = startParameter.isNoBuildScan
 }

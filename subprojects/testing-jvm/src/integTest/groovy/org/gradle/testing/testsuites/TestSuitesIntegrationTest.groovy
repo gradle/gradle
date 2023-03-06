@@ -482,8 +482,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         '''
 
         when:
-        executer.expectDocumentedDeprecationWarning("Configuring the test classpath by default for standalone Test tasks has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_default_classpath")
-        executer.expectDocumentedDeprecationWarning("Configuring the test classes dirs by default for standalone Test tasks has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_default_classpath")
+        executer.expectDocumentedDeprecationWarning("Relying on the convention for Test.testClassesDirs in custom Test tasks has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_default_classpath")
+        executer.expectDocumentedDeprecationWarning("Relying on the convention for Test.classpath in custom Test tasks has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_default_classpath")
         succeeds("mytest")
 
         then:

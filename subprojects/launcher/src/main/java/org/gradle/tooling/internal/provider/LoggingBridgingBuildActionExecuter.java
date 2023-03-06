@@ -46,11 +46,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<C
     @Override
     public BuildActionResult execute(BuildAction action, ConnectionOperationParameters parameters, BuildRequestContext buildRequestContext) {
         ProviderOperationParameters actionParameters = parameters.getOperationParameters();
-        if (Boolean.TRUE.equals(actionParameters.isColorOutput()) && actionParameters.getStandardOutput() != null) {
-            loggingManager.attachConsole(actionParameters.getStandardOutput(), notNull(actionParameters.getStandardError()), ConsoleOutput.Rich);
-        } else if (actionParameters.getStandardOutput() != null || actionParameters.getStandardError() != null) {
-            loggingManager.attachConsole(notNull(actionParameters.getStandardOutput()), notNull(actionParameters.getStandardError()), ConsoleOutput.Plain);
-        }
+        attachConsole(actionParameters);
         ProgressListenerVersion1 progressListener = actionParameters.getProgressListener();
         OutputEventListenerAdapter listener = new OutputEventListenerAdapter(progressListener);
         loggingManager.addOutputEventListener(listener);
@@ -60,6 +56,16 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<C
             return executer.execute(action, parameters, buildRequestContext);
         } finally {
             loggingManager.stop();
+        }
+    }
+
+    private void attachConsole(ProviderOperationParameters actionParameters) {
+        OutputStream stdOut = actionParameters.getStandardOutput();
+        OutputStream stdErr = actionParameters.getStandardError();
+        if (Boolean.TRUE.equals(actionParameters.isColorOutput()) && stdOut != null) {
+            loggingManager.attachConsole(stdOut, notNull(stdErr), ConsoleOutput.Rich);
+        } else if (stdOut != null || stdErr != null) {
+            loggingManager.attachConsole(notNull(stdOut), notNull(stdErr), ConsoleOutput.Plain);
         }
     }
 

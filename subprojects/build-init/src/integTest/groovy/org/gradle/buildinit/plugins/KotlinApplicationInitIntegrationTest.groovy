@@ -95,6 +95,29 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
+        when:
+        run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        gradlePropertiesGenerated()
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+
+        when:
+        run("run")
+
+        then:
+        outputContains("Hello World!")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     def "creates sample source with package and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'kotlin-application', '--package', 'my.app', '--dsl', scriptDsl.id)

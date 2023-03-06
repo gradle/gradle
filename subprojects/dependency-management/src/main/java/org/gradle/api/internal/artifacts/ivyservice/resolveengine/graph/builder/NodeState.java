@@ -634,11 +634,14 @@ public class NodeState implements DependencyGraphNode {
 
         DependencySubstitutionInternal details = substitutionResult.getResult();
         if (details != null && details.isUpdated()) {
-            ArtifactSelectionDetailsInternal artifactSelectionDetails = details.getArtifactSelectionDetails();
-            if (artifactSelectionDetails.isUpdated()) {
-                return dependencyState.withTargetAndArtifacts(details.getTarget(), artifactSelectionDetails.getTargetSelectors(), details.getRuleDescriptors());
-            }
-            return dependencyState.withTarget(details.getTarget(), details.getRuleDescriptors());
+            // This caching works because our substitutionResult are cached themselves
+            return dependencyState.withSubstitution(substitutionResult, result -> {
+                ArtifactSelectionDetailsInternal artifactSelectionDetails = details.getArtifactSelectionDetails();
+                if (artifactSelectionDetails.isUpdated()) {
+                    return dependencyState.withTargetAndArtifacts(details.getTarget(), artifactSelectionDetails.getTargetSelectors(), details.getRuleDescriptors());
+                }
+                return dependencyState.withTarget(details.getTarget(), details.getRuleDescriptors());
+            });
         }
         return dependencyState;
     }
