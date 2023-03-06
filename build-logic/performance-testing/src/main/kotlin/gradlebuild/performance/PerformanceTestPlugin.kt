@@ -97,8 +97,8 @@ object Config {
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
 
-    // Android Studio Electric Eel (2022.1.1) Beta 2
-    const val androidStudioVersion = "2022.1.1.12"
+    // Android Studio Giraffe (2022.3.1) Canary 8
+    const val androidStudioVersion = "2022.3.1.8"
     val defaultAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
 }
 
