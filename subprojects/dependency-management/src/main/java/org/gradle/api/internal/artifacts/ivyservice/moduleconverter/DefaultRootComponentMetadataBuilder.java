@@ -132,15 +132,13 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
         @Override
         public void validateMutation(MutationType type) {
-            if (type == MutationType.DEPENDENCIES || type == MutationType.ARTIFACTS || type == MutationType.DEPENDENCY_ATTRIBUTES || type == MutationType.USAGE) {
+            if (type == MutationType.DEPENDENCIES || type == MutationType.ARTIFACTS ||
+                type == MutationType.DEPENDENCY_ATTRIBUTES || type == MutationType.USAGE ||
+                type == MutationType.HIERARCHY
+            ) {
                 if (cachedValue != null) {
                     cachedValue.reevaluate();
                 }
-            } else if (type == MutationType.HIERARCHY) {
-                // The hierarchy is provided to the configuration metadata on construction. Since it is not
-                // computed lazily, there is no lazy value to invalidate. Thus, we need to recompute the
-                // entire component in order to reconstruct new configuration metadatas with new hierarchy values.
-                cachedValue = null;
             }
         }
 
