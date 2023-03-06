@@ -161,7 +161,7 @@ or in a `gradle.properties` file:
 
 [source,properties]
 ----
-org.gradle.configuration-cache-problems=warn
+org.gradle.configuration-cache.problems=warn
 ----
 
 [[config_cache:usage:max_problems]]
@@ -282,7 +282,7 @@ Select `Templates > Gradle` and add the necessary system properties to the `VM o
 For example to enable the configuration cache, turning problems into warnings, add the following:
 
 ----
--Dorg.gradle.configuration-cache=true -Dorg.gradle.configuration-cache-problems=warn
+-Dorg.gradle.configuration-cache=true -Dorg.gradle.configuration-cache.problems=warn
 ----
 
 You can also choose to only enable it for a given run configuration.
@@ -306,7 +306,7 @@ You can use the properties described above as system properties.
 For example to enable the configuration cache, turning problems into warnings, add the following JVM arguments:
 
 * `-Dorg.gradle.configuration-cache=true`
-* `-Dorg.gradle.configuration-cache-problems=warn`
+* `-Dorg.gradle.configuration-cache.problems=warn`
 
 To enable it for a given run configuration, go to `Run configurations...`, find the one you want to change, go to `Project Settings`, tick the `Override project settings` checkbox and add the same system properties as a `JVM argument`.
 
