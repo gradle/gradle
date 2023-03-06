@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import com.google.common.primitives.Bytes
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 
@@ -262,12 +263,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         configurationCacheRun(*allArgs)
     }
 
-    boolean isSubArray(byte[] contents, byte[] toFind) {
-        for (int i = 0; i <= (contents.length - toFind.length); i++) {
-            if (Arrays.equals(contents, i, i + toFind.length, toFind, 0, toFind.length)) {
-                return true
-            }
-        }
-        return false
+    private boolean isSubArray(byte[] contents, byte[] toFind) {
+        return Bytes.indexOf(contents, toFind) >= 0
     }
 }
