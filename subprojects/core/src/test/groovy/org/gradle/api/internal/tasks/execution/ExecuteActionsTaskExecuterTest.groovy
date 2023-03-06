@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.properties.TaskProperties
+import org.gradle.api.specs.AndSpec
 import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskExecutionException
@@ -209,6 +210,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         task.getState() >> state
         task.getOutputs() >> taskOutputs
         task.getPath() >> "task"
+        _ * taskOutputs.getStoreInCacheSpec() >> AndSpec.empty()
         taskOutputs.setPreviousOutputFiles(_ as FileCollection)
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture

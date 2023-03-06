@@ -55,6 +55,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final PropertyWalker propertyWalker;
     private final FileCollectionFactory fileCollectionFactory;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
+    private AndSpec<TaskInternal> storeInCache = AndSpec.empty();
     private final List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<>();
     private final List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<>();
     private FileCollection previousOutputFiles;
@@ -93,6 +94,18 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     public void upToDateWhen(final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.upToDateWhen(Spec)", () -> {
             upToDateSpec = upToDateSpec.and(spec);
+        });
+    }
+
+    @Override
+    public AndSpec<TaskInternal> getStoreInCacheSpec() {
+        return storeInCache;
+    }
+
+    @Override
+    public void storeInCacheWhen(Spec<? super Task> spec) {
+        taskMutator.mutate("TaskOutputs.storeOutputsInCacheWhen(Spec)", () -> {
+            storeInCache = storeInCache.and(spec);
         });
     }
 

@@ -164,6 +164,7 @@ public class TaskExecution implements UnitOfWork {
         outputs.setPreviousOutputFiles(previousFiles);
         try {
             WorkResult didWork = executeWithPreviousOutputFiles(executionRequest.getInputChanges().orElse(null));
+            boolean storeInCache = outputs.getStoreInCacheSpec().isSatisfiedBy(task);
             return new WorkOutput() {
                 @Override
                 public WorkResult getDidWork() {
@@ -173,6 +174,11 @@ public class TaskExecution implements UnitOfWork {
                 @Override
                 public Object getOutput() {
                     return null;
+                }
+
+                @Override
+                public boolean canStoreInCache() {
+                    return storeInCache;
                 }
             };
         } finally {
