@@ -16,7 +16,6 @@
 
 package org.gradle.api.flow;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Incubating;
 
 import java.util.Optional;
