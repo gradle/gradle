@@ -267,11 +267,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        String formatSubject() {
-            return systemProperty;
-        }
-
-        @Override
         String formatSummary(String property) {
             return String.format("The %s system property has been deprecated.", property);
         }
@@ -279,6 +274,27 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         @Override
         String formatAdvice(String replacement) {
             return String.format("Please use the %s system property instead.", replacement);
+        }
+    }
+
+    public static class DeprecateGradleProperty extends WithReplacement<String, DeprecateGradleProperty> {
+        private final String gradleProperty;
+
+        DeprecateGradleProperty(String gradleProperty) {
+            super(gradleProperty);
+            this.gradleProperty = gradleProperty;
+            // This never happens in user code
+            setIndirectUsage();
+        }
+
+        @Override
+        String formatSummary(String property) {
+            return String.format("The %s Gradle property has been deprecated.", property);
+        }
+
+        @Override
+        String formatAdvice(String replacement) {
+            return String.format("Please use the %s Gradle property instead.", replacement);
         }
     }
 
