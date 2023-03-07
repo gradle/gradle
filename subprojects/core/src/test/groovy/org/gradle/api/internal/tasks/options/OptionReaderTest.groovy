@@ -58,15 +58,25 @@ class OptionReaderTest extends Specification {
         options[3].argumentType == List
         options[3].availableValues == [] as Set
 
-        options[4].name == "objectValue"
-        options[4].description == "object value"
-        options[4].argumentType == String
+        options[4].name == "no-aFlag"
+        options[4].description == "Disables option --aFlag"
+        options[4].argumentType == Void.TYPE
         options[4].availableValues == [] as Set
 
-        options[5].name == "stringValue"
-        options[5].description == "string value"
-        options[5].argumentType == String
-        options[5].availableValues == ["dynValue1", "dynValue2"] as Set
+        options[5].name == "no-booleanValue"
+        options[5].description == "Disables option --booleanValue"
+        options[5].argumentType == Void.TYPE
+        options[5].availableValues == [] as Set
+
+        options[6].name == "objectValue"
+        options[6].description == "object value"
+        options[6].argumentType == String
+        options[6].availableValues == [] as Set
+
+        options[7].name == "stringValue"
+        options[7].description == "string value"
+        options[7].argumentType == String
+        options[7].availableValues == ["dynValue1", "dynValue2"] as Set
     }
 
     def "can read options linked to property getter methods of a task"() {
@@ -83,23 +93,29 @@ class OptionReaderTest extends Specification {
         options[1].argumentType == String
         options[1].availableValues == ["ABC", "DEF"] as Set
 
-        options[2].name == "objectValue"
-        options[2].description == "object value"
-        options[2].argumentType == String
+        options[2].name == "no-booleanValue"
+        options[2].description == "Disables option --booleanValue"
+        options[2].argumentType == Void.TYPE
         options[2].availableValues == [] as Set
 
-        options[3].name == "stringValue"
-        options[3].description == "string value"
+        options[3].name == "objectValue"
+        options[3].description == "object value"
         options[3].argumentType == String
-        options[3].availableValues == ["dynValue1", "dynValue2"] as Set
+        options[3].availableValues == [] as Set
+
+        options[4].name == "stringValue"
+        options[4].description == "string value"
+        options[4].argumentType == String
+        options[4].availableValues == ["dynValue1", "dynValue2"] as Set
     }
 
     def "built-in options appear last"() {
         when:
         List<InstanceOptionDescriptor> options = reader.getOptions(new TestClassWithProperties())
-        int ownOptions = 4
+        int ownOptions = 5
         then:
-        options.size() == ownOptions + OptionReader.BUILT_IN_OPTIONS.size()
+        options.forEach {it -> System.out.println(it.name + " " + it.description)}
+
         OptionReader.BUILT_IN_OPTIONS.values().eachWithIndex { BuiltInOptionElement entry, int i ->
             assert options[ownOptions + i].name == entry.optionName
             assert options[ownOptions + i].description == entry.description
@@ -167,6 +183,15 @@ class OptionReaderTest extends Specification {
         then:
         def e = thrown(OptionValidationException)
         e.message == "Option 'stringValue' on method cannot take multiple parameters in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass4#setStrings'."
+    }
+
+    def "fails when option name starts with 'no-'"() {
+        when:
+        reader.getOptions(new TestClass6());
+        then:
+        def e = thrown(OptionValidationException)
+        println(e.message)
+        e.message == "Illegal option name 'no-optionName' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass6'. Option name must not start with 'no-'."
     }
 
     def "handles field options"() {
@@ -513,6 +538,12 @@ class OptionReaderTest extends Specification {
     public static class TestClass5 {
         @Option(option = 'fileValue', description = "file value")
         public void setStrings(File file) {
+        }
+    }
+
+    public static class TestClass6 {
+        @Option(option = 'no-optionName', description = "option with illegal name, must not start with 'no-'")
+        public void setOption() {
         }
     }
 

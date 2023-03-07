@@ -485,9 +485,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
         } else if (testCountLogger.getTotalTests() == 0) {
-            if (successWithoutTest.getOrNull() == null) {
-                getLogger().warn("There is no test to run. In 9.0, the behaviour will change to fail in this case. You can use 'test --success-without-test' to set the behaviour.");
-            } else if (!successWithoutTest.get() || shouldFailOnNoMatchingTests()) {
+            if (shouldFailOnNoMatchingTests()) {
+                throw new TestExecutionException(createNoMatchingTestErrorMessage());
+            } else if (successWithoutTest.getOrNull() == null) {
+                getLogger().warn("There is no test to run. In 9.0, the behaviour will change to fail in this case. Use '--success-without-test' or '--no-success-without-test' to set the behaviour.");
+            } else if (!successWithoutTest.get()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
             }
         }
@@ -587,26 +589,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     void setSuccessWithoutTest(Boolean successWithoutTest) {
         this.successWithoutTest.set(successWithoutTest);
-        this.successWithoutTest.finalizeValue();
-    }
-
-    /**
-     * Indicates if this task will fail when there is no test to run.
-     *
-     * @return whether this task will fail when there is no test to run
-     */
-    Property<Boolean> getNoSuccessWithoutTest() {
-        Property<Boolean> successWithoutTest = getSuccessWithoutTest();
-        Property<Boolean> noSuccessWithoutTest = getProject().getObjects().property(Boolean.class);
-        return successWithoutTest.isPresent() ? noSuccessWithoutTest.value(!successWithoutTest.get()) : noSuccessWithoutTest;
-    }
-
-    /**
-     * Sets the task to fail when there is no test to run.
-     */
-    void setNoSuccessWithoutTest(Boolean noSuccessWithoutTest) {
-        this.successWithoutTest.set(!noSuccessWithoutTest);
-        this.successWithoutTest.finalizeValue();
     }
 
     /**

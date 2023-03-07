@@ -198,6 +198,7 @@ public class OptionReader {
                 throw new OptionValidationException(String.format("@Option on static field '%s' not supported in class '%s'.",
                     field.getName(), field.getDeclaringClass().getName()));
             }
+            checkForIllegalOptionName(option.option(), field.getDeclaringClass().getName());
         }
         return option;
     }
@@ -210,9 +211,23 @@ public class OptionReader {
                 OptionElement methodOptionDescriptor = MethodOptionElement.create(option, method,
                     optionValueNotationParserFactory);
                 methodOptionElements.add(new OptionElementAndSignature(methodOptionDescriptor, MethodSignature.from(method)));
+                if (methodOptionDescriptor.getOptionType().equals(Void.TYPE)) {
+                    methodOptionElements.add(new OptionElementAndSignature(createNegatedOptionElement(option, method), MethodSignature.from(method)));
+                }
             }
         }
         return methodOptionElements;
+    }
+
+    private OptionElement createNegatedOptionElement(Option option, Method method) {
+        return MethodOptionElement.create(option, method, optionValueNotationParserFactory, "no-" + option.option());
+    }
+
+    private void checkForIllegalOptionName(String optionName, String className) {
+        if (BooleanOptionElement.isDisableOption(optionName)) {
+            throw new OptionValidationException(String.format("Illegal option name '%s' in class '%s'. Option name must not start with 'no-'.",
+                optionName, className));
+        }
     }
 
     private Option findOption(Method method) {
@@ -222,6 +237,7 @@ public class OptionReader {
                 throw new OptionValidationException(String.format("@Option on static method '%s' not supported in class '%s'.",
                     method.getName(), method.getDeclaringClass().getName()));
             }
+            checkForIllegalOptionName(option.option(), method.getDeclaringClass().getName());
         }
         return option;
     }

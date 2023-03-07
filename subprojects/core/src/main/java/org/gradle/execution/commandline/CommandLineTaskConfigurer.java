@@ -17,6 +17,7 @@
 package org.gradle.execution.commandline;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.options.BooleanOptionElement;
 import org.gradle.api.internal.tasks.options.OptionDescriptor;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.cli.CommandLineArgumentException;
@@ -31,8 +32,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @ServiceScope(Scopes.Gradle.class)
@@ -60,13 +63,18 @@ public class CommandLineTaskConfigurer {
             Map<Boolean, List<OptionDescriptor>> allCommandLineOptions = optionReader.getOptions(task, false).stream().collect(Collectors.groupingBy(OptionDescriptor::isClashing));
             List<OptionDescriptor> validCommandLineOptions = allCommandLineOptions.getOrDefault(false, Collections.emptyList());
             List<OptionDescriptor> clashingOptions = allCommandLineOptions.getOrDefault(true, Collections.emptyList());
+            Set<OptionDescriptor> disableOptions = new HashSet<>();
             clashingOptions.forEach(it -> LOGGER.warn("Built-in option '{}' in task {} was disabled for clashing with another option of same name", it.getName(), task.getPath()));
             for (OptionDescriptor optionDescriptor : validCommandLineOptions) {
                 String optionName = optionDescriptor.getName();
                 org.gradle.cli.CommandLineOption option = parser.option(optionName);
                 option.hasDescription(optionDescriptor.getDescription());
                 option.hasArgument(optionDescriptor.getArgumentType());
+                if (BooleanOptionElement.isDisableOption(optionName)) {
+                    disableOptions.add(optionDescriptor);
+                }
             }
+            disableOptions.forEach(o -> allowOnlyOneOption(o, parser));
 
             ParsedCommandLine parsed;
             try {
@@ -93,5 +101,9 @@ public class CommandLineTaskConfigurer {
             remainingArguments = parsed.getExtraArguments();
         }
         return remainingArguments;
+    }
+
+    private static void allowOnlyOneOption(OptionDescriptor optionDescriptor, CommandLineParser parser) {
+        parser.allowOneOf(optionDescriptor.getName(), optionDescriptor.getName().substring(3));
     }
 }

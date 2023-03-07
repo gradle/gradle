@@ -30,7 +30,7 @@ class TestTaskNoTestsFailTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning("There is no test to run. In 9.0, the behaviour will change to fail in this case. You can use 'test --success-without-test' to set the behaviour.")
+        executer.expectDeprecationWarning("There is no test to run. In 9.0, the behaviour will change to fail in this case. Use '--success-without-test' or '--no-success-without-test' to set the behaviour.")
         succeeds("test")
 
         then:

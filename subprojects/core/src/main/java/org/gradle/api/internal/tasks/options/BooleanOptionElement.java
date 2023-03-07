@@ -29,9 +29,22 @@ import java.util.Set;
 public class BooleanOptionElement extends AbstractOptionElement {
     private final PropertySetter setter;
 
-    public BooleanOptionElement(String optionName, Option option, PropertySetter setter) {
+    private BooleanOptionElement(String optionName, Option option, PropertySetter setter) {
         super(optionName, option, Void.TYPE, setter.getDeclaringClass());
         this.setter = setter;
+    }
+
+    private BooleanOptionElement(String optionName, String optionDescription, PropertySetter setter) {
+        super(optionDescription, optionName, Void.TYPE);
+        this.setter = setter;
+    }
+
+    public static BooleanOptionElement of(String optionName, Option option, PropertySetter setter) {
+        if (isDisableOption(optionName)) {
+            return new BooleanOptionElement(optionName, "Disables option --" + option.option(), setter);
+        } else {
+            return new BooleanOptionElement(optionName, option, setter);
+        }
     }
 
     @Override
@@ -41,6 +54,14 @@ public class BooleanOptionElement extends AbstractOptionElement {
 
     @Override
     public void apply(Object object, List<String> parameterValues) throws TypeConversionException {
-        setter.setValue(object, Boolean.TRUE);
+        if (isDisableOption(getOptionName())) {
+            setter.setValue(object, Boolean.FALSE);
+        } else {
+            setter.setValue(object, Boolean.TRUE);
+        }
+    }
+
+    public static boolean isDisableOption(String optionName) {
+        return optionName.startsWith("no-");
     }
 }

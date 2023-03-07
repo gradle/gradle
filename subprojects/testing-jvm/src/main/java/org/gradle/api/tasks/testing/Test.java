@@ -530,9 +530,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     /**
      * Sets the task to succeed when there is no test to run.
-     *
-     * Opposite of {@link #setNoSuccessWithoutTest(Boolean)},
-     * the underlying value is finalized after one of the methods is called.
      */
     @Option(option = "success-without-test", description = "Sets task to succeed when there is no test to run.")
     @Override
@@ -543,8 +540,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     /**
      * Indicates if this task will succeed when there is no test to run.
      *
-     * Inverses {@link #getNoSuccessWithoutTest()}.
-     *
      * @return whether this task will succeed when there is no test to run
      */
     @Input
@@ -552,32 +547,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     public Property<Boolean> getSuccessWithoutTest() {
         return super.getSuccessWithoutTest();
-    }
-
-    /**
-     * Sets the task to fail when there is no test to run.
-     *
-     * Opposite of {@link #setSuccessWithoutTest(Boolean)},
-     * the underlying value is finalized after one of the methods is called.
-     */
-    @Option(option = "no-success-without-test", description = "Sets task to fail when there is no test to run.")
-    @Override
-    public void setNoSuccessWithoutTest(Boolean noSuccessWithoutTest) {
-        super.setSuccessWithoutTest(!noSuccessWithoutTest);
-    }
-
-    /**
-     * Indicates if this task will fail when there is no test to run.
-     *
-     * Inverses {@link #getSuccessWithoutTest()}.
-     *
-     * @return whether this task will succeed when there is no test to run
-     */
-    @Input
-    @Optional
-    @Override
-    public Property<Boolean> getNoSuccessWithoutTest() {
-        return super.getNoSuccessWithoutTest();
     }
 
     /**
