@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
@@ -319,25 +320,43 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         return objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, group, artifact);
     }
 
+    @Nullable
+    private String notEmpty(@Nullable String string, String groupArtifactVersion, String alias) {
+        if (string == null) {
+            return null;
+        }
+        if (string.isEmpty()) {
+            throwDependencyNotationError(groupArtifactVersion, alias);
+        }
+        return string;
+    }
+
+    private void throwDependencyNotationError(String groupArtifactVersion, String alias) {
+        throwVersionCatalogProblem(VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION, spec ->
+            spec.withShortDescription(() -> "On alias '" + alias + "' notation '" + groupArtifactVersion + "' is not a valid dependency notation")
+                .happensBecause(() -> "The 'to(String)' method only supports 'group:artifact:version' coordinates")
+                .addSolution("Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2")
+                .addSolution("Use the to(group, name) method instead")
+                .documented());
+    }
+
     @Override
     public void library(String alias, String groupArtifactVersion) {
         String normalizedAlias = normalizeAndValidateAlias(AliasType.LIBRARY, alias);
 
         String[] coordinates = groupArtifactVersion.split(":");
         if (coordinates.length == 2 || coordinates.length == 3) {
-            DefaultLibraryAliasBuilder builder = objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, coordinates[0], coordinates[1]);
+            String group = notEmpty(coordinates[0], groupArtifactVersion, alias);
+            String artifact = notEmpty(coordinates[1], groupArtifactVersion, alias);
+            DefaultLibraryAliasBuilder builder = objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, group, artifact);
             if (coordinates.length == 3) {
-                builder.version(coordinates[2]);
+                String version = notEmpty(coordinates[2], groupArtifactVersion, alias);
+                builder.version(version);
             } else {
                 builder.withoutVersion();
             }
         } else {
-            throwVersionCatalogProblem(VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION, spec ->
-                    spec.withShortDescription(() -> "On alias '" + alias + "' notation '" + groupArtifactVersion + "' is not a valid dependency notation")
-                            .happensBecause(() -> "The 'to(String)' method only supports 'group:artifact:version' coordinates")
-                            .addSolution("Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2")
-                            .addSolution("Use the to(group, name) method instead")
-                            .documented());
+            throwDependencyNotationError(groupArtifactVersion, alias);
         }
     }
 

@@ -51,7 +51,7 @@ class DefaultVersionCatalogBuilderTest extends Specification implements VersionC
             alias('foo')
         })
         where:
-        notation << ["", "a", "a:", "a:b", ":b", "a:b:", ":::", "a:b:c:d"]
+        notation << ["", "a", "a:", ":b", ":::", "a:b:c:d"]
     }
 
     @VersionCatalogProblemTestFor(
