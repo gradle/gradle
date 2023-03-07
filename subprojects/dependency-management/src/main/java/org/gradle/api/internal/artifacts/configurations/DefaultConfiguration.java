@@ -1600,7 +1600,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         String properUsageDesc = ProperMethodUsage.summarizeProperUsage(properUsages);
 
         DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, methodName, getName(), currentUsageDesc, properUsageDesc))
-                .withAdvice("Configurations should only be used as permitted.")
                 .willBeRemovedInGradle9()
                 .withUpgradeGuideSection(8, "deprecated_configuration_usage")
                 .nagUser();
@@ -1781,7 +1780,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration attributes(Action<? super AttributeContainer> action) {
-        maybeWarnOnDeprecatedUsage("attributes", ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE);
+        maybeWarnOnDeprecatedUsage("attributes(Action)", ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE);
         action.execute(configurationAttributes);
         return this;
     }
