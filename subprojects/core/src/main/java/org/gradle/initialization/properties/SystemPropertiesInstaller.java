@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
 
-import org.gradle.initialization.properties.MutableGradleProperties;
+package org.gradle.initialization.properties;
 
-import java.io.File;
+import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-public interface IGradlePropertiesLoader {
+@ServiceScope(Scopes.Build.class)
+public interface SystemPropertiesInstaller {
 
-    String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
-
-    String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
-
-    /**
-     * Loads the set of Gradle properties.
-     *
-     * @since 6.2
-     */
-    MutableGradleProperties loadGradleProperties(File rootDir);
+    void setSystemPropertiesFrom(GradleProperties gradleProperties);
 }
