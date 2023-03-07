@@ -241,7 +241,7 @@ It does this by first checking if the available physical memory can accommodate 
 If not, Gradle then looks for unused worker processes that can be stopped to free up enough physical memory for the new process.
 Previously, it sought to acquire enough memory to satisfy the minimum heap requirements of the new process, but in cases where the minimum heap and maximum heap of the worker process are very different, the memory freed up before the process starts may not be close to sufficient for the eventual size of the process.  
 Gradle now attempts to acquire enough memory to satisfy the new process's _maximum_ heap requirements.
-This causes the physical memory management to be more aggressive when starting up new processes, and in many cases will result in better overall memory usage.
+This causes the physical memory management to be more aggressive when starting up new processes, and in many cases, will result in better overall memory usage.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
