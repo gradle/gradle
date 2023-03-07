@@ -236,7 +236,7 @@ When using the `init` task with the `--incubating` option, [parallel project exe
 ### General Improvements
 
 #### Better physical memory management
-Gradle attempts to manage its physical memory usage by proactively stopping unused worker processes before starting up new ones.  
+Gradle attempts to manage its physical memory usage by proactively stopping unused worker processes before starting new ones.  
 It does this by first checking if the available physical memory can accommodate the heap requirements of a new worker process.
 If not, Gradle then looks for unused worker processes that can be stopped in order to free up enough physical memory for the new process.
 Previously, it sought to acquire enough memory to satisfy the minimum heap requirements of the new process, but in cases where the minimum heap and maximum heap of the worker process are very different, the memory freed up before the process starts may not be close to sufficient for the eventual size of the process.  
