@@ -21,6 +21,8 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
@@ -63,7 +65,7 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
                 }
                 SoftwareComponent mainComponent = project.getComponents().getByName("java");
                 MavenPublication mainPublication = addMainPublication(publishing, mainComponent);
-                addMarkerPublications(mainPublication, publishing, pluginDevelopment);
+                addMarkerPublications(mainPublication, publishing, pluginDevelopment, project.getProviders());
             }
         });
     }
@@ -74,18 +76,22 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
         return publication;
     }
 
-    private void addMarkerPublications(MavenPublication mainPublication, PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment) {
+    private void addMarkerPublications(MavenPublication mainPublication, PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment, ProviderFactory providers) {
         for (PluginDeclaration declaration : pluginDevelopment.getPlugins()) {
-            createMavenMarkerPublication(declaration, mainPublication, publishing.getPublications());
+            createMavenMarkerPublication(declaration, mainPublication, publishing.getPublications(), providers);
         }
     }
 
-    private void createMavenMarkerPublication(PluginDeclaration declaration, final MavenPublication coordinates, PublicationContainer publications) {
+    private void createMavenMarkerPublication(PluginDeclaration declaration, final MavenPublication coordinates, PublicationContainer publications, ProviderFactory providers) {
         String pluginId = declaration.getId();
         MavenPublicationInternal publication = (MavenPublicationInternal) publications.create(declaration.getName() + "PluginMarkerMaven", MavenPublication.class);
         publication.setAlias(true);
         publication.setArtifactId(pluginId + PLUGIN_MARKER_SUFFIX);
         publication.setGroupId(pluginId);
+
+        Provider<String> groupProvider = providers.provider(coordinates::getGroupId);
+        Provider<String> artifactIdProvider = providers.provider(coordinates::getArtifactId);
+        Provider<String> versionProvider = providers.provider(coordinates::getVersion);
         publication.getPom().withXml(new Action<XmlProvider>() {
             @Override
             public void execute(XmlProvider xmlProvider) {
@@ -94,11 +100,11 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
                 Node dependencies = root.appendChild(document.createElement("dependencies"));
                 Node dependency = dependencies.appendChild(document.createElement("dependency"));
                 Node groupId = dependency.appendChild(document.createElement("groupId"));
-                groupId.setTextContent(coordinates.getGroupId());
+                groupId.setTextContent(groupProvider.get());
                 Node artifactId = dependency.appendChild(document.createElement("artifactId"));
-                artifactId.setTextContent(coordinates.getArtifactId());
+                artifactId.setTextContent(artifactIdProvider.get());
                 Node version = dependency.appendChild(document.createElement("version"));
-                version.setTextContent(coordinates.getVersion());
+                version.setTextContent(versionProvider.get());
             }
         });
         publication.getPom().getName().set(declaration.getDisplayName());
