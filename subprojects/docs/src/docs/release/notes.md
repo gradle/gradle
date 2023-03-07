@@ -233,6 +233,13 @@ See the [Test.forkEvery](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.a
 
 When using the `init` task with the `--incubating` option, [parallel project execution](userguide/multi_project_configuration_and_execution.html#sec:parallel_execution) and [task output caching](userguide/build_cache.html) will be enabled for the generated project (by creating a `gradle.properties` file and setting the appropriate flags in it).
 
+### Code Quality Improvements
+
+#### Faster Codenarc analysis with parallel execution by default
+The Codenarc plugin performs quality checks on your project’s Groovy source files using a static code analyzer. It now uses the Gradle worker API and JVM toolchains. This tool now performs analysis via an external worker process, and its tasks may now run in parallel within a single project.
+
+In Groovy projects, this tool will use the same version of Java required by the project. In other types of projects, it will use the same version of Java that is used by the Gradle daemon.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
