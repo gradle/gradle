@@ -30,14 +30,14 @@ class JUnitPlatformTestRewriterTest extends Specification {
     def 'build.gradle should be rewritten'() {
         given:
         temporaryFolder.testDirectory.file('build.gradle') << '''
-dependencies { testCompile 'junit:junit:4.13' }
+dependencies { testImplementation 'junit:junit:4.13' }
 '''
         when:
         JUnitPlatformTestRewriter.rewriteBuildFileWithJupiter(temporaryFolder.testDirectory,'5.7.1')
 
         then:
         temporaryFolder.testDirectory.file('build.gradle').text.contains(
-            "testCompile 'org.junit.jupiter:junit-jupiter:5.7.1'")
+            "testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'")
     }
 
     def 'modular build.gradle should be rewritten'() {
@@ -61,7 +61,6 @@ test {
         then:
         temporaryFolder.testDirectory.file('build.gradle').text == '''
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
 }
 compileTestJava {
     def args = ["--add-modules", "org.junit.jupiter.api",
@@ -73,6 +72,11 @@ tasks.named("test") {
 
     def args = ["--add-modules", "ALL-MODULE-PATH",
                 "--add-reads", "org.gradle.example=org.junit.jupiter.api"]
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 '''
     }

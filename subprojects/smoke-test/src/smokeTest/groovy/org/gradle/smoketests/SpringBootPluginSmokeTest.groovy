@@ -41,11 +41,13 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
             dependencies {
                 implementation 'org.springframework.boot:spring-boot-starter'
-                testImplementation 'org.springframework.boot:spring-boot-starter-test'
             }
 
-            tasks.named('test') {
-                useJUnitPlatform()
+            testing.suites.test {
+                useJUnitJupiter()
+                dependencies {
+                    implementation 'org.springframework.boot:spring-boot-starter-test'
+                }
             }
         """.stripIndent()
 
