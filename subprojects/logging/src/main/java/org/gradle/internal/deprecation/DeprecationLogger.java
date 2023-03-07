@@ -171,14 +171,6 @@ public class DeprecationLogger {
     }
 
     /**
-     * Output: The ${property} Gradle property has been deprecated.
-     */
-    @CheckReturnValue
-    public static DeprecationMessageBuilder.DeprecateGradleProperty deprecateGradleProperty(String gradleProperty) {
-        return new DeprecationMessageBuilder.DeprecateGradleProperty(gradleProperty);
-    }
-
-    /**
      * Output: The ${parameter} named parameter has been deprecated.
      */
     @CheckReturnValue

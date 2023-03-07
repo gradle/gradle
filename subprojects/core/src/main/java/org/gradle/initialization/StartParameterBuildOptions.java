@@ -32,7 +32,6 @@ import org.gradle.internal.buildoption.IntegerBuildOption;
 import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.watch.registry.WatchMode;
 
 import java.io.File;
@@ -474,11 +473,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCache(Value.value(value));
         }
-
-        @Override
-        protected void nagUserOfDeprecatedProperty() {
-            StartParameterBuildOptions.nagUserOfDeprecatedProperty(getGradleProperty(), getDeprecatedGradleProperty());
-        }
     }
 
     public static class ConfigurationCacheEncryptionOption extends BooleanBuildOption<StartParameterInternal> {
@@ -543,11 +537,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(Value value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheProblems(value);
         }
-
-        @Override
-        protected void nagUserOfDeprecatedProperty() {
-            StartParameterBuildOptions.nagUserOfDeprecatedProperty(getGradleProperty(), getDeprecatedGradleProperty());
-        }
     }
 
     public static class ConfigurationCacheMaxProblemsOption extends IntegerBuildOption<StartParameterInternal> {
@@ -562,11 +551,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(int value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheMaxProblems(value);
-        }
-
-        @Override
-        protected void nagUserOfDeprecatedProperty() {
-            StartParameterBuildOptions.nagUserOfDeprecatedProperty(getGradleProperty(), getDeprecatedGradleProperty());
         }
     }
 
@@ -583,20 +567,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheDebug(value);
         }
-
-        @Override
-        protected void nagUserOfDeprecatedProperty() {
-            StartParameterBuildOptions.nagUserOfDeprecatedProperty(getGradleProperty(), getDeprecatedGradleProperty());
-        }
-    }
-
-    private static void nagUserOfDeprecatedProperty(String newProperty, String deprecatedProperty) {
-        DeprecationLogger.deprecateGradleProperty(deprecatedProperty)
-            .replaceWith(newProperty)
-            .willBecomeAnErrorInGradle9()
-            // TODO-RC need to add documentation
-            .undocumented()
-            .nagUser();
     }
 
     public static class ConfigurationCacheRecreateOption extends BooleanBuildOption<StartParameterInternal> {
@@ -613,10 +583,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
             settings.setConfigurationCacheRecreateCache(value);
         }
 
-        @Override
-        protected void nagUserOfDeprecatedProperty() {
-            StartParameterBuildOptions.nagUserOfDeprecatedProperty(getGradleProperty(), getDeprecatedGradleProperty());
-        }
     }
 
     public static class ConfigurationCacheQuietOption extends BooleanBuildOption<StartParameterInternal> {
@@ -631,11 +597,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheQuiet(value);
-        }
-
-        @Override
-        protected void nagUserOfDeprecatedProperty() {
-            StartParameterBuildOptions.nagUserOfDeprecatedProperty(getGradleProperty(), getDeprecatedGradleProperty());
         }
     }
 }
