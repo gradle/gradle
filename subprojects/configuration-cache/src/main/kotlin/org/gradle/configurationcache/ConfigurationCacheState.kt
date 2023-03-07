@@ -84,14 +84,37 @@ import java.io.OutputStream
 
 
 internal
-enum class StateType {
-    Work, Model, Entry, BuildFingerprint, ProjectFingerprint, IntermediateModels, ProjectMetadata
+enum class StateType(val encryptable: Boolean = false) {
+    /**
+     * Contains the state for the entire build.
+     */
+    Work(true),
+    /**
+     * Contains the model objects sent back to the IDE in response to a TAPI request.
+     */
+    Model(true),
+    /**
+     * Contains the model objects queried by the IDE provided build action in order to calculate the model to send back.
+     */
+    IntermediateModels(true),
+    /**
+     * Contains the dependency resolution metadata for each project.
+     */
+    ProjectMetadata(false),
+    BuildFingerprint(true),
+    ProjectFingerprint(true),
+    /**
+     * The index file that points to all of these things
+     */
+    Entry(false)
 }
 
 
 internal
 interface ConfigurationCacheStateFile {
     val exists: Boolean
+    val stateType: StateType
+    val stateFile: ConfigurationCacheStateStore.StateFile
     fun outputStream(): OutputStream
     fun inputStream(): InputStream
     fun delete()
