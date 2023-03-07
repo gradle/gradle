@@ -243,6 +243,8 @@ Previously, it sought to acquire enough memory to satisfy the minimum heap requi
 Gradle now attempts to acquire enough memory to satisfy the new process's _maximum_ heap requirements.
 This causes the physical memory management to be more aggressive when starting up new processes, and in many cases, will result in better overall memory usage.
 
+See [the userguide](userguide/build_environment.html#sec:configuring_jvm_memory) for more information on configuring JVM memory options.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
