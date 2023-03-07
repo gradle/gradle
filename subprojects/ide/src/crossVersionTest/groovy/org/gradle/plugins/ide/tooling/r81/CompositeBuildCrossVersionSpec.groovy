@@ -25,7 +25,8 @@ import org.gradle.tooling.model.gradle.GradleBuild
 @ToolingApiVersion(">=8.1")
 @TargetGradleVersion('>=8.1')
 class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
-    def "includes buildSrc builds of plugin builds"() {
+
+    def "buildTreePath on GradleBuild/BasicGradleProject"() {
         includedBuild("b1")
         includedBuild("b2")
 
@@ -42,15 +43,6 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         model.projects.first().buildTreePath == ":"
     }
 
-
-
-    void multiProjectBuildSrc(TestFile dir) {
-        dir.file("buildSrc/settings.gradle") << """
-            include("a")
-            include("b")
-        """
-    }
-
     TestFile includedBuild(String build) {
         settingsFile << """
             includeBuild("$build")
@@ -61,4 +53,21 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         settings << "rootProject.name = '$build-root-name'"
         buildDir
     }
+
+    def "includes buildTreePath on tasks"() {
+        includedBuild("b1")
+        includedBuild("b2")
+
+        given:
+        def model = withConnection {
+            it.action(new FetchTasksAction()).run();
+        }.collect{ it.buildTreePath }
+
+
+        expect:
+
+        model.containsAll([":b1:buildEnvironment", ":b2:buildEnvironment"])
+        model.every { !it.startsWith("::") }
+    }
+
 }
