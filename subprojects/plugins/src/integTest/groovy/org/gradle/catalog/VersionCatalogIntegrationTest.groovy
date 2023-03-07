@@ -261,15 +261,16 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
         buildFile << """
             catalog {
                 versionCatalog {
-                    library("my-lib", "org:foo:1.0")
-                    library("my-bar", "org:bar")
+                    library("my-lib1", "org:lib1:1.0")
+                    library("my-lib2", "org:lib2")
+                    library("my-lib3", "org", "lib3").withoutVersion()
                     library("junit4", "junit", "junit").version {
                         require "[4.13.1, 5["
                         prefer "4.13.1"
                     }
                     version("lib", "1.1")
                     library("other", "org", "bar").versionRef("lib")
-                    bundle("test", ["my-lib", "junit4"])
+                    bundle("test", ["my-lib1", "junit4"])
                     plugin("greeter", "org.greeter").version("1.5")
                     plugin("bye", "org.bye").versionRef("lib")
                 }

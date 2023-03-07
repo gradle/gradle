@@ -324,8 +324,13 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         String normalizedAlias = normalizeAndValidateAlias(AliasType.LIBRARY, alias);
 
         String[] coordinates = groupArtifactVersion.split(":");
-        if (coordinates.length == 3) {
-            objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, coordinates[0], coordinates[1]).version(coordinates[2]);
+        if (coordinates.length >= 2 && coordinates.length <= 3) {
+            DefaultLibraryAliasBuilder builder = objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, coordinates[0], coordinates[1]);
+            if (coordinates.length == 3) {
+                builder.version(coordinates[2]);
+            } else {
+                builder.withoutVersion();
+            }
         } else {
             throwVersionCatalogProblem(VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION, spec ->
                     spec.withShortDescription(() -> "On alias '" + alias + "' notation '" + groupArtifactVersion + "' is not a valid dependency notation")

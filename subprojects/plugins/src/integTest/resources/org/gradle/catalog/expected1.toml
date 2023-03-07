@@ -9,11 +9,13 @@ lib = "1.1"
 
 [libraries]
 junit4 = {group = "junit", name = "junit", version = { prefer = "4.13.1", require = "[4.13.1, 5[" } }
-my-lib = {group = "org", name = "foo", version = "1.0" }
+my-lib1 = {group = "org", name = "lib1", version = "1.0" }
+my-lib2 = {group = "org", name = "lib2", version = "" }
+my-lib3 = {group = "org", name = "lib3", version = "" }
 other = {group = "org", name = "bar", version.ref = "lib" }
 
 [bundles]
-test = ["my-lib", "junit4"]
+test = ["my-lib1", "junit4"]
 
 [plugins]
 bye = {id = "org.bye", version.ref = "lib" }
