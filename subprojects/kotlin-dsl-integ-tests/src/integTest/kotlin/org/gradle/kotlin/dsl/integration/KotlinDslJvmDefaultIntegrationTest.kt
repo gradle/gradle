@@ -99,7 +99,7 @@ class KotlinDslJvmDefaultIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `kotlin-dsl java and groovy consumers can use kotlin interface default methods directly`() {
 
-        withSettings(
+        file("settings.gradle.kts").appendText(
             """
             include("kotlin-dsl-producer")
             include("java-consumer")
