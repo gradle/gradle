@@ -294,7 +294,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation $frameworkDeps
+                $frameworkDeps
             }
 
             test {
@@ -308,8 +308,8 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         where:
         frameworkName       | useMethod                 | frameworkDeps
-        "JUnit"             | "useJUnit()"              | "'junit:junit:${NEWEST}'"
-        "JUnit Platform"    | "useJUnitPlatform()"      | "'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'"
+        "JUnit"             | "useJUnit()"              | "testImplementation 'junit:junit:${NEWEST}'"
+        "JUnit Platform"    | "useJUnitPlatform()"      | "testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'\ntestRuntimeOnly 'org.junit.platform:junit-platform-launcher'"
     }
 
     def "options can be set prior to setting same test framework for the default test task"() {
@@ -386,6 +386,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             }
 
             test {

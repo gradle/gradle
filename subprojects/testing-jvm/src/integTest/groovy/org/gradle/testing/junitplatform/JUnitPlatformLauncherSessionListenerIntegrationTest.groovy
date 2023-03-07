@@ -80,6 +80,7 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
         file("src/test/java/com/example/MyTest.java") << "package com.example; public class MyTest {} "
 
         when:
+        executer.expectDocumentedDeprecationWarning("The automatic loading of test framework implementation dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Declare the desired test framework directly on the test suite or explicitly declare the test framework implementation dependencies on the test's runtime classpath. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_framework_implementation_dependencies")
         succeeds "test"
 
         then:
