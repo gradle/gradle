@@ -667,7 +667,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         if (warningMessage) {
-            output.contains(warningMessage)
+            assert output.contains(warningMessage)
         }
 
         where:
