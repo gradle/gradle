@@ -201,6 +201,8 @@ class Codecs(
             bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
 
             bind(BeanSpecCodec)
+
+            bind(RegisteredFlowActionCodec)
         }
 
         userTypesBindings = makeUserTypeBindings {
