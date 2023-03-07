@@ -18,8 +18,6 @@ package org.gradle.api.internal.artifacts.configurations
 
 import spock.lang.Specification
 
-import static UsageDescriber.*
-
 class ConfigurationRoleSpec extends Specification {
     def "can find predefined role #role"() {
         expect:
@@ -61,7 +59,7 @@ class ConfigurationRoleSpec extends Specification {
 
         then:
         customRole !in ConfigurationRoles.values()
-        customRole.name == DEFAULT_CUSTOM_ROLE_NAME
+        customRole.name == UsageDescriber.DEFAULT_CUSTOM_ROLE_NAME
 
         where:
         consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
@@ -121,7 +119,7 @@ class ConfigurationRoleSpec extends Specification {
     }
 
     private String deprecatedFor(String usage) {
-        return usage + describeDeprecation(true)
+        return usage + UsageDescriber.describeDeprecation(true)
     }
 
     private void assertDescriptionContains(ConfigurationRole role, List<String> usages) {
