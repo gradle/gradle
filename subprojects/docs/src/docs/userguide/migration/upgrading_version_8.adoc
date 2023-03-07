@@ -49,26 +49,24 @@ This is a potentially breaking change if you are consuming the console output of
 
 === Deprecations
 
-[[custom_configuration_roles]]
-==== Custom configuration roles
-
-// TODO: There is currently no API for users to provide "custom roles" or even
-// any roles at all other than the existing role-mutating methods. We should revisit
-// this deprecation log and section when we introduce a public API for creating
-// locked-role configurations.
-
-Custom roles have been deprecated.
-Use a pre-defined role instead.
-
 [[configurations_allowed_usage]]
-==== Allowed configurations usage
+==== Mutating core plugin configuration usage
 
-The usage of configurations should be fixed at creation.
-Mutating the allowed usage on a configuration is deprecated.
+The allowed usage of a configuration should be immutable after creation.
+Mutating the allowed usage on a configuration created by a Gradle core plugin is deprecated.
 This includes calling any of the following `Configuration` methods:
 
 - `setCanBeConsumed(boolean)`
 - `setCanBeResolved(boolean)`
+
+These methods now emit deprecation warnings on these configurations, except for certain special cases which make allowances for the existing behavior of popular plugins.
+This rule does not yet apply to detached configurations or configurations created
+in buildscripts and third-party plugins.
+Calling `setCanBeConsumed(false)` on `apiElements` or `runtimeElements`
+is not yet deprecated in order to avoid warnings that would be otherwise emitted when
+using select popular third-party plugins.
+
+This change is part of a larger ongoing effort to make the intended behavior of configurations more consistent and predictable, and to unlock further speed and memory improvements in this area of Gradle.
 
 The ability to change the allowed usage of a configuration after creation will be removed in Gradle 9.0.
 
@@ -101,19 +99,20 @@ intended for internal use and was never intended to be used as part of the publi
 Starting in Gradle 9.0, this method will be removed without replacement.
 
 [[test_task_default_classpath]]
-==== Relying on Test task default testClassesDirs and classpath
+==== Relying on conventions for custom Test tasks
 
-By default, when applying the `JavaPlugin`, standalone `Test` tasks are configured such that their `testClassesDirs`
-and `classpath` mirror the corresponding values in the default `test` `TestSuite`. This behavior will be removed
-in Gradle 9.0.
+By default, when applying the link:java_plugin.html[`java`] plugin, the `testClassesDirs`
+and `classpath` of all `Test` tasks have the same convention. Unless otherwise changed,
+the default behavior is to execute the tests from the default `test` link:jvm_test_suite_plugin.html[`TestSuite`]
+by configuring the task with the `classpath` and `testClassesDirs` from the `test` suite.
+This behavior will be removed in Gradle 9.0.
 
-For most use cases, this existing default behavior is unnecessary, since most standalone test
-tasks are used to model separate test suites and thus run a separate set of tests than those
-of the default test task. For more information on how to properly configure a standalone test task
-to compile and run against a separate set of tests, see link:https://docs.gradle.org/current/userguide/java_testing.html#sec:configuring_java_integration_tests[Configuring integration tests].
+While this existing default behavior is correct for the use case of executing the default unit
+test suite under a different environment, it does not support the use case of executing
+an entirely separate set of tests.
 
-However, this existing default behavior can be restored for a given
-test named `myTestTask` with the following code:
+If you wish to continue including these tests, use the following code to avoid the deprecation warning in 8.1
+and prepare for the behavior change in 9.0. Alternatively, consider migrating to test suites.
 
 ====
 [.multi-language-sample]
@@ -121,9 +120,10 @@ test named `myTestTask` with the following code:
 .build.gradle.kts
 [source,kotlin]
 ----
+val test by testing.suites.existing(JvmTestSuite::class)
 tasks.named<Test>("myTestTask") {
-    testClassesDirs = tasks.test.get().testClassesDirs
-    classpath = tasks.test.get().classpath
+    testClassesDirs = files(test.map { it.sources.output.classesDirs })
+    classpath = files(test.map { it.sources.runtimeClasspath })
 }
 ----
 =====
@@ -133,8 +133,8 @@ tasks.named<Test>("myTestTask") {
 [source,groovy]
 ----
 tasks.myTestTask {
-    testClassesDirs = tasks.test.testClassesDirs
-    classpath = tasks.test.classpath
+    testClassesDirs = testing.suites.test.sources.output.classesDirs
+    classpath = testing.suites.test.sources.runtimeClasspath
 }
 ----
 =====
@@ -243,7 +243,7 @@ Please only use `versions` or `plugins` from dependency version catalogs in the 
 [[validate_plugins_without_java_toolchain]]
 ==== Using `ValidatePlugins` task without a Java Toolchain
 
-Using a task of type link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins] without applying the link:https://docs.gradle.org/current/userguide/toolchains.html[Java Toolchains] plugin is deprecated, and will become an error in Gradle 9.0.
+Using a task of type link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins] without applying the link:toolchains.html[Java Toolchains] plugin is deprecated, and will become an error in Gradle 9.0.
 
 To avoid this warning, please apply the plugin to your project:
 
@@ -270,7 +270,7 @@ plugins {
 =====
 ====
 
-The Java Toolchains plugin is applied automatically by the link:https://docs.gradle.org/current/userguide/java_plugin.html[Java plugin],
+The Java Toolchains plugin is applied automatically by the link:java_plugin.html[Java plugin],
 so you can also apply it to your project and it will fix the warning.
 
 [[org_gradle_util_reports_deprecations]]
@@ -312,7 +312,7 @@ Please use standard locations for settings and build files:
 [[disabling_user_home_cache_cleanup]]
 ==== Deprecated org.gradle.cache.cleanup property
 
-The `org.gradle.cache.cleanup` property in `gradle.properties` under Gradle user home has been deprecated.  Please use the link:https://docs.gradle.org/current/userguide/directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[cache cleanup DSL] instead to disable or modify the cleanup configuration.
+The `org.gradle.cache.cleanup` property in `gradle.properties` under Gradle user home has been deprecated.  Please use the <<directory_layout#dir:gradle_user_home:configure_cache_cleanup,cache cleanup DSL>> instead to disable or modify the cleanup configuration.
 
 Since the `org.gradle.cache.cleanup` property may still be needed for older versions of Gradle, this property may still be present and no deprecation warnings will be printed as long as it is also configured via the DSL.
 The DSL value will always take preference over the `org.gradle.cache.cleanup` property.
@@ -365,6 +365,11 @@ beforeSettings {
 ----
 =====
 ====
+
+[no_relative_paths_for_java_executables]
+==== Deprecated using relative paths to specify Java executables
+Using relative file paths to point to Java executables is now deprecated and will become an error in Gradle 9.
+This is done to reduce confusion about what such relative paths should resolve against.
 
 === Changes in the IDE integration
 

@@ -17,6 +17,8 @@
 package org.gradle.api.services;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Optional;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -25,7 +27,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * <p>Marks a task property as being a holder to a {@link BuildService}</p>.
+ * <p>Marks a task property as being a holder to a {@link BuildService}.</p>
+ *
+ * <p>
+ * When you annotate a shared build service property with this annotation,
+ * there is no need to explicitly declare the association between the task and the service;
+ * also, if you provide a service name to the annotation, and a shared build service is
+ * registered with that name, it will be automatically assigned to the property when the
+ * task is created.
+ * </p>
+ * <p>
+ * It is an error to apply this annotation to a property whose type is not a subtype of {@link BuildService}.
+ * </p>
  *
  * @since 8.0
  */
@@ -35,7 +48,23 @@ import java.lang.annotation.Target;
 @Incubating
 public @interface ServiceReference {
     /**
-     * The optional name of the service which the annotated element references.
+     * <p>The optional name of the service which the annotated element references.</p>
+     *
+     * <p>
+     * In case a service name is provided, if a shared build service is registered with that name,
+     * a provider to the service will be automatically assigned to the property.
+     * </p>
+     * <p>
+     * If a shared build service with the specified name is not found, and no value or convention
+     * is explicitly set on the property:
+     * </p>
+     * <ul>
+     * <li>if the property is optional, an exception will only occur if an attempt is made to obtain the value of the property (see {@link Property#get()});</li>
+     * <li>if the property is mandatory, before the task starts executing, a validation error will be issued.</li>
+     * </ul>
+     *
+     * @see Optional
+     * @see Property#get()
      */
     String value() default "";
 }

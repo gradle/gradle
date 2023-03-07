@@ -110,6 +110,23 @@ class GroovyLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
+        when:
+        run('init', '--type', 'groovy-library', '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        gradlePropertiesGenerated()
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethod returns true")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
     def "source generation is skipped when groovy sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/groovy/org/acme/SampleMain.groovy") << """

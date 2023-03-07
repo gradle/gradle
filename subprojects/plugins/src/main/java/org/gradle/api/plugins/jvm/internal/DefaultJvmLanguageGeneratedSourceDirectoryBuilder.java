@@ -22,7 +22,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
-import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
@@ -110,7 +110,7 @@ public class DefaultJvmLanguageGeneratedSourceDirectoryBuilder implements JvmLan
     }
 
     private static boolean isClassesTask(Task t) {
-        return JavaPlugin.CLASSES_TASK_NAME.equals(t.getName());
+        return JvmConstants.CLASSES_TASK_NAME.equals(t.getName());
     }
 
     @Override

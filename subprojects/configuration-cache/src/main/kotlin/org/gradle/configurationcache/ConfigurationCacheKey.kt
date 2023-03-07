@@ -71,6 +71,20 @@ class ConfigurationCacheKey(
         }
 
         putBoolean(startParameter.isOffline)
+        putBuildScan()
+    }
+
+    private
+    fun Hasher.putBuildScan() {
+        putByte(
+            startParameter.run {
+                when {
+                    isNoBuildScan -> 0
+                    isBuildScan -> 1
+                    else -> 3
+                }
+            }
+        )
     }
 
     private

@@ -76,15 +76,34 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
 
         when:
         run ('init', '--type', 'java-application', '--dsl', scriptDsl.id, '--incubating')
+
         then:
         subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_APP_CLASS)
         subprojectDir.file("src/test/java").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+
         and:
         commonJvmFilesGenerated(scriptDsl)
         dslFixture.assertHasTestSuite("test")
 
         when:
         run('test')
+        then:
+        assertTestPassed("some.thing.AppTest", "appHasAGreeting")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
+        when:
+        run ('init', '--type', 'java-application', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        gradlePropertiesGenerated()
+
+        when:
+        succeeds('test')
+
         then:
         assertTestPassed("some.thing.AppTest", "appHasAGreeting")
 

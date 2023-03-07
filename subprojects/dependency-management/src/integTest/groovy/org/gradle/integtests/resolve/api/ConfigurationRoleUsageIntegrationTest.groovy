@@ -19,8 +19,9 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 
-class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
+class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
     // region Roleless (Implicit LEGACY Role) Configurations
     def "default usage for roleless configuration is to allow anything"() {
         given:
@@ -89,16 +90,14 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         assertUsageLockedFailure('custom')
     }
 
-    def "can prevent usage mutation of roleless configuration #configuration added by java plugin meant for consumption"() {
+    def "can prevent usage mutation of roleless configuration meant for consumption"() {
         given:
         buildFile << """
-            plugins {
-                id 'java'
-            }
-
             configurations {
-                $configuration {
-                    assert canBeConsumed == true
+                testConf {
+                    canBeConsumed = true
+                    canBeResolved = false
+                    canBeDeclaredAgainst = false
                     preventUsageMutation()
                     canBeConsumed = false
                 }
@@ -109,10 +108,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         fails 'help'
 
         and:
-        assertUsageLockedFailure(configuration)
-
-        where:
-        configuration << ['runtimeElements', 'apiElements']
+        assertUsageLockedFailure('testConf')
     }
 
     def "can prevent usage mutation of roleless configuration #configuration added by java plugin meant for resolution"() {
@@ -170,6 +166,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectConsumableChanging(':buildSrc:implementation', true)
+        expectResolvableChanging(':buildSrc:implementation', true)
+        expectDeclarableAgainstChanging(':buildSrc:implementation', false)
         succeeds 'myTask'
     }
 
@@ -209,6 +208,12 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectConsumableChanging(':projectA:implementation', true)
+        expectResolvableChanging(':projectA:implementation', true)
+        expectDeclarableAgainstChanging(':projectA:implementation', false)
+        expectConsumableChanging(':projectB:implementation', true)
+        expectResolvableChanging(':projectB:implementation', true)
+        expectDeclarableAgainstChanging(':projectB:implementation', false)
         succeeds 'help'
     }
     // endregion Roleless (Implicit LEGACY Role) Configurations
@@ -242,6 +247,31 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         'bucket'                | "bucket('custom')"                || false       | false         | true              | false                 | false                 | false
         'deprecated consumable' | "deprecatedConsumable('custom')"  || true        | true          | true              | false                 | true                  | true
         'deprecated resolvable' | "deprecatedResolvable('custom')"  || true        | true          | true              | true                  | false                 | true
+    }
+
+    def "can prevent usage mutation of role-based configuration #configuration added by java plugin meant for consumption"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            configurations {
+                $configuration {
+                    assert canBeConsumed == true
+                    preventUsageMutation()
+                    canBeConsumed = false
+                }
+            }
+        """
+
+        expect:
+        fails 'help'
+
+        and:
+        assertUsageLockedFailure(configuration, 'Intended Consumable')
+
+        where:
+        configuration << ['runtimeElements', 'apiElements']
     }
 
     def "can prevent usage mutation of role-based configuration #role"() {
@@ -439,9 +469,10 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
                 def c2 = createWithRole('c2', ConfigurationRoles.INTENDED_CONSUMABLE)
                 def c3 = createWithRole('c3', ConfigurationRoles.INTENDED_RESOLVABLE)
                 def c4 = createWithRole('c4', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)
-                def c5 = createWithRole('c5', ConfigurationRoles.INTENDED_BUCKET)
-                def c6 = createWithRole('c6', ConfigurationRoles.DEPRECATED_CONSUMABLE)
-                def c7 = createWithRole('c7', ConfigurationRoles.DEPRECATED_RESOLVABLE)
+                def c5 = createWithRole('c5', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)
+                def c6 = createWithRole('c6', ConfigurationRoles.INTENDED_BUCKET)
+                def c7 = createWithRole('c7', ConfigurationRoles.DEPRECATED_CONSUMABLE)
+                def c8 = createWithRole('c8', ConfigurationRoles.DEPRECATED_RESOLVABLE)
             }
 
             configurations.all {
@@ -452,6 +483,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.noDeprecationChecks() // These are checked in the other tests, and there would be many of them here
         succeeds 'help'
     }
 
@@ -475,20 +507,96 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
     }
     // endregion Role-Based Configurations
 
-    // region Logging
-    def "changing usage is logged as deprecation if requested for #usageName"() {
-        given:
+    // region Warnings
+    def "changing usage for configuration #configuration produces warnings"() {
+        given: "a buildscript which attempts to change a configuration's usage"
         buildFile << """
+            plugins {
+                id 'java-library'
+            }
+        
             configurations {
-                def custom = consumable('custom')
-                assert !custom.canBeResolved
-                custom.setWarnOnChangingUsage(true)
-                custom.canBeResolved = true
+                $configuration {
+                    canBeResolved = !canBeResolved
+                }
+            }
+        """
+
+        expect: "the build succeeds and a deprecation warning is logged"
+        expectResolvableChanging(":$configuration", true)
+        succeeds 'help'
+
+        where: "a non-exhaustive list of configurations is tested"
+        configuration << ['api', 'implementation', 'compileOnly', 'runtimeOnly', 'archives']
+    }
+
+    /**
+     * This test ensures that the Kotlin plugin will not emit deprecation warnings when it prevents these configurations created by the
+     * Java plugin from being consumed.
+     *
+     * @see <a href="https://github.com/JetBrains/kotlin/blob/4be359ba02fba4c5539ba50392126b5367fa9169/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/jvm/KotlinJvmTarget.kt#L101">KotlinJvmTarget.kt</a>
+     */
+    def "setting consumable = false is permitted without warning for special cases to support Kotlin plugin (can change #configuration usage without warning = #allowed)"() {
+        given: "a buildscript which attempts to change a configuration's usage"
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+        
+            configurations {
+                $configuration {
+                    assert canBeConsumed
+                    canBeConsumed = false
+                }
+            }
+        """
+
+        expect: "the build succeeds and a deprecation warning is logged if the configuration is not allowed to change"
+        if (!allowed) {
+            expectConsumableChanging(":$configuration", false)
+        }
+        succeeds 'help'
+
+        where: "a non-exhaustive list of configurations is tested"
+        configuration           || allowed
+        'apiElements'           || true
+        'runtimeElements'       || true
+        'mainSourceElements'    || false
+        'archives'              || false
+    }
+
+    def "changing consumable to true always warns for non-LEGACY configurations (can not change #configuration usage)"() {
+        given: "a buildscript which attempts to change a configuration's usage"
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+        
+            configurations {
+                $configuration {
+                    assert !canBeConsumed
+                    canBeConsumed = true
+                }
             }
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':custom', resolvable was false and is now true. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        expectConsumableChanging(":$configuration", true)
+        succeeds 'help'
+
+        where:
+        configuration << ['api', 'implementation', 'runtimeOnly', 'compileOnly', 'compileOnlyApi', 'runtimeClasspath', 'compileClasspath']
+    }
+
+    def "changing usage for custom configuration in the legacy role is allowed"() {
+        given:
+        buildFile << """
+            configurations.createWithRole('custom', org.gradle.api.internal.artifacts.configurations.ConfigurationRoles.LEGACY)
+            assert configurations.custom.canBeResolved
+            configurations.custom.canBeResolved = false
+        """
+
+        expect:
         succeeds 'help'
     }
 
@@ -530,7 +638,19 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDocumentedDeprecationWarning("The configuration implementation was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with this name. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
         succeeds 'help'
     }
-    // endregion Logging
+
+    def "changing usage on detached configurations does not warn"() {
+        given:
+        buildFile << """
+            def detached = project.configurations.detachedConfiguration()
+            assert detached.canBeResolved
+            detached.canBeResolved = false
+        """
+
+        expect:
+        run "help"
+    }
+    // endregion Warnings
 
     // region Custom Roles
     def "can create configuration with custom role"() {
