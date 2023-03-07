@@ -76,17 +76,17 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def ext = project.extensions.java
-        project.sourceCompatibility == JavaVersion.current()
-        project.targetCompatibility == JavaVersion.current()
+        project.java.sourceCompatibility == JavaVersion.current()
+        project.java.targetCompatibility == JavaVersion.current()
         ext.sourceCompatibility == JavaVersion.current()
         ext.targetCompatibility == JavaVersion.current()
 
         when:
-        project.sourceCompatibility = JavaVersion.VERSION_1_6
+        project.java.sourceCompatibility = JavaVersion.VERSION_1_6
 
         then:
-        project.sourceCompatibility == JavaVersion.VERSION_1_6
-        project.targetCompatibility == JavaVersion.VERSION_1_6
+        project.java.sourceCompatibility == JavaVersion.VERSION_1_6
+        project.java.targetCompatibility == JavaVersion.VERSION_1_6
         ext.sourceCompatibility == JavaVersion.VERSION_1_6
         ext.targetCompatibility == JavaVersion.VERSION_1_6
 
@@ -94,17 +94,17 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         ext.sourceCompatibility = JavaVersion.VERSION_1_8
 
         then:
-        project.sourceCompatibility == JavaVersion.VERSION_1_8
-        project.targetCompatibility == JavaVersion.VERSION_1_8
+        project.java.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.java.targetCompatibility == JavaVersion.VERSION_1_8
         ext.sourceCompatibility == JavaVersion.VERSION_1_8
         ext.targetCompatibility == JavaVersion.VERSION_1_8
 
         when:
-        project.targetCompatibility = JavaVersion.VERSION_1_7
+        project.java.targetCompatibility = JavaVersion.VERSION_1_7
 
         then:
-        project.sourceCompatibility == JavaVersion.VERSION_1_8
-        project.targetCompatibility == JavaVersion.VERSION_1_7
+        project.java.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.java.targetCompatibility == JavaVersion.VERSION_1_7
         ext.sourceCompatibility == JavaVersion.VERSION_1_8
         ext.targetCompatibility == JavaVersion.VERSION_1_7
 
@@ -112,8 +112,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         ext.targetCompatibility = JavaVersion.VERSION_1_6
 
         then:
-        project.sourceCompatibility == JavaVersion.VERSION_1_8
-        project.targetCompatibility == JavaVersion.VERSION_1_6
+        project.java.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.java.targetCompatibility == JavaVersion.VERSION_1_6
         ext.sourceCompatibility == JavaVersion.VERSION_1_8
         ext.targetCompatibility == JavaVersion.VERSION_1_6
     }
@@ -361,7 +361,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def compile = project.task('customCompile', type: JavaCompile)
-        compile.sourceCompatibility == project.sourceCompatibility.toString()
+        compile.sourceCompatibility == project.java.sourceCompatibility.toString()
 
         def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir

@@ -19,7 +19,7 @@ test {
 // end::configure-location-task[]
 
 // tag::configure-location-convention[]
-testResultsDirName = "$buildDir/junit-xml"
+java.testResultsDir = layout.buildDirectory.dir("junit-xml")
 // end::configure-location-convention[]
 
 // tag::configure-content[]
