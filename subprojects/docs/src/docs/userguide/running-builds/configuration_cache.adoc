@@ -208,7 +208,7 @@ They are deleted if they haven't been used for 7 days.
 === Encrypting the cache
 
 The configuration cache stores any data set up during the configuration phase.
-As such, if your build configuration includes any sort of sensitive information, you should ensure
+As such, if your build configuration includes any sensitive information, you should ensure
 your configuration cache is encrypted.
 
 For Gradle to be able to encrypt the data in the cache, you must provide Gradle with an AES 128-bit key
