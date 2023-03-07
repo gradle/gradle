@@ -14,6 +14,7 @@ We would like to thank the following community members for their contributions t
 [Björn Kautler](https://github.com/Vampire),
 [DJtheRedstoner](https://github.com/DJtheRedstoner),
 [Gabriel Feo](https://github.com/gabrielfeo)
+[JavierSegoviaCordoba](https://github.com/JavierSegoviaCordoba),
 [JayaKrishnan Nair K](https://github.com/jknair0),
 [kackey0-1](https://github.com/kackey0-1),
 [Martin Bonnin](https://github.com/martinbonnin),
