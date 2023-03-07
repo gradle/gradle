@@ -254,9 +254,19 @@ tasks.test {
 
 See the [Test.forkEvery](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery) property documentation for more information.
 
-### Build Init plugin incubating option changes
+### Other improvements
+
+#### Build Init plugin incubating option changes
 
 When using the `init` task with the `--incubating` option, [parallel project execution](userguide/multi_project_configuration_and_execution.html#sec:parallel_execution) and [task output caching](userguide/build_cache.html) will be enabled for the generated project (by creating a `gradle.properties` file and setting the appropriate flags in it).
+
+#### Easier consumption of Shared Build Services
+
+There is a new (incubating) [`@ServiceReference` annotation](userguide/build_services.html#sec:service_references) that makes it easier to consume shared build services. By annotating a property with `@ServiceReference`, 
+you no longer need to declare that your task uses a shared build service via `Task#usesService()`; and 
+if you also provide the name of the service in the annotation, a shared build service reference 
+is automaticaly assigned to the property. 
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
