@@ -239,7 +239,7 @@ When using the `init` task with the `--incubating` option, [parallel project exe
 The Codenarc plugin performs quality checks on your project’s Groovy source files using a static code analyzer. It now uses the Gradle worker API and JVM toolchains. 
 This tool now performs analysis via an external worker process, and its tasks may run in parallel within a single project.
 
-In Groovy projects, this tool will use the same version of Java required by the project. In other types of projects, it will use the same version of Java that is used by the Gradle daemon.
+In Groovy projects, this tool will use the same version of Java the project requires. In other types of projects, it will use the same version of Java used by the Gradle daemon.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
