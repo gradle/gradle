@@ -39,7 +39,7 @@ public interface Task extends Launchable {
      * Returns the path of this task within the build tree. This is a unique name for this task within the build tree.
      *
      * @return The path of this task in the build tree.
-     * @since 8.1
+     * @since 8.2
      */
     @Incubating
     String getBuildTreePath();

@@ -80,7 +80,7 @@ public interface BasicGradleProject extends Model, ProjectModel {
      *
      * @return a path to the project for the full build tree
      *
-     * @since 8.1
+     * @since 8.2
      */
     @Incubating
     String getBuildTreePath();
