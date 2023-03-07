@@ -38,6 +38,22 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
 
+=== Potential breaking changes
+
+==== Kotlin DSL scripts emit compilation warnings
+
+=== Deprecations
+
+[[deprecated_configuration_usage]]
+==== Using configurations incorrectly
+
+Gradle will now warn at runtime when methods are called on Configurations that are not consistent with their intended usage.
+
+This change is part of a larger ongoing effort to make the intended behavior of configurations more consistent and predictable, and to unlock further speed and memory improvements in this area of Gradle.
+
+Starting in Gradle 9.0, using a configuration inconsistently with its intended usage will be prohibited.
+
+TODO: MORE GENERAL ADVICE ON CREATING NEW EXTENDING CONFIGURATIONS, ETC.???
 
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
