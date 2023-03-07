@@ -23,6 +23,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Annotation defining a set of requirements.
+ * These requirements should be met per test-class or method, or else the test is ignored.
+ *
+ * <p>
+ * Combinations are pre-defined. See {@link RequiresExtension} for more info how to introduce a new combination.
+ *
+ * @see RequiresExtension
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Inherited
