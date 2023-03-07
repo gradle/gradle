@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
@@ -42,7 +43,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     private final DependencyMetaDataProvider metadataProvider;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final LocalComponentMetadataBuilder localComponentMetadataBuilder;
+    private final LocalConfigurationMetadataBuilder configurationMetadataBuilder;
     private final ConfigurationsProvider configurationsProvider;
     private final MetadataHolder holder;
     private final ProjectStateRegistry projectStateRegistry;
@@ -56,7 +57,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         DependencyMetaDataProvider metadataProvider,
         ComponentIdentifierFactory componentIdentifierFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        LocalComponentMetadataBuilder localComponentMetadataBuilder,
+        LocalConfigurationMetadataBuilder configurationMetadataBuilder,
         ConfigurationsProvider configurationsProvider,
         ProjectStateRegistry projectStateRegistry,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
@@ -65,12 +66,12 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         this.metadataProvider = metadataProvider;
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.localComponentMetadataBuilder = localComponentMetadataBuilder;
+        this.configurationMetadataBuilder = configurationMetadataBuilder;
         this.configurationsProvider = configurationsProvider;
         this.projectStateRegistry = projectStateRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.factory = factory;
-        this.holder = new MetadataHolder(configurationsProvider);
+        this.holder = new MetadataHolder();
     }
 
     @Override
@@ -103,15 +104,13 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     }
 
     private LocalComponentMetadata getRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, AttributesSchemaInternal schema, ModelContainer<?> model) {
-        DefaultLocalComponentMetadata metadata = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, model, calculatedValueContainerFactory);
-        for (ConfigurationInternal configuration : configurationsProvider.getAll()) {
-            addConfiguration(metadata, configuration);
-        }
-        return metadata;
-    }
+        DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory configurationMetadataFactory =
+            new DefaultLocalComponentMetadata.ConfigurationsProviderMetadataFactory(
+                configurationsProvider, configurationMetadataBuilder, model, calculatedValueContainerFactory);
 
-    private void addConfiguration(DefaultLocalComponentMetadata metadata, ConfigurationInternal configuration) {
-        localComponentMetadataBuilder.addConfiguration(metadata, configuration);
+        configurationsProvider.getAll().forEach(ConfigurationInternal::preventFromFurtherMutation);
+
+        return new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, configurationMetadataFactory, null);
     }
 
     @Override
@@ -130,28 +129,16 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
     private static class MetadataHolder implements MutationValidator {
         private LocalComponentMetadata cachedValue;
-        private final ConfigurationsProvider configurationsProvider;
-
-        private MetadataHolder(ConfigurationsProvider configurationsProvider) {
-            this.configurationsProvider = configurationsProvider;
-        }
 
         @Override
         public void validateMutation(MutationType type) {
-            if (type == MutationType.DEPENDENCIES || type == MutationType.ARTIFACTS || type == MutationType.DEPENDENCY_ATTRIBUTES) {
+            if (type == MutationType.DEPENDENCIES || type == MutationType.ARTIFACTS ||
+                type == MutationType.DEPENDENCY_ATTRIBUTES || type == MutationType.USAGE ||
+                type == MutationType.HIERARCHY
+            ) {
                 if (cachedValue != null) {
-                    if (cachedValue.getConfigurationNames().size() != configurationsProvider.size()) {
-                        // The number of configurations in the project has changed, so we need to regenerate the root component metadata
-                        cachedValue = null;
-                    } else {
-                        cachedValue.reevaluate();
-                    }
+                    cachedValue.reevaluate();
                 }
-            } else if (type == MutationType.HIERARCHY) {
-                // The hierarchy is provided to the configuration metadata on construction. Since it is not
-                // computed lazily, there is no lazy value to invalidate. Thus, we need to recompute the
-                // entire component in order to reconstruct new configuration metadatas with new hierarchy values.
-                cachedValue = null;
             }
         }
 
@@ -175,7 +162,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         private final DependencyMetaDataProvider metaDataProvider;
         private final ComponentIdentifierFactory componentIdentifierFactory;
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-        private final LocalComponentMetadataBuilder localComponentMetadataBuilder;
+        private final LocalConfigurationMetadataBuilder configurationMetadataBuilder;
         private final ProjectStateRegistry projectStateRegistry;
         private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
@@ -184,14 +171,14 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
             DependencyMetaDataProvider metaDataProvider,
             ComponentIdentifierFactory componentIdentifierFactory,
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-            LocalComponentMetadataBuilder localComponentMetadataBuilder,
+            LocalConfigurationMetadataBuilder configurationMetadataBuilder,
             ProjectStateRegistry projectStateRegistry,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
             this.metaDataProvider = metaDataProvider;
             this.componentIdentifierFactory = componentIdentifierFactory;
             this.moduleIdentifierFactory = moduleIdentifierFactory;
-            this.localComponentMetadataBuilder = localComponentMetadataBuilder;
+            this.configurationMetadataBuilder = configurationMetadataBuilder;
             this.projectStateRegistry = projectStateRegistry;
             this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         }
@@ -201,7 +188,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
                 metaDataProvider,
                 componentIdentifierFactory,
                 moduleIdentifierFactory,
-                localComponentMetadataBuilder,
+                configurationMetadataBuilder,
                 configurationsProvider,
                 projectStateRegistry,
                 calculatedValueContainerFactory,

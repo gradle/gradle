@@ -85,8 +85,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         };
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(this);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
-        this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.discardAll());
-        this.whenObjectRemoved(x -> rootComponentMetadataBuilder.discardAll());
+        this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
+        this.whenObjectRemoved(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
     }
 
     @Override
@@ -97,6 +97,11 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public Set<? extends ConfigurationInternal> getAll() {
         return stream().map(ConfigurationInternal.class::cast).collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    @Override
+    public ConfigurationInternal findByName(String name) {
+        return (ConfigurationInternal) super.findByName(name);
     }
 
     @Override
