@@ -241,6 +241,8 @@ This tool now performs analysis via an external worker process, and its tasks ma
 
 In Groovy projects, this tool will use the same version of Java the project requires. In other types of projects, it will use the same version of Java used by the Gradle daemon.
 
+For more details, see the [user manual](userguide/codenarc_plugin.html).
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
