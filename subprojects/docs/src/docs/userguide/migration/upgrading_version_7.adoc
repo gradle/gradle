@@ -99,7 +99,7 @@ Previously, each time the framework was set, it would cause the framework option
 The following code now results in both the "foo" and "bar" tags to be included for the `test` task:
 ```
 test {
-   useJUnitPlatform() {
+   useJUnitPlatform {
         includeTags("foo")
    }
 }
