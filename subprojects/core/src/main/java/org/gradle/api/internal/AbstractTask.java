@@ -1050,7 +1050,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private void notifyConventionAccess(String invocationDescription) {
         if (state.getExecuting()) {
-            getTaskExecutionAccessBroadcaster().onConventionAccess(invocationDescription, this);
+            taskExecutionAccessChecker.notifyConventionAccess(this, invocationDescription);
         }
     }
 

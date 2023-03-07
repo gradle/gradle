@@ -55,6 +55,15 @@ class DeprecatedFeaturesListener(
         }
     }
 
+    override fun onConventionAccess(invocationDescription: String, task: TaskInternal) {
+        if (isStableConfigurationCacheEnabled()) {
+            DeprecationLogger.deprecateAction("Invocation of $invocationDescription at execution time")
+                .willBecomeAnErrorInGradle9()
+                .withUpgradeGuideSection(7, "task_convention")
+                .nagUser()
+        }
+    }
+
     private
     fun isStableConfigurationCacheEnabled(): Boolean =
         featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
