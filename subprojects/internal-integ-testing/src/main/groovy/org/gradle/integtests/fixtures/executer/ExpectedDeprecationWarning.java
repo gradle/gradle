@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.base.Preconditions;
+
 import java.util.List;
 
 /**
@@ -29,8 +31,9 @@ public final class ExpectedDeprecationWarning {
     private final int numLines;
 
     public ExpectedDeprecationWarning(String message) {
+        Preconditions.checkArgument(message != null && !message.isEmpty(), "message must not be null or empty");
         this.message = message;
-        this.numLines = Math.max(1, message.split("\n").length);
+        this.numLines = message.split("\n").length;
     }
 
     /**
