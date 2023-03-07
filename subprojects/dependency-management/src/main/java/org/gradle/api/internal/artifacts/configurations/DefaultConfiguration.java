@@ -578,7 +578,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public boolean contains(File file) {
-        maybeWarnOnDeprecatedUsage("contains", ProperMethodUsage.RESOLVABLE);
+        maybeWarnOnDeprecatedUsage("contains(File)", ProperMethodUsage.RESOLVABLE);
         return intrinsicFiles.contains(file);
     }
 
