@@ -182,7 +182,6 @@ project(':c') {
         jarsNotBuilt 'a', 'b', 'c'
     }
 
-    @ToBeFixedForConfigurationCache(because = "test can't handle parallel task execution")
     @IgnoreIf({GradleContextualExecuter.parallel})  // 'c' + 'd' _may_ be built with parallel executer
     def "project dependency a->[b,c] and c->d and b fails"() {
         projectDependency from: 'a', to: ['b', 'c']
