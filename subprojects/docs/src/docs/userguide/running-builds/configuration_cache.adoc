@@ -224,7 +224,7 @@ One way is by using a command like this, which should work on Linux and Mac OS, 
 ```
 
 You can then use the key produced by that command (which is encoded as a Base64 string) and set it as the value of the
-`GRADLE_ENCRYPTION_KEY` environment variable however you prefer configuring environment variables in your OS.
+`GRADLE_ENCRYPTION_KEY` environment variable whichever way you prefer to configure environment variables in your OS.
 
 ==== Disabling encryption of the configuration cache
 
