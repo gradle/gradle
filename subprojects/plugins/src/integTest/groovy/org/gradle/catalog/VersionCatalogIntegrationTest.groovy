@@ -262,6 +262,7 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
             catalog {
                 versionCatalog {
                     library("my-lib", "org:foo:1.0")
+                    library("my-bar", "org:bar")
                     library("junit4", "junit", "junit").version {
                         require "[4.13.1, 5["
                         prefer "4.13.1"
