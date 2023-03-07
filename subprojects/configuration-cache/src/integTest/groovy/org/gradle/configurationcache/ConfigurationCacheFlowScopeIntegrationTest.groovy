@@ -166,7 +166,7 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
 
                 void apply($targetType target) {
                     flowScope.always(SetLavaLampColor) {
-                        parameters.color = flowProviders.requestedTasksResult.map {
+                        parameters.color = flowProviders.buildWorkResult.map {
                             it.failure.present ? 'red' : 'green'
                         }
                     }
@@ -296,7 +296,7 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
 
                 void apply($targetType target) {
                     flowScope.always(SetLavaLampColor) {
-                        parameters.color = flowProviders.requestedTasksResult.map {
+                        parameters.color = flowProviders.buildWorkResult.map {
                             it.failure.present ? 'red' : 'green'
                         }
                     }
@@ -378,7 +378,7 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
                     def lamp = target.gradle.sharedServices.registerIfAbsent('lamp', LavaLamp) {}
                     flowScope.always(SetLavaLampColor) {
                         ${namedAnnotation ? '' : 'parameters.lamp = lamp'}
-                        parameters.color = flowProviders.requestedTasksResult.map {
+                        parameters.color = flowProviders.buildWorkResult.map {
                             it.failure.present ? 'red' : 'green'
                         }
                     }
@@ -435,7 +435,7 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
 
         abstract class ResultSource implements ValueSource<String, Params> {
             interface Params extends ValueSourceParameters {
-                Property<RequestedTasksResult> getTasksResult();
+                Property<BuildWorkResult> getWorkResult();
             }
 
             @Override String obtain() {
@@ -450,7 +450,7 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
         def flowProviders = objects.newInstance(FlowProvidersGetter).flowProviders
 
         providers.of(ResultSource) {
-            parameters.tasksResult = flowProviders.requestedTasksResult
+            parameters.workResult = flowProviders.buildWorkResult
         }.get()
 
         """)
