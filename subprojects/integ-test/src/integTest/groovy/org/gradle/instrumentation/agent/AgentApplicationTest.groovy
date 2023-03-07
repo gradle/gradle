@@ -26,9 +26,9 @@ import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.util.TestPrecondition
 import org.gradle.test.fixtures.IntegTestPreconditions
 import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
-
 // This test doesn't live in :instrumentation-agent to avoid the latter being implicitly added to
 // the test runtime classpath as part of the main source set's output.
 // It is important to have the agent appended to the classpath of all integration tests.
@@ -69,7 +69,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(
-        value = IntegTestPreconditions.IsConfigCached,
+        IntegTestPreconditions.IsConfigCached,
         reason = "Agent injection is not implemented for non-daemon and embedded modes"
     )
     def "keeping agent status does not invalidate the configuration cache"() {
@@ -96,7 +96,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         agentStatus << [true, false]
     }
 
-    @Requires(value = IntegTestPreconditions.IsConfigCached, reason = "Tests the configuration cache behavior")
+    @Requires(IntegTestPreconditions.IsConfigCached, reason = "Tests the configuration cache behavior")
     def "changing agent status invalidates the configuration cache"() {
         def configurationCache = new ConfigurationCacheFixture(this)
         given:
@@ -124,7 +124,10 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         false              | true
     }
 
-    @Requires(value = IntegTestPreconditions.IsDaemonExecutor, reason = "Testing the daemons")
+    @Requires(
+        value = IntegTestPreconditions.IsDaemonExecutor,
+        reason = "Testing the daemons"
+    )
     def "daemon with the same agent status is reused"() {
         given:
         executer.requireIsolatedDaemons()
@@ -154,7 +157,10 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         false              | true                || false
     }
 
-    @Requires(value = { GradleContextualExecuter.embedded }, reason = "Tests the embedded distribution")
+    @Requires(
+        value = IntegTestPreconditions.IsEmbeddedExecutor,
+        reason = "Tests the embedded distribution"
+    )
     def "daemon spawned from embedded runner has agent enabled"() {
         given:
         executer.tap {
@@ -172,7 +178,10 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         agentWasApplied()
     }
 
-    @Requires(value = { TestPrecondition.JDK8_OR_EARLIER.fulfilled }, reason = "Java 9 and above needs --add-opens to make environment variable mutation work")
+    @Requires(
+        value = UnitTestPreconditions.Jdk8OrEarlier,
+        reason = "Java 9 and above needs --add-opens to make environment variable mutation work"
+    )
     def "foreground daemon respects the feature flag"() {
         given:
         executer.tap {
