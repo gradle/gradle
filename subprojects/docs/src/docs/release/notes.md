@@ -262,11 +262,15 @@ When using the `init` task with the `--incubating` option, [parallel project exe
 
 #### Easier consumption of Shared Build Services
 
-There is a new (incubating) [`@ServiceReference` annotation](userguide/build_services.html#sec:service_references) that makes it easier to consume shared build services. By annotating a property with `@ServiceReference`, 
-you no longer need to declare that your task uses a shared build service via `Task#usesService()`; and 
-if you also provide the name of the service in the annotation, a shared build service reference 
-is automaticaly assigned to the property. 
+There is a [new `@ServiceReference` annotation](userguide/build_services.html#sec:service_references) that makes it easier to consume shared build services. 
 
+By annotating a property with `@ServiceReference`, 
+you no longer need to remember to explicitly declare that your task uses a shared build service via `Task#usesService()`.
+
+If you also provide the name of the service in the annotation, you no longer need to obtain and assign a build service reference to the property explicitly; 
+if a service registration with the given name exists, the corresponding reference is automaticaly assigned to the property. 
+
+More details in the [Shared Build Services](userguide/build_services.html#sec:service_references) documentation.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
