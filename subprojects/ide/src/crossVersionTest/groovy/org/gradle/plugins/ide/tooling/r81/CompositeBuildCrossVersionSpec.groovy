@@ -22,8 +22,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.gradle.GradleBuild
 
-@ToolingApiVersion(">=8.1")
-@TargetGradleVersion('>=8.1')
+@ToolingApiVersion(">=8.2")
+@TargetGradleVersion('>=8.2')
 class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
 
     def "buildTreePath on GradleBuild/BasicGradleProject"() {
