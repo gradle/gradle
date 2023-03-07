@@ -37,7 +37,7 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
 
 
     public AbstractBuildOption(String gradleProperty) {
-        this(gradleProperty, (String) null, Collections.<V>emptyList());
+        this(gradleProperty, null, Collections.<V>emptyList());
     }
 
     public AbstractBuildOption(String gradleProperty, String deprecatedGradleProperty, V... commandLineOptionConfiguration) {
@@ -91,19 +91,13 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
         if (deprecatedGradleProperty != null) {
             value = properties.get(deprecatedGradleProperty);
             if (value != null) {
-                nagUserOfDeprecatedProperty();
                 return new OptionValue<String>(value, Origin.forGradleProperty(deprecatedGradleProperty));
             }
         }
         return new OptionValue<String>(null, null);
     }
 
-    protected void nagUserOfDeprecatedProperty() {
-        // not implemented here
-    }
-
-
-    protected class OptionValue<T> {
+    protected static class OptionValue<T> {
         private final T value;
         private final Origin origin;
 
