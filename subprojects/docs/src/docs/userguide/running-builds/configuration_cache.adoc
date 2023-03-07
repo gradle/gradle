@@ -212,15 +212,15 @@ As such, if your build configuration includes any sort of sensitive information,
 your configuration cache is encrypted.
 
 For Gradle to be able to encrypt the data in the cache, you must provide Gradle with an AES 128-bit key
-via the `GRADLE_ENCRYPTION_KEY` environment variable (see <<#sec:gradle_environment_variables, see Environment variables>>).
+via the `GRADLE_ENCRYPTION_KEY` environment variable (see <<build_environment.adoc#sec:gradle_environment_variables, see Environment variables>>).
 
 ==== Generating an encryption key that is compatible with GRADLE_ENCRYPTION_KEY
 
 There are many different ways of producing an encryption key that is compatible with Gradle.
-One way is by using a command like this, which should work on Linux and MacOSx, or even on Windows, if using a tool like Cygwin:
+One way is by using a command like this, which should work on Linux and Mac OS, or even on Windows, if using a tool like Cygwin:
 
 ```
-echo $(openssl enc -aes-128-cbc -k secret -P | grep key= | sed s/key=// | base64)
+❯ echo $(openssl enc -aes-128-cbc -k secret -P | grep key= | sed s/key=// | base64)
 ```
 
 You can then use the key produced by that command (which is encoded as a Base64 string) and set it as the value of the
