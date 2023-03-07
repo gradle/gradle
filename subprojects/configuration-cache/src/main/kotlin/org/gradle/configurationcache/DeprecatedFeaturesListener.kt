@@ -59,7 +59,7 @@ class DeprecatedFeaturesListener(
         if (isStableConfigurationCacheEnabled()) {
             DeprecationLogger.deprecateAction("Invocation of $invocationDescription at execution time")
                 .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(7, "task_convention")
+                .withUpgradeGuideSection(8, "task_convention")
                 .nagUser()
         }
     }
