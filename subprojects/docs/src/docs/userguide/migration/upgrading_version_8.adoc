@@ -51,7 +51,7 @@ Gradle will now warn at runtime when methods are called on Configurations that a
 
 This change is part of a larger ongoing effort to make the intended behavior of configurations more consistent and predictable, and to unlock further speed and memory improvements in this area of Gradle.
 
-The ability to use a configuration inconsistently with its intended usage will be removed in Gradle 9.0.
+Starting in Gradle 9.0, using a configuration inconsistently with its intended usage will be prohibited. 
 
 TODO: MORE GENERAL ADVICE ON CREATING NEW EXTENDING CONFIGURATIONS, ETC.???
 
