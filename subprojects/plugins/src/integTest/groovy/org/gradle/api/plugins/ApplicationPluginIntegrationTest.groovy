@@ -66,8 +66,10 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
     def "can generate starts script generation with custom user configuration"() {
         given:
         buildFile << """
-applicationName = 'myApp'
-applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name - ':'}"]
+application {
+    applicationName = 'myApp'
+    applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name - ':'}"]
+}
 """
 
         when:
@@ -266,7 +268,7 @@ dependencies {
     def "executables can be placed at the root of the distribution"() {
         given:
         buildFile << """
-executableDir = ''
+application.executableDir = ''
 """
         when:
         run "installDist"
@@ -284,7 +286,7 @@ executableDir = ''
     def "executables can be placed in a custom directory"() {
         given:
         buildFile << """
-executableDir = 'foo/bar'
+application.executableDir = 'foo/bar'
 """
         when:
         run "installDist"
@@ -468,7 +470,7 @@ dependencies {
     def "run task honors applicationDefaultJvmArgs"() {
         given:
         buildFile """
-            applicationDefaultJvmArgs = ['-DFOO=42']
+            application.applicationDefaultJvmArgs = ['-DFOO=42']
         """
         when:
         succeeds 'run'
@@ -480,7 +482,7 @@ dependencies {
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script"() {
         given:
         buildFile << """
-applicationDefaultJvmArgs = ["-DappHomeSystemProp=REPLACE_THIS_WITH_APP_HOME"]
+application.applicationDefaultJvmArgs = ["-DappHomeSystemProp=REPLACE_THIS_WITH_APP_HOME"]
 
 startScripts {
     doLast {
