@@ -36,7 +36,7 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         expect:
         executer.expectDocumentedDeprecationWarning("""Calling configuration method 'attributes' is deprecated for configuration 'custom', which has permitted usage(s):
 \tConsumable - this configuration can be selected by another project as a dependency (but this behavior is marked deprecated)
-This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Consumable, Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Configurations should only be used as permitted. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Consumable, Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
         succeeds('help')
     }
 
@@ -71,10 +71,10 @@ This method is only meant to be called on configurations which allow the (non-de
 
         expect:
         executer.expectDocumentedDeprecationWarning("The custom configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
-        executer.expectDocumentedDeprecationWarning("""Calling configuration method 'contains' is deprecated for configuration 'custom', which has permitted usage(s):
+        executer.expectDocumentedDeprecationWarning("""Calling configuration method 'contains(File)' is deprecated for configuration 'custom', which has permitted usage(s):
 \tResolvable - this configuration can be resolved by this project to a set of files (but this behavior is marked deprecated)
 \tDeclarable Against - this configuration can have dependencies added to it
-This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Configurations should only be used as permitted. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
         succeeds('help')
     }
 }
