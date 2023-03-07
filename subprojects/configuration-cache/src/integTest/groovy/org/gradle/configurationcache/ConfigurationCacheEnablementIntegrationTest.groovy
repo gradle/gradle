@@ -101,7 +101,6 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
         "system property" | DISABLE_SYS_PROP
     }
 
-
     def "can enable configuration cache using incubating and final property variants"() {
         given:
         buildFile """
@@ -125,21 +124,21 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
 
         where:
         task    | ccOn  | problemsAs| maxProblems   | quiet | recreate  | debug | options
-        "help"  | false | WARN      | _             | _     | _         | _     | ["-Dorg.gradle.configuration-cache.problems=warn"]
-        "help"  | false | _         | 100           | _     | _         | _     | ["-Dorg.gradle.configuration-cache.max-problems=100"]
-        "help"  | false | _         | _             | true  | _         | _     | ["-Dorg.gradle.configuration-cache.quiet=true"]
-        "help"  | false | _         | _             | _     | true      | _     | ["-Dorg.gradle.configuration-cache.recreate-cache=true"]
-        "help"  | false | _         | _             | _     | _         | true  | ["-Dorg.gradle.configuration-cache.debug=true"]
-        "help"  | false | WARN      | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache-problems=warn"]
-        "help"  | false | _         | 100           | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache.max-problems=100"]
-        "help"  | false | _         | _             | true  | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache.quiet=true"]
-        "help"  | false | _         | _             | _     | true      | _     | ["-Dorg.gradle.unsafe.configuration-cache.recreate-cache=true"]
-        "help"  | false | _         | _             | _     | _         | true  | ["-Dorg.gradle.unsafe.configuration-cache.debug=true"]
-        "help"  | true  | _         | _             | _     | _         | _     | ["--configuration-cache"]
-        "help"  | true  | _         | _             | _     | _         | _     | ["-Dorg.gradle.configuration-cache=true"]
-        "help"  | true  | _         | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache=true"]
-        "help"  | false | _         | _             | _     | _         | _     | ["--no-configuration-cache"]
-        "help"  | false | _         | _             | _     | _         | _     | ["-Dorg.gradle.configuration-cache=false"]
-        "help"  | false | _         | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache=false"]
+        "check" | false | WARN      | _             | _     | _         | _     | ["-Dorg.gradle.configuration-cache.problems=warn"]
+        "check" | false | _         | 100           | _     | _         | _     | ["-Dorg.gradle.configuration-cache.max-problems=100"]
+        "check" | false | _         | _             | true  | _         | _     | ["-Dorg.gradle.configuration-cache.quiet=true"]
+        "check" | false | _         | _             | _     | true      | _     | ["-Dorg.gradle.configuration-cache.recreate-cache=true"]
+        "check" | false | _         | _             | _     | _         | true  | ["-Dorg.gradle.configuration-cache.debug=true"]
+        "check" | false | WARN      | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache-problems=warn"]
+        "check" | false | _         | 100           | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache.max-problems=100"]
+        "check" | false | _         | _             | true  | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache.quiet=true"]
+        "check" | false | _         | _             | _     | true      | _     | ["-Dorg.gradle.unsafe.configuration-cache.recreate-cache=true"]
+        "check" | false | _         | _             | _     | _         | true  | ["-Dorg.gradle.unsafe.configuration-cache.debug=true"]
+        "check" | true  | _         | _             | _     | _         | _     | ["--configuration-cache"]
+        "check" | true  | _         | _             | _     | _         | _     | ["-Dorg.gradle.configuration-cache=true"]
+        "check" | true  | _         | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache=true"]
+        "check" | false | _         | _             | _     | _         | _     | ["--no-configuration-cache"]
+        "check" | false | _         | _             | _     | _         | _     | ["-Dorg.gradle.configuration-cache=false"]
+        "check" | false | _         | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache=false"]
     }
 }
