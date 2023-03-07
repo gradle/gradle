@@ -216,7 +216,7 @@ via the `GRADLE_ENCRYPTION_KEY` environment variable (see <<build_environment.ad
 
 ==== Generating an encryption key that is compatible with GRADLE_ENCRYPTION_KEY
 
-There are many different ways of producing an encryption key that is compatible with Gradle.
+There are many ways of producing an encryption key compatible with Gradle.
 One way is by using a command like this, which should work on Linux and Mac OS, or even on Windows, if using a tool like Cygwin:
 
 ```
