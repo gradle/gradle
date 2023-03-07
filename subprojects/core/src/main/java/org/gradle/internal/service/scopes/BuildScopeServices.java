@@ -109,7 +109,6 @@ import org.gradle.execution.plan.OrdinalGroupFactory;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.execution.plan.TaskNodeDependencyResolver;
 import org.gradle.execution.plan.TaskNodeFactory;
-import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.execution.plan.WorkNodeDependencyResolver;
 import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
@@ -560,13 +559,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             buildOperationExecutor);
     }
 
-    protected BuildWorkPreparer createWorkPreparer(BuildOperationExecutor buildOperationExecutor, ExecutionPlanFactory executionPlanFactory, List<ToPlannedNodeConverter> converters) {
+    protected BuildWorkPreparer createWorkPreparer(BuildOperationExecutor buildOperationExecutor, ExecutionPlanFactory executionPlanFactory, ToPlannedNodeConverterRegistry converterRegistry) {
         return new BuildOperationFiringBuildWorkPreparer(
             buildOperationExecutor,
             new DefaultBuildWorkPreparer(
                 executionPlanFactory
             ),
-            converters
+            converterRegistry
         );
     }
 

@@ -24,20 +24,20 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.plugins.BasePlugin;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.internal.component.external.model.DefaultImmutableCapability;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.util.internal.TextUtil;
 
@@ -49,17 +49,15 @@ import static org.gradle.api.attributes.DocsType.JAVADOC;
 import static org.gradle.api.attributes.DocsType.SOURCES;
 import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocTask;
 
-public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
+public class DefaultJvmVariantBuilder implements JvmVariantBuilder {
     private final String name;
+    private final SourceSet sourceSet;
     private final JvmPluginServices jvmPluginServices;
-    private final SourceSetContainer sourceSets;
     private final RoleBasedConfigurationContainerInternal configurations;
     private final TaskContainer tasks;
     private final SoftwareComponentContainer components;
     private final ProjectInternal project;
     private String displayName;
-    private SourceSet sourceSet;
-    private boolean exposeApi;
     private boolean javadocJar;
     private boolean sourcesJar;
     private boolean published;
@@ -68,9 +66,9 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
 
     @Inject
     public DefaultJvmVariantBuilder(String name,
+                                    SourceSet sourceSet,
                                     Capability defaultCapability,
                                     JvmPluginServices jvmPluginServices,
-                                    SourceSetContainer sourceSets,
                                     ConfigurationContainer configurations,
                                     TaskContainer tasks,
                                     SoftwareComponentContainer components,
@@ -82,8 +80,8 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
                                     // it later
                                     ProjectInternal project) {
         this.name = name;
+        this.sourceSet = sourceSet;
         this.jvmPluginServices = jvmPluginServices;
-        this.sourceSets = sourceSets;
         this.configurations = (RoleBasedConfigurationContainerInternal) configurations;
         this.tasks = tasks;
         this.components = components;
@@ -98,12 +96,6 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
     }
 
     @Override
-    public JvmVariantBuilder exposesApi() {
-        exposeApi = true;
-        return this;
-    }
-
-    @Override
     public JvmVariantBuilder withJavadocJar() {
         javadocJar = true;
         return this;
@@ -112,12 +104,6 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
     @Override
     public JvmVariantBuilder withSourcesJar() {
         sourcesJar = true;
-        return this;
-    }
-
-    @Override
-    public JvmVariantBuilder usingSourceSet(SourceSet sourceSet) {
-        this.sourceSet = sourceSet;
         return this;
     }
 
@@ -135,11 +121,6 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
     }
 
     @Override
-    public JvmVariantBuilder capability(String group, String name, String version) {
-        return capability(new DefaultImmutableCapability(group, name, version));
-    }
-
-    @Override
     public JvmVariantBuilder distinctCapability() {
         return capability(new ProjectDerivedCapability(project, name));
     }
@@ -151,7 +132,6 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
     }
 
     void build() {
-        SourceSet sourceSet = this.sourceSet == null ? sourceSets.maybeCreate(name) : this.sourceSet;
         boolean mainSourceSet = SourceSet.isMain(sourceSet);
         String apiConfigurationName;
         String implementationConfigurationName;
@@ -189,35 +169,39 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
         Configuration runtimeOnly = bucket("Runtime-Only", runtimeOnlyConfigurationName, displayName);
 
         TaskProvider<Task> jarTask = registerOrGetJarTask(sourceSet, displayName);
-        Configuration api = exposeApi ? bucket("API", apiConfigurationName, displayName) : null;
-        Configuration apiElements = exposeApi ? jvmPluginServices.createOutgoingElements(apiElementsConfigurationName, builder -> {
-            builder.fromSourceSet(sourceSet)
-                .providesApi()
-                .withDescription("API elements for " + displayName)
-                .extendsFrom(api, compileOnlyApi)
-                .withCapabilities(capabilities)
-                .withClassDirectoryVariant()
-                .artifact(jarTask);
-        }) : null;
-        if (exposeApi) {
-            implementation.extendsFrom(api);
-        }
+        Configuration api = bucket("API", apiConfigurationName, displayName);
+        implementation.extendsFrom(api);
 
-        Configuration runtimeElements = jvmPluginServices.createOutgoingElements(runtimeElementsConfigurationName, builder -> {
-            builder.fromSourceSet(sourceSet)
-                .providesRuntime()
-                .withDescription("Runtime elements for " + displayName)
-                .extendsFrom(implementation, runtimeOnly)
-                .withCapabilities(capabilities)
-                .artifact(jarTask);
-        });
+        // A consumable which is deprecated for declaration.
+        ConfigurationRole elementsRole = ConfigurationRole.forUsage(true, false, true, false, false, true);
+        TaskProvider<JavaCompile> compileJava = tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
+
+        Configuration apiElements = configurations.maybeCreateWithRole(apiElementsConfigurationName, elementsRole, false, false);
+        apiElements.setVisible(false);
+        jvmPluginServices.useDefaultTargetPlatformInference(apiElements, compileJava);
+        jvmPluginServices.configureAsApiElements(apiElements);
+        apiElements.setDescription("API elements for " + displayName);
+        apiElements.extendsFrom(api, compileOnlyApi);
+        capabilities.forEach(apiElements.getOutgoing()::capability);
+        jvmPluginServices.configureClassesDirectoryVariant(apiElements, sourceSet);
+        apiElements.getOutgoing().artifact(jarTask);
+
+        Configuration runtimeElements = configurations.maybeCreateWithRole(runtimeElementsConfigurationName, elementsRole, false, false);
+        runtimeElements.setVisible(false);
+        jvmPluginServices.useDefaultTargetPlatformInference(runtimeElements, compileJava);
+        jvmPluginServices.configureAsRuntimeElements(runtimeElements);
+        runtimeElements.setDescription("Runtime elements for " + displayName);
+        runtimeElements.extendsFrom(implementation, runtimeOnly);
+        capabilities.forEach(runtimeElements.getOutgoing()::capability);
+        runtimeElements.getOutgoing().artifact(jarTask);
+
         if (mainSourceSet) {
             // we need to wire the compile only and runtime only to the classpath configurations
             configurations.getByName(sourceSet.getCompileClasspathConfigurationName()).extendsFrom(implementation, compileOnly);
             configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()).extendsFrom(implementation, runtimeOnly);
             // and we also want the feature dependencies to be available on the test classpath
-            configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation, compileOnlyApi);
-            configurations.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation, runtimeOnly);
+            configurations.getByName(JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation, compileOnlyApi);
+            configurations.getByName(JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation, runtimeOnly);
         }
 
         // TODO: #23495 Investigate the implications of using this class without
@@ -260,9 +244,7 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
         }
 
         if (published && component != null) {
-            if (apiElements != null) {
-                component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", true));
-            }
+            component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", true));
             component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", true));
         }
     }

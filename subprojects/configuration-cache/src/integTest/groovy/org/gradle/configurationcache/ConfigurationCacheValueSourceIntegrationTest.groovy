@@ -206,6 +206,102 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         configurationCache.assertStateStored()
     }
 
+    def "exception thrown from ValueSource becomes problem if the exception is #exceptionHandlerDescritpion"() {
+        given:
+        buildFile("""
+            import org.gradle.api.provider.*
+
+            abstract class BrokenValueSource implements ValueSource<String, ValueSourceParameters.None>, Describable {
+                @Override String obtain() { throw new RuntimeException("Broken!") }
+                @Override String getDisplayName() { "some name" }
+            }
+
+            try {
+                providers.of(BrokenValueSource) {}.get()
+            } catch (Throwable ex) {
+                $exceptionHandlerImpl
+            }
+        """)
+
+        when:
+        configurationCacheFails()
+
+        then:
+        outputContains("Configuration cache entry discarded with 1 problem.")
+        failure.assertHasFailures(expectedFailuresCount)
+        problems.assertFailureHasProblems(failure) {
+            totalProblemsCount == 1
+            problemsWithStackTraceCount == 1
+            withProblem("Build file 'build.gradle': line 5: failed to compute value with custom source 'BrokenValueSource' (some name) with java.lang.RuntimeException: Broken!")
+        }
+
+        where:
+        exceptionHandlerDescritpion | exceptionHandlerImpl | expectedFailuresCount
+        "rethrown"                  | "throw ex"           | 2  // The original exception propagates and fails the build, and configuration cache problem is reported too.
+        "ignored"                   | "// ignored"         | 1  // Only the configuration cache problem is reported
+    }
+
+    def "exception thrown from ValueSource when populating the cache invalidates the entry upon fingerprint check "() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            import org.gradle.api.provider.*
+
+            abstract class BrokenValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Override String obtain() { throw new RuntimeException("Broken!") }
+            }
+
+            try {
+                providers.of(BrokenValueSource) {}.get()
+            } catch (Throwable ignored) {
+            }
+        """)
+
+        when:
+        configurationCacheRunLenient()
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRunLenient()
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("configuration cache cannot be reused because a build logic input of type 'BrokenValueSource' failed when storing the entry with java.lang.RuntimeException: Broken!.")
+    }
+
+    def "exception thrown from ValueSource when computing its value for fingerprint checking fails the build"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            import org.gradle.api.provider.*
+
+            abstract class SometimesBrokenValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Override String obtain() {
+                    if (Boolean.getBoolean("should.fail")) {
+                        throw new RuntimeException("Broken!")
+                    }
+                    return "not broken"
+                }
+            }
+
+            providers.of(SometimesBrokenValueSource) {}.get()
+        """)
+
+        when:
+        configurationCacheRun()
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheFails("-Dshould.fail=true")
+
+        then:
+        failure.assertHasDescription("Broken!")
+    }
+
     def "ValueSource can use #accessor without making it an input"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
@@ -523,5 +619,29 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         providerType     | setterSwitch
         "systemProperty" | "-D"
         "gradleProperty" | "-P"
+    }
+
+    def "value source with non-serializable output"() {
+        buildFile("""
+        import org.gradle.api.provider.*
+
+        abstract class BrokenSource implements ValueSource<Thread, ValueSourceParameters.None> {
+            @Override Thread obtain() {
+                return new Thread()
+            }
+        }
+
+        providers.of(BrokenSource) {}.get()
+        """)
+
+        when:
+        configurationCacheFails()
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': cannot serialize object of type 'java.lang.Thread', a subtype of 'java.lang.Thread', as these are not supported with the configuration cache.")
+            problemsWithStackTraceCount = 0
+        }
     }
 }

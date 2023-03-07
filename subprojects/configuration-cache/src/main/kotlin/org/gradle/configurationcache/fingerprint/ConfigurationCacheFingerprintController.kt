@@ -28,14 +28,18 @@ import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.extensions.directoryContentHash
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
+import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.PropertyProblem
+import org.gradle.configurationcache.problems.StructuredMessage
+import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
-import org.gradle.internal.agents.AgentControl
+import org.gradle.internal.agents.AgentStatus
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
@@ -82,7 +86,9 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
     private val scriptFileResolverListeners: ScriptFileResolverListeners,
-    private val remoteScriptUpToDateChecker: RemoteScriptUpToDateChecker
+    private val remoteScriptUpToDateChecker: RemoteScriptUpToDateChecker,
+    private val agentStatus: AgentStatus,
+    private val problems: ConfigurationCacheProblems
 ) : Stoppable {
 
     interface Host {
@@ -297,7 +303,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             get() = modelParameters.isIntermediateModelCache
 
         override val instrumentationAgentUsed: Boolean
-            get() = AgentControl.isInstrumentationAgentApplied()
+            get() = agentStatus.isAgentInstrumentationEnabled
 
         override fun hashCodeOf(file: File) =
             fileSystemAccess.read(file.absolutePath).hash
@@ -313,6 +319,9 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override fun reportInput(input: PropertyProblem) =
             report.onInput(input)
+
+        override fun reportProblem(exception: Throwable?, documentationSection: DocumentationSection?, message: StructuredMessageBuilder) =
+            problems.onProblem(problemFactory.problem(StructuredMessage.build(message), exception, documentationSection))
 
         override fun location(consumer: String?) =
             problemFactory.locationForCaller(consumer)
@@ -342,7 +351,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             get() = modelParameters.isInvalidateCoupledProjects
 
         override val instrumentationAgentUsed: Boolean
-            get() = AgentControl.isInstrumentationAgentApplied()
+            get() = agentStatus.isAgentInstrumentationEnabled
 
         override fun gradleProperty(propertyName: String): String? =
             gradleProperties.find(propertyName)?.uncheckedCast()

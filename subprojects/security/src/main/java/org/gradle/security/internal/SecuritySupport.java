@@ -121,7 +121,7 @@ public class SecuritySupport {
     }
 
     private static InputStream createInputStreamFor(File keyringFile) throws IOException {
-        InputStream stream = new FileInputStream(keyringFile);
+        InputStream stream = new BufferedInputStream(new FileInputStream(keyringFile));
         if (keyringFile.getName().endsWith(KEYS_FILE_EXT)) {
             return new ArmoredInputStream(stream);
         }
