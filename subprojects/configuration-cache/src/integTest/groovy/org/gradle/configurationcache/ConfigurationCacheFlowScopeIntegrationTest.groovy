@@ -23,6 +23,56 @@ import org.gradle.test.fixtures.file.TestFile
 
 class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def 'flow actions are isolated from each other'() {
+        given: 'flow actions that share a bean'
+        buildFile '''
+            import org.gradle.api.flow.*
+            import org.gradle.api.services.*
+
+            class FlowActionPlugin implements Plugin<Project> {
+                final FlowScope flowScope
+                final FlowProviders flowProviders
+                @Inject FlowActionPlugin(FlowScope flowScope, FlowProviders flowProviders) {
+                    this.flowScope = flowScope
+                    this.flowProviders = flowProviders
+                }
+                void apply(Project target) {
+                    def sharedBean = new Bean()
+                    def sharedBeanProvider = flowProviders.buildWorkResult.map { sharedBean }
+                    2.times {
+                        flowScope.always(IncrementAndPrint) {
+                            parameters.bean = sharedBeanProvider
+                        }
+                    }
+                }
+            }
+
+            class Bean {
+                int value = 41
+            }
+
+            class IncrementAndPrint implements FlowAction<Parameters> {
+                interface Parameters extends FlowParameters {
+                    Property<Bean> getBean()
+                }
+                void execute(Parameters parameters) {
+                    parameters.with {
+                        println("Bean.value = " + (++bean.get().value))
+                    }
+                }
+            }
+
+            apply type: FlowActionPlugin
+        '''
+
+        when:
+        configurationCacheRun 'help'
+
+        then: 'shared bean should have been isolated'
+        output.count('Bean.value = 42') == 2
+        outputDoesNotContain 'Bean.value = 43'
+    }
+
     def '#target #injectionStyle with #parameter can react to task execution result'() {
         given:
         def configCache = newConfigurationCacheFixture()

@@ -19,6 +19,8 @@ package org.gradle.configurationcache.serialization.codecs
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
+import org.gradle.api.flow.FlowAction
+import org.gradle.api.flow.FlowParameters
 import org.gradle.api.flow.FlowProviders
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultDirectoryVar
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultRegularFileVar
@@ -42,8 +44,12 @@ import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.flow.BuildWorkResultProvider
+import org.gradle.configurationcache.flow.RegisteredFlowAction
+import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.serialization.Codec
+import org.gradle.configurationcache.serialization.IsolateContext
 import org.gradle.configurationcache.serialization.IsolateOwner
+import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingIdentity
@@ -53,6 +59,9 @@ import org.gradle.configurationcache.serialization.encodePreservingSharedIdentit
 import org.gradle.configurationcache.serialization.logPropertyProblem
 import org.gradle.configurationcache.serialization.readClassOf
 import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.configurationcache.serialization.withDebugFrame
+import org.gradle.configurationcache.serialization.withIsolate
+import org.gradle.configurationcache.serialization.withPropertyTrace
 import org.gradle.internal.build.BuildStateRegistry
 
 
@@ -138,7 +147,7 @@ class FlowProvidersCodec(
 ) : Codec<BuildWorkResultProvider> {
 
     override suspend fun WriteContext.encode(value: BuildWorkResultProvider) {
-        if (isolate.owner !is IsolateOwner.OwnerFlowScope) {
+        if (isolate.owner !is IsolateOwner.OwnerFlowAction) {
             logPropertyProblem("serialize") {
                 reference(BuildWorkResultProvider::class)
                 text(" can only be used as input to flow actions.")
@@ -148,6 +157,47 @@ class FlowProvidersCodec(
 
     override suspend fun ReadContext.decode(): BuildWorkResultProvider {
         return flowProviders.buildWorkResult.uncheckedCast()
+    }
+}
+
+
+internal
+object RegisteredFlowActionCodec : Codec<RegisteredFlowAction> {
+
+    override suspend fun WriteContext.encode(value: RegisteredFlowAction) {
+        val owner = isolateOwner()
+        val flowActionClass = value.type
+        withDebugFrame({ flowActionClass.name }) {
+            writeClass(flowActionClass)
+            withFlowActionIsolate(flowActionClass, owner) {
+                write(value.parameters)
+            }
+        }
+    }
+
+    override suspend fun ReadContext.decode(): RegisteredFlowAction {
+        val flowActionClass = readClassOf<FlowAction<FlowParameters>>()
+        withFlowActionIsolate(flowActionClass, isolateOwner()) {
+            return RegisteredFlowAction(flowActionClass, read()?.uncheckedCast())
+        }
+    }
+
+    private
+    inline fun <T : MutableIsolateContext, R> T.withFlowActionIsolate(flowActionClass: Class<*>, owner: IsolateOwner.OwnerFlowScope, block: T.() -> R): R {
+        withIsolate(IsolateOwner.OwnerFlowAction(flowActionClass, owner)) {
+            withPropertyTrace(PropertyTrace.BuildLogicClass(flowActionClass.name)) {
+                return block()
+            }
+        }
+    }
+
+    private
+    fun IsolateContext.isolateOwner(): IsolateOwner.OwnerFlowScope {
+        val owner = isolate.owner
+        require(owner is IsolateOwner.OwnerFlowScope) {
+            "Flow actions must belong to a Flow scope!"
+        }
+        return owner
     }
 }
 
