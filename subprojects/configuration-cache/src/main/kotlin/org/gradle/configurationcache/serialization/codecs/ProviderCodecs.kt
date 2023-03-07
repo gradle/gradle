@@ -184,7 +184,7 @@ object RegisteredFlowActionCodec : Codec<RegisteredFlowAction> {
 
     private
     inline fun <T : MutableIsolateContext, R> T.withFlowActionIsolate(flowActionClass: Class<*>, owner: IsolateOwner.OwnerFlowScope, block: T.() -> R): R {
-        withIsolate(IsolateOwner.OwnerFlowAction(flowActionClass, owner)) {
+        withIsolate(IsolateOwner.OwnerFlowAction(owner)) {
             withPropertyTrace(PropertyTrace.BuildLogicClass(flowActionClass.name)) {
                 return block()
             }
