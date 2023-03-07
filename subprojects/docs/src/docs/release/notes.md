@@ -301,6 +301,14 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Configuration cache
+
+The Configuration cache feature is now out of incubation and ready for general consumption.
+When enabled, the configuration cache significantly improves build performance by caching the result of the configuration phase and reusing it for subsequent builds.
+Configuration cache was introduced as an experimental feature back in [Gradle 6.6](https://docs.gradle.org/6.6/release-notes.html#configuration-caching).
+
+To learn how to benefit from this feature, refer to the [Configuration Cache](userguide/configuration_cache.html) documentation.
+
 ### Promoted features in the Provider API
 The `ValueSource` API is no longer incubating. The following classes and methods are now considered stable:
 * [`ProviderFactory.of(Class, Action)`](javadoc/org/gradle/api/provider/ProviderFactory.html#of-java.lang.Class-org.gradle.api.Action-)
