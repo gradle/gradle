@@ -179,7 +179,7 @@ apply plugin: 'ear'
 ear {
     ${descriptorConfig}
     deploymentDescriptor {
-        applicationName = 'descriptor modification will not have any affect when application.xml already exists in source'
+        applicationName = 'descriptor modification will not have any effect when application.xml already exists in source'
     }
 }
 """
@@ -194,9 +194,9 @@ ear {
         ear.assertFileContent("META-INF/application.xml", applicationXml)
 
         where:
-        location    | descriptorConfig   | appDirectory
-        "specified" | "appDirName 'app'" | "app"
-        "default"   | ""                 | "src/main/application"
+        location    | descriptorConfig             | appDirectory
+        "specified" | "appDirectory = file('app')" | "app"
+        "default"   | ""                           | "src/main/application"
     }
 
     @ToBeFixedForConfigurationCache(because = "Entry META-INF/application.xml is a duplicate")
