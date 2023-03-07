@@ -25,6 +25,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.junit.Assume
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 @SuppressWarnings("IntegrationTestFixtures")
@@ -45,6 +46,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     }
 
     @IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
+    @Ignore('https://github.com/gradle/gradle-private/issues/3758')
     void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
         when:
         GradleExecuter executer = prepareWrapperExecuter(current, previous).withWarningMode(null)
