@@ -28,4 +28,4 @@ jobs:
               ]
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.IDE_EXPERIENCE_SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.IDE_EXPERIENCE_TEAM_SLACK_WEBHOOK_URL }}
