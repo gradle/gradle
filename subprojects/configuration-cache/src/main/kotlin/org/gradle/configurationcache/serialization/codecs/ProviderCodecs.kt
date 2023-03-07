@@ -165,7 +165,7 @@ internal
 object RegisteredFlowActionCodec : Codec<RegisteredFlowAction> {
 
     override suspend fun WriteContext.encode(value: RegisteredFlowAction) {
-        val owner = isolateOwner()
+        val owner = verifiedIsolateOwner()
         val flowActionClass = value.type
         withDebugFrame({ flowActionClass.name }) {
             writeClass(flowActionClass)
@@ -177,7 +177,7 @@ object RegisteredFlowActionCodec : Codec<RegisteredFlowAction> {
 
     override suspend fun ReadContext.decode(): RegisteredFlowAction {
         val flowActionClass = readClassOf<FlowAction<FlowParameters>>()
-        withFlowActionIsolate(flowActionClass, isolateOwner()) {
+        withFlowActionIsolate(flowActionClass, verifiedIsolateOwner()) {
             return RegisteredFlowAction(flowActionClass, read()?.uncheckedCast())
         }
     }
@@ -192,7 +192,7 @@ object RegisteredFlowActionCodec : Codec<RegisteredFlowAction> {
     }
 
     private
-    fun IsolateContext.isolateOwner(): IsolateOwner.OwnerFlowScope {
+    fun IsolateContext.verifiedIsolateOwner(): IsolateOwner.OwnerFlowScope {
         val owner = isolate.owner
         require(owner is IsolateOwner.OwnerFlowScope) {
             "Flow actions must belong to a Flow scope!"
