@@ -17,7 +17,7 @@ abstract class WriteJavaVersionTask : DefaultTask() {
 
     @TaskAction
     fun execute() {
-        output.get().asFile.writeText("Java version: ${input.get()}")
+        output.get().asFile.writeText("Java version: ${javaVersion.get()}")
     }
 }
 
