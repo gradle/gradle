@@ -255,7 +255,7 @@ public class TomlCatalogFileParser {
         if (gav instanceof String) {
             List<String> splitted = SPLITTER.splitToList((String) gav);
             int splittedSize = splitted.size();
-            if (splittedSize >= 2 && splittedSize <= 3) {
+            if (splittedSize == 2 || splittedSize == 3) {
                 String group = notEmpty(builder, splitted.get(0), "group", alias);
                 String name = notEmpty(builder, splitted.get(1), "name", alias);
                 String require = null;
