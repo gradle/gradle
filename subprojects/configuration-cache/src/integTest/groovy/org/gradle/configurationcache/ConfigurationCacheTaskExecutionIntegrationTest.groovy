@@ -35,10 +35,10 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         '''
 
         when:
-        configurationCacheRunLenient 'report'
+        configurationCacheFails(WARN_PROBLEMS_CLI_OPT, 'report')
 
         then:
-        problems.assertResultHasProblems(result) {
+        problems.assertResultHasProblems(failure) {
             withProblem "Task `:report` of type `org.gradle.api.DefaultTask`: invocation of 'Task.extensions' at execution time is unsupported."
         }
     }
