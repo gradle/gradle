@@ -34,7 +34,7 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("""Calling configuration method 'attributes' is deprecated for configuration 'custom', which has permitted usage(s):
+        executer.expectDocumentedDeprecationWarning("""Calling configuration method 'attributes(Action)' is deprecated for configuration 'custom', which has permitted usage(s):
 \tConsumable - this configuration can be selected by another project as a dependency (but this behavior is marked deprecated)
 This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Consumable, Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
         succeeds('help')
