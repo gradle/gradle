@@ -110,6 +110,8 @@ class ConfigurationCacheFingerprintWriter(
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
+        val isEncrypted: Boolean
+        val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
         val startParameterProperties: Map<String, Any?>
@@ -171,8 +173,7 @@ class ConfigurationCacheFingerprintWriter(
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
     init {
-        val initScripts = host.allInitScripts
-        buildScopedSink.initScripts(initScripts)
+        buildScopedSink.initScripts(host.allInitScripts)
         buildScopedSink.write(
             ConfigurationCacheFingerprint.GradleEnvironment(
                 host.gradleUserHomeDir,
