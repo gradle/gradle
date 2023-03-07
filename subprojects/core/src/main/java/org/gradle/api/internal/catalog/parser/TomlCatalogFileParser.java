@@ -254,12 +254,21 @@ public class TomlCatalogFileParser {
         Object gav = librariesTable.get(alias);
         if (gav instanceof String) {
             List<String> splitted = SPLITTER.splitToList((String) gav);
-            if (splitted.size() == 3) {
+            int splittedSize = splitted.size();
+            if (splittedSize >= 2 && splittedSize <= 3) {
                 String group = notEmpty(builder, splitted.get(0), "group", alias);
                 String name = notEmpty(builder, splitted.get(1), "name", alias);
-                String version = notEmpty(builder, splitted.get(2), "version", alias);
-                StrictVersionParser.RichVersion rich = strictVersionParser.parse(version);
-                registerDependency(builder, alias, group, name, null, rich.require, rich.strictly, rich.prefer, null, null);
+                String require = null;
+                String strictly = null;
+                String prefer = null;
+                if (splittedSize == 3) {
+                    String version = notEmpty(builder, splitted.get(2), "version", alias);
+                    StrictVersionParser.RichVersion rich = strictVersionParser.parse(version);
+                    require = rich.require;
+                    strictly = rich.strictly;
+                    prefer = rich.prefer;
+                }
+                registerDependency(builder, alias, group, name, null, require, strictly, prefer, null, null);
                 return;
             } else {
                 throwVersionCatalogProblem(builder, VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION, spec ->
