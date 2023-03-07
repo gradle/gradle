@@ -37,6 +37,7 @@ import org.gradle.configurationcache.flow.BuildFlowScope
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
+import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.codecs.Codecs
@@ -49,6 +50,7 @@ import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.readStrings
 import org.gradle.configurationcache.serialization.withDebugFrame
 import org.gradle.configurationcache.serialization.withGradleIsolate
+import org.gradle.configurationcache.serialization.withIsolate
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.configurationcache.serialization.writeFile
@@ -455,7 +457,7 @@ class ConfigurationCacheState(
 
     private
     suspend fun WriteContext.writeFlowScopeOf(gradle: GradleInternal) {
-        withGradleIsolate(gradle, userTypesCodec) {
+        withIsolate(IsolateOwner.OwnerFlowScope(gradle), userTypesCodec) {
             val flowScopeState = buildFlowScopeOf(gradle).store()
             write(flowScopeState)
         }
@@ -463,7 +465,7 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultReadContext.readFlowScopeOf(gradle: GradleInternal) {
-        withGradleIsolate(gradle, userTypesCodec) {
+        withIsolate(IsolateOwner.OwnerFlowScope(gradle), userTypesCodec) {
             buildFlowScopeOf(gradle).load(readNonNull())
         }
     }
