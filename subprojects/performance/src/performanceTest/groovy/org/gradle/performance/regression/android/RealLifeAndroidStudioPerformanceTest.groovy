@@ -16,7 +16,7 @@
 
 package org.gradle.performance.regression.android
 
-import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.apache.commons.io.FilenameUtils
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
@@ -37,9 +37,9 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
     /**
      * To run this test locally you should have Android Studio installed in /Applications/Android Studio.*.app folder,
      * or you should set "studioHome" system property with the Android Studio installation path,
-     * or you should to enable automatic download of Android Studio run test with -PautoDownloadAndroidStudio=true.
+     * or you should enable automatic download of Android Studio with the -PautoDownloadAndroidStudio=true.
      *
-     * Additionaly test needs also to have ANDROID_SDK_ROOT set with Android SDK (normally on MacOS it's installed in "$HOME/Library/Android/sdk")
+     * Additionally, you should also have ANDROID_SDK_ROOT env. variable set with Android SDK (normally on MacOS it's installed in "$HOME/Library/Android/sdk").
      *
      * To enable headless mode run with -PrunAndroidStudioInHeadlessMode=true.
      */
@@ -66,11 +66,9 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
     }
 
     void configureLocalProperties() {
-        if (System.getenv("ANDROID_SDK_ROOT") == null) {
-            throw new RuntimeException("ANDROID_SDK_ROOT must be set for this test")
-        }
+        assert System.getenv("ANDROID_SDK_ROOT") != null
         String androidSdkRootPath = System.getenv("ANDROID_SDK_ROOT")
-        runner.addBuildMutator { invocation -> new LocalPropertiesMutator(invocation, androidSdkRootPath) }
+        runner.addBuildMutator { invocation -> new LocalPropertiesMutator(invocation, FilenameUtils.separatorsToUnix(androidSdkRootPath)) }
     }
 
     static class LocalPropertiesMutator implements BuildMutator {
@@ -85,7 +83,7 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
         @Override
         void beforeScenario(ScenarioContext context) {
             def localProperties = new File(invocation.projectDir, "local.properties")
-            localProperties << "\nsdk.dir=${androidSdkRootPath.replace("\\", "/")}\n"
+            localProperties << "\nsdk.dir=$androidSdkRootPath\n"
         }
     }
 }
