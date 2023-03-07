@@ -270,7 +270,7 @@ you no longer need to remember to explicitly declare that your task uses a share
 If you also provide the name of the service in the annotation, you no longer need to obtain and assign a build service reference to the property explicitly; 
 if a service registration with the given name exists, the corresponding reference is automaticaly assigned to the property. 
 
-More details in the [Shared Build Services](userguide/build_services.html#sec:service_references) documentation.
+More details in the Shared Build Services documentation on [using build services](userguide/build_services.html#sec:using_a_build_service_from_a_task).
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
