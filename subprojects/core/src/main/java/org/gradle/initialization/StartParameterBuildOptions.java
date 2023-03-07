@@ -74,8 +74,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new DependencyLockingUpdateOption());
         options.add(new RefreshKeysOption());
         options.add(new ExportKeysOption());
-        options.add(new ConfigurationCacheOption());
         options.add(new ConfigurationCacheProblemsOption());
+        options.add(new ConfigurationCacheOption());
         options.add(new ConfigurationCacheMaxProblemsOption());
         options.add(new ConfigurationCacheDebugOption());
         options.add(new ConfigurationCacheRecreateOption());
