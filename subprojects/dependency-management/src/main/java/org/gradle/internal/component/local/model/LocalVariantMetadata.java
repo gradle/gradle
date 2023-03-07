@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.local.model;
 
-
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -25,18 +24,23 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 
 import java.util.Collection;
+import java.util.List;
 
-public class LocalVariantMetadata extends DefaultVariantMetadata {
+/**
+ * Implementation of {@link VariantResolveMetadata} which allows variant artifacts to be calculated lazily
+ * while holding a project lock.
+ */
+public final class LocalVariantMetadata extends DefaultVariantMetadata {
     private final CalculatedValueContainer<ImmutableList<LocalComponentArtifactMetadata>, ?> artifacts;
 
     public LocalVariantMetadata(String name, Identifier identifier, ComponentIdentifier componentId, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> sourceArtifacts, ImmutableCapabilities capabilities, ModelContainer<?> model, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        super(name, identifier, displayName, attributes, ImmutableList.of(), capabilities);
-        artifacts = calculatedValueContainerFactory.create(Describables.of(displayName, "artifacts"), context -> {
+        this(name, identifier, displayName, attributes, capabilities, calculatedValueContainerFactory.create(Describables.of(displayName, "artifacts"), context -> {
             if (sourceArtifacts.isEmpty()) {
                 return ImmutableList.of();
             } else {
@@ -48,16 +52,21 @@ public class LocalVariantMetadata extends DefaultVariantMetadata {
                     return result.build();
                 });
             }
-        });
+        }));
     }
 
-    public LocalVariantMetadata(String name, Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableList<LocalComponentArtifactMetadata> artifacts, ImmutableCapabilities capabilities, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public LocalVariantMetadata(String name, Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, List<LocalComponentArtifactMetadata> artifacts, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        this(name, identifier, displayName, attributes, capabilities, calculatedValueContainerFactory.create(Describables.of(displayName, "artifacts"), ImmutableList.copyOf(artifacts)));
+    }
+
+    private LocalVariantMetadata(String name, Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, CalculatedValueContainer<ImmutableList<LocalComponentArtifactMetadata>, ?> artifacts) {
         super(name, identifier, displayName, attributes, ImmutableList.of(), capabilities);
-        this.artifacts = calculatedValueContainerFactory.create(Describables.of(displayName, "artifacts"), artifacts);
+        this.artifacts = artifacts;
     }
 
-    public void prepareToResolveArtifacts() {
+    public LocalVariantMetadata prepareToResolveArtifacts() {
         artifacts.finalizeIfNotAlready();
+        return this;
     }
 
     @Override
