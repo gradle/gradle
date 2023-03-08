@@ -39,6 +39,7 @@ public interface Task extends Launchable {
      * Returns the path of this task within the build tree. This is a unique name for this task within the composite build.
      *
      * @return The path of this task in the composite build.
+     * @throws org.gradle.tooling.model.UnsupportedMethodException When the target Gradle version does not support this method.
      * @since 8.2
      */
     @Incubating
