@@ -42,8 +42,8 @@ class UnsupportedJavaVersionCrossCompilationIntegrationTest extends MultiVersion
 
         buildFile << """
 apply plugin: 'java'
-java.sourceCompatibility = ${version}
-java.targetCompatibility = ${version}
+sourceCompatibility = ${version}
+targetCompatibility = ${version}
 ${mavenCentralRepository()}
 tasks.withType(JavaCompile) {
     options.with {

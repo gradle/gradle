@@ -249,7 +249,7 @@ application {
 
     private void extendBuildFileWithAppHomeProperty() {
         buildFile << """
-application.applicationDefaultJvmArgs = ["-DappHomeSystemProp=REPLACE_THIS_WITH_APP_HOME"]
+applicationDefaultJvmArgs = ["-DappHomeSystemProp=REPLACE_THIS_WITH_APP_HOME"]
 
 startScripts {
     doLast {

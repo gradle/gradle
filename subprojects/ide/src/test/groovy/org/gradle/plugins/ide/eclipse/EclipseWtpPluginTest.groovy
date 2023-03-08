@@ -60,7 +60,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
     def applyToJavaProject_shouldHaveWebProjectAndClasspathTask() {
         when:
         project.apply(plugin: 'java')
-        project.java.sourceCompatibility = 1.6
+        project.sourceCompatibility = 1.6
         wtpPlugin.apply(project)
 
         then:
@@ -79,7 +79,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         wtpPlugin.apply(project)
         project.apply(plugin: 'java')
-        project.java.sourceCompatibility = 1.7
+        project.sourceCompatibility = 1.7
 
         then:
         [project.tasks.cleanEclipseWtpComponent, project.tasks.cleanEclipseWtpFacet].each {
@@ -97,7 +97,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'java')
         wtpPlugin.apply(project)
-        project.java.sourceCompatibility = 1.3
+        project.sourceCompatibility = 1.3
 
         project.eclipse.wtp {
             facet {
@@ -116,7 +116,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
     def applyToWarProject_shouldHaveWebProjectAndClasspathTask() {
         when:
         project.apply(plugin: 'war')
-        project.java.sourceCompatibility = 1.5
+        project.sourceCompatibility = 1.5
         project.apply(plugin: 'eclipse-wtp')
 
         then:
@@ -137,7 +137,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'eclipse-wtp')
         project.apply(plugin: 'war')
-        project.java.sourceCompatibility = 1.8
+        project.sourceCompatibility = 1.8
 
         then:
         [project.cleanEclipseWtpComponent, project.cleanEclipseWtpFacet].each {
@@ -157,7 +157,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'war')
         project.apply(plugin: 'eclipse-wtp')
-        project.java.sourceCompatibility = 1.4
+        project.sourceCompatibility = 1.4
 
         project.eclipse.wtp {
             facet {
@@ -283,7 +283,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'war')
         project.apply(plugin: 'eclipse-wtp')
-        project.java.sourceCompatibility = 1.4
+        project.sourceCompatibility = 1.4
 
         project.eclipse.wtp {
             facet {
@@ -304,7 +304,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'java')
         project.apply(plugin: 'eclipse-wtp')
-        project.java.sourceCompatibility = 1.8
+        project.sourceCompatibility = 1.8
 
         project.eclipse.wtp {
             facet {
@@ -325,7 +325,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'java')
         wtpPlugin.apply(project)
-        project.java.sourceCompatibility = 1.7
+        project.sourceCompatibility = 1.7
 
         project.eclipse.wtp {
             component {

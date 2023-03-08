@@ -136,21 +136,21 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         eclipseModel.javaSourceSettings."$languageLevelProperty" == JavaVersion.current()
 
         where:
-        type     | compatibilityProperty      | languageLevelProperty   | projectType | pluginType
-        "source" | "java.sourceCompatibility" | "sourceLanguageLevel"   | "java"      | JavaBasePlugin
-        "target" | "java.targetCompatibility" | "targetBytecodeVersion" | "java"      | JavaBasePlugin
-        "source" | "java.sourceCompatibility" | "sourceLanguageLevel"   | "scala"     | ScalaBasePlugin
-        "target" | "java.targetCompatibility" | "targetBytecodeVersion" | "scala"     | ScalaBasePlugin
-        "source" | "java.sourceCompatibility" | "sourceLanguageLevel"   | "groovy"    | GroovyBasePlugin
-        "target" | "java.targetCompatibility" | "targetBytecodeVersion" | "groovy"    | GroovyBasePlugin
+        type     | compatibilityProperty | languageLevelProperty   | projectType | pluginType
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"   | "java"      | JavaBasePlugin
+        "target" | "targetCompatibility" | "targetBytecodeVersion" | "java"      | JavaBasePlugin
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"   | "scala"     | ScalaBasePlugin
+        "target" | "targetCompatibility" | "targetBytecodeVersion" | "scala"     | ScalaBasePlugin
+        "source" | "sourceCompatibility" | "sourceLanguageLevel"   | "groovy"    | GroovyBasePlugin
+        "target" | "targetCompatibility" | "targetBytecodeVersion" | "groovy"    | GroovyBasePlugin
     }
 
     def "default language levels are set for JVM projects if compatibility is set to null"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
         project.plugins.apply(pluginType)
-        project.java.sourceCompatibility = null
-        project.java.targetCompatibility = null
+        project.sourceCompatibility = null
+        project.targetCompatibility = null
 
         when:
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
@@ -163,11 +163,11 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         pluginType << [JavaPlugin, GroovyPlugin, ScalaPlugin]
     }
 
-    def "custom #type language level derived Java plugin extension"() {
+    def "custom #type language level derived Java plugin convention"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
         project.plugins.apply(JavaPlugin)
-        project.java."$compatibilityProperty" = "1.2"
+        project."$compatibilityProperty" = "1.2"
 
         when:
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
@@ -181,12 +181,12 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         "target" | "targetCompatibility" | "targetBytecodeVersion"
     }
 
-    def "#type language level derived from eclipse jdt overrules java plugin extension configuration"() {
+    def "#type language level derived from eclipse jdt overrules java plugin convention configuration"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
         project.plugins.apply(JavaPlugin)
         project.plugins.apply(EclipsePlugin)
-        project.java."$compatibilityProperty" = "1.2"
+        project."$compatibilityProperty" = "1.2"
         project.eclipse.jdt."$compatibilityProperty" = "1.3"
 
         when:
@@ -209,7 +209,7 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         child1.eclipse.jdt."$compatibilityProperty" = "1.2"
         child2.plugins.apply(JavaPlugin)
         child2.plugins.apply(EclipsePlugin)
-        child2.java."$compatibilityProperty" = "1.3"
+        child2."$compatibilityProperty" = "1.3"
         child2.eclipse.jdt."$compatibilityProperty" = "1.1"
 
         when:

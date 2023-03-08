@@ -187,8 +187,8 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
                 def projectSourceCompat = project.java.sourceCompatibility
                 def projectTargetCompat = project.java.targetCompatibility
                 doLast {
-                    logger.lifecycle("project.java.sourceCompatibility = '\${projectSourceCompat}'")
-                    logger.lifecycle("project.java.targetCompatibility = '\${projectTargetCompat}'")
+                    logger.lifecycle("project.sourceCompatibility = '\${projectSourceCompat}'")
+                    logger.lifecycle("project.targetCompatibility = '\${projectTargetCompat}'")
                     logger.lifecycle("task.sourceCompatibility = '\$sourceCompatibility'")
                     logger.lifecycle("task.targetCompatibility = '\$targetCompatibility'")
                 }
@@ -199,8 +199,8 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         withInstallations(jdk11).run(":compileJava")
 
         then:
-        outputContains("project.java.sourceCompatibility = '11'")
-        outputContains("project.java.targetCompatibility = '11'")
+        outputContains("project.sourceCompatibility = '11'")
+        outputContains("project.targetCompatibility = '11'")
         outputContains("task.sourceCompatibility = '$sourceOut'")
         outputContains("task.targetCompatibility = '$targetOut'")
         classJavaVersion(javaClassFile("Foo.class")) == JavaVersion.toVersion(targetOut)
@@ -230,8 +230,8 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
                 def projectSourceCompat = project.java.sourceCompatibility
                 def projectTargetCompat = project.java.targetCompatibility
                 doLast {
-                    logger.lifecycle("project.java.sourceCompatibility = '\${projectSourceCompat}'")
-                    logger.lifecycle("project.java.targetCompatibility = '\${projectTargetCompat}'")
+                    logger.lifecycle("project.sourceCompatibility = '\${projectSourceCompat}'")
+                    logger.lifecycle("project.targetCompatibility = '\${projectTargetCompat}'")
                     logger.lifecycle("task.sourceCompatibility = '\$sourceCompatibility'")
                     logger.lifecycle("task.targetCompatibility = '\$targetCompatibility'")
                 }
@@ -242,8 +242,8 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         withInstallations(jdk).run(":compileJava")
 
         then:
-        outputContains("project.java.sourceCompatibility = '$prevJavaVersion'")
-        outputContains("project.java.targetCompatibility = '$prevJavaVersion'")
+        outputContains("project.sourceCompatibility = '$prevJavaVersion'")
+        outputContains("project.targetCompatibility = '$prevJavaVersion'")
         outputContains("task.sourceCompatibility = '$prevJavaVersion'")
         outputContains("task.targetCompatibility = '$prevJavaVersion'")
         classJavaVersion(javaClassFile("Foo.class")) == JavaVersion.toVersion(prevJavaVersion)

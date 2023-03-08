@@ -32,7 +32,7 @@ class EclipseWtpJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpe
 
            ${mavenCentralRepository()}
 
-           java.sourceCompatibility = 1.6
+           sourceCompatibility = 1.6
 
            dependencies {
                implementation 'com.google.guava:guava:18.0'

@@ -389,8 +389,8 @@ apply plugin: 'eclipse'
         runEclipseTask '''
 apply plugin: 'java'
 apply plugin: 'eclipse'
-java.sourceCompatibility = 1.4
-java.targetCompatibility = 1.3
+    sourceCompatibility = 1.4
+    targetCompatibility = 1.3
 '''
         def jdt = parseJdtFile()
         assert jdt.contains('source=1.4')
@@ -403,8 +403,8 @@ java.targetCompatibility = 1.3
         runEclipseTask '''
 apply plugin: 'java'
 apply plugin: 'eclipse'
-java.sourceCompatibility = 1.4
-java.targetCompatibility = 1.5
+sourceCompatibility = 1.4
+targetCompatibility = 1.5
 eclipse {
     jdt {
         sourceCompatibility = 1.3

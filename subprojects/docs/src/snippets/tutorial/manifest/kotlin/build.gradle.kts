@@ -15,7 +15,7 @@ tasks.jar {
 // end::add-to-manifest[]
 
 // tag::custom-manifest[]
-val sharedManifest = java.manifest {
+val sharedManifest = the<JavaPluginConvention>().manifest {
     attributes (
         "Implementation-Title" to "Gradle",
         "Implementation-Version" to version
@@ -23,7 +23,7 @@ val sharedManifest = java.manifest {
 }
 
 tasks.register<Jar>("fooJar") {
-    manifest = java.manifest {
+    manifest = project.the<JavaPluginConvention>().manifest {
         from(sharedManifest)
     }
 }

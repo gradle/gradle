@@ -107,8 +107,8 @@ class ScalaCompilationFixture {
                 }
             }
 
-            java.sourceCompatibility = '${sourceCompatibility}'
-            java.targetCompatibility = '${sourceCompatibility}'
+            sourceCompatibility = '${sourceCompatibility}'
+            targetCompatibility = '${sourceCompatibility}'
         """.stripIndent()
     }
 
