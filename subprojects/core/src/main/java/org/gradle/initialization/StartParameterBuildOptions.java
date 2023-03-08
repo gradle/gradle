@@ -477,7 +477,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
     public static class ConfigurationCacheEncryptionOption extends BooleanBuildOption<StartParameterInternal> {
 
-        public static final String PROPERTY_NAME = "org.gradle.configuration-cache-encryption";
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.encryption";
         public static final String LONG_OPTION = "configuration-cache-encryption";
 
         public ConfigurationCacheEncryptionOption() {
