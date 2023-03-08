@@ -36,14 +36,13 @@ public interface Task extends Launchable {
     String getPath();
 
     /**
-     * Returns the path of this task within the build tree. This is a unique name for this task within the build tree.
+     * Returns the path of this task within the build tree. This is a unique name for this task within the composite build.
      *
-     * @return The path of this task in the build tree.
+     * @return The path of this task in the composite build.
      * @since 8.2
      */
     @Incubating
     String getBuildTreePath();
-
 
     /**
      * Returns the name of this task. Note that the name is not necessarily a unique identifier for the task.

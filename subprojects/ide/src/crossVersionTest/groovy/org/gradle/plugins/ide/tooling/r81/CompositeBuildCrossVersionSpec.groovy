@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.gradle.GradleBuild
 
 @ToolingApiVersion(">=8.2")
@@ -27,20 +28,50 @@ import org.gradle.tooling.model.gradle.GradleBuild
 class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
 
     def "buildTreePath on GradleBuild/BasicGradleProject"() {
+        given:
         includedBuild("b1")
         includedBuild("b2")
 
-        given:
+        when:
         def model = withConnection {
             it.getModel(GradleBuild)
         }
 
-
-        expect:
+        then:
         def builds = model.includedBuilds
         builds.size() == 2
         builds.first().projects.first().buildTreePath == ":b1"
         model.projects.first().buildTreePath == ":"
+    }
+
+    def "buildTreePath is available for tasks"() {
+        given:
+        includedBuild("b1")
+        includedBuild("b2")
+
+        when:
+        def model = withConnection {
+            it.action(new FetchTasksAction()).run();
+        }.collect { it.buildTreePath }
+
+        then:
+        model.containsAll([":b1:buildEnvironment", ":b2:buildEnvironment"])
+        model.every { !it.startsWith("::") }
+    }
+
+    @TargetGradleVersion('>=8.0 <8.2')
+    def "unsupported method for older versions"() {
+        given:
+        includedBuild("b1")
+        includedBuild("b2")
+
+        when:
+        withConnection {
+            it.action(new FetchTasksAction()).run();
+        }.collect { it.buildTreePath }
+
+        then:
+        thrown(UnsupportedMethodException)
     }
 
     TestFile includedBuild(String build) {
@@ -53,21 +84,4 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         settings << "rootProject.name = '$build-root-name'"
         buildDir
     }
-
-    def "includes buildTreePath on tasks"() {
-        includedBuild("b1")
-        includedBuild("b2")
-
-        given:
-        def model = withConnection {
-            it.action(new FetchTasksAction()).run();
-        }.collect{ it.buildTreePath }
-
-
-        expect:
-
-        model.containsAll([":b1:buildEnvironment", ":b2:buildEnvironment"])
-        model.every { !it.startsWith("::") }
-    }
-
 }
