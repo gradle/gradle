@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 
 public final class CallableDefinition {
     @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.SOURCE)
+    @Retention(RetentionPolicy.CLASS)
     public @interface Name {
         String value();
     }

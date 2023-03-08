@@ -22,22 +22,22 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 public class ParameterKind {
-    @Retention(RetentionPolicy.SOURCE)
+    @Retention(RetentionPolicy.CLASS)
     @Target(ElementType.PARAMETER)
     public @interface Receiver {
     }
 
-    @Retention(RetentionPolicy.SOURCE)
+    @Retention(RetentionPolicy.CLASS)
     @Target(ElementType.PARAMETER)
     public @interface CallerClassName {
     }
 
-    @Retention(RetentionPolicy.SOURCE)
+    @Retention(RetentionPolicy.CLASS)
     @Target(ElementType.PARAMETER)
     public @interface KotlinDefaultMask {
     }
 
-    @Retention(RetentionPolicy.SOURCE)
+    @Retention(RetentionPolicy.CLASS)
     @Target(ElementType.PARAMETER)
     public @interface VarargParameter {
     }
