@@ -503,7 +503,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         if (targetVersion >= GradleVersion.version("5.0")) {
             return "java.sourceCompatibility = JavaVersion.${javaVersion.name()}"
         } else {
-            return "sourceCompatibility = ${javaVersion.toString()}"
+            return "sourceCompatibility = '${javaVersion.toString()}'"
         }
     }
 }

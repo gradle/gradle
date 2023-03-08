@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
+import static org.gradle.plugins.ide.tooling.r210.ToolingApiEclipseModelCrossVersionSpec.javaTargetCompatibility
 
 @TargetGradleVersion(">=2.11")
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
@@ -60,7 +61,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         given:
         buildFile << """
         apply plugin:'java'
-        targetCompatibility = 1.5
+        ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
 """
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
@@ -75,7 +76,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         apply plugin:'java'
         apply plugin:'eclipse'
 
-        targetCompatibility = 1.6
+        ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_6)}
 
         eclipse {
             jdt {
@@ -119,7 +120,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         buildFile << """
             project(':subproject-a') {
                 apply plugin: 'java'
-                targetCompatibility = 1.1
+                ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_1)}
             }
             project(':subproject-b') {
                 apply plugin: 'java'
@@ -133,7 +134,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
             project(':subproject-c') {
                 apply plugin: 'java'
                 apply plugin: 'eclipse'
-                targetCompatibility = 1.6
+                ${javaTargetCompatibility(targetVersion, JavaVersion.VERSION_1_6)}
                 eclipse {
                     jdt {
                         targetCompatibility = 1.3

@@ -117,10 +117,18 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
     }
 
     static String javaSourceCompatibility(GradleVersion targetVersion, JavaVersion javaVersion) {
+        return javaCompatibility(targetVersion, javaVersion, 'source')
+    }
+
+    static String javaTargetCompatibility(GradleVersion targetVersion, JavaVersion javaVersion) {
+        return javaCompatibility(targetVersion, javaVersion, 'target')
+    }
+
+    private static String javaCompatibility(GradleVersion targetVersion, JavaVersion javaVersion, String compatibility) {
         if (targetVersion >= GradleVersion.version("5.0")) {
-            return "java.sourceCompatibility = JavaVersion.${javaVersion.name()}"
+            return "java.${compatibility}Compatibility = JavaVersion.${javaVersion.name()}"
         } else {
-            return "sourceCompatibility = ${javaVersion.toString()}"
+            return "${compatibility}Compatibility = '${javaVersion.toString()}'"
         }
     }
 }
