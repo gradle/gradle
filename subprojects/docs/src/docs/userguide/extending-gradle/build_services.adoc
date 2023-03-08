@@ -72,6 +72,7 @@ include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/Downl
 ----
 ====
 
+[[sec:service_references]]
 === Annotating a shared build service property with `@ServiceReference`
 
 NOTE: The `@ServiceReference` annotation is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> API and is subject to changing in a future release.

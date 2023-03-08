@@ -23,6 +23,56 @@ import org.gradle.test.fixtures.file.TestFile
 
 class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def 'flow actions are isolated from each other'() {
+        given: 'flow actions that share a bean'
+        buildFile '''
+            import org.gradle.api.flow.*
+            import org.gradle.api.services.*
+
+            class FlowActionPlugin implements Plugin<Project> {
+                final FlowScope flowScope
+                final FlowProviders flowProviders
+                @Inject FlowActionPlugin(FlowScope flowScope, FlowProviders flowProviders) {
+                    this.flowScope = flowScope
+                    this.flowProviders = flowProviders
+                }
+                void apply(Project target) {
+                    def sharedBean = new Bean()
+                    def sharedBeanProvider = flowProviders.buildWorkResult.map { sharedBean }
+                    2.times {
+                        flowScope.always(IncrementAndPrint) {
+                            parameters.bean = sharedBeanProvider
+                        }
+                    }
+                }
+            }
+
+            class Bean {
+                int value = 41
+            }
+
+            class IncrementAndPrint implements FlowAction<Parameters> {
+                interface Parameters extends FlowParameters {
+                    Property<Bean> getBean()
+                }
+                void execute(Parameters parameters) {
+                    parameters.with {
+                        println("Bean.value = " + (++bean.get().value))
+                    }
+                }
+            }
+
+            apply type: FlowActionPlugin
+        '''
+
+        when:
+        configurationCacheRun 'help'
+
+        then: 'shared bean should have been isolated'
+        output.count('Bean.value = 42') == 2
+        outputDoesNotContain 'Bean.value = 43'
+    }
+
     def '#target #injectionStyle with #parameter can react to task execution result'() {
         given:
         def configCache = newConfigurationCacheFixture()
@@ -426,6 +476,43 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
 
     private TestFile scriptFileFor(ScriptTarget target) {
         file(target.fileName)
+    }
+
+    def "task cannot depend on buildWorkResult, fails with clear message and problem is reported"() {
+        given:
+        buildFile '''
+            abstract class Fails extends DefaultTask {
+
+                @Input abstract Property<String> getColor()
+
+                @TaskAction void wontRun() {
+                    assert false
+                }
+            }
+
+            abstract class FailsPlugin implements Plugin<Project> {
+
+                @Inject abstract FlowProviders getFlowProviders()
+
+                void apply(Project target) {
+                    target.tasks.register('fails', Fails)  {
+                        color = flowProviders.buildWorkResult.map {
+                            it.failure.present ? 'red' : 'green'
+                        }
+                    }
+                }
+            }
+
+            apply type: FailsPlugin
+        '''
+
+        when:
+        configurationCacheFails 'fails'
+
+        then:
+        failureHasCause "Failed to calculate the value of task ':fails' property 'color'."
+        failureHasCause "Cannot access the value of 'BuildWorkResult' before it becomes available!"
+        failureDescriptionStartsWith "Configuration cache problems found in this build"
     }
 
     def "value source with task result provider cannot be obtained at configuration time"() {

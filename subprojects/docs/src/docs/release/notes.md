@@ -56,6 +56,31 @@ The allowed labels are:
 
 More details can be found in the [Gradle Wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper) section.
 
+### Kotlin DSL
+
+#### Experimental lazy property assignment for Kotlin scripts
+
+It is now possible to use the `=` operator to assign values to `Property` types in Kotlin scripts as an alternative to the `set()` method:
+
+```kotlin
+interface Extension {
+    val description: Property<String>
+}
+
+extension {
+    // Using the `set()` method call
+    description.set("Hello Property")
+    // Gradle 8.1+ with lazy property assignment enabled
+    description = "Hello Property"
+}
+```
+
+This reduces the verbosity of Kotlin DSL when [lazy property types](userguide/lazy_configuration.html#lazy_properties) are used to configure tasks and extensions.
+It also makes Kotlin DSL behavior consistent with Groovy DSL behavior, where using `=` to assign lazy properties has always been available.
+
+Lazy property assignment for Kotlin scripts is an experimental opt-in feature.
+For more information, see [Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:assignment).
+
 <!--
 
 ================== TEMPLATE ==============================
@@ -229,9 +254,23 @@ tasks.test {
 
 See the [Test.forkEvery](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery) property documentation for more information.
 
-### Build Init plugin incubating option changes
+### Other improvements
+
+#### Build Init plugin incubating option changes
 
 When using the `init` task with the `--incubating` option, [parallel project execution](userguide/multi_project_configuration_and_execution.html#sec:parallel_execution) and [task output caching](userguide/build_cache.html) will be enabled for the generated project (by creating a `gradle.properties` file and setting the appropriate flags in it).
+
+#### Easier consumption of Shared Build Services
+
+There is a [new `@ServiceReference` annotation](userguide/build_services.html#sec:service_references) that makes it easier to consume shared build services. 
+
+By annotating a property with `@ServiceReference`, 
+you no longer need to remember to explicitly declare that your task uses a shared build service via `Task#usesService()`.
+
+If you also provide the name of the service in the annotation, you no longer need to obtain and assign a build service reference to the property explicitly; 
+if a service registration with the given name exists, the corresponding reference is automaticaly assigned to the property. 
+
+More details in the Shared Build Services documentation on [using build services](userguide/build_services.html#sec:using_a_build_service_from_a_task).
 
 ### Code Quality Improvements
 
