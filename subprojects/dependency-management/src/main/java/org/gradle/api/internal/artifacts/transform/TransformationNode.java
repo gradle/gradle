@@ -79,7 +79,21 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         BuildOperationExecutor buildOperationExecutor,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        return new ChainedTransformationNode(targetComponentVariant, sourceAttributes, current, previous, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+        return new ChainedTransformationNode(createId(), targetComponentVariant, sourceAttributes, current, previous, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+    }
+
+    public static ChainedTransformationNode chained(
+        long transformationNodeId,
+        ComponentVariantIdentifier targetComponentVariant,
+        AttributeContainer sourceAttributes,
+        TransformationStep current,
+        TransformationNode previous,
+        TransformUpstreamDependencies upstreamDependencies,
+        BuildOperationExecutor buildOperationExecutor,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    ) {
+        useAssignedId(transformationNodeId);
+        return new ChainedTransformationNode(transformationNodeId, targetComponentVariant, sourceAttributes, current, previous, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
     }
 
     public static InitialTransformationNode initial(
@@ -91,14 +105,33 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         BuildOperationExecutor buildOperationExecutor,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        return new InitialTransformationNode(targetComponentVariant, sourceAttributes, initial, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+        return new InitialTransformationNode(createId(), targetComponentVariant, sourceAttributes, initial, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+    }
+
+    public static InitialTransformationNode initial(
+        long transformationNodeId,
+        ComponentVariantIdentifier targetComponentVariant,
+        AttributeContainer sourceAttributes,
+        TransformationStep initial,
+        ResolvableArtifact artifact,
+        TransformUpstreamDependencies upstreamDependencies,
+        BuildOperationExecutor buildOperationExecutor,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    ) {
+        useAssignedId(transformationNodeId);
+        return new InitialTransformationNode(transformationNodeId, targetComponentVariant, sourceAttributes, initial, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
     }
 
     private static long createId() {
         return SEQUENCE.incrementAndGet();
     }
 
+    private static void useAssignedId(long assignedUniqueId) {
+        SEQUENCE.getAndAccumulate(assignedUniqueId, (current, assignedId) -> current > assignedId ? current : assignedId + 1);
+    }
+
     protected TransformationNode(
+        long id,
         ComponentVariantIdentifier targetComponentVariant,
         AttributeContainer sourceAttributes,
         TransformationStep transformationStep,
@@ -110,7 +143,11 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         this.transformationStep = transformationStep;
         this.artifact = artifact;
         this.upstreamDependencies = upstreamDependencies;
-        this.transformationNodeId = createId();
+        this.transformationNodeId = id;
+    }
+
+    public long getTransformationNodeId() {
+        return transformationNodeId;
     }
 
     public ComponentVariantIdentifier getTargetComponentVariant() {
@@ -347,6 +384,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         private final CalculatedValueContainer<TransformationSubject, TransformInitialArtifact> result;
 
         public InitialTransformationNode(
+            long id,
             ComponentVariantIdentifier targetComponentVariant,
             AttributeContainer sourceAttributes,
             TransformationStep transformationStep,
@@ -355,7 +393,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             BuildOperationExecutor buildOperationExecutor,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
-            super(targetComponentVariant, sourceAttributes, transformationStep, artifact, upstreamDependencies);
+            super(id, targetComponentVariant, sourceAttributes, transformationStep, artifact, upstreamDependencies);
             result = calculatedValueContainerFactory.create(Describables.of(this), new TransformInitialArtifact(buildOperationExecutor));
         }
 
@@ -412,6 +450,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         private final CalculatedValueContainer<TransformationSubject, TransformPreviousArtifacts> result;
 
         public ChainedTransformationNode(
+            long id,
             ComponentVariantIdentifier targetComponentVariant,
             AttributeContainer sourceAttributes,
             TransformationStep transformationStep,
@@ -420,7 +459,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             BuildOperationExecutor buildOperationExecutor,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
-            super(targetComponentVariant, sourceAttributes, transformationStep, previousTransformationNode.artifact, upstreamDependencies);
+            super(id, targetComponentVariant, sourceAttributes, transformationStep, previousTransformationNode.artifact, upstreamDependencies);
             this.previousTransformationNode = previousTransformationNode;
             result = calculatedValueContainerFactory.create(Describables.of(this), new TransformPreviousArtifacts(buildOperationExecutor));
         }
