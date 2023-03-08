@@ -19,7 +19,7 @@ package org.gradle.configurationcache.initialization
 import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.configurationcache.extensions.unsafeLazy
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
+import org.gradle.initialization.StartParameterBuildOptions.FailureMode
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.buildoption.StringInternalOption
@@ -44,7 +44,8 @@ class ConfigurationCacheStartParameter(
 
     val taskExecutionAccessPreStable: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")).get()
 
-    val encryptionRequested: Boolean = startParameter.isConfigurationCacheEncryption
+    val encryptionRequested: Boolean
+        get() = startParameter.configurationCacheEncryption.get()
 
     val encryptionAlgorithm: String = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.AES_ECB_PADDING.transformation)).get()
 
@@ -61,10 +62,13 @@ class ConfigurationCacheStartParameter(
         get() = startParameter.isConfigurationCacheDebug
 
     val failOnProblems: Boolean
-        get() = startParameter.configurationCacheProblems == ConfigurationCacheProblemsOption.Value.FAIL
+        get() = startParameter.configurationCacheProblems == FailureMode.FAIL
 
     val recreateCache: Boolean
         get() = startParameter.isConfigurationCacheRecreateCache
+
+    val failOnEncryptionKeyProblems: Boolean
+        get() = startParameter.configurationCacheEncryptionKeyFailureMode == FailureMode.FAIL
 
     /**
      * See [StartParameter.getProjectDir].

@@ -64,11 +64,12 @@ class DefaultEncryptionService(startParameter: ConfigurationCacheStartParameter)
 
     private
     val secretKey: SecretKey? by lazy {
-        if (keySource == null) {
+        val keySource = this.keySource
+        if (keySource == null)
             null
-        } else
+        else {
             try {
-                keySource!!.getKey().also {
+                keySource.getKey().also {
                     val keyLength = it.encoded.size
                     if (keyLength < 16) {
                         throw InvalidKeyException("Encryption key length is $keyLength bytes, but must be at least 16 bytes long")
@@ -77,12 +78,14 @@ class DefaultEncryptionService(startParameter: ConfigurationCacheStartParameter)
                     encryptionAlgorithm.newSession(it).encryptingCipher {}
                 }
             } catch (e: EncryptionException) {
-                logger.warn("Encryption was requested but could not be enabled: ${e.message}")
-                null
+                if (e.message != null) {
+                    throw e
+                }
+                throw EncryptionException("Error loading encryption key from ${keySource.sourceDescription}", e.cause)
             } catch (e: Exception) {
-                logger.warn("Encryption was requested but could not be enabled: $e")
-                null
+                throw EncryptionException("Error loading encryption key from ${keySource.sourceDescription}", e)
             }
+        }
     }
 
     override
@@ -149,6 +152,7 @@ class DefaultEncryptionService(startParameter: ConfigurationCacheStartParameter)
 
 interface SecretKeySource {
     fun getKey(): SecretKey
+    val sourceDescription: String
 }
 
 
@@ -164,6 +168,9 @@ class EnvironmentVarKeySource(algorithm: String, private val envVarName: String)
     fun getKeyAsBase64(): String = System.getenv(envVarName) ?: ""
 
     override fun getKey(): SecretKey = secretKey
+
+    override val sourceDescription: String
+        get() = "$envVarName (environment variable)"
 
     companion object {
         const val GRADLE_ENCRYPTION_KEY_ENV_KEY = "GRADLE_ENCRYPTION_KEY"

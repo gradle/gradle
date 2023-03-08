@@ -30,6 +30,7 @@ class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
 
     static final List<String> CONFIGURATION_CACHE_ARGS = [
         "--${ConfigurationCacheOption.LONG_OPTION}",
+        "--no-${ConfigurationCacheEncryptionOption.LONG_OPTION}",
         "-D${ConfigurationCacheEncryptionOption.PROPERTY_NAME}=true",
         "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true",
         "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0",

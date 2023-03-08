@@ -29,7 +29,6 @@ import java.util.stream.Stream
 import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
 import static org.gradle.configurationcache.EnvironmentVarKeySource.GRADLE_ENCRYPTION_KEY_ENV_KEY
 import static org.gradle.util.Matchers.containsLine
-import static org.gradle.util.Matchers.matchesRegexp
 
 class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     String encryptionKeyText
@@ -42,14 +41,14 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
 
     def "configuration cache can be loaded without errors if encryption is #status, #encryptionTransformation"() {
         given:
-        def additionalOpts = [
+        List<String> additionalOpts = [
             "-Dorg.gradle.configuration-cache.internal.encryption-alg=${encryptionTransformation}"
         ]
         def configurationCache = newConfigurationCacheFixture()
-        runWithEncryption(status, ["help"], additionalOpts)
+        runWithEncryption(status, ["help"] + additionalOpts)
 
         when:
-        runWithEncryption(status, ["help"], additionalOpts)
+        runWithEncryption(status, ["help"] + additionalOpts)
 
         then:
         configurationCache.assertStateLoaded()
@@ -61,26 +60,32 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         true        | "AES/CBC/PKCS5PADDING"
     }
 
-    def "configuration cache encryption is #status with option #options"() {
+    def "configuration cache enabled #enabled and encryption #encrypted with option #options"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        runWithEncryption(status, ["help"], ["--info"] + options)
+        runWithEncryptionKey(["help", "--info"] + options)
 
         then:
-        configurationCache.assertStateStored()
-        status == containsLine(result.output, "Encryption of the configuration cache is enabled.")
+        if (enabled) {
+            configurationCache.assertStateStored()
+            assert encrypted == containsLine(result.output, "Encryption of the configuration cache is enabled.")
+        } else {
+            configurationCache.assertNoConfigurationCache()
+        }
 
         where:
-        status  | options
-        true    | []
-        false   | ["--no-configuration-cache-encryption"]
-        true    | ["--configuration-cache-encryption"]
-        true    | ["-Dorg.gradle.configuration-cache.encryption=true"]
-        false   | ["-Dorg.gradle.configuration-cache.encryption=false"]
-        true    | ["--configuration-cache-encryption", "-Dorg.gradle.configuration-cache.encryption=false"]
-        false   | ["--no-configuration-cache-encryption", "-Dorg.gradle.configuration-cache.encryption=true"]
+        enabled | encrypted | options
+        false   | false     | []
+        false   | false     | ["--no-configuration-cache"]
+        true    | false     | ["--configuration-cache"]
+        true    | false     | ["-Dorg.gradle.configuration-cache=true"]
+        true    | false     | ["-Dorg.gradle.unsafe.configuration-cache=true"]
+        true    | true      | ["-Dorg.gradle.configuration-cache=true", "-Dorg.gradle.configuration-cache.encryption=true"]
+        true    | true      | ["-Dorg.gradle.unsafe.configuration-cache=true", "-Dorg.gradle.configuration-cache.encryption=true"]
+        true    | false     | ["-Dorg.gradle.configuration-cache=true", "-Dorg.gradle.configuration-cache.encryption=false"]
+        true    | true      | ["-Dorg.gradle.unsafe.configuration-cache=true", "-Dorg.gradle.configuration-cache.encryption=true"]
     }
 
     def "configuration cache is #encrypted if enabled=#enabled"() {
@@ -126,7 +131,7 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
             }
         """
         when:
-        runWithEncryption(enabled, ["useSensitive"], ["-Psensitive_property_name=sensitive_property_value"], [
+        runWithEncryption(enabled, ["useSensitive", "-Psensitive_property_name=sensitive_property_value"], [
             (ENV_PROJECT_PROPERTIES_PREFIX + 'sensitive_property_name2'): 'sensitive_property_value2',
             "SENSITIVE_ENV_VAR_NAME": 'sensitive_env_var_value'
         ])
@@ -186,46 +191,50 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         outputContains("Calculating task graph as no configuration cache is available for tasks: help")
     }
 
-    def "encryption disabled if requested but key in env var is not present"() {
+    def "build fails if requested but key in env var is not present"() {
+        def emptyKey = ""
+
         given:
-        def configurationCache = newConfigurationCacheFixture()
+        executer.withEnvironmentVars(configureEncryptionKey(emptyKey))
 
         when:
-        runWithEncryption(true, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_KEY): ""])
+        fails("help", "--configuration-cache", "--configuration-cache-encryption")
 
         then:
-        configurationCache.assertStateStored()
-        outputContains("Encryption was requested but could not be enabled")
+        result.assertHasErrorOutput """
+Error loading encryption key from GRADLE_ENCRYPTION_KEY (environment variable)
+> Empty key"""
     }
 
     def "encryption disabled if requested but key in env var is invalid"() {
-        given:
-        def configurationCache = newConfigurationCacheFixture()
         def invalidEncryptionKey = Base64.encoder.encodeToString((encryptionKeyText + "foo").getBytes(StandardCharsets.UTF_8))
+        given:
+        executer.withEnvironmentVars(configureEncryptionKey(invalidEncryptionKey))
+
 
         when:
-        runWithEncryption(true, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_KEY): invalidEncryptionKey])
+        fails("help", "--configuration-cache", "--configuration-cache-encryption")
 
         then:
-        configurationCache.assertStateStored()
-        outputContains("Encryption was requested but could not be enabled")
-        containsLine(result.output, matchesRegexp(".*java.security.InvalidKeyException.*"))
-        outputContains("Calculating task graph as no configuration cache is available for tasks: help")
+        result.assertHasErrorOutput """
+Error loading encryption key from GRADLE_ENCRYPTION_KEY (environment variable)
+> Invalid AES key length: 35 bytes"""
     }
 
     def "encryption disabled if requested but key is not long enough"() {
-        given:
-        def configurationCache = newConfigurationCacheFixture()
         def insufficientlyLongEncryptionKey = Base64.encoder.encodeToString("01234567".getBytes(StandardCharsets.UTF_8))
 
+        given:
+        executer.withEnvironmentVars(configureEncryptionKey(insufficientlyLongEncryptionKey))
+
         when:
-        runWithEncryption(true, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_KEY): insufficientlyLongEncryptionKey])
+        fails("help", "--configuration-cache", "--configuration-cache-encryption")
 
         then:
-        configurationCache.assertStateStored()
-        outputContains("Encryption was requested but could not be enabled")
-        containsLine(result.output, matchesRegexp(".*Encryption key length is \\d* bytes, but must be at least \\d* bytes long"))
-        outputContains("Calculating task graph as no configuration cache is available for tasks: help")
+        result.assertHasErrorOutput """
+Error loading encryption key from GRADLE_ENCRYPTION_KEY (environment variable)
+> Encryption key length is 8 bytes, but must be at least 16 bytes long"""
+
     }
 
     def "new configuration cache entry if env var key changes"() {
@@ -234,13 +243,13 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         def differentKey = "O6lTi7qNmAAIookBZGqHqyDph882NPQOXW5P5K2yupM="
 
         when:
-        runWithEncryption(true, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_KEY): this.encryptionKeyAsBase64])
+        runWithEncryption(true, ["help"], [(GRADLE_ENCRYPTION_KEY_ENV_KEY): this.encryptionKeyAsBase64])
 
         then:
         configurationCache.assertStateStored()
 
         when:
-        runWithEncryption(true, ["help"], [], [(GRADLE_ENCRYPTION_KEY_ENV_KEY): differentKey])
+        runWithEncryption(true, ["help"], [(GRADLE_ENCRYPTION_KEY_ENV_KEY): differentKey])
 
         then:
         configurationCache.assertStateStored()
@@ -249,18 +258,26 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
     void runWithEncryption(
         boolean enabled,
         List<String> tasks = ["help"],
-        List<String> additionalArgs = [],
         Map<String, String> envVars = [:]
     ) {
         def args = [
-            "--${enabled ? "" : "no-"}configuration-cache-encryption"
+            "--configuration-cache", enabled ? "--configuration-cache-encryption" : "--no-configuration-cache-encryption"
         ]
-        def allArgs = tasks + args + additionalArgs
-        if (enabled && !envVars.containsKey(GRADLE_ENCRYPTION_KEY_ENV_KEY)) {
-            envVars << [(GRADLE_ENCRYPTION_KEY_ENV_KEY): encryptionKeyAsBase64]
+        List<String> allArgs = tasks + args
+        executer.withEnvironmentVars(enabled ? configureEncryptionKey(encryptionKeyAsBase64, envVars) : envVars)
+        run(allArgs.collect { it.toString() } )
+    }
+
+    void runWithEncryptionKey(List<String> tasks, String encryptionKey = encryptionKeyAsBase64) {
+        executer.withEnvironmentVars(configureEncryptionKey(encryptionKey))
+        run(tasks)
+    }
+
+    protected Map<String, String> configureEncryptionKey(String keyAsBase64, Map<String, String> envVars = [:]) {
+        if (!envVars.containsKey(GRADLE_ENCRYPTION_KEY_ENV_KEY)) {
+            envVars << [(GRADLE_ENCRYPTION_KEY_ENV_KEY): keyAsBase64]
         }
-        executer.withEnvironmentVars(envVars)
-        configurationCacheRun(*allArgs)
+        return envVars
     }
 
     private boolean isSubArray(byte[] contents, byte[] toFind) {

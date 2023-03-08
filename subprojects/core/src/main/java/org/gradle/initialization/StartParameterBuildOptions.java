@@ -75,6 +75,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new ExportKeysOption());
         options.add(new ConfigurationCacheProblemsOption());
         options.add(new ConfigurationCacheOption());
+        options.add(new UnsafeConfigurationCacheOption());
         options.add(new ConfigurationCacheMaxProblemsOption());
         options.add(new ConfigurationCacheDebugOption());
         options.add(new ConfigurationCacheRecreateOption());
@@ -454,13 +455,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
     public static class ConfigurationCacheOption extends BooleanBuildOption<StartParameterInternal> {
 
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache";
-        public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache";
         public static final String LONG_OPTION = "configuration-cache";
 
         public ConfigurationCacheOption() {
             super(
                 PROPERTY_NAME,
-                DEPRECATED_PROPERTY_NAME,
                 BooleanCommandLineOptionConfiguration.create(
                     LONG_OPTION,
                     "Enables the configuration cache. Gradle will try to reuse the build configuration from previous builds.",
@@ -472,12 +471,31 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCache(Value.value(value));
+            settings.setConfigurationCacheEncryptionKeyFailureMode(FailureMode.FAIL);
+        }
+    }
+
+    public static class UnsafeConfigurationCacheOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.configuration-cache";
+
+        public UnsafeConfigurationCacheOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCache(Value.value(value));
+            if (!settings.getConfigurationCacheEncryption().isExplicit()) {
+                settings.setConfigurationCacheEncryption(Value.defaultValue(false));
+                settings.setConfigurationCacheEncryptionKeyFailureMode(FailureMode.WARN);
+            }
         }
     }
 
     public static class ConfigurationCacheEncryptionOption extends BooleanBuildOption<StartParameterInternal> {
 
-        public static final String PROPERTY_NAME = "org.gradle.configuration-cache-encryption";
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.encryption";
         public static final String LONG_OPTION = "configuration-cache-encryption";
 
         public ConfigurationCacheEncryptionOption() {
@@ -487,13 +505,13 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                     LONG_OPTION,
                     "Enables encryption of the configuration cache.",
                     "Disables encryption of the configuration cache."
-                ).incubating()
+                )
             );
         }
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCacheEncryption(value);
+            settings.setConfigurationCacheEncryption(Value.value(value));
         }
     }
 
@@ -510,20 +528,16 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class ConfigurationCacheProblemsOption extends EnumBuildOption<ConfigurationCacheProblemsOption.Value, StartParameterInternal> {
+    public static class ConfigurationCacheProblemsOption extends EnumBuildOption<FailureMode, StartParameterInternal> {
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache.problems";
         public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache-problems";
         public static final String LONG_OPTION = "configuration-cache-problems";
 
-        public enum Value {
-            FAIL, WARN
-        }
-
         public ConfigurationCacheProblemsOption() {
             super(
                 LONG_OPTION,
-                Value.class,
-                Value.values(),
+                FailureMode.class,
+                FailureMode.values(),
                 PROPERTY_NAME,
                 DEPRECATED_PROPERTY_NAME,
                 CommandLineOptionConfiguration.create(
@@ -534,7 +548,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
 
         @Override
-        public void applyTo(Value value, StartParameterInternal settings, Origin origin) {
+        public void applyTo(FailureMode value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheProblems(value);
         }
     }
@@ -598,5 +612,9 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheQuiet(value);
         }
+    }
+
+    public enum FailureMode {
+        FAIL, WARN
     }
 }
