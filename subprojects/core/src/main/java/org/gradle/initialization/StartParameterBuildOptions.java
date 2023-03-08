@@ -80,6 +80,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new ConfigurationCacheDebugOption());
         options.add(new ConfigurationCacheRecreateOption());
         options.add(new ConfigurationCacheQuietOption());
+        options.add(new ConfigurationCacheEncryptionOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -469,6 +470,28 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCache(Value.value(value));
+        }
+    }
+
+    public static class ConfigurationCacheEncryptionOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache-encryption";
+        public static final String LONG_OPTION = "configuration-cache-encryption";
+
+        public ConfigurationCacheEncryptionOption() {
+            super(
+                PROPERTY_NAME,
+                BooleanCommandLineOptionConfiguration.create(
+                    LONG_OPTION,
+                    "Enables encryption of the configuration cache.",
+                    "Disables encryption of the configuration cache."
+                ).incubating()
+            );
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheEncryption(value);
         }
     }
 
