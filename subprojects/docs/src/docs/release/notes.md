@@ -40,6 +40,36 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
+<!--
+================== TEMPLATE ==============================
+
+<a name="FILL-IN-KEY-AREA"></a>
+### FILL-IN-KEY-AREA improvements
+
+<<<FILL IN CONTEXT FOR KEY AREA>>>
+Example:
+> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
+> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
+> nothing that affects the build configuration has changed.
+
+#### FILL-IN-FEATURE
+> HIGHLIGHT the usecase or existing problem the feature solves
+> EXPLAIN how the new release addresses that problem or use case
+> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
+> LINK to the full documentation for more details
+
+================== END TEMPLATE ==========================
+
+==========================================================
+ADD RELEASE FEATURES BELOW
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
+
+### Configuration cache improvements
+
+TODO - Java lambdas are supported, and unsupported captured values are reported.
+TODO - File collections queried at configuration time are treated as configuration inputs.
+TODO - File system repositories are fully supported including dynamic versions in Maven, Maven local, and Ivy repositories
+
 ### Gradle Wrapper
 
 #### Introduced labels for selecting the version
@@ -56,7 +86,9 @@ The allowed labels are:
 
 More details can be found in the [Gradle Wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper) section.
 
-### Kotlin DSL
+### Kotlin DSL improvements
+
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the Groovy DSL with an enhanced editing experience in supported IDEs — superior content assistance, refactoring, documentation, and more.
 
 #### Experimental lazy property assignment for Kotlin scripts
 
@@ -80,42 +112,6 @@ It also makes Kotlin DSL behavior consistent with Groovy DSL behavior, where usi
 
 Lazy property assignment for Kotlin scripts is an experimental opt-in feature.
 For more information, see [Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:assignment).
-
-<!--
-
-================== TEMPLATE ==============================
-
-<a name="FILL-IN-KEY-AREA"></a>
-### FILL-IN-KEY-AREA improvements
-
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the usecase or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details
-
-================== END TEMPLATE ==========================
-
-
-==========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
-
-### Configuration cache improvements
-
-TODO - Java lambdas are supported, and unsupported captured values are reported.
-TODO - File collections queried at configuration time are treated as configuration inputs.
-TODO - File system repositories are fully supported including dynamic versions in Maven, Maven local, and Ivy repositories
-
-### Kotlin DSL improvements
-
-Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the Groovy DSL with an enhanced editing experience in supported IDEs — superior content assistance, refactoring, documentation, and more.
 
 #### Version catalogs for plugins in the `plugins {}` block
 
