@@ -73,21 +73,25 @@ public class DefaultResolutionResultBuilder {
     public void visitOutgoingEdges(Long fromComponent, Collection<? extends ResolvedGraphDependency> dependencies) {
         DefaultResolvedComponentResult from = modules.get(fromComponent);
         for (ResolvedGraphDependency d : dependencies) {
-            DependencyResult dependencyResult;
+            DependencyResult dependencyResult = null;
             ResolvedVariantResult fromVariant = d.getFromVariant();
             if (d.getFailure() != null) {
                 dependencyResult = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.isConstraint(), d.getReason(), d.getFailure());
             } else {
                 DefaultResolvedComponentResult selected = modules.get(d.getSelected());
-                if (selected == null) {
+                if (selected == null && !d.isConstraint()) {
                     throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected module (" + d.getSelected() + ") for " + (d.isConstraint() ? "constraint " : "") + fromVariant + " -> " + d.getRequested().getDisplayName());
                 }
-                dependencyResult = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected, d.getSelectedVariant(), d.isConstraint());
-                selected.addDependent((ResolvedDependencyResult) dependencyResult);
+                if (selected != null) {
+                    dependencyResult = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected, d.getSelectedVariant(), d.isConstraint());
+                    selected.addDependent((ResolvedDependencyResult) dependencyResult);
+                }
             }
-            from.addDependency(dependencyResult);
-            if (fromVariant != null) {
-                from.associateDependencyToVariant(dependencyResult, fromVariant);
+            if (dependencyResult != null) {
+                from.addDependency(dependencyResult);
+                if (fromVariant != null) {
+                    from.associateDependencyToVariant(dependencyResult, fromVariant);
+                }
             }
         }
     }
