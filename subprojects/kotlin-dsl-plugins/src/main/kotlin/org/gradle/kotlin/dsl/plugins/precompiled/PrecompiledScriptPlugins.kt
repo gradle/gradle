@@ -24,6 +24,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.internal.Factory
 import org.gradle.internal.deprecation.DeprecationLogger
+
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPluginOptions
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
@@ -64,7 +65,6 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
 }
 
 
-private
 val Project.kotlinDslPluginOptions: KotlinDslPluginOptions
     get() = extensions.getByType()
 

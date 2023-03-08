@@ -443,9 +443,12 @@ fun SourceDirectorySet.collectScriptPluginFiles(): Set<File> =
         .files
 
 
+/**
+ * Uses the Groovy builder to access the `kotlin` source set because KGP types are not available here.
+ */
 private
 val SourceSet.kotlin: SourceDirectorySet
-    get() = extensions.getByName<SourceDirectorySet>("kotlin")
+    get() = withGroovyBuilder { getProperty("kotlin") } as SourceDirectorySet
 
 
 private

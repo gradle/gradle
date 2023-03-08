@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.util.GradleVersion
 
 @TargetGradleVersion(">=2.10")
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
@@ -62,7 +63,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         given:
         buildFile << """
             apply plugin: 'java'
-            sourceCompatibility = 1.6
+            ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_6)}
         """
 
         when:
@@ -77,7 +78,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             project(':subproject-a') {
                 apply plugin: 'java'
-                sourceCompatibility = 1.1
+                ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_1)}
             }
             project(':subproject-b') {
                 apply plugin: 'java'
@@ -91,7 +92,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
             project(':subproject-c') {
                 apply plugin: 'java'
                 apply plugin: 'eclipse'
-                sourceCompatibility = 1.6
+                ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_6)}
                 eclipse {
                     jdt {
                         sourceCompatibility = 1.3
@@ -115,4 +116,11 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         subprojectC.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
     }
 
+    static String javaSourceCompatibility(GradleVersion targetVersion, JavaVersion javaVersion) {
+        if (targetVersion >= GradleVersion.version("5.0")) {
+            return "java.sourceCompatibility = JavaVersion.${javaVersion.name()}"
+        } else {
+            return "sourceCompatibility = ${javaVersion.toString()}"
+        }
+    }
 }
