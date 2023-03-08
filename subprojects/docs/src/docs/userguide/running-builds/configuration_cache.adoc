@@ -204,6 +204,43 @@ If you need to invalidate the cache, simply delete that directory:
 Configuration cache entries are checked periodically (at most every 24 hours) for whether they are still in use.
 They are deleted if they haven't been used for 7 days.
 
+[[config_cache:usage:encryption]]
+=== Encrypting the cache
+
+The configuration cache stores any data set up during the configuration phase.
+As such, if your build configuration includes any sensitive information, you should ensure
+your configuration cache is encrypted.
+
+For Gradle to be able to encrypt the data in the cache, you must provide Gradle with an AES 128-bit key
+via the `GRADLE_ENCRYPTION_KEY` environment variable (see <<build_environment.adoc#sec:gradle_environment_variables, see Environment variables>>).
+
+==== Generating an encryption key that is compatible with GRADLE_ENCRYPTION_KEY
+
+There are many ways of producing an encryption key compatible with Gradle.
+One way is by using a command like this, which should work on Linux and Mac OS, or even on Windows, if using a tool like Cygwin:
+
+```
+❯ echo $(openssl enc -aes-128-cbc -k secret -P | grep key= | sed s/key=// | base64)
+```
+
+You can then use the key produced by that command (which is encoded as a Base64 string) and set it as the value of the
+`GRADLE_ENCRYPTION_KEY` environment variable whichever way you prefer to configure environment variables in your OS.
+
+==== Disabling encryption of the configuration cache
+
+Encryption of the configuration cache is enabled for default for a good reason,
+but if you would rather not encrypt the configuration cache state, you can do so on the command line:
+
+----
+❯ gradle --no-configuration-cache-encryption
+----
+or in a `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.configuration-cache.encryption=false
+----
+
 [[config_cache:stable]]
 == Stable configuration cache
 
@@ -317,10 +354,10 @@ link:{gradle-issues}13488[[.red]#✖#]:: <<xctest_plugin.adoc#xctest_plugin,XCTe
 
 a|
 [horizontal]
-link:{gradle-issues}13463[[.green]#✓#]:: <<application_plugin.adoc#application_plugin,Application>>
+link:{gradle-issues}13463[[.yellow]#⚠#]:: <<application_plugin.adoc#application_plugin,Application>>
 link:{gradle-issues}13466[[.green]#✓#]:: <<war_plugin.adoc#war_plugin,WAR>>
 link:{gradle-issues}13467[[.red]#✖#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
-link:{gradle-issues}13468[[.green]#✓#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
+link:{gradle-issues}13468[[.yellow]#⚠#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
 link:{gradle-issues}13469[[.red]#✖#]:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
 link:{gradle-issues}13464[[.green]#✓#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
 link:{gradle-issues}13465[[.green]#✓#]:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
@@ -1098,8 +1135,8 @@ See link:{gradle-issues}22879[gradle/gradle#22879].
 [[config_cache:not_yet_implemented:build_services_in_fingerprint]]
 === Using build services to invalidate the configuration cache
 
-Currently, it is not possible to use a `BuildServiceProvider` or provider derived of it with `map` or `flatMap` as a parameter for the `ValueSource`, if the value of the `ValueSource` is accessed at configuration time.
-The same applies such `ValueSource` is obtained in a task that executes as part of configuration phase, for example tasks of the `buildSrc` build or included builds contributing plugins.
+Currently, it is impossible to use a `BuildServiceProvider` or provider derived from it with `map` or `flatMap` as a parameter for the `ValueSource`, if the value of the `ValueSource` is accessed at configuration time.
+The same applies when such a `ValueSource` is obtained in a task that executes as part of the configuration phase, for example tasks of the `buildSrc` build or included builds contributing plugins.
 Note that using a `@ServiceReference` or storing `BuildServiceProvider` in an `@Internal`-annotated property of a task is safe.
 Generally speaking, this limitation makes it impossible to use a `BuildService` to invalidate the configuration cache.
 

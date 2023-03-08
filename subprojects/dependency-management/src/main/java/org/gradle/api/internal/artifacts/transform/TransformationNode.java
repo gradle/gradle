@@ -132,6 +132,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         String consumerBuildPath = transformationStep.getOwningProject().getBuildPath().toString();
         String consumerProjectPath = transformationStep.getOwningProject().getIdentityPath().toString();
         ComponentIdentifier componentId = getComponentIdentifier(targetComponentVariant.getComponentId());
+        Map<String, String> sourceAttributes = AttributesToMapConverter.convertToMap(this.sourceAttributes);
         Map<String, String> targetAttributes = AttributesToMapConverter.convertToMap(targetComponentVariant.getAttributes());
         List<Capability> capabilities = targetComponentVariant.getCapabilities().stream()
             .map(TransformationNode::convertCapability)
@@ -156,6 +157,11 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             @Override
             public ComponentIdentifier getComponentId() {
                 return componentId;
+            }
+
+            @Override
+            public Map<String, String> getSourceAttributes() {
+                return sourceAttributes;
             }
 
             @Override

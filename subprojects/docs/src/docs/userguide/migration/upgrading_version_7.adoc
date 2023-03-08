@@ -93,6 +93,24 @@ test {
 }
 ```
 
+Additionally, setting the test framework multiple times to the _same_ framework now accumulates any options that might be set on the framework.
+Previously, each time the framework was set, it would cause the framework options to be overwritten.
+
+The following code now results in both the "foo" and "bar" tags to be included for the `test` task:
+```
+test {
+   useJUnitPlatform {
+        includeTags("foo")
+   }
+}
+tasks.withType(Test).configureEach {
+   // previously, this would overwrite the included tags to only include "bar"
+   useJUnitPlatform {
+        includeTags("bar")
+   }
+}
+```
+
 === Removed APIs
 
 ==== Legacy ArtifactTransform API
@@ -197,7 +215,7 @@ Use the `using(ComponentSelector)` method instead.
 
 ==== AbstractArchiveTask API Cleanup
 
-The deprecated `appendix`, `archiveName`, `archivePath`, `baseName`, `classifier`, `desintationDir`, `extension` and `version` properties of the `AbstractArchiveTask` task type have been removed.
+The deprecated `appendix`, `archiveName`, `archivePath`, `baseName`, `classifier`, `destinationDir`, `extension` and `version` properties of the `AbstractArchiveTask` task type have been removed.
 Use the `archiveAppendix`, `archiveFileName` , `archiveFile`, `archiveBaseName`, `archiveClassifier`, `destinationDirectory`, `archiveExtension` and `archiveVersion` properties instead.
 
 ==== IdeaModule API Cleanup

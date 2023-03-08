@@ -59,6 +59,7 @@ import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
+import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
@@ -109,6 +110,8 @@ class ConfigurationCacheFingerprintWriter(
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
+        val isEncrypted: Boolean
+        val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
         val startParameterProperties: Map<String, Any?>
@@ -119,6 +122,7 @@ class ConfigurationCacheFingerprintWriter(
         fun hashCodeOf(file: File): HashCode
         fun hashCodeOfDirectoryContent(file: File): HashCode
         fun displayNameOf(file: File): String
+        fun reportProblem(exception: Throwable? = null, documentationSection: DocumentationSection? = null, message: StructuredMessageBuilder)
         fun reportInput(input: PropertyProblem)
         fun location(consumer: String?): PropertyTrace
     }
@@ -169,8 +173,7 @@ class ConfigurationCacheFingerprintWriter(
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
     init {
-        val initScripts = host.allInitScripts
-        buildScopedSink.initScripts(initScripts)
+        buildScopedSink.initScripts(host.allInitScripts)
         buildScopedSink.write(
             ConfigurationCacheFingerprint.GradleEnvironment(
                 host.gradleUserHomeDir,
@@ -381,6 +384,18 @@ class ConfigurationCacheFingerprintWriter(
         obtainedValue: ValueSourceProviderFactory.ValueListener.ObtainedValue<T, P>,
         source: org.gradle.api.provider.ValueSource<T, P>
     ) {
+        obtainedValue.value.failure.ifPresent { exception ->
+            host.reportProblem(exception) {
+                text("failed to compute value with custom source ")
+                reference(obtainedValue.valueSourceType)
+                source.displayNameIfAvailable?.let {
+                    text(" ($it)")
+                }
+                text(" with ")
+                text(exception.toString())
+            }
+        }
+
         // TODO(https://github.com/gradle/gradle/issues/22494) ValueSources become part of the fingerprint even if they are only obtained
         //  inside other value sources. This is not really necessary for the correctness and causes excessive cache invalidation.
         when (val parameters = obtainedValue.valueSourceParameters) {
@@ -433,15 +448,19 @@ class ConfigurationCacheFingerprintWriter(
                 sink().write(ValueSource(obtainedValue.uncheckedCast()), trace)
                 reportUniqueValueSourceInput(
                     trace,
-                    displayName = when (source) {
-                        is Describable -> source.displayName
-                        else -> null
-                    },
+                    displayName = source.displayNameIfAvailable,
                     typeName = obtainedValue.valueSourceType.simpleName
                 )
             }
         }
     }
+
+    private
+    val org.gradle.api.provider.ValueSource<*, *>.displayNameIfAvailable: String?
+        get() = when (this) {
+            is Describable -> displayName
+            else -> null
+        }
 
     private
     fun isSystemPropertyLoaded(key: String): Boolean {
