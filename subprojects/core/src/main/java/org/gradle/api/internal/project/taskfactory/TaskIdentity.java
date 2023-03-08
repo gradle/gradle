@@ -51,8 +51,11 @@ public final class TaskIdentity<T extends Task> {
         this.uniqueId = uniqueId;
     }
 
+    /**
+     * Create a task identity.
+     */
     public static <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project) {
-        return create(
+        return doCreate(
             name,
             type,
             project,
@@ -60,7 +63,18 @@ public final class TaskIdentity<T extends Task> {
         );
     }
 
+    /**
+     * Create a task identity.
+     *
+     * Should only be used when loading from the configuration cache to preserve task ids.
+     */
     public static <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project, long uniqueId) {
+        // Increment the sequence so later assigned task ids don't clash with the one manually assigned.
+        SEQUENCE.getAndAccumulate(uniqueId, (current, givenId) -> current > givenId ? current : givenId + 1);
+        return doCreate(name, type, project, uniqueId);
+    }
+
+    public static <T extends Task> TaskIdentity<T> doCreate(String name, Class<T> type, ProjectInternal project, long uniqueId) {
         return new TaskIdentity<>(
             type,
             name,
