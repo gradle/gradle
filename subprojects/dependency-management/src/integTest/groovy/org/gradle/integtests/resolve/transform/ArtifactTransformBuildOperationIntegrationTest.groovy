@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.transform
 import groovy.transform.EqualsAndHashCode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode
@@ -896,10 +897,19 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def getPlannedNodes(int transformNodeCount) {
-        def plannedNodes = buildOperations.only(CalculateTaskGraphBuildOperationType).result.executionPlan as List<PlannedNode>
-        assert plannedNodes.every { KNOWN_NODE_TYPES.contains(it.nodeIdentity.nodeType) }
-        assert plannedNodes.count { it.nodeIdentity.nodeType.toString() == TRANSFORM_STEP } == transformNodeCount
-        return plannedNodes
+        def ops = buildOperations.all(CalculateTaskGraphBuildOperationType)
+        assert !ops.empty
+        if (GradleContextualExecuter.configCache) {
+            assert ops.size() <= 2
+        } else {
+            assert ops.size() == 1
+        }
+        return ops.collect { op ->
+            def plannedNodes = op.result.executionPlan as List<PlannedNode>
+            assert plannedNodes.every { KNOWN_NODE_TYPES.contains(it.nodeIdentity.nodeType) }
+            assert plannedNodes.count { it.nodeIdentity.nodeType.toString() == TRANSFORM_STEP } == transformNodeCount
+            return plannedNodes
+        }.first()
     }
 
     def getExecuteTransformOperations(int expectOperationsCount, boolean expectFailure = false) {
