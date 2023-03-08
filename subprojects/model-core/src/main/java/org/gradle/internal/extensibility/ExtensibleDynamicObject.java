@@ -143,7 +143,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 // TODO nag once KGP doesn't register conventions anymore
 //        DeprecationLogger.deprecateType(org.gradle.api.internal.HasConvention.class)
 //            .willBeRemovedInGradle9()
-//            .withUpgradeGuideSection(7, "all_convention_deprecation")
+//            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
 //            .nagUser();
         return convention;
     }

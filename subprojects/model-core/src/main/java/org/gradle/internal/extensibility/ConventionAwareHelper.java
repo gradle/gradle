@@ -137,7 +137,7 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
     public org.gradle.api.plugins.Convention getConvention() {
         DeprecationLogger.deprecateType(org.gradle.api.internal.HasConvention.class)
             .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "all_convention_deprecation")
+            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
             .nagUser();
         return _convention;
     }
