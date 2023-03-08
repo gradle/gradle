@@ -110,6 +110,7 @@ public abstract class Wrapper extends DefaultTask {
     private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private final DistributionLocator locator = new DistributionLocator();
     private boolean distributionUrlConfiguredOnCommandLine = false;
+    private boolean isOffline = false;
 
     public Wrapper() {
         scriptFile = "gradlew";
@@ -163,7 +164,7 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     private void testDistributionUrl() {
-        if (distributionUrlConfiguredOnCommandLine) {
+        if (distributionUrlConfiguredOnCommandLine && !isOffline) {
             try {
                 new Download(new Logger(true), "gradlew", Download.UNKNOWN_VERSION).sendHeadRequest(getDistributionUrl());
             } catch (Exception e) {
@@ -512,5 +513,9 @@ public abstract class Wrapper extends DefaultTask {
     @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations")
     public Property<Integer> getNetworkTimeout() {
         return networkTimeout;
+    }
+
+    public void setIsOffline(boolean isOffline) {
+        this.isOffline = isOffline;
     }
 }
