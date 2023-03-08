@@ -100,7 +100,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
         if ("skip_task_graph_realization".equals(projectOptions)) {
             return tasks.getNames().stream()
                 .map(taskName -> buildFromTaskName(new LaunchableGradleProjectTask(), owner.getProjectIdentifier(), taskName)
-                    .setBuildTreePath(owner.getBuildTreePath() + ":" + taskName))
+                    .setBuildTreePath(owner.getBuildTreePath() + SEPARATOR + taskName))
                 .collect(toList());
         }
 
@@ -125,7 +125,7 @@ public class GradleProjectBuilder implements ToolingModelBuilder {
     }
 
     public static <T extends LaunchableGradleTask> T buildFromTaskName(T target, DefaultProjectIdentifier projectIdentifier, String taskName) {
-        String taskPath = projectIdentifier.getProjectPath() + ":" + taskName;
+        String taskPath = projectIdentifier.getProjectPath() + SEPARATOR + taskName;
         target.setPath(taskPath)
             .setName(taskName)
             .setGroup("undefined")
