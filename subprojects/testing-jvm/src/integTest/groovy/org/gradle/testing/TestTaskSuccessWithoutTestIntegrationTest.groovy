@@ -20,7 +20,7 @@ import org.gradle.api.tasks.testing.TestExecutionException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 
-class TestTaskNoTestsFailTest extends AbstractIntegrationSpec {
+class TestTaskSuccessWithoutTestIntegrationTest extends AbstractIntegrationSpec {
 
     def "test succeeds with warning if there is no test"() {
         buildFile << "apply plugin: 'java'"
@@ -30,7 +30,7 @@ class TestTaskNoTestsFailTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning("There is no test to run. In 9.0, the behaviour will change to fail in this case. Use '--success-without-test' or '--no-success-without-test' to set the behaviour.")
+        executer.expectDeprecationWarning("There is no test to run. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Set Test.successWithoutTest to true if you want the task to succeed when there is no test to run. Consult the upgrading guide for further information: https://docs.gradle.org/")
         succeeds("test")
 
         then:

@@ -41,7 +41,7 @@ public class BooleanOptionElement extends AbstractOptionElement {
 
     public static BooleanOptionElement of(String optionName, Option option, PropertySetter setter) {
         if (isDisableOption(optionName)) {
-            return new BooleanOptionElement(optionName, "Disables option --" + option.option(), setter);
+            return new BooleanOptionElement(optionName, "Disables option --" + optionName.substring(3), setter);
         } else {
             return new BooleanOptionElement(optionName, option, setter);
         }

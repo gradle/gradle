@@ -22,8 +22,11 @@ import com.google.common.collect.ListMultimap;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
+import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.util.internal.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
@@ -46,9 +49,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class OptionReader {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineTaskConfigurer.class);
     private final ListMultimap<Class<?>, OptionElement> cachedOptionElements = ArrayListMultimap.create();
     private final Map<OptionElement, JavaMethod<Object, Collection>> cachedOptionValueMethods = new HashMap<OptionElement, JavaMethod<Object, Collection>>();
     private final OptionValueNotationParserFactory optionValueNotationParserFactory = new OptionValueNotationParserFactory();
+    private final Map<String, OptionElementAndSignature> disableOptionCandidates = new HashMap<>();
 
     @VisibleForTesting
     static final Map<String, BuiltInOptionElement> BUILT_IN_OPTIONS = Stream.of(
@@ -177,6 +183,8 @@ public class OptionReader {
             allOptionElements.addAll(getMethodAnnotations(type));
         }
 
+        addDisableOptions(allOptionElements);
+
         return allOptionElements;
     }
 
@@ -185,7 +193,11 @@ public class OptionReader {
         for (Field field : type.getDeclaredFields()) {
             Option option = findOption(field);
             if (option != null) {
-                fieldOptionElements.add(FieldOptionElement.create(option, field, optionValueNotationParserFactory));
+                OptionElement optionElement = FieldOptionElement.create(option, field, optionValueNotationParserFactory);
+                fieldOptionElements.add(optionElement);
+                if (optionElement.getOptionType().equals(Void.TYPE)) {
+                    addDisableOptionCandidate(option, field, optionElement.getOptionName());
+                }
             }
         }
         return fieldOptionElements;
@@ -198,7 +210,6 @@ public class OptionReader {
                 throw new OptionValidationException(String.format("@Option on static field '%s' not supported in class '%s'.",
                     field.getName(), field.getDeclaringClass().getName()));
             }
-            checkForIllegalOptionName(option.option(), field.getDeclaringClass().getName());
         }
         return option;
     }
@@ -212,22 +223,11 @@ public class OptionReader {
                     optionValueNotationParserFactory);
                 methodOptionElements.add(new OptionElementAndSignature(methodOptionDescriptor, MethodSignature.from(method)));
                 if (methodOptionDescriptor.getOptionType().equals(Void.TYPE)) {
-                    methodOptionElements.add(new OptionElementAndSignature(createNegatedOptionElement(option, method), MethodSignature.from(method)));
+                    addDisableOptionCandidate(option, method);
                 }
             }
         }
         return methodOptionElements;
-    }
-
-    private OptionElement createNegatedOptionElement(Option option, Method method) {
-        return MethodOptionElement.create(option, method, optionValueNotationParserFactory, "no-" + option.option());
-    }
-
-    private void checkForIllegalOptionName(String optionName, String className) {
-        if (BooleanOptionElement.isDisableOption(optionName)) {
-            throw new OptionValidationException(String.format("Illegal option name '%s' in class '%s'. Option name must not start with 'no-'.",
-                optionName, className));
-        }
     }
 
     private Option findOption(Method method) {
@@ -237,7 +237,6 @@ public class OptionReader {
                 throw new OptionValidationException(String.format("@Option on static method '%s' not supported in class '%s'.",
                     method.getName(), method.getDeclaringClass().getName()));
             }
-            checkForIllegalOptionName(option.option(), method.getDeclaringClass().getName());
         }
         return option;
     }
@@ -272,4 +271,26 @@ public class OptionReader {
         }
     }
 
+    private void addDisableOptions(List<OptionElementAndSignature> allOptionElements) {
+        allOptionElements.forEach(optionElementAndSignature -> {
+            String optionName = optionElementAndSignature.element.getOptionName();
+            if (disableOptionCandidates.containsKey(optionName)) {
+                disableOptionCandidates.remove(optionName);
+                LOGGER.warn("Disable option '{}' was disabled for clashing with another option of same name", optionName);
+            }
+        });
+        allOptionElements.addAll(disableOptionCandidates.values());
+    }
+
+    private void addDisableOptionCandidate(Option option, Method method) {
+        String optionName = "no-" + option.option();
+        OptionElementAndSignature optionElementAndSignature =  new OptionElementAndSignature(MethodOptionElement.create(option, method, optionValueNotationParserFactory, optionName), MethodSignature.from(method));
+        disableOptionCandidates.put(optionName, optionElementAndSignature);
+    }
+
+    private void addDisableOptionCandidate(Option option, Field field, String optionName) {
+        optionName = "no-" + optionName;
+        OptionElementAndSignature optionElementAndSignature =  new OptionElementAndSignature(FieldOptionElement.create(option, field, optionValueNotationParserFactory, optionName), null);
+        disableOptionCandidates.put(optionName, optionElementAndSignature);
+    }
 }

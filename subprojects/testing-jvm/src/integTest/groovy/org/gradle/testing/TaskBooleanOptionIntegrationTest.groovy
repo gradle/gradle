@@ -37,6 +37,7 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         'myBooleanPrimitiveOption' | 'false'
         'myBooleanObjectOption'    | 'null'
         'myBooleanPropertyOption'  | 'property(java.lang.Boolean, undefined)'
+        'myFieldOption'            | 'null'
     }
 
     def "can pass boolean option"() {
@@ -55,6 +56,7 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         'myBooleanPrimitiveOption' | 'true'
         'myBooleanObjectOption'    | 'true'
         'myBooleanPropertyOption'  | 'property(java.lang.Boolean, fixed(class java.lang.Boolean, true))'
+        'myFieldOption'            | 'true'
     }
 
     def "can pass boolean disable option"() {
@@ -73,6 +75,7 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         'myBooleanPrimitiveOption' | 'false'
         'myBooleanObjectOption'    | 'false'
         'myBooleanPropertyOption'  | 'property(java.lang.Boolean, fixed(class java.lang.Boolean, false))'
+        'myFieldOption'            | 'false'
     }
 
     def "cannot pass boolean option value"() {
@@ -96,6 +99,7 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         '--no-myBooleanPrimitiveOption' | _
         '--no-myBooleanObjectOption'    | _
         '--no-myBooleanPropertyOption'  | _
+        '--no-myFieldOption'            | _
     }
 
     def "if option and disable option are passed multiple times, last one wins"() {
@@ -120,6 +124,7 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         'myBooleanPrimitiveOption' | 'false'                                                              | 'true'
         'myBooleanObjectOption'    | 'false'                                                              | 'true'
         'myBooleanPropertyOption'  | 'property(java.lang.Boolean, fixed(class java.lang.Boolean, false))' | 'property(java.lang.Boolean, fixed(class java.lang.Boolean, true))'
+        'myFieldOption'            | 'false'                                                              | 'true'
     }
 
     def "can render boolean options with help task"() {
@@ -147,11 +152,15 @@ Options
 
      --myBooleanPropertyOption     Configures Property<Boolean> option 'myBooleanPropertyOption'
 
+     --myFieldOption     Configures boolean option 'myFieldOption'
+
      --no-myBooleanObjectOption     Disables option --myBooleanObjectOption
 
      --no-myBooleanPrimitiveOption     Disables option --myBooleanPrimitiveOption
 
      --no-myBooleanPropertyOption     Disables option --myBooleanPropertyOption
+
+     --no-myFieldOption     Disables option --myFieldOption
 
      --rerun     Causes the task to be re-run even if up-to-date.
 
@@ -176,14 +185,13 @@ Group
             import org.gradle.api.tasks.options.Option;
             import org.gradle.api.tasks.options.OptionValues;
 
-            import java.util.Collections;
-            import java.util.List;
-            import java.util.Set;
-
             public class SampleTask extends DefaultTask {
                 private boolean myBooleanPrimitiveOption;
                 private Boolean myBooleanObjectOption;
-                private Property<Boolean> myBooleanPropertyOption = getProject().getObjects().property(Boolean.class).convention((Boolean)null);;
+                private Property<Boolean> myBooleanPropertyOption = getProject().getObjects().property(Boolean.class).convention((Boolean)null);
+
+                @Option(description = "Configures boolean option 'myFieldOption'")
+                private Boolean myFieldOption;
 
                 public SampleTask() {}
 
@@ -202,9 +210,8 @@ Group
                     this.myBooleanPropertyOption.set(myBooleanPropertyOption);
                 }
 
-                @OptionValues("myBooleanObjectOption")
-                public Set<String> getAvailableMyBooleanObjectOptionValues() {
-                    return Collections.emptySet();
+                public void setMyFieldOption(Boolean myFieldOption) {
+                    this.myFieldOption = myFieldOption;
                 }
 
                 @TaskAction
@@ -212,6 +219,7 @@ Group
                     System.out.println("Value of myBooleanPrimitiveOption: " + myBooleanPrimitiveOption);
                     System.out.println("Value of myBooleanObjectOption: " + myBooleanObjectOption);
                     System.out.println("Value of myBooleanPropertyOption: " + myBooleanPropertyOption);
+                    System.out.println("Value of myFieldOption: " + myFieldOption);
                 }
             }
         """

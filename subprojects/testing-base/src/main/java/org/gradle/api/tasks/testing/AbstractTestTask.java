@@ -67,6 +67,7 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -488,7 +489,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             if (shouldFailOnNoMatchingTests()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
             } else if (successWithoutTest.getOrNull() == null) {
-                getLogger().warn("There is no test to run. In 9.0, the behaviour will change to fail in this case. Use '--success-without-test' or '--no-success-without-test' to set the behaviour.");
+                DeprecationLogger.deprecateBehaviour("There is no test to run.")
+                    .withAdvice("Set Test.successWithoutTest to true if you want the task to succeed when there is no test to run.")
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(8, "TODO")
+                    .nagUser();
             } else if (!successWithoutTest.get()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
             }
@@ -580,6 +585,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @return whether this task will succeed when there is no test to run
      */
+
+    @Internal
     Property<Boolean> getSuccessWithoutTest() {
         return successWithoutTest;
     }
