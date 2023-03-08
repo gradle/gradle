@@ -72,8 +72,9 @@ TODO - File system repositories are fully supported including dynamic versions i
 
 #### Configuration cache is now encryptable
 
-The configuration of a build may retain sensitive information, including credentials. This release adds support for encryption of
-configuration cache state on disk.
+The configuration of a build may retain sensitive information. This information must remain secure.
+For example, login credentials are often part of the build, but we want them to be something other than directly readable in the cache.
+This release adds support for encryption of configuration cache state on disk.
 
 There is a new `--configuration-cache-encryption` option for enabling/disabling encryption (default is `true`).
 This feature requires setting a Base64-encoded AES-128 bit encryption key in the `GRADLE_ENCRYPTION_KEY` environment variable.
