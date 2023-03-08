@@ -420,6 +420,8 @@ idea {
     void "language levels specified in properties files are ignored"() {
         given:
         file('gradle.properties') << """
+sourceCompatibility=1.3
+targetCompatibility=1.3
 java.sourceCompatibility=1.3
 java.targetCompatibility=1.3
 """
