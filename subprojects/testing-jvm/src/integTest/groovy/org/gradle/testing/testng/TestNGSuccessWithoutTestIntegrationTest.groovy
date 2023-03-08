@@ -40,14 +40,16 @@ class TestNGSuccessWithoutTestIntegrationTest extends TestNGTestFrameworkIntegra
         """
 
         when:
-        executer.expectDeprecationWarning("There is no test to run. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Set Test.successWithoutTest to true if you want the task to succeed when there is no test to run. Consult the upgrading guide for further information: https://docs.gradle.org")
-        succeeds("test")
+        executer.expectDocumentedDeprecationWarning("There is no test to run. This behavior has been deprecated. " +
+            "This will fail with an error in Gradle 9.0. Set Test.successWithoutTest to true if you want the task to succeed when there is no test to run. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_success_without_test")
+        run('test')
 
         then:
         noExceptionThrown()
 
         when:
-        succeeds('test', '--success-without-test')
+        run('test', '--success-without-test')
 
         then:
         noExceptionThrown()
@@ -78,14 +80,16 @@ class TestNGSuccessWithoutTestIntegrationTest extends TestNGTestFrameworkIntegra
         createPassingFailingTest()
 
         when:
-        executer.expectDeprecationWarning("There is no test to run. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Set Test.successWithoutTest to true if you want the task to succeed when there is no test to run. Consult the upgrading guide for further information: https://docs.gradle.org")
-        succeeds("test")
+        executer.expectDocumentedDeprecationWarning("There is no test to run. This behavior has been deprecated. " +
+            "This will fail with an error in Gradle 9.0. Set Test.successWithoutTest to true if you want the task to succeed when there is no test to run. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_success_without_test")
+        run("test")
 
         then:
         noExceptionThrown()
 
         when:
-        succeeds('test', '--success-without-test')
+        run('test', '--success-without-test')
 
         then:
         noExceptionThrown()

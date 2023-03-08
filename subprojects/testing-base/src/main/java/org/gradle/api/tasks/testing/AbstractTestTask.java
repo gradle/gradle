@@ -489,15 +489,19 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             if (shouldFailOnNoMatchingTests()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
             } else if (successWithoutTest.getOrNull() == null) {
-                DeprecationLogger.deprecateBehaviour("There is no test to run.")
-                    .withAdvice("Set Test.successWithoutTest to true if you want the task to succeed when there is no test to run.")
-                    .willBecomeAnErrorInGradle9()
-                    .withUpgradeGuideSection(8, "TODO")
-                    .nagUser();
+                emitDeprecationMessage();
             } else if (!successWithoutTest.get()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
             }
         }
+    }
+
+    private void emitDeprecationMessage() {
+        DeprecationLogger.deprecateBehaviour("There is no test to run.")
+            .withAdvice("Set Test.successWithoutTest to true if you want the task to succeed when there is no test to run.")
+            .willBecomeAnErrorInGradle9()
+            .withUpgradeGuideSection(8, "test_task_success_without_test")
+            .nagUser();
     }
 
     private boolean shouldFailOnNoMatchingTests() {

@@ -47,7 +47,7 @@ abstract class AbstractOptionElement implements OptionElement {
 
     public static OptionElement of(String optionName, Option option, PropertySetter setter, OptionValueNotationParserFactory notationParserFactory) {
         if (setter.getRawType().equals(Boolean.class) || setter.getRawType().equals(Boolean.TYPE)) {
-            return BooleanOptionElement.of(optionName, option, setter);
+            return new BooleanOptionElement(optionName, option, setter);
         }
         if (setter.getRawType().equals(List.class)) {
             Class<?> elementType = ModelType.of(setter.getGenericType()).getTypeVariables().get(0).getRawClass();

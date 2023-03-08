@@ -18,7 +18,9 @@ package org.gradle.execution.commandline;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.options.BooleanOptionElement;
+import org.gradle.api.internal.tasks.options.InstanceOptionDescriptor;
 import org.gradle.api.internal.tasks.options.OptionDescriptor;
+import org.gradle.api.internal.tasks.options.OptionElement;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
@@ -32,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +44,6 @@ import java.util.stream.Collectors;
 @ServiceScope(Scopes.Gradle.class)
 public class CommandLineTaskConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineTaskConfigurer.class);
-
     private OptionReader optionReader;
 
     public CommandLineTaskConfigurer(OptionReader optionReader) {
@@ -63,18 +65,15 @@ public class CommandLineTaskConfigurer {
             Map<Boolean, List<OptionDescriptor>> allCommandLineOptions = optionReader.getOptions(task, false).stream().collect(Collectors.groupingBy(OptionDescriptor::isClashing));
             List<OptionDescriptor> validCommandLineOptions = allCommandLineOptions.getOrDefault(false, Collections.emptyList());
             List<OptionDescriptor> clashingOptions = allCommandLineOptions.getOrDefault(true, Collections.emptyList());
-            Set<OptionDescriptor> disableOptions = new HashSet<>();
             clashingOptions.forEach(it -> LOGGER.warn("Built-in option '{}' in task {} was disabled for clashing with another option of same name", it.getName(), task.getPath()));
             for (OptionDescriptor optionDescriptor : validCommandLineOptions) {
                 String optionName = optionDescriptor.getName();
                 org.gradle.cli.CommandLineOption option = parser.option(optionName);
                 option.hasDescription(optionDescriptor.getDescription());
                 option.hasArgument(optionDescriptor.getArgumentType());
-                if (BooleanOptionElement.isDisableOption(optionName)) {
-                    disableOptions.add(optionDescriptor);
-                }
             }
-            disableOptions.forEach(o -> allowOnlyOneOption(o, parser));
+
+            addDisableOptions(validCommandLineOptions, parser, task);
 
             ParsedCommandLine parsed;
             try {
@@ -103,7 +102,31 @@ public class CommandLineTaskConfigurer {
         return remainingArguments;
     }
 
-    private static void allowOnlyOneOption(OptionDescriptor optionDescriptor, CommandLineParser parser) {
-        parser.allowOneOf(optionDescriptor.getName(), optionDescriptor.getName().substring(3));
+    private void addDisableOptions(List<OptionDescriptor> optionList, CommandLineParser parser, Object target) {
+        Map<String, OptionDescriptor> optionMap = new HashMap<>();
+        optionList.forEach(optionDescriptor -> optionMap.put(optionDescriptor.getName(), optionDescriptor));
+        Set<OptionDescriptor> disableOptions = new HashSet<>();
+
+        for (OptionDescriptor optionDescriptor : optionList) {
+            if (optionDescriptor instanceof InstanceOptionDescriptor) {
+                OptionElement optionElement = ((InstanceOptionDescriptor) optionDescriptor).getOptionElement();
+                if (optionElement instanceof BooleanOptionElement) {
+                    String optionName = optionElement.getOptionName();
+                    BooleanOptionElement disableOptionElement = BooleanOptionElement.disableOptionOf((BooleanOptionElement) optionElement);
+                    String disableOptionName = disableOptionElement.getOptionName();
+                    if (optionMap.containsKey(disableOptionName)) {
+                        LOGGER.warn("Disable option '{}' was disabled for clashing with another option of same name", disableOptionName);
+                    } else {
+                        OptionDescriptor disableOptionDescriptor = new InstanceOptionDescriptor(target, disableOptionElement, null);
+                        disableOptions.add(disableOptionDescriptor);
+                        org.gradle.cli.CommandLineOption option = parser.option(disableOptionName);
+                        option.hasDescription(disableOptionDescriptor.getDescription());
+                        option.hasArgument(disableOptionDescriptor.getArgumentType());
+                        parser.allowOneOf(optionName, disableOptionName);
+                    }
+                }
+            }
+        }
+        optionList.addAll(disableOptions);
     }
 }

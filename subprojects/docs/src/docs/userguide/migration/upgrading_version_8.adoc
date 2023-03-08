@@ -387,6 +387,9 @@ beforeSettings {
 Using relative file paths to point to Java executables is now deprecated and will become an error in Gradle 9.
 This is done to reduce confusion about what such relative paths should resolve against.
 
+[[test_task_success_without_test]]
+==== TODO
+
 === Changes in the IDE integration
 
 [[kotlin_dsl_plugins_catalogs_workaround]]

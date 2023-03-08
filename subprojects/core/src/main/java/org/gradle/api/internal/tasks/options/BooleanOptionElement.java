@@ -28,23 +28,22 @@ import java.util.Set;
  */
 public class BooleanOptionElement extends AbstractOptionElement {
     private final PropertySetter setter;
+    private final Boolean isDisableOption;
 
-    private BooleanOptionElement(String optionName, Option option, PropertySetter setter) {
+    public BooleanOptionElement(String optionName, Option option, PropertySetter setter) {
         super(optionName, option, Void.TYPE, setter.getDeclaringClass());
         this.setter = setter;
+        this.isDisableOption = false;
     }
 
     private BooleanOptionElement(String optionName, String optionDescription, PropertySetter setter) {
         super(optionDescription, optionName, Void.TYPE);
         this.setter = setter;
+        this.isDisableOption = true;
     }
 
-    public static BooleanOptionElement of(String optionName, Option option, PropertySetter setter) {
-        if (isDisableOption(optionName)) {
-            return new BooleanOptionElement(optionName, "Disables option --" + optionName.substring(3), setter);
-        } else {
-            return new BooleanOptionElement(optionName, option, setter);
-        }
+    public static BooleanOptionElement disableOptionOf(BooleanOptionElement optionElement) {
+        return new BooleanOptionElement("no-" + optionElement.getOptionName(), "Disables option --" + optionElement.getOptionName(), optionElement.setter);
     }
 
     @Override
@@ -54,14 +53,10 @@ public class BooleanOptionElement extends AbstractOptionElement {
 
     @Override
     public void apply(Object object, List<String> parameterValues) throws TypeConversionException {
-        if (isDisableOption(getOptionName())) {
+        if (isDisableOption) {
             setter.setValue(object, Boolean.FALSE);
         } else {
             setter.setValue(object, Boolean.TRUE);
         }
-    }
-
-    public static boolean isDisableOption(String optionName) {
-        return optionName.startsWith("no-");
     }
 }

@@ -36,17 +36,13 @@ public class MethodOptionElement {
 
     public static OptionElement create(Option option, Method method, OptionValueNotationParserFactory optionValueNotationParserFactory) {
         String optionName = assertValidOptionName(option, method.getName(), method.getDeclaringClass());
-        return create(option, method, optionValueNotationParserFactory, optionName);
-    }
-
-    public static OptionElement create(Option option, Method method, OptionValueNotationParserFactory optionValueNotationParserFactory, String optionName) {
         if (Property.class.isAssignableFrom(method.getReturnType())) {
             assertCanUseMethodReturnType(optionName, method);
             PropertySetter setter = mutateUsingReturnValue(method);
             return AbstractOptionElement.of(optionName, option, setter, optionValueNotationParserFactory);
         }
         if (method.getParameterTypes().length == 0) {
-            return BooleanOptionElement.of(optionName, option, setFlagUsingMethod(method));
+            return new BooleanOptionElement(optionName, option, setFlagUsingMethod(method));
         }
 
         assertCanUseMethodParam(optionName, method);

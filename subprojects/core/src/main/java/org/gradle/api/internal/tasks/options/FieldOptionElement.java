@@ -31,10 +31,6 @@ public class FieldOptionElement {
 
     public static OptionElement create(Option option, Field field, OptionValueNotationParserFactory optionValueNotationParserFactory) {
         String optionName = calOptionName(option, field);
-        return create(option, field, optionValueNotationParserFactory, optionName);
-    }
-
-    public static OptionElement create(Option option, Field field, OptionValueNotationParserFactory optionValueNotationParserFactory, String optionName) {
         Class<?> fieldType = field.getType();
 
         if (Property.class.isAssignableFrom(fieldType)) {
