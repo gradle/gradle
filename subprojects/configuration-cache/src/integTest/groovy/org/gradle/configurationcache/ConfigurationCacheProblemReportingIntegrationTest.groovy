@@ -841,8 +841,13 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         buildFile << """
 
             class ProjectEvaluationAdapter implements ProjectEvaluationListener {
-                void beforeEvaluate(Project project) {}
-                void afterEvaluate(Project project, ProjectState state) {}
+                @Override void beforeEvaluate(Project project) {}
+                @Override void afterEvaluate(Project project, ProjectState state) {}
+            }
+
+            class DependencyResolutionAdapter implements DependencyResolutionListener {
+                @Override void beforeResolve(ResolvableDependencies dependencies) {}
+                @Override void afterResolve(ResolvableDependencies dependencies) {}
             }
 
             $code
@@ -853,19 +858,21 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         postBuildOutputContains("Configuration cache entry stored.")
 
         where:
-        registrationPoint                                | code
-        "Gradle.addProjectEvaluationListener"            | "gradle.addProjectEvaluationListener(new ProjectEvaluationAdapter())"
-        "Gradle.addListener(ProjectEvaluationListener)"  | "gradle.addListener(new ProjectEvaluationAdapter())"
-        "Gradle.addListener(TaskExecutionGraphListener)" | "gradle.addListener({g -> } as TaskExecutionGraphListener)"
-        "Gradle.beforeSettings"                          | "gradle.beforeSettings {}"
-        "Gradle.settingsEvaluated"                       | "gradle.settingsEvaluated {}"
-        "Gradle.projectsLoaded"                          | "gradle.projectsLoaded {}"
-        "Gradle.beforeProject"                           | "gradle.beforeProject {}"
-        "Gradle.afterProject"                            | "gradle.afterProject {}"
-        "Gradle.projectsEvaluated"                       | "gradle.projectsEvaluated {}"
-        "Gradle.taskGraph.whenReady"                     | "gradle.taskGraph.whenReady {}"
-        "Gradle.useLogger(ProjectEvaluationListener)"    | "gradle.useLogger(new ProjectEvaluationAdapter())"
-        "Gradle.useLogger(TaskExecutionGraphListener)"   | "gradle.useLogger({g -> } as TaskExecutionGraphListener)"
+        registrationPoint                                  | code
+        "Gradle.addProjectEvaluationListener"              | "gradle.addProjectEvaluationListener(new ProjectEvaluationAdapter())"
+        "Gradle.addListener(ProjectEvaluationListener)"    | "gradle.addListener(new ProjectEvaluationAdapter())"
+        "Gradle.addListener(TaskExecutionGraphListener)"   | "gradle.addListener({g -> } as TaskExecutionGraphListener)"
+        "Gradle.addListener(DependencyResolutionListener)" | "gradle.addListener(new DependencyResolutionAdapter())"
+        "Gradle.beforeSettings"                            | "gradle.beforeSettings {}"
+        "Gradle.settingsEvaluated"                         | "gradle.settingsEvaluated {}"
+        "Gradle.projectsLoaded"                            | "gradle.projectsLoaded {}"
+        "Gradle.beforeProject"                             | "gradle.beforeProject {}"
+        "Gradle.afterProject"                              | "gradle.afterProject {}"
+        "Gradle.projectsEvaluated"                         | "gradle.projectsEvaluated {}"
+        "Gradle.taskGraph.whenReady"                       | "gradle.taskGraph.whenReady {}"
+        "Gradle.useLogger(ProjectEvaluationListener)"      | "gradle.useLogger(new ProjectEvaluationAdapter())"
+        "Gradle.useLogger(TaskExecutionGraphListener)"     | "gradle.useLogger({g -> } as TaskExecutionGraphListener)"
+        "Gradle.useLogger(DependencyResolutionListener)"   | "gradle.useLogger(new DependencyResolutionAdapter())"
     }
 
     def "summarizes unsupported properties"() {
