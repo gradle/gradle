@@ -65,7 +65,7 @@ public final class TaskIdentity<T extends Task> {
 
     /**
      * Create a task identity.
-     *
+     * <p>
      * Should only be used when loading from the configuration cache to preserve task ids.
      */
     public static <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project, long uniqueId) {

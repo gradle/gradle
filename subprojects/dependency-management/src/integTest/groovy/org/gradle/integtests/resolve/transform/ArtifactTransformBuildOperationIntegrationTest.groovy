@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.transform
 import groovy.transform.EqualsAndHashCode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.executer.ConfigurationCacheGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
@@ -901,6 +902,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         assert !ops.empty
         if (GradleContextualExecuter.configCache) {
             assert ops.size() <= 2
+            assert !ConfigurationCacheGradleExecuter.testWithLoadAfterStore() : "Change the line above to == 2 when running with load after store"
         } else {
             assert ops.size() == 1
         }
