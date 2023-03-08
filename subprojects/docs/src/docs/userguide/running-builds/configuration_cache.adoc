@@ -204,6 +204,43 @@ If you need to invalidate the cache, simply delete that directory:
 Configuration cache entries are checked periodically (at most every 24 hours) for whether they are still in use.
 They are deleted if they haven't been used for 7 days.
 
+[[config_cache:usage:encryption]]
+=== Encrypting the cache
+
+The configuration cache stores any data set up during the configuration phase.
+As such, if your build configuration includes any sensitive information, you should ensure
+your configuration cache is encrypted.
+
+For Gradle to be able to encrypt the data in the cache, you must provide Gradle with an AES 128-bit key
+via the `GRADLE_ENCRYPTION_KEY` environment variable (see <<build_environment.adoc#sec:gradle_environment_variables, see Environment variables>>).
+
+==== Generating an encryption key that is compatible with GRADLE_ENCRYPTION_KEY
+
+There are many ways of producing an encryption key compatible with Gradle.
+One way is by using a command like this, which should work on Linux and Mac OS, or even on Windows, if using a tool like Cygwin:
+
+```
+❯ echo $(openssl enc -aes-128-cbc -k secret -P | grep key= | sed s/key=// | base64)
+```
+
+You can then use the key produced by that command (which is encoded as a Base64 string) and set it as the value of the
+`GRADLE_ENCRYPTION_KEY` environment variable whichever way you prefer to configure environment variables in your OS.
+
+==== Disabling encryption of the configuration cache
+
+Encryption of the configuration cache is enabled for default for a good reason,
+but if you would rather not encrypt the configuration cache state, you can do so on the command line:
+
+----
+❯ gradle --no-configuration-cache-encryption
+----
+or in a `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.configuration-cache.encryption=false
+----
+
 [[config_cache:stable]]
 == Stable configuration cache
 

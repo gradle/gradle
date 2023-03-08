@@ -2,12 +2,9 @@ plugins {
     id 'java'
 }
 
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 version = '1.2.1'
-
-java {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
-}
 
 repositories {
     mavenCentral()
@@ -52,16 +49,16 @@ sourceSets {
 
 // tag::custom-report-dirs[]
 reporting.baseDir = "my-reports"
-java.testResultsDir = layout.buildDirectory.dir("my-test-results")
+testResultsDirName = "$buildDir/my-test-results"
 
 tasks.register('showDirs') {
     def rootDir = project.rootDir
-    def reportsDir = project.reporting.baseDirectory
-    def testResultsDir = project.java.testResultsDir
+    def reportsDir = project.reportsDir
+    def testResultsDir = project.testResultsDir
 
     doLast {
-        logger.quiet(rootDir.toPath().relativize(reportsDir.get().asFile.toPath()).toString())
-        logger.quiet(rootDir.toPath().relativize(testResultsDir.get().asFile.toPath()).toString())
+        logger.quiet(rootDir.toPath().relativize(reportsDir.toPath()).toString())
+        logger.quiet(rootDir.toPath().relativize(testResultsDir.toPath()).toString())
     }
 }
 // end::custom-report-dirs[]

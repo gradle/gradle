@@ -53,8 +53,8 @@ import ${CountDownLatch.canonicalName}
 def latch = new CountDownLatch(${subprojects.size()})
 subprojects {
     apply plugin: 'java'
-    java.sourceCompatibility = ${version}
-    java.targetCompatibility = ${version}
+    sourceCompatibility = ${version}
+    targetCompatibility = ${version}
 
     ${mavenCentralRepository()}
     dependencies { testImplementation 'junit:junit:4.13' }

@@ -1,6 +1,6 @@
 apply plugin: 'java'
 
-java.sourceCompatibility = 1.6
+sourceCompatibility = 1.6
 
 configurations {
     provided

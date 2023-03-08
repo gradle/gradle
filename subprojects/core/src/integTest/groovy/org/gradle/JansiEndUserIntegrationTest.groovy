@@ -139,7 +139,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     static String annotationProcessorDependency(File repoDir, String processorDependency) {
         """
-            java.sourceCompatibility = '1.7'
+            sourceCompatibility = '1.7'
 
             repositories {
                 maven {
@@ -200,7 +200,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
 
                 group = '$group'
                 version = '$version'
-                java.sourceCompatibility = '1.7'
+                sourceCompatibility = '1.7'
 
                 dependencies {
                     implementation 'org.fusesource.jansi:jansi:$JANSI_VERSION'

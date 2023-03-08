@@ -35,6 +35,22 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.2]]
+== Upgrading from 8.1 and earlier
+
+=== Deprecations
+
+[[compile_options_generated_sources_directory]]
+==== `link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html[CompileOptions]` method deprecations
+
+The following methods on `CompileOptions` are deprecated:
+
+- `getAnnotationProcessorGeneratedSourcesDirectory()`
+- `setAnnotationProcessorGeneratedSourcesDirectory(File)`
+- `setAnnotationProcessorGeneratedSourcesDirectory(Provider<File>)`
+
+Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getGeneratedSourceOutputDirectory--[DirectoryProperty getGeneratedSourceOutputDirectory()]`
+
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
 

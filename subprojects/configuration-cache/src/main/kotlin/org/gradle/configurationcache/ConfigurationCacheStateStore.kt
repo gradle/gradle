@@ -22,7 +22,10 @@ import java.io.File
 
 internal
 interface ConfigurationCacheStateStore {
-    fun assignSpoolFile(stateType: StateType): File
+
+    data class StateFile(val stateType: StateType, val file: File)
+
+    fun assignSpoolFile(stateType: StateType): StateFile
 
     /**
      * Loads some value from zero or more state files.

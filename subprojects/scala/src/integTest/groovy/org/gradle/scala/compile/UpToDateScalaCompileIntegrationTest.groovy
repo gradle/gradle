@@ -103,8 +103,8 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
                 zincVersion = "${zincVersion}"
             }
 
-            java.sourceCompatibility = '1.7'
-            java.targetCompatibility = '1.7'
+            sourceCompatibility = '1.7'
+            targetCompatibility = '1.7'
         """.stripIndent()
     }
 

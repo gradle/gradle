@@ -71,7 +71,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
     private static boolean isPresent(@Nullable Object value) {
         if (value instanceof Provider) {
             // carefully check for presence without necessarily resolving
-            return ((Provider) value).isPresent();
+            return ((Provider<?>) value).isPresent();
         }
         return value != null;
     }

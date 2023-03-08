@@ -91,10 +91,8 @@ public interface JavaApplication {
      *     id 'application'
      * }
      *
-     * application {
-     *     applicationDistribution.from("some/dir") {
-     *       include "*.txt"
-     *     }
+     * applicationDistribution.from("some/dir") {
+     *   include "*.txt"
      * }
      * </pre>
      * <p>
