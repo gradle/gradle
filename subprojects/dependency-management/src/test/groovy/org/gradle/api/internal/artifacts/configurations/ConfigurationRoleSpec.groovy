@@ -94,13 +94,13 @@ class ConfigurationRoleSpec extends Specification {
 
         where:
         role                                            || usages
-        ConfigurationRoles.LEGACY                       || [CONSUMABLE, RESOLVABLE, DECLARABLE_AGAINST]
-        ConfigurationRoles.INTENDED_CONSUMABLE          || [CONSUMABLE]
-        ConfigurationRoles.INTENDED_RESOLVABLE          || [RESOLVABLE]
-        ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET   || [RESOLVABLE, DECLARABLE_AGAINST]
-        ConfigurationRoles.INTENDED_BUCKET              || [DECLARABLE_AGAINST]
-        ConfigurationRoles.DEPRECATED_CONSUMABLE        || [CONSUMABLE, deprecatedFor(RESOLVABLE), deprecatedFor(DECLARABLE_AGAINST)]
-        ConfigurationRoles.DEPRECATED_RESOLVABLE        || [RESOLVABLE, deprecatedFor(CONSUMABLE), deprecatedFor(DECLARABLE_AGAINST)]
+        ConfigurationRoles.LEGACY                       || [UsageDescriber.CONSUMABLE, UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
+        ConfigurationRoles.INTENDED_CONSUMABLE          || [UsageDescriber.CONSUMABLE]
+        ConfigurationRoles.INTENDED_RESOLVABLE          || [UsageDescriber.RESOLVABLE]
+        ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET   || [UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
+        ConfigurationRoles.INTENDED_BUCKET              || [UsageDescriber.DECLARABLE_AGAINST]
+        ConfigurationRoles.DEPRECATED_CONSUMABLE        || [UsageDescriber.CONSUMABLE, deprecatedFor(UsageDescriber.RESOLVABLE), deprecatedFor(UsageDescriber.DECLARABLE_AGAINST)]
+        ConfigurationRoles.DEPRECATED_RESOLVABLE        || [UsageDescriber.RESOLVABLE, deprecatedFor(UsageDescriber.CONSUMABLE), deprecatedFor(UsageDescriber.DECLARABLE_AGAINST)]
     }
 
     def "custom role can't deprecate what it doesn't allow"() {
