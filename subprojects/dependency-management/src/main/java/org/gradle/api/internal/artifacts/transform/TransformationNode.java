@@ -70,6 +70,9 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
     private PlannedTransformStepIdentity cachedIdentity;
 
+    /**
+     * Create a chained transformation node.
+     */
     public static ChainedTransformationNode chained(
         ComponentVariantIdentifier targetComponentVariant,
         AttributeContainer sourceAttributes,
@@ -82,6 +85,11 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         return new ChainedTransformationNode(createId(), targetComponentVariant, sourceAttributes, current, previous, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
     }
 
+    /**
+     * Create a chained transformation node.
+     * <p>
+     * Should only be used when loading from the configuration cache to set the node id.
+     */
     public static ChainedTransformationNode chained(
         long transformationNodeId,
         ComponentVariantIdentifier targetComponentVariant,
@@ -96,6 +104,9 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         return new ChainedTransformationNode(transformationNodeId, targetComponentVariant, sourceAttributes, current, previous, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
     }
 
+    /**
+     * Create an initial transformation node.
+     */
     public static InitialTransformationNode initial(
         ComponentVariantIdentifier targetComponentVariant,
         AttributeContainer sourceAttributes,
@@ -108,6 +119,11 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         return new InitialTransformationNode(createId(), targetComponentVariant, sourceAttributes, initial, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
     }
 
+    /**
+     * Create an initial transformation node.
+     * <p>
+     * Should only be used when loading from the configuration cache to set the node id.
+     */
     public static InitialTransformationNode initial(
         long transformationNodeId,
         ComponentVariantIdentifier targetComponentVariant,
@@ -127,6 +143,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
     }
 
     private static void useAssignedId(long assignedUniqueId) {
+        // Increment the sequence so later assigned transform ids don't clash with the one manually assigned.
         SEQUENCE.getAndAccumulate(assignedUniqueId, (current, assignedId) -> current > assignedId ? current : assignedId + 1);
     }
 

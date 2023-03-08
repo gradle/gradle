@@ -53,6 +53,5 @@ class TaskIdentityTest extends Specification {
         then:
         id3.id < id4WithManualId.id
         id4WithManualId.id < id5.id
-
     }
 }

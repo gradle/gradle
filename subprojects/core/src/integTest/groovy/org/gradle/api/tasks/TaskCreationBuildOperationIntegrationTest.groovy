@@ -284,10 +284,13 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         def allRealizeOps = buildOperations.all(RealizeTaskBuildOperationType)
         def idsByTaskPath = allRealizeOps.stream()
                 .map(it -> it.details)
-                .collect(groupingBy({ it -> Path.path((String) it.buildPath).append(Path.path((String) it.taskPath)) },
+                .collect(groupingBy(
+                        { it -> Path.path((String) it.buildPath).append(Path.path((String) it.taskPath)) },
                         mapping({ it -> (Long) it.taskId }, Collectors.toSet())
                 ))
-        idsByTaskPath.each { entry -> assert(entry.value.size() == 1 )}
+        idsByTaskPath.each { entry ->
+            assert entry.value.size() == 1
+        }
     }
 
     private static Spec<? super BuildOperationRecord> withAnyPath(String buildPath, String... paths) {
@@ -309,6 +312,7 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
             // When using load after store, the task will be realized twice:
             //  - at configuration time
             //  - after loading from the configuration cache
+            // Though even with load after store we can't assume == 2 here, since some of the tests fail the build before loading form the configuration cache.
             assert ops.size() <= 2
         } else {
             assert ops.size() == 1
