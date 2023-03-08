@@ -52,13 +52,22 @@ public final class TaskIdentity<T extends Task> {
     }
 
     public static <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project) {
+        return create(
+            name,
+            type,
+            project,
+            SEQUENCE.getAndIncrement()
+        );
+    }
+
+    public static <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project, long uniqueId) {
         return new TaskIdentity<>(
             type,
             name,
             project.projectPath(name),
             project.identityPath(name),
             project.getGradle().getIdentityPath(),
-            SEQUENCE.getAndIncrement()
+            uniqueId
         );
     }
 
