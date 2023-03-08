@@ -55,8 +55,8 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
         where:
 // To run a specific combination, set the values here, uncomment the following four lines
 //  and comment out the lines coming after
-//        kotlinPluginVersion = TestedVersions.kotlin.versions.last()
-//        androidPluginVersion = TestedVersions.androidGradle.versions.last()
+//        kotlinPluginVersion = TestedVersions.kotlin.latestStable()
+//        androidPluginVersion = TestedVersions.androidGradle.latestStable()
 //        workers = false
 
         [kotlinPluginVersion, androidPluginVersion, workers] << [
