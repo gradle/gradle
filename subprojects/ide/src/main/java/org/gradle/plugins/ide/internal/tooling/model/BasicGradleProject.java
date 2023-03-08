@@ -59,7 +59,7 @@ public class BasicGradleProject extends PartialBasicGradleProject {
         return this;
     }
 
-    public String getBuildTreePath(){
+    public String getBuildTreePath() {
         return buildTreePath;
     }
 

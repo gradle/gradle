@@ -79,7 +79,6 @@ public interface BasicGradleProject extends Model, ProjectModel {
      * Returns a path to the project for the full build tree
      *
      * @return a path to the project for the full build tree
-     *
      * @since 8.2
      */
     @Incubating
