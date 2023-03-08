@@ -70,6 +70,16 @@ TODO - Java lambdas are supported, and unsupported captured values are reported.
 TODO - File collections queried at configuration time are treated as configuration inputs.
 TODO - File system repositories are fully supported including dynamic versions in Maven, Maven local, and Ivy repositories
 
+#### Configuration cache is now encryptable
+
+The configuration of a build may retain sensitive information, including credentials. This release adds support for encryption of
+configuration cache state on disk.
+
+There is a new `--configuration-cache-encryption` option for enabling/disabling encryption (default is `true`).
+This feature requires setting a Base64-encoded AES-128 bit encryption key in the `GRADLE_ENCRYPTION_KEY` environment variable.
+
+For more information on this new feature, refer to the Configuration Cache [documentation section on encryption](userguide/configuration_cache.html#config_cache:usage:encryption).
+
 ### Gradle Wrapper
 
 #### Introduced labels for selecting the version
