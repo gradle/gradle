@@ -39,7 +39,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         forking(true),
         noDaemon(true),
         parallel(true, true),
-        configCache(true, true);
+        configCache(true);
 
         final public boolean forks;
         final public boolean executeParallel;
