@@ -162,7 +162,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
     def "wrapper task fails if version from command-line does not produce a valid url"() {
         when:
-        run "wrapper", "--gradle-version", "8.0-RC-5"
+        run "wrapper", option, argument
 
         then:
         Throwable throwable = thrown()
@@ -172,23 +172,20 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         def wrappedException = exception.cause
         assert wrappedException.class == RuntimeException.class
-        assert wrappedException.message == "HEAD request to https://services.gradle.org/distributions/gradle-8.0-RC-5-bin.zip failed: response code (404)"
+        assert wrappedException.message == "HEAD request to " + url + " failed: response code (404)"
         file("gradle/wrapper/gradle-wrapper.properties").assertDoesNotExist()
+
+        where:
+        option                      | argument                                                    | url
+        "--gradle-version"          | "8.0-RC-5"                                                  | "https://services.gradle.org/distributions/gradle-8.0-RC-5-bin.zip"
+        "--gradle-distribution-url" | "https://services.gradle.org/distributions/not-a-valid-url" | "https://services.gradle.org/distributions/not-a-valid-url"
+
     }
 
-    def "wrapper task fails if distribution-url from command-line is not a valid url"() {
+    def "wrapper task with version set on command-line respects --offline mode"() {
         when:
-        run "wrapper", "--gradle-distribution-url", "https://services.gradle.org/distributions/not-a-valid-url"
-
+        run "wrapper", "--gradle-version", "8.0-RC-5", "--offline"
         then:
-        Throwable throwable = thrown()
-        def exception = throwable.cause.cause.cause
-        assert exception.class == UncheckedIOException.class
-        assert exception.message == "Test of distribution url failed. Please check the values set with --gradle-distribution-url and --gradle-version."
-
-        def wrappedException = exception.cause
-        assert wrappedException.class == RuntimeException.class
-        assert wrappedException.message == "HEAD request to https://services.gradle.org/distributions/not-a-valid-url failed: response code (404)"
-        file("gradle/wrapper/gradle-wrapper.properties").assertDoesNotExist()
+        succeeds()
     }
 }
