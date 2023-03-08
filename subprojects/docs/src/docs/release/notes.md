@@ -10,21 +10,31 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[André Sousa](https://github.com/beroso),
 [Attila Király](https://github.com/akiraly),
+[Aurimas](https://github.com/liutikas),
 [Björn Kautler](https://github.com/Vampire),
+[Bo Zhang](https://github.com/blindpirate),
+[Christoph Dreis](https://github.com/dreis2211),
+[David Morris](https://github.com/codefish1),
 [DJtheRedstoner](https://github.com/DJtheRedstoner),
-[Gabriel Feo](https://github.com/gabrielfeo)
+[Gabriel Feo](https://github.com/gabrielfeo),
+[J.T. McQuigg](https://github.com/JT122406),
 [JavierSegoviaCordoba](https://github.com/JavierSegoviaCordoba),
 [JayaKrishnan Nair K](https://github.com/jknair0),
+[Jeff Widman](https://github.com/jeffwidman),
 [kackey0-1](https://github.com/kackey0-1),
 [Martin Bonnin](https://github.com/martinbonnin),
 [Martin Kealey](https://github.com/kurahaupo),
 [modmuss50](https://github.com/modmuss50),
+[pan93412](https://github.com/pan93412),
 [Sebastian Schuberth](https://github.com/sschuberth),
+[Simon Marquis](https://github.com/SimonMarquis),
+[TheDadda](https://github.com/TheDadda),
+[Thrillpool](https://github.com/Thrillpool),
 [valery1707](https://github.com/valery1707),
 [Xin Wang](https://github.com/scaventz),
-[Yanshun Li](https://github.com/Chaoba),
-[Thrillpool](https://github.com/Thrillpool)
+[Yanshun Li](https://github.com/Chaoba)
 
 ## Upgrade instructions
 
