@@ -168,8 +168,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         } ?: false
 
     private
-    fun atConfigurationTime() =
-        configurationTimeBarrier.isAtConfigurationTime
+    fun atConfigurationTime() = configurationTimeBarrier.isAtConfigurationTime
 
     private
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
