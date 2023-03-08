@@ -586,7 +586,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     public org.gradle.api.plugins.Convention getConvention() {
         DeprecationLogger.deprecateMethod(AbstractTask.class, "getConvention()")
             .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "all_convention_deprecation")
+            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
             .nagUser();
         return getConventionVia("Task.convention", false);
     }

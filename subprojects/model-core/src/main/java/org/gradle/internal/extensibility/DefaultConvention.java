@@ -394,7 +394,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
     private static void logConventionDeprecation() {
         DeprecationLogger.deprecateType(org.gradle.api.plugins.Convention.class)
             .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "all_convention_deprecation")
+            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
             .nagUser();
     }
 

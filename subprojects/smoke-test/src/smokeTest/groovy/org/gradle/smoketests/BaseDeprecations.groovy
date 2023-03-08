@@ -27,12 +27,12 @@ class BaseDeprecations {
     public static final String PROJECT_CONVENTION_DEPRECATION = "The Project.getConvention() method has been deprecated. " +
         "This is scheduled to be removed in Gradle 9.0. " +
         "Consult the upgrading guide for further information: " +
-        "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation"
+        "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
 
     public static final String CONVENTION_TYPE_DEPRECATION = "The org.gradle.api.plugins.Convention type has been deprecated. " +
         "This is scheduled to be removed in Gradle 9.0. " +
         "Consult the upgrading guide for further information: " +
-        "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#all_convention_deprecation"
+        "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
 
     public static final String JAVAEXEC_SET_MAIN_DEPRECATION = "The JavaExecHandleBuilder.setMain(String) method has been deprecated. " +
         "This is scheduled to be removed in Gradle 8.0. " +
