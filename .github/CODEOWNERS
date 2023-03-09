@@ -57,9 +57,6 @@ subprojects/testing-base/                   @gradle/bt-jvm
 subprojects/version-control/                @gradle/bt-jvm
 
 # Documentation
-subprojects/docs/src/docs/release/notes.md  @hythloda
-subprojects/docs/                           @hythloda
-
 subprojects/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-jvm
