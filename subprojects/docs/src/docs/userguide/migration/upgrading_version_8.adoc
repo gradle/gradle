@@ -51,6 +51,13 @@ The following methods on `CompileOptions` are deprecated:
 
 Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getGeneratedSourceOutputDirectory--[DirectoryProperty getGeneratedSourceOutputDirectory()]`
 
+[[redundant_configuration_usage_activation]]
+==== Redundant configuration usage activation
+
+Calling `setCanBeConsumed(boolean)` or `setCanBeResolved(boolean)` on a configuration that already allows that usage is deprecated.
+
+This deprecation is intended to help users identify unnecessary configuration usage modifications.
+
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
 

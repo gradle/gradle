@@ -1808,6 +1808,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private void warnOnRedundantUsageActivation(String usage, String method) {
+        String msgTemplate = "The %s usage is already allowed on %s.";
+        DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, usage, getDisplayName()))
+                .withAdvice(String.format("Remove the call to %s, it has no effect.", method))
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "redundant_configuration_usage_activation")
+                .nagUser();
+    }
+
     /**
      * This is a temporary method that decides if a usage change is a known/supported special case, where a deprecation warning message
      * should not be emitted.
@@ -1866,6 +1875,8 @@ since users cannot create non-legacy configurations and there is no current publ
             validateMutation(MutationType.USAGE);
             canBeConsumed = allowed;
             maybeWarnOnChangingUsage("consumable", allowed);
+        } else if (canBeConsumed && allowed) {
+            warnOnRedundantUsageActivation("consumable", "setCanBeConsumed(true)");
         }
     }
 
@@ -1880,6 +1891,8 @@ since users cannot create non-legacy configurations and there is no current publ
             validateMutation(MutationType.USAGE);
             canBeResolved = allowed;
             maybeWarnOnChangingUsage("resolvable", allowed);
+        } else if (canBeResolved && allowed) {
+            warnOnRedundantUsageActivation("resolvable", "setCanBeResolved(true)");
         }
     }
 
@@ -1894,6 +1907,8 @@ since users cannot create non-legacy configurations and there is no current publ
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
             maybeWarnOnChangingUsage("declarable against", allowed);
+        } else if (canBeDeclaredAgainst && allowed) {
+            warnOnRedundantUsageActivation("declarable against", "setCanBeDeclaredAgainst(true)");
         }
     }
 
