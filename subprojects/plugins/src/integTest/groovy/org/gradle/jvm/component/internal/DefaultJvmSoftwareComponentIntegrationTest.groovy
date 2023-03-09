@@ -155,7 +155,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
 
             components {
                 java {
-                    enableJavadocJarVariant()
+                    withJavadocJar()
                 }
             }
 
@@ -183,7 +183,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
 
             components {
                 named<JvmSoftwareComponentInternal>("java") {
-                    enableJavadocJarVariant()
+                    withJavadocJar()
                 }
             }
 

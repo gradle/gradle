@@ -32,7 +32,7 @@ import spock.lang.Issue
 
 class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, JavaToolchainBuildOperationsFixture {
 
-    static kgpLatestVersions = new KotlinGradlePluginVersions().latests.toList()
+    static kgpLatestVersions = new KotlinGradlePluginVersions().latests
 
     def setup() {
         captureBuildOperations()

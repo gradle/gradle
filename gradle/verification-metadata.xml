@@ -1265,6 +1265,11 @@
             <sha256 value="b4182982109d85f9a623fa597932c3f09651467559bb99965c41d45159e89a68" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
+      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="4.0.10">
+         <artifact name="gradle-kotlin-dsl-plugins-4.0.10.jar">
+            <sha256 value="c3eb6feb11e867750da6c52507564a18eccdd0436e10152a9f6276fa9e5f2a2c" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
       <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="4.0.7">
          <artifact name="gradle-kotlin-dsl-plugins-4.0.7.jar">
             <sha256 value="7700af78c35bdd8c164e3f3a3026a568c66cf9dbd182a1756e087b2dfa3b02fb" origin="Verified" reason="Artifact is not signed"/>

@@ -42,15 +42,12 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
 
     def setup() {
         testProject = AndroidTestProject.findProjectFor(runner.testProject) as IncrementalAndroidTestProject
-        AndroidTestProject.useLatestAgpVersion(runner)
+        AndroidTestProject.useAgpLatestStableOrRcVersion(runner)
+        AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.args.addAll(["--no-build-cache", "--no-scan"])
         runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheProblemsOption.PROPERTY_NAME}=warn")
-        AndroidTestProject.useLatestKotlinVersion(runner)
-        // AGP 7.3 requires Gradle 7.4
-        runner.minimumBaseVersion = "7.4"
         applyEnterprisePlugin()
-        configureProjectJavaHomeToJdk11()
     }
 
     def "abi change#configurationCaching"() {
