@@ -67,9 +67,9 @@ class JavaCompileTaskOperationResultIntegTest extends AbstractIntegrationSpec {
                 abstract BuildEventsListenerRegistry getRegistry();
 
                 void apply(Project project) {
+                    def listener = project.gradle.sharedServices.registerIfAbsent("listener", JavaCompileListener) { }
                     project.tasks.withType(JavaCompile) { task ->
                         task.doFirst {
-                            def listener = project.gradle.sharedServices.registerIfAbsent("listener", JavaCompileListener) { }
                             registry.onTaskCompletion(listener)
                         }
                     }
