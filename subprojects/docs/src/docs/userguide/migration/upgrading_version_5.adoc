@@ -364,7 +364,7 @@ Gradle always uses `configDirectory` as the value for 'config_loc' when running 
 
 ==== New Tooling API progress event
 
-In Gradle 6.0, we introduced a new progress event (link:{javadocPath}/org/gradle/tooling/events/test/TestOutputEvent.html[org.gradle.tooling.events.test.TestOutputEvent]) to expose the output of test execution. This new event breaks the convention of having a `StartEvent`-`FinisEvent` pair to express progress. `TaskOutputEvent` is a simple `ProgressEvent`.
+In Gradle 6.0, we introduced a new progress event (link:{javadocPath}/org/gradle/tooling/events/test/TestOutputEvent.html[org.gradle.tooling.events.test.TestOutputEvent]) to expose the output of test execution. This new event breaks the convention of having a `StartEvent`-`FinishEvent` pair to express progress. `TaskOutputEvent` is a simple `ProgressEvent`.
 
 ==== Changes to the task container behavior
 

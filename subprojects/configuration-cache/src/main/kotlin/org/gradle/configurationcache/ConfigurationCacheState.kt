@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.cache.Cleanup
 import org.gradle.api.cache.MarkingStrategy
 import org.gradle.api.file.FileCollection
-import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.api.flow.FlowScope
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.FeaturePreviews
@@ -38,6 +37,7 @@ import org.gradle.configurationcache.flow.BuildFlowScope
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
+import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.codecs.Codecs
@@ -50,6 +50,7 @@ import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.readStrings
 import org.gradle.configurationcache.serialization.withDebugFrame
 import org.gradle.configurationcache.serialization.withGradleIsolate
+import org.gradle.configurationcache.serialization.withIsolate
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.configurationcache.serialization.writeFile
@@ -58,8 +59,10 @@ import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChang
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.BuildStructureOperationProject
+import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.ProjectsIdentifiedProgressDetails
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
+import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
@@ -74,6 +77,7 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.util.Path
@@ -84,14 +88,37 @@ import java.io.OutputStream
 
 
 internal
-enum class StateType {
-    Work, Model, Entry, BuildFingerprint, ProjectFingerprint, IntermediateModels, ProjectMetadata
+enum class StateType(val encryptable: Boolean = false) {
+    /**
+     * Contains the state for the entire build.
+     */
+    Work(true),
+    /**
+     * Contains the model objects sent back to the IDE in response to a TAPI request.
+     */
+    Model(true),
+    /**
+     * Contains the model objects queried by the IDE provided build action in order to calculate the model to send back.
+     */
+    IntermediateModels(true),
+    /**
+     * Contains the dependency resolution metadata for each project.
+     */
+    ProjectMetadata(false),
+    BuildFingerprint(true),
+    ProjectFingerprint(true),
+    /**
+     * The index file that points to all of these things
+     */
+    Entry(false)
 }
 
 
 internal
 interface ConfigurationCacheStateFile {
     val exists: Boolean
+    val stateType: StateType
+    val stateFile: ConfigurationCacheStateStore.StateFile
     fun outputStream(): OutputStream
     fun inputStream(): InputStream
     fun delete()
@@ -297,8 +324,19 @@ class ConfigurationCacheState(
             val buildPath = read() as Path
             rootBuild.addIncludedBuild(definition, settingsFile, buildPath)
         }
+
+        build.gradle.loadGradleProperties()
         // Decode the build state using the contextualized IO service for the build
         return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(stateFileFor((build.state as NestedBuildState).buildDefinition), build)
+    }
+
+    private
+    fun GradleInternal.loadGradleProperties() {
+        val settingDir = serviceOf<BuildLayout>().settingsDir
+        // Load Gradle properties from a file but skip applying system properties defined here.
+        // System properties from the file may be mutated by the build logic, and the execution-time values are already restored by the EnvironmentChangeTracker.
+        // Applying properties from file overwrites these modifications.
+        serviceOf<GradlePropertiesController>().loadGradlePropertiesFrom(settingDir, false)
     }
 
     private
@@ -319,6 +357,7 @@ class ConfigurationCacheState(
             val ownerIdentifier = readNonNull<BuildIdentifier>()
             rootBuild.getBuildSrcOf(ownerIdentifier)
         }
+        build.gradle.loadGradleProperties()
         // Decode the build state using the contextualized IO service for the build
         return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(stateFileFor((build.state as NestedBuildState).buildDefinition), build)
     }
@@ -418,7 +457,7 @@ class ConfigurationCacheState(
 
     private
     suspend fun WriteContext.writeFlowScopeOf(gradle: GradleInternal) {
-        withGradleIsolate(gradle, userTypesCodec) {
+        withIsolate(IsolateOwner.OwnerFlowScope(gradle), userTypesCodec) {
             val flowScopeState = buildFlowScopeOf(gradle).store()
             write(flowScopeState)
         }
@@ -426,7 +465,7 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultReadContext.readFlowScopeOf(gradle: GradleInternal) {
-        withGradleIsolate(gradle, userTypesCodec) {
+        withIsolate(IsolateOwner.OwnerFlowScope(gradle), userTypesCodec) {
             buildFlowScopeOf(gradle).load(readNonNull())
         }
     }
