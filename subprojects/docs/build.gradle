@@ -799,6 +799,12 @@ tasks.named("docsTest") { task ->
             def testsToBeFixedForConfigurationCache = [
                 "snippet-build-cache-configure-task_groovy_configureTask.sample",
                 "snippet-build-cache-configure-task_kotlin_configureTask.sample",
+                // TODO(mlopatkin) These snippets use bintray plugin which is not fully CC-compatible. Remove bintray plugin from samples.
+                "snippet-plugins-buildscript_groovy_sanityCheck.sample",
+                "snippet-plugins-buildscript_kotlin_sanityCheck.sample",
+                "snippet-plugins-dsl_groovy_sanityCheck.sample",
+                "snippet-plugins-dsl_kotlin_sanityCheck.sample",
+                "snippet-kotlin-dsl-interoperability-closure-of_kotlin_sanityCheck.sample",
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
