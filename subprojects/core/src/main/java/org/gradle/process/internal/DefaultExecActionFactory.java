@@ -627,5 +627,15 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         public boolean isCompatibleWith(JavaForkOptions options) {
             return delegate.isCompatibleWith(options);
         }
+
+        @Override
+        public void installJvmArgs(Iterable<?> jvmArgs) {
+            delegate.installJvmArgs(jvmArgs);
+        }
+
+        @Override
+        public void checkDebugConfiguration(Iterable<?> arguments) {
+            delegate.checkDebugConfiguration(arguments);
+        }
     }
 }
