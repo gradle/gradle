@@ -205,17 +205,28 @@ public class JvmOptions {
     }
 
     public void checkDebugConfiguration(Iterable<?> arguments) {
-        List<String> debugArgs = new ArrayList<>();
-        for (Object extraJvmArg : arguments) {
-            String extraJvmArgString = extraJvmArg.toString();
-            if (extraJvmArgString.equals("-Xdebug") || extraJvmArgString.startsWith("-Xrunjdwp") || extraJvmArgString.startsWith("-agentlib:jdwp")) {
-                debugArgs.add(extraJvmArgString);
-            }
-        }
+        List<String> debugArgs = collectDebugArgs(arguments);
         if (!debugArgs.isEmpty() && debugOptions.getEnabled().get()) {
             LOGGER.warn("Debug configuration ignored in favor of the supplied JVM arguments: " + debugArgs);
             debugOptions.getEnabled().set(false);
         }
+    }
+
+    private static List<String> collectDebugArgs(Iterable<?> arguments) {
+        List<String> debugArgs = new ArrayList<>();
+        for (Object extraJvmArg : arguments) {
+            String extraJvmArgString = extraJvmArg.toString();
+            if (isDebugArg(extraJvmArgString)) {
+                debugArgs.add(extraJvmArgString);
+            }
+        }
+        return debugArgs;
+    }
+
+    private static boolean isDebugArg(String extraJvmArgString) {
+        return extraJvmArgString.equals("-Xdebug")
+            || extraJvmArgString.startsWith("-Xrunjdwp")
+            || extraJvmArgString.startsWith("-agentlib:jdwp");
     }
 
     public void jvmArgs(Iterable<?> arguments) {
