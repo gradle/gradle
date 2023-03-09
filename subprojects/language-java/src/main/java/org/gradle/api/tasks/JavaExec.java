@@ -225,11 +225,15 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec jvmArgs(Iterable<?> arguments) {
+        addJvmArguments(arguments);
+        javaExecSpec.checkDebugConfiguration(arguments);
+        return this;
+    }
+
+    private void addJvmArguments(Iterable<?> arguments) {
         for (Object arg : arguments) {
             jvmArguments.add(arg.toString());
         }
-        javaExecSpec.checkDebugConfiguration(arguments);
-        return this;
     }
 
     /**
