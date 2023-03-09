@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Holds a collection of interceptors and can decorate a Groovy CallSite if it is within a scope of a registered interceptor.
@@ -55,12 +56,10 @@ public class CallInterceptorsSet {
     };
 
     /**
-     * Creates the interceptor set out of provided interceptors.
+     * Creates the interceptor set, collecting the interceptors from the stream.
      */
-    public CallInterceptorsSet(CallInterceptor... interceptors) {
-        for (CallInterceptor interceptor : interceptors) {
-            addInterceptor(interceptor);
-        }
+    public CallInterceptorsSet(Stream<CallInterceptor> interceptors) {
+        interceptors.forEach(this::addInterceptor);
     }
 
     private void addInterceptor(CallInterceptor interceptor) {
