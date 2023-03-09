@@ -28,6 +28,7 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
         buildFile '''
             import org.gradle.api.flow.*
             import org.gradle.api.services.*
+            import java.util.concurrent.atomic.AtomicInteger
 
             class FlowActionPlugin implements Plugin<Project> {
                 final FlowScope flowScope
@@ -48,16 +49,16 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
             }
 
             class Bean {
-                int value = 41
+                AtomicInteger value = new AtomicInteger(41)
             }
 
             class IncrementAndPrint implements FlowAction<Parameters> {
                 interface Parameters extends FlowParameters {
-                    Property<Bean> getBean()
+                    @Input Property<Bean> getBean()
                 }
                 void execute(Parameters parameters) {
                     parameters.with {
-                        println("Bean.value = " + (++bean.get().value))
+                        println("Bean.value = " + bean.get().value.incrementAndGet())
                     }
                 }
             }
