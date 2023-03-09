@@ -198,14 +198,14 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
 
         @Override
         public void visitInputFileProperty(
-                String propertyName,
-                boolean optional,
-                InputBehavior behavior,
-                DirectorySensitivity directorySensitivity,
-                LineEndingSensitivity lineEndingSensitivity,
-                @Nullable FileNormalizer fileNormalizer,
-                PropertyValue value,
-                InputFilePropertyType filePropertyType
+            String propertyName,
+            boolean optional,
+            InputBehavior behavior,
+            DirectorySensitivity directorySensitivity,
+            LineEndingSensitivity lineEndingSensitivity,
+            @Nullable FileNormalizer fileNormalizer,
+            PropertyValue value,
+            InputFilePropertyType filePropertyType
         ) {
             this.normalizer = fileNormalizer;
             this.directorySensitivity = directorySensitivity;
