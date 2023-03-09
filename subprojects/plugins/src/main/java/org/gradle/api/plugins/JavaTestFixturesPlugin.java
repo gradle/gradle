@@ -57,7 +57,7 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        project.getPlugins().withType(JavaPlugin.class, plugin -> {
+        project.getPluginManager().withPlugin("java", plugin -> {
             JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
             SourceSet testFixturesSourceSet = extension.getSourceSets().maybeCreate(TEST_FIXTURES_FEATURE_NAME);
 
