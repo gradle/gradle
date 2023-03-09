@@ -24,6 +24,18 @@ import spock.lang.Issue
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "configuration cache is out of incubation"() {
+        given:
+        settingsFile << ""
+
+        when:
+        run("help", "--configuration-cache")
+
+        then:
+        result.assertHasPostBuildOutput("Configuration cache entry stored.")
+        !output.contains("Configuration cache is an incubating feature.")
+    }
+
     def "configuration cache for Help plugin task '#task' on empty project"() {
         given:
         settingsFile.createFile()

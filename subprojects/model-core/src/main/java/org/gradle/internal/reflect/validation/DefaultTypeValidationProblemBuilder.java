@@ -47,7 +47,7 @@ public class DefaultTypeValidationProblemBuilder extends AbstractValidationProbl
         return new TypeValidationProblem(
             problemId,
             severity,
-            typeIrrelevantInErrorMessage ? TypeValidationProblemLocation.irrelevant() :  TypeValidationProblemLocation.inType(type, pluginId),
+            typeIrrelevantInErrorMessage ? TypeValidationProblemLocation.irrelevant() : TypeValidationProblemLocation.inType(type, pluginId),
             shortProblemDescription,
             longDescription,
             reason,
