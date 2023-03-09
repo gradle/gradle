@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.condition
+package org.gradle.test.preconditions
 
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.precondition.TestPrecondition
 import org.testcontainers.DockerClientFactory
-
-import static org.gradle.test.fixtures.condition.TestPrecondition.doSatisfies
-import static org.gradle.test.fixtures.condition.TestPrecondition.notSatisfies
 
 @CompileStatic
 class UnitTestPreconditions {

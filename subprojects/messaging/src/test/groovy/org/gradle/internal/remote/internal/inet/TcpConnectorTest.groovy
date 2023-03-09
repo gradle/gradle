@@ -26,8 +26,8 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.Serializers
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 import spock.lang.Issue

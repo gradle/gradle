@@ -23,8 +23,8 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 @Requires(UnitTestPreconditions.NotMacOsM1) // M1 Macs need modern Xcode to compile aarch64 binaries

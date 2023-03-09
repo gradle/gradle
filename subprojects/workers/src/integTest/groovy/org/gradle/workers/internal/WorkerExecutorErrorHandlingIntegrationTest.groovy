@@ -19,8 +19,8 @@ package org.gradle.workers.internal
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES

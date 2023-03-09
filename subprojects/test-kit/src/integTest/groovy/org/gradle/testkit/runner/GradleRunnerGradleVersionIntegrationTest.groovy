@@ -19,10 +19,11 @@ package org.gradle.testkit.runner
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestKitPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.GradleVersion
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.gradle.util.internal.DistributionLocator
 import spock.lang.Retry
 import spock.lang.Shared

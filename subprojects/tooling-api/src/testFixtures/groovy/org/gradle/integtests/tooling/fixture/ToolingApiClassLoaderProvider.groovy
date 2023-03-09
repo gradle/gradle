@@ -25,14 +25,10 @@ import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.test.fixtures.condition.TestPrecondition
-import org.gradle.util.internal.RedirectStdOutAndErr
-import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.precondition.TestPrecondition
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.UnitTestPreconditions
 import org.gradle.util.internal.RedirectStdOutAndErr
-
-import static org.gradle.internal.classloader.ClasspathUtil.getClasspathForClass
 
 class ToolingApiClassLoaderProvider {
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]

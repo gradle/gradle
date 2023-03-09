@@ -17,9 +17,9 @@
 package org.gradle.configurationcache
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 @Requires(UnitTestPreconditions.NotWindows)
 class ConfigurationCacheTestkitIntegrationTest extends AbstractConfigurationCacheIntegrationTest {

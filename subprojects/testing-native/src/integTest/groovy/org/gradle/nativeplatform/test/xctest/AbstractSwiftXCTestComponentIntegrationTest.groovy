@@ -25,8 +25,8 @@ import org.gradle.nativeplatform.fixtures.app.Swift3XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift4XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift5XCTest
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assume
 
 abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwiftComponentIntegrationTest implements SwiftTaskNames {

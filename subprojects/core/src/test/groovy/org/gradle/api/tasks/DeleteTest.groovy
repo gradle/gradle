@@ -17,8 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.internal.ConventionTask
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.WrapUtil
 
 import static org.gradle.api.internal.file.TestFiles.fileSystem

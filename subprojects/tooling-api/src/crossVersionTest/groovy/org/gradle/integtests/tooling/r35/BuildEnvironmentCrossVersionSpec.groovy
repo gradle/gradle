@@ -19,11 +19,11 @@ package org.gradle.integtests.tooling.r35
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 

@@ -19,9 +19,9 @@ package org.gradle.internal.nativeintegration.console
 import net.rubygrapefruit.platform.NativeException
 import net.rubygrapefruit.platform.terminal.Terminals
 import org.gradle.internal.nativeintegration.ProcessEnvironment
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import spock.lang.Specification
 
 class NativePlatformConsoleDetectorTest extends Specification {

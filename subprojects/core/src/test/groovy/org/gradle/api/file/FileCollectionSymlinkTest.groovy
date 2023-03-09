@@ -18,9 +18,9 @@ package org.gradle.api.file
 import org.gradle.api.Project
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.gradle.util.UsesNativeServices
 import org.junit.ClassRule
 import spock.lang.Shared

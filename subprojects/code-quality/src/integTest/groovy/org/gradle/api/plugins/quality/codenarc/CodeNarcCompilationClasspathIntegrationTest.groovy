@@ -18,8 +18,8 @@ package org.gradle.api.plugins.quality.codenarc
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpec {
 

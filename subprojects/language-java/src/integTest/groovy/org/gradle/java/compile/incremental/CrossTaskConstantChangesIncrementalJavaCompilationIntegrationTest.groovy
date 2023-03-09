@@ -18,8 +18,8 @@ package org.gradle.java.compile.incremental
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 abstract class CrossTaskConstantChangesIncrementalJavaCompilationIntegrationTest extends AbstractCrossTaskConstantChangesIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA

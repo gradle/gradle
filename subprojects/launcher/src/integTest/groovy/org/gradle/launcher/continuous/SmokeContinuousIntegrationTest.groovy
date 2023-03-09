@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Ignore
 import spock.lang.Issue
 

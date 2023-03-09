@@ -24,11 +24,12 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.agents.AgentStatus
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.util.TestPrecondition
-import org.gradle.test.fixtures.IntegTestPreconditions
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
+
 // This test doesn't live in :instrumentation-agent to avoid the latter being implicitly added to
 // the test runtime classpath as part of the main source set's output.
 // It is important to have the agent appended to the classpath of all integration tests.

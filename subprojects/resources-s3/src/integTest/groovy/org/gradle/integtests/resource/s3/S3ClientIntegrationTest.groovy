@@ -34,8 +34,8 @@ import org.gradle.internal.resource.transport.aws.s3.S3Client
 import org.gradle.internal.resource.transport.aws.s3.S3ConnectionProperties
 import org.gradle.internal.resource.transport.aws.s3.S3RegionalResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Shared

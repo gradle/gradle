@@ -21,8 +21,8 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 

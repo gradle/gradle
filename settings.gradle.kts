@@ -111,6 +111,7 @@ include("testing-native")
 include("testing-jvm")
 include("testing-jvm-infrastructure")
 include("testing-junit-platform")
+include("predicate-tester")
 include("test-kit")
 include("installation-beacon")
 include("composite-builds")
@@ -168,6 +169,8 @@ include("soak")
 include("smoke-test")
 include("performance")
 include("build-scan-performance")
+
+
 
 rootProject.name = "gradle"
 

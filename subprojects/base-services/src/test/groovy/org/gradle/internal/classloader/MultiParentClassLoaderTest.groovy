@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.classloader
 
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Specification
 
 class MultiParentClassLoaderTest extends Specification {

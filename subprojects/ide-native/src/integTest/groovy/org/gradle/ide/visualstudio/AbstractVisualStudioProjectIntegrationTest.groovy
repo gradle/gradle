@@ -24,8 +24,8 @@ import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.language.VariantContext.dimensions
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC

@@ -17,8 +17,8 @@
 package org.gradle.plugin.devel.impldeps
 
 import org.gradle.api.Plugin
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 @Requires(UnitTestPreconditions.HighPerformance)
 class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegrationTest {

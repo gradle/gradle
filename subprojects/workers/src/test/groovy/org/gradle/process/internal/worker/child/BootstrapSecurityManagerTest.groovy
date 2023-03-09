@@ -18,9 +18,9 @@ package org.gradle.process.internal.worker.child
 
 import org.gradle.integtests.fixtures.RedirectStdIn
 import org.gradle.internal.stream.EncodedStream
-import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.SetSystemProperties
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 

@@ -17,8 +17,8 @@ package org.gradle.java.compile.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.java.compile.JavaCompilerIntegrationSpec
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 

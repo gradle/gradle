@@ -17,8 +17,8 @@
 package org.gradle.logging
 
 import org.gradle.internal.logging.ConsoleRenderer
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Specification
 
 class ConsoleRendererTest extends Specification {

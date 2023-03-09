@@ -16,8 +16,8 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.fixtures.app.DuplicateAssemblerBaseNamesTestApp
 import org.gradle.language.fixtures.app.DuplicateCBaseNamesTestApp
 import org.gradle.language.fixtures.app.DuplicateCppBaseNamesTestApp
@@ -28,8 +28,8 @@ import org.gradle.language.fixtures.app.DuplicateWindowsResourcesBaseNamesTestAp
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32

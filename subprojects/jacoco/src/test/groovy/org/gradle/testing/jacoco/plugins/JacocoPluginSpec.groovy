@@ -20,8 +20,8 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 class JacocoPluginSpec extends AbstractProjectBuilderSpec {

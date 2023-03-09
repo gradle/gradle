@@ -19,12 +19,13 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.junit.Rule
 
-import static org.gradle.testing.fixture.JUnitCoverage.*
+import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_VINTAGE_JUPITER
 
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
 class JUnitJnaIntegrationTest extends JUnitMultiVersionIntegrationSpec {
