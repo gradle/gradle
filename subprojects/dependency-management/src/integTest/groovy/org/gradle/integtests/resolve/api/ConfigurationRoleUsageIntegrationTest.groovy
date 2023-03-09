@@ -651,7 +651,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         run "help"
     }
 
-    def "incorrect usage combinations properly log at #logLevel when configuration created with #elementsCreationCode"() {
+    def "incorrect usage combinations properly log at #logLevel when #desc"() {
         given:
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
@@ -676,14 +676,41 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         "using consumable to make a configuration"                  | "consumable('fooElements')"                                                                                   | "--warn"      || null
         "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                                                                   | "--warn"      || null
         "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"                                | "--warn"      || null
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)"                                | "--warn"      || null
+        "using consumable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)"                                | "--warn"      || null
         "using create to make an implicitly LEGACY configuration"   | "create('fooElements')"                                                                                       | "--info"      || null
         "using consumable to make a configuration"                  | "consumable('fooElements')"                                                                                   | "--info"      || null
         "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                                                                   | "--info"      || null
         "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"                                | "--info"      || null
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)"                                | "--info"      || 'The configuration :fooElements is both consumable and declarable. This combination is incorrect, only one of these flags should be set.'
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRole.forUsage('custom', true, true, false, false, false, false))" | "--warn"      || null
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRole.forUsage('custom', true, true, false, false, false, false))" | "--info"      || 'The configuration :fooElements is both resolvable and consumable. This is considered a legacy configuration and it will eventually only be possible to be one of these'
+        "using consumable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)"                                | "--info"      || 'The configuration :fooElements is both consumable and declarable. This combination is incorrect, only one of these flags should be set.'
+        "using custom role to make a configuration"                 | "createWithRole('fooElements', ConfigurationRole.forUsage('custom', true, true, false, false, false, false))" | "--warn"      || null
+        "using custom role to make a configuration"                 | "createWithRole('fooElements', ConfigurationRole.forUsage('custom', true, true, false, false, false, false))" | "--info"      || 'The configuration :fooElements is both resolvable and consumable. This is considered a legacy configuration and it will eventually only be possible to be one of these'
+    }
+
+    def "redundantly calling #setMethod on a configuration that is already #isSetMethod warns when #desc"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
+
+            configurations.$confCreationCode
+    
+            configurations.test {
+                assert $isSetMethod
+                $setMethod
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The $usage usage is already allowed on configuration ':test'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Remove the call to $setMethod, it has no effect. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#redundant_configuration_usage_activation")
+        succeeds 'help'
+
+        where:
+        desc                                                        | confCreationCode                                                                                       | usage                | isSetMethod                   | setMethod
+        "using create to make an implicitly LEGACY configuration"   | "create('test')"                                                                                       | "consumable"         | "isCanBeConsumed()"           | "setCanBeConsumed(true)"
+        "using consumable to make a configuration"                  | "consumable('test')"                                                                                   | "consumable"         | "isCanBeConsumed()"           | "setCanBeConsumed(true)"
+        "using resolvable to make a configuration"                  | "resolvable('test')"                                                                                   | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
+        "using resolvable_bucket to make a configuration"           | "createWithRole('test', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"                                | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
+        "using consumable_bucket to make a configuration"           | "createWithRole('test', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"                                | "declarable against" | "isCanBeDeclaredAgainst()"    | "setCanBeDeclaredAgainst(true)"
     }
     // endregion Warnings
 
