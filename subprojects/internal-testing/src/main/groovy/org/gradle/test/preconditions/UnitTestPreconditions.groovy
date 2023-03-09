@@ -22,6 +22,9 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.TestPrecondition
 import org.testcontainers.DockerClientFactory
 
+import static org.gradle.test.precondition.TestPrecondition.doSatisfies;
+import static org.gradle.test.precondition.TestPrecondition.notSatisfies;
+
 @CompileStatic
 class UnitTestPreconditions {
 
