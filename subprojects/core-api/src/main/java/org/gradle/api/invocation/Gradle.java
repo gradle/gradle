@@ -301,10 +301,8 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * Adds the given listener to this build. The listener may implement any of the given listener interfaces:
      *
      * <ul>
-     * <li>{@link org.gradle.BuildListener}
      * <li>{@link org.gradle.api.execution.TaskExecutionGraphListener}
      * <li>{@link org.gradle.api.ProjectEvaluationListener}
-     * <li>{@link org.gradle.api.logging.StandardOutputListener}
      * <li>{@link org.gradle.api.artifacts.DependencyResolutionListener}
      * </ul>
      *
@@ -312,6 +310,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * Their usage is deprecated and adding a listener of these types become an error in a future Gradle version:</p>
      *
      * <ul>
+     * <li>{@link org.gradle.BuildListener}
      * <li>{@link org.gradle.api.execution.TaskExecutionListener}
      * <li>{@link org.gradle.api.execution.TaskActionListener}
      * <li>{@link org.gradle.api.tasks.testing.TestListener}
