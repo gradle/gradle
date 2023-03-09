@@ -34,8 +34,6 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsMode
 
         and:
         def spec = withMultiProjectBuildWithBuildSrc()
-        spec.scripts["a"] << "throw RuntimeException(\"ex\")"
-        spec.scripts["b"] << "throw RuntimeException(\"ex\")"
 
         when:
         def singleRequestModels = kotlinDslScriptsModelFor().scriptModels
