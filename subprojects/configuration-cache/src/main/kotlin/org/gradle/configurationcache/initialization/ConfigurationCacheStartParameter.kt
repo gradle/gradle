@@ -18,16 +18,19 @@ package org.gradle.configurationcache.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
+import org.gradle.internal.buildoption.StringInternalOption
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.internal.SupportedEncryptionAlgorithm
 import java.io.File
 
 
@@ -36,14 +39,21 @@ class ConfigurationCacheStartParameter(
     private val buildLayout: BuildLayout,
     private val startParameter: StartParameterInternal,
     options: InternalOptions,
-    modelParameters: BuildModelParameters
+    private val modelParameters: BuildModelParameters
 ) {
     val loadAfterStore: Boolean = !modelParameters.isRequiresBuildModel && options.getOption(InternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)).get()
 
     val taskExecutionAccessPreStable: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")).get()
 
+    val encryptionRequested: Boolean = startParameter.isConfigurationCacheEncryption
+
+    val encryptionAlgorithm: String = options.getOption(StringInternalOption("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.AES_ECB_PADDING.transformation)).get()
+
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
+
+    val configurationCacheLogLevel: LogLevel
+        get() = modelParameters.configurationCacheLogLevel
 
     val isQuiet: Boolean
         get() = startParameter.isConfigurationCacheQuiet
@@ -91,9 +101,6 @@ class ConfigurationCacheStartParameter(
     val isUpdateDependencyLocks
         get() = startParameter.lockedDependenciesToUpdate.isNotEmpty()
 
-    val isWriteDependencyVerifications
-        get() = startParameter.writeDependencyVerifications.isNotEmpty()
-
     val requestedTaskNames: List<String> by unsafeLazy {
         startParameter.taskNames
     }
@@ -109,4 +116,10 @@ class ConfigurationCacheStartParameter(
 
     val includedBuilds: List<File>
         get() = startParameter.includedBuilds
+
+    val isBuildScan: Boolean
+        get() = startParameter.isBuildScan
+
+    val isNoBuildScan: Boolean
+        get() = startParameter.isNoBuildScan
 }

@@ -59,16 +59,10 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
 ) : ConfigurationCacheProblemsListener {
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
-        if (atConfigurationTime()) {
-            return
-        }
         onTaskExecutionAccessProblem(invocationDescription, task)
     }
 
     override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal) {
-        if (atConfigurationTime()) {
-            return
-        }
         onTaskExecutionAccessProblem(invocationDescription, task)
     }
 

@@ -74,6 +74,11 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
                 }
             }
         }
+
+        ImmutableAttributes directory = attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
+        if (seen.add(directory)) {
+            action.accept(directory);
+        }
     }
 
     @Override
