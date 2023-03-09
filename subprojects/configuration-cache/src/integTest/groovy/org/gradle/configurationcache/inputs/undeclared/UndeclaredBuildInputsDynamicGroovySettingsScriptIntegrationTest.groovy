@@ -25,6 +25,8 @@ class UndeclaredBuildInputsDynamicGroovySettingsScriptIntegrationTest extends Ab
     @Override
     void buildLogicApplication(BuildInputRead read) {
         settingsFile << """
+            ${read.requiredImports().collect { "import $it" }.join("\n")}
+
             println("apply = " + ${read.groovyExpression})
             gradle.rootProject {
                 tasks.register("thing") {
