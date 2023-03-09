@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.tooling.r81
+package org.gradle.plugins.ide.tooling.r82
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -27,7 +27,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 @TargetGradleVersion('>=8.2')
 class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
 
-    def "buildTreePath on GradleBuild/BasicGradleProject"() {
+    def "buildTreePath is available on the GradleBuild model"() {
         given:
         includedBuild("b1")
         includedBuild("b2")
