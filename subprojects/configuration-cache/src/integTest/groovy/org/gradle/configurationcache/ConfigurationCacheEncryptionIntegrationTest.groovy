@@ -34,16 +34,10 @@ import java.util.stream.Stream
 import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
 
 class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    TestFile keyStoreFolder
-    TestFile keyStorePath
-    String keyStorePassword
-    String keyPassword
+    TestFile keyStoreDir
 
     def setup() {
-        keyStoreFolder = new TestFile(testDirectory, "keystores")
-        keyStorePath = new TestFile(keyStoreFolder, "test.keystore")
-        keyStorePassword = "gradle-keystore-pwd"
-        keyPassword = "gradle-key-pwd"
+        keyStoreDir = new TestFile(testDirectory, 'keystores')
     }
 
     def "configuration cache can be loaded without errors using #encryptionTransformation"() {
@@ -129,9 +123,9 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         isFoundInDirectory(cacheDir, "sensitive".getBytes()) == !enabled
         isFoundInDirectory(cacheDir, "SENSITIVE".getBytes()) == !enabled
         where:
-        encrypted       |   enabled
-        "encrypted"     |   true
-        "unencrypted"   |   false
+        encrypted     | enabled
+        "encrypted"   | true
+        "unencrypted" | false
     }
 
     private boolean isFoundInDirectory(File startDir, byte[] toFind) {
@@ -143,26 +137,11 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         }
     }
 
-    def "build fails if keystore password is incorrect"() {
-        given:
-        runWithEncryption()
-
-        when:
-        keyStorePassword = "foobar"
-        fails(*(["help", "--configuration-cache"] + encryptionOptions))
-
-        then:
-        result.assertHasErrorOutput """
-Error loading encryption key from Java keystore at ${keyStorePath}
-> Integrity check failed: java.security.UnrecoverableKeyException: Failed PKCS12 integrity checking
-"""
-    }
-
     def "new configuration cache entry if keystore is not found"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         runWithEncryption()
-        keyStorePath.delete()
+        findKeystoreFile().delete()
 
         when:
         runWithEncryption()
@@ -176,10 +155,14 @@ Error loading encryption key from Java keystore at ${keyStorePath}
         given:
         def configurationCache = newConfigurationCacheFixture()
         runWithEncryption()
+
+        and:
+        def keyStoreFile = findKeystoreFile()
+
         KeyStore ks = KeyStore.getInstance(KeyStoreKeySource.KEYSTORE_TYPE)
-        keyStorePath.withInputStream { ks.load(it, keyStorePassword.toCharArray()) }
+        keyStoreFile.withInputStream { ks.load(it, new char[0]) }
         ks.deleteEntry("gradle-secret")
-        keyStorePath.withOutputStream { ks.store(it, keyStorePassword.toCharArray()) }
+        keyStoreFile.withOutputStream { ks.store(it, new char[0]) }
 
         when:
         runWithEncryption()
@@ -193,20 +176,17 @@ Error loading encryption key from Java keystore at ${keyStorePath}
     def "build fails if keystore cannot be created"() {
         given:
         def fs = NativeServicesTestFixture.instance.get(FileSystem)
-        assert keyStoreFolder.mkdir()
-        fs.chmod(keyStoreFolder, 0444)
+        assert keyStoreDir.mkdir()
+        fs.chmod(keyStoreDir, 0444)
 
         when:
         fails(*(["help", "--configuration-cache"] + encryptionOptions))
 
         then:
-        result.assertHasErrorOutput """
-Error loading encryption key from Java keystore at ${keyStorePath}
-> ${keyStorePath} (Permission denied)
-"""
+        failureDescriptionStartsWith "Error loading encryption key from custom Java keystore at ${keyStoreDir}"
 
         cleanup:
-        fs.chmod(keyStoreFolder, 0666)
+        fs.chmod(keyStoreDir, 0666)
     }
 
     void runWithEncryption(
@@ -228,12 +208,18 @@ Error loading encryption key from Java keystore at ${keyStorePath}
         }
         return [
             '-s',
-            "-Dorg.gradle.configuration-cache.internal.key-store-path=${keyStorePath}",
-            "-Dorg.gradle.configuration-cache.internal.key-store-password=${keyStorePassword}"
+            "-Dorg.gradle.configuration-cache.internal.key-store-dir=${keyStoreDir}",
         ]
     }
 
     private boolean isSubArray(byte[] contents, byte[] toFind) {
-        return Bytes.indexOf(contents, toFind) >= 0
+        Bytes.indexOf(contents, toFind) >= 0
+    }
+
+    private TestFile findKeystoreFile() {
+        def keyStoreDirFiles = keyStoreDir.allDescendants()
+        def keyStorePath = keyStoreDirFiles.find { it.endsWith('gradle.keystore') }
+        assert keyStorePath != null
+        keyStoreDir.file(keyStorePath)
     }
 }
