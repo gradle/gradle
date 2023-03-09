@@ -80,9 +80,9 @@ subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.ado
 .teamcity/                   @gradle/bt-developer-productivity
 .github/                     @gradle/bt-developer-productivity
 gradle/shared-with-buildSrc/ @gradle/bt-developer-productivity
-build-logic/                 @gradle/bt-developer-productivity
-build-logic-commons/         @gradle/bt-developer-productivity
-build-logic-settings/        @gradle/bt-developer-productivity
+/build-logic/                 @gradle/bt-developer-productivity
+/build-logic-commons/         @gradle/bt-developer-productivity
+/build-logic-settings/        @gradle/bt-developer-productivity
 subprojects/*/build.gradle*  @gradle/bt-developer-productivity
-build.gradle*                @gradle/bt-developer-productivity
-settings.gradle*              @gradle/bt-developer-productivity
+/build.gradle*                @gradle/bt-developer-productivity
+/settings.gradle*              @gradle/bt-developer-productivity
