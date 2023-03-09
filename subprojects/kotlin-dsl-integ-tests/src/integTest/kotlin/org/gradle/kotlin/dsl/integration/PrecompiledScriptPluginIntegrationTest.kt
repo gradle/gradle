@@ -1111,6 +1111,25 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             server.stop()
         }
     }
+
+    @Test
+    fun `no warnings on empty directories in compilation classpath`() {
+        withDefaultSettings().appendText("""include("producer", "consumer")""")
+        withFile("producer/build.gradle.kts", """plugins { java }""")
+        withKotlinDslPluginIn("consumer").appendText("""
+            dependencies { implementation(project(":producer")) }
+            tasks.named("compilePluginsBlocks") {
+                // This is a hacky way to get absent directories in the compilation classpath
+                val fs = (project as org.gradle.api.internal.project.ProjectInternal).services.get(FileSystemOperations::class.java)
+                doFirst { fs.delete { delete("../producer/build/") } }
+            }
+        """)
+        withFile("consumer/src/main/kotlin/some.gradle.kts", "")
+        build(":consumer:classes").apply {
+            assertTaskExecuted(":consumer:compilePluginsBlocks")
+            assertNotOutput("w: Classpath entry points to a non-existent location")
+        }
+    }
 }
 
 

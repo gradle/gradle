@@ -650,6 +650,41 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         expect:
         run "help"
     }
+
+    def "incorrect usage combinations properly log at #logLevel when configuration created with #elementsCreationCode"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
+
+            configurations.$elementsCreationCode
+            configurations.fooElements.preventFromFurtherMutation()
+        """
+
+        when:
+        executer.noDeprecationChecks() // These are checked in other tests, this one is just concerned with the log output
+        succeeds 'help', logLevel
+
+        then:
+        if (warningMessage) {
+            assert output.contains(warningMessage)
+        }
+
+        where:
+        desc                                                        | elementsCreationCode                                                                                          | logLevel      || warningMessage
+        "using create to make an implicitly LEGACY configuration"   | "create('fooElements')"                                                                                       | "--warn"      || null
+        "using consumable to make a configuration"                  | "consumable('fooElements')"                                                                                   | "--warn"      || null
+        "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                                                                   | "--warn"      || null
+        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"                                | "--warn"      || null
+        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)"                                | "--warn"      || null
+        "using create to make an implicitly LEGACY configuration"   | "create('fooElements')"                                                                                       | "--info"      || null
+        "using consumable to make a configuration"                  | "consumable('fooElements')"                                                                                   | "--info"      || null
+        "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                                                                   | "--info"      || null
+        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"                                | "--info"      || null
+        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)"                                | "--info"      || 'The configuration :fooElements is both consumable and declarable. This combination is incorrect, only one of these flags should be set.'
+        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRole.forUsage('custom', true, true, false, false, false, false))" | "--warn"      || null
+        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRole.forUsage('custom', true, true, false, false, false, false))" | "--info"      || 'The configuration :fooElements is both resolvable and consumable. This is considered a legacy configuration and it will eventually only be possible to be one of these'
+    }
     // endregion Warnings
 
     // region Custom Roles
