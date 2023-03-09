@@ -151,7 +151,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
 
         List<String> jvmArgs = jvmArguments.getOrNull();
         if (jvmArgs != null) {
-            javaExecSpec.installJvmArgs(jvmArgs);
+            javaExecSpec.setExtraJvmArgs(jvmArgs);
         }
 
         JavaExecAction javaExecAction = getExecActionFactory().newJavaExecAction();

@@ -629,7 +629,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
-        public void installJvmArgs(Iterable<?> jvmArgs) {
+        public void setExtraJvmArgs(Iterable<?> jvmArgs) {
             throw new UnsupportedOperationException();
         }
 
