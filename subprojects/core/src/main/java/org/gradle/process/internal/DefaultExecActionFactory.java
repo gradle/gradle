@@ -630,12 +630,12 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
         @Override
         public void installJvmArgs(Iterable<?> jvmArgs) {
-            delegate.installJvmArgs(jvmArgs);
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public void checkDebugConfiguration(Iterable<?> arguments) {
-            delegate.checkDebugConfiguration(arguments);
+            throw new UnsupportedOperationException();
         }
     }
 }
