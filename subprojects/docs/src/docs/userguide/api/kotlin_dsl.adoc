@@ -734,86 +734,9 @@ In future releases, we will work on improving the IDE experience and remove thes
 
 
 [[sec:kotlin-dsl_plugin]]
-== The Kotlin DSL Plugin
+== Writing plugins in Kotlin
 
-The Kotlin DSL Plugin provides a convenient way to develop Kotlin-based projects that contribute build logic.
-That includes <<organizing_gradle_projects#sec:build_sources,buildSrc projects>>, <<composite_builds#composite_builds,included builds>> and <<custom_plugins#custom_plugins,Gradle plugins>>.
-
-The plugin achieves this by doing the following:
-
- * Applies the link:https://kotlinlang.org/docs/reference/using-gradle.html#targeting-the-jvm[Kotlin Plugin], which adds support for compiling Kotlin source files.
- * Adds the `kotlin-stdlib-jdk8`, `kotlin-reflect` and `gradleKotlinDsl()` dependencies to the `compileOnly` and `testImplementation` configurations, which allows you to make use of those Kotlin libraries and the Gradle API in your Kotlin code.
- * Configures the Kotlin compiler with the same settings that are used for Kotlin DSL scripts, ensuring consistency between your build logic and those scripts:
- ** adds <<kotlin_dsl#sec:kotlin_compiler_arguments, Kotlin compiler arguments>>,
- ** registers the link:https://kotlinlang.org/docs/sam-with-receiver-plugin.html[SAM-with-receiver Kotlin compiler plugin].
- * Enables support for <<custom_plugins#sec:precompiled_plugins,precompiled script plugins>>.
-
-[CAUTION]
-.Avoid specifying a version for the `kotlin-dsl` plugin
-====
-Each Gradle release is meant to be used with a specific version of the `kotlin-dsl` plugin and compatibility between arbitrary Gradle releases and `kotlin-dsl` plugin versions is not guaranteed. Using an unexpected version of the `kotlin-dsl` plugin in a build will emit a warning and can cause hard to diagnose problems.
-====
-
-This is the basic configuration you need to use the plugin:
-
-.Applying the Kotlin DSL Plugin to a `buildSrc` project
-====
-include::sample[dir="snippets/kotlinDsl/kotlinDslPlugin/kotlin",files="buildSrc/build.gradle.kts[tags=apply]"]
-====
-
-The Kotlin DSL Plugin leverages <<toolchains#toolchains,Java Toolchains>>.
-By default the code will target Java 8.
-You can change that by defining a Java toolchain to be used by the project:
-
-.Changing the JVM target using toolchains
-====
-include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin/",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=toolchain]"]
-include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=toolchain]"]
-====
-
-[[sec:kotlin]]
-== The embedded Kotlin
-
-Gradle embeds Kotlin in order to provide support for Kotlin-based scripts.
-
-=== Kotlin versions
-
-Gradle ships with `kotlin-compiler-embeddable` plus matching versions of `kotlin-stdlib` and `kotlin-reflect` libraries. For details see the Kotlin section of Gradle's <<compatibility#kotlin,compatibility matrix>>. The `kotlin` package from those modules is visible through the Gradle classpath.
-
-The link:https://kotlinlang.org/docs/reference/compatibility.html[compatibility guarantees] provided by Kotlin apply for both backward and forward compatibility.
-
-==== Backward compatibility
-
-Our approach is to only do backwards-breaking Kotlin upgrades on a major Gradle release. We will always clearly document which Kotlin version we ship and announce upgrade plans before a major release.
-
-Plugin authors who want to stay compatible with older Gradle versions need to limit their API usage to a subset that is compatible with these old versions. It’s not really different from any other new API in Gradle. E.g. if we introduce a new API for dependency resolution and a plugin wants to use that API, then they either need to drop support for older Gradle versions or they need to do some clever organization of their code to only execute the new code path on newer versions.
-
-==== Forward compatibility
-
-The biggest issue is the compatibility between the external `kotlin-gradle-plugin` version and the `kotlin-stdlib` version shipped with Gradle. More generally, between any plugin that transitively depends on `kotlin-stdlib` and its version shipped with Gradle. As long as the combination is compatible everything should work. This will become less of an issue as the language matures.
-
-[[sec:kotlin_compiler_arguments]]
-=== Kotlin compiler arguments
-
-These are the Kotlin compiler arguments used for compiling Kotlin DSL scripts and Kotlin sources and scripts in a project that has the `kotlin-dsl` plugin applied:
-
-`-java-parameters`::
-Generate metadata for Java >= 1.8 reflection on method parameters.
-See link:https://kotlinlang.org/docs/compiler-reference.html#kotlin-jvm-compiler-options[Kotlin/JVM compiler options] in the Kotlin documentation for more information.
-
-`-Xjvm-default=all`::
-Makes all non-abstract members of Kotlin interfaces default for the Java classes implementing them.
-This is to provide a better interoperability with Java and Groovy for plugins written in Kotlin.
-See link:https://kotlinlang.org/docs/java-to-kotlin-interop.html#default-methods-in-interfaces[Default methods in interfaces] in the Kotlin documentation for more information.
-
-`-Xsam-conversions=class`::
-Sets up the implementation strategy for SAM (single abstract method) conversion to always generate anonymous classes, instead of using the `invokedynamic` JVM instruction.
-This is to provide a better support for configuration cache and incremental build.
-See link:https://youtrack.jetbrains.com/issue/KT-44912[KT-44912] in the Kotlin issue tracker for more information.
-
-`-Xjsr305=strict`::
-Sets up Kotlin's Java interoperability to strictly follow JSR-305 annotations for increased null safety.
-See link:https://kotlinlang.org/docs/reference/java-interop.html#compiler-configuration[Calling Java code from Kotlin] in the Kotlin documentation for more information.
+See <<../developing-plugins/writing_in_kotlin.adoc, the dedicated page>> for more details about how to write your plugins in Kotlin
 
 [[sec:interoperability]]
 == Interoperability

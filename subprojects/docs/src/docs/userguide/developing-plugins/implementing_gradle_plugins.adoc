@@ -9,7 +9,7 @@ This section assumes you have:
 
 - Basic understanding of software engineering practices
 - Knowledge of Gradle fundamentals like project organization, task creation and configuration as well as the Gradle build lifecycle
-- Working knowledge in writing Java code
+- Working knowledge in writing Java code (if you're writing your plugins in Kotlin make sure to check the <<writing_in_kotlin.adoc, Writing your plugins in Kotlin>> page in addition to this page)
 
 [[plugin-development-plugin]]
 == Using the Plugin Development plugin for writing plugins
