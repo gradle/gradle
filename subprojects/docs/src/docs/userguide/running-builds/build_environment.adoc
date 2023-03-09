@@ -257,9 +257,6 @@ The actual build is run by the Gradle daemon, which is not affected by this envi
 Specifies the Gradle user home directory (which defaults to `<home directory of the current user>/.gradle` if not set).
 `JAVA_HOME`::
 Specifies the JDK installation directory to use for the client VM. This VM is also used for the daemon, unless a different one is specified in a Gradle properties file with `org.gradle.java.home`.
-`GRADLE_ENCRYPTION_KEY`::
-Specifies a Base64-encoded AES-128 encryption key required by some Gradle features. At this time, it is leveraged
-by the <<configuration_cache.adoc#config_cache:usage:encryption, configuration cache encryption>> feature.
 
 The following examples demonstrate how to use environment variables.
 
