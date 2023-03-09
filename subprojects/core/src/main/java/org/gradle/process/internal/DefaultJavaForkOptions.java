@@ -235,10 +235,12 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
             && getBootstrapClasspath().getFiles().containsAll(options.getBootstrapClasspath().getFiles());
     }
 
+    @Override
     public void checkDebugConfiguration(Iterable<?> arguments) {
         options.checkDebugConfiguration(arguments);
     }
 
+    @Override
     public void installJvmArgs(Iterable<?> arguments) {
         options.installJvmArgs(arguments);
     }
