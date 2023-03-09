@@ -44,7 +44,7 @@ class ProguardSmokeTest extends AbstractPluginValidatingSmokeTest implements Val
             }
 
             dependencies {
-                implementation 'com.guardsquare:proguard-gradle:7.0.0'
+                implementation 'com.guardsquare:proguard-gradle:${TestedVersions.proguardGradle}'
             }
 
             // Configure the validation task here, since there is no ProGuard plugin
