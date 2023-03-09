@@ -34,6 +34,7 @@ public class LaunchableGradleTask implements Serializable, InternalLaunchable, T
     private String group;
     private boolean isPublic;
     private DefaultProjectIdentifier projectIdentifier;
+    private String buildTreePath;
 
     public String getPath() {
         return path;
@@ -41,6 +42,15 @@ public class LaunchableGradleTask implements Serializable, InternalLaunchable, T
 
     public LaunchableGradleTask setPath(String path) {
         this.path = path;
+        return this;
+    }
+
+    public String getBuildTreePath() {
+        return buildTreePath;
+    }
+
+    public LaunchableGradleTask setBuildTreePath(String buildTreePath) {
+        this.buildTreePath = buildTreePath;
         return this;
     }
 

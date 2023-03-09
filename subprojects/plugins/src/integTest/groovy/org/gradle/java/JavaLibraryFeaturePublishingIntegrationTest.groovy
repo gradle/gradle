@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm
+package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.AbstractMavenModule
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Unroll
 
-class JvmVariantBuilderIntegrationTest extends AbstractIntegrationSpec {
+class JavaLibraryFeaturePublishingIntegrationTest extends AbstractIntegrationSpec {
     MavenFileRepository publishRepo
     AbstractMavenModule module
 
@@ -35,29 +35,14 @@ class JvmVariantBuilderIntegrationTest extends AbstractIntegrationSpec {
                 id 'java-test-fixtures'
                 id 'maven-publish'
             }
-            def jvm = project.services.get(org.gradle.api.plugins.jvm.internal.JvmModelingServices)
 
             group = 'com.acme'
             version = '1.4'
 
             ${mavenCentralRepository()}
 
-            jvm.createJvmVariant("integTest", sourceSets.create("integTest")) {}
-
-            configurations {
-                integTestImplementation.extendsFrom(testImplementation)
-                integTestRuntimeOnly.extendsFrom(testRuntimeOnly)
-            }
-
-            dependencies {
-                testImplementation 'junit:junit:4.13'
-            }
-
-            tasks.register("integTest", Test) {
-                description = "Runs the integration tests."
-                group = "verification"
-                testClassesDirs = sourceSets.integTest.output.classesDirs
-                classpath = sourceSets.integTest.runtimeClasspath
+            testing.suites {
+                integTest(JvmTestSuite) { }
             }
 
             publishing {
@@ -79,9 +64,8 @@ class JvmVariantBuilderIntegrationTest extends AbstractIntegrationSpec {
     }
 
     /**
-     * This test exercises the creation of a secondary component
-     * similar to "test fixtures" but where the fixtures are only
-     * available to integration tests
+     * This test exercises the creation of a secondary feature within the java component,
+     * similar to "test fixtures", but where the fixtures are consumed by the integration tests
      */
     @Unroll("can register integration test fixtures (published=#published, javadocs=#javadocs, sources=#sources)")
     def "can register integration test fixtures"() {
@@ -89,12 +73,14 @@ class JvmVariantBuilderIntegrationTest extends AbstractIntegrationSpec {
             sourceSets {
                 integTestFixtures
             }
-            jvm.createJvmVariant("integTestFixtures", sourceSets.integTestFixtures) {
-                distinctCapability()
-                withDisplayName("Integration test fixtures")
-                if ($published) { published() }
-                if ($javadocs) { withJavadocJar() }
-                if ($sources) { withSourcesJar() }
+
+            java {
+                registerFeature("integTestFixtures") {
+                    usingSourceSet sourceSets.integTestFixtures
+                    if ($javadocs) { withJavadocJar() }
+                    if ($sources) { withSourcesJar() }
+                    if (!$published) { disablePublication() }
+                }
             }
 
             dependencies {
@@ -106,16 +92,11 @@ class JvmVariantBuilderIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-
         file("src/integTest/java/MyTest.java") << """
-            import org.junit.Test;
-            import static org.junit.Assert.*;
-
             public class MyTest {
-                @Test
+                @org.junit.jupiter.api.Test
                 public void testSomething() {
-                    int answer = MyFixture.answer();
-                    assertEquals(answer, 42);
+                    assert MyFixture.answer() == 42;
                 }
             }
         """

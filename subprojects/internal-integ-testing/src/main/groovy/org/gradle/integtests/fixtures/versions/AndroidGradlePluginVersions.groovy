@@ -20,6 +20,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.internal.Factory
 import org.gradle.util.internal.VersionNumber
 
+import javax.annotation.Nullable
+
 import static org.junit.Assume.assumeTrue
 
 
@@ -55,6 +57,7 @@ class AndroidGradlePluginVersions {
         }
     """
 
+    private static final VersionNumber AGP_8_0 = VersionNumber.parse('8.0.0')
     private static final VersionNumber AGP_7_0 = VersionNumber.parse('7.0.0')
     private static final VersionNumber AGP_7_3 = VersionNumber.parse('7.3.0')
     private static final VersionNumber KOTLIN_1_6_20 = VersionNumber.parse('1.6.20')
@@ -83,6 +86,32 @@ class AndroidGradlePluginVersions {
 
     List<String> getLatests() {
         return getVersionList("latests")
+    }
+
+    String getLatest() {
+        return latests.last()
+    }
+
+    List<String> getLatestsStable() {
+        return latests
+            .collect { VersionNumber.parse(it) }
+            .findAll { it.baseVersion == it }
+            .collect { it.toString() }
+    }
+
+    String getLatestStable() {
+        return latestsStable.last()
+    }
+
+    List<String> getLatestsStableOrRC() {
+        return latests.findAll {
+            def lowerCaseVersion = it.toLowerCase(Locale.US)
+            !lowerCaseVersion.contains('-alpha') && !(lowerCaseVersion.contains('-beta'))
+        }
+    }
+
+    String getLatestStableOrRC() {
+        return latestsStableOrRC.last()
     }
 
     List<String> getNightlies() {
@@ -119,6 +148,14 @@ class AndroidGradlePluginVersions {
         return properties
     }
 
+    @Nullable
+    String getMinimumGradleBaseVersionFor(String agpVersion) {
+        if (VersionNumber.parse(agpVersion) >= AGP_7_3) {
+            return '7.4'
+        }
+        return null
+    }
+
     static void assumeCurrentJavaVersionIsSupportedBy(String agpVersion) {
         VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
         JavaVersion current = JavaVersion.current()
@@ -130,11 +167,18 @@ class AndroidGradlePluginVersions {
         }
     }
 
-    private static JavaVersion getMinimumJavaVersionFor(VersionNumber agpVersion) {
+    static JavaVersion getMinimumJavaVersionFor(String agpVersion) {
+        return getMinimumJavaVersionFor(VersionNumber.parse(agpVersion))
+    }
+
+    static JavaVersion getMinimumJavaVersionFor(VersionNumber agpVersion) {
         if (agpVersion.baseVersion < AGP_7_0) {
             return JavaVersion.VERSION_1_8
         }
-        return JavaVersion.VERSION_11
+        if (agpVersion.baseVersion < AGP_8_0) {
+            return JavaVersion.VERSION_11
+        }
+        return JavaVersion.VERSION_17
     }
 
     private static JavaVersion getMaximumJavaVersionFor(VersionNumber agpVersion) {

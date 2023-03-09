@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.local.model;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 
 import java.util.Set;
@@ -34,10 +33,4 @@ public interface LocalConfigurationGraphResolveMetadata extends ConfigurationGra
      * <p>Note that this may be expensive, and should be called only when required.</p>
      */
     LocalConfigurationMetadata prepareToResolveArtifacts();
-
-    /**
-     * Returns if this metadata needs to be re-evaluated
-     */
-    @VisibleForTesting
-    boolean needsReevaluate();
 }

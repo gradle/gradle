@@ -127,7 +127,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private void defineConfiguration() {
         // Defer creation and resolution of configuration until required. Short-circuit when script does not require classpath
         if (configContainer == null) {
-            configContainer = dependencyResolutionServices.getConfigurationContainer();
+            configContainer = (RoleBasedConfigurationContainerInternal) dependencyResolutionServices.getConfigurationContainer();
         }
         if (dependencyHandler == null) {
             dependencyHandler = dependencyResolutionServices.getDependencyHandler();

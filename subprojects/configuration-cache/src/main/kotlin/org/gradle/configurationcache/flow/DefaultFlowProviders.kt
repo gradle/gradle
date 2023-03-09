@@ -16,8 +16,8 @@
 
 package org.gradle.configurationcache.flow
 
+import org.gradle.api.flow.BuildWorkResult
 import org.gradle.api.flow.FlowProviders
-import org.gradle.api.flow.RequestedTasksResult
 import org.gradle.api.internal.provider.AbstractMinimalProvider
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.provider.Provider
@@ -29,36 +29,36 @@ import org.gradle.internal.service.scopes.ServiceScope
 class DefaultFlowProviders : FlowProviders {
 
     private
-    val requestedTasksResult by lazy {
-        RequestedTasksResultProvider()
+    val buildWorkResult by lazy {
+        BuildWorkResultProvider()
     }
 
-    override fun getRequestedTasksResult(): Provider<RequestedTasksResult> =
-        requestedTasksResult
+    override fun getBuildWorkResult(): Provider<BuildWorkResult> =
+        buildWorkResult
 }
 
 
 internal
-class RequestedTasksResultProvider : AbstractMinimalProvider<RequestedTasksResult>() {
+class BuildWorkResultProvider : AbstractMinimalProvider<BuildWorkResult>() {
 
     private
-    var result: RequestedTasksResult? = null
+    var result: BuildWorkResult? = null
 
-    fun set(result: RequestedTasksResult) {
+    fun set(result: BuildWorkResult) {
         require(this.result == null)
         this.result = result
     }
 
-    override fun getType(): Class<RequestedTasksResult> = RequestedTasksResult::class.java
+    override fun getType(): Class<BuildWorkResult> =
+        BuildWorkResult::class.java
 
-    override fun calculateOwnValue(consumer: ValueSupplier.ValueConsumer): ValueSupplier.Value<out RequestedTasksResult> {
+    override fun calculateOwnValue(consumer: ValueSupplier.ValueConsumer): ValueSupplier.Value<out BuildWorkResult> {
         require(result != null) {
-            "Cannot access flow provider value before it becomes available!"
+            "Cannot access the value of '${BuildWorkResult::class.simpleName}' before it becomes available!"
         }
         return ValueSupplier.Value.ofNullable(result)
     }
 
-    override fun calculateExecutionTimeValue(): ValueSupplier.ExecutionTimeValue<out RequestedTasksResult> {
-        return ValueSupplier.ExecutionTimeValue.changingValue(this)
-    }
+    override fun calculateExecutionTimeValue(): ValueSupplier.ExecutionTimeValue<out BuildWorkResult> =
+        ValueSupplier.ExecutionTimeValue.changingValue(this)
 }

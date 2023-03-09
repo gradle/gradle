@@ -43,19 +43,23 @@ import org.gradle.api.tasks.compile.JavaCompile;
  */
 public interface JvmSoftwareComponentInternal extends SoftwareComponent {
 
+    // TODO: These with* names are not ideally named. Traditionally, "withers" create a new
+    // instance with the value changed, but these mutate the component. However, other names
+    // like like "enableJavadocJar" or "addJavadocJar" are also not great since their names
+    // are not declarative.
     /**
      * Configures this component to publish a javadoc jar alongside the primary artifacts. As a result,
      * this method also configures the necessary configurations and tasks required to produce
      * the javadoc artifact.
      */
-    void enableJavadocJarVariant();
+    void withJavadocJar();
 
     /**
      * Configures this component to publish a sources jar alongside the primary artifacts. As a result,
      * this method also configures the necessary configurations and tasks required to produce
      * the sources artifact.
      */
-    void enableSourcesJarVariant();
+    void withSourcesJar();
 
     /**
      * Get the {@link Jar} task which assembles the resources and compilation outputs into
