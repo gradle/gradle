@@ -32,6 +32,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.os.OperatingSystem;
@@ -41,7 +42,6 @@ import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
@@ -248,9 +248,10 @@ public abstract class AvailableJavaHomes {
         DefaultJvmMetadataDetector defaultJvmMetadataDetector =
             new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider);
         JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
-        final List<JvmInstallationMetadata> jvms = new JavaInstallationRegistry(defaultInstallationSuppliers(), null, OperatingSystem.current())
-            .listInstallations().stream()
-            .map(metadataDetector::getMetadata)
+        final List<JvmInstallationMetadata> jvms = new JavaInstallationRegistry(defaultInstallationSuppliers(), metadataDetector, null, OperatingSystem.current())
+            .toolchains()
+            .stream()
+            .map(x -> x.metadata)
             .filter(JvmInstallationMetadata::isValidInstallation)
             .sorted(Comparator.comparing(JvmInstallationMetadata::getDisplayName).thenComparing(JvmInstallationMetadata::getLanguageVersion))
             .collect(Collectors.toList());
