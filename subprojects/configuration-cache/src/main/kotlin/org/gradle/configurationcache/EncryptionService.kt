@@ -24,14 +24,15 @@ import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.EncryptionAlgorithm
 import org.gradle.util.internal.EncryptionAlgorithm.EncryptionException
 import org.gradle.util.internal.SupportedEncryptionAlgorithm
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.security.InvalidKeyException
-import java.util.Base64
+import java.security.KeyStore
 import javax.crypto.CipherInputStream
 import javax.crypto.CipherOutputStream
+import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
-import javax.crypto.spec.SecretKeySpec
 
 
 /**
@@ -64,11 +65,12 @@ class DefaultEncryptionService(startParameter: ConfigurationCacheStartParameter)
 
     private
     val secretKey: SecretKey? by lazy {
-        if (keySource == null) {
+        val keySource = this.keySource
+        if (keySource == null)
             null
-        } else
+        else {
             try {
-                keySource!!.getKey().also {
+                keySource.getKey().also {
                     val keyLength = it.encoded.size
                     if (keyLength < 16) {
                         throw InvalidKeyException("Encryption key length is $keyLength bytes, but must be at least 16 bytes long")
@@ -77,12 +79,14 @@ class DefaultEncryptionService(startParameter: ConfigurationCacheStartParameter)
                     encryptionAlgorithm.newSession(it).encryptingCipher {}
                 }
             } catch (e: EncryptionException) {
-                logger.warn("Encryption was requested but could not be enabled: ${e.message}")
-                null
+                if (e.message != null) {
+                    throw e
+                }
+                throw EncryptionException("Error loading encryption key from ${keySource.sourceDescription}", e.cause)
             } catch (e: Exception) {
-                logger.warn("Encryption was requested but could not be enabled: $e")
-                null
+                throw EncryptionException("Error loading encryption key from ${keySource.sourceDescription}", e)
             }
+        }
     }
 
     override
@@ -93,7 +97,7 @@ class DefaultEncryptionService(startParameter: ConfigurationCacheStartParameter)
     private
     val keySource: SecretKeySource? by lazy {
         if (encryptingRequested)
-            sourceKeyFromEnvironment()
+            sourceKeyFromKeyStore(startParameter)
         else
             null
     }
@@ -142,30 +146,88 @@ class DefaultEncryptionService(startParameter: ConfigurationCacheStartParameter)
     }
 
     private
-    fun sourceKeyFromEnvironment(): SecretKeySource =
-        EnvironmentVarKeySource(encryptionAlgorithm.algorithm, EnvironmentVarKeySource.GRADLE_ENCRYPTION_KEY_ENV_KEY)
+    fun sourceKeyFromKeyStore(startParameter: ConfigurationCacheStartParameter): SecretKeySource =
+        KeyStoreKeySource.fromKeyStore(
+            encryptionAlgorithm = encryptionAlgorithm.algorithm,
+            keyStorePath = startParameter.keystorePath?.let { File(it) }
+                ?: File(startParameter.gradleUserHomeDir, "gradle.keystore"),
+            keyAlias = startParameter.keyAlias,
+            keyStorePassword = startParameter.keystorePassword,
+            keyPassword = startParameter.keyPassword
+        )
 }
 
 
 interface SecretKeySource {
     fun getKey(): SecretKey
+    val sourceDescription: String
 }
 
 
-class EnvironmentVarKeySource(algorithm: String, private val envVarName: String) : SecretKeySource {
+class KeyStoreKeySource(
+    private val encryptionAlgorithm: String,
+    private val keyStorePath: File,
+    private val keyAlias: String,
+    private val keyStorePassword: String?,
+    keyPassword: String
+) : SecretKeySource {
+
     private
-    val secretKey: SecretKey by lazy {
-        Base64.getDecoder().decode(getKeyAsBase64()).let { keyAsBytes ->
-            SecretKeySpec(keyAsBytes, algorithm)
+    val keyProtection =
+        KeyStore.PasswordProtection(keyPassword.toCharArray())
+
+    override val sourceDescription: String
+        get() = "Java keystore at $keyStorePath"
+
+    override fun getKey(): SecretKey = computeSecretKey()
+
+    private
+    fun computeSecretKey(): SecretKey {
+        val ks = KeyStore.getInstance(KeyStore.getDefaultType())
+        val key: SecretKey
+        val alias = keyAlias
+        if (keyStorePath.isFile) {
+            logger.info("Loading keystore from $keyStorePath")
+            keyStorePath.inputStream().use { fis ->
+                ks.load(fis, keyStorePassword?.toCharArray())
+            }
+            val entry = ks.getEntry(alias, keyProtection) as KeyStore.SecretKeyEntry?
+            if (entry != null) {
+                key = entry.secretKey
+                logger.debug("Retrieved key")
+            } else {
+                logger.debug("No key found")
+                key = generateKey(ks, alias)
+                logger.warn("Key added to existing keystore at $keyStorePath")
+            }
+        } else {
+            logger.debug("No keystore found")
+            ks.load(null, null)
+            key = generateKey(ks, alias)
+            logger.debug("Key added to a new keystore at $keyStorePath")
         }
+        return key
     }
 
     private
-    fun getKeyAsBase64(): String = System.getenv(envVarName) ?: ""
-
-    override fun getKey(): SecretKey = secretKey
+    fun generateKey(ks: KeyStore, alias: String): SecretKey {
+        val newKey = KeyGenerator.getInstance(encryptionAlgorithm).generateKey()!!
+        logger.info("Generated key")
+        val entry = KeyStore.SecretKeyEntry(newKey)
+        ks.setEntry(alias, entry, keyProtection)
+        keyStorePath.parentFile.mkdirs()
+        keyStorePath.outputStream().use { fos -> ks.store(fos, keyStorePassword?.toCharArray()) }
+        return newKey
+    }
 
     companion object {
-        const val GRADLE_ENCRYPTION_KEY_ENV_KEY = "GRADLE_ENCRYPTION_KEY"
+        fun fromKeyStore(
+            encryptionAlgorithm: String,
+            keyStorePath: File,
+            keyAlias: String,
+            keyStorePassword: String?,
+            keyPassword: String
+        ): SecretKeySource =
+            KeyStoreKeySource(encryptionAlgorithm, keyStorePath, keyAlias, keyStorePassword, keyPassword)
     }
 }
