@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.cache.FileLockManager
+import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -58,7 +60,10 @@ interface EncryptionService : EncryptionConfiguration {
 
 @ServiceScope(Scopes.BuildTree::class)
 internal
-class DefaultEncryptionService(startParameter: ConfigurationCacheStartParameter) : EncryptionService {
+class DefaultEncryptionService(
+    startParameter: ConfigurationCacheStartParameter,
+    val fileLockManager: FileLockManager
+) : EncryptionService {
 
     private
     val encryptingRequested: Boolean = startParameter.encryptionRequested
@@ -70,7 +75,7 @@ class DefaultEncryptionService(startParameter: ConfigurationCacheStartParameter)
             null
         else {
             try {
-                keySource.getKey().also {
+                keySource.getKey(fileLockManager).also {
                     val keyLength = it.encoded.size
                     if (keyLength < 16) {
                         throw InvalidKeyException("Encryption key length is $keyLength bytes, but must be at least 16 bytes long")
@@ -159,7 +164,7 @@ class DefaultEncryptionService(startParameter: ConfigurationCacheStartParameter)
 
 
 interface SecretKeySource {
-    fun getKey(): SecretKey
+    fun getKey(fileLockManager: FileLockManager): SecretKey
     val sourceDescription: String
 }
 
@@ -179,36 +184,39 @@ class KeyStoreKeySource(
     override val sourceDescription: String
         get() = "Java keystore at $keyStorePath"
 
-    override fun getKey(): SecretKey = computeSecretKey()
-
-    private
-    fun computeSecretKey(): SecretKey {
+    override fun getKey(fileLockManager: FileLockManager): SecretKey {
         // JKS does not support non-PrivateKeys
         val ks = KeyStore.getInstance(KEYSTORE_TYPE)
         val key: SecretKey
         val alias = keyAlias
-        if (keyStorePath.isFile) {
-            logger.info("Loading keystore from $keyStorePath")
-            keyStorePath.inputStream().use { fis ->
-                ks.load(fis, keyStorePassword?.toCharArray())
-            }
-            val entry = ks.getEntry(alias, keyProtection) as KeyStore.SecretKeyEntry?
-            if (entry != null) {
-                key = entry.secretKey
-                logger.debug("Retrieved key")
+        fileLockManager.lock(keyStorePath, crossVersionExclusiveAccess(), "Gradle keystore").use {
+            if (keyStorePath.isFile) {
+                logger.info("Loading keystore from $keyStorePath")
+                keyStorePath.inputStream().use { fis ->
+                    ks.load(fis, keyStorePassword?.toCharArray())
+                }
+                val entry = ks.getEntry(alias, keyProtection) as KeyStore.SecretKeyEntry?
+                if (entry != null) {
+                    key = entry.secretKey
+                    logger.debug("Retrieved key")
+                } else {
+                    logger.debug("No key found")
+                    key = generateKey(ks, alias)
+                    logger.warn("Key added to existing keystore at $keyStorePath")
+                }
             } else {
-                logger.debug("No key found")
+                logger.debug("No keystore found")
+                ks.load(null, null)
                 key = generateKey(ks, alias)
-                logger.warn("Key added to existing keystore at $keyStorePath")
+                logger.debug("Key added to a new keystore at $keyStorePath")
             }
-        } else {
-            logger.debug("No keystore found")
-            ks.load(null, null)
-            key = generateKey(ks, alias)
-            logger.debug("Key added to a new keystore at $keyStorePath")
         }
         return key
     }
+
+    private
+    fun crossVersionExclusiveAccess(): LockOptionsBuilder =
+        LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive).useCrossVersionImplementation()
 
     private
     fun generateKey(ks: KeyStore, alias: String): SecretKey {
@@ -216,8 +224,9 @@ class KeyStoreKeySource(
         logger.info("Generated key")
         val entry = KeyStore.SecretKeyEntry(newKey)
         ks.setEntry(alias, entry, keyProtection)
-        keyStorePath.parentFile.mkdirs()
-        keyStorePath.outputStream().use { fos -> ks.store(fos, keyStorePassword?.toCharArray()) }
+        keyStorePath.outputStream().use { fos ->
+            ks.store(fos, keyStorePassword?.toCharArray())
+        }
         return newKey
     }
 
