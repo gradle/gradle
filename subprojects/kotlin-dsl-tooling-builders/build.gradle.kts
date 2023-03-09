@@ -20,8 +20,10 @@ dependencies {
 
     testImplementation(testFixtures(project(":kotlin-dsl")))
     integTestImplementation(project(":internal-testing"))
+    testFixturesImplementation(project(":internal-integ-testing"))
 
     crossVersionTestImplementation(project(":persistent-cache"))
+//    crossVersionTestImplementation(testFixtures(project(":kotlin-dsl-tooling-builders")))
     crossVersionTestImplementation(libs.slf4jApi)
     crossVersionTestImplementation(libs.guava)
     crossVersionTestImplementation(libs.ant)
@@ -29,5 +31,14 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
+
+//configurations.stream().forEach { config ->
+//    println(config.name)
+//    config.allDependencies.forEach{
+//        println("  " + it.name)
+////        println("     " + it.)
+//
+//    }
+//}
 
 testFilesCleanup.reportOnly = true
