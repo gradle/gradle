@@ -199,7 +199,7 @@ public class JvmOptions {
         jvmArgs(arguments);
     }
 
-    public void installJvmArgs(Iterable<?> arguments) {
+    public void setExtraJvmArgs(Iterable<?> arguments) {
         extraJvmArgs.clear();
         addExtraJvmArgs(arguments);
     }
