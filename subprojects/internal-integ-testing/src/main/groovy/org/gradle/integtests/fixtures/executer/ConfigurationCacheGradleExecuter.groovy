@@ -19,18 +19,14 @@ package org.gradle.integtests.fixtures.executer
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheQuietOption
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheEncryptionOption
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
-
-import static org.gradle.configurationcache.EnvironmentVarKeySource.GRADLE_ENCRYPTION_KEY_ENV_KEY
 
 
 class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
 
     static final List<String> CONFIGURATION_CACHE_ARGS = [
         "--${ConfigurationCacheOption.LONG_OPTION}",
-        "-D${ConfigurationCacheEncryptionOption.PROPERTY_NAME}=true",
         "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true",
         "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0",
         "-Dorg.gradle.configuration-cache.internal.load-after-store=${testWithLoadAfterStore()}"
@@ -57,12 +53,5 @@ class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
         } else {
             return args + CONFIGURATION_CACHE_ARGS
         }
-    }
-
-    @Override
-    protected void transformInvocation(GradleInvocation invocation) {
-        // make an encryption key available so encryption can be in place
-        invocation.environmentVars.putIfAbsent(GRADLE_ENCRYPTION_KEY_ENV_KEY, (0..<32).collect {it % 10 }.join())
-        super.transformInvocation(invocation)
     }
 }
