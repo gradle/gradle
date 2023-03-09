@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.gradle.internal.DeprecatedInGradleScope;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 
@@ -23,6 +24,7 @@ import org.gradle.internal.service.scopes.Scopes;
  * Listens to the output events like printing to standard output or error
  */
 @EventScope(Scopes.Build.class)
+@DeprecatedInGradleScope
 public interface TestOutputListener {
 
     /**

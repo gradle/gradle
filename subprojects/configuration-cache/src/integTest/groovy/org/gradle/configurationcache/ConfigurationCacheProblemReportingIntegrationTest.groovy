@@ -789,6 +789,52 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         "TaskExecutionGraph.afterTask"                | "gradle.taskGraph.afterTask {}"
     }
 
+    def "reports unsupported build listener #listenerType registration on #registrationPoint"() {
+        given:
+        buildFile("""
+            class TestAdapter implements TestListener {
+                @Override void beforeSuite(TestDescriptor suite) {}
+                @Override void afterSuite(TestDescriptor suite, TestResult result) {}
+                @Override void beforeTest(TestDescriptor testDescriptor) {}
+                @Override void afterTest(TestDescriptor testDescriptor, TestResult result) {}
+            }
+
+            class TestOutputAdapter implements TestOutputListener {
+                @Override void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {}
+            }
+
+            gradle.$registrationPoint(new ${listenerType}())
+        """)
+
+        expect:
+        executer.noDeprecationChecks()
+        configurationCacheFails 'help'
+
+        where:
+        [registrationPoint, listenerType] << [
+            ["addListener", "useLogger"],
+            ["BuildAdapter", "TaskExecutionAdapter", "TestAdapter", "TestOutputAdapter"]
+        ].combinations()
+    }
+
+    def "reports registration of unsupported build listener implementing supported listener too on #registrationPoint"() {
+        given:
+        buildFile("""
+            class SneakyListener extends TaskExecutionAdapter implements TaskExecutionGraphListener {
+                @Override void graphPopulated(TaskExecutionGraph graph) {}
+            }
+
+            gradle.$registrationPoint(new SneakyListener())
+        """)
+
+        expect:
+        executer.noDeprecationChecks()
+        configurationCacheFails 'help'
+
+        where:
+        registrationPoint << ["addListener", "useLogger"]
+    }
+
     def "does not report problems on configuration listener registration on #registrationPoint"() {
 
         given:
