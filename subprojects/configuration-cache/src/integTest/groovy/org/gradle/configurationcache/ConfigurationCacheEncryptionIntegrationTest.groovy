@@ -176,7 +176,7 @@ Error loading encryption key from Java keystore at ${keyStorePath}
         given:
         def configurationCache = newConfigurationCacheFixture()
         runWithEncryption()
-        KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType())
+        KeyStore ks = KeyStore.getInstance(KeyStoreKeySource.KEYSTORE_TYPE)
         keyStorePath.withInputStream { ks.load(it, keyStorePassword.toCharArray()) }
         ks.deleteEntry("gradle-secret")
         keyStorePath.withOutputStream { ks.store(it, keyStorePassword.toCharArray()) }

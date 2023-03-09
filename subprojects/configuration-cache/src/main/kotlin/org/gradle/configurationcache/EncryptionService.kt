@@ -183,7 +183,8 @@ class KeyStoreKeySource(
 
     private
     fun computeSecretKey(): SecretKey {
-        val ks = KeyStore.getInstance(KeyStore.getDefaultType())
+        // JKS does not support non-PrivateKeys
+        val ks = KeyStore.getInstance(KEYSTORE_TYPE)
         val key: SecretKey
         val alias = keyAlias
         if (keyStorePath.isFile) {
@@ -221,6 +222,7 @@ class KeyStoreKeySource(
     }
 
     companion object {
+        const val KEYSTORE_TYPE = "pkcs12"
         fun fromKeyStore(
             encryptionAlgorithm: String,
             keyStorePath: File,
