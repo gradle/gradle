@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
+package org.gradle.internal.jvm.inspection;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
@@ -27,6 +27,8 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.jvm.toolchain.internal.InstallationLocation;
+import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -45,24 +47,42 @@ import java.util.stream.Collectors;
 public class JavaInstallationRegistry {
     private final BuildOperationExecutor executor;
     private final Installations installations;
+    private final JvmMetadataDetector metadataDetector;
     private final Logger logger;
     private final OperatingSystem os;
 
     @Inject
-    public JavaInstallationRegistry(List<InstallationSupplier> suppliers, @Nullable BuildOperationExecutor executor, OperatingSystem os) {
-        this(suppliers, Logging.getLogger(JavaInstallationRegistry.class), executor, os);
+    public JavaInstallationRegistry(
+        List<InstallationSupplier> suppliers,
+        JvmMetadataDetector metadataDetector,
+        @Nullable BuildOperationExecutor executor,
+        OperatingSystem os
+    ) {
+        this(suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), executor, os);
     }
 
-    private JavaInstallationRegistry(List<InstallationSupplier> suppliers, Logger logger, @Nullable BuildOperationExecutor executor, OperatingSystem os) {
+    private JavaInstallationRegistry(
+        List<InstallationSupplier> suppliers,
+        JvmMetadataDetector metadataDetector,
+        Logger logger,
+       @Nullable BuildOperationExecutor executor,
+        OperatingSystem os
+    ) {
         this.logger = logger;
         this.executor = executor;
+        this.metadataDetector = metadataDetector;
         this.installations = new Installations(() -> maybeCollectInBuildOperation(suppliers));
         this.os = os;
     }
 
     @VisibleForTesting
-    static JavaInstallationRegistry withLogger(List<InstallationSupplier> suppliers, Logger logger, BuildOperationExecutor executor) {
-        return new JavaInstallationRegistry(suppliers, logger, executor, OperatingSystem.current());
+    static JavaInstallationRegistry withLogger(
+        List<InstallationSupplier> suppliers,
+        JvmMetadataDetector metadataDetector,
+        Logger logger,
+        BuildOperationExecutor executor
+    ) {
+        return new JavaInstallationRegistry(suppliers, metadataDetector, logger, executor, OperatingSystem.current());
     }
 
     private Set<InstallationLocation> maybeCollectInBuildOperation(List<InstallationSupplier> suppliers) {
@@ -73,12 +93,24 @@ public class JavaInstallationRegistry {
         }
     }
 
-    public Set<InstallationLocation> listInstallations() {
+    protected Set<InstallationLocation> listInstallations() {
         return installations.get();
     }
 
+    public List<JvmToolchainMetadata> toolchains() {
+        return listInstallations()
+            .parallelStream()
+            .map(this::resolveMetadata)
+            .collect(Collectors.toList());
+    }
+
+    private JvmToolchainMetadata resolveMetadata(InstallationLocation location) {
+        JvmInstallationMetadata metadata = metadataDetector.getMetadata(location);
+        return new JvmToolchainMetadata(metadata, location);
+    }
+
     public void addInstallation(InstallationLocation installation) {
-       installations.add(installation);
+        installations.add(installation);
     }
 
     private Set<InstallationLocation> collectInstallations(List<InstallationSupplier> suppliers) {
@@ -93,7 +125,7 @@ public class JavaInstallationRegistry {
             .collect(Collectors.toSet());
     }
 
-    boolean installationExists(InstallationLocation installationLocation) {
+    protected boolean installationExists(InstallationLocation installationLocation) {
         File file = installationLocation.getLocation();
         if (!file.exists()) {
             logger.warn("Directory {} used for java installations does not exist", installationLocation.getDisplayName());
@@ -106,7 +138,7 @@ public class JavaInstallationRegistry {
         return true;
     }
 
-    boolean installationHasExecutable(InstallationLocation installationLocation) {
+    protected boolean installationHasExecutable(InstallationLocation installationLocation) {
         if (!hasJavaExecutable(installationLocation.getLocation())) {
             logger.warn("Path for java installation {} does not contain a java executable", installationLocation.getDisplayName());
             return false;
