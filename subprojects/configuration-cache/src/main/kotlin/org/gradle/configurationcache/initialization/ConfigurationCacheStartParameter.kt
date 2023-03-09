@@ -18,6 +18,7 @@ package org.gradle.configurationcache.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.logging.LogLevel
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
@@ -38,7 +39,7 @@ class ConfigurationCacheStartParameter(
     private val buildLayout: BuildLayout,
     private val startParameter: StartParameterInternal,
     options: InternalOptions,
-    modelParameters: BuildModelParameters
+    private val modelParameters: BuildModelParameters
 ) {
     val loadAfterStore: Boolean = !modelParameters.isRequiresBuildModel && options.getOption(InternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)).get()
 
@@ -50,6 +51,9 @@ class ConfigurationCacheStartParameter(
 
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
+
+    val configurationCacheLogLevel: LogLevel
+        get() = modelParameters.configurationCacheLogLevel
 
     val isQuiet: Boolean
         get() = startParameter.isConfigurationCacheQuiet
@@ -96,9 +100,6 @@ class ConfigurationCacheStartParameter(
 
     val isUpdateDependencyLocks
         get() = startParameter.lockedDependenciesToUpdate.isNotEmpty()
-
-    val isWriteDependencyVerifications
-        get() = startParameter.writeDependencyVerifications.isNotEmpty()
 
     val requestedTaskNames: List<String> by unsafeLazy {
         startParameter.taskNames
