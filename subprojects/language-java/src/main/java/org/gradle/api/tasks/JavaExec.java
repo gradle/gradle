@@ -151,7 +151,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
 
         List<String> jvmArgs = jvmArguments.getOrNull();
         if (jvmArgs != null) {
-            javaExecSpec.setJvmArgs(jvmArgs);
+            javaExecSpec.installJvmArgs(jvmArgs);
         }
 
         JavaExecAction javaExecAction = getExecActionFactory().newJavaExecAction();
@@ -207,7 +207,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public void setJvmArgs(List<String> arguments) {
-        jvmArguments.set(arguments);
+        jvmArguments.empty();
+        jvmArgs(arguments);
     }
 
     /**
@@ -227,6 +228,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         for (Object arg : arguments) {
             jvmArguments.add(arg.toString());
         }
+        javaExecSpec.checkDebugConfiguration(arguments);
         return this;
     }
 
@@ -235,9 +237,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec jvmArgs(Object... arguments) {
-        for (Object arg : arguments) {
-            jvmArguments.add(arg.toString());
-        }
+        jvmArgs(Arrays.asList(arguments));
         return this;
     }
 
