@@ -241,8 +241,8 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
-    public void installJvmArgs(Iterable<?> arguments) {
-        options.installJvmArgs(arguments);
+    public void setExtraJvmArgs(Iterable<?> arguments) {
+        options.setExtraJvmArgs(arguments);
     }
 
     private static boolean hasJvmArgumentProviders(JavaForkOptions forkOptions) {

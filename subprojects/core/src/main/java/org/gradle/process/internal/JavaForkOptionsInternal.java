@@ -27,12 +27,12 @@ public interface JavaForkOptionsInternal extends JavaForkOptions {
 
     /**
      * Sets extra JVM arguments to a Java process without checking debug configuration.
-     * */
-    void installJvmArgs(Iterable<?> jvmArgs);
+     */
+    void setExtraJvmArgs(Iterable<?> jvmArgs);
 
 
     /**
      * Checks supplied JVM arguments with purpose to ignore debug configuration in favor of the supplied arguments.
-     * */
+     */
     void checkDebugConfiguration(Iterable<?> arguments);
 }
