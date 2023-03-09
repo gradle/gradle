@@ -315,7 +315,7 @@
             <sha256 value="a32c50e7b1aad29cf1ebfef50dfbb1ce5847ca9cf1a45c6a13b9763b76e66293" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
          <artifact name="android-studio-2022.3.1.8.windows.zip">
-            <sha256 value="f1ba70664019ee6152d4598215e60977bbbbfe8235adeccf8f83356299132ebc" origin="Verified" reason="Artifact is not signed"/>
+            <sha256 value="c44e13ea1f3b09c9d3d0a1763435dc59129ff2c8518a943c256ce9fde1473896" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="antlr" name="antlr" version="2.7.7">
