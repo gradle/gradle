@@ -18,8 +18,8 @@ package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScriptExecuter
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 
 class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationSpec {

@@ -19,8 +19,8 @@ package org.gradle.api.tasks
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 

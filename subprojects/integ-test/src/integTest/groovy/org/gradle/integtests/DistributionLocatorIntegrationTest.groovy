@@ -17,10 +17,10 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.util.internal.DistributionLocator
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.util.internal.DistributionLocator
 import spock.lang.Specification
 
 @Requires(UnitTestPreconditions.Online)

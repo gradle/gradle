@@ -22,8 +22,8 @@ import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Ignore
 
 @Requires(UnitTestPreconditions.Jdk8OrEarlier) // tests against old Gradle version that can only work with Java versions up tp 8

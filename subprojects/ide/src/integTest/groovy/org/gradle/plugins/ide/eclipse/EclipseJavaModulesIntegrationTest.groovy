@@ -17,8 +17,8 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.maven.MavenModule
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.autoModuleJar
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.moduleJar

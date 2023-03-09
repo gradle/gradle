@@ -17,8 +17,8 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.test.fixtures.condition.TestPrecondition
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.TestPrecondition
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Ignore
 
 class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegrationTest {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.signing
+package org.gradle.test.preconditions
 
-import org.gradle.test.fixtures.condition.TestPrecondition
+import org.gradle.test.fixtures.GpgCmdFixture
+import org.gradle.test.precondition.TestPrecondition
 
 class SigningTestPreconditions {
 

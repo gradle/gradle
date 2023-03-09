@@ -24,8 +24,8 @@ import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppLogger
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.nativeplatform.MachineArchitecture.ARCHITECTURE_ATTRIBUTE
 import static org.gradle.nativeplatform.MachineArchitecture.X86

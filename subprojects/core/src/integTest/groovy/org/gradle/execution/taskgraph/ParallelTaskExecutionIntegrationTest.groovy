@@ -21,9 +21,9 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.Flaky
-import org.gradle.test.fixtures.IntegTestPreconditions
-import org.gradle.test.fixtures.condition.Requires
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue

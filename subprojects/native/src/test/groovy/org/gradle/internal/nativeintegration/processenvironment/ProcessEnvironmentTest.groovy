@@ -17,10 +17,10 @@ package org.gradle.internal.nativeintegration.processenvironment
 
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.test.fixtures.condition.Requires
 import org.gradle.util.SetSystemProperties
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 

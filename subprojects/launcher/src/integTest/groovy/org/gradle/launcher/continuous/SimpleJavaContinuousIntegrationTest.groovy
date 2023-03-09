@@ -17,9 +17,9 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.TestPrecondition
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.precondition.TestPrecondition
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 // NB: there's nothing specific about Java support and continuous.
 //     this spec just lays out some more practical use cases than the other targeted tests.

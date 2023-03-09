@@ -22,8 +22,8 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
 class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {

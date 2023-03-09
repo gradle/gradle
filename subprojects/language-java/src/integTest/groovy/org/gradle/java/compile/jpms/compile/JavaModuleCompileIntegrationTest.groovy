@@ -17,8 +17,8 @@
 package org.gradle.java.compile.jpms.compile
 
 import org.gradle.java.compile.jpms.AbstractJavaModuleCompileIntegrationTest
-import org.gradle.test.fixtures.condition.TestPrecondition
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.TestPrecondition
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class JavaModuleCompileIntegrationTest extends AbstractJavaModuleCompileIntegrationTest {
 

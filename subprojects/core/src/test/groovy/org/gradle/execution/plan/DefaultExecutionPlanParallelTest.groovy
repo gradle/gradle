@@ -37,9 +37,9 @@ import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.file.Stat
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.Path
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 

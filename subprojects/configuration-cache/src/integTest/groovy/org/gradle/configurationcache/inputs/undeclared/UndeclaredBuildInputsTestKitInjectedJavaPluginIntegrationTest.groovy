@@ -29,11 +29,11 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
-import org.gradle.test.fixtures.condition.Requires
 import org.gradle.util.SetSystemProperties
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.junit.Rule
 
 @Requires(UnitTestPreconditions.NotWindows)

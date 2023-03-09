@@ -21,9 +21,9 @@ import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileType
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 

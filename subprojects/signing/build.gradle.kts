@@ -23,6 +23,8 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
 
+    testFixturesImplementation(project(":base-services"))
+
     testImplementation(project(":ivy"))
     testImplementation(testFixtures(project(":core")))
 
@@ -42,4 +44,8 @@ packageCycles {
     excludePatterns.add("org/gradle/plugins/signing/**")
 }
 
-integTest.usesJavadocCodeSnippets = true
+tasks {
+    integTest {
+        usesJavadocCodeSnippets = true
+    }
+}

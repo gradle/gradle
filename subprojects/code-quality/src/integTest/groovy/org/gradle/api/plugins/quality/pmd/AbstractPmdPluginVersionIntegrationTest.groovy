@@ -19,8 +19,8 @@ package org.gradle.api.plugins.quality.pmd
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.quality.integtest.fixtures.PmdCoverage
-import org.gradle.test.fixtures.condition.TestPrecondition
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.TestPrecondition
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.VersionNumber
 
 @TargetCoverage({ PmdCoverage.getSupportedVersionsByJdk() })

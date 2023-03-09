@@ -20,8 +20,8 @@ import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FileSystemWatchingFixture
-import org.gradle.test.fixtures.IntegTestPreconditions
-import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 @LocalOnly
 @Requires(IntegTestPreconditions.NotDaemonExecutor)

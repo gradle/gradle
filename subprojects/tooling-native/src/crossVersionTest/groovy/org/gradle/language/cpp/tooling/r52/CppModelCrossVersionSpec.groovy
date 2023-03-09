@@ -20,13 +20,13 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.model.cpp.CppApplication
 import org.gradle.tooling.model.cpp.CppExecutable
 import org.gradle.tooling.model.cpp.CppLibrary
 import org.gradle.tooling.model.cpp.CppProject
 import org.gradle.tooling.model.cpp.CppSharedLibrary
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 @ToolingApiVersion(">=5.2")
 @TargetGradleVersion(">=5.2")

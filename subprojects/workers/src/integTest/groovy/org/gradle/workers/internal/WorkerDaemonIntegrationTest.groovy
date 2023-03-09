@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
-import org.gradle.test.fixtures.condition.TestPrecondition
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.TestPrecondition
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.workers.fixtures.OptionsVerifier
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Assume

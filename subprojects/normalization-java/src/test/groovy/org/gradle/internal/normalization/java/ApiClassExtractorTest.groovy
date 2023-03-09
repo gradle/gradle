@@ -16,8 +16,8 @@
 
 package org.gradle.internal.normalization.java
 
-import org.gradle.test.fixtures.condition.TestPrecondition
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.TestPrecondition
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assume
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor

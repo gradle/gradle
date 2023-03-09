@@ -18,8 +18,8 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assert
 import org.junit.Test
 

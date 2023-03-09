@@ -18,9 +18,9 @@ package org.gradle.integtests.fixtures.executer
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.test.fixtures.IntegTestPreconditions
-import org.gradle.test.fixtures.condition.Requires
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification

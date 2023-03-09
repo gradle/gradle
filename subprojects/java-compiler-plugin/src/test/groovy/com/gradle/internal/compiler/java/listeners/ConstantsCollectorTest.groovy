@@ -19,8 +19,8 @@ package com.gradle.internal.compiler.java.listeners
 import com.gradle.internal.compiler.java.AbstractCompilerPluginTest
 import org.gradle.internal.compiler.java.TestCompiler
 import org.gradle.internal.compiler.java.listeners.constants.ConstantDependentsConsumer
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import java.nio.file.Files
 

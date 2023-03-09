@@ -19,8 +19,8 @@ package org.gradle.performance.fixture
 import org.apache.commons.lang.exception.ExceptionUtils
 import org.gradle.api.JavaVersion
 import org.gradle.api.UncheckedIOException
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assume
 import org.junit.AssumptionViolatedException
 import spock.lang.Specification

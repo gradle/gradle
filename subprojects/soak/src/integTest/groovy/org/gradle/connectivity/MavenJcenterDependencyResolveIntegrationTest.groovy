@@ -16,8 +16,8 @@
 package org.gradle.connectivity
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 @Requires(UnitTestPreconditions.Online)
 class MavenJcenterDependencyResolveIntegrationTest extends AbstractIntegrationSpec {

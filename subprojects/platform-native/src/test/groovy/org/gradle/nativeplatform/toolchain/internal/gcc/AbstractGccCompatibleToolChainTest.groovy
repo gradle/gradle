@@ -44,8 +44,8 @@ import org.gradle.platform.base.internal.toolchain.ComponentFound
 import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification

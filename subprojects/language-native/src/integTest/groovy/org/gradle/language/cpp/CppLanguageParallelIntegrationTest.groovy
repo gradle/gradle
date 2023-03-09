@@ -23,8 +23,8 @@ import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 
 class CppLanguageParallelIntegrationTest extends AbstractNativeSoftwareModelParallelIntegrationTest {

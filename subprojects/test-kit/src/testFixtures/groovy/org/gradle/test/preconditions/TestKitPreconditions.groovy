@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.runner;
+package org.gradle.test.preconditions
 
-import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions;
-import org.gradle.internal.jvm.Jvm;
-import org.gradle.test.fixtures.condition.TestPrecondition;
+import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.internal.jvm.Jvm
+import org.gradle.test.precondition.TestPrecondition
 
 public class TestKitPreconditions {
 

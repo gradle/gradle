@@ -17,8 +17,8 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.vcs.fixtures.GitFileRepository
 import spock.lang.Issue
 

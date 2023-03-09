@@ -19,8 +19,8 @@ package org.gradle.testkit.runner
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.test.fixtures.IntegTestPreconditions
-import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.tooling.GradleConnectionException

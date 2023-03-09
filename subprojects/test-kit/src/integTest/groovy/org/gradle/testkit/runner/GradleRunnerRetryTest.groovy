@@ -16,11 +16,10 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.test.fixtures.condition.RequiresNot
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
 
@@ -63,11 +62,7 @@ class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
         true
     }
 
-    @RequiresNot(value = [
-        UnitTestPreconditions.Windows,
-        UnitTestPreconditions.Jdk7OrLater,
-        UnitTestPreconditions.Jdk8OrEarlier
-    ])
+
     def "does not retry on non-windows and non-java environments"() {
         given:
         iteration++

@@ -25,8 +25,8 @@ import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.UsesNativeServices
 import org.gradle.util.internal.VersionNumber
 import org.junit.Rule

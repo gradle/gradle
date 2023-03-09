@@ -20,11 +20,11 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.test.fixtures.condition.TestPrecondition
+import org.gradle.test.precondition.Requires
+import org.gradle.test.precondition.TestPrecondition
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Matchers
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST

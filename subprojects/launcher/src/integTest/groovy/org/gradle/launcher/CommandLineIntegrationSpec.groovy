@@ -22,8 +22,8 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.Flaky
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assume
 import spock.lang.IgnoreIf
 import spock.lang.Issue

@@ -23,8 +23,8 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 @LeaksFileHandles
 class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyResolutionTest {

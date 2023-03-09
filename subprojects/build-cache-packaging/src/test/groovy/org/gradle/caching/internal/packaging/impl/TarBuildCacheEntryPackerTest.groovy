@@ -19,8 +19,8 @@ package org.gradle.caching.internal.packaging.impl
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.internal.file.TreeType.DIRECTORY
 import static org.gradle.internal.file.TreeType.FILE

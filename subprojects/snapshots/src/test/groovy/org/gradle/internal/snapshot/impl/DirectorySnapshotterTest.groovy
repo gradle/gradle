@@ -31,8 +31,8 @@ import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Issue

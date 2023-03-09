@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures
+package org.gradle.test.preconditions
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.test.fixtures.condition.TestPrecondition
+import org.gradle.test.precondition.TestPrecondition
 
 class IntegTestPreconditions {
 
     static final class IsLongLivingProcess implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.longLivingProcess
+            return GradleContextualExecuter.isLongLivingProcess()
         }
     }
 
     static final class IsEmbeddedExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.embedded
+            return GradleContextualExecuter.isEmbedded()
         }
     }
 
@@ -48,21 +48,21 @@ class IntegTestPreconditions {
     static final class IsDaemonExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.daemon
+            return GradleContextualExecuter.isDaemon()
         }
     }
 
     static final class NotDaemonExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return notSatisfies(IsDaemonExecutor)
+            return GradleContextualExecuter.isNoDaemon()
         }
     }
 
     static final class IsConfigCached implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.configCache()
+            return GradleContextualExecuter.isConfigCache()
         }
     }
 

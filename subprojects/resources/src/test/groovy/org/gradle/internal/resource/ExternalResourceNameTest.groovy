@@ -16,9 +16,9 @@
 
 package org.gradle.internal.resource
 
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.Matchers
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import spock.lang.Shared
 import spock.lang.Specification
 

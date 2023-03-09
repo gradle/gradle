@@ -27,8 +27,8 @@ import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator
 import org.gradle.launcher.daemon.server.api.HandleStop
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
 

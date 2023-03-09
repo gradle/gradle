@@ -16,11 +16,13 @@
 
 package org.gradle.internal.nativeintegration.jansi
 
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Specification
 
-import static org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory.*
+import static org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory.LINUX_LIB_FILENAME
+import static org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory.MAC_OSX_LIB_FILENAME
+import static org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory.WINDOWS_LIB_FILENAME
 
 class JansiLibraryFactoryIntegrationTest extends Specification {
 

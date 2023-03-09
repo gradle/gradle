@@ -22,8 +22,8 @@ import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.process.ExecResult
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.fixtures.condition.Requires
-import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.TestUtil
 import org.junit.Rule
 
