@@ -37,14 +37,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.String.format;
 
-public class DefaultTaskExecutionTracker implements TaskExecutionTracker, Closeable {
+public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closeable {
 
     private final BuildOperationAncestryTracker buildOperationAncestryTracker;
     private final BuildOperationListenerManager buildOperationListenerManager;
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
     private final OperationListener operationListener = new OperationListener();
 
-    public DefaultTaskExecutionTracker(
+    public DefaultWorkExecutionTracker(
         BuildOperationAncestryTracker buildOperationAncestryTracker,
         BuildOperationListenerManager buildOperationListenerManager
     ) {

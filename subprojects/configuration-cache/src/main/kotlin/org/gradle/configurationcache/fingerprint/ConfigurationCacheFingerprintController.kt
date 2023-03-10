@@ -46,7 +46,7 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
-import org.gradle.internal.execution.TaskExecutionTracker
+import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.impl.DefaultFileNormalizationSpec
 import org.gradle.internal.execution.model.InputNormalizer
@@ -82,7 +82,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val report: ConfigurationCacheReport,
     private val problemFactory: ProblemFactory,
-    private val taskExecutionTracker: TaskExecutionTracker,
+    private val workExecutionTracker: WorkExecutionTracker,
     private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
     private val scriptFileResolverListeners: ScriptFileResolverListeners,
@@ -136,7 +136,7 @@ class ConfigurationCacheFingerprintController internal constructor(
                 writeContextForOutputStream(projectScopedSpoolFile),
                 fileCollectionFactory,
                 directoryFileTreeFactory,
-                taskExecutionTracker,
+                workExecutionTracker,
                 environmentChangeTracker,
                 inputTrackingState
             )

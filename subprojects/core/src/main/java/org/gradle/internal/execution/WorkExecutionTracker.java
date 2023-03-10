@@ -23,10 +23,10 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.util.Optional;
 
 /**
- * Provides access to the task executing on the current thread.
+ * Provides access to the work executing on the current thread.
  */
 @ServiceScope(Scope.Global.class)
-public interface TaskExecutionTracker {
+public interface WorkExecutionTracker {
 
     /**
      * Finds the task executing on the current thread, if any.
