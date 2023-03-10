@@ -722,6 +722,8 @@ tasks.named("docsTest") { task ->
                 "snippet-ide-idea-additional-test-sources_kotlin_ideaAdditionalTestSources.sample",
                 "snippet-ide-idea_groovy_projectWithXml.sample",
                 "snippet-ide-idea_kotlin_projectWithXml.sample",
+                "snippet-init-scripts-custom-logger_groovy_customLogger.groovy.sample",
+                "snippet-init-scripts-custom-logger_kotlin_customLogger.kotlin.sample",
                 "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-all.sample",
                 "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-model-task.sample",
                 "snippet-model-rules-configure-as-required_groovy_modelDslConfigureRuleRunWhenRequired.sample",
@@ -797,6 +799,12 @@ tasks.named("docsTest") { task ->
             def testsToBeFixedForConfigurationCache = [
                 "snippet-build-cache-configure-task_groovy_configureTask.sample",
                 "snippet-build-cache-configure-task_kotlin_configureTask.sample",
+                // TODO(mlopatkin) These snippets use bintray plugin which is not fully CC-compatible. Remove bintray plugin from samples.
+                "snippet-plugins-buildscript_groovy_sanityCheck.sample",
+                "snippet-plugins-buildscript_kotlin_sanityCheck.sample",
+                "snippet-plugins-dsl_groovy_sanityCheck.sample",
+                "snippet-plugins-dsl_kotlin_sanityCheck.sample",
+                "snippet-kotlin-dsl-interoperability-closure-of_kotlin_sanityCheck.sample",
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
