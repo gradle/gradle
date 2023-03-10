@@ -19,25 +19,26 @@ package org.gradle.internal.service.scopes;
 import com.google.common.collect.ImmutableList;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * A Gradle user home level registry of {@link ToPlannedNodeConverter} instances.
  * <p>
- * All the available converters are expected to support disjoined set of {@link Node node types}.
+ * All the available converters are expected to support disjoint set of {@link Node node types}.
  */
 public class ToPlannedNodeConverterRegistry {
 
+    private static final ToPlannedNodeConverter MISSING_MARKER = new MissingToPlannedNodeConverter();
+
     private final List<ToPlannedNodeConverter> converters;
 
-    private final Map<Class<?>, ToPlannedNodeConverter> convertersByNodeType = new HashMap<>();
-    private final Set<Class<?>> unsupportedNodeTypes = new HashSet<>();
+    private final ConcurrentMap<Class<? extends Node>, ToPlannedNodeConverter> convertersByNodeType = new ConcurrentHashMap<>();
 
     public ToPlannedNodeConverterRegistry(List<ToPlannedNodeConverter> converters) {
         validateConverters(converters);
@@ -54,30 +55,19 @@ public class ToPlannedNodeConverterRegistry {
     @Nullable
     public ToPlannedNodeConverter getConverter(Node node) {
         Class<? extends Node> nodeType = node.getClass();
-        ToPlannedNodeConverter converter = convertersByNodeType.get(nodeType);
-        if (converter != null) {
-            return converter;
-        }
+        ToPlannedNodeConverter converter = convertersByNodeType.computeIfAbsent(nodeType, this::findConverter);
+        return converter == MISSING_MARKER ? null : converter;
+    }
 
-        if (unsupportedNodeTypes.contains(nodeType)) {
-            return null;
-        }
-
+    private ToPlannedNodeConverter findConverter(Class<? extends Node> nodeType) {
         for (ToPlannedNodeConverter converterCandidate : converters) {
             Class<? extends Node> supportedNodeType = converterCandidate.getSupportedNodeType();
             if (supportedNodeType.isAssignableFrom(nodeType)) {
-                converter = converterCandidate;
-                break;
+                return converterCandidate;
             }
         }
 
-        if (converter != null) {
-            convertersByNodeType.put(nodeType, converter);
-        } else {
-            unsupportedNodeTypes.add(nodeType);
-        }
-
-        return converter;
+        return MISSING_MARKER;
     }
 
     private static void validateConverters(List<ToPlannedNodeConverter> converters) {
@@ -96,6 +86,28 @@ public class ToPlannedNodeConverterRegistry {
         Class<? extends Node> supportedNodeType2 = converter2.getSupportedNodeType();
         if (supportedNodeType1.isAssignableFrom(supportedNodeType2) || supportedNodeType2.isAssignableFrom(supportedNodeType1)) {
             throw new IllegalStateException("Converter " + converter1 + " overlaps by supported node type with converter " + converter2);
+        }
+    }
+
+    private static final class MissingToPlannedNodeConverter implements ToPlannedNodeConverter {
+        @Override
+        public Class<? extends Node> getSupportedNodeType() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public NodeIdentity getNodeIdentity(Node node) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isInSamePlan(Node node) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public CalculateTaskGraphBuildOperationType.PlannedNode convert(Node node, DependencyLookup dependencyLookup) {
+            throw new UnsupportedOperationException();
         }
     }
 
