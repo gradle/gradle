@@ -19,7 +19,7 @@ package org.gradle.integtests
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.integtests.fixtures.TargetVersions
 
-@TargetVersions("8.0")
+@TargetVersions("8.0.2")
 class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec {
 
     @Override
