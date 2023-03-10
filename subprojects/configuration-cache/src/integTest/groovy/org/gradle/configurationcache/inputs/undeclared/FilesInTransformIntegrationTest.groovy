@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.inputs.process
+package org.gradle.configurationcache.inputs.undeclared
 
-import org.gradle.configurationcache.fixtures.ExternalProcessFixture.Snippets
-import org.gradle.configurationcache.fixtures.ExternalProcessFixture.SnippetsFactory
+
 import org.gradle.configurationcache.fixtures.TransformFixture
-import org.gradle.process.ExecOperations
+import org.gradle.configurationcache.inputs.process.AbstractProcessIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.TextUtil
 
-import javax.inject.Inject
+class FilesInTransformIntegrationTest extends AbstractProcessIntegrationTest {
+    def setup() {
+        inputFile.text = "INPUT FILE CONTENT"
+    }
 
-import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.exec
-import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.javaexec
-import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.processBuilder
-
-class ProcessInTransformIntegrationTest extends AbstractProcessIntegrationTest {
-    def "using #snippetsFactory.summary in transform action with #task is not a problem"(SnippetsFactory snippetsFactory, String task) {
+    def "reading a file in transform action with #task does not create a build input"() {
         given:
         settingsFileWithStableConfigurationCache()
-        getTransformFixture(snippetsFactory.newSnippets(execOperationsFixture)).tap {
+        getTransformFixture().tap {
             withTransformPlugin(testDirectory.createDir("buildSrc"))
             withJavaLibrarySubproject(testDirectory.createDir("subproject"))
         }
@@ -53,28 +52,21 @@ class ProcessInTransformIntegrationTest extends AbstractProcessIntegrationTest {
         configurationCacheRun(":$task")
 
         then:
-        outputContains("Hello")
+        outputContains("INPUT FILE CONTENT")
+        problems.assertResultHasProblems(result) {
+            withNoInputs()
+        }
 
         where:
-        [snippetsFactory, task] << [
-            [
-                exec("getExecOperations()").java,
-                javaexec("getExecOperations()").java,
-                processBuilder().java
-            ],
-            [
-                "resolveCollection",
-                "resolveProviders"
-            ]
-        ].combinations()
+        task << ["resolveCollection", "resolveProviders"]
     }
 
-    def "using #snippetsFactory.summary in transform action with #task of buildSrc build is not a problem"(SnippetsFactory snippetsFactory, String task) {
+    def "reading a file in transform action with #task of buildSrc build does not create a build input"() {
         given:
         settingsFileWithStableConfigurationCache()
 
         createDir("buildSrc") {
-            getTransformFixture(snippetsFactory.newSnippets(execOperationsFixture)).tap {
+            getTransformFixture().tap {
                 withTransformPlugin(dir("transform-plugin"))
                 withJavaLibrarySubproject(dir("subproject"))
             }
@@ -101,40 +93,45 @@ class ProcessInTransformIntegrationTest extends AbstractProcessIntegrationTest {
         buildFile("""
         tasks.register("check") {}
         """)
+
         when:
         configurationCacheRun(":check")
 
         then:
-        outputContains("Hello")
+        outputContains("INPUT FILE CONTENT")
+        problems.assertResultHasProblems(result) {
+            withNoInputs()
+        }
 
         where:
-        [snippetsFactory, task] << [
-            [
-                exec("getExecOperations()").java,
-                javaexec("getExecOperations()").java,
-                processBuilder().java
-            ],
-            [
-                "resolveCollection",
-                "resolveProviders"
-            ]
-        ].combinations()
+        task << ["resolveCollection", "resolveProviders"]
     }
 
-    private TransformFixture getTransformFixture(Snippets snippets) {
+    private TransformFixture getTransformFixture() {
         return new TransformFixture(
             """
-            import ${Inject.name};
-            import ${ExecOperations.name};
-            ${snippets.imports}
+            import ${BufferedReader.name};
+            import ${FileInputStream.name};
+            import ${InputStreamReader.name};
             """,
+
+            "",
 
             """
-            @Inject
-            public abstract ExecOperations getExecOperations();
-            """,
-
-            snippets.body
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream("${TextUtil.escapeString(inputFile.absolutePath)}")))) {
+                String line = in.readLine();
+                while (line != null) {
+                    System.out.println(line);
+                    line = in.readLine();
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            """
         )
+    }
+
+    private TestFile getInputFile() {
+        return testDirectory.file("test-input.txt")
     }
 }
