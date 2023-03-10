@@ -43,7 +43,7 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
                     compile.canBeResolved = false
                     compileOnly.canBeResolved = false
                     apiElements {
-                        canBeConsumed = true
+                        assert canBeConsumed
                         canBeResolved = false
                         extendsFrom compile
                         extendsFrom compileOnly
@@ -51,7 +51,7 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
                     }
                     compileClasspath {
                         canBeConsumed = false
-                        canBeResolved = true
+                        assert canBeResolved
                         extendsFrom compile
                         extendsFrom compileOnly
                         extendsFrom implementation

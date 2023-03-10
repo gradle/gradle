@@ -45,7 +45,7 @@ class JavaPlatformEcosystemIntegrationTest extends AbstractHttpDependencyResolut
             configurations {
                 runtimeClasspath {
                     canBeConsumed = false
-                    canBeResolved = true
+                    assert canBeResolved
                 }
             }
 
