@@ -21,7 +21,8 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.util.GradleVersion
+
+import static org.gradle.integtests.fixtures.compatibility.ConventionsExtensionsCrossVersionFixture.javaSourceCompatibility
 
 @TargetGradleVersion(">=2.10")
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
@@ -114,21 +115,5 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         subprojectA.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_1
         subprojectB.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_2
         subprojectC.javaSourceSettings.sourceLanguageLevel == JavaVersion.VERSION_1_3
-    }
-
-    static String javaSourceCompatibility(GradleVersion targetVersion, JavaVersion javaVersion) {
-        return javaCompatibility(targetVersion, javaVersion, 'source')
-    }
-
-    static String javaTargetCompatibility(GradleVersion targetVersion, JavaVersion javaVersion) {
-        return javaCompatibility(targetVersion, javaVersion, 'target')
-    }
-
-    private static String javaCompatibility(GradleVersion targetVersion, JavaVersion javaVersion, String compatibility) {
-        if (targetVersion >= GradleVersion.version("5.0")) {
-            return "java.${compatibility}Compatibility = JavaVersion.${javaVersion.name()}"
-        } else {
-            return "${compatibility}Compatibility = '${javaVersion.toString()}'"
-        }
     }
 }
