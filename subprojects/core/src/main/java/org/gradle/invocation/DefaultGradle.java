@@ -25,6 +25,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.artifacts.DependencyResolutionListener;
+import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
@@ -49,6 +51,7 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.SettingsState;
 import org.gradle.internal.Cast;
+import org.gradle.internal.DeprecatedInGradleScope;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.MutableActionSet;
@@ -60,6 +63,7 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -411,11 +415,25 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     private void notifyListenerRegistration(String registrationPoint, Object listener) {
-        if (listener instanceof InternalListener || listener instanceof ProjectEvaluationListener) {
+        if (isListenerSupportedWithConfigurationCache(listener)) {
             return;
         }
         getListenerManager().getBroadcaster(BuildScopeListenerRegistrationListener.class)
             .onBuildScopeListenerRegistration(listener, registrationPoint, this);
+    }
+
+    private boolean isListenerSupportedWithConfigurationCache(Object listener) {
+        if (listener instanceof InternalListener) {
+            // Internal listeners are always allowed: we know their lifecycle and ensure there are no problems when configuration cache is reused.
+            return true;
+        }
+        if (JavaPropertyReflectionUtil.getAnnotation(listener.getClass(), DeprecatedInGradleScope.class) != null) {
+            // Explicitly unsupported Listener types are disallowed.
+            return false;
+        }
+        // We had to check for unsupported first to reject a listener that implements both allowed and disallowed interfaces.
+        // Just reject everything we don't know.
+        return listener instanceof ProjectEvaluationListener || listener instanceof TaskExecutionGraphListener || listener instanceof DependencyResolutionListener;
     }
 
     @Override
@@ -426,6 +444,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public void useLogger(Object logger) {
+        notifyListenerRegistration("Gradle.useLogger", logger);
         getListenerManager().useLogger(logger);
     }
 
