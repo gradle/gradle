@@ -62,7 +62,7 @@ interface EncryptionService : EncryptionConfiguration {
 internal
 class DefaultEncryptionService(
     startParameter: ConfigurationCacheStartParameter,
-    val fileLockManager: FileLockManager
+    fileLockManager: FileLockManager
 ) : EncryptionService {
 
     private
@@ -187,31 +187,39 @@ class KeyStoreKeySource(
     override fun getKey(fileLockManager: FileLockManager): SecretKey {
         // JKS does not support non-PrivateKeys
         val ks = KeyStore.getInstance(KEYSTORE_TYPE)
-        val key: SecretKey
-        val alias = keyAlias
-        fileLockManager.lock(keyStorePath, crossVersionExclusiveAccess(), "Gradle keystore").use {
-            if (keyStorePath.isFile) {
-                logger.info("Loading keystore from $keyStorePath")
-                keyStorePath.inputStream().use { fis ->
-                    ks.load(fis, keyStorePassword?.toCharArray())
-                }
-                val entry = ks.getEntry(alias, keyProtection) as KeyStore.SecretKeyEntry?
-                if (entry != null) {
-                    key = entry.secretKey
-                    logger.debug("Retrieved key")
-                } else {
-                    logger.debug("No key found")
-                    key = generateKey(ks, alias)
-                    logger.warn("Key added to existing keystore at $keyStorePath")
-                }
-            } else {
-                logger.debug("No keystore found")
-                ks.load(null, null)
-                key = generateKey(ks, alias)
-                logger.debug("Key added to a new keystore at $keyStorePath")
+        return fileLockManager.lock(keyStorePath, crossVersionExclusiveAccess(), "Gradle keystore").use {
+            when {
+                keyStorePath.isFile -> loadSecretKeyFromExistingKeystore(ks)
+                else -> createKeyStoreAndGenerateKey(ks)
             }
         }
-        return key
+    }
+
+    private
+    fun loadSecretKeyFromExistingKeystore(ks: KeyStore): SecretKey {
+        logger.info("Loading keystore from {}", keyStorePath)
+        keyStorePath.inputStream().use { fis ->
+            ks.load(fis, keyStorePassword?.toCharArray())
+        }
+        val entry = ks.getEntry(keyAlias, keyProtection) as KeyStore.SecretKeyEntry?
+        if (entry != null) {
+            return entry.secretKey.also {
+                logger.debug("Retrieved key")
+            }
+        }
+        logger.debug("No key found")
+        return generateKey(ks, keyAlias).also {
+            logger.warn("Key added to existing keystore at {}", keyStorePath)
+        }
+    }
+
+    private
+    fun createKeyStoreAndGenerateKey(ks: KeyStore): SecretKey {
+        logger.debug("No keystore found")
+        ks.load(null, null)
+        return generateKey(ks, keyAlias).also {
+            logger.debug("Key added to a new keystore at {}", keyStorePath)
+        }
     }
 
     private
