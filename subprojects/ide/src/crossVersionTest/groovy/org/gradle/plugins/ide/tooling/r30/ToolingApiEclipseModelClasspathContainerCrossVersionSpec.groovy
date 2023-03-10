@@ -24,7 +24,8 @@ import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseClasspathContainer
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Issue
-import static org.gradle.plugins.ide.tooling.r210.ToolingApiEclipseModelCrossVersionSpec.javaTargetCompatibility
+
+import static org.gradle.integtests.fixtures.compatibility.ConventionsExtensionsCrossVersionFixture.javaTargetCompatibility
 
 @ToolingApiVersion('>=3.0')
 @TargetGradleVersion('>=3.0')
