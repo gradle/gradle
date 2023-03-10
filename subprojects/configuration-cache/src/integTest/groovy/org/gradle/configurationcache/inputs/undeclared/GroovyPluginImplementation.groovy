@@ -24,6 +24,8 @@ import org.gradle.test.fixtures.file.TestFile
 trait GroovyPluginImplementation {
     void groovyDsl(TestFile sourceFile, BuildInputRead read) {
         sourceFile << """
+            ${read.requiredImports().collect { "import $it" }.join("\n")}
+
             println("apply = " + ${read.groovyExpression})
             tasks.register("thing") {
                 doLast {
@@ -37,6 +39,8 @@ trait GroovyPluginImplementation {
         sourceFile << """
             import ${Project.name}
             import ${Plugin.name}
+
+            ${read.requiredImports().collect { "import $it" }.join("\n")}
 
             class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
