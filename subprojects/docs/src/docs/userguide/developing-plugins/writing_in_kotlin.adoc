@@ -42,18 +42,19 @@ Supporting different versions of Gradle can be tested using TestKit[https://docs
 [[sec:redistributed_gradle_api]]
 === Redistributed Gradle API
 
+To avoid the implicit link on a Gradle version that comes with using `gradleApi()`, an alternative is to use the https://docs.nokee.dev/manual/gradle-plugin-development.html[Nokee redistributed Gradle API artifacts]. These are like `gradleApi()` except they allow specifying a specific version of the Gradle API.
 
 ```kotlin
 dependencies {
-    compileOnly("dev.gradleplugins:gradle-api:$version")
+    compileOnly("dev.gradleplugins:gradle-api:8.0.2")
 }
 ```
 
-The https://docs.nokee.dev/manual/gradle-plugin-development.html[Nokee redistributed Gradle API artifacts] are like `gradleApi()` except they allow to specify a version.
+TIP: Because it is provided by Gradle at runtime, `gradle-api` must be a `compileOnly` dependency.
 
-Doing this, you're not risking to use removed APIs. On the other hand, you cannot use newer APIs if your plugin is running on a recent version of Gradle.
+This makes the version of the Gradle API being used to build the plugin more explicit, removing the ambiguity avoids the implicit link between `gradleApi()` and the build version of Gradle.
 
-Note: Because it is provided by Gradle at runtime, `gradle-api` should be a `compileOnly` dependency.
+On the other hand, you cannot use newer APIs if your plugin is running on a recent version of Gradle.
 
 [[sec:gradle_kotlin_dsl]]
 === gradleKotlinDsl()
