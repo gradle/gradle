@@ -39,7 +39,7 @@ import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.serialization.Workarounds.canAccessConventions
 import org.gradle.internal.buildoption.FeatureFlags
-import org.gradle.internal.execution.TaskExecutionTracker
+import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
@@ -54,7 +54,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private val problems: ProblemsListener,
     private val problemFactory: ProblemFactory,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
-    private val taskExecutionTracker: TaskExecutionTracker,
+    private val workExecutionTracker: WorkExecutionTracker,
     private val featureFlags: FeatureFlags,
     private val inputTrackingState: InputTrackingState,
 ) : ConfigurationCacheProblemsListener {
@@ -177,5 +177,5 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     fun isStableConfigurationCacheEnabled() = featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
 
     private
-    fun isExecutingTask() = taskExecutionTracker.currentTask.isPresent
+    fun isExecutingTask() = workExecutionTracker.currentTask.isPresent
 }

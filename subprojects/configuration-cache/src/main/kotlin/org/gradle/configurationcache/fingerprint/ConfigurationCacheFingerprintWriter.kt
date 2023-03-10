@@ -68,10 +68,10 @@ import org.gradle.groovy.scripts.internal.ScriptSourceListener
 import org.gradle.internal.buildoption.FeatureFlag
 import org.gradle.internal.buildoption.FeatureFlagListener
 import org.gradle.internal.concurrent.CompositeStoppable
-import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
+import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.execution.WorkInputListener
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.properties.InputBehavior
@@ -91,7 +91,7 @@ class ConfigurationCacheFingerprintWriter(
     projectScopedContext: DefaultWriteContext,
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
-    private val taskExecutionTracker: TaskExecutionTracker,
+    private val workExecutionTracker: WorkExecutionTracker,
     private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
 ) : ValueSourceProviderFactory.ValueListener,
@@ -242,7 +242,7 @@ class ConfigurationCacheFingerprintWriter(
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
 
     private
-    fun isExecutingTask() = taskExecutionTracker.currentTask.isPresent
+    fun isExecutingTask() = workExecutionTracker.currentTask.isPresent
 
     override fun fileObserved(file: File) {
         fileObserved(file, null)
