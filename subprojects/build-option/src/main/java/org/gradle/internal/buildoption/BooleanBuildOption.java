@@ -31,19 +31,23 @@ import java.util.Map;
 public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T, BooleanCommandLineOptionConfiguration> {
 
     public BooleanBuildOption(String gradleProperty) {
-        super(gradleProperty);
+        this(gradleProperty, (String) null);
     }
 
     public BooleanBuildOption(String gradleProperty, BooleanCommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        super(gradleProperty, commandLineOptionConfigurations);
+        this(gradleProperty, null, commandLineOptionConfigurations);
+    }
+
+    public BooleanBuildOption(String gradleProperty, String deprecatedGradleProperty, BooleanCommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(gradleProperty, deprecatedGradleProperty, commandLineOptionConfigurations);
     }
 
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
-        String value = properties.get(gradleProperty);
-
+        OptionValue<String> propertyValue = getFromProperties(properties);
+        String value = propertyValue.getValue();
         if (value != null) {
-            applyTo(isTrue(value), settings, Origin.forGradleProperty(gradleProperty));
+            applyTo(isTrue(value), settings, propertyValue.getOrigin());
         }
     }
 

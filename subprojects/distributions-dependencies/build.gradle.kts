@@ -16,7 +16,7 @@ plugins {
 description = "Provides a platform dependency to align all distribution versions"
 
 val antVersion = "1.10.11"
-val asmVersion = "9.3"
+val asmVersion = "9.4"
 val awsS3Version = "1.12.365"
 val bouncycastleVersion = "1.68"
 val jacksonVersion = "2.14.1"
@@ -103,6 +103,7 @@ dependencies {
         api(libs.jakartaXmlBind)        { version { strictly("3.0.0") }}
         api(libs.jansi)                 { version { strictly("1.18"); because("2.x changes the API") }}
         api(libs.jatl)                  { version { strictly("0.2.3") }}
+        api(libs.javaPoet)              { version { strictly("1.13.0") } }
         api(libs.jaxbCore)              { version { strictly(jaxbVersion) }}
         api(libs.jaxbImpl)              { version { strictly(jaxbVersion) }}
         api(libs.jcifs)                 { version { strictly("1.3.17") }}
