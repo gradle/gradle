@@ -101,25 +101,29 @@ public class UpgradePropertyInstrumentationExtension
     }
 
     private static MethodSpec mapToMethodSpec(CallInterceptionRequest request) {
+        UpgradePropertyImplementationClass implementationExtra = request.getRequestExtras()
+            .getByType(UpgradePropertyImplementationClass.class)
+            .orElseThrow(() -> new RuntimeException("UpgradePropertyImplementationClass should be present at this stage!"));
         CallableInfo callable = request.getInterceptedCallable();
         ImplementationInfo implementation = request.getImplementationInfo();
-        MethodSpec.Builder spec = MethodSpec.methodBuilder(implementation.getName()).addModifiers(Modifier.PUBLIC);
+        MethodSpec.Builder spec = MethodSpec.methodBuilder(implementation.getName()).addModifiers(Modifier.PUBLIC, Modifier.STATIC);
         spec.addParameter(typeName(callable.getOwner()), "self");
         callable.getParameters().forEach(parameter -> spec.addParameter(
             typeName(parameter.getParameterType()),
             parameter.getName())
         );
-        spec.addCode(generateMethodBody(callable, implementation));
+        spec.addCode(generateMethodBody(implementation, implementationExtra));
         spec.returns(typeName(callable.getReturnType()));
         return spec.build();
     }
 
-    private static CodeBlock generateMethodBody(CallableInfo callable, ImplementationInfo implementation) {
+    private static CodeBlock generateMethodBody(ImplementationInfo implementation, UpgradePropertyImplementationClass implementationExtra) {
+        String propertyGetterName = implementationExtra.getInterceptedPropertyGetterName();
         boolean isSetter = implementation.getName().startsWith("access_set_");
         if (isSetter) {
-            return CodeBlock.of("self." + callable.getCallableName() + "().set(arg0);");
+            return CodeBlock.of("self." + propertyGetterName + "().set(arg0);");
         } else {
-            return CodeBlock.of("return self." + callable.getCallableName() + "().get();");
+            return CodeBlock.of("return self." + propertyGetterName + "().get();");
         }
     }
 
@@ -160,18 +164,19 @@ public class UpgradePropertyInstrumentationExtension
     private static CallInterceptionRequest createJvmGetterInterceptionRequest(ExecutableElement method, Type originalType) {
         List<RequestExtra> extras = getJvmRequestExtras(method);
         return new CallInterceptionRequestImpl(
-            extractCallableInfo(method, originalType, Collections.emptyList()),
+            extractCallableInfo(method, originalType, method.getSimpleName().toString(), Collections.emptyList()),
             extractImplementationInfo(method, originalType, "get", Collections.emptyList()),
             extras
         );
     }
 
     private static CallInterceptionRequest createJvmSetterInterceptionRequest(ExecutableElement method, Type originalType) {
-        List<RequestExtra> extras = getJvmRequestExtras(method);
-        List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("arg0", originalType, METHOD_PARAMETER));
         Type returnType = Type.VOID_TYPE;
+        String callableName = method.getSimpleName().toString().replaceFirst("get", "set");
+        List<ParameterInfo> parameters = Collections.singletonList(new ParameterInfoImpl("arg0", originalType, METHOD_PARAMETER));
+        List<RequestExtra> extras = getJvmRequestExtras(method);
         return new CallInterceptionRequestImpl(
-            extractCallableInfo(method, returnType, parameters),
+            extractCallableInfo(method, returnType, callableName, parameters),
             extractImplementationInfo(method, returnType, "set", parameters),
             extras
         );
@@ -183,14 +188,13 @@ public class UpgradePropertyInstrumentationExtension
         extras.add(new RequestExtra.OriginatingElement(method));
         extras.add(new RequestExtra.InterceptJvmCalls(INTERCEPTOR_DECLARATION_CLASS_NAME));
         String implementationClass = getGeneratedClassName(method.getEnclosingElement());
-        extras.add(new UpgradePropertyImplementationClass(implementationClass));
+        extras.add(new UpgradePropertyImplementationClass(implementationClass, method.getSimpleName().toString()));
         return extras;
     }
 
-    private static CallableInfo extractCallableInfo(ExecutableElement methodElement, Type returnType, List<ParameterInfo> parameter) {
+    private static CallableInfo extractCallableInfo(ExecutableElement methodElement, Type returnType, String callableName, List<ParameterInfo> parameter) {
         CallableKindInfo kindInfo = CallableKindInfo.INSTANCE_METHOD;
         Type owner = extractType(methodElement.getEnclosingElement().asType());
-        String callableName = methodElement.getSimpleName().toString();
         return new CallableInfoImpl(kindInfo, owner, callableName, returnType, parameter);
     }
 
@@ -229,13 +233,20 @@ public class UpgradePropertyInstrumentationExtension
 
     public static class UpgradePropertyImplementationClass implements RequestExtra {
         private final String implementationClassName;
+        private final String interceptedPropertyGetterName;
+
+
+        public UpgradePropertyImplementationClass(String implementationClassName, String interceptedPropertyGetterName) {
+            this.implementationClassName = implementationClassName;
+            this.interceptedPropertyGetterName = interceptedPropertyGetterName;
+        }
 
         public String getImplementationClassName() {
             return implementationClassName;
         }
 
-        public UpgradePropertyImplementationClass(String implementationClassName) {
-            this.implementationClassName = implementationClassName;
+        public String getInterceptedPropertyGetterName() {
+            return interceptedPropertyGetterName;
         }
     }
 
