@@ -207,7 +207,7 @@ public class UpgradePropertyInstrumentationExtension
     }
 
     private static String getGeneratedClassName(Element originalType) {
-        return "org.gradle.internal.instrumentation." + originalType.getSimpleName() + "_Interceptor";
+        return "org.gradle.internal.instrumentation." + originalType.getSimpleName() + "_Adapter";
     }
 
     private static Type[] toArray(Type owner, List<ParameterInfo> parameters) {
