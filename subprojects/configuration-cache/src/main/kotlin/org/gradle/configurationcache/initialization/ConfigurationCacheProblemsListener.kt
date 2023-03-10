@@ -75,7 +75,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     }
 
     override fun onExternalProcessStarted(command: String, consumer: String?) {
-        if (!isStableConfigurationCacheEnabled() || !atConfigurationTime() || isExecutingTask() || isInputTrackingDisabled()) {
+        if (!isStableConfigurationCacheEnabled() || !atConfigurationTime() || isExecutingWork() || isInputTrackingDisabled()) {
             return
         }
         problems.onProblem(
@@ -177,5 +177,5 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     fun isStableConfigurationCacheEnabled() = featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
 
     private
-    fun isExecutingTask() = workExecutionTracker.currentTask.isPresent
+    fun isExecutingWork() = workExecutionTracker.currentTask.isPresent || workExecutionTracker.isExecutingTransformAction
 }

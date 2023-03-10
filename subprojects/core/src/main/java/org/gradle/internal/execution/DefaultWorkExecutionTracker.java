@@ -28,11 +28,13 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.internal.operations.UncategorizedBuildOperations;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.lang.String.format;
@@ -63,30 +65,46 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
     }
 
     @Override
+    public boolean isExecutingTransformAction() {
+        return buildOperationAncestryTracker.findClosestMatchingAncestor(
+            currentBuildOperationRef.getId(), operationListener.runningTransformActions::contains
+        ).isPresent();
+    }
+
+    @Override
     public void close() throws IOException {
         buildOperationListenerManager.removeListener(operationListener);
-        assert operationListener.runningTasks.isEmpty();
+        assert !operationListener.hasRunningWork();
     }
 
     private static class OperationListener implements BuildOperationListener {
 
         final Map<OperationIdentifier, TaskInternal> runningTasks = new ConcurrentHashMap<>();
+        final Set<OperationIdentifier> runningTransformActions = ConcurrentHashMap.newKeySet();
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            Object details = buildOperation.getDetails();
-            if (details instanceof ExecuteTaskBuildOperationDetails) {
-                runningTasks.put(mandatoryIdOf(buildOperation), ((ExecuteTaskBuildOperationDetails) details).getTask());
+            if (isTransformAction(buildOperation)) {
+                runningTransformActions.add(mandatoryIdOf(buildOperation));
+            } else {
+                Object details = buildOperation.getDetails();
+                if (details instanceof ExecuteTaskBuildOperationDetails) {
+                    runningTasks.put(mandatoryIdOf(buildOperation), ((ExecuteTaskBuildOperationDetails) details).getTask());
+                }
             }
         }
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            Object details = buildOperation.getDetails();
-            if (details instanceof ExecuteTaskBuildOperationType.Details) {
-                Object removed = runningTasks.remove(mandatoryIdOf(buildOperation));
-                if (removed == null) {
-                    throw new IllegalStateException(format("Task build operation %s was finished without being started.", buildOperation));
+            if (isTransformAction(buildOperation)) {
+                runningTransformActions.remove(mandatoryIdOf(buildOperation));
+            } else {
+                Object details = buildOperation.getDetails();
+                if (details instanceof ExecuteTaskBuildOperationType.Details) {
+                    Object removed = runningTasks.remove(mandatoryIdOf(buildOperation));
+                    if (removed == null) {
+                        throw new IllegalStateException(format("Task build operation %s was finished without being started.", buildOperation));
+                    }
                 }
             }
         }
@@ -94,13 +112,21 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
         private OperationIdentifier mandatoryIdOf(BuildOperationDescriptor buildOperation) {
             OperationIdentifier id = buildOperation.getId();
             if (id == null) {
-                throw new IllegalStateException(format("Task build operation %s has no valid id", buildOperation));
+                throw new IllegalStateException(format("Build operation %s has no valid id", buildOperation));
             }
             return id;
         }
 
         @Override
         public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
+        }
+
+        public boolean hasRunningWork() {
+            return !runningTasks.isEmpty() || !runningTransformActions.isEmpty();
+        }
+
+        private static boolean isTransformAction(BuildOperationDescriptor buildOperation) {
+            return UncategorizedBuildOperations.TRANSFORM_ACTION.equals(buildOperation.getMetadata());
         }
     }
 }
