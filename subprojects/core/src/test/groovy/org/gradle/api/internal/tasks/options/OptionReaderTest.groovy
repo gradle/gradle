@@ -137,6 +137,20 @@ class OptionReaderTest extends Specification {
         options[1].description == "custom unique option"
     }
 
+    def "task own options shadow generated opposite options"() {
+        when:
+        List<InstanceOptionDescriptor> options = reader.getOptions(new TestClassWithOppositeOptionNameClashing())
+        int ownOptions = 2
+        then:
+        options.size() == ownOptions + builtInOptionCount
+        options[0].name == "my-option"
+        options[0].description == "Option to trigger creation of opposite option"
+        options[1].name == "no-my-option"
+        options[1].description == "Option clashing with opposite option"
+        options[2].name == "rerun"
+        options[2].description == "Causes the task to be re-run even if up-to-date."
+    }
+
     def "fail when multiple methods define same option"() {
         when:
         reader.getOptions(new TestClass2())
@@ -183,15 +197,6 @@ class OptionReaderTest extends Specification {
         then:
         def e = thrown(OptionValidationException)
         e.message == "Option 'stringValue' on method cannot take multiple parameters in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass4#setStrings'."
-    }
-
-    def "fails when option name starts with 'no-'"() {
-        when:
-        reader.getOptions(new TestClass6());
-        then:
-        def e = thrown(OptionValidationException)
-        println(e.message)
-        e.message == "Illegal option name 'no-optionName' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass6'. Option name must not start with 'no-'."
     }
 
     def "handles field options"() {
@@ -541,17 +546,18 @@ class OptionReaderTest extends Specification {
         }
     }
 
-    public static class TestClass6 {
-        @Option(option = 'no-optionName', description = "option with illegal name, must not start with 'no-'")
-        public void setOption() {
-        }
-    }
-
     public static class TestClassWithOptionNameClashing {
         @Option(option = 'unique', description = "custom unique option")
         String field1
         @Option(option = 'rerun', description = "custom clashing option")
         String field2
+    }
+
+    public static class TestClassWithOppositeOptionNameClashing {
+        @Option(option = 'my-option', description = "Option to trigger creation of opposite option")
+        Boolean field1
+        @Option(option = 'no-my-option', description = "Option clashing with opposite option")
+        Boolean field2
     }
 
     public static class TestClassWithFields {

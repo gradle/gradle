@@ -154,6 +154,14 @@ Options
 
      --myFieldOption     Configures boolean option 'myFieldOption'
 
+     --no-myBooleanObjectOption     Disables option --myBooleanObjectOption
+
+     --no-myBooleanPrimitiveOption     Disables option --myBooleanPrimitiveOption
+
+     --no-myBooleanPropertyOption     Disables option --myBooleanPropertyOption
+
+     --no-myFieldOption     Disables option --myFieldOption
+
      --rerun     Causes the task to be re-run even if up-to-date.
 
 Description

@@ -35,10 +35,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @ServiceScope(Scopes.Gradle.class)
@@ -72,8 +70,7 @@ public class CommandLineTaskConfigurer {
                 option.hasDescription(optionDescriptor.getDescription());
                 option.hasArgument(optionDescriptor.getArgumentType());
             }
-
-            addDisableOptions(validCommandLineOptions, parser, task);
+            mutuallyExcludeOppositeOptions(parser, validCommandLineOptions);
 
             ParsedCommandLine parsed;
             try {
@@ -102,31 +99,39 @@ public class CommandLineTaskConfigurer {
         return remainingArguments;
     }
 
-    private void addDisableOptions(List<OptionDescriptor> optionList, CommandLineParser parser, Object target) {
-        Map<String, OptionDescriptor> optionMap = new HashMap<>();
-        optionList.forEach(optionDescriptor -> optionMap.put(optionDescriptor.getName(), optionDescriptor));
-        Set<OptionDescriptor> disableOptions = new HashSet<>();
-
-        for (OptionDescriptor optionDescriptor : optionList) {
+    private void mutuallyExcludeOppositeOptions(CommandLineParser parser, List<OptionDescriptor> validCommandLineOptions) {
+        for (OptionDescriptor optionDescriptor : validCommandLineOptions) {
             if (optionDescriptor instanceof InstanceOptionDescriptor) {
                 OptionElement optionElement = ((InstanceOptionDescriptor) optionDescriptor).getOptionElement();
                 if (optionElement instanceof BooleanOptionElement) {
-                    String optionName = optionElement.getOptionName();
-                    BooleanOptionElement disableOptionElement = BooleanOptionElement.disableOptionOf((BooleanOptionElement) optionElement);
-                    String disableOptionName = disableOptionElement.getOptionName();
-                    if (optionMap.containsKey(disableOptionName)) {
-                        LOGGER.warn("Disable option '{}' was disabled for clashing with another option of same name", disableOptionName);
-                    } else {
-                        OptionDescriptor disableOptionDescriptor = new InstanceOptionDescriptor(target, disableOptionElement, null);
-                        disableOptions.add(disableOptionDescriptor);
-                        org.gradle.cli.CommandLineOption option = parser.option(disableOptionName);
-                        option.hasDescription(disableOptionDescriptor.getDescription());
-                        option.hasArgument(disableOptionDescriptor.getArgumentType());
-                        parser.allowOneOf(optionName, disableOptionName);
+                    BooleanOptionElement booleanOptionElement = (BooleanOptionElement) optionElement;
+                    if (booleanOptionElement.isOpposite()) {
+                        parser.allowOneOf(booleanOptionElement.getOptionName(), booleanOptionElement.getOpposite().getOptionName());
                     }
                 }
             }
         }
-        optionList.addAll(disableOptions);
+    }
+
+    public static Map<String, OptionDescriptor> getOppositeOptions(Collection<OptionDescriptor> options, Object target) {
+        Map<String, OptionDescriptor> optionMap = new HashMap<>();
+        options.forEach(optionDescriptor -> optionMap.put(optionDescriptor.getName(), optionDescriptor));
+        Map<String, OptionDescriptor> oppositeOptions = new HashMap<>();
+
+        for (OptionDescriptor optionDescriptor : options) {
+            if (optionDescriptor instanceof InstanceOptionDescriptor) {
+                OptionElement optionElement = ((InstanceOptionDescriptor) optionDescriptor).getOptionElement();
+                if (optionElement instanceof BooleanOptionElement) {
+                    BooleanOptionElement oppositeOptionElement = BooleanOptionElement.oppositeOf((BooleanOptionElement) optionElement);
+                    String oppositeOptionName = oppositeOptionElement.getOptionName();
+                    if (optionMap.containsKey(oppositeOptionName)) {
+                        LOGGER.warn("Opposite option '{}' was disabled for clashing with another option of same name", oppositeOptionName);
+                    } else {
+                        oppositeOptions.put(oppositeOptionName, new InstanceOptionDescriptor(target, oppositeOptionElement, null));
+                    }
+                }
+            }
+        }
+        return oppositeOptions;
     }
 }

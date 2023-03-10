@@ -88,6 +88,9 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("There is no test to run. This behavior has been deprecated. " +
+            "This will fail with an error in Gradle 9.0. Set Test.successWithoutTest to true if you want the task to succeed when there is no test to run. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_success_without_test")
         succeeds "test"
 
         then:
@@ -108,6 +111,9 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("There is no test to run. This behavior has been deprecated. " +
+            "This will fail with an error in Gradle 9.0. Set Test.successWithoutTest to true if you want the task to succeed when there is no test to run. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_success_without_test")
         succeeds "test"
 
         then:

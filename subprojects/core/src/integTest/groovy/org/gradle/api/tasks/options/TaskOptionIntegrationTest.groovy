@@ -170,6 +170,8 @@ Options
         then:
         outputContains("""
 Options
+     --no-prop2     Disables option --prop2
+
      --prop1     Configures command line option 'prop1'.
 
      --prop2     Configures command line option 'prop2'.

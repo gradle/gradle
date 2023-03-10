@@ -22,6 +22,7 @@ import com.google.common.collect.ListMultimap;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
+import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -82,6 +83,7 @@ public class OptionReader {
             JavaMethod<Object, Collection> optionValueMethod = cachedOptionValueMethods.get(optionElement);
             options.put(optionElement.getOptionName(), new InstanceOptionDescriptor(target, optionElement, optionValueMethod));
         }
+        options.putAll(CommandLineTaskConfigurer.getOppositeOptions(options.values(), target));
         List<OptionDescriptor> taskOptions = CollectionUtils.sort(options.values());
         for (OptionDescriptor builtInOption : buildBuiltInOptions(target, options.keySet())) {
             // built-in options only enabled if they do not clash with task-declared ones
@@ -89,7 +91,6 @@ public class OptionReader {
                 taskOptions.add(builtInOption);
             }
         }
-
         return taskOptions;
     }
 
