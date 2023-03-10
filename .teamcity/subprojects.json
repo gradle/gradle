@@ -392,6 +392,20 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "internal-instrumentation-api",
+    "name": "internal-instrumentation-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "internal-instrumentation-processor",
+    "name": "internal-instrumentation-processor",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "internal-integ-testing",
     "name": "internal-integ-testing",
     "unitTests": true,

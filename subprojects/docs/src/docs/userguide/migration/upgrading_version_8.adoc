@@ -387,6 +387,15 @@ beforeSettings {
 Using relative file paths to point to Java executables is now deprecated and will become an error in Gradle 9.
 This is done to reduce confusion about what such relative paths should resolve against.
 
+[[task_convention]]
+==== Calling `Task.getConvention()`, `Task.getExtensions()` from a task action
+
+Calling link:{javadocPath}/org/gradle/api/Task.html#getConvention--[Task.getConvention()], link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[Task.getExtensions()] from a task action at
+execution time is now deprecated and will be made an error in Gradle 9.0.
+
+See the <<configuration_cache#config_cache:requirements:disallowed_types,configuration cache chapter>> for details on
+how to migrate these usages to APIs that are supported by the configuration cache.
+
 === Changes in the IDE integration
 
 [[kotlin_dsl_plugins_catalogs_workaround]]

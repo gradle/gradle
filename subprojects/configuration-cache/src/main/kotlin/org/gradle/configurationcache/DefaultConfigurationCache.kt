@@ -226,15 +226,6 @@ class DefaultConfigurationCache internal constructor(
             ConfigurationCacheAction.STORE
         }
 
-        startParameter.isWriteDependencyVerifications -> {
-            logBootstrapSummary(
-                "{} as configuration cache cannot be reused due to {}",
-                buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
-                "--write-verification-metadata"
-            )
-            ConfigurationCacheAction.STORE
-        }
-
         else -> {
             when (val checkedFingerprint = checkFingerprint()) {
                 is CheckedFingerprint.NotFound -> {
@@ -532,10 +523,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     val configurationCacheLogLevel: LogLevel
-        get() = when (startParameter.isQuiet) {
-            true -> LogLevel.INFO
-            else -> LogLevel.LIFECYCLE
-        }
+        get() = startParameter.configurationCacheLogLevel
 }
 
 
