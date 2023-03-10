@@ -55,7 +55,7 @@ class EclipseJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'eclipse'
-            sourceCompatibility = $version
+            java.sourceCompatibility = $version
         """
 
         when:
