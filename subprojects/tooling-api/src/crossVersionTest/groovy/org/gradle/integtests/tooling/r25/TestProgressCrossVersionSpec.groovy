@@ -37,8 +37,6 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-import static org.gradle.integtests.fixtures.compatibility.ConventionsExtensionsCrossVersionFixture.javaSourceCompatibility
-
 class TestProgressCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     def "receive test progress events when requesting a model"() {
         given:
@@ -485,7 +483,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
     def goodCode() {
         buildFile << """
             apply plugin: 'java'
-            ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_7)}
+            ${javaSourceCompatibility(JavaVersion.VERSION_1_7)}
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
@@ -499,5 +497,13 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
                 }
             }
         """
+    }
+
+    private String javaSourceCompatibility(JavaVersion javaVersion) {
+        if (targetVersion >= GradleVersion.version("5.0")) {
+            return "java.sourceCompatibility = JavaVersion.${javaVersion.name()}"
+        } else {
+            return "sourceCompatibility = '${javaVersion.toString()}'"
+        }
     }
 }
