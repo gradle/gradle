@@ -18,6 +18,7 @@ package org.gradle.internal.instrumentation.extensions.property;
 
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
@@ -104,17 +105,19 @@ public class UpgradePropertyInstrumentationExtension
         UpgradePropertyImplementationClass implementationExtra = request.getRequestExtras()
             .getByType(UpgradePropertyImplementationClass.class)
             .orElseThrow(() -> new RuntimeException("UpgradePropertyImplementationClass should be present at this stage!"));
+
         CallableInfo callable = request.getInterceptedCallable();
         ImplementationInfo implementation = request.getImplementationInfo();
-        MethodSpec.Builder spec = MethodSpec.methodBuilder(implementation.getName()).addModifiers(Modifier.PUBLIC, Modifier.STATIC);
-        spec.addParameter(typeName(callable.getOwner()), "self");
-        callable.getParameters().forEach(parameter -> spec.addParameter(
-            typeName(parameter.getParameterType()),
-            parameter.getName())
-        );
-        spec.addCode(generateMethodBody(implementation, implementationExtra));
-        spec.returns(typeName(callable.getReturnType()));
-        return spec.build();
+        List<ParameterSpec> parameters = callable.getParameters().stream()
+            .map(parameter -> ParameterSpec.builder(typeName(parameter.getParameterType()), parameter.getName()).build())
+            .collect(Collectors.toList());
+        return MethodSpec.methodBuilder(implementation.getName())
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+            .addParameter(typeName(callable.getOwner()), "self")
+            .addParameters(parameters)
+            .addCode(generateMethodBody(implementation, implementationExtra))
+            .returns(typeName(callable.getReturnType()))
+            .build();
     }
 
     private static CodeBlock generateMethodBody(ImplementationInfo implementation, UpgradePropertyImplementationClass implementationExtra) {
