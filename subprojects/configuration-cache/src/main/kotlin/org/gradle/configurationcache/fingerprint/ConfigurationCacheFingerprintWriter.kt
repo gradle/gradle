@@ -242,7 +242,7 @@ class ConfigurationCacheFingerprintWriter(
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
 
     private
-    fun isExecutingTask() = workExecutionTracker.currentTask.isPresent
+    fun isExecutingWork() = workExecutionTracker.currentTask.isPresent || workExecutionTracker.isExecutingTransformAction
 
     override fun fileObserved(file: File) {
         fileObserved(file, null)
@@ -264,7 +264,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun directoryChildrenObserved(directory: File, consumer: String?) {
-        if (isInputTrackingDisabled() || isExecutingTask()) {
+        if (isInputTrackingDisabled() || isExecutingWork()) {
             return
         }
         sink().captureDirectoryChildren(directory)
@@ -272,7 +272,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun fileSystemEntryObserved(file: File, consumer: String?) {
-        if (isInputTrackingDisabled() || isExecutingTask()) {
+        if (isInputTrackingDisabled() || isExecutingWork()) {
             return
         }
         sink().captureFileSystemEntry(file)
@@ -321,7 +321,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun fileOpened(file: File, consumer: String?) {
-        if (isInputTrackingDisabled() || isExecutingTask()) {
+        if (isInputTrackingDisabled() || isExecutingWork()) {
             // Ignore files that are read as part of the task actions. These should really be task
             // inputs. Otherwise, we risk fingerprinting files such as:
             // - temporary files that will be gone at the end of the build.
@@ -333,7 +333,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun fileCollectionObserved(fileCollection: FileCollectionInternal) {
-        if (isInputTrackingDisabled() || isExecutingTask()) {
+        if (isInputTrackingDisabled() || isExecutingWork()) {
             // See #fileOpened() above
             return
         }
