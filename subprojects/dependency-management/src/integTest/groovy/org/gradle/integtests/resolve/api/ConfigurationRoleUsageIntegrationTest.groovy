@@ -95,7 +95,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         buildFile << """
             configurations {
                 testConf {
-                    canBeConsumed = true
+                    assert canBeConsumed
                     canBeResolved = false
                     canBeDeclaredAgainst = false
                     preventUsageMutation()

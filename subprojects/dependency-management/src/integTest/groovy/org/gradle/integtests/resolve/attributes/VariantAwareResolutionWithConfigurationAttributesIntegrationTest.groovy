@@ -58,7 +58,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                                 }
                                 def compileConfig = p.configurations.create("compile$baseName") {
                                     extendsFrom p.configurations.implementation
-                                    canBeConsumed = true
+                                    assert canBeConsumed
                                     canBeResolved = false
                                     attributes.attribute(buildType, bt)
                                     attributes.attribute(flavor, f)
@@ -67,7 +67,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                                 def _compileConfig = p.configurations.create("_compile$baseName") {
                                     extendsFrom implementationConfig
                                     canBeConsumed = false
-                                    canBeResolved = true
+                                    assert canBeResolved
                                     attributes.attribute(buildType, bt)
                                     attributes.attribute(flavor, f)
                                     attributes.attribute(usage, 'compile')

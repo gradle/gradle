@@ -29,7 +29,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -42,7 +42,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -54,7 +54,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 resolver {
-                    canBeResolved = true
+                    assert canBeResolved
                     canBeConsumed = false
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -91,7 +91,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -104,7 +104,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -138,7 +138,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -148,7 +148,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -182,7 +182,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -192,7 +192,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -220,7 +220,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -234,7 +234,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -263,7 +263,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sampleA {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -286,7 +286,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sampleB {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -327,7 +327,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sampleA {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -353,7 +353,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sampleB {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -387,7 +387,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 sample1 {
-                    canBeResolved = true
+                    assert canBeResolved
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -396,7 +396,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 sample2 {
-                    canBeResolved = true
+                    assert canBeResolved
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -420,8 +420,8 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 sample1 {
                     // Configurations that are both resolvable and consumable are legacy and should not be used
-                    canBeResolved = true
-                    canBeConsumed = true
+                    assert canBeResolved
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
@@ -431,8 +431,8 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
                 sample2 {
                     // Configurations that are both resolvable and consumable are legacy and should not be used
-                    canBeResolved = true
-                    canBeConsumed = true
+                    assert canBeResolved
+                    assert canBeConsumed
 
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
