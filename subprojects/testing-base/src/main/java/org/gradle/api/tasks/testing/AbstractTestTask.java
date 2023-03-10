@@ -123,7 +123,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testOutputListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestOutputListener.class);
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
         binaryResultsDirectory = getProject().getObjects().directoryProperty();
-        successWithoutTest = getProject().getObjects().property(Boolean.class).convention((Boolean)null);
+        successWithoutTest = getProject().getObjects().property(Boolean.class);
 
         reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, this);
         reports.getJunitXml().getRequired().set(true);
@@ -488,7 +488,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         } else if (testCountLogger.getTotalTests() == 0) {
             if (shouldFailOnNoMatchingTests()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
-            } else if (successWithoutTest.getOrNull() == null) {
+            } else if (!successWithoutTest.isPresent()) {
                 emitDeprecationMessage();
             } else if (!successWithoutTest.get()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());

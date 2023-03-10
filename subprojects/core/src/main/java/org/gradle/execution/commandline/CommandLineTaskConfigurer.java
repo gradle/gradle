@@ -17,6 +17,7 @@
 package org.gradle.execution.commandline;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskOptionSupplier;
 import org.gradle.api.internal.tasks.options.BooleanOptionElement;
 import org.gradle.api.internal.tasks.options.InstanceOptionDescriptor;
 import org.gradle.api.internal.tasks.options.OptionDescriptor;
@@ -34,7 +35,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -60,7 +60,7 @@ public class CommandLineTaskConfigurer {
         List<String> remainingArguments = null;
         for (Task task : tasks) {
             CommandLineParser parser = new CommandLineParser();
-            Map<Boolean, List<OptionDescriptor>> allCommandLineOptions = optionReader.getOptions(task, false).stream().collect(Collectors.groupingBy(OptionDescriptor::isClashing));
+            Map<Boolean, List<OptionDescriptor>> allCommandLineOptions = TaskOptionSupplier.get(task, optionReader, false).stream().collect(Collectors.groupingBy(OptionDescriptor::isClashing));
             List<OptionDescriptor> validCommandLineOptions = allCommandLineOptions.getOrDefault(false, Collections.emptyList());
             List<OptionDescriptor> clashingOptions = allCommandLineOptions.getOrDefault(true, Collections.emptyList());
             clashingOptions.forEach(it -> LOGGER.warn("Built-in option '{}' in task {} was disabled for clashing with another option of same name", it.getName(), task.getPath()));
@@ -111,27 +111,5 @@ public class CommandLineTaskConfigurer {
                 }
             }
         }
-    }
-
-    public static Map<String, OptionDescriptor> getOppositeOptions(Collection<OptionDescriptor> options, Object target) {
-        Map<String, OptionDescriptor> optionMap = new HashMap<>();
-        options.forEach(optionDescriptor -> optionMap.put(optionDescriptor.getName(), optionDescriptor));
-        Map<String, OptionDescriptor> oppositeOptions = new HashMap<>();
-
-        for (OptionDescriptor optionDescriptor : options) {
-            if (optionDescriptor instanceof InstanceOptionDescriptor) {
-                OptionElement optionElement = ((InstanceOptionDescriptor) optionDescriptor).getOptionElement();
-                if (optionElement instanceof BooleanOptionElement) {
-                    BooleanOptionElement oppositeOptionElement = BooleanOptionElement.oppositeOf((BooleanOptionElement) optionElement);
-                    String oppositeOptionName = oppositeOptionElement.getOptionName();
-                    if (optionMap.containsKey(oppositeOptionName)) {
-                        LOGGER.warn("Opposite option '{}' was disabled for clashing with another option of same name", oppositeOptionName);
-                    } else {
-                        oppositeOptions.put(oppositeOptionName, new InstanceOptionDescriptor(target, oppositeOptionElement, null));
-                    }
-                }
-            }
-        }
-        return oppositeOptions;
     }
 }
