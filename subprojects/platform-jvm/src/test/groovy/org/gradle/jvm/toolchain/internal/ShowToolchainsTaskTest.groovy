@@ -24,6 +24,7 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
+import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
@@ -277,7 +278,7 @@ $errorLines
     }
 
     private JavaInstallationRegistry createRegistry(List<InstallationLocation> locations) {
-        return new JavaInstallationRegistry(null, detector, null, null) {
+        return new JavaInstallationRegistry(null, detector, null, null, new NoOpProgressLoggerFactory()) {
             @Override
             protected Set<InstallationLocation> listInstallations() {
                 return locations;

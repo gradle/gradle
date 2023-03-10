@@ -20,6 +20,8 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -51,14 +53,17 @@ public class JavaInstallationRegistry {
     private final Logger logger;
     private final OperatingSystem os;
 
+    private final ProgressLoggerFactory progressLoggerFactory;
+
     @Inject
     public JavaInstallationRegistry(
         List<InstallationSupplier> suppliers,
         JvmMetadataDetector metadataDetector,
         @Nullable BuildOperationExecutor executor,
-        OperatingSystem os
+        OperatingSystem os,
+        ProgressLoggerFactory progressLoggerFactory
     ) {
-        this(suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), executor, os);
+        this(suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), executor, os, progressLoggerFactory);
     }
 
     private JavaInstallationRegistry(
@@ -66,13 +71,15 @@ public class JavaInstallationRegistry {
         JvmMetadataDetector metadataDetector,
         Logger logger,
        @Nullable BuildOperationExecutor executor,
-        OperatingSystem os
+        OperatingSystem os,
+        ProgressLoggerFactory progressLoggerFactory
     ) {
         this.logger = logger;
         this.executor = executor;
         this.metadataDetector = metadataDetector;
         this.installations = new Installations(() -> maybeCollectInBuildOperation(suppliers));
         this.os = os;
+        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     @VisibleForTesting
@@ -80,9 +87,10 @@ public class JavaInstallationRegistry {
         List<InstallationSupplier> suppliers,
         JvmMetadataDetector metadataDetector,
         Logger logger,
-        BuildOperationExecutor executor
+        BuildOperationExecutor executor,
+        ProgressLoggerFactory progressLoggerFactory
     ) {
-        return new JavaInstallationRegistry(suppliers, metadataDetector, logger, executor, OperatingSystem.current());
+        return new JavaInstallationRegistry(suppliers, metadataDetector, logger, executor, OperatingSystem.current(), progressLoggerFactory);
     }
 
     private Set<InstallationLocation> maybeCollectInBuildOperation(List<InstallationSupplier> suppliers) {
@@ -98,10 +106,14 @@ public class JavaInstallationRegistry {
     }
 
     public List<JvmToolchainMetadata> toolchains() {
-        return listInstallations()
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(JavaInstallationRegistry.class).start("Discovering toolchains", "Discovering toolchains");
+        List<JvmToolchainMetadata> result = listInstallations()
             .parallelStream()
+            .peek(location -> progressLogger.progress("Extracting toolchain metadata from " + location.getDisplayName()))
             .map(this::resolveMetadata)
             .collect(Collectors.toList());
+        progressLogger.completed();
+        return result;
     }
 
     private JvmToolchainMetadata resolveMetadata(InstallationLocation location) {
@@ -115,6 +127,7 @@ public class JavaInstallationRegistry {
 
     private Set<InstallationLocation> collectInstallations(List<InstallationSupplier> suppliers) {
         return suppliers.parallelStream()
+            .peek(x -> logger.debug("Discovering toolchains provided via {}", x.getSourceName()))
             .map(InstallationSupplier::get)
             .flatMap(Set::stream)
             .filter(this::installationExists)
@@ -172,7 +185,7 @@ public class JavaInstallationRegistry {
             return new File(potentialHome, "Contents/Home");
         }
         final File standaloneJre = new File(potentialHome, "jre");
-        if(!hasJavaExecutable(potentialHome) && hasJavaExecutable(standaloneJre)) {
+        if (!hasJavaExecutable(potentialHome) && hasJavaExecutable(standaloneJre)) {
             return standaloneJre;
         }
         return potentialHome;

@@ -93,7 +93,7 @@ class JabbaInstallationSupplierTest extends Specification {
 
         then:
         directoriesAsStablePaths(directories) == stablePaths([new File(candidates, "jdk/11.0.6.hs-adpt").absolutePath])
-        directories*.source == ["jabba"]
+        directories*.source == ["Jabba"]
     }
 
     def "supplies multiple installations for multiple paths"() {
@@ -112,7 +112,7 @@ class JabbaInstallationSupplierTest extends Specification {
             new File(candidates, "jdk/14").absolutePath,
             new File(candidates, "jdk/8.0.262.fx-librca").absolutePath
         ])
-        directories*.source == ["jabba", "jabba", "jabba"]
+        directories*.source == ["Jabba", "Jabba", "Jabba"]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -132,7 +132,7 @@ class JabbaInstallationSupplierTest extends Specification {
             new File(candidates, "jdk/14-real").absolutePath,
             new File(candidates, "jdk/other-symlinked").absolutePath
         ])
-        directories*.source == ["jabba", "jabba"]
+        directories*.source == ["Jabba", "Jabba"]
     }
 
     def directoriesAsStablePaths(Set<InstallationLocation> actualDirectories) {
