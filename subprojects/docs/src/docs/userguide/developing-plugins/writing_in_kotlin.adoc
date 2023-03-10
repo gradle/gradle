@@ -15,7 +15,9 @@ Like other JVM projects, Gradle plugins are jar files with dependencies. Unlike 
 If you are writing convention plugins, this is usually not an issue. But if you distribute your plugins, you should pay attention to their compatibility.
 
 [[sec:gradle_api]]
-=== gradleApi()
+=== The Gradle API 
+
+All plugins use the https://docs.gradle.org/current/javadoc/index.html[Gradle Core API] to configure a Gradle build. The Gradle API must be added as a build compile-time dependency using the helper function `gradleApi()`
 
 ```kotlin
 dependencies {
@@ -23,13 +25,19 @@ dependencies {
 }
 ```
 
-`gradleApi()` is the primary way of interacting with the https://docs.gradle.org/current/javadoc/index.html[Gradle core].
+TIP: `gradleApi()` must be a `compileOnly` dependency, because the correct Gradle API will be provided by Gradle at runtime.
 
-It is provided by the version of Gradle you're using to build your plugin. It is built the first time you run a build and contains all the symbols in your current version of Gradle. You will usually find it under `~/.gradle/caches/$version/generated-gradle-jars/gradle-api-$version.jar`.
+=== Version of the Gradle API Version
 
-Because `gradleApi()` uses the same version as the one you're currently running, it's easy to use symbols that are not present in previous versions of Gradle. If your plugin is run by an older version that is missing such a symbol, your plugin will throw a `NoSuchMethodError` at runtime.
+The Gradle API version provided by `gradleApi()` is the same as the version of Gradle used to build the plugin. 
 
-Note: Because it is provided by Gradle at runtime, `gradleApi()` should be a `compileOnly` dependency.
+For example, if the plugin is built using Gradle version 7.6.1, then `gradleApi()` also be version 7.6.1. If the plugin is later built with Gradle 8.0.2, then the `gradleApi()` will change to be version 8.0.2.
+
+This implicit link between affects the Gradle versions your plugin supports. It's easy to build a plugin using one version of Gradle that that has functions or classes that are not present in other versions of Gradle.
+
+This might result in runtime exceptions, such as `NoSuchMethodError`, if a plugin uses functionality of the Gradle API that is missing in the Gradle being used to run the plugin. This might happen the plugin is run by an older Gradle version that is missing a function or class, _or_ if the plugin uses function or class that has been removed in newer versions (which can happen when using deprecated or internal Gradle features).
+
+Supporting different versions of Gradle can be tested using TestKit[https://docs.gradle.org/current/userguide/test_kit.html#sub:gradle-runner-gradle-version].
 
 [[sec:redistributed_gradle_api]]
 === Redistributed Gradle API
