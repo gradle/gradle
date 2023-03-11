@@ -16,30 +16,20 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
-import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
-import com.squareup.javapoet.TypeSpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedClassesRegistry;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequestImpl;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableInfoImpl;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
-import org.gradle.internal.instrumentation.model.ImplementationInfo;
 import org.gradle.internal.instrumentation.model.ImplementationInfoImpl;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfoImpl;
 import org.gradle.internal.instrumentation.model.RequestExtra;
-import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGenerator;
-import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassGenerator;
 import org.gradle.internal.instrumentation.processor.extensibility.AnnotatedMethodReaderExtension;
-import org.gradle.internal.instrumentation.processor.extensibility.ClassLevelAnnotationsContributor;
-import org.gradle.internal.instrumentation.processor.extensibility.CodeGeneratorContributor;
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader.Result.InvalidRequest;
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader.Result.Success;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
@@ -50,85 +40,24 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
 import javax.lang.model.type.TypeMirror;
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.METHOD_PARAMETER;
-import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.*;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
 
-public class UpgradePropertyInstrumentationExtension
-    extends RequestGroupingInstrumentationClassGenerator
-    implements AnnotatedMethodReaderExtension, ClassLevelAnnotationsContributor, CodeGeneratorContributor {
+public class UpgradePropertyAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
 
     private static final Type PROPERTY = Type.getType(Property.class);
     private static final Type REGULAR_FILE_PROPERTY = Type.getType(RegularFileProperty.class);
     private static final Type DIRECTORY_PROPERTY = Type.getType(DirectoryProperty.class);
     private static final Type DEFAULT_TYPE = Type.getType(UpgradedProperty.SameAsGenericType.class);
     private static final String INTERCEPTOR_DECLARATION_CLASS_NAME = "org.gradle.internal.classpath.InterceptorDeclaration_JvmBytecodeImplCodeQuality";
-
-    @Override
-    public InstrumentationCodeGenerator contributeCodeGenerator() {
-        return this;
-    }
-
-    @Override
-    protected String classNameForRequest(CallInterceptionRequest request) {
-        return request.getRequestExtras().getByType(UpgradePropertyImplementationClass.class)
-            .map(UpgradePropertyImplementationClass::getImplementationClassName)
-            .orElse(null);
-    }
-
-    @Override
-    protected Consumer<TypeSpec.Builder> classContentForClass(
-        String className,
-        Collection<CallInterceptionRequest> requestsClassGroup,
-        Consumer<? super CallInterceptionRequest> onProcessedRequest,
-        Consumer<? super GenerationResult.HasFailures.FailureInfo> onFailure
-    ) {
-        List<MethodSpec> methods = requestsClassGroup.stream()
-            .map(UpgradePropertyInstrumentationExtension::mapToMethodSpec)
-            .collect(Collectors.toList());
-        return builder -> builder.addModifiers(Modifier.PUBLIC).addMethods(methods);
-    }
-
-    private static MethodSpec mapToMethodSpec(CallInterceptionRequest request) {
-        UpgradePropertyImplementationClass implementationExtra = request.getRequestExtras()
-            .getByType(UpgradePropertyImplementationClass.class)
-            .orElseThrow(() -> new RuntimeException("UpgradePropertyImplementationClass should be present at this stage!"));
-
-        CallableInfo callable = request.getInterceptedCallable();
-        ImplementationInfo implementation = request.getImplementationInfo();
-        List<ParameterSpec> parameters = callable.getParameters().stream()
-            .map(parameter -> ParameterSpec.builder(typeName(parameter.getParameterType()), parameter.getName()).build())
-            .collect(Collectors.toList());
-        return MethodSpec.methodBuilder(implementation.getName())
-            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .addParameter(typeName(callable.getOwner()), "self")
-            .addParameters(parameters)
-            .addCode(generateMethodBody(implementation, implementationExtra))
-            .returns(typeName(callable.getReturnType()))
-            .build();
-    }
-
-    private static CodeBlock generateMethodBody(ImplementationInfo implementation, UpgradePropertyImplementationClass implementationExtra) {
-        String propertyGetterName = implementationExtra.getInterceptedPropertyGetterName();
-        boolean isSetter = implementation.getName().startsWith("access_set_");
-        if (isSetter) {
-            return CodeBlock.of("self." + propertyGetterName + "().set(arg0);");
-        } else {
-            return CodeBlock.of("return self." + propertyGetterName + "().get();");
-        }
-    }
 
     @Override
     public Collection<Result> readRequest(ExecutableElement input) {
@@ -191,7 +120,7 @@ public class UpgradePropertyInstrumentationExtension
         extras.add(new RequestExtra.OriginatingElement(method));
         extras.add(new RequestExtra.InterceptJvmCalls(INTERCEPTOR_DECLARATION_CLASS_NAME));
         String implementationClass = getGeneratedClassName(method.getEnclosingElement());
-        extras.add(new UpgradePropertyImplementationClass(implementationClass, method.getSimpleName().toString()));
+        extras.add(new UpgradePropertyRequestExtra(implementationClass, method.getSimpleName().toString()));
         return extras;
     }
 
@@ -227,30 +156,6 @@ public class UpgradePropertyInstrumentationExtension
         String property = method.getSimpleName().toString().replace("get", "");
         property = Character.toLowerCase(property.charAt(0)) + property.substring(1);
         return "access_" + methodPrefix + "_" + property;
-    }
-
-    @Override
-    public Collection<Class<? extends Annotation>> contributeClassLevelAnnotationTypes() {
-        return Collections.singletonList(UpgradedClassesRegistry.class);
-    }
-
-    public static class UpgradePropertyImplementationClass implements RequestExtra {
-        private final String implementationClassName;
-        private final String interceptedPropertyGetterName;
-
-
-        public UpgradePropertyImplementationClass(String implementationClassName, String interceptedPropertyGetterName) {
-            this.implementationClassName = implementationClassName;
-            this.interceptedPropertyGetterName = interceptedPropertyGetterName;
-        }
-
-        public String getImplementationClassName() {
-            return implementationClassName;
-        }
-
-        public String getInterceptedPropertyGetterName() {
-            return interceptedPropertyGetterName;
-        }
     }
 
     // TODO Consolidate with AnnotationCallInterceptionRequestReaderImpl#Failure
