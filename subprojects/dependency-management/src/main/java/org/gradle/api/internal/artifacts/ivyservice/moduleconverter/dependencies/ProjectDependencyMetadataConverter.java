@@ -31,14 +31,14 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
+public class ProjectDependencyMetadataConverter extends AbstractDependencyMetadataConverter {
 
-    public ProjectIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
+    public ProjectDependencyMetadataConverter(ExcludeRuleConverter excludeRuleConverter) {
         super(excludeRuleConverter);
     }
 
     @Override
-    public LocalOriginDependencyMetadata createDependencyDescriptor(ComponentIdentifier componentId, @Nullable String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
+    public LocalOriginDependencyMetadata createDependencyMetadata(ComponentIdentifier componentId, @Nullable String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
         ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject(),
                 ((AttributeContainerInternal)projectDependency.getAttributes()).asImmutable(),

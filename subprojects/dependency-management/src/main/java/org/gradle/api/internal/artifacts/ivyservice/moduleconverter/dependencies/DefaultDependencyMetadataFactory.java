@@ -36,21 +36,21 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultDependencyDescriptorFactory implements DependencyDescriptorFactory {
-    private final List<IvyDependencyDescriptorFactory> dependencyDescriptorFactories;
+public class DefaultDependencyMetadataFactory implements DependencyMetadataFactory {
+    private final List<DependencyMetadataConverter> dependencyDescriptorFactories;
 
-    public DefaultDependencyDescriptorFactory(IvyDependencyDescriptorFactory... dependencyDescriptorFactories) {
+    public DefaultDependencyMetadataFactory(DependencyMetadataConverter... dependencyDescriptorFactories) {
         this.dependencyDescriptorFactories = WrapUtil.toList(dependencyDescriptorFactories);
     }
 
     @Override
-    public LocalOriginDependencyMetadata createDependencyDescriptor(ComponentIdentifier componentId, @Nullable String clientConfiguration, @Nullable AttributeContainer attributes, ModuleDependency dependency) {
-        IvyDependencyDescriptorFactory factoryInternal = findFactoryForDependency(dependency);
-        return factoryInternal.createDependencyDescriptor(componentId, clientConfiguration, attributes, dependency);
+    public LocalOriginDependencyMetadata createDependencyMetadata(ComponentIdentifier componentId, @Nullable String clientConfiguration, @Nullable AttributeContainer attributes, ModuleDependency dependency) {
+        DependencyMetadataConverter factoryInternal = findFactoryForDependency(dependency);
+        return factoryInternal.createDependencyMetadata(componentId, clientConfiguration, attributes, dependency);
     }
 
     @Override
-    public LocalOriginDependencyMetadata createDependencyConstraintDescriptor(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, DependencyConstraint dependencyConstraint) {
+    public LocalOriginDependencyMetadata createDependencyConstraintMetadata(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, DependencyConstraint dependencyConstraint) {
         ComponentSelector selector = createSelector(dependencyConstraint);
         return new LocalComponentDependencyMetadata(componentId, selector, clientConfiguration, attributes, dependencyConstraint.getAttributes(), null,
                 Collections.emptyList(), Collections.emptyList(), ((DependencyConstraintInternal)dependencyConstraint).isForce(), false, false, true, false, dependencyConstraint.getReason());
@@ -64,10 +64,10 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
             DefaultModuleIdentifier.newId(nullToEmpty(dependencyConstraint.getGroup()), nullToEmpty(dependencyConstraint.getName())), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableList.of());
     }
 
-    private IvyDependencyDescriptorFactory findFactoryForDependency(ModuleDependency dependency) {
-        for (IvyDependencyDescriptorFactory ivyDependencyDescriptorFactory : dependencyDescriptorFactories) {
-            if (ivyDependencyDescriptorFactory.canConvert(dependency)) {
-                return ivyDependencyDescriptorFactory;
+    private DependencyMetadataConverter findFactoryForDependency(ModuleDependency dependency) {
+        for (DependencyMetadataConverter dependencyMetadataConverter : dependencyDescriptorFactories) {
+            if (dependencyMetadataConverter.canConvert(dependency)) {
+                return dependencyMetadataConverter;
             }
         }
         throw new InvalidUserDataException("Can't map dependency of type: " + dependency.getClass());

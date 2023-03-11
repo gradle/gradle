@@ -28,10 +28,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDependencyDescriptorFactory {
+public abstract class AbstractDependencyMetadataConverter implements DependencyMetadataConverter {
     private final ExcludeRuleConverter excludeRuleConverter;
 
-    public AbstractIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
+    public AbstractDependencyMetadataConverter(ExcludeRuleConverter excludeRuleConverter) {
         this.excludeRuleConverter = excludeRuleConverter;
     }
 
