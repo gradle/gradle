@@ -57,7 +57,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     private static final Type REGULAR_FILE_PROPERTY = Type.getType(RegularFileProperty.class);
     private static final Type DIRECTORY_PROPERTY = Type.getType(DirectoryProperty.class);
     private static final Type DEFAULT_TYPE = Type.getType(UpgradedProperty.SameAsGenericType.class);
-    private static final String INTERCEPTOR_DECLARATION_CLASS_NAME = "org.gradle.internal.classpath.InterceptorDeclaration_JvmBytecodeImplCodeQuality";
+    // TODO: Should be read from an annotation
+    private static final String INTERCEPTOR_DECLARATION_CLASS_NAME = "org.gradle.internal.classpath.InterceptorDeclaration_JvmBytecodeImplPropertyUpgrades";
 
     @Override
     public Collection<Result> readRequest(ExecutableElement input) {

@@ -28,9 +28,9 @@ import java.util.List;
 @SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME)
 public class InterceptorDeclaration {
     public static final String JVM_BYTECODE_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.InterceptorDeclaration_JvmBytecodeImpl";
-    public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CODE_QUALITY = JVM_BYTECODE_GENERATED_CLASS_NAME + "CodeQuality";
+    public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CODE_QUALITY = JVM_BYTECODE_GENERATED_CLASS_NAME + "PropertyUpgrades";
     public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.InterceptorDeclaration_GroovyInterceptorsImpl";
-    public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CODE_QUALITY = GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME + "CodeQuality";
+    public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CODE_QUALITY = GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME + "PropertyUpgrades";
 
     public static final List<String> JVM_BYTECODE_GENERATED_CLASS_NAMES = ImmutableList.of(
         JVM_BYTECODE_GENERATED_CLASS_NAME,

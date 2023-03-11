@@ -20,9 +20,9 @@ import org.gradle.internal.instrumentation.api.annotations.InterceptGroovyCalls;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
-import org.gradle.internal.instrumentation.api.annotations.UpgradedClassesRegistry;
-import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeClassGenerator;
+import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeClassGenerator;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.jvmbytecode.InterceptJvmCallsGenerator;
@@ -38,7 +38,6 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 import static org.gradle.internal.instrumentation.processor.AddGeneratedClassNameFlagFromClassLevelAnnotation.ifHasAnnotation;
 import static org.gradle.internal.instrumentation.processor.AddGeneratedClassNameFlagFromClassLevelAnnotation.ifHasExtraOfType;
@@ -49,7 +48,7 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
     @Override
     protected Collection<InstrumentationProcessorExtension> getExtensions() {
         return Arrays.asList(
-            (ClassLevelAnnotationsContributor) () -> Arrays.asList(SpecificJvmCallInterceptors.class, SpecificGroovyCallInterceptors.class),
+            (ClassLevelAnnotationsContributor) () -> Arrays.asList(SpecificJvmCallInterceptors.class, SpecificGroovyCallInterceptors.class, VisitForInstrumentation.class),
 
             new AnnotationCallInterceptionRequestReaderImpl(),
 
@@ -66,7 +65,6 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
             (CodeGeneratorContributor) InterceptGroovyCallsGenerator::new,
 
             // Properties upgrade extensions
-            (ClassLevelAnnotationsContributor) () -> Collections.singletonList(UpgradedClassesRegistry.class),
             new PropertyUpgradeAnnotatedMethodReader(),
             (CodeGeneratorContributor) PropertyUpgradeClassGenerator::new
         );
