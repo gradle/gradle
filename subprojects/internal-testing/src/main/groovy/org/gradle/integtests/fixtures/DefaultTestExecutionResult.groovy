@@ -114,6 +114,10 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         testNames.collect { removeParentheses(it) } as String[]
     }
 
+    static String[][] removeAllParentheses(String[]... testNames) {
+        testNames.collect { [removeParentheses(it[0]), it[1]] } as String[][]
+    }
+
     private class DefaultTestClassExecutionResult implements TestClassExecutionResult {
         List<TestClassExecutionResult> testClassResults
 
@@ -122,6 +126,11 @@ class DefaultTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestsExecuted(String... testNames) {
+            testClassResults*.assertTestsExecuted(removeAllParentheses(testNames))
+            this
+        }
+
+        TestClassExecutionResult assertTestsExecuted(String[]... testNames) {
             testClassResults*.assertTestsExecuted(removeAllParentheses(testNames))
             this
         }

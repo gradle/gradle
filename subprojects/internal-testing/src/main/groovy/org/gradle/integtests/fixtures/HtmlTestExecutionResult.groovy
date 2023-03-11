@@ -162,6 +162,14 @@ class HtmlTestExecutionResult implements TestExecutionResult {
             return this
         }
 
+        @Override
+        TestClassExecutionResult assertTestsExecuted(String[]... testNames) {
+            def executedAndNotSkipped = testsExecuted - testsSkipped
+            assert executedAndNotSkipped.containsAll(testNames.collect { new TestCase(it[0], it[1]) })
+            assert executedAndNotSkipped.size() == testNames.size()
+            return this
+        }
+
         TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
             assert tests == testsExecuted.size()
             assert failures == testsFailures.size()

@@ -18,6 +18,8 @@ package org.gradle.test.fixtures.junitplatform
 
 import groovy.io.FileType
 
+import java.util.regex.Pattern
+
 class JUnitPlatformTestRewriter {
 
     private static final Map REPLACEMENTS = Collections.unmodifiableMap([
@@ -44,15 +46,46 @@ class JUnitPlatformTestRewriter {
         'junit.framework.Assert': 'org.junit.jupiter.api.Assertions',
         'Assert.': 'Assertions.',
         'Assume.': 'Assumptions.',
+        'org.junit.experimental.categories.Category': 'org.junit.jupiter.api.Tag'
+    ])
+
+    private static final List<Closure> TRANSFORMS = Collections.unmodifiableList([
+        { String string ->
+            // This transform translates '@Category(...)' lines into one or more '@Tag()' lines using the name of the category class as the tag
+            // For example:
+            // @Category(org.gradle.Foo.class) -> @Tag("org.gradle.Foo")
+            // @Category({org.gradle.Foo.class, org.gradle.Bar.class}) -> @Tag("org.gradle.Foo")\n@Tag("org.gradle.Bar")
+
+            // First, capture the list of categories inside the category tag, which may be a single category
+            // or a list of categories inside '{...}'
+            StringBuilder result = new StringBuilder()
+            Pattern categoryTagPattern = Pattern.compile('@Category\\(\\{?([^}]*)}?\\)\n')
+            def matcher = categoryTagPattern.matcher(string)
+
+            // Then, replace each category class with an @Tag() annotation using the class name as the tag
+            int previous = 0
+            while (matcher.find()) {
+                def categories = matcher.group(1)
+                // prepend everything from the end of the previous @Category match until the beginning of the current @Category match
+                result.append(string, previous, matcher.start())
+                // append the transformed @Tag annotations
+                result.append(categories.replaceAll(',?\\s*([^,\\s]+)\\.class', '@Tag("$1")\n'))
+                previous = matcher.end()
+            }
+            // append everything after the last @Category match
+            result.append(string, previous, string.length())
+            return result.toString()
+        }
     ])
 
     static rewriteWithJupiter(File projectDir, String dependencyVersion) {
+        replaceCategoriesWithTagsInBuildFile(projectDir)
         rewriteBuildFileWithJupiter(projectDir, dependencyVersion)
         rewriteJavaFilesWithJupiterAnno(projectDir)
         rewriteJavaModuleFileWithJupiterRequires(projectDir)
     }
 
-    static replaceCategoriesWithTags(File projectDir) {
+    static replaceCategoriesWithTagsInBuildFile(File projectDir) {
         // http://junit.org/junit5/docs/current/user-guide/#migrating-from-junit4-categories-support
         File buildFile = new File(projectDir, 'build.gradle')
         if (buildFile.exists()) {
@@ -64,6 +97,7 @@ class JUnitPlatformTestRewriter {
     }
 
     static rewriteWithVintage(File projectDir, String dependencyVersion) {
+        replaceCategoriesWithTagsInBuildFile(projectDir)
         rewriteBuildFileWithVintage(projectDir, dependencyVersion)
     }
 
@@ -80,6 +114,9 @@ class JUnitPlatformTestRewriter {
             String text = it.text
             REPLACEMENTS.each { key, value ->
                 text = text.replace(key, value)
+            }
+            TRANSFORMS.each { transform ->
+                text = transform(text)
             }
             it.text = text
         }

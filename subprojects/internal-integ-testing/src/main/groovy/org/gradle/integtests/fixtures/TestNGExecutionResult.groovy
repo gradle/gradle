@@ -153,6 +153,11 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
         this
     }
 
+    @Override
+    TestClassExecutionResult assertTestsExecuted(String[] ... testNames) {
+        throw new UnsupportedOperationException("Unsupported.  Implement if you need it.")
+    }
+
     TestClassExecutionResult assertTestPassed(String name) {
         def testMethodNode = findTestMethod(name)
         assert testMethodNode.@status as String == 'PASS'
