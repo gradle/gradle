@@ -18,11 +18,11 @@ package org.gradle.internal.instrumentation.extensions.property;
 
 import org.gradle.internal.instrumentation.model.RequestExtra;
 
-class UpgradePropertyRequestExtra implements RequestExtra {
+class PropertyUpgradeRequestExtra implements RequestExtra {
     private final String implementationClassName;
     private final String interceptedPropertyGetterName;
 
-    public UpgradePropertyRequestExtra(String implementationClassName, String interceptedPropertyGetterName) {
+    public PropertyUpgradeRequestExtra(String implementationClassName, String interceptedPropertyGetterName) {
         this.implementationClassName = implementationClassName;
         this.interceptedPropertyGetterName = interceptedPropertyGetterName;
     }

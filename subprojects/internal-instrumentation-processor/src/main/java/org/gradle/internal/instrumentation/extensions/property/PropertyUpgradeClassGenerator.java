@@ -33,14 +33,14 @@ import java.util.stream.Collectors;
 
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 
-public class UpgradePropertyClassGenerator extends RequestGroupingInstrumentationClassGenerator {
+public class PropertyUpgradeClassGenerator extends RequestGroupingInstrumentationClassGenerator {
 
     private static final String SELF_PARAMETER_NAME = "self";
 
     @Override
     protected String classNameForRequest(CallInterceptionRequest request) {
-        return request.getRequestExtras().getByType(UpgradePropertyRequestExtra.class)
-            .map(UpgradePropertyRequestExtra::getImplementationClassName)
+        return request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class)
+            .map(PropertyUpgradeRequestExtra::getImplementationClassName)
             .orElse(null);
     }
 
@@ -52,15 +52,15 @@ public class UpgradePropertyClassGenerator extends RequestGroupingInstrumentatio
         Consumer<? super GenerationResult.HasFailures.FailureInfo> onFailure
     ) {
         List<MethodSpec> methods = requestsClassGroup.stream()
-            .map(UpgradePropertyClassGenerator::mapToMethodSpec)
+            .map(PropertyUpgradeClassGenerator::mapToMethodSpec)
             .collect(Collectors.toList());
         return builder -> builder.addModifiers(Modifier.PUBLIC).addMethods(methods);
     }
 
     private static MethodSpec mapToMethodSpec(CallInterceptionRequest request) {
-        UpgradePropertyRequestExtra implementationExtra = request.getRequestExtras()
-            .getByType(UpgradePropertyRequestExtra.class)
-            .orElseThrow(() -> new RuntimeException("UpgradePropertyImplementationClass should be present at this stage!"));
+        PropertyUpgradeRequestExtra implementationExtra = request.getRequestExtras()
+            .getByType(PropertyUpgradeRequestExtra.class)
+            .orElseThrow(() -> new RuntimeException(PropertyUpgradeRequestExtra.class.getSimpleName() + " should be present at this stage!"));
 
         CallableInfo callable = request.getInterceptedCallable();
         ImplementationInfo implementation = request.getImplementationInfo();
@@ -76,7 +76,7 @@ public class UpgradePropertyClassGenerator extends RequestGroupingInstrumentatio
             .build();
     }
 
-    private static CodeBlock generateMethodBody(ImplementationInfo implementation, UpgradePropertyRequestExtra implementationExtra) {
+    private static CodeBlock generateMethodBody(ImplementationInfo implementation, PropertyUpgradeRequestExtra implementationExtra) {
         String propertyGetterName = implementationExtra.getInterceptedPropertyGetterName();
         boolean isSetter = implementation.getName().startsWith("access_set_");
         if (isSetter) {
