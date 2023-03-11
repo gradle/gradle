@@ -22,6 +22,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * A method that can be used to visit classes for an instrumentation from other projects.
+ */
 @Retention(RetentionPolicy.CLASS)
 @Target({ElementType.TYPE})
 public @interface VisitForInstrumentation {
