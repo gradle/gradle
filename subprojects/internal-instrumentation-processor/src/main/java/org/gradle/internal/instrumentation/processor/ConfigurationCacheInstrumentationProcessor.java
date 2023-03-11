@@ -20,7 +20,9 @@ import org.gradle.internal.instrumentation.api.annotations.InterceptGroovyCalls;
 import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
-import org.gradle.internal.instrumentation.extensions.property.UpgradePropertyInstrumentationExtension;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedClassesRegistry;
+import org.gradle.internal.instrumentation.extensions.property.UpgradePropertyClassGenerator;
+import org.gradle.internal.instrumentation.extensions.property.UpgradePropertyAnnotatedMethodReader;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.jvmbytecode.InterceptJvmCallsGenerator;
@@ -36,6 +38,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import static org.gradle.internal.instrumentation.processor.AddGeneratedClassNameFlagFromClassLevelAnnotation.ifHasAnnotation;
 import static org.gradle.internal.instrumentation.processor.AddGeneratedClassNameFlagFromClassLevelAnnotation.ifHasExtraOfType;
@@ -61,7 +64,11 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
 
             (CodeGeneratorContributor) InterceptJvmCallsGenerator::new,
             (CodeGeneratorContributor) InterceptGroovyCallsGenerator::new,
-            new UpgradePropertyInstrumentationExtension()
+
+            // Properties upgrade extensions
+            (ClassLevelAnnotationsContributor) () -> Collections.singletonList(UpgradedClassesRegistry.class),
+            new UpgradePropertyAnnotatedMethodReader(),
+            (CodeGeneratorContributor) UpgradePropertyClassGenerator::new
         );
     }
 }
