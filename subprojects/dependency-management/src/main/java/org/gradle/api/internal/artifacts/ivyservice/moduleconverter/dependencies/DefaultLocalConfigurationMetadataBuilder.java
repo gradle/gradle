@@ -58,12 +58,14 @@ import java.util.Collection;
  * between DSL and internal metadata types.
  */
 public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurationMetadataBuilder {
-    private final DependencyDescriptorFactory dependencyDescriptorFactory;
+    private final DependencyMetadataFactory dependencyMetadataFactory;
     private final ExcludeRuleConverter excludeRuleConverter;
 
-    public DefaultLocalConfigurationMetadataBuilder(DependencyDescriptorFactory dependencyDescriptorFactory,
-                                                    ExcludeRuleConverter excludeRuleConverter) {
-        this.dependencyDescriptorFactory = dependencyDescriptorFactory;
+    public DefaultLocalConfigurationMetadataBuilder(
+        DependencyMetadataFactory dependencyMetadataFactory,
+        ExcludeRuleConverter excludeRuleConverter
+    ) {
+        this.dependencyMetadataFactory = dependencyMetadataFactory;
         this.excludeRuleConverter = excludeRuleConverter;
     }
 
@@ -176,7 +178,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         for (Dependency dependency : configuration.getDependencies()) {
             if (dependency instanceof ModuleDependency) {
                 ModuleDependency moduleDependency = (ModuleDependency) dependency;
-                dependencyBuilder.add(dependencyDescriptorFactory.createDependencyDescriptor(
+                dependencyBuilder.add(dependencyMetadataFactory.createDependencyMetadata(
                     componentId, configuration.getName(), attributes, moduleDependency
                 ));
             } else if (dependency instanceof FileCollectionDependency) {
@@ -188,7 +190,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         }
 
         for (DependencyConstraint dependencyConstraint : configuration.getDependencyConstraints()) {
-            dependencyBuilder.add(dependencyDescriptorFactory.createDependencyConstraintDescriptor(
+            dependencyBuilder.add(dependencyMetadataFactory.createDependencyConstraintMetadata(
                 componentId, configuration.getName(), attributes, dependencyConstraint)
             );
         }
