@@ -62,16 +62,7 @@ public abstract class AttributeConfigurationSelector {
 
         // Fallback to the default configuration if there are no variants or if variant aware resolution is not supported.
         if (!variantAware || variantsForGraphTraversal.get().isEmpty()) {
-            ConfigurationGraphResolveMetadata fallbackConfiguration = targetComponent.getConfiguration(Dependency.DEFAULT_CONFIGURATION);
-            if (fallbackConfiguration != null &&
-                fallbackConfiguration.isCanBeConsumed() &&
-                attributeMatcher.isMatching(fallbackConfiguration.getAttributes(), consumerAttributes)
-            ) {
-                return singleVariant(variantAware, ImmutableList.of(fallbackConfiguration));
-            }
-
-            AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
-            throw new NoMatchingConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, targetComponent, variantAware);
+            return selectDefaultConfiguration(consumerAttributes, consumerSchema, targetComponent, attributeMatcher, variantAware);
         }
 
         List<? extends VariantGraphResolveMetadata> allConsumableVariants = variantsForGraphTraversal.get();
@@ -125,6 +116,22 @@ public abstract class AttributeConfigurationSelector {
             AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
             throw new NoMatchingConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, targetComponent, true);
         }
+    }
+
+    private static VariantSelectionResult selectDefaultConfiguration(
+        ImmutableAttributes consumerAttributes, AttributesSchemaInternal consumerSchema,
+        ComponentGraphResolveMetadata targetComponent, AttributeMatcher attributeMatcher, boolean variantAware
+    ) {
+        ConfigurationGraphResolveMetadata fallbackConfiguration = targetComponent.getConfiguration(Dependency.DEFAULT_CONFIGURATION);
+        if (fallbackConfiguration != null &&
+            fallbackConfiguration.isCanBeConsumed() &&
+            attributeMatcher.isMatching(fallbackConfiguration.getAttributes(), consumerAttributes)
+        ) {
+            return singleVariant(variantAware, ImmutableList.of(fallbackConfiguration));
+        }
+
+        AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
+        throw new NoMatchingConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, targetComponent, variantAware);
     }
 
     @Nullable

@@ -37,6 +37,9 @@ public interface AttributeMatcher {
 
     <T> boolean isMatching(Attribute<T> attribute, T candidate, T requested);
 
+    /**
+     * Selects all matches from {@code candidates} that are compatible with the {@code requested} criteria attributes.
+     */
     <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, AttributeMatchingExplanationBuilder builder);
 
     List<MatchingDescription<?>> describeMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested);
