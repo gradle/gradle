@@ -15,40 +15,43 @@ Like other JVM projects, Gradle plugins are jar files with dependencies. Unlike 
 If you are writing convention plugins, this is usually not an issue. But if you distribute your plugins, you should pay attention to their compatibility.
 
 [[sec:gradle_api]]
-=== The Gradle API 
+=== The Gradle API
 
 All plugins use the https://docs.gradle.org/current/javadoc/index.html[Gradle Core API] to configure a Gradle build. The Gradle API must be added as a build compile-time dependency using the helper function `gradleApi()`
 
-```kotlin
+[source,kotlin]
+----
 dependencies {
     compileOnly(gradleApi())
 }
-```
+----
 
 TIP: `gradleApi()` must be a `compileOnly` dependency, because the correct Gradle API will be provided by Gradle at runtime.
 
-=== Version of the Gradle API Version
+==== Version of the Gradle API Version
 
-The Gradle API version provided by `gradleApi()` is the same as the version of Gradle used to build the plugin. 
+The Gradle API version provided by `gradleApi()` is the same as the version of Gradle used to build the plugin.
 
-For example, if the plugin is built using Gradle version 7.6.1, then `gradleApi()` also be version 7.6.1. If the plugin is later built with Gradle 8.0.2, then the `gradleApi()` will change to be version 8.0.2.
+For example, if the plugin is built using Gradle version 7.6.1, then `gradleApi()` also be version 7.6.1. If the plugin is later built with Gradle {gradleVersion}, then the `gradleApi()` will change to be version {gradleVersion}.
 
 This implicit link between affects the Gradle versions your plugin supports. It's easy to build a plugin using one version of Gradle that that has functions or classes that are not present in other versions of Gradle.
 
 This might result in runtime exceptions, such as `NoSuchMethodError`, if a plugin uses functionality of the Gradle API that is missing in the Gradle being used to run the plugin. This might happen the plugin is run by an older Gradle version that is missing a function or class, _or_ if the plugin uses function or class that has been removed in newer versions (which can happen when using deprecated or internal Gradle features).
 
-Supporting different versions of Gradle can be tested using TestKit[https://docs.gradle.org/current/userguide/test_kit.html#sub:gradle-runner-gradle-version].
+Supporting different versions of Gradle can be tested using https://docs.gradle.org/current/userguide/test_kit.html#sub:gradle-runner-gradle-version[TestKit].
 
 [[sec:redistributed_gradle_api]]
 === Redistributed Gradle API
 
 To avoid the implicit link on a Gradle version that comes with using `gradleApi()`, an alternative is to use the https://docs.nokee.dev/manual/gradle-plugin-development.html[Nokee redistributed Gradle API artifacts]. These are like `gradleApi()` except they allow specifying a specific version of the Gradle API.
 
-```kotlin
+[subs="attributes"]
+[source,kotlin]
+----
 dependencies {
-    compileOnly("dev.gradleplugins:gradle-api:8.0.2")
+    compileOnly("dev.gradleplugins:gradle-api:{gradleVersion}")
 }
-```
+----
 
 TIP: Because it is provided by Gradle at runtime, `gradle-api` must be a `compileOnly` dependency.
 
@@ -59,11 +62,12 @@ On the other hand, you cannot use newer APIs if your plugin is running on a rece
 [[sec:gradle_kotlin_dsl]]
 === gradleKotlinDsl()
 
-```kotlin
+[source,kotlin]
+----
 dependencies {
     compileOnly(gradleKotlinDsl())
 }
-```
+----
 
 The `gradleKotlinDsl()` contains helpers to work better with Kotlin.
 
@@ -80,50 +84,54 @@ It is part of the Gradle distribution. You will find it under `~/.gradle/wrapper
 
 When writing `build.gradle.kts`, `gradleKotlinDsl()` is in the classpath and provide helpers to work better with Kotlin.
 
-Note: Because it is provided by Gradle at runtime, `gradleKotlinDsl()` should be a `compileOnly` dependency.
+TIP: Because it is provided by Gradle at runtime, `gradle-api` must be a `compileOnly` dependency.
 
 [[sec:kotlin_stdlib]]
 === kotlin-stdlib
 
-```kotlin
+[source,kotlin]
+----
 dependencies {
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:$version")
 }
-```
+----
 
 The Kotlin compatibility matrix can be found in the https://docs.gradle.org/current/userguide/compatibility.html#kotlin[Gradle compatibility page]. If you want your plugin to be compatible with a given version of Gradle, you need to make sure to use a compatible version of kotlin-stdlib. For an example, if you need your plugin to be compatible with Gradle 7.0, you cannot use any Kotlin 1.5 only API (like https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.text/lowercase.htmllowercase) and need to compile against `kotlin-stdlib:1.4.31`.
 
-```kotlin
+[source,kotlin]
+----
 dependencies {
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:1.4.31")
 }
-```
+----
 
 For similar reasons, any transitive dependency of your plugin needs to use a `kotlin-stdlib` version compatible with the Gradle one. While you can ensure that at compile time for your own code, it's often more complicated for dependencies so make sure to test your plugins and/or double check your transitive dependencies.
 
 Note: The `kotlin-stdlib` version is independent of your Kotlin Gradle Plugin version. You can use a newer Kotlin Stdlib version with an older `kotlin-stdlib` using the `apiVersion` compiler argument.
 
-Note: Because it is provided by Gradle at runtime, `kotlin-stdlib` should be a `compileOnly` dependency.
+TIP: Because it is provided by Gradle at runtime, `gradle-api` must be a `compileOnly` dependency.
 
 [[sec:kotlin_reflect]]
 === kotlin-reflect
 
-```kotlin
+[source,kotlin]
+----
 dependencies {
     compileOnly("org.jetbrains.kotlin:kotlin-reflect:$version")
 }
-```
+----
 
 Not all plugins need `kotlin-reflect` but if yours does, the situation is the same as for `kotlin-stdlib`. `kotlin-reflect` needs to be compatible with the https://docs.gradle.org/current/userguide/compatibility.html#kotlin[target Gradle version]
 
-Note: Because it is provided by Gradle at runtime, `kotlin-reflect` should be a `compileOnly` dependency.
+TIP: Because it is provided by Gradle at runtime, `gradle-api` must be a `compileOnly` dependency.
 
 [[sec:others]]
 === others (`implementation` or `api`)
 
 You can add other non-compileOnly dependencies like in other JVM projects:
 
-```kotlin
+[source,kotlin]
+----
 dependencies {
     // Kotlin dependencies
     // ⚠️ make sure they do not depend on an incompatible version of kotlin-stdlib
@@ -132,10 +140,9 @@ dependencies {
     // Java dependencies
     implementation("asm:asm:3.3.1")
 }
-```
+----
 
 These dependencies are not provided by Gradle at runtime and should use the `implementation` configuration (or `api` if part of your plugin API). Because Gradle may load different plugins with conflicting dependencies in the same https://dev.to/autonomousapps/build-compile-run-a-crash-course-in-classpaths-f4g[classloader], your plugin users may experience crashes if symbols are incompatible or missing. To mitigate those, you can relocate your dependencies.
-
 
 [[sec:compiler_options]]
 == Different compiler configurations
@@ -147,7 +154,8 @@ You can choose different options to either improve the developer experience of w
 
 Gradle comes with the https://docs.gradle.org/current/javadoc/org/gradle/api/HasImplicitReceiver.html[@HasImplicitReceiver] annotation. When used in conjunction with Kotlin https://kotlinlang.org/docs/sam-with-receiver-plugin.html[sam-with-receiver compiler plugin], it can turn the parameter of https://kotlinlang.org/docs/fun-interfaces.html[Single Abstract Method (SAM)] interfaces like https://docs.gradle.org/current/javadoc/org/gradle/api/Action.html[Action] into implicit receiver making your code look more like a DSL:
 
-```kotlin
+[source,kotlin]
+----
 // Without sam-with-receiver
 tasks.register("hello") { task ->
     // You need to use the lambda parameter
@@ -163,7 +171,7 @@ tasks.register("hello") {
         println("Hello World")
     }
 }
-```
+----
 
 The latter looks closer to `build.gradle.kts` scripts and more concise but is more prone to scoping errors as well.
 
@@ -174,7 +182,7 @@ The latter looks closer to `build.gradle.kts` scripts and more concise but is mo
 The `kotlin-assignment` compiler plugin is still experimental. It allows overriding assignments so that Kotlin callers do not have to call `.set()` on https://docs.gradle.org/current/javadoc/org/gradle/api/provider/Property.html[Property]:
 
 
-```
+----
 // Without kotlin-asignment
 tasks.jar.configure {
     // You need to call .set()
@@ -186,7 +194,7 @@ tasks.jar.configure {
     // No need to call .set()
     archiveBaseName = "mylib"
 }
-```
+----
 
 [[sec:api_version]]
 === `apiVersion` compiler option
@@ -201,12 +209,13 @@ Note: while this enforces your code is compatible with a given version of Kotlin
 `-Xsam-conversions=class` sets up the implementation strategy for SAM (single abstract method) conversion to always generate anonymous classes, instead of using the `invokedynamic` JVM instruction. This is to make sure the lambdas are serializable and provide a better support for configuration cache and incremental build. This is particularly important for lambdas used from `doLast:
 See https://github.com/gradle/gradle/issues/17052[Issue #17052] for more information.
 
-```kotlin
+[source,kotlin]
+----
 // Without `-Xsam-conversions=class` task will never be up-to-date
 task.doLast {
     // Something
 }
-```
+----
 
 
 [[sec:plugins_for_your_plugins]]
@@ -271,9 +280,9 @@ Use this plugin if you want to use the same Kotlin version to develop your plugi
 * sets `apiVersion` and `languageVersion` to the Kotlin embedded version
 * adds the `-Xsam-conversions=class` compiler option
 * adds others compiler options for compatibility:
-  * `-java-parameters` to support https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Parameter.html[Java 8 Parameter] class and getting method parameters through reflection
-  * `-Xjvm-default=all` to add link:https://kotlinlang.org/docs/java-to-kotlin-interop.html#default-methods-in-interfaces[Default methods in interfaces]
-  * `-Xjsr305=strict` for https://kotlinlang.org/docs/java-interop.html#compiler-configuration[increased null safety]
+** `-java-parameters` to support https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Parameter.html[Java 8 Parameter] class and getting method parameters through reflection
+** `-Xjvm-default=all` to add link:https://kotlinlang.org/docs/java-to-kotlin-interop.html#default-methods-in-interfaces[Default methods in interfaces]
+** `-Xjsr305=strict` for https://kotlinlang.org/docs/java-interop.html#compiler-configuration[increased null safety]
 
 
 The `kotlin-dsl` plugin is the-all-in-one plugin. By applying the `kotlin-dsl-precompiled-script-plugins` and the same options as Gradle when compiling scripts, it allows you to write plugin like you would write scripts, using `.gradle.kts` file.
@@ -295,7 +304,8 @@ Do not use Kotlin function types in your API. Groovy doesn't know about Kotlin a
 
 Instead, use an `Action<T>` parameter. Decorated Gradle objects contain an overload for every function that takes an `Action<T>` parameter:
 
-```kotlin
+[source,kotlin]
+----
 class Something
 
 abstract class MyExtension {
@@ -305,14 +315,15 @@ abstract class MyExtension {
         //
     }
 }
-```
+----
 
 In order for the overload to be generated, the object must be constructed by Gradle. For an example:
 
-```kotlin
+[source,kotlin]
+----
 abstract class MyPlugin: Plugin<Project> {
   override fun apply(project: Project) {
     project.extensions.create("myExtension", MyExtension::class.java)
   }
 }
-```
+----
