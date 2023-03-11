@@ -2,7 +2,7 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "A code quality instrumentation for property upgrades"
+description = "Contains declarations for instrumentation code, like interceptors etc."
 
 dependencies {
     compileOnly(project(":core"))

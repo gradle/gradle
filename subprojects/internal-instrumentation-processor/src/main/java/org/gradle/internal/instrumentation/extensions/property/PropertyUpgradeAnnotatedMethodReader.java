@@ -51,7 +51,7 @@ import java.util.Optional;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.METHOD_PARAMETER;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
 
-public class UpgradePropertyAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
+public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodReaderExtension {
 
     private static final Type PROPERTY = Type.getType(Property.class);
     private static final Type REGULAR_FILE_PROPERTY = Type.getType(RegularFileProperty.class);
@@ -120,7 +120,7 @@ public class UpgradePropertyAnnotatedMethodReader implements AnnotatedMethodRead
         extras.add(new RequestExtra.OriginatingElement(method));
         extras.add(new RequestExtra.InterceptJvmCalls(INTERCEPTOR_DECLARATION_CLASS_NAME));
         String implementationClass = getGeneratedClassName(method.getEnclosingElement());
-        extras.add(new UpgradePropertyRequestExtra(implementationClass, method.getSimpleName().toString()));
+        extras.add(new PropertyUpgradeRequestExtra(implementationClass, method.getSimpleName().toString()));
         return extras;
     }
 

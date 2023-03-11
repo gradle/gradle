@@ -22,5 +22,5 @@ import org.gradle.internal.instrumentation.api.annotations.UpgradedClassesRegist
 
 @UpgradedClassesRegistry
 @VisitForInstrumentation(value = {Checkstyle.class})
-public interface InstrumentationRegistry {
+public interface PropertyUpgradeInstrumentationRegistry {
 }
