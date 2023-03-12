@@ -1,6 +1,6 @@
 = Writing Gradle plugins in Kotlin
 
-In addition to <<kotlin_dsl.adoc, writing build scripts scripts>>, Gradle also supports writing plugins in https://www.jetbrains.com/opensource/kotlin/[Kotlin].
+In addition to <<kotlin_dsl.adoc, writing build scripts>>, Gradle also supports writing plugins in https://www.jetbrains.com/opensource/kotlin/[Kotlin].
 
 There are multiple options to write your Kotlin plugins as well as multiple compatibility considerations. This page is non-exhaustive list of dependencies and compiler configurations and their impacts in terms of compatibility and usability.
 
