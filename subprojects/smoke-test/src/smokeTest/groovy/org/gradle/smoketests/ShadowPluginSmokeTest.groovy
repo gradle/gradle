@@ -16,7 +16,6 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -50,19 +49,15 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             """.stripIndent()
 
         when:
-        def result = runnerWithExpectedDeprecationWarning('shadowJar').build()
+        def result = runner('shadowJar').build()
 
         then:
         result.task(':shadowJar').outcome == SUCCESS
         assertConfigurationCacheStateStored()
 
         when:
-        runnerWithExpectedDeprecationWarning('clean').build()
-        if (GradleContextualExecuter.configCache) {
-            result = runner('shadowJar').build()
-        } else {
-            result = runnerWithExpectedDeprecationWarning('shadowJar').build()
-        }
+        runner('clean').build()
+        result = runner('shadowJar').build()
 
         then:
         result.task(':shadowJar').outcome == SUCCESS
@@ -78,12 +73,4 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             'com.github.johnrengelman.shadow': TestedVersions.shadow
         ]
     }
-
-    private def runnerWithExpectedDeprecationWarning(String... tasks) {
-        def smokeTestRunner = runner(tasks)
-        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
-        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
-        smokeTestRunner
-    }
-
 }
