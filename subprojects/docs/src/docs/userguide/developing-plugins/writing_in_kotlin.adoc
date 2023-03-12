@@ -107,9 +107,9 @@ dependencies {
 
 For similar reasons, any transitive dependency of your plugin needs to use a `kotlin-stdlib` version compatible with the Gradle one. While you can ensure that at compile time for your own code, it's often more complicated for dependencies so make sure to test your plugins and/or double check your transitive dependencies.
 
-Note: The `kotlin-stdlib` version is independent of your Kotlin Gradle Plugin version. You can use a newer Kotlin Stdlib version with an older `kotlin-stdlib` using the `apiVersion` compiler argument.
+Note: The `kotlin-stdlib` version is independent of your Kotlin Gradle Plugin version. You can use a newer Kotlin Gradle Plugin version with an older `kotlin-stdlib` using the https://kotlinlang.org/docs/compiler-reference.html#api-version-version[`apiVersion`] compiler argument.
 
-TIP: Because it is provided by Gradle at runtime, `gradle-api` must be a `compileOnly` dependency.
+TIP: Because it is provided by Gradle at runtime, `kotlin-stdlib` must be a `compileOnly` dependency.
 
 [[sec:kotlin_reflect]]
 === kotlin-reflect
