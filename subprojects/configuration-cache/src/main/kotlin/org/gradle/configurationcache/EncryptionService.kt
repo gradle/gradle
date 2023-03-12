@@ -67,49 +67,61 @@ class DefaultEncryptionService(
 ) : EncryptionService {
 
     private
-    val encryptingRequested: Boolean = startParameter.encryptionRequested
-
-    private
     val secretKey: SecretKey? by lazy {
-        val keySource = this.keySource
-        if (keySource == null)
-            null
-        else {
-            try {
-                keySource.getKey(cacheBuilderFactory).also {
-                    val keyLength = it.encoded.size
-                    if (keyLength < 16) {
-                        throw InvalidKeyException("Encryption key length is $keyLength bytes, but must be at least 16 bytes long")
+        when {
+            // encryption is on by default
+            startParameter.encryptionRequested -> {
+                secretKeySourceFrom(startParameter).let { keySource ->
+                    try {
+                        secretKeyFrom(keySource, cacheBuilderFactory).also { key ->
+                            val keyLength = key.encoded.size
+                            if (keyLength < 16) {
+                                throw InvalidKeyException("Encryption key length is $keyLength bytes, but must be at least 16 bytes long")
+                            }
+                            // acquire a cipher just to validate the key
+                            encryptionAlgorithm.newSession(key).encryptingCipher {}
+                        }
+                    } catch (e: EncryptionException) {
+                        if (e.message != null) {
+                            throw e
+                        }
+                        throw EncryptionException("Error loading encryption key from ${keySource.sourceDescription}", e.cause)
+                    } catch (e: Exception) {
+                        throw EncryptionException("Error loading encryption key from ${keySource.sourceDescription}", e)
                     }
-                    // acquire a cipher just to validate the key
-                    encryptionAlgorithm.newSession(it).encryptingCipher {}
                 }
-            } catch (e: EncryptionException) {
-                if (e.message != null) {
-                    throw e
-                }
-                throw EncryptionException("Error loading encryption key from ${keySource.sourceDescription}", e.cause)
-            } catch (e: Exception) {
-                throw EncryptionException("Error loading encryption key from ${keySource.sourceDescription}", e)
+            }
+
+            else -> {
+                null
             }
         }
     }
+
+    private
+    fun secretKeyFrom(keySource: KeyStoreKeySource, cacheBuilderFactory: GlobalScopedCacheBuilderFactory) =
+        // JKS does not support non-PrivateKeys
+        cacheBuilderFactory
+            .run { keySource.customKeyStoreDir?.let { createCacheBuilderFactory(it) } ?: this }
+            .createCacheBuilder("keystore")
+            .withDisplayName("Gradle keystore")
+            .withLockOptions(exclusiveLockMode())
+            .open().use { cache ->
+                val keyStoreFile = File(cache.baseDir, "gradle.keystore")
+                keySource.loadOrCreateKey(keyStoreFile)
+            }
+
+    private
+    fun exclusiveLockMode(): LockOptionsBuilder =
+        LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive)
 
     override
     val encryptionAlgorithm: EncryptionAlgorithm by lazy {
         SupportedEncryptionAlgorithm.byTransformation(startParameter.encryptionAlgorithm)
     }
 
-    private
-    val keySource: SecretKeySource? by lazy {
-        if (encryptingRequested)
-            sourceKeyFromKeyStore(startParameter)
-        else
-            null
-    }
-
     override val isEncrypting: Boolean
-        by lazy { encryptingRequested && secretKey != null }
+        get() = secretKey != null
 
     override val encryptionKeyHashCode: HashCode by lazy {
         secretKey?.let {
@@ -122,10 +134,7 @@ class DefaultEncryptionService(
 
     private
     fun shouldEncryptStreams(stateType: StateType) =
-        isEncrypting && isStateEncryptable(stateType)
-
-    private
-    fun isStateEncryptable(stateType: StateType) = isEncrypting && stateType.encryptable
+        isEncrypting && stateType.encryptable
 
     override fun outputStream(stateType: StateType, output: () -> OutputStream): OutputStream =
         if (shouldEncryptStreams(stateType))
@@ -152,57 +161,42 @@ class DefaultEncryptionService(
     }
 
     private
-    fun sourceKeyFromKeyStore(startParameter: ConfigurationCacheStartParameter): SecretKeySource =
-        KeyStoreKeySource.fromKeyStore(
+    fun secretKeySourceFrom(startParameter: ConfigurationCacheStartParameter) =
+        KeyStoreKeySource(
             encryptionAlgorithm = encryptionAlgorithm.algorithm,
-            keyStorePath = startParameter.keystoreDir?.let { File(it) },
+            customKeyStoreDir = startParameter.keystoreDir?.let { File(it) },
+            keyAlias = "gradle-secret"
         )
 }
 
 
-interface SecretKeySource {
-    fun getKey(cacheBuilderFactory: GlobalScopedCacheBuilderFactory): SecretKey
-    val sourceDescription: String
-}
-
-
 class KeyStoreKeySource(
-    private val encryptionAlgorithm: String,
-    private val customKeyStoreDir: File?,
-    private val keyAlias: String,
-) : SecretKeySource {
+    val encryptionAlgorithm: String,
+    val customKeyStoreDir: File?,
+    val keyAlias: String,
+) {
 
     private
     val keyProtection = KeyStore.PasswordProtection(CharArray(0))
 
-    override val sourceDescription: String
+    val sourceDescription: String
         get() = customKeyStoreDir?.let { "custom Java keystore at $it" }
             ?: "default Gradle keystore"
 
-    override fun getKey(cacheBuilderFactory: GlobalScopedCacheBuilderFactory): SecretKey {
-        // JKS does not support non-PrivateKeys
-        val ks = KeyStore.getInstance(KEYSTORE_TYPE)
-        return cacheBuilderFactory
-            .run { customKeyStoreDir?.let { createCacheBuilderFactory(it) } ?: this }
-            .createCacheBuilder("keystore")
-            .withDisplayName("Gradle keystore")
-            .withLockOptions(exclusiveLockMode())
-            .open().use {
-                secretKey(File(it.baseDir, "gradle.keystore"), ks)
-            }
+    fun loadOrCreateKey(keyStoreFile: File) =
+        secretKey(keyStoreFile, KeyStore.getInstance(KEYSTORE_TYPE))
+
+    private
+    fun secretKey(keyStoreFile: File, ks: KeyStore) = when {
+        keyStoreFile.isFile -> loadSecretKeyFromExistingKeystore(keyStoreFile, ks)
+        else -> createKeyStoreAndGenerateKey(keyStoreFile, ks)
     }
 
     private
-    fun secretKey(keyStorePath: File, ks: KeyStore) = when {
-        keyStorePath.isFile -> loadSecretKeyFromExistingKeystore(keyStorePath, ks)
-        else -> createKeyStoreAndGenerateKey(keyStorePath, ks)
-    }
-
-    private
-    fun loadSecretKeyFromExistingKeystore(keyStorePath: File, ks: KeyStore): SecretKey {
-        logger.info("Loading keystore from {}", keyStorePath)
-        keyStorePath.inputStream().use { fis ->
-            ks.load(fis, CharArray(0))
+    fun loadSecretKeyFromExistingKeystore(keyStoreFile: File, ks: KeyStore): SecretKey {
+        logger.info("Loading keystore from {}", keyStoreFile)
+        keyStoreFile.inputStream().use { fis ->
+            ks.load(fis, null)
         }
         val entry = ks.getEntry(keyAlias, keyProtection) as KeyStore.SecretKeyEntry?
         if (entry != null) {
@@ -211,46 +205,33 @@ class KeyStoreKeySource(
             }
         }
         logger.debug("No key found")
-        return generateKey(keyStorePath, ks, keyAlias).also {
-            logger.warn("Key added to existing keystore at {}", keyStorePath)
+        return generateKey(keyStoreFile, ks, keyAlias).also {
+            logger.warn("Key added to existing keystore at {}", keyStoreFile)
         }
     }
 
     private
-    fun createKeyStoreAndGenerateKey(keyStorePath: File, ks: KeyStore): SecretKey {
+    fun createKeyStoreAndGenerateKey(keyStoreFile: File, ks: KeyStore): SecretKey {
         logger.debug("No keystore found")
-        ks.load(null, CharArray(0))
-        return generateKey(keyStorePath, ks, keyAlias).also {
-            logger.debug("Key added to a new keystore at {}", keyStorePath)
+        ks.load(null, null)
+        return generateKey(keyStoreFile, ks, keyAlias).also {
+            logger.debug("Key added to a new keystore at {}", keyStoreFile)
         }
     }
 
     private
-    fun exclusiveLockMode(): LockOptionsBuilder =
-        LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive)
-
-    private
-    fun generateKey(keyStorePath: File, ks: KeyStore, alias: String): SecretKey {
+    fun generateKey(keyStoreFile: File, ks: KeyStore, alias: String): SecretKey {
         val newKey = KeyGenerator.getInstance(encryptionAlgorithm).generateKey()!!
         logger.info("Generated key")
         val entry = KeyStore.SecretKeyEntry(newKey)
         ks.setEntry(alias, entry, keyProtection)
-        keyStorePath.outputStream().use { fos ->
-            ks.store(fos, CharArray(0))
+        keyStoreFile.outputStream().use { fos ->
+            ks.store(fos, null)
         }
         return newKey
     }
 
     companion object {
         const val KEYSTORE_TYPE = "pkcs12"
-
-        fun fromKeyStore(
-            encryptionAlgorithm: String,
-            keyStorePath: File?,
-        ): SecretKeySource = KeyStoreKeySource(
-            encryptionAlgorithm,
-            keyStorePath,
-            "gradle-secret"
-        )
     }
 }
