@@ -36,7 +36,7 @@ For example, if the plugin is built using Gradle version 7.6.1, then `gradleApi(
 
 This implicit link between affects the Gradle versions your plugin supports. It's easy to build a plugin using one version of Gradle that that has functions or classes that are not present in other versions of Gradle.
 
-This might result in runtime exceptions, such as `NoSuchMethodError`, if a plugin uses functionality of the Gradle API that is missing in the Gradle being used to run the plugin. This might happen the plugin is run by an older Gradle version that is missing a function or class, _or_ if the plugin uses function or class that has been removed in newer versions (which can happen when using deprecated or internal Gradle features).
+This might result in runtime exceptions, such as `NoSuchMethodError`, if a plugin uses a functionality of the Gradle API that is missing in the Gradle being used to run the plugin. This might happen the plugin is run by an older Gradle version that is missing a function or class, _or_ if the plugin uses a function or class that has been removed in newer versions (which can happen when using deprecated or internal Gradle features).
 
 Supporting different versions of Gradle can be tested using https://docs.gradle.org/current/userguide/test_kit.html#sub:gradle-runner-gradle-version[TestKit].
 
