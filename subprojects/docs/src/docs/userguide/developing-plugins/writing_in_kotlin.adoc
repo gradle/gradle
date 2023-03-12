@@ -84,7 +84,7 @@ It is part of the Gradle distribution. You will find it under `~/.gradle/wrapper
 
 When writing `build.gradle.kts`, `gradleKotlinDsl()` is in the classpath and provide helpers to work better with Kotlin.
 
-TIP: Because it is provided by Gradle at runtime, `gradle-api` must be a `compileOnly` dependency.
+TIP: Because it is provided by Gradle at runtime, `gradleKotlinDsl()` must be a `compileOnly` dependency.
 
 [[sec:kotlin_stdlib]]
 === kotlin-stdlib
