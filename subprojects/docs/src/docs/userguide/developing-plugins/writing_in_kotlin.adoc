@@ -247,7 +247,7 @@ Let's see what each plugin is doing.
 * performs validation of plugin metadata during `jar` task execution.
 * adds the `gradleTestKit()` dependency to the `testImplementation` configuration
 
-You usually always want this plugin to develop custom Gradle plugins (although other plugins might apply it for you). Refer to the full <<java_gradle_plugin.adoc, documentation>> for more information.
+You always want this plugin to develop custom Gradle plugins (although other plugins might apply it for you). Refer to the full <<java_gradle_plugin.adoc, documentation>> for more information.
 
 [[sec:kotlin_jvm]]
 === The `kotlin("jvm")` plugin
