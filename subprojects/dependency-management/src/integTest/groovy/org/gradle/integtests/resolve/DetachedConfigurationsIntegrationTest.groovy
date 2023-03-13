@@ -133,4 +133,20 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         expect:
         run "checkDependencies"
     }
+
+    def "configurations container reserves name #name for detached configurations"() {
+        given:
+        buildFile << """
+            configurations {
+                $name
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Configuration name '$name' is reserved for detached configurations. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Use a different name for this configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#reserved_configuration_names")
+        succeeds "help"
+
+        where:
+        name << ["detachedConfiguration", "detachedConfiguration1", "detachedConfiguration22902"]
+    }
 }

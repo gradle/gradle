@@ -86,6 +86,13 @@ This change is part of a larger ongoing effort to make the intended behavior of 
 
 The ability to change the allowed usage of a configuration after creation will be removed in Gradle 9.0.
 
+[[reserved_configuration_names]]
+==== Reserved configuration names
+
+Configuration names "detachedConfiguration" and "detachedConfigurationX" (where X is any integer) are reserved for internal use when creating detached configurations.
+
+The ability to create non-detached configurations with these names will be removed in Gradle 9.0.
+
 [[java_extension_without_java_component]]
 ==== Calling select methods on the `JavaPluginExtension` without the `java` component present
 

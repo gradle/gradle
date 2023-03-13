@@ -40,6 +40,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.internal.VcsMappingsStore;
@@ -48,10 +49,12 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration> implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
+    private static final Pattern RESERVED_NAMES_FOR_DETACHED_CONFS = Pattern.compile(DETACHED_CONFIGURATION_DEFAULT_NAME + "\\d*");
 
     @SuppressWarnings("deprecation")
     private static final ConfigurationRole DEFAULT_ROLE_TO_CREATE = ConfigurationRoles.LEGACY;
@@ -175,8 +178,20 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     private ConfigurationInternal doCreate(String name, ConfigurationRole role, boolean lockUsage) {
+        validateNameIsAllowed(name);
         DefaultConfiguration configuration = newConfiguration(name, this, rootComponentMetadataBuilder, role, lockUsage);
         configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return configuration;
+    }
+
+    private void validateNameIsAllowed(String name) {
+        if (RESERVED_NAMES_FOR_DETACHED_CONFS.matcher(name).matches()) {
+            String message = String.format("Configuration name '%s' is reserved for detached configurations.", name);
+            DeprecationLogger.deprecateBehaviour(message)
+                    .withAdvice("Use a different name for this configuration.")
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "reserved_configuration_names")
+                    .nagUser();
+        }
     }
 }
