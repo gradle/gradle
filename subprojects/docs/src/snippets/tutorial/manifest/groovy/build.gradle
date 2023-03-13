@@ -13,12 +13,12 @@ jar {
 // end::add-to-manifest[]
 
 // tag::custom-manifest[]
-ext.sharedManifest = manifest {
+def sharedManifest = java.manifest {
     attributes("Implementation-Title": "Gradle",
                "Implementation-Version": version)
 }
 tasks.register('fooJar', Jar) {
-    manifest = project.manifest {
+    manifest = java.manifest {
         from sharedManifest
     }
 }
