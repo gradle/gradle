@@ -705,12 +705,28 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds 'help'
 
         where:
-        desc                                                        | confCreationCode                                                                                       | usage                | isSetMethod                   | setMethod
-        "using create to make an implicitly LEGACY configuration"   | "create('test')"                                                                                       | "consumable"         | "isCanBeConsumed()"           | "setCanBeConsumed(true)"
-        "using consumable to make a configuration"                  | "consumable('test')"                                                                                   | "consumable"         | "isCanBeConsumed()"           | "setCanBeConsumed(true)"
-        "using resolvable to make a configuration"                  | "resolvable('test')"                                                                                   | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
-        "using resolvable_bucket to make a configuration"           | "createWithRole('test', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"                                | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
-        "using consumable_bucket to make a configuration"           | "createWithRole('test', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"                                | "declarable against" | "isCanBeDeclaredAgainst()"    | "setCanBeDeclaredAgainst(true)"
+        desc                                                | confCreationCode                                                          | usage                | isSetMethod                   | setMethod
+        "using consumable to make a configuration"          | "consumable('test')"                                                      | "consumable"         | "isCanBeConsumed()"           | "setCanBeConsumed(true)"
+        "using resolvable to make a configuration"          | "resolvable('test')"                                                      | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
+        "using resolvable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"   | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
+        "using consumable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"   | "declarable against" | "isCanBeDeclaredAgainst()"    | "setCanBeDeclaredAgainst(true)"
+    }
+
+    def "redundantly calling #setMethod on a configuration that is already #isSetMethod does not warn when #desc"() {
+        given:
+        buildFile << """
+            def test = configurations.$confCreationCode
+            assert test.$isSetMethod
+            test.$setMethod
+        """
+
+        expect:
+        succeeds 'help'
+
+        where:
+        desc                                                        | confCreationCode              | usage                | isSetMethod            | setMethod
+        "using create to make an implicitly LEGACY configuration"   | "create('test')"              | "consumable"         | "isCanBeConsumed()"    | "setCanBeConsumed(true)"
+        "creating a detachedConfiguration"                          | "detachedConfiguration()"     | "consumable"         | "isCanBeConsumed()"    | "setCanBeConsumed(true)"
     }
     // endregion Warnings
 
