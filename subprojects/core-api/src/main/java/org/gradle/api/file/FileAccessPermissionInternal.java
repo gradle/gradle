@@ -18,6 +18,10 @@ package org.gradle.api.file;
 
 public interface FileAccessPermissionInternal extends FileAccessPermission {
 
+    /**
+     * Returns the Unix permissions of a file or directory, for a certain group of users,
+     * see {@link FileAccessPermission}.
+     */
     int toMode();
 
 }

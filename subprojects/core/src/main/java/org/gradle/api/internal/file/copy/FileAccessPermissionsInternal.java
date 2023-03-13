@@ -21,7 +21,8 @@ import org.gradle.api.file.FileAccessPermissions;
 public interface FileAccessPermissionsInternal extends FileAccessPermissions {
 
     /**
-     * Returns the Unix permissions of this file, e.g. {@code 0644}.
+     * Returns the Unix permissions of a file or directory, e.g. {@code 0644},
+     * see {@link FileAccessPermissions}.
      */
     int toMode();
 
