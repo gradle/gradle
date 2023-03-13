@@ -38,4 +38,6 @@ public interface BuildOption<T> extends Option {
     void configure(CommandLineParser parser);
 
     void applyFromCommandLine(ParsedCommandLine options, T settings);
+
+    String getDeprecatedGradleProperty();
 }

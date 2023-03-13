@@ -19,6 +19,7 @@ package org.gradle.configurationcache
 import com.google.common.primitives.Bytes
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
+import spock.lang.Ignore
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileVisitOption
@@ -31,6 +32,7 @@ import static org.gradle.configurationcache.EnvironmentVarKeySource.GRADLE_ENCRY
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.matchesRegexp
 
+@Ignore("Disabled in 8.1")
 class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     String encryptionKeyText
     String encryptionKeyAsBase64

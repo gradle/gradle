@@ -35,7 +35,9 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
             ${mavenCentralRepository()}
 
-            project.setProperty('applicationDefaultJvmArgs', ['-DFOO=42'])
+            application {
+                applicationDefaultJvmArgs = ['-DFOO=42']
+            }
 
             dependencies {
                 implementation 'org.springframework.boot:spring-boot-starter'
@@ -76,14 +78,21 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         """
 
         when:
-        def buildResult = runner('assembleBootDist', 'check').build()
+        def smokeTestRunner = runner('assembleBootDist', 'check')
+        // verified manually: the 3.0.2 version of Spring Boot plugin removed the deprecated API usage
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
+        def buildResult = smokeTestRunner.build()
 
         then:
         buildResult.task(':assembleBootDist').outcome == SUCCESS
         buildResult.task(':check').outcome == SUCCESS
 
         when:
-        def runResult = runner('bootRun').build()
+        smokeTestRunner = runner('bootRun')
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.PROJECT_CONVENTION_DEPRECATION)
+        smokeTestRunner.expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
+        def runResult = smokeTestRunner.build()
 
         then:
         runResult.task(':bootRun').outcome == SUCCESS

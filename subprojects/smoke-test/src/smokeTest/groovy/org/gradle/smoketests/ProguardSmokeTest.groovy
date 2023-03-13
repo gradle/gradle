@@ -18,8 +18,6 @@ package org.gradle.smoketests
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR
-
 class ProguardSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
     @Override
     Map<String, Versions> getPluginsToValidate() {
@@ -44,7 +42,7 @@ class ProguardSmokeTest extends AbstractPluginValidatingSmokeTest implements Val
             }
 
             dependencies {
-                implementation 'com.guardsquare:proguard-gradle:7.0.0'
+                implementation 'com.guardsquare:proguard-gradle:${TestedVersions.proguardGradle}'
             }
 
             // Configure the validation task here, since there is no ProGuard plugin
@@ -61,59 +59,12 @@ class ProguardSmokeTest extends AbstractPluginValidatingSmokeTest implements Val
                 dependsOn(validationTask)
             }
         """
-        def propertiesWithoutAnnotations = [
-            'adaptclassstrings',
-            'adaptresourcefilecontents',
-            'adaptresourcefilenames',
-            'addconfigurationdebugging',
-            'allowaccessmodification',
-            'android',
-            'configurationFiles',
-            'dontnote',
-            'dontobfuscate',
-            'dontoptimize',
-            'dontpreverify',
-            'dontshrink',
-            'dontskipnonpubliclibraryclassmembers',
-            'dontusemixedcaseclassnames',
-            'dontwarn',
-            'dump',
-            'flattenpackagehierarchy',
-            'forceprocessing',
-            'ignorewarnings',
-            'inJarCounts',
-            'inJarFiles',
-            'inJarFilters',
-            'keepattributes',
-            'keepdirectories',
-            'keepkotlinmetadata',
-            'keeppackagenames',
-            'keepparameternames',
-            'libraryJarFiles',
-            'libraryJarFilters',
-            'mergeinterfacesaggressively',
-            'microedition',
-            'outJarFiles',
-            'outJarFilters',
-            'overloadaggressively',
-            'printconfiguration',
-            'printmapping',
-            'printseeds',
-            'printusage',
-            'renamesourcefileattribute',
-            'repackageclasses',
-            'skipnonpubliclibraryclasses',
-            'useuniqueclassmembernames',
-            'verbose'
-        ]
         validatePlugins {
             onPlugin("ProguardPlugin") {
                 passes()
             }
             onPlugin("proguard") {
-                failsWith(propertiesWithoutAnnotations.collectEntries { propertyName ->
-                    [(missingAnnotationMessage { type('proguard.gradle.ProGuardTask').property(propertyName).missingInputOrOutput().includeLink() }): ERROR]
-                })
+                passes()
             }
         }
     }

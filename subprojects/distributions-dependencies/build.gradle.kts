@@ -16,7 +16,7 @@ plugins {
 description = "Provides a platform dependency to align all distribution versions"
 
 val antVersion = "1.10.11"
-val asmVersion = "9.3"
+val asmVersion = "9.4"
 val awsS3Version = "1.12.365"
 val bouncycastleVersion = "1.68"
 val jacksonVersion = "2.14.1"
@@ -67,7 +67,7 @@ dependencies {
         api(libs.commonsLang3)          { version { strictly("3.12.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.fastutil)              { version { strictly("8.5.2") }}
-        api(libs.gradleProfiler)        { version { strictly("0.19.0") }}
+        api(libs.gradleProfiler)        { version { strictly("0.20.0-alpha01") }}
         api(libs.gradleEnterpriseTestAnnotation) { version { strictly("1.0") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
@@ -103,6 +103,7 @@ dependencies {
         api(libs.jakartaXmlBind)        { version { strictly("3.0.0") }}
         api(libs.jansi)                 { version { strictly("1.18"); because("2.x changes the API") }}
         api(libs.jatl)                  { version { strictly("0.2.3") }}
+        api(libs.javaPoet)              { version { strictly("1.13.0") } }
         api(libs.jaxbCore)              { version { strictly(jaxbVersion) }}
         api(libs.jaxbImpl)              { version { strictly(jaxbVersion) }}
         api(libs.jcifs)                 { version { strictly("1.3.17") }}

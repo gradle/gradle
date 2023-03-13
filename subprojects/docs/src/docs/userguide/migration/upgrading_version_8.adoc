@@ -51,6 +51,93 @@ The following methods on `CompileOptions` are deprecated:
 
 Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getGeneratedSourceOutputDirectory--[DirectoryProperty getGeneratedSourceOutputDirectory()]`
 
+[[deprecated_access_to_conventions]]
+==== Deprecated access to plugin conventions
+
+The concept of conventions is outdated and superseded by <<implementing_gradle_plugins.adoc#modeling_dsl_like_apis, extensions>> to provide custom DSLs.
+
+To reflect this in the Gradle API, the following elements are deprecated:
+
+- link:{javadocPath}/org/gradle/api/Project.html#getConvention--[org.gradle.api.Project.getConvention()]
+- link:{javadocPath}/org/gradle/api/plugins/Convention.html[org.gradle.api.plugins.Convention]
+- `org.gradle.api.internal.HasConvention`
+
+Gradle Core plugins still register their conventions in addition to their extensions for backwards compatibility.
+
+It is deprecated to access any of these conventions and their properties.
+Doing so will now emit a deprecation warning.
+This will become an error in Gradle 9.0.
+You should prefer accessing the extensions and their properties instead.
+
+For example the following code will now emit deprecation warnings:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java")
+}
+
+configure<JavaPluginConvention> { // Accessing a convention
+    sourceCompatibility = JavaVersion.VERSION_18
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'java'
+}
+
+sourceCompatibility = 18 // Accessing a convention
+----
+=====
+====
+
+This should be changed to use the `java` plugin's extension instead:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java")
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_18
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'java'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_18
+}
+----
+=====
+====
+
+Prominent community plugins already migrated to using extensions to provide custom DSLs.
+Some of them still registers conventions for backwards compatibility.
+Registering conventions does not emit a deprecation warning yet to provide a migration window.
+Future Gradle versions will do.
+
 [[redundant_configuration_usage_activation]]
 ==== Redundant configuration usage activation
 
@@ -393,6 +480,15 @@ beforeSettings {
 ==== Deprecated using relative paths to specify Java executables
 Using relative file paths to point to Java executables is now deprecated and will become an error in Gradle 9.
 This is done to reduce confusion about what such relative paths should resolve against.
+
+[[task_convention]]
+==== Calling `Task.getConvention()`, `Task.getExtensions()` from a task action
+
+Calling link:{javadocPath}/org/gradle/api/Task.html#getConvention--[Task.getConvention()], link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[Task.getExtensions()] from a task action at
+execution time is now deprecated and will be made an error in Gradle 9.0.
+
+See the <<configuration_cache#config_cache:requirements:disallowed_types,configuration cache chapter>> for details on
+how to migrate these usages to APIs that are supported by the configuration cache.
 
 === Changes in the IDE integration
 

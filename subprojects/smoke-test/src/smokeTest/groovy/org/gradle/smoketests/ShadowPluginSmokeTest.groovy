@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+
 class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')

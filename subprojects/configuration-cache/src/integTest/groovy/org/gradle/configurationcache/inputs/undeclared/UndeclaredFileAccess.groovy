@@ -21,6 +21,7 @@ import org.junit.Assume
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 import java.util.function.Supplier
 
 abstract class UndeclaredFileAccess extends BuildInputRead {
@@ -38,6 +39,7 @@ abstract class UndeclaredFileAccess extends BuildInputRead {
             FilenameFilter.class,
             Files.class,
             StandardCharsets.class,
+            StandardOpenOption.class,
             IOException.class,
             Supplier.class,
             FileInputStream.class
@@ -122,6 +124,86 @@ abstract class UndeclaredFileAccess extends BuildInputRead {
             @Override
             String getGroovyExpression() {
                 "{ new FileInputStream(new File(\"$filePath\")).close(); null }()"
+            }
+        }
+    }
+
+    static UndeclaredFileAccess filesNewByteChannel(String filePath) {
+        new UndeclaredFileAccess(filePath) {
+            @Override
+            String getKotlinExpression() {
+                "Files.newByteChannel(File(\"$filePath\").toPath()).close()"
+            }
+
+            @Override
+            String getJavaExpression() {
+                """
+                ((Supplier<Object>) () -> {
+                    try {
+                        Files.newByteChannel(new File("$filePath").toPath()).close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return null;
+                }).get()"""
+            }
+
+            @Override
+            String getGroovyExpression() {
+                "{ Files.newByteChannel(new File(\"$filePath\").toPath()).close(); null }()"
+            }
+        }
+    }
+
+    static UndeclaredFileAccess filesNewByteChannelWithOpenOptions(String filePath) {
+        new UndeclaredFileAccess(filePath) {
+            @Override
+            String getKotlinExpression() {
+                "Files.newByteChannel(File(\"$filePath\").toPath(), StandardOpenOption.READ, StandardOpenOption.WRITE).close()"
+            }
+
+            @Override
+            String getJavaExpression() {
+                """
+                ((Supplier<Object>) () -> {
+                    try {
+                        Files.newByteChannel(new File("$filePath").toPath(), StandardOpenOption.READ, StandardOpenOption.WRITE).close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return null;
+                }).get()"""
+            }
+
+            @Override
+            String getGroovyExpression() {
+                "{ Files.newByteChannel(new File(\"$filePath\").toPath(), StandardOpenOption.READ, StandardOpenOption.WRITE).close(); null }()"
+            }
+        }
+    }
+
+    static UndeclaredFileAccess fileReadLines(String filePath) {
+        new UndeclaredFileAccess(filePath) {
+            @Override
+            String getKotlinExpression() {
+                "File(\"$filePath\").readLines()"
+            }
+
+            @Override
+            String getJavaExpression() {
+                """((Supplier<Object>) () -> {
+                    try {
+                        return Files.readAllLines(new File("$filePath").toPath());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).get()"""
+            }
+
+            @Override
+            String getGroovyExpression() {
+                // TODO test the GroovyResourceMethods and dynamic calls once supported
+                "kotlin.io.FilesKt.readLines(new File(\"$filePath\"), StandardCharsets.UTF_8)"
             }
         }
     }
