@@ -515,6 +515,12 @@ public abstract class Wrapper extends DefaultTask {
         return networkTimeout;
     }
 
+    /**
+     * Sets the offline modus of the wrapper task.
+     *
+     * @since 8.2
+     */
+    @Incubating
     public void setIsOffline(boolean isOffline) {
         this.isOffline = isOffline;
     }
