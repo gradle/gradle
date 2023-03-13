@@ -17,13 +17,17 @@
 package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
+import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
     private final boolean reportCacheabilityProblems;
@@ -54,4 +58,20 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
     public ImmutableMap<String, Severity> getProblems() {
         return problems.build();
     }
+
+    public static void throwOnProblemsOf(Class<?> implementation, ImmutableMap<String, Severity> validationMessages) {
+        if (!validationMessages.isEmpty()) {
+            String formatString = validationMessages.size() == 1
+                ? "A problem was found with the configuration of %s."
+                : "Some problems were found with the configuration of %s.";
+            throw new DefaultMultiCauseException(
+                String.format(formatString, ModelType.of(implementation).getDisplayName()),
+                validationMessages.keySet().stream()
+                    .sorted()
+                    .map(InvalidUserDataException::new)
+                    .collect(Collectors.toList())
+            );
+        }
+    }
+
 }

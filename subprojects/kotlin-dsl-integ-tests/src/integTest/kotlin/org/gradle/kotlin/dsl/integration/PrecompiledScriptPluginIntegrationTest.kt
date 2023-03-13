@@ -65,6 +65,11 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             """.trimIndent()
         )
 
+        // From ktlint
+        executer.beforeExecute {
+            it.expectDocumentedDeprecationWarning("The Project.getConvention() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
+        }
+
         build("generateScriptPluginAdapters")
 
         build("ktlintCheck", "-x", "ktlintKotlinScriptCheck")
@@ -858,6 +863,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         val pluginJarV1 = withPluginJar("my-plugin-1.0.jar", "1.0")
         val pluginJarV2 = withPluginJar("my-plugin-2.0.jar", "2.0")
 
+        withDefaultSettingsIn("buildSrc")
         withBuildScriptIn("buildSrc", """
             plugins {
                 `kotlin-dsl`
@@ -902,7 +908,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @Issue("https://github.com/gradle/gradle/issues/23564")
     fun `respects offline start parameter on synthetic builds for accessors generation`() {
 
-        withSettings("""include("producer", "consumer")""")
+        file("settings.gradle.kts").appendText("""include("producer", "consumer")""")
 
         withKotlinDslPluginIn("producer")
         withFile("producer/src/main/kotlin/offline.gradle.kts", """

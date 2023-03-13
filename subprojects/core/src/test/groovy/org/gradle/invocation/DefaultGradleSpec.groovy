@@ -17,7 +17,13 @@
 package org.gradle.invocation
 
 import org.gradle.api.Action
+import org.gradle.api.Project
+import org.gradle.api.ProjectEvaluationListener
+import org.gradle.api.ProjectState
+import org.gradle.api.Task
+import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.BuildScopeListenerRegistrationListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
@@ -25,6 +31,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.api.tasks.TaskState
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
@@ -418,6 +425,39 @@ class DefaultGradleSpec extends Specification {
 
         then:
         gradle.toString() == "build 'rootProject'"
+    }
+
+    @SuppressWarnings("deprecation")
+    interface UnsupportedDescendant extends TaskExecutionListener, ProjectEvaluationListener {}
+
+    def "notifies observers when a descendant of unsupported listener interface is added"() {
+        given:
+        def registrationListener = Mock(BuildScopeListenerRegistrationListener)
+        listenerManager.addListener(registrationListener)
+        when:
+        gradle.addListener(new UnsupportedDescendant() {
+            @Override
+            void beforeEvaluate(Project project) {
+            }
+
+            @Override
+            void afterEvaluate(Project project, ProjectState state) {
+            }
+
+            @Override
+            void beforeExecute(Task task) {
+            }
+
+            @Override
+            void afterExecute(Task task, TaskState state) {
+            }
+        })
+
+        then:
+        1 * registrationListener.onBuildScopeListenerRegistration(_, _, _)
+
+        cleanup:
+        listenerManager.removeListener(registrationListener)
     }
 
     private ProjectInternal project(String name) {

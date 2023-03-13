@@ -22,13 +22,27 @@ import org.gradle.util.internal.VersionNumber
 @SelfType(BaseDeprecations)
 trait WithAndroidDeprecations implements WithReportDeprecations {
     private static final VersionNumber AGP_VERSION_WITH_FIXED_NEW_WORKERS_API = VersionNumber.parse('4.2')
+    private static final VersionNumber AGP_VERSION_WITHOUT_CONVENTION_USAGES = VersionNumber.parse('7.4')
 
     boolean androidPluginUsesOldWorkerApi(String agpVersion) {
         VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
         agpVersionNumber < AGP_VERSION_WITH_FIXED_NEW_WORKERS_API
     }
 
+    boolean androidPluginUsesConventions(String agpVersion) {
+        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
+        agpVersionNumber < AGP_VERSION_WITHOUT_CONVENTION_USAGES
+    }
+
     void expectAndroidWorkerExecutionSubmitDeprecationWarning(String agpVersion) {
         runner.expectLegacyDeprecationWarningIf(androidPluginUsesOldWorkerApi(agpVersion), WORKER_SUBMIT_DEPRECATION)
+    }
+
+    void expectProjectConventionDeprecationWarning(String agpVersion) {
+        runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), PROJECT_CONVENTION_DEPRECATION)
+    }
+
+    void expectAndroidConventionTypeDeprecationWarning(String agpVersion) {
+        runner.expectLegacyDeprecationWarningIf(androidPluginUsesConventions(agpVersion), CONVENTION_TYPE_DEPRECATION)
     }
 }

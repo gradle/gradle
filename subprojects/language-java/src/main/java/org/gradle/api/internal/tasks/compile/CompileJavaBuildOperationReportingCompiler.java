@@ -33,9 +33,6 @@ import java.util.List;
 
 public class CompileJavaBuildOperationReportingCompiler implements Compiler<JavaCompileSpec> {
 
-    private static final CompileJavaBuildOperationType.Details DETAILS = new CompileJavaBuildOperationType.Details() {
-    };
-
     private final TaskInternal task;
     private final Compiler<JavaCompileSpec> delegate;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -51,7 +48,15 @@ public class CompileJavaBuildOperationReportingCompiler implements Compiler<Java
         return buildOperationExecutor.call(new CallableBuildOperation<WorkResult>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Compile Java for " + task.getIdentityPath()).details(DETAILS);
+                String taskIdentityPath = task.getIdentityPath().getPath();
+                return BuildOperationDescriptor
+                    .displayName("Compile Java for " + taskIdentityPath)
+                    .details(new CompileJavaBuildOperationType.Details() {
+                    @Override
+                    public String getTaskIdentityPath() {
+                        return taskIdentityPath;
+                    }
+                });
             }
 
             @Override

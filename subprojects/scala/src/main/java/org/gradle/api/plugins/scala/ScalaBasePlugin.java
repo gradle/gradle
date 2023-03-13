@@ -53,6 +53,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -198,7 +199,9 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
     @SuppressWarnings("deprecation")
     private ScalaSourceDirectorySet getScalaSourceDirectorySet(SourceSet sourceSet) {
         org.gradle.api.internal.tasks.DefaultScalaSourceSet scalaSourceSet = objectFactory.newInstance(org.gradle.api.internal.tasks.DefaultScalaSourceSet.class, ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
-        new DslObject(sourceSet).getConvention().getPlugins().put("scala", scalaSourceSet);
+        DeprecationLogger.whileDisabled(() ->
+            new DslObject(sourceSet).getConvention().getPlugins().put("scala", scalaSourceSet)
+        );
         return scalaSourceSet.getScala();
     }
 
