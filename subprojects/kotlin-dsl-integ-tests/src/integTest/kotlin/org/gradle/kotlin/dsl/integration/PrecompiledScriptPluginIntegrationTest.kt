@@ -902,7 +902,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @Issue("https://github.com/gradle/gradle/issues/23564")
     fun `respects offline start parameter on synthetic builds for accessors generation`() {
 
-        withSettings("""include("producer", "consumer")""")
+        file("settings.gradle.kts").appendText("""include("producer", "consumer")""")
 
         withKotlinDslPluginIn("producer")
         withFile("producer/src/main/kotlin/offline.gradle.kts", """
