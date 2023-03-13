@@ -27,7 +27,6 @@ val functionalTest by configurations.creating {
 val functionalTestClasspath by configurations.creating {
     extendsFrom(functionalTest)
     isCanBeConsumed = false
-    isCanBeResolved = true
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_API))
     }

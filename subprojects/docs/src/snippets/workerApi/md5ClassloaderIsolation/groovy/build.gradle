@@ -10,7 +10,6 @@ configurations.create('codec') { // <2>
     }
     visible = false
     canBeConsumed = false
-    canBeResolved = true
 }
 
 dependencies {

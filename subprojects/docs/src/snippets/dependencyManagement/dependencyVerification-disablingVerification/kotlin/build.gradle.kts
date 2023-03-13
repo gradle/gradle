@@ -9,7 +9,6 @@ val myPlugin by configurations.creating {
 val myPluginClasspath by configurations.creating {
     extendsFrom(myPlugin)
     isCanBeConsumed = false
-    isCanBeResolved = true
 }
 
 dependencies {
