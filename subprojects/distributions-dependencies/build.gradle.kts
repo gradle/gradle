@@ -163,6 +163,7 @@ dependencies {
         api(libs.bytebuddy)             { version { strictly(bytebuddyVersion) }}
         api(libs.bytebuddyAgent)        { version { strictly(bytebuddyVersion) }}
         api(libs.cglib)                 { version { strictly("3.2.6") }}
+        api(libs.compileTesting)        { version { strictly("0.21.0")}}
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
         api(libs.guice)                 { version { strictly("4.2.3") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}

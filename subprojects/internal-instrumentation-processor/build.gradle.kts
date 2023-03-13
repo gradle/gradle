@@ -27,4 +27,6 @@ dependencies {
 
     implementation(libs.asm)
     implementation(libs.asmCommons)
+
+    testImplementation(libs.compileTesting)
 }
