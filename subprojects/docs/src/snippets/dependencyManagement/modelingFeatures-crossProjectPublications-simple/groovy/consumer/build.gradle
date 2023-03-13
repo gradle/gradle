@@ -6,7 +6,6 @@ plugins {
 configurations {
     instrumentedClasspath {
         canBeConsumed = false
-        canBeResolved = true
     }
 }
 // end::resolvable-configuration[]

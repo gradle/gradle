@@ -5,7 +5,6 @@ plugins {
 
 // tag::test-report[]
 val testReportData by configurations.creating {
-    isCanBeResolved = true
     isCanBeConsumed = false
     attributes {
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))

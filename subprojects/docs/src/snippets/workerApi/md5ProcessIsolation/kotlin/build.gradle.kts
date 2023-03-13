@@ -10,7 +10,6 @@ val codec = configurations.create("codec") {
     }
     isVisible = false
     isCanBeConsumed = false
-    isCanBeResolved = true
 }
 
 dependencies {
