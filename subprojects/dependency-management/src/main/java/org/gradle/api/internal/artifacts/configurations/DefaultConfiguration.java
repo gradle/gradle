@@ -1902,7 +1902,7 @@ since users cannot create non-legacy configurations and there is no current publ
      */
     @SuppressWarnings("JavadocReference")
     private boolean isPermittedConfigurationForRedundantActivation() {
-        return name.equals("runtimeClasspath") || name.equals("testRuntimeClasspath");
+        return name.equals("runtimeClasspath") || name.toLowerCase().endsWith("testruntimeclasspath");
     }
 
     @Override
