@@ -16,6 +16,13 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequestImpl;
@@ -37,12 +44,15 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY;
@@ -77,20 +87,31 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
     }
 
     private static Type extractOriginalType(ExecutableElement method, AnnotationMirror annotation) {
-        Optional<? extends AnnotationValue> typeMirrorOptional = AnnotationUtils.findAnnotationValue(annotation, "originalType");
-        if (!typeMirrorOptional.isPresent()) {
-            throw new AnnotationReadFailure("Can't read @UpgradedProperty#orignalType for " + method.getSimpleName());
-        }
-        TypeMirror typeMirror = (TypeMirror) typeMirrorOptional.get().getValue();
-        Type type = extractType(typeMirror);
-        if (type != DEFAULT_TYPE) {
+        Optional<? extends AnnotationValue> annotationValue = AnnotationUtils.findAnnotationValue(annotation, "originalType");
+        Type type = annotationValue.map(v -> extractType((TypeMirror) v.getValue())).orElse(DEFAULT_TYPE);
+        if (!type.equals(DEFAULT_TYPE)) {
             return type;
         }
         return extractOriginalTypeFromGeneric(method, method.getReturnType());
     }
 
     private static Type extractOriginalTypeFromGeneric(ExecutableElement method, TypeMirror typeMirror) {
-        throw new AnnotationReadFailure("Reading generic types from lazy properties is not yet implemented, set originalType for now." + method.getSimpleName());
+        String typeName = method.getReturnType() instanceof DeclaredType
+            ? ((DeclaredType) method.getReturnType()).asElement().toString()
+            : method.getReturnType().toString();
+        if (typeName.equals(RegularFileProperty.class.getName()) || typeName.equals(DirectoryProperty.class.getName())) {
+            return Type.getType(File.class);
+        } else if (typeName.equals(Property.class.getName()) && ((DeclaredType) typeMirror).getTypeArguments().size() == 1) {
+            return extractType(((DeclaredType) typeMirror).getTypeArguments().get(0));
+        } else if (typeName.equals(ConfigurableFileCollection.class.getName())) {
+            return Type.getType(FileCollection.class);
+        } else if (typeName.equals(MapProperty.class.getName())) {
+            return Type.getType(Map.class);
+        } else if (typeName.equals(ListProperty.class.getName())) {
+            return Type.getType(List.class);
+        } else {
+            throw new AnnotationReadFailure(String.format("Cannot extract original type for method '%s.%s: %s'. Use explicit @UpgradedProperty#originalType instead.", method.getEnclosingElement(), method, typeMirror));
+        }
     }
 
     private static CallInterceptionRequest createGroovyPropertyInterceptionRequest(ExecutableElement method, Type originalType) {
