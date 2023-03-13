@@ -8,7 +8,6 @@ def makeFile = tasks.register("makeFile") {
 
 configurations {
     sharedConfiguration {
-        canBeConsumed = true
         canBeResolved = false
     }
 }
