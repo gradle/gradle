@@ -53,6 +53,7 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
         project.apply(target -> target.plugin(GradleReleaseNotesPlugin.class));
         project.apply(target -> target.plugin(GradleJavadocsPlugin.class));
+        project.apply(target -> target.plugin(GradleDokkaPlugin.class));
         project.apply(target -> target.plugin(GradleDslReferencePlugin.class));
         project.apply(target -> target.plugin(GradleUserManualPlugin.class));
 
@@ -106,6 +107,11 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         extension.getDocumentedSource().from(sourcesPath.getIncoming().artifactView(v -> v.lenient(true)).getFiles().getAsFileTree().matching(f -> {
             // Filter out any non-public APIs
             f.include(PublicApi.INSTANCE.getIncludes());
+            f.exclude(PublicApi.INSTANCE.getExcludes());
+        }));
+        extension.getKotlinDslSource().from(sourcesPath.getIncoming().artifactView(v -> v.lenient(true)).getFiles().getAsFileTree().matching(f -> {
+            // Filter out any non-public APIs
+            f.include(PublicApi.INSTANCE.getKotlinIncludes());
             f.exclude(PublicApi.INSTANCE.getExcludes());
         }));
     }
