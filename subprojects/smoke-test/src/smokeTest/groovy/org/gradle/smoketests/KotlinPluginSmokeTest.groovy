@@ -43,6 +43,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectKotlinArchiveNameDeprecation(version)
                 expectAbstractCompileDestinationDirDeprecation(version)
                 expectOrgGradleUtilWrapUtilDeprecation(version)
+                expectProjectConventionDeprecation(version)
+                expectConventionTypeDeprecation(version)
             }.build()
 
         then:
@@ -54,6 +56,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             .deprecations(KotlinDeprecations) {
                 if (GradleContextualExecuter.isNotConfigCache()) {
                     expectOrgGradleUtilWrapUtilDeprecation(version)
+                    expectProjectConventionDeprecation(version)
+                    expectConventionTypeDeprecation(version)
                 }
             }.build()
 
@@ -88,6 +92,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectKotlinCompileDestinationDirPropertyDeprecation(version)
                 expectKotlinArchiveNameDeprecation(version)
                 expectOrgGradleUtilWrapUtilDeprecation(version)
+                expectProjectConventionDeprecation(version)
+                expectConventionTypeDeprecation(version)
             }.build()
 
         then:
@@ -135,6 +141,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectKotlinArchiveNameDeprecation(kotlinVersion)
                 expectAbstractCompileDestinationDirDeprecation(kotlinVersion)
                 expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+                expectProjectConventionDeprecation(kotlinVersion)
+                expectConventionTypeDeprecation(kotlinVersion)
             }.build()
 
         then:
@@ -175,6 +183,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             .deprecations(KotlinDeprecations) {
                 expectAbstractCompileDestinationDirDeprecation(kotlinVersion)
                 expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+                expectProjectConventionDeprecation(kotlinVersion)
+                expectConventionTypeDeprecation(kotlinVersion)
             }.build()
 
         then:
@@ -185,6 +195,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             .deprecations(KotlinDeprecations) {
                 if (GradleContextualExecuter.isNotConfigCache()) {
                     expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+                    expectProjectConventionDeprecation(kotlinVersion)
+                    expectConventionTypeDeprecation(kotlinVersion)
                 }
             }.build()
 
@@ -223,6 +235,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
                 expectTestReportReportOnDeprecation(kotlinVersion)
                 expectTestReportDestinationDirOnDeprecation(kotlinVersion)
+                expectProjectConventionDeprecation(kotlinVersion)
+                expectConventionTypeDeprecation(kotlinVersion)
             }
             .build()
 
@@ -281,6 +295,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         testRunner.deprecations(KotlinDeprecations) {
             expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+            2.times {
+                expectProjectConventionDeprecation(kotlinVersion)
+                expectConventionTypeDeprecation(kotlinVersion)
+            }
         }
 
         def result = testRunner.build()
@@ -454,6 +472,44 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Please use the destinationDirectory property instead. " +
                     "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.",
+                ""
+            )
+        }
+
+        void expectProjectConventionDeprecation(String kotlinVersion) {
+            VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+            runner.expectDeprecationWarningIf(
+                kotlinVersionNumber < VersionNumber.parse("1.7.22"),
+                PROJECT_CONVENTION_DEPRECATION,
+                ""
+            )
+        }
+
+        void expectProjectConventionDeprecation(String kotlinVersion, String agpVersion) {
+            VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+            VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
+            runner.expectDeprecationWarningIf(
+                agpVersionNumber < VersionNumber.parse("7.4.0") || (agpVersionNumber >= VersionNumber.parse("7.4.0") && kotlinVersionNumber < VersionNumber.parse("1.7.0")),
+                PROJECT_CONVENTION_DEPRECATION,
+                ""
+            )
+        }
+
+        void expectConventionTypeDeprecation(String kotlinVersion) {
+            VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+            runner.expectDeprecationWarningIf(
+                kotlinVersionNumber < VersionNumber.parse("1.7.22"),
+                CONVENTION_TYPE_DEPRECATION,
+                ""
+            )
+        }
+
+        void expectConventionTypeDeprecation(String kotlinVersion, String agpVersion) {
+            VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+            VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
+            runner.expectDeprecationWarningIf(
+                agpVersionNumber < VersionNumber.parse("7.4.0") || (agpVersionNumber >= VersionNumber.parse("7.4.0") && kotlinVersionNumber < VersionNumber.parse("1.7.22")),
+                CONVENTION_TYPE_DEPRECATION,
                 ""
             )
         }

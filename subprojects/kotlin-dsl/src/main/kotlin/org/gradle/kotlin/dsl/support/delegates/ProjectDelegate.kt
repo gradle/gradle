@@ -44,7 +44,6 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
@@ -97,7 +96,7 @@ abstract class ProjectDelegate : Project {
         delegate.defaultTasks
 
     @Deprecated("The concept of conventions is deprecated. Use extensions instead.")
-    override fun getConvention(): Convention =
+    override fun getConvention(): @Suppress("deprecation") org.gradle.api.plugins.Convention =
         @Suppress("deprecation")
         delegate.convention
 

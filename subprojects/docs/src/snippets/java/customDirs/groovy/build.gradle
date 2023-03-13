@@ -53,7 +53,6 @@ sourceSets {
 reporting.baseDir = "my-reports"
 java.testResultsDir = layout.buildDirectory.dir("my-test-results")
 
-
 tasks.register('showDirs') {
     def rootDir = project.rootDir
     def reportsDir = project.reporting.baseDirectory
