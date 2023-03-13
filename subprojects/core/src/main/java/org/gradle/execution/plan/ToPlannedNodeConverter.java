@@ -41,7 +41,9 @@ public interface ToPlannedNodeConverter {
     NodeIdentity getNodeIdentity(Node node);
 
     /**
-     * Returns true if the given {@link Node} is not an actual executable node but only represents a node from another execution plan.
+     * Returns true if the given {@link Node} is from the same execution plan.
+     * <p>
+     * A node can be in another execution plan if it is, for instance, from an included build ({@link TaskInAnotherBuild}).
      */
     boolean isInSamePlan(Node node);
 
