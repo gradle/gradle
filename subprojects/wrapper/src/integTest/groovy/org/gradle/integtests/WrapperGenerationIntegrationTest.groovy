@@ -21,7 +21,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.internal.TextUtil
+import org.junit.Rule
 
 import java.util.jar.Attributes
 import java.util.jar.Manifest
@@ -160,9 +162,18 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "wrapper task fails if version from command-line does not produce a valid url"() {
+    @Rule
+    HttpServer httpServer = new HttpServer()
+
+    def "wrapper task fails if distribution url from command-line is invalid"() {
+        given:
+        def path = "/distributions/8.0-rc-5"
+        httpServer.start()
+        httpServer.expectHeadMissing(path)
+        def url = "${httpServer.uri}" + path
+
         when:
-        run "wrapper", option, argument
+        run "wrapper", "--gradle-distribution-url", url
 
         then:
         Throwable throwable = thrown()
@@ -174,17 +185,22 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         assert wrappedException.class == RuntimeException.class
         assert wrappedException.message == "HEAD request to " + url + " failed: response code (404)"
         file("gradle/wrapper/gradle-wrapper.properties").assertDoesNotExist()
-
-        where:
-        option                      | argument                                                    | url
-        "--gradle-version"          | "8.0-RC-5"                                                  | "https://services.gradle.org/distributions/gradle-8.0-RC-5-bin.zip"
-        "--gradle-distribution-url" | "https://services.gradle.org/distributions/not-a-valid-url" | "https://services.gradle.org/distributions/not-a-valid-url"
-
     }
 
-    def "wrapper task with version set on command-line respects --offline mode"() {
+    def "wrapper task with distribution url from command-line respects --offline"() {
+        given:
+        httpServer.start()
+
+        when:
+        run("wrapper", "--gradle-distribution-url", "${httpServer.uri}/distributions/8.0-RC-5", "--offline")
+        then:
+        succeeds()
+    }
+
+    def "wrapper task with gradle version from command-line respects --offline mode"() {
         when:
         run "wrapper", "--gradle-version", "8.0-RC-5", "--offline"
+
         then:
         succeeds()
     }
