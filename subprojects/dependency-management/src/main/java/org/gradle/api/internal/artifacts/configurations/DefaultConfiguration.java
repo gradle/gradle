@@ -1809,12 +1809,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void warnOnRedundantUsageActivation(String usage, String method) {
-        String msgTemplate = "The %s usage is already allowed on %s.";
-        DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, usage, getDisplayName()))
-                .withAdvice(String.format("Remove the call to %s, it has no effect.", method))
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "redundant_configuration_usage_activation")
-                .nagUser();
+        if (!isSpecialCaseOfRedundantUsageActivation()) {
+            String msgTemplate = "The %s usage is already allowed on %s.";
+            DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, usage, getDisplayName()))
+                    .withAdvice(String.format("Remove the call to %s, it has no effect.", method))
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "redundant_configuration_usage_activation")
+                    .nagUser();
+        }
     }
 
     /**
@@ -1838,15 +1840,49 @@ since users cannot create non-legacy configurations and there is no current publ
      *
      * @param usage the name usage that is being changed
      * @param current the current value of the usage after the change
+     *
+     * @return {@code true} if the usage change is a known special case; {@code false} otherwise
      */
     @SuppressWarnings({"JavadocReference", "deprecation"})
     private boolean isSpecialCaseOfChangingUsage(String usage, boolean current) {
-        boolean isInitializing = roleAtCreation == null;
-        boolean isDetachedConfiguration = this.configurationsProvider instanceof DetachedConfigurationsProvider;
-        boolean isLegacyRole = roleAtCreation == ConfigurationRoles.LEGACY;
-        boolean isPermittedConfigurationChangeForKotlin = name.equals("apiElements") || name.equals("runtimeElements") && usage.equals("consumable") && !current;
+        return isInitializing() || isDetachedConfiguration() || isInLegacyRole() || isPermittedConfigurationChangeForKotlin(usage, current);
+    }
 
-        return isInitializing || isDetachedConfiguration || isLegacyRole || isPermittedConfigurationChangeForKotlin;
+    /**
+     * This is a temporary method that decides if a redundant usage activation is a known/supported special case,
+     * where a deprecation warning message should not be emitted.
+     * <p>
+     * These exceptions are needed to avoid spamming deprecations warnings whenever some important 3rd party plugins like
+     * Kotlin or Android are used.
+     * <p>
+     * <ol>
+     *     <li>Redundant activation of a usage of a detached configurations should NOT warn (this done by the Kotlin plugin).</li>
+     *     <li>Configurations with a legacy role should NOT warn during redundant usage activation,
+     since users cannot create non-legacy configurations and there is no current public API for setting roles upon creation</li>
+     *     <li>All other usage changes should warn.</li>
+     * </ol>
+     *
+     * @return {@code true} if the usage change is a known special case; {@code false} otherwise
+     */
+    private boolean isSpecialCaseOfRedundantUsageActivation() {
+        return isDetachedConfiguration() || isInLegacyRole();
+    }
+
+    private boolean isInitializing() {
+        return roleAtCreation == null;
+    }
+
+    private boolean isDetachedConfiguration() {
+        return this.configurationsProvider instanceof DetachedConfigurationsProvider;
+    }
+
+    @SuppressWarnings("deprecation")
+    private boolean isInLegacyRole() {
+        return roleAtCreation == ConfigurationRoles.LEGACY;
+    }
+
+    private boolean isPermittedConfigurationChangeForKotlin(String usage, boolean current) {
+        return name.equals("apiElements") || name.equals("runtimeElements") && usage.equals("consumable") && !current;
     }
 
     @Override
