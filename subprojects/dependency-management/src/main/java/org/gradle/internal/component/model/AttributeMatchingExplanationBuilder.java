@@ -31,10 +31,7 @@ public interface AttributeMatchingExplanationBuilder {
 
     boolean canSkipExplanation();
 
-    default <T extends HasAttributes> void selectedFallbackConfiguration(AttributeContainerInternal requested, T fallback) {
-    }
-
-    default <T extends HasAttributes> void noCandidates(AttributeContainerInternal requested, T fallback) {
+    default <T extends HasAttributes> void noCandidates(AttributeContainerInternal requested) {
 
     }
 
