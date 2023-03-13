@@ -36,6 +36,7 @@ import org.gradle.internal.taskgraph.NodeIdentity;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -144,6 +145,9 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
         private static class CalculateTaskGraphResult implements Result, CustomOperationTraceSerialization {
 
+            private static final Set<NodeIdentity.NodeType> TASKS_ONLY = EnumSet.of(NodeIdentity.NodeType.TASK);
+            private static final Set<NodeIdentity.NodeType> TASKS_AND_TRANSFORMS = EnumSet.of(NodeIdentity.NodeType.TASK, NodeIdentity.NodeType.TRANSFORM_STEP);
+
             private final Set<Task> requestedTasks;
             private final Set<Task> filteredTasks;
             private final List<PlannedNode> plannedNodes;
@@ -174,12 +178,19 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
             @Override
             public List<PlannedNode> getExecutionPlan(Set<NodeIdentity.NodeType> types) {
-                if (EnumSet.allOf(NodeIdentity.NodeType.class).equals(types)) {
+                if (types.isEmpty()) {
+                    return Collections.emptyList();
+                }
+
+                if (TASKS_ONLY.equals(types)) {
+                    return getTaskExecutionPlan();
+                }
+
+                if (TASKS_AND_TRANSFORMS.equals(types)) {
                     return plannedNodes;
                 }
-                return plannedNodes.stream()
-                    .filter(node -> types.contains(node.getNodeIdentity().getNodeType()))
-                    .collect(Collectors.toList());
+
+                throw new IllegalArgumentException("Unsupported node types: " + types);
             }
 
             @Override
@@ -190,6 +201,53 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                 builder.put("taskPlan", getTaskPlan());
                 builder.put("executionPlan", getExecutionPlan(EnumSet.allOf(NodeIdentity.NodeType.class)));
                 return builder.build();
+            }
+
+            private List<PlannedNode> getTaskExecutionPlan() {
+                return plannedNodes.stream()
+                    .filter(PlannedTask.class::isInstance)
+                    .map(n -> filterOnlyTaskDependencies((PlannedTask) n))
+                    .collect(Collectors.toList());
+            }
+
+            private static PlannedTask filterOnlyTaskDependencies(PlannedTask plannedTask) {
+                return new PlannedTask() {
+                    @Override
+                    public NodeIdentity getNodeIdentity() {
+                        return plannedTask.getNodeIdentity();
+                    }
+
+                    @Override
+                    public List<? extends NodeIdentity> getNodeDependencies() {
+                        // This is correct only because task dependencies were already transitively resolved for the original PlannedTask implementation
+                        return plannedTask.getDependencies();
+                    }
+
+                    @Override
+                    public TaskIdentity getTask() {
+                        return plannedTask.getTask();
+                    }
+
+                    @Override
+                    public List<TaskIdentity> getDependencies() {
+                        return plannedTask.getDependencies();
+                    }
+
+                    @Override
+                    public List<TaskIdentity> getMustRunAfter() {
+                        return plannedTask.getMustRunAfter();
+                    }
+
+                    @Override
+                    public List<TaskIdentity> getShouldRunAfter() {
+                        return plannedTask.getShouldRunAfter();
+                    }
+
+                    @Override
+                    public List<TaskIdentity> getFinalizedBy() {
+                        return plannedTask.getFinalizedBy();
+                    }
+                };
             }
         }
     }
