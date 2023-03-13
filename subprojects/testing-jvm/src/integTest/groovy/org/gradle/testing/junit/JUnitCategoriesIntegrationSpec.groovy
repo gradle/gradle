@@ -197,13 +197,13 @@ public class MyTest {
         |}""".stripMargin()
 
         when:
-        succeeds ':test'
+        succeeds ':test', '--success-without-test'
 
         then:
         executedAndNotSkipped ':test'
 
         when:
-        succeeds ':test'
+        succeeds ':test', '--success-without-test'
 
         then:
         skipped ':test'

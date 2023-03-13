@@ -87,7 +87,7 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
         }
 
         when:
-        run("test")
+        run("test", "--success-without-test")
 
         then:
         noExceptionThrown()

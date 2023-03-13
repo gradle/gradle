@@ -659,7 +659,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         file("src/test/java/SomeTest.java") << "class SomeClass {}"
 
         when:
-        succeeds ':test'
+        succeeds ':test', '--success-without-test'
 
         then:
         operations.all(ResolveConfigurationDependenciesBuildOperationType, { it.details.configurationName.endsWith('Classpath') }).result.every {
