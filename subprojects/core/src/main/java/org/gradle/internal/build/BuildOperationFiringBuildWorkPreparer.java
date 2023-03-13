@@ -145,8 +145,8 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
         private static class CalculateTaskGraphResult implements Result, CustomOperationTraceSerialization {
 
-            private final Set<NodeIdentity.NodeType> tasksOnly = EnumSet.of(NodeIdentity.NodeType.TASK);
-            private final Set<NodeIdentity.NodeType> tasksAndTransforms = EnumSet.of(NodeIdentity.NodeType.TASK, NodeIdentity.NodeType.TRANSFORM_STEP);
+            private static final Set<NodeIdentity.NodeType> TASKS_ONLY = EnumSet.of(NodeIdentity.NodeType.TASK);
+            private static final Set<NodeIdentity.NodeType> TASKS_AND_TRANSFORMS = EnumSet.of(NodeIdentity.NodeType.TASK, NodeIdentity.NodeType.TRANSFORM_STEP);
 
             private final Set<Task> requestedTasks;
             private final Set<Task> filteredTasks;
@@ -182,11 +182,11 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                     return Collections.emptyList();
                 }
 
-                if (tasksOnly.equals(types)) {
+                if (TASKS_ONLY.equals(types)) {
                     return getTaskExecutionPlan();
                 }
 
-                if (tasksAndTransforms.equals(types)) {
+                if (TASKS_AND_TRANSFORMS.equals(types)) {
                     return plannedNodes;
                 }
 
