@@ -50,7 +50,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     private RelativePath relativePath;
     private boolean excluded;
 
-    private Property<FileAccessPermissions> permissions;
+    private Property<FileAccessPermissionsInternal> permissions;
     private DuplicatesStrategy duplicatesStrategy;
 
     @Inject
@@ -212,7 +212,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     @Override
     public Property<FileAccessPermissions> getPermissions() {
         if (permissions == null) {
-            permissions = objectFactory.property(FileAccessPermissions.class);
+            permissions = objectFactory.property(FileAccessPermissionsInternal.class);
         }
         return Cast.uncheckedCast(permissions);
     }

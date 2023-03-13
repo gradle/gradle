@@ -63,8 +63,4 @@ public interface FileAccessPermissions {
 
     void all(Action<? super FileAccessPermission> cofigureAction);
 
-    /**
-     * Returns the Unix permissions of this file, e.g. {@code 0644}.
-     */
-    int toMode();
 }

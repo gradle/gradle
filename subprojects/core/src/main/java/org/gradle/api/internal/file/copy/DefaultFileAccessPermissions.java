@@ -18,23 +18,23 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.FileAccessPermission;
-import org.gradle.api.file.FileAccessPermissions;
+import org.gradle.api.file.FileAccessPermissionInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import javax.inject.Inject;
 
-public class DefaultFileAccessPermissions implements FileAccessPermissions {
+public class DefaultFileAccessPermissions implements FileAccessPermissionsInternal {
 
     public static int getDefaultMode(boolean isDirectory) {
         return isDirectory ? FileSystem.DEFAULT_DIR_MODE : FileSystem.DEFAULT_FILE_MODE;
     }
 
-    private final DefaultFileAccessPermission user;
+    private final FileAccessPermissionInternal user;
 
-    private final DefaultFileAccessPermission group;
+    private final FileAccessPermissionInternal group;
 
-    private final DefaultFileAccessPermission other;
+    private final FileAccessPermissionInternal other;
 
     @Inject
     public DefaultFileAccessPermissions(ObjectFactory objectFactory, int mode) {

@@ -767,7 +767,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Nullable
         private Integer getMode(Provider<FileAccessPermissions> permissions) {
-            return permissions.isPresent() ? permissions.get().toMode() : null;
+            return permissions.isPresent() ? ((FileAccessPermissionsInternal) permissions.get()).toMode() : null;
         }
 
         @Override

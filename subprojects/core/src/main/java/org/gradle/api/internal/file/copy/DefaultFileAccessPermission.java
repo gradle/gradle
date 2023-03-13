@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.FileAccessPermission;
+import org.gradle.api.file.FileAccessPermissionInternal;
 import org.gradle.api.provider.Property;
 
 import javax.inject.Inject;
 
-public abstract class DefaultFileAccessPermission implements FileAccessPermission {
+public abstract class DefaultFileAccessPermission implements FileAccessPermissionInternal {
 
     @Inject
     public DefaultFileAccessPermission(int modeMask) {
@@ -51,6 +51,7 @@ public abstract class DefaultFileAccessPermission implements FileAccessPermissio
         return (modeMask & 1) == 1;
     }
 
+    @Override
     public int toMode() {
         int mode = 0;
 
