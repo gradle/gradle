@@ -45,6 +45,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.UncategorizedBuildOperations;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -299,6 +300,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 public BuildOperationDescriptor.Builder description() {
                     String displayName = transformer.getDisplayName() + " " + inputArtifact.getName();
                     return BuildOperationDescriptor.displayName(displayName)
+                        .metadata(UncategorizedBuildOperations.TRANSFORM_ACTION)
                         .progressDisplayName(displayName);
                 }
             });
