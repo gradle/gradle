@@ -37,6 +37,7 @@ import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
+import org.gradle.configurationcache.serialization.Workarounds.canAccessConventions
 import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.service.scopes.ListenerService
@@ -59,16 +60,17 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
 ) : ConfigurationCacheProblemsListener {
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
-        if (atConfigurationTime()) {
+        onTaskExecutionAccessProblem(invocationDescription, task)
+    }
+
+    override fun onConventionAccess(invocationDescription: String, task: TaskInternal) {
+        if (canAccessConventions(task.javaClass.name, invocationDescription)) {
             return
         }
         onTaskExecutionAccessProblem(invocationDescription, task)
     }
 
     override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal) {
-        if (atConfigurationTime()) {
-            return
-        }
         onTaskExecutionAccessProblem(invocationDescription, task)
     }
 
@@ -166,8 +168,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         } ?: false
 
     private
-    fun atConfigurationTime() =
-        configurationTimeBarrier.isAtConfigurationTime
+    fun atConfigurationTime() = configurationTimeBarrier.isAtConfigurationTime
 
     private
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()

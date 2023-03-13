@@ -1,3 +1,0 @@
- - Improvements to the Kotlin DSL
- - Fine-grained parallelism from the first build with configuration cache
- - Configurable Gradle user home cache cleanup

@@ -20,8 +20,8 @@ class KotlinCompilerPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'org.jetbrains.kotlin.plugin.allopen': TestedVersions.kotlinPlugins,
-            'org.jetbrains.kotlin.plugin.spring': TestedVersions.kotlinPlugins
+            'org.jetbrains.kotlin.plugin.allopen': TestedVersions.kotlin,
+            'org.jetbrains.kotlin.plugin.spring': TestedVersions.kotlin
         ]
     }
 }

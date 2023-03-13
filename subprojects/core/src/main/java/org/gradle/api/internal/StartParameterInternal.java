@@ -34,6 +34,7 @@ public class StartParameterInternal extends StartParameter {
     private Option.Value<Boolean> configurationCache = Option.Value.defaultValue(false);
     private Option.Value<Boolean> isolatedProjects = Option.Value.defaultValue(false);
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
+    private boolean configurationCacheEncryption = false;
     private boolean configurationCacheDebug;
     private int configurationCacheMaxProblems = 512;
     private boolean configurationCacheRecreateCache;
@@ -205,5 +206,13 @@ public class StartParameterInternal extends StartParameter {
 
     public Duration getContinuousBuildQuietPeriod() {
         return continuousBuildQuietPeriod;
+    }
+
+    public void setConfigurationCacheEncryption(boolean value) {
+        this.configurationCacheEncryption = value;
+    }
+
+    public boolean isConfigurationCacheEncryption() {
+        return configurationCacheEncryption;
     }
 }

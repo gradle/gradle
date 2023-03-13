@@ -126,8 +126,19 @@ abstract class ToolingApiSpecification extends Specification {
         file("build.gradle")
     }
 
+    TestFile getPropertiesFile() {
+        file("gradle.properties")
+    }
+
     TestFile getBuildFileKts() {
+        validateKotlinCompatibility()
         file("build.gradle.kts")
+    }
+
+    private validateKotlinCompatibility() {
+        if (targetGradleDistribution && !targetGradleDistribution.supportsKotlinScript) {
+            throw new RuntimeException("The current Gradle target version ($targetGradleDistribution.version) does not support execution of Kotlin build scripts.")
+        }
     }
 
     TestFile getSettingsFile() {

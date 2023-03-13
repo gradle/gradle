@@ -22,6 +22,8 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheQu
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
+import static org.gradle.configurationcache.EnvironmentVarKeySource.GRADLE_ENCRYPTION_KEY_ENV_KEY
+
 
 class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
 
@@ -53,5 +55,12 @@ class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
         } else {
             return args + CONFIGURATION_CACHE_ARGS
         }
+    }
+
+    @Override
+    protected void transformInvocation(GradleInvocation invocation) {
+        // make an encryption key available so encryption can be in place
+        invocation.environmentVars.putIfAbsent(GRADLE_ENCRYPTION_KEY_ENV_KEY, (0..<32).collect {it % 10 }.join())
+        super.transformInvocation(invocation)
     }
 }

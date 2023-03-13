@@ -110,7 +110,7 @@ class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperat
     @Override
     public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultTaskDescriptor descriptor, ExecuteTaskBuildOperationDetails details, OperationFinishEvent finishEvent) {
         TaskInternal task = details.getTask();
-        AbstractTaskResult taskResult = operationResultPostProcessor.process(toTaskResult(task, finishEvent), descriptor.getId());
+        AbstractTaskResult taskResult = operationResultPostProcessor.process(toTaskResult(task, finishEvent), task);
         return new DefaultTaskFinishedProgressEvent(finishEvent.getEndTime(), descriptor, taskResult);
     }
 
@@ -157,9 +157,9 @@ class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperat
             }
         }
 
-        public AbstractTaskResult process(AbstractTaskResult taskResult, OperationIdentifier taskBuildOperationId) {
+        public AbstractTaskResult process(AbstractTaskResult taskResult, TaskInternal taskInternal) {
             for (OperationResultPostProcessor factory : processors) {
-                taskResult = factory.process(taskResult, taskBuildOperationId);
+                taskResult = factory.process(taskResult, taskInternal);
             }
             return taskResult;
         }

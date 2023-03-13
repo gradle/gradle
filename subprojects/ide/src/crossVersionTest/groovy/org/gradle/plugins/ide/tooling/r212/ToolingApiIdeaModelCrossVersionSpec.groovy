@@ -21,9 +21,12 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.idea.IdeaProject
 
+import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaSourceCompatibility
+
 @TargetGradleVersion(">=2.12")
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
-    def setup(){
+
+    def setup() {
         settingsFile << "rootProject.name = 'root'"
     }
 
@@ -44,12 +47,12 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
             project(':child2') {
                 apply plugin: 'java'
-                sourceCompatibility = '1.2'
+                ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_2)}
             }
 
             project(':child3') {
                 apply plugin: 'java'
-                sourceCompatibility = '1.5'
+                ${javaSourceCompatibility(targetVersion, JavaVersion.VERSION_1_5)}
             }
 
         """
@@ -64,5 +67,4 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_2
         ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.languageLevel == JavaVersion.VERSION_1_5
     }
-
 }

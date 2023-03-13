@@ -24,21 +24,23 @@ final class JacocoCoverage {
     private JacocoCoverage() {}
 
     private static final String[] ALL = [JacocoPlugin.DEFAULT_JACOCO_VERSION, '0.7.1.201405082137', '0.7.6.201602180812', '0.8.3'].asImmutable()
+    // Order matters here, as we want to test the latest version first
+    // Relies on Groovy keeping the order of the keys in a map literal
+    private static final Map<JavaVersion, JacocoVersion> JDK_CUTOFFS = [
+        (JavaVersion.VERSION_20): JacocoVersion.SUPPORTS_JDK_20,
+        (JavaVersion.VERSION_18): JacocoVersion.SUPPORTS_JDK_18,
+        (JavaVersion.VERSION_17): JacocoVersion.SUPPORTS_JDK_17,
+        (JavaVersion.VERSION_16): JacocoVersion.SUPPORTS_JDK_16,
+        (JavaVersion.VERSION_15): JacocoVersion.SUPPORTS_JDK_15,
+        (JavaVersion.VERSION_14): JacocoVersion.SUPPORTS_JDK_14,
+        (JavaVersion.VERSION_1_9): JacocoVersion.SUPPORTS_JDK_9,
+    ]
 
-    // Release notes: https://www.jacoco.org/jacoco/trunk/doc/changes.html
     static List<String> getSupportedVersionsByJdk() {
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_18)) {
-            return filter(JacocoVersion.SUPPORTS_JDK_18)
-        } else if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
-            return filter(JacocoVersion.SUPPORTS_JDK_17)
-        } else if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
-            return filter(JacocoVersion.SUPPORTS_JDK_16)
-        } else if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_15)) {
-            return filter(JacocoVersion.SUPPORTS_JDK_15)
-        } else if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
-            return filter(JacocoVersion.SUPPORTS_JDK_14)
-        } else if (JavaVersion.current().isJava9Compatible()) {
-            return filter(JacocoVersion.SUPPORTS_JDK_9)
+        for (def cutoff : JDK_CUTOFFS) {
+            if (JavaVersion.current().isCompatibleWith(cutoff.key)) {
+                return filter(cutoff.value)
+            }
         }
         return filter(JacocoVersion.SUPPORTS_JDK_8)
     }
@@ -48,6 +50,7 @@ final class JacocoCoverage {
     }
 
     private static class JacocoVersion implements Comparable<JacocoVersion> {
+        // Release notes: https://www.jacoco.org/jacoco/trunk/doc/changes.html
         static final SUPPORTS_JDK_8 = new JacocoVersion(0, 7, 0)
         static final SUPPORTS_JDK_9 = new JacocoVersion(0, 7, 8)
         static final SUPPORTS_JDK_14 = new JacocoVersion(0, 8, 5)
@@ -55,6 +58,7 @@ final class JacocoCoverage {
         static final SUPPORTS_JDK_16 = new JacocoVersion(0, 8, 6)
         static final SUPPORTS_JDK_17 = new JacocoVersion(0, 8, 7)
         static final SUPPORTS_JDK_18 = new JacocoVersion(0, 8, 8)
+        static final SUPPORTS_JDK_20 = new JacocoVersion(0, 8, 9)
 
         private final int major
         private final int minor

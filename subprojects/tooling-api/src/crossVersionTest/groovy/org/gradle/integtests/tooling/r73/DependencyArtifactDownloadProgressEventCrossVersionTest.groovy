@@ -27,6 +27,7 @@ import org.gradle.tooling.events.OperationType
 
 @ToolingApiVersion(">=7.3")
 @TargetGradleVersion(">=7.3")
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3765")
 class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHttpCrossVersionSpec {
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/3638")
     def "generates typed events for downloads during dependency resolution"() {

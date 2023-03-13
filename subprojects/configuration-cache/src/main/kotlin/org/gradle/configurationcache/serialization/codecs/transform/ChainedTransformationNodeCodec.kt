@@ -33,6 +33,7 @@ class ChainedTransformationNodeCodec(
 ) : AbstractTransformationNodeCodec<TransformationNode.ChainedTransformationNode>() {
 
     override suspend fun WriteContext.doEncode(value: TransformationNode.ChainedTransformationNode) {
+        writeLong(value.transformationNodeId)
         write(value.targetComponentVariant)
         write(value.sourceAttributes)
         write(unpackTransformationStep(value))
@@ -40,10 +41,11 @@ class ChainedTransformationNodeCodec(
     }
 
     override suspend fun ReadContext.doDecode(): TransformationNode.ChainedTransformationNode {
+        val transformationNodeId = readLong()
         val targetComponentVariant = readNonNull<ComponentVariantIdentifier>()
         val sourceAttributes = readNonNull<AttributeContainer>()
         val transformationStep = readNonNull<TransformStepSpec>()
         val previousStep = readNonNull<TransformationNode>()
-        return TransformationNode.chained(targetComponentVariant, sourceAttributes, transformationStep.transformation, previousStep, transformationStep.recreate(), buildOperationExecutor, calculatedValueContainerFactory)
+        return TransformationNode.chained(transformationNodeId, targetComponentVariant, sourceAttributes, transformationStep.transformation, previousStep, transformationStep.recreate(), buildOperationExecutor, calculatedValueContainerFactory)
     }
 }

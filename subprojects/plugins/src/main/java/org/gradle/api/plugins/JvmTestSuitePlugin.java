@@ -29,6 +29,7 @@ import org.gradle.api.attributes.TestSuiteName;
 import org.gradle.api.attributes.TestSuiteTargetName;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -79,14 +80,14 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
             // So defer looking up the java extension and sourceSet until the convention mapping is resolved.
             // See https://github.com/gradle/gradle/issues/18622
             test.getConventionMapping().map("testClassesDirs", () -> {
-                DeprecationLogger.deprecate("Configuring the test classes dirs by default for standalone Test tasks")
+                DeprecationLogger.deprecate("Relying on the convention for Test.testClassesDirs in custom Test tasks")
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "test_task_default_classpath")
                     .nagUser();
                 return JavaPluginHelper.getDefaultTestSuite(project).getSources().getOutput().getClassesDirs();
             });
             test.getConventionMapping().map("classpath", () -> {
-                DeprecationLogger.deprecate("Configuring the test classpath by default for standalone Test tasks")
+                DeprecationLogger.deprecate("Relying on the convention for Test.classpath in custom Test tasks")
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "test_task_default_classpath")
                     .nagUser();
@@ -105,14 +106,14 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
             });
         });
 
-        configureTestDataElementsVariants(project);
+        configureTestDataElementsVariants((ProjectInternal) project);
     }
 
     private String getDefaultTestType(JvmTestSuite testSuite) {
         return DEFAULT_TEST_SUITE_NAME.equals(testSuite.getName()) ? TestSuiteType.UNIT_TEST : TextUtil.camelToKebabCase(testSuite.getName());
     }
 
-    private void configureTestDataElementsVariants(Project project) {
+    private void configureTestDataElementsVariants(ProjectInternal project) {
         final TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         final ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
 
@@ -123,12 +124,10 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
         });
     }
 
-    private void addTestResultsVariant(Project project, JvmTestSuite suite, JvmTestSuiteTarget target) {
-        final Configuration variant = project.getConfigurations().create(TEST_RESULTS_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
+    private void addTestResultsVariant(ProjectInternal project, JvmTestSuite suite, JvmTestSuiteTarget target) {
+        final Configuration variant = project.getConfigurations().consumable(TEST_RESULTS_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()));
         variant.setDescription("Directory containing binary results of running tests for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
         variant.setVisible(false);
-        variant.setCanBeResolved(false);
-        variant.setCanBeConsumed(true);
 
         final ObjectFactory objects = project.getObjects();
         variant.attributes(attributes -> {

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
@@ -30,6 +29,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -57,7 +57,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
@@ -75,41 +74,50 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
 
     private static final String SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX = "SourceElements";
 
-    private final Project project;
+    private final SourceSet sourceSet;
 
+    // Services
+    private final ProjectInternal project;
     private final JvmPluginServices jvmPluginServices;
 
-    private final SourceSet sourceSet;
+    // Tasks
+    private final TaskProvider<JavaCompile> compileJava;
+    private final TaskProvider<Jar> jar;
+
+    // Dependency configurations
     private final Configuration implementation;
     private final Configuration runtimeOnly;
     private final Configuration compileOnly;
 
+    // Resolvable configurations
     private final Configuration runtimeClasspath;
     private final Configuration compileClasspath;
 
+    // Outgoing variants
     private final Configuration runtimeElements;
     private final Configuration apiElements;
 
-    private final TaskProvider<JavaCompile> compileJava;
-    private final TaskProvider<Jar> jar;
+    // Configurable outgoing variants
+    private Configuration javadocElements;
+    private Configuration sourcesElements;
 
     @Inject
     public DefaultJvmSoftwareComponent(
         String componentName,
         String sourceSetName,
-        Project project,
+        Project proj,
         JvmPluginServices jvmPluginServices,
         ObjectFactory objectFactory,
         ProviderFactory providerFactory,
         Instantiator instantiator
     ) {
         super(componentName, instantiator);
-        this.project = project;
+        this.project = (ProjectInternal) proj;
 
         this.jvmPluginServices = jvmPluginServices;
 
         TaskContainer tasks = project.getTasks();
-        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
+        RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
         PluginContainer plugins = project.getPlugins();
         ExtensionContainer extensions = project.getExtensions();
 
@@ -131,7 +139,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         this.apiElements = createApiElements(configurations, sourceSet, jarArtifact);
         createSourceElements(configurations, providerFactory, objectFactory, sourceSet);
 
-        JvmPluginsHelper.configureJavaDocTask(null, sourceSet, tasks, javaExtension);
+        JvmPluginsHelper.configureJavaDocTask("main code", sourceSet, tasks, javaExtension);
         configurePublishing(plugins, extensions, sourceSet);
 
         // Register the consumable configurations as providing variants for consumption.
@@ -164,19 +172,6 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
     }
 
     private static PublishArtifact configureArchives(Project project, TaskProvider<Jar> jarTaskProvider, TaskContainer tasks, ExtensionContainer extensions) {
-        /*
-         * Unless there are other concerns, we'd prefer to run jar tasks prior to test tasks, as this might offer a small performance improvement
-         * for common usage.  In practice, running test tasks tends to take longer than building a jar; especially as a project matures. If tasks
-         * in downstream projects require the jar from this project, and the jar and test tasks in this project are available to be run in either order,
-         * running jar first so that other projects can continue executing tasks in parallel while this project runs its tests could be an improvement.
-         * However, while we want to prioritize cross-project dependencies to maximize parallelism if possible, we don't want to add an explicit
-         * dependsOn() relationship between the jar task and the test task, so that any projects which need to run test tasks first will not need modification.
-         */
-        tasks.withType(Test.class).configureEach(test -> {
-            // Attempt to avoid configuring jar task if possible, it will likely be configured anyway the by apiElements variant
-            test.shouldRunAfter(tasks.withType(Jar.class));
-        });
-
         PublishArtifact jarArtifact = new LazyPublishArtifact(jarTaskProvider, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
         extensions.getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
         return jarArtifact;
@@ -232,7 +227,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         return apiElementsConfiguration;
     }
 
-    private Configuration createSourceElements(ConfigurationContainer configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, SourceSet sourceSet) {
+    private Configuration createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, SourceSet sourceSet) {
 
         // TODO: Why are we using this non-standard name? For the `java` component, this
         // equates to `mainSourceElements` instead of `sourceElements` as one would expect.
@@ -240,11 +235,9 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         // of the component's API?
         String variantName = sourceSet.getName() + SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX;
 
-        Configuration variant = configurations.create(variantName);
+        @SuppressWarnings("deprecation") Configuration variant = configurations.createWithRole(variantName, ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE);
         variant.setDescription("List of source directories contained in the Main SourceSet.");
         variant.setVisible(false);
-        variant.setCanBeResolved(false);
-        variant.setCanBeConsumed(true);
         variant.extendsFrom(implementation);
 
         variant.attributes(attributes -> {
@@ -280,37 +273,37 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
     }
 
     @Override
-    public void enableJavadocJarVariant() {
-        if (project.getConfigurations().findByName(sourceSet.getJavadocElementsConfigurationName()) != null) {
+    public void withJavadocJar() {
+        if (javadocElements != null) {
             return;
         }
-        Configuration javadocVariant = JvmPluginsHelper.createDocumentationVariantWithArtifact(
+        this.javadocElements = JvmPluginsHelper.createDocumentationVariantWithArtifact(
             sourceSet.getJavadocElementsConfigurationName(),
             null,
             JAVADOC,
             ImmutableList.of(),
             sourceSet.getJavadocJarTaskName(),
             project.getTasks().named(sourceSet.getJavadocTaskName()),
-            (ProjectInternal) project
+            project
         );
-        addVariantsFromConfiguration(javadocVariant, new JavaConfigurationVariantMapping("runtime", true));
+        addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
     }
 
     @Override
-    public void enableSourcesJarVariant() {
-        if (project.getConfigurations().findByName(sourceSet.getSourcesElementsConfigurationName()) != null) {
+    public void withSourcesJar() {
+        if (sourcesElements != null) {
             return;
         }
-        Configuration sourcesVariant = JvmPluginsHelper.createDocumentationVariantWithArtifact(
+        this.sourcesElements = JvmPluginsHelper.createDocumentationVariantWithArtifact(
             sourceSet.getSourcesElementsConfigurationName(),
             null,
             SOURCES,
             ImmutableList.of(),
             sourceSet.getSourcesJarTaskName(),
             sourceSet.getAllSource(),
-            (ProjectInternal) project
+            project
         );
-        addVariantsFromConfiguration(sourcesVariant, new JavaConfigurationVariantMapping("runtime", true));
+        addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
     }
 
     @Override

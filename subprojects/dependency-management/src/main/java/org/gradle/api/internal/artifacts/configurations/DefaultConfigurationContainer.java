@@ -50,8 +50,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration>
-    implements ConfigurationContainerInternal, ConfigurationsProvider {
+public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration> implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
 
     @SuppressWarnings("deprecation")
@@ -86,8 +85,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         };
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(this);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
-        this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.discardAll());
-        this.whenObjectRemoved(x -> rootComponentMetadataBuilder.discardAll());
+        this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
+        this.whenObjectRemoved(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
     }
 
     @Override
@@ -98,6 +97,11 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public Set<? extends ConfigurationInternal> getAll() {
         return stream().map(ConfigurationInternal.class::cast).collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    @Override
+    public ConfigurationInternal findByName(String name) {
+        return (ConfigurationInternal) super.findByName(name);
     }
 
     @Override
@@ -120,7 +124,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         String name = nextDetachedConfigurationName();
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         @SuppressWarnings("deprecation")
-        DefaultConfiguration detachedConfiguration = newConfiguration(name, detachedConfigurationsProvider, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), ConfigurationRoles.LEGACY, false);
+        DefaultConfiguration detachedConfiguration = newConfiguration(name, detachedConfigurationsProvider, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), ConfigurationRolesForMigration.LEGACY_TO_INTENDED_RESOLVABLE_BUCKET, false);
         copyAllTo(detachedConfiguration, dependencies);
         detachedConfigurationsProvider.setTheOnlyConfiguration(detachedConfiguration);
         return detachedConfiguration;

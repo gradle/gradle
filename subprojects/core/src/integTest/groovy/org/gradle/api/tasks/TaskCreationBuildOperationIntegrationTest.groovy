@@ -23,9 +23,16 @@ import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
+import org.gradle.util.Path
+
+import java.util.stream.Collectors
+
+import static java.util.stream.Collectors.groupingBy
+import static java.util.stream.Collectors.mapping
 
 class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -270,6 +277,20 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         allRealizeOps.findAll { !it.details.eager }.each {
             assert it.details.taskId in allRegisterIds
         }
+        verifyUniqueIdPerTaskPath()
+    }
+
+    private void verifyUniqueIdPerTaskPath() {
+        def allRealizeOps = buildOperations.all(RealizeTaskBuildOperationType)
+        def idsByTaskPath = allRealizeOps.stream()
+                .map(it -> it.details)
+                .collect(groupingBy(
+                        { it -> Path.path((String) it.buildPath).append(Path.path((String) it.taskPath)) },
+                        mapping({ it -> (Long) it.taskId }, Collectors.toSet())
+                ))
+        idsByTaskPath.each { entry ->
+            assert entry.value.size() == 1
+        }
     }
 
     private static Spec<? super BuildOperationRecord> withAnyPath(String buildPath, String... paths) {
@@ -285,15 +306,24 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
     }
 
     private <T extends BuildOperationType<?, ?>> BuildOperationRecord verifyTaskDetails(Map<String, ?> expectedDetails, Class<T> type, Spec<? super BuildOperationRecord> spec) {
-        def op = buildOperations.only(type, spec)
-        verifyTaskDetails(expectedDetails, op)
-        op
+        def ops = buildOperations.all(type, spec)
+        assert !ops.empty
+        if (type == RealizeTaskBuildOperationType && GradleContextualExecuter.configCache) {
+            // When using load after store, the task will be realized twice:
+            //  - at configuration time
+            //  - after loading from the configuration cache
+            // Though even with load after store we can't assume == 2 here, since some of the tests fail the build before loading form the configuration cache.
+            assert ops.size() <= 2
+        } else {
+            assert ops.size() == 1
+        }
+        // Only verify the first event since it is the one from the configuration phase.
+        verifyTaskDetails(expectedDetails, ops.first())
+        ops.first()
     }
 
     private <T extends BuildOperationType<?, ?>> BuildOperationRecord verifyTaskDetails(Class<T> type, Spec<? super BuildOperationRecord> spec) {
-        def op = buildOperations.only(type, spec)
-        verifyTaskDetails([:], op)
-        op
+        verifyTaskDetails([:], type, spec)
     }
 
     static final Map<?, ?> DEFAULT_EXPECTED_DETAILS = [

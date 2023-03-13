@@ -17,6 +17,7 @@
 
 package org.gradle.integtests.tooling.r25
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
@@ -482,7 +483,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
     def goodCode() {
         buildFile << """
             apply plugin: 'java'
-            sourceCompatibility = 1.7
+            ${javaSourceCompatibility(JavaVersion.VERSION_1_7)}
             ${mavenCentralRepository()}
             dependencies { ${testImplementationConfiguration} 'junit:junit:4.13' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
@@ -496,5 +497,13 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
                 }
             }
         """
+    }
+
+    private String javaSourceCompatibility(JavaVersion javaVersion) {
+        if (targetVersion >= GradleVersion.version("5.0")) {
+            return "java.sourceCompatibility = JavaVersion.${javaVersion.name()}"
+        } else {
+            return "sourceCompatibility = '${javaVersion.toString()}'"
+        }
     }
 }

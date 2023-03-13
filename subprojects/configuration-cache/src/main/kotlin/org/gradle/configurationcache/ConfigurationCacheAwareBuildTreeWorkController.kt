@@ -52,7 +52,12 @@ class ConfigurationCacheAwareBuildTreeWorkController(
         }
 
         cache.finalizeCacheEntry()
-        buildRegistry.resetStateForAllBuilds()
+        buildRegistry.visitBuilds { build ->
+            build.beforeModelReset().rethrow()
+        }
+        buildRegistry.visitBuilds { build ->
+            build.resetModel()
+        }
 
         return workGraph.withNewWorkGraph { graph ->
             val finalizedGraph = cache.loadRequestedTasks(graph)

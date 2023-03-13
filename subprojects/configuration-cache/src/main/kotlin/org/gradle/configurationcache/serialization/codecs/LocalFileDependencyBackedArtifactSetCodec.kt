@@ -29,7 +29,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
-import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
@@ -71,6 +70,7 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata
 import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity
 
 
 class LocalFileDependencyBackedArtifactSetCodec(
@@ -83,8 +83,8 @@ class LocalFileDependencyBackedArtifactSetCodec(
         //   - calculate the attributes for each of the files eagerly rather than writing the mappings
         //   - when the selector would not apply a transform, then write only the files and nothing else
         //   - otherwise, write only the transform and attributes for each file rather than writing the transform registry
-        val noRequestedAttributes = value.selector.requestedAttributes.isEmpty
-        writeBoolean(noRequestedAttributes)
+        val requestedAttributes = !value.selector.requestedAttributes.isEmpty
+        writeBoolean(requestedAttributes)
         write(value.dependencyMetadata.componentId)
         write(value.dependencyMetadata.files)
         write(value.componentFilter)
@@ -99,7 +99,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
             }
         }
 
-        if (!noRequestedAttributes) {
+        if (requestedAttributes) {
             // Write the file extension -> transformation mappings
             // This currently uses a dummy set of variants to calculate the mappings.
             // Do not write this if it will not be used
@@ -110,7 +110,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
             val mappings = mutableMapOf<ImmutableAttributes, MappingSpec>()
             value.artifactTypeRegistry.visitArtifactTypes { sourceAttributes ->
                 val recordingSet = RecordingVariantSet(value.dependencyMetadata.files, sourceAttributes)
-                val selected = value.selector.select(recordingSet, recordingSet)
+                val selected = value.selector.maybeSelect(recordingSet, recordingSet)
                 if (selected == ResolvedArtifactSet.EMPTY) {
                     // Don't need to record the mapping
                 } else if (recordingSet.targetAttributes != null) {
@@ -128,7 +128,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
     }
 
     override suspend fun ReadContext.decode(): LocalFileDependencyBackedArtifactSet {
-        val noRequestedAttributes = readBoolean()
+        val requestedAttributes = readBoolean()
         val componentId = read() as ComponentIdentifier?
         val files = readNonNull<FileCollectionInternal>()
         val filter = readNonNull<Spec<ComponentIdentifier>>()
@@ -149,7 +149,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
             registry
         }
 
-        val selector = if (noRequestedAttributes) {
+        val selector = if (!requestedAttributes) {
             NoTransformsSelector()
         } else {
             val matchingOnArtifactFormat = readBoolean()
