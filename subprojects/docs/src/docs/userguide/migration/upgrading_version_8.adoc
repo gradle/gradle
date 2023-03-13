@@ -38,20 +38,40 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
 
+[[cache_marking]]
 === CACHEDIR.TAG files are created in global cache directories
-Gradle now emits a `CACHEDIR.TAG` file in some global cache directories (see the release notes for details).
+Gradle now emits a `CACHEDIR.TAG` file in some global cache directories, as specified in <<directory_layout#dir:gradle_user_home:cache_marking>>.
 
-This may cause these directories to no longer be searched or backed up by some tools. In order to disable
-this behavior, configure the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[settings] object
-in an init script in the Gradle user home:
+This may cause these directories to no longer be searched or backed up by some tools. To disable it, use the following code in an <<init_scripts#sec:using_an_init_script,init script>> in the Gradle user home directory:
 
-```
+====
+[.multi-language-sample]
+=====
+.init.gradle.kts
+[source,kotlin]
+----
+beforeSettings {
+    caches {
+        // Disable cache marking for all caches
+        markingStrategy.set(MarkingStrategy.NONE)
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.init.gradle
+[source,groovy]
+----
 beforeSettings { settings ->
     settings.caches {
+        // Disable cache marking for all caches
         markingStrategy = MarkingStrategy.NONE
     }
 }
-```
+----
+=====
+====
 
 === Potential breaking changes
 
