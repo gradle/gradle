@@ -132,14 +132,14 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
             configurations {
                 blueVariant {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Attribute.of('color', String), 'blue')
                     }
                 }
                 redVariant {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Attribute.of('color', String), 'red')
                     }

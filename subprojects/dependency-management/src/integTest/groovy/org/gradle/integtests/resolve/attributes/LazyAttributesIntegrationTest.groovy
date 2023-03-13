@@ -34,7 +34,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
                 sample {
                     visible = false
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
 
                     attributes {
                         attributeProvider(Usage.USAGE_ATTRIBUTE, sampleProperty.map(value -> objects.named(Usage, value)))
@@ -70,7 +70,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
                 sample {
                     visible = false
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     extendsFrom(configurations.implementation)
 
                     attributes {
@@ -97,7 +97,7 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
                 sample {
                     visible = false
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     extendsFrom(configurations.implementation)
 
                     attributes {

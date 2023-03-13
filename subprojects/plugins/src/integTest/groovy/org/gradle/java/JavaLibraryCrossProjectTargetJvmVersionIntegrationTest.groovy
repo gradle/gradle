@@ -92,7 +92,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
             [6, 7, 9].each { v ->
                 configurations {
                     "apiElementsJdk\${v}" {
-                        canBeConsumed = true
+                        assert canBeConsumed
                         canBeResolved = false
                         attributes {
                             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-api'))

@@ -33,7 +33,7 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
                 configurations {
                     producerArtifacts {
                         canBeConsumed = false
-                        canBeResolved = true
+                        assert canBeResolved
 
                         attributes {
                             attribute(Attribute.of('shared', String), 'shared-value')
@@ -112,7 +112,7 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
             configurations {
                 jarElements {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Attribute.of('shared', String), 'shared-value')
                         attribute(Attribute.of('unique', String), 'jar-value')
@@ -124,7 +124,7 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
                 }
                 javadocElements {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Attribute.of('shared', String), 'shared-value')
                         attribute(Attribute.of('unique', String), 'javadoc-value')
@@ -136,7 +136,7 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
                 }
                 otherElements {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Attribute.of('other', String), 'foobar')
                     }

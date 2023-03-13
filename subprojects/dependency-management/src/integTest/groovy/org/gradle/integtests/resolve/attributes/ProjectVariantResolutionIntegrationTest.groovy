@@ -44,7 +44,7 @@ class ProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec im
 
                 configurations {
                     broken {
-                        canBeConsumed = true
+                        assert canBeConsumed
                         canBeResolved = false
                         attributes.attribute(color, 'orange')
                         outgoing {

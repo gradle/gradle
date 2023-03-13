@@ -1292,7 +1292,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
             }
 
@@ -1322,7 +1322,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Attribute.of('org.gradle.category', String), 'verification')
             }
 
@@ -1397,7 +1397,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, 'not verification'))
             }
 
@@ -1449,7 +1449,7 @@ $append
                 optionalFeatureRuntimeElements {
                     extendsFrom optionalFeatureImplementation
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
                     }

@@ -437,7 +437,7 @@ project(':child') {
         }
         runtimeElements {
             extendsFrom(runtimeOnly)
-            canBeConsumed = true
+            assert canBeConsumed
             canBeResolved = false
             attributes {
                 attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))

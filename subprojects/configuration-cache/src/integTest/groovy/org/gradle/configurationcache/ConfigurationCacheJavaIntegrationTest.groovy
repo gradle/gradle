@@ -565,7 +565,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
             }
 
             val manifestClasspath by configurations.creating {
-                isCanBeResolved = true
+                assert(isCanBeResolved)
                 isCanBeConsumed = false
                 isTransitive = false
                 attributes {
