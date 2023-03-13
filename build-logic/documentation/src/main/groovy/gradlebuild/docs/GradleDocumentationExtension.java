@@ -57,6 +57,12 @@ public abstract class GradleDocumentationExtension {
     public abstract ConfigurableFileCollection getDocumentedSource();
 
     /**
+     * Kotlin DSL source code to be documented. This should be the "public" Kotlin APIs,
+     * including generated code.
+     */
+    public abstract ConfigurableFileCollection getKotlinDslSource();
+
+    /**
      * The runtime classpath of the source code to be documented.
      */
     public abstract ConfigurableFileCollection getClasspath();

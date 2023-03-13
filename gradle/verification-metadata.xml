@@ -20,7 +20,7 @@
 -->
 <!--
    This file declares the dependency verification metadata for dependencies used by Gradle.
-   When you upgrade a dependency, verification is likely to fail so you will need to update
+   When you upgrade a dependency, verification is likely to fail, so you will need to update
    it.
 
    If, for whatever reason, verification fails for you, DO NOT DISABLE IT but follow the
@@ -65,6 +65,8 @@
       <ignored-keys>
          <ignored-key id="74dafdfd6dae2441" reason="Key couldn't be downloaded from any key server"/>
          <ignored-key id="bf984b4145ea13f7" reason="Key couldn't be downloaded from any key server"/>
+         <ignored-key id="3967d4eda591b991" reason="Key couldn't be downloaded from any key server"/>
+         <ignored-key id="03281aa0289ff53a" reason="Key couldn't be downloaded from any key server"/>
       </ignored-keys>
       <trusted-keys>
          <trusted-key id="019082bc00e0324e2aef4cf00d3b328562a119a7" group="org.openjdk.jmh"/>
@@ -191,8 +193,10 @@
             <trusting group="^org[.]jetbrains($|([.].*))" regex="true"/>
             <trusting group="^org[.]rnorth($|([.].*))" regex="true"/>
          </trusted-key>
+         <trusted-key id="8a10792983023d5d14c93b488d7f1bec1e2ecae7" group="^com[.]fasterxml($|([.].*))" regex="true"/>
          <trusted-key id="8c03da5873b13e40c8c0dce46a7ae74683a8ae1a" group="net.sourceforge.htmlunit"/>
          <trusted-key id="8da70c00df7af1b0d2f9dc74ddbcc1270a29d081" group="org.apache.ant"/>
+         <trusted-key id="98465301a4939c0279f2e847d89d05374952262b" group="org.jetbrains.dokka"/>
          <trusted-key id="9857c388d7d1d9d031274cd0a5def5a76f94a471" group="com.github.spotbugs"/>
          <trusted-key id="9e84765a7aa3e3d3d5598a408e3f0de7ae354651" group="^com[.]squareup($|([.].*))" regex="true"/>
          <trusted-key id="a2570288e10932263e8326cbaa49c633b4734832">
@@ -263,6 +267,7 @@
             <trusting group="org.apache-extras.beanshell"/>
          </trusted-key>
          <trusted-key id="df49fa14952e59a7b21931ec8edf2667d0ecffaf" group="io.mockk"/>
+         <trusted-key id="e62231331bca7e1f292c9b88c1b12a5d99c0729d" group="org.jetbrains"/>
          <trusted-key id="e77417ac194160a3fabd04969a259c7ee636c5ed">
             <trusting group="com.google.errorprone" name="error_prone_annotations"/>
             <trusting group="^com[.]google($|([.].*))" regex="true"/>
@@ -739,6 +744,11 @@
             </sha256>
          </artifact>
       </component>
+      <component group="dev.adamko.dokkatoo" name="dokkatoo-plugin" version="0.0.4">
+         <artifact name="dokkatoo-plugin-0.0.4.jar">
+            <sha1 value="f34dcde9c4c1c07d1aea03d6019a9e4524991be7" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
       <component group="flot" name="flot" version="0.8.1">
          <artifact name="flot-0.8.1-min.js">
             <sha256 value="889e1e07300265211222ad70b0644b9af0954eb2f9eaf06544c0e436967f434f" origin="Verified" reason="Artifact is not signed"/>
@@ -1155,6 +1165,11 @@
             <pgp value="f254b35617dc255d9344bcfa873a8e86b4372146"/>
          </artifact>
       </component>
+      <component group="org.codehaus.woodstox" name="stax2-api" version="4.2.1">
+         <artifact name="stax2-api-4.2.1.jar">
+            <pgp value="6214760097dc5cfad0175ac2c9fbaa83a8753994"/>
+         </artifact>
+      </component>
       <component group="org.ec4j.core" name="ec4j-core" version="0.2.0">
          <artifact name="ec4j-core-0.2.0.jar">
             <pgp value="2e92113263fc31c74ccbaab20e91c2de43b72bb1"/>
@@ -1194,6 +1209,11 @@
       <component group="org.eclipse.jgit" name="org.eclipse.jgit" version="5.8.0.202006091008-r">
          <artifact name="org.eclipse.jgit-5.8.0.202006091008-r.jar">
             <pgp value="7c669810892cbd3148fa92995b05ccde140c2876"/>
+         </artifact>
+      </component>
+      <component group="org.freemarker" name="freemarker" version="2.3.31">
+         <artifact name="freemarker-2.3.31.jar">
+            <pgp value="13ac2213964abe1d1c147c0e1939a2520bab1d90"/>
          </artifact>
       </component>
       <component group="org.fusesource.jansi" name="jansi" version="1.18">
@@ -1319,6 +1339,13 @@
       <component group="org.jetbrains.kotlin" name="kotlin-tooling-metadata" version="1.6.21">
          <artifact name="kotlin-tooling-metadata-1.6.21.jar">
             <sha256 value="4ec93d0516066b0b648ba987c6d3d65f6fb067dc0bbba95c1ece61e0428488e5" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlinx" name="kotlinx-html-jvm" version="0.8.0">
+         <artifact name="kotlinx-html-jvm-0.8.0.jar">
+            <md5 value="7de2b4f3424a361d92355bf7ac076c29" origin="Verified"/>
+            <sha1 value="358843421bbfad3638ea230cfcc155af1e277cfa" origin="Verified"/>
+            <sha256 value="712184b0733445f05d2bea8051330c73de3abd9b393be0af304b77b7cee12f14" origin="Generated by Gradle" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
       <component group="org.jlleitschuh.gradle" name="ktlint-gradle" version="10.3.0">
