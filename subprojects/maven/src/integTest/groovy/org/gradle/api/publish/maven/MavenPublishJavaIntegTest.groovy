@@ -149,7 +149,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
             }
 
@@ -179,7 +179,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Attribute.of('org.gradle.category', String), 'verification')
             }
 
@@ -254,7 +254,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
             ${mavenCentralRepository()}
 
             def testConf = configurations.create('testConf') {
-                canBeResolved = true
+                assert canBeResolved
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, 'not verification'))
             }
 

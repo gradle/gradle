@@ -180,7 +180,7 @@ allprojects {
                 configurations {
                     testImplementation {
                         extendsFrom implementation
-                        canBeResolved = true
+                        assert canBeResolved
                         canBeConsumed = false
                         attributes.attribute(color, 'blue')
                     }
