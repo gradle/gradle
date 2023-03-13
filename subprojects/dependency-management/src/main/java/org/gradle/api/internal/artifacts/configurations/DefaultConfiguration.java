@@ -1808,7 +1808,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void warnOnRedundantUsageActivation(String usage, String method) {
+    private void maybeWarnOnRedundantUsageActivation(String usage, String method) {
         if (!isSpecialCaseOfRedundantUsageActivation()) {
             String msgTemplate = "The %s usage is already allowed on %s.";
             DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, usage, getDisplayName()))
@@ -1834,18 +1834,14 @@ since users cannot create non-legacy configurations and there is no current publ
      *     <li>Setting consumable usage to false on the {@code apiElements} and {@code runtimeElements} configurations should NOT warn (this is done by the Kotlin plugin).</li>
      *     <li>All other usage changes should warn.</li>
      * </ol>
-     * <p>
-     * This method is temporary, so the duplication of the configuration names defined in
-     * {@link JvmConstants}, which are not available to be referenced directly from here, is unfortunate, but not a showstopper.
      *
      * @param usage the name usage that is being changed
      * @param current the current value of the usage after the change
      *
      * @return {@code true} if the usage change is a known special case; {@code false} otherwise
      */
-    @SuppressWarnings({"JavadocReference", "deprecation"})
     private boolean isSpecialCaseOfChangingUsage(String usage, boolean current) {
-        return isInitializing() || isDetachedConfiguration() || isInLegacyRole() || isPermittedConfigurationChangeForKotlin(usage, current);
+        return isInitializing() || isDetachedConfiguration() || isInLegacyRole() || isPermittedConfigurationForUsageChange(usage, current);
     }
 
     /**
@@ -1865,7 +1861,7 @@ since users cannot create non-legacy configurations and there is no current publ
      * @return {@code true} if the usage change is a known special case; {@code false} otherwise
      */
     private boolean isSpecialCaseOfRedundantUsageActivation() {
-        return isDetachedConfiguration() || isInLegacyRole();
+        return isDetachedConfiguration() || isInLegacyRole() || isPermittedConfigurationForRedundantActivation();
     }
 
     private boolean isInitializing() {
@@ -1881,8 +1877,32 @@ since users cannot create non-legacy configurations and there is no current publ
         return roleAtCreation == ConfigurationRoles.LEGACY;
     }
 
-    private boolean isPermittedConfigurationChangeForKotlin(String usage, boolean current) {
+    /**
+     * Determine if this is a configuration that is permitted to change its usage, to support important 3rd party
+     * plugins such as Kotlin that do this.
+     * <p>
+     * This method is temporary, so the duplication of the configuration names defined in
+     * {@link JvmConstants}, which are not available to be referenced directly from here, is unfortunate, but not a showstopper.
+     *
+     * @return {@code true} if this is a configuration that is permitted to change its usage; {@code false} otherwise
+     */
+    @SuppressWarnings("JavadocReference")
+    private boolean isPermittedConfigurationForUsageChange(String usage, boolean current) {
         return name.equals("apiElements") || name.equals("runtimeElements") && usage.equals("consumable") && !current;
+    }
+
+    /**
+     * Determine if this is a configuration that is permitted to redundantly activate usage, to support important 3rd party
+     * plugins such as Kotlin that do this.
+     * <p>
+     * This method is temporary, so the duplication of the configuration names defined in
+     * {@link JvmConstants}, which are not available to be referenced directly from here, is unfortunate, but not a showstopper.
+     *
+     * @return {@code true} if this is a configuration that is permitted to redundantly activate usage; {@code false} otherwise
+     */
+    @SuppressWarnings("JavadocReference")
+    private boolean isPermittedConfigurationForRedundantActivation() {
+        return name.equals("runtimeClasspath") || name.equals("testRuntimeClasspath");
     }
 
     @Override
@@ -1912,7 +1932,7 @@ since users cannot create non-legacy configurations and there is no current publ
             canBeConsumed = allowed;
             maybeWarnOnChangingUsage("consumable", allowed);
         } else if (canBeConsumed && allowed) {
-            warnOnRedundantUsageActivation("consumable", "setCanBeConsumed(true)");
+            maybeWarnOnRedundantUsageActivation("consumable", "setCanBeConsumed(true)");
         }
     }
 
@@ -1928,7 +1948,7 @@ since users cannot create non-legacy configurations and there is no current publ
             canBeResolved = allowed;
             maybeWarnOnChangingUsage("resolvable", allowed);
         } else if (canBeResolved && allowed) {
-            warnOnRedundantUsageActivation("resolvable", "setCanBeResolved(true)");
+            maybeWarnOnRedundantUsageActivation("resolvable", "setCanBeResolved(true)");
         }
     }
 
@@ -1944,7 +1964,7 @@ since users cannot create non-legacy configurations and there is no current publ
             canBeDeclaredAgainst = allowed;
             maybeWarnOnChangingUsage("declarable against", allowed);
         } else if (canBeDeclaredAgainst && allowed) {
-            warnOnRedundantUsageActivation("declarable against", "setCanBeDeclaredAgainst(true)");
+            maybeWarnOnRedundantUsageActivation("declarable against", "setCanBeDeclaredAgainst(true)");
         }
     }
 
