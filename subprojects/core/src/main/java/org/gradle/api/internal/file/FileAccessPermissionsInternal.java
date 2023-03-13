@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.file;
+package org.gradle.api.internal.file;
 
-public interface FileAccessPermissionInternal extends FileAccessPermission {
+import org.gradle.api.file.FileAccessPermissions;
+
+public interface FileAccessPermissionsInternal extends FileAccessPermissions {
 
     /**
-     * Returns the Unix permissions of a file or directory, for a certain group of users,
-     * see {@link FileAccessPermission}.
+     * Returns the Unix permissions of a file or directory, e.g. {@code 0644},
+     * see {@link FileAccessPermissions}.
      */
     int toMode();
 

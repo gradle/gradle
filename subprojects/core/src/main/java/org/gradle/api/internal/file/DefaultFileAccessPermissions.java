@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.copy;
+package org.gradle.api.internal.file;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.FileAccessPermission;
-import org.gradle.api.file.FileAccessPermissionInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 

@@ -26,6 +26,7 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileAccessPermission
 import org.gradle.api.file.FileAccessPermissions
 import org.gradle.api.file.RelativePath
+import org.gradle.api.internal.file.DefaultFileAccessPermissions
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.pattern.PatternMatcher
 import org.gradle.api.model.ObjectFactory

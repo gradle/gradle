@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.copy;
+package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileAccessPermissionInternal;
 import org.gradle.api.provider.Property;
 
 import javax.inject.Inject;

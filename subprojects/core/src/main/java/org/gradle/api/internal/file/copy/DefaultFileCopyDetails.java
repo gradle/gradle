@@ -26,6 +26,8 @@ import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.api.internal.file.DefaultFileAccessPermissions;
+import org.gradle.api.internal.file.FileAccessPermissionsInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.Actions;

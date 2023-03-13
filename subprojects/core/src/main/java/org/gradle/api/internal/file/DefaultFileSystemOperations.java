@@ -21,7 +21,6 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.file.FileSystemOperations;
-import org.gradle.api.internal.file.copy.DefaultFileAccessPermissions;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.WorkResult;
 

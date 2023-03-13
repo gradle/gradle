@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.file.FileAccessPermission;
+import org.gradle.api.internal.file.DefaultFileAccessPermissions;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
 
