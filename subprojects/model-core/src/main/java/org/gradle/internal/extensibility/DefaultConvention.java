@@ -21,29 +21,36 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.util.internal.ConfigureUtil;
+import com.google.common.collect.ForwardingMap;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 import static java.lang.String.format;
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
-public class DefaultConvention implements Convention, ExtensionContainerInternal {
+@Deprecated
+public class DefaultConvention implements org.gradle.api.plugins.Convention, ExtensionContainerInternal {
     private static final TypeOf<ExtraPropertiesExtension> EXTRA_PROPERTIES_EXTENSION_TYPE = typeOf(ExtraPropertiesExtension.class);
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
@@ -58,19 +65,25 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         add(EXTRA_PROPERTIES_EXTENSION_TYPE, ExtraPropertiesExtension.EXTENSION_NAME, extraProperties);
     }
 
+    @Deprecated
     @Override
     public Map<String, Object> getPlugins() {
         if (plugins == null) {
             plugins = Maps.newLinkedHashMap();
         }
-        return plugins;
+        return new ConventionPluginsMap(plugins);
     }
 
     @Override
     public DynamicObject getExtensionsAsDynamicObject() {
+        // This implementation of Convention doesn't log a deprecation warning
+        // because it mixes both extensions and conventions.
+        // Instead, the returned object logs a deprecation warning when
+        // a convention is actually accessed.
         return extensionsDynamicObject;
     }
 
+    @Deprecated
     @Override
     public <T> T getPlugin(Class<T> type) {
         T value = findPlugin(type);
@@ -81,8 +94,10 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         return value;
     }
 
+    @Deprecated
     @Override
     public <T> T findPlugin(Class<T> type) throws IllegalStateException {
+        logConventionDeprecation();
         if (plugins == null) {
             return null;
         }
@@ -233,6 +248,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             }
             for (Object object : plugins.values()) {
                 if (asDynamicObject(object).hasProperty(name)) {
+                    logConventionDeprecation();
                     return true;
                 }
             }
@@ -266,6 +282,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
                 DynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
                 DynamicInvokeResult result = dynamicObject.tryGetProperty(name);
                 if (result.isFound()) {
+                    logConventionDeprecation();
                     return result;
                 }
             }
@@ -286,6 +303,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
                 BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
                 DynamicInvokeResult result = dynamicObject.trySetProperty(name, value);
                 if (result.isFound()) {
+                    logConventionDeprecation();
                     return result;
                 }
             }
@@ -308,6 +326,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
                 BeanDynamicObject dynamicObject = asDynamicObject(object).withNotImplementsMissing();
                 DynamicInvokeResult result = dynamicObject.tryInvokeMethod(name, args);
                 if (result.isFound()) {
+                    logConventionDeprecation();
                     return result;
                 }
             }
@@ -329,6 +348,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             for (Object object : plugins.values()) {
                 BeanDynamicObject dynamicObject = asDynamicObject(object);
                 if (dynamicObject.hasMethod(name, args)) {
+                    logConventionDeprecation();
                     return true;
                 }
             }
@@ -369,5 +389,107 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             action = Cast.uncheckedCast(args[0]);
         }
         return extensionsStorage.configureExtension(name, action);
+    }
+
+    private static void logConventionDeprecation() {
+        DeprecationLogger.deprecateType(org.gradle.api.plugins.Convention.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
+            .nagUser();
+    }
+
+    private static class ConventionPluginsMap extends ForwardingMap<String, Object> {
+
+        private final Map<String, Object> delegate;
+
+        private ConventionPluginsMap(Map<String, Object> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        protected Map<String, Object> delegate() {
+            return delegate;
+        }
+
+        @Nullable
+        @Override
+        public Object get(@Nullable Object key) {
+            logConventionDeprecation();
+            return super.get(key);
+        }
+
+        @Override
+        public Object getOrDefault(Object key, Object defaultValue) {
+            logConventionDeprecation();
+            return super.getOrDefault(key, defaultValue);
+        }
+
+        @Nullable
+        @Override
+        public Object remove(@Nullable Object key) {
+            logConventionDeprecation();
+            return super.remove(key);
+        }
+
+        @Override
+        public boolean remove(Object key, Object value) {
+            logConventionDeprecation();
+            return super.remove(key, value);
+        }
+
+        @Override
+        public void forEach(BiConsumer<? super String, ? super Object> action) {
+            logConventionDeprecation();
+            super.forEach(action);
+        }
+
+        @Nullable
+        @Override
+        public Object replace(String key, Object value) {
+            logConventionDeprecation();
+            return super.replace(key, value);
+        }
+
+        @Override
+        public void replaceAll(BiFunction<? super String, ? super Object, ?> function) {
+            logConventionDeprecation();
+            super.replaceAll(function);
+        }
+
+        @Override
+        public void clear() {
+            logConventionDeprecation();
+            super.clear();
+        }
+
+        @Override
+        public boolean containsKey(@Nullable Object key) {
+            logConventionDeprecation();
+            return super.containsKey(key);
+        }
+
+        @Override
+        public boolean containsValue(@Nullable Object value) {
+            logConventionDeprecation();
+            return super.containsValue(value);
+        }
+
+        @Override
+        public Set<String> keySet() {
+            logConventionDeprecation();
+            return super.keySet();
+        }
+
+        @Override
+        public Set<Entry<String, Object>> entrySet() {
+            logConventionDeprecation();
+            return super.entrySet();
+        }
+
+        @Override
+        public Collection<Object> values() {
+            logConventionDeprecation();
+            return super.values();
+        }
     }
 }

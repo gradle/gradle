@@ -39,8 +39,7 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
         }
 
         when:
-        def runner = createRunner(workers, kotlinPluginVersion, 'clean', ':app:testDebugUnitTestCoverage')
-
+        def runner = createRunner(workers, kotlinPluginVersion, androidPluginVersion, 'clean', ':app:testDebugUnitTestCoverage')
         def result = useAgpVersion(androidPluginVersion, runner)
             .deprecations(KotlinAndroidDeprecations) {
                 expectKotlinConfigurationAsDependencyDeprecation(kotlinPluginVersion)
@@ -66,10 +65,12 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
         ].combinations()
     }
 
-    private SmokeTestGradleRunner createRunner(boolean workers, String kotlinVersion, String... tasks) {
+    private SmokeTestGradleRunner createRunner(boolean workers, String kotlinVersion, String agpVersion, String... tasks) {
         return KotlinPluginSmokeTest.runnerFor(this, workers, VersionNumber.parse(kotlinVersion), tasks)
             .deprecations(KotlinPluginSmokeTest.KotlinDeprecations) {
                 expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+                expectProjectConventionDeprecation(kotlinVersion, agpVersion)
+                expectConventionTypeDeprecation(kotlinVersion, agpVersion)
             }
     }
 }
