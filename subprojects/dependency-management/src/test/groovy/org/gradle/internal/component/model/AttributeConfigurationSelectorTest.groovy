@@ -20,6 +20,7 @@ import com.google.common.base.Optional
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
 import org.gradle.api.artifacts.ArtifactIdentifier
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.attributes.Attribute
@@ -50,6 +51,7 @@ class AttributeConfigurationSelectorTest extends Specification {
     private ImmutableAttributes consumerAttributes = ImmutableAttributes.EMPTY
     private List<Capability> requestedCapabilities = []
     private List<IvyArtifactName> artifacts = []
+    private ConfigurationMetadata defaultConfiguration
 
     def "selects a variant when there's no ambiguity"() {
         given:
@@ -116,6 +118,51 @@ All of them match the consumer attributes:
       - Incompatible because this component declares attribute 'org.gradle.usage' with value 'java-api' and the consumer needed attribute 'org.gradle.usage' with value 'cplusplus-headers\'
   - Variant 'runtime' capability org:lib:1.0:
       - Incompatible because this component declares attribute 'org.gradle.usage' with value 'java-runtime' and the consumer needed attribute 'org.gradle.usage' with value 'cplusplus-headers\'''')
+    }
+
+    def "falls back to the default configuration if variant aware resolution is not supported"() {
+        given:
+        component(Optional.absent())
+
+        and:
+        defaultConfiguration(variant("default", attributes([:])))
+
+        when:
+        performSelection()
+
+        then:
+        selected.name == "default"
+    }
+
+    def "falls back to the default configuration if there are no variants for graph traversal"() {
+        given:
+        component(Optional.of(ImmutableList.of()))
+
+        and:
+        defaultConfiguration(variant("default", attributes([:])))
+
+        when:
+        performSelection()
+
+        then:
+        selected.name == "default"
+    }
+
+    def "fails to fall back to the default configuration if the attributes do not match"() {
+        given:
+        component(Optional.of(ImmutableList.of()))
+
+        and:
+        defaultConfiguration(variant("default", attributes('org.gradle.usage': 'java-api')))
+        consumerAttributes('org.gradle.usage': 'cplusplus-headers')
+
+        when:
+        performSelection()
+
+        then:
+        NoMatchingConfigurationSelectionException e = thrown()
+        failsWith(e, '''No matching variant of org:lib:1.0 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but:
+  - None of the variants have attributes.''')
     }
 
     def "can select a variant thanks to the capabilities"() {
@@ -465,7 +512,15 @@ All of them match the consumer attributes:
         requestedCapabilities << c
     }
 
+    private void defaultConfiguration(ConfigurationMetadata configuration) {
+        defaultConfiguration = configuration
+    }
+
     private void component(ConfigurationMetadata... variants) {
+        component(Optional.of(ImmutableList.copyOf(variants)))
+    }
+
+    private void component(Optional<List<ConfigurationMetadata>> variants) {
         targetComponent = Stub(ComponentGraphResolveMetadata) {
             getModuleVersionId() >> Stub(ModuleVersionIdentifier) {
                 getGroup() >> 'org'
@@ -475,10 +530,9 @@ All of them match the consumer attributes:
             getId() >> Stub(ComponentIdentifier) {
                 getDisplayName() >> 'org:lib:1.0'
             }
-            getVariantsForGraphTraversal() >> Optional.of(
-                    ImmutableList.copyOf(variants)
-            )
+            getVariantsForGraphTraversal() >> variants
             getAttributesSchema() >> attributesSchema
+            getConfiguration(Dependency.DEFAULT_CONFIGURATION) >> { defaultConfiguration }
         }
         targetState = Stub(ComponentGraphResolveState) {
             getMetadata() >> targetComponent
@@ -491,6 +545,7 @@ All of them match the consumer attributes:
             getName() >> name
             getAttributes() >> attributes
             getCapabilities() >> ImmutableCapabilities.of(Lists.newArrayList(capabilities));
+            isCanBeConsumed() >> true
         }
     }
 

@@ -47,7 +47,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
                 assert task instanceof CodeNarc
                 task.with {
                     assert description == "Run CodeNarc analysis for ${sourceSet.name} classes"
-                    assert source as List == sourceSet.groovy as List
+                    assert source as List == sourceSet.groovy  as List
                     assert codenarcClasspath == project.configurations.codenarc
                     assert config.inputFiles.singleFile == project.file("config/codenarc/codenarc.xml")
                     assert configFile == project.file("config/codenarc/codenarc.xml")
