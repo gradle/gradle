@@ -1,7 +1,6 @@
 configurations {
     sharedConfiguration {
         canBeConsumed = false
-        canBeResolved = true
     }
 }
 
