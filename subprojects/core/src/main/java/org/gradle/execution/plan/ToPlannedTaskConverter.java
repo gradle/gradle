@@ -17,25 +17,30 @@
 package org.gradle.execution.plan;
 
 import org.gradle.initialization.DefaultPlannedTask;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
  * A {@link ToPlannedTaskConverter} for {@link TaskNode}s.
  * <p>
- * Only can convert {@link LocalTaskNode}s to {@link org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedTask}s.
+ * Only can convert {@link LocalTaskNode}s to planned tasks.
  */
 public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
 
     @Override
     public Class<? extends Node> getSupportedNodeType() {
         return TaskNode.class;
+    }
+
+    @Override
+    public NodeIdentity.NodeType getConvertedNodeType() {
+        return NodeIdentity.NodeType.TASK;
     }
 
     @Override
@@ -76,19 +81,16 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
     }
 
     @Override
-    public CalculateTaskGraphBuildOperationType.PlannedTask convert(Node node, DependencyLookup dependencyLookup) {
+    public DefaultPlannedTask convert(Node node, List<? extends NodeIdentity> nodeDependencies, Supplier<List<TaskIdentity>> taskDependencies) {
         if (!isInSamePlan(node)) {
             throw new IllegalArgumentException("Cannot convert task from another plan: " + node);
         }
 
         LocalTaskNode taskNode = (LocalTaskNode) node;
-        List<? extends NodeIdentity> nodeDependencies = dependencyLookup.findNodeDependencies(taskNode);
-        @SuppressWarnings("unchecked")
-        List<TaskIdentity> taskDependencies = (List<TaskIdentity>) dependencyLookup.findTaskDependencies(taskNode);
         return new DefaultPlannedTask(
             getNodeIdentity(taskNode),
             nodeDependencies,
-            taskDependencies,
+            taskDependencies.get(),
             getTaskIdentities(taskNode.getMustSuccessors()),
             getTaskIdentities(taskNode.getShouldSuccessors()),
             getTaskIdentities(taskNode.getFinalizers())

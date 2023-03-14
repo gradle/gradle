@@ -18,14 +18,18 @@ package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.PlannedNodeInternal;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * A Gradle user home level registry of {@link ToPlannedNodeConverter} instances.
@@ -47,6 +51,15 @@ public class ToPlannedNodeConverterRegistry {
         for (ToPlannedNodeConverter converter : this.converters) {
             convertersByNodeType.put(converter.getSupportedNodeType(), converter);
         }
+    }
+
+    /**
+     * Returns a set of node types that this converter registry can provide.
+     */
+    public Set<NodeIdentity.NodeType> getConvertedNodeTypes() {
+        return converters.stream()
+            .map(ToPlannedNodeConverter::getConvertedNodeType)
+            .collect(Collectors.toSet());
     }
 
     /**
@@ -96,6 +109,11 @@ public class ToPlannedNodeConverterRegistry {
         }
 
         @Override
+        public NodeIdentity.NodeType getConvertedNodeType() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public NodeIdentity getNodeIdentity(Node node) {
             throw new UnsupportedOperationException();
         }
@@ -106,7 +124,7 @@ public class ToPlannedNodeConverterRegistry {
         }
 
         @Override
-        public CalculateTaskGraphBuildOperationType.PlannedNode convert(Node node, DependencyLookup dependencyLookup) {
+        public PlannedNodeInternal convert(Node node, List<? extends NodeIdentity> nodeDependencies, Supplier<List<CalculateTaskGraphBuildOperationType.TaskIdentity>> taskDependencies) {
             throw new UnsupportedOperationException();
         }
     }
