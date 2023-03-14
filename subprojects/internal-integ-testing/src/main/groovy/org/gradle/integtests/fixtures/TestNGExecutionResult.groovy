@@ -154,7 +154,7 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     @Override
-    TestClassExecutionResult assertTestsExecuted(String[] ... testNames) {
+    TestClassExecutionResult assertTestsExecuted(TestCase ... testCases) {
         throw new UnsupportedOperationException("Unsupported.  Implement if you need it.")
     }
 
