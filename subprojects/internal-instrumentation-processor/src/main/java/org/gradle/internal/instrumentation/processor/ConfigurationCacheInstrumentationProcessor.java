@@ -21,7 +21,7 @@ import org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
-import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReader;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReaderExtension;
 import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeClassGenerator;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.InterceptGroovyCallsGenerator;
@@ -65,7 +65,7 @@ public class ConfigurationCacheInstrumentationProcessor extends AbstractInstrume
             (CodeGeneratorContributor) InterceptGroovyCallsGenerator::new,
 
             // Properties upgrade extensions
-            new PropertyUpgradeAnnotatedMethodReader(),
+            new PropertyUpgradeAnnotatedMethodReaderExtension(),
             (CodeGeneratorContributor) PropertyUpgradeClassGenerator::new
         );
     }

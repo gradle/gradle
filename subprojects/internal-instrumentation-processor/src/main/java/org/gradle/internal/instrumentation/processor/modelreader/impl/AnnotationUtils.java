@@ -57,6 +57,14 @@ public class AnnotationUtils {
         return annotation.getElementValues().entrySet().stream().filter(it -> it.getKey().getSimpleName().toString().equals(key)).map(Map.Entry::getValue).findFirst();
     }
 
+    public static Optional<? extends AnnotationValue> findAnnotationValue(Element element, Class<? extends Annotation> annotationClass, String key) {
+        Optional<? extends AnnotationMirror> annotationMirror = findAnnotationMirror(element, annotationClass);
+        if (!annotationMirror.isPresent()) {
+            return Optional.empty();
+        }
+        return findAnnotationValue(annotationMirror.get(), key);
+    }
+
     private static boolean isAnnotationOfType(AnnotationMirror annotation, Class<? extends Annotation> type) {
         return annotation.getAnnotationType().toString().equals(type.getCanonicalName());
     }
