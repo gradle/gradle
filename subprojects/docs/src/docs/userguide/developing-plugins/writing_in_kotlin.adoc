@@ -288,7 +288,7 @@ Use this plugin if you want to use the same Kotlin version to develop your plugi
 
 The `kotlin-dsl` plugin is an all-in-one plugin. By applying the `kotlin-dsl-precompiled-script-plugins` and the same options as Gradle when compiling scripts, it allows you to write plugins like you would write scripts, using `.gradle.kts` file.
 
-Like the `embedded-kotlin` plugin, it uses the same Kotlin version as your Gradle build. This is useful if you do not intend to distribute your plugins, for an example, for convention plugins. If you need to distribute your plugin, make sure to use a Kotlin version that is compatible with the Gradle version you are targetting
+Like the `embedded-kotlin` plugin, it uses the same Kotlin version as your Gradle build. This is useful if you do not intend to distribute your plugins, for example, for convention plugins. If you need to distribute your plugin, make sure to use a Kotlin version that is compatible with the Gradle version you are targeting
 
 
 [[sec:your_public_api]]
