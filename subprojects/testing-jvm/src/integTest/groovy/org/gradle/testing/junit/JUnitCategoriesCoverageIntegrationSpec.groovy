@@ -104,9 +104,9 @@ class JUnitCategoriesCoverageIntegrationSpec extends JUnitMultiVersionIntegratio
         result.assertTestClassesExecuted('org.gradle.SomeLocaleTests')
         result.testClass("org.gradle.SomeLocaleTests").assertTestCount(3, 0, 0)
         result.testClass("org.gradle.SomeLocaleTests").assertTestsExecuted(
-            ['ok1(Locale)[1]', 'French'] as String[],
-            ['ok1(Locale)[2]', 'German'] as String[],
-            ['ok1(Locale)[3]', 'English'] as String[]
+            result.testCase('ok1(Locale)[1]', 'French'),
+            result.testCase('ok1(Locale)[2]', 'German'),
+            result.testCase('ok1(Locale)[3]', 'English')
         )
     }
 
