@@ -137,13 +137,13 @@ public class JUnitPlatformTestFramework implements TestFramework {
         if (!intersection.isEmpty()) {
             if (intersection.size() == 1) {
                 LOGGER.warn("The tag '" + intersection.iterator().next() + "' is both included and excluded.  " +
-                    "This will result in the tag being excluded, but may not be what was intended.  " +
-                    "Please either include or exclude the tag, but not both.");
+                    "This will result in the tag being excluded, which may not be what was intended.  " +
+                    "Please either include or exclude the tag but not both.");
             } else {
                 String allTags = intersection.stream().sorted().map(s -> "'" + s + "'").collect(Collectors.joining(", "));
                 LOGGER.warn("The tags " + allTags + " are both included and excluded.  " +
-                    "This will result in the tags being excluded, but may not be what was intended.  " +
-                    "Please either include or exclude the tags, but not both.");
+                    "This will result in the tags being excluded, which may not be what was intended.  " +
+                    "Please either include or exclude the tags but not both.");
             }
         }
     }

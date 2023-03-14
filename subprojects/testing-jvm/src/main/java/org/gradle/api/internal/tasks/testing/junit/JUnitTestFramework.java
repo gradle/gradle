@@ -136,13 +136,13 @@ public class JUnitTestFramework implements TestFramework {
         if (!intersection.isEmpty()) {
             if (intersection.size() == 1) {
                 LOGGER.warn("The category '" + intersection.iterator().next() + "' is both included and excluded.  " +
-                    "This will result in the category being excluded, but may not be what was intended.  " +
-                    "Please either include or exclude the category, but not both.");
+                    "This will result in the category being excluded, which may not be what was intended.  " +
+                    "Please either include or exclude the category but not both.");
             } else {
                 String allCategories = intersection.stream().sorted().map(s -> "'" + s + "'").collect(Collectors.joining(", "));
                 LOGGER.warn("The categories " + allCategories + " are both included and excluded.  " +
-                    "This will result in the categories being excluded, but may not be what was intended. " +
-                    "Please either include or exclude the categories, but not both.");
+                    "This will result in the categories being excluded, which may not be what was intended. " +
+                    "Please either include or exclude the categories but not both.");
             }
         }
     }
