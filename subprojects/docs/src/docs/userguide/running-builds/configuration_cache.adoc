@@ -218,9 +218,6 @@ The `STABLE_CONFIGURATION_CACHE` feature flag enables the following:
 Undeclared shared build service usage::
 When enabled, tasks using a <<build_services#build_services, shared build service>> without declaring the requirement via the `Task.usesService` method will emit a deprecation warning.
 
-External processes used at configuration time::
-When enabled, external processes launched at configuration time are reported as problems unless done in accordance with the <<configuration_cache#config_cache:requirements:external_processes>> requirement.
-
 It is recommended to enable it as soon as possible in order to be ready for when we remove the flag and make the linked features the default.
 
 [[config_cache:ide]]
