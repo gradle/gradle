@@ -90,7 +90,7 @@ import static org.gradle.api.artifacts.Configuration.State.UNRESOLVED
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
-class DefaultConfigurationSpec extends Specification {
+class DefaultConfigurationSpec extends Specification implements InspectableConfigurationFixture {
     Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
     def configurationsProvider = Mock(ConfigurationsProvider)
@@ -1674,7 +1674,7 @@ class DefaultConfigurationSpec extends Specification {
         configuration.getDependencies().add(configurationDependency)
 
         then:
-        configuration.dump() == """
+        dump(configuration) == """
 Configuration:  class='class org.gradle.api.internal.artifacts.configurations.DefaultConfiguration'  name='conf'  hashcode='${configuration.hashCode()}'
 Local Dependencies:
    DefaultExternalModuleDependency{group='dumpgroup1', name='dumpname1', version='dumpversion1', configuration='default'}
