@@ -89,14 +89,16 @@ The ability to change the allowed usage of a configuration after creation will b
 [[reserved_configuration_names]]
 ==== Reserved configuration names
 
-Configuration names "detachedConfiguration" and "detachedConfigurationX" (where X is any integer) are reserved for internal use when creating detached configurations.  Using these names for configurations will now produce a warning.
+Configuration names "detachedConfiguration" and "detachedConfigurationX" (where X is any integer) are reserved for internal use when creating detached configurations.
+Using these names for configurations will now produce a warning.
 
 The ability to create non-detached configurations with these names will be removed in Gradle 9.0.
 
 [[detached_configurations_with_project_dependencies]]
 ==== Detached configurations with project dependencies
 
-Adding a dependency on the project which contains it to a detached configuration is deprecated.  This can result in unintuitive behavior.
+Adding a dependency on the project which contains it to a detached configuration is deprecated.
+This can result in unintuitive behavior.
 
 Doing this will now produce a warning:
 
