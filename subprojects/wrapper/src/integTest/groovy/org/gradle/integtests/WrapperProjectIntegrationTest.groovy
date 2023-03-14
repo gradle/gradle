@@ -27,7 +27,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 @IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
 class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
     def setup() {
-        file("build.gradle") << """
+        buildFile << """
     task hello {
         doLast {
             println 'hello'
@@ -62,7 +62,7 @@ class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
         prepareWrapper(distribution.binDistribution.toURI()) {
             it.inDirectory(projectDir)
         }
-        projectDir.file("build.gradle") << """
+        projectDir.file(defaultBuildFileName) << """
             task assertProjectDirHasMeta {
                 def dirName = provider { projectDir.name }
                 doLast {

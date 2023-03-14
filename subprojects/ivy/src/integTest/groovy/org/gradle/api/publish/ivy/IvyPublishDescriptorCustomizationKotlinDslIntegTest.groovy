@@ -16,21 +16,10 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.test.fixtures.file.TestFile
 
 import javax.xml.namespace.QName
 
 class IvyPublishDescriptorCustomizationKotlinDslIntegTest extends AbstractIvyPublishIntegTest {
-
-    @Override
-    protected String getDefaultBuildFileName() {
-        'build.gradle.kts'
-    }
-
-    @Override
-    protected TestFile getSettingsFile() {
-        testDirectory.file('settings.gradle.kts')
-    }
 
     def setup() {
         requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
@@ -38,8 +27,8 @@ class IvyPublishDescriptorCustomizationKotlinDslIntegTest extends AbstractIvyPub
 
     def "can customize Ivy descriptor using Kotlin DSL"() {
         given:
-        settingsFile << 'rootProject.name = "customizeIvy"'
-        buildFile << """
+        settingsFileKts << 'rootProject.name = "customizeIvy"'
+        buildFileKts << """
             plugins {
                 `ivy-publish`
             }

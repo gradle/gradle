@@ -32,7 +32,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     @Rule ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
 
     def setup() {
-        file("gradle.properties") << "org.gradle.configureondemand=true"
+        propertiesFile << "org.gradle.configureondemand=true"
     }
 
     def "print deprecation warning when used with the Kotlin DSL"() {
@@ -52,7 +52,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ GradleContextualExecuter.isParallel() }) //parallel mode hides incubating message
     def "presents incubating message"() {
-        file("gradle.properties") << "org.gradle.configureondemand=false"
+        propertiesFile << "org.gradle.configureondemand=false"
         buildFile << "task foo"
 
         when:
@@ -65,7 +65,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ GradleContextualExecuter.isParallel() }) //parallel mode hides incubating message
     def "presents incubating message with parallel mode"() {
-        file("gradle.properties") << "org.gradle.configureondemand=false"
+        propertiesFile << "org.gradle.configureondemand=false"
         buildFile << "task foo"
 
         when:
@@ -77,7 +77,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can be enabled from command line for a single module build"() {
-        file("gradle.properties") << "org.gradle.configureondemand=false"
+        propertiesFile << "org.gradle.configureondemand=false"
         buildFile << "task foo"
 
         when:

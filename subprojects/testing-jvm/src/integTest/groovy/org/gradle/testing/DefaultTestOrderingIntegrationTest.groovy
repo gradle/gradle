@@ -63,7 +63,7 @@ executed Test test(AÄTest)
 executed Test test(AÆTest)
 """
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies { testImplementation 'junit:junit:4.12' }

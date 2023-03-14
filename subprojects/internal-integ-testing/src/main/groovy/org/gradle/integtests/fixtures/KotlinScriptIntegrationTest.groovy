@@ -18,16 +18,11 @@ package org.gradle.integtests.fixtures
 
 abstract class KotlinScriptIntegrationTest extends AbstractIntegrationSpec {
 
-    @Override
-    protected String getDefaultBuildFileName() {
-        'build.gradle.kts'
-    }
-
     def setup() {
         settingsFile << "rootProject.buildFileName = '$defaultBuildFileName'"
     }
 
-    protected void withKotlinBuildSrc() {
-        file("buildSrc/build.gradle.kts") << KotlinDslTestUtil.kotlinDslBuildSrcScript
+    def withKotlinBuildSrc() {
+        file("buildSrc/$defaultBuildKotlinFileName") << KotlinDslTestUtil.kotlinDslBuildSrcScript
     }
 }

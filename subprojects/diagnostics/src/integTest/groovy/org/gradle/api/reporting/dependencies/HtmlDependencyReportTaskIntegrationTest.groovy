@@ -35,11 +35,11 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("foo", "qix", "1.0").publish()
         mavenRepo.module("foo", "baz", "1.0").dependsOn("foo", "bar", "1.0").dependsOn("foo", "qix", "1.0").publish()
 
-        file("settings.gradle") << """
+        settingsFile << """
             rootProject.name = 'fooProject'
         """
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
             description = 'dummy description'
             repositories {
@@ -102,11 +102,11 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("foo", "qix", "1.0").dependsOn("foo", "bar", "1.0").publish()
         mavenRepo.module("foo", "baz", "1.0").dependsOn("foo", "qix", "1.0").publish()
 
-        file("settings.gradle") << """
+        settingsFile << """
             rootProject.name = 'fooProject'
         """
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
             repositories {
                 maven { url "${mavenRepo.uri}" }
@@ -137,11 +137,11 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         given:
         mavenRepo.module("foo", "bar", "1.0").dependsOn("foo", "qix", "1.0").publish()
 
-        file("settings.gradle") << """
+        settingsFile << """
             rootProject.name = 'fooProject'
         """
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
             repositories {
                 maven { url "${mavenRepo.uri}" }
@@ -198,11 +198,11 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "generates report for multiple projects"() {
         given:
-        file("settings.gradle") << """
+        settingsFile << """
             rootProject.name = 'fooProject'
             include 'a', 'b'
         """
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
 
             htmlDependencyReport {
@@ -222,7 +222,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "copies necessary css, images and js files"() {
         given:
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
             configurations { compile }
         """
@@ -246,11 +246,11 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "generates index.html file"() {
         given:
-        file("settings.gradle") << """
+        settingsFile << """
             rootProject.name = 'fooProject'
             include 'a', 'b'
         """
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
 
             description = 'dummy description'
@@ -396,11 +396,11 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("foo", "bar", "1.0").publish()
         mavenRepo.module("foo", "bar", "2.0").publish()
 
-        file("settings.gradle") << """include 'a', 'b', 'a:c', 'd', 'e'
+        settingsFile << """include 'a', 'b', 'a:c', 'd', 'e'
 rootProject.name = 'root'
 """
 
-        file("build.gradle") << """
+        buildFile << """
             apply plugin : 'project-report'
 
             allprojects {

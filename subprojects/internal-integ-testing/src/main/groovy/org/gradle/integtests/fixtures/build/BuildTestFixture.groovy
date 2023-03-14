@@ -50,7 +50,7 @@ class BuildTestFixture {
     }
 
     def populate(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl) {
-        def project = buildInRootDir ? new BuildTestFile(getRootDir(), projectName) : new BuildTestFile(getRootDir().file(projectName), projectName)
+        def project = new BuildTestFile(buildInRootDir ? getRootDir() : getRootDir().file(projectName), projectName)
         project.settingsFile << """
                     rootProject.name = '${projectName}'
                 """
@@ -70,11 +70,16 @@ class BuildTestFixture {
         return project
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+    def multiProjectBuild(String projectName,
+                          List<String> subprojects,
+                          @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         multiProjectBuild(projectName, subprojects, CompiledLanguage.JAVA, cl)
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, CompiledLanguage language, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+    def multiProjectBuild(String projectName,
+                          List<String> subprojects,
+                          CompiledLanguage language,
+                          @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         def rootMulti = populate(projectName) {
             subprojects.each {
                 settingsFile << "include '$it'\n"

@@ -54,4 +54,11 @@ class BuildTestFile extends TestFile {
     BuildTestFile project(String name) {
         return new BuildTestFile(file(name), name)
     }
+
+    BuildTestFile project(String name, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl) {
+        def file = new BuildTestFile(file(name), name)
+        file.with(cl)
+        return file
+    }
+
 }

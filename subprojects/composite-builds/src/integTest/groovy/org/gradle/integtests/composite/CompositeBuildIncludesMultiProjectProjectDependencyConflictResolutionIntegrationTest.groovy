@@ -44,7 +44,7 @@ class CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionInteg
     }
 
     @Override
-    protected TestFile getSettingsFile() {
+    TestFile getSettingsFile() {
         return multiProject.settingsFile;
     }
 
@@ -80,9 +80,10 @@ class CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionInteg
 
     @Override
     void moduleDefinition(String name, String definition) {
-        multiProject.buildFile << "project(':$name') {"
-        multiProject.buildFile << definition
-        multiProject.buildFile << "}"
+        multiProject.buildFile << """
+        project(':$name') {
+            $definition
+        }"""
     }
 
     @Override

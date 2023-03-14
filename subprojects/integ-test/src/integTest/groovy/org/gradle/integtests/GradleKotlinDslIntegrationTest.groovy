@@ -24,18 +24,13 @@ import spock.lang.Issue
 
 class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
-    @Override
-    protected String getDefaultBuildFileName() {
-        'build.gradle.kts'
-    }
-
     def setup() {
-        settingsFile << "rootProject.buildFileName = '$defaultBuildFileName'"
+        settingsFile << "rootProject.buildFileName = '$defaultBuildKotlinFileName'"
     }
 
     def 'can run a simple task'() {
         given:
-        buildFile << """
+        buildFileKts << """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
 
@@ -68,7 +63,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        buildFile << """
+        buildFileKts << """
             apply {
                 from("${server.uri}/script.gradle")
             }
@@ -112,7 +107,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         """
         server.expectGet('/script.gradle.kts', scriptFile)
 
-        buildFile << """apply { from("${server.uri}/script.gradle.kts") }"""
+        buildFileKts << """apply { from("${server.uri}/script.gradle.kts") }"""
 
         when:
         succeeds 'hello'
@@ -140,7 +135,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         executer.noDeprecationChecks()
         // This test breaks encapsulation a bit in the interest of ensuring Gradle Kotlin DSL use
         // of internal APIs is not broken by refactorings on the Gradle side
-        buildFile << """
+        buildFileKts << """
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -168,7 +163,7 @@ task("dumpKotlinBuildScriptModelClassPath") {
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'can use Kotlin lambda as path notation'() {
         given:
-        buildFile << """
+        buildFileKts << """
             task("listFiles") {
                 doLast {
 
@@ -201,7 +196,7 @@ task("dumpKotlinBuildScriptModelClassPath") {
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'can use Kotlin lambda as input property'() {
         given:
-        buildFile << """
+        buildFileKts << """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
 
@@ -242,7 +237,7 @@ task("dumpKotlinBuildScriptModelClassPath") {
     @Issue("https://youtrack.jetbrains.com/issue/KT-36297")
     def 'can use Kotlin lambda as provider'() {
         given:
-        buildFile << '''
+        buildFileKts << '''
             tasks {
                 register<Task>("broken") {
                     val prop = objects.property(String::class.java)

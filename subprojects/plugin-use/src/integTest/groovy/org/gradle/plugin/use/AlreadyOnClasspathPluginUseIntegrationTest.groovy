@@ -18,6 +18,7 @@ package org.gradle.plugin.use
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 import spock.lang.IgnoreIf
 
@@ -26,11 +27,11 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def setup() {
-        withSettings("")
+        withSettingsGroovy("")
     }
 
-    private void withSettings(String settings) {
-        settingsFile.text = settings.stripIndent()
+    TestFile withSettingsGroovy(String settings) {
+        super.withSettingsGroovy(settings)
         settingsFile << "\nrootProject.name = 'root'\n"
     }
 
@@ -40,7 +41,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginBuild("buildSrc")
 
         and:
-        withSettings("include('a')")
+        withSettingsGroovy("include('a')")
 
         and:
         buildFile << requestPlugin("my-plugin")
@@ -63,7 +64,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
-        withSettings """
+        withSettingsGroovy """
 
             pluginManagement {
                 ${withLocalPluginRepository()}
@@ -91,7 +92,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
-        withSettings """
+        withSettingsGroovy """
 
             pluginManagement {
                 ${withLocalPluginRepository()}
@@ -121,7 +122,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
-        withSettings """
+        withSettingsGroovy """
 
             pluginManagement {
                 ${withLocalPluginRepository()}
@@ -149,7 +150,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
-        withSettings """
+        withSettingsGroovy """
 
             pluginManagement {
                 ${withLocalPluginRepository()}
@@ -195,7 +196,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
-        withSettings """
+        withSettingsGroovy """
 
             pluginManagement {
                 ${withLocalPluginRepository()}
@@ -223,7 +224,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
-        withSettings """
+        withSettingsGroovy """
 
             pluginManagement {
                 ${withLocalPluginRepository()}
@@ -254,7 +255,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
-        withSettings """
+        withSettingsGroovy """
             pluginManagement {
                 ${withLocalPluginRepository()}
                 ${requestPlugin("my-plugin", "1.0")}
@@ -282,7 +283,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally("my-other-local-plugins", "1.0.1")
 
         and:
-        withSettings """
+        withSettingsGroovy """
             pluginManagement {
                 ${withLocalPluginRepository()}
                 ${requestPlugin("my-plugin", "1.0")}
@@ -306,15 +307,13 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         withBinaryPluginPublishedLocally()
 
         and:
-        withSettings """
-
+        withSettingsGroovy """
             pluginManagement {
                 ${withLocalPluginRepository()}
                 ${requestPlugin("my-plugin", "1.0")}
             }
 
             include("a")
-
         """
 
         and:

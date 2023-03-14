@@ -26,20 +26,15 @@ import spock.lang.Issue
 @LeaksFileHandles
 class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    @Override
-    protected String getDefaultBuildFileName() {
-        return 'build.gradle.kts'
-    }
-
     def "implementations in nested Action property in Kotlin build script is tracked"() {
         setupTaskWithNestedAction('org.gradle.api.Action<File>', '.execute')
-        buildFile << """
+        buildFileKts << """
             tasks.create<TaskWithNestedAction>("myTask") {
                 action = Action { writeText("original") }
             }
         """
 
-        buildFile.makeOlder()
+        buildFileKts.makeOlder()
 
         when:
         run 'myTask'
@@ -52,7 +47,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         skipped(':myTask')
 
         when:
-        buildFile.text = """
+        buildFileKts.text = """
             tasks.create<TaskWithNestedAction>("myTask") {
                 action = Action { writeText("changed") }
             }
@@ -66,13 +61,13 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
 
     def "implementations in nested lambda property in Kotlin build script is tracked"() {
         setupTaskWithNestedAction('(File) -> Unit', '')
-        buildFile << """
+        buildFileKts << """
             tasks.create<TaskWithNestedAction>("myTask") {
                 action = { it.writeText("original") }
             }
         """
 
-        buildFile.makeOlder()
+        buildFileKts.makeOlder()
 
         when:
         run 'myTask'
@@ -85,7 +80,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         skipped(':myTask')
 
         when:
-        buildFile.text = """
+        buildFileKts.text = """
             tasks.create<TaskWithNestedAction>("myTask") {
                 action = { it.writeText("changed") }
             }
@@ -178,7 +173,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
             }
         """
 
-        buildFile << """
+        buildFileKts << """
             plugins {
                 `my-plugin`
             }

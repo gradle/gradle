@@ -26,15 +26,10 @@ import spock.lang.IgnoreIf
 
 class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    @Override
-    protected String getDefaultBuildFileName() {
-        'build.gradle.kts'
-    }
-
     def setup() {
-        settingsFile << "rootProject.buildFileName = '$defaultBuildFileName'"
+        settingsFile << "rootProject.buildFileName = '$defaultBuildKotlinFileName'"
 
-        file("buildSrc/settings.gradle.kts") << """
+        file("buildSrc/$settingsKotlinFileName") << """
             buildCache {
                 local {
                     directory = "${cacheDir.absoluteFile.toURI()}"
@@ -50,7 +45,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         withKotlinBuildSrc()
         file("buildSrc/src/main/kotlin/CustomTask.kt") << customKotlinTask()
         file("input.txt") << "input"
-        buildFile << """
+        buildFileKts << """
             task<CustomTask>("customTask") {
                 inputFile = project.file("input.txt")
                 outputFile = project.file("build/output.txt")
@@ -78,7 +73,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         def taskSourceFile = file("buildSrc/src/main/kotlin/CustomTask.kt")
         taskSourceFile << customKotlinTask()
         file("input.txt") << "input"
-        buildFile << """
+        buildFileKts << """
             task<CustomTask>("customTask") {
                 inputFile = project.file("input.txt")
                 outputFile = project.file("build/output.txt")
@@ -101,7 +96,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     def withKotlinBuildSrc() {
-        file("buildSrc/build.gradle.kts") << KotlinDslTestUtil.kotlinDslBuildSrcScript
+        file("buildSrc/$defaultBuildKotlinFileName") << KotlinDslTestUtil.kotlinDslBuildSrcScript
     }
 
     private static String customKotlinTask(String suffix = "") {

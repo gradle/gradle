@@ -31,7 +31,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
     def "context travels to transitive dependencies"() {
         given:
-        file('settings.gradle') << """
+        settingsFile << """
             include 'a', 'b'
             includeBuild 'includedBuild'
         """
@@ -248,7 +248,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         ivyRepo.module('com.acme.external', 'external', '1.2')
             .dependsOn('com.acme.external', 'c', '0.1')
             .publish()
-        file('settings.gradle') << """
+        settingsFile << """
             include 'a', 'b'
             includeBuild 'includedBuild'
         """
@@ -357,7 +357,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
     def "attribute values are matched across builds - #type"() {
         given:
-        file('settings.gradle') << """
+        settingsFile << """
             include 'a', 'b'
             includeBuild 'includedBuild'
         """
@@ -470,7 +470,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
     def "compatibility and disambiguation rules can be defined by consuming build"() {
         given:
-        file('settings.gradle') << """
+        settingsFile << """
             include 'a', 'b'
             includeBuild 'includedBuild'
         """
@@ -593,7 +593,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
     def "reports failure to resolve due to incompatible attribute values"() {
         given:
-        file('settings.gradle') << """
+        settingsFile << """
             include 'a', 'b'
             includeBuild 'includedBuild'
         """

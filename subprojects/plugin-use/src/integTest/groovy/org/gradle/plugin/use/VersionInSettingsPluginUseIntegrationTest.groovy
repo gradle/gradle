@@ -36,7 +36,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
         executer.requireOwnGradleUserHomeDir()
         publishPlugin("1.0")
         publishPlugin("2.0")
-        withSettings """
+        withSettingsGroovy """
             pluginManagement {
                 plugins {
                     id '$PLUGIN_ID' version '1.0'
@@ -80,7 +80,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
 
     def "can define plugin version with apply false in settings script"() {
         when:
-        withSettings """
+        withSettingsGroovy """
             pluginManagement {
                 plugins {
                     id '$PLUGIN_ID' version '1.0' apply false
@@ -95,8 +95,8 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
 
     def "can define plugin version in settings script using gradle properties"() {
         when:
-        file("gradle.properties") << "myPluginVersion=2.0"
-        withSettings """
+        propertiesFile << "myPluginVersion=2.0"
+        withSettingsGroovy """
             pluginManagement {
                 plugins {
                     id '$PLUGIN_ID' version "\${myPluginVersion}"
@@ -198,7 +198,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
 
     def "cannot request that plugin be applied in settings script"() {
         when:
-        withSettings """
+        withSettingsGroovy """
             pluginManagement {
                 plugins {
                     id '$PLUGIN_ID' version '1.0' apply true
@@ -213,7 +213,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
 
     def "cannot specify plugin version twice in settings script"() {
         when:
-        withSettings """
+        withSettingsGroovy """
             pluginManagement {
                 plugins {
                     id '$PLUGIN_ID' version '1.0'
@@ -226,7 +226,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
         fails "help"
 
         when:
-        withSettings """
+        withSettingsGroovy """
             pluginManagement {
                 plugins {
                     id('$PLUGIN_ID').version('1.0').version('2.0')
@@ -237,11 +237,6 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
         then:
         fails "help"
         failure.assertHasCause "Cannot provide multiple default versions for the same plugin."
-    }
-
-    private void withSettings(String settings) {
-        settingsFile.text = settings.stripIndent()
-        settingsFile << "\nrootProject.name = 'root'\n"
     }
 
     def verifyPluginApplied(String version) {

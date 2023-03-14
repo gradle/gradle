@@ -20,6 +20,7 @@ import org.eclipse.jgit.lib.Config
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.integtests.fixtures.build.TestProjectInitiation
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -65,7 +66,7 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
 @CleanupTestDirectory
 @SuppressWarnings("IntegrationTestFixtures")
 @IntegrationTestTimeout(DEFAULT_TIMEOUT_SECONDS)
-abstract class AbstractIntegrationSpec extends Specification {
+abstract class AbstractIntegrationSpec extends Specification implements TestProjectInitiation{
 
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -180,15 +181,7 @@ abstract class AbstractIntegrationSpec extends Specification {
     }
 
     TestFile getBuildKotlinFile() {
-        testDirectory.file(defaultBuildKotlinFileName)
-    }
-
-    protected String getDefaultBuildFileName() {
-        'build.gradle'
-    }
-
-    protected String getDefaultBuildKotlinFileName() {
-        'build.gradle.kts'
+        testDirectory.file(getDefaultBuildKotlinFileName())
     }
 
     /**
@@ -209,26 +202,6 @@ abstract class AbstractIntegrationSpec extends Specification {
     protected TestFile settingsScript(@GroovyBuildScriptLanguage String script) {
         settingsFile.text = script
         settingsFile
-    }
-
-    protected TestFile getSettingsFile() {
-        testDirectory.file(settingsFileName)
-    }
-
-    protected TestFile getSettingsKotlinFile() {
-        testDirectory.file(settingsKotlinFileName)
-    }
-
-    protected TestFile getPropertiesFile() {
-        testDirectory.file('gradle.properties')
-    }
-
-    protected static String getSettingsFileName() {
-        return 'settings.gradle'
-    }
-
-    protected static String getSettingsKotlinFileName() {
-        return 'settings.gradle.kts'
     }
 
     def singleProjectBuild(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {

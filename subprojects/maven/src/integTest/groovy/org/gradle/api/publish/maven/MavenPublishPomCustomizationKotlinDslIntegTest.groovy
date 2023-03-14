@@ -16,21 +16,9 @@
 
 package org.gradle.api.publish.maven
 
-
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
-import org.gradle.test.fixtures.file.TestFile
 
 class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublishIntegTest {
-
-    @Override
-    protected String getDefaultBuildFileName() {
-        'build.gradle.kts'
-    }
-
-    @Override
-    protected TestFile getSettingsFile() {
-        testDirectory.file('settings.gradle.kts')
-    }
 
     def setup() {
         requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
@@ -38,8 +26,8 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
 
     def "can customize POM using Kotlin DSL"() {
         given:
-        settingsFile << 'rootProject.name = "customizePom"'
-        buildFile << """
+        settingsFileKts << 'rootProject.name = "customizePom"'
+        buildFileKts << """
             plugins {
                 `maven-publish`
             }
