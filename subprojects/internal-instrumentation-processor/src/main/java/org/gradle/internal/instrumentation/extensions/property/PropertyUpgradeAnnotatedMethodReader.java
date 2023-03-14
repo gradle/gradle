@@ -24,6 +24,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.UpgradedPropertyType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequestImpl;
 import org.gradle.internal.instrumentation.model.CallableInfo;
@@ -152,7 +153,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         extras.add(new RequestExtra.OriginatingElement(method));
         extras.add(new RequestExtra.InterceptJvmCalls(INTERCEPTOR_JVM_DECLARATION_CLASS_NAME));
         String implementationClass = getGeneratedClassName(method.getEnclosingElement());
-        extras.add(new PropertyUpgradeRequestExtra(implementationClass, method.getSimpleName().toString()));
+        UpgradedPropertyType upgradedPropertyType = UpgradedPropertyType.from(extractType(method.getReturnType()));
+        extras.add(new PropertyUpgradeRequestExtra(implementationClass, method.getSimpleName().toString(), upgradedPropertyType));
         return extras;
     }
 

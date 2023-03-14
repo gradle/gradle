@@ -20,6 +20,7 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
+import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.UpgradedPropertyType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.ImplementationInfo;
@@ -79,10 +80,35 @@ public class PropertyUpgradeClassGenerator extends RequestGroupingInstrumentatio
     private static CodeBlock generateMethodBody(ImplementationInfo implementation, PropertyUpgradeRequestExtra implementationExtra) {
         String propertyGetterName = implementationExtra.getInterceptedPropertyGetterName();
         boolean isSetter = implementation.getName().startsWith("access_set_");
+        UpgradedPropertyType upgradedPropertyType = implementationExtra.getUpgradedPropertyType();
         if (isSetter) {
-            return CodeBlock.of("$N.$N().set(arg0);", SELF_PARAMETER_NAME, propertyGetterName);
+            String setCall = getSetCall(upgradedPropertyType);
+            return CodeBlock.of("$N.$N()$N;", SELF_PARAMETER_NAME, propertyGetterName, setCall);
         } else {
-            return CodeBlock.of("return $N.$N().get();", SELF_PARAMETER_NAME, propertyGetterName);
+            String getCall = getGetCall(upgradedPropertyType);
+            return CodeBlock.of("return $N.$N()$N;", SELF_PARAMETER_NAME, propertyGetterName, getCall);
+        }
+    }
+
+    private static String getGetCall(UpgradedPropertyType upgradedPropertyType) {
+        switch (upgradedPropertyType) {
+            case FILE_SYSTEM_LOCATION_PROPERTY:
+                return ".getAsFile().get()";
+            case CONFIGURABLE_FILE_COLLECTION:
+                return "";
+            default:
+                return ".get()";
+        }
+    }
+
+    private static String getSetCall(UpgradedPropertyType upgradedPropertyType) {
+        switch (upgradedPropertyType) {
+            case FILE_SYSTEM_LOCATION_PROPERTY:
+                return ".fileValue(arg0)";
+            case CONFIGURABLE_FILE_COLLECTION:
+                return ".setFrom(arg0)";
+            default:
+                return ".set(arg0)";
         }
     }
 }
