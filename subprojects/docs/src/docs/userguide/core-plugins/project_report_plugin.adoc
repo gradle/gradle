@@ -15,8 +15,6 @@
 [[project_report_plugin]]
 = The Project Report Plugin
 
-WARNING: The Project report plugin is not compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 The Project report plugin adds some tasks to your project which generate reports containing useful information about your build. These tasks generate the same content that you get by executing the `tasks`, `dependencies`, and `properties` tasks from the command line (see <<command_line_interface.adoc#sec:command_line_project_reporting,Command-line project reporting>>). In contrast to the command line reports, the report plugin generates the reports into a file. There is also an aggregating task that depends on all report tasks added by the plugin.
 
 We plan to add much more to the existing reports and create additional ones in future releases of Gradle.
