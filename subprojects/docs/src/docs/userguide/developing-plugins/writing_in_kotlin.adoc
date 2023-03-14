@@ -79,7 +79,7 @@ For example:
 * `"implementation"("group:artifact:version")` (instead of `add("implementation", "group:artifact:version")`)
 * Even `gradleKotlinDsl()` is provided by `gradleKotlinDsl()` !
 
-You can use optionally it to build your plugins, but it's not mandatory.
+You can use it optionally to build your plugins, but it's not mandatory.
 
 It is part of the Gradle distribution. You will find it under `~/.gradle/wrapper/dists/gradle-$version-bin/$sha/gradle-$version/lib/gradle-kotlin-dsl-$version.jar`.
 
