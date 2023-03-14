@@ -43,7 +43,8 @@ Supporting different versions of Gradle can be tested using https://docs.gradle.
 [[sec:redistributed_gradle_api]]
 === Redistributed Gradle API
 
-To avoid the implicit link on a Gradle version that comes with using `gradleApi()`, an alternative is to use the https://docs.nokee.dev/manual/gradle-plugin-development.html[Nokee redistributed Gradle API artifacts]. These are like `gradleApi()` except they allow specifying a specific version of the Gradle API.
+To avoid the implicit link on a Gradle version that comes with using `gradleApi()`, an alternative is to use the https://docs.nokee.dev/manual/gradle-plugin-development.html[Nokee redistributed Gradle API artifacts]. 
+These are like `gradleApi()`, except they allow specifying a specific version of the Gradle API.
 
 [subs="attributes"]
 [source,kotlin]
