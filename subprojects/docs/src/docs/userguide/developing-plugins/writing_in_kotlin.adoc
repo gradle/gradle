@@ -10,7 +10,7 @@ It also describes the different development plugins to help you set up these dif
 [[sec:dependencies]]
 == Different dependencies
 
-Like other JVM projects, Gradle plugins are jar files with dependencies. Unlike other JVM projects, Gradle provides fixed versions of some dependencies at runtime. Those dependencies are `compileOnly` dependencies and need to be compatible with the version of Gradle your plugin is running in.
+Like other JVM projects, Gradle plugins are jar files with dependencies. However,  unlike other JVM projects, Gradle provides fixed versions of some dependencies at runtime. Those dependencies are `compileOnly` dependencies and need to be compatible with the version of Gradle your plugin is running in.
 
 If you are writing convention plugins, this is usually not an issue. But if you distribute your plugins, you should pay attention to their compatibility.
 
