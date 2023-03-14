@@ -17,8 +17,8 @@
 package org.gradle.kotlin.dsl.tooling.builders
 
 import groovy.transform.CompileStatic
-import org.gradle.integtests.fixtures.ProjectSourceRoots
-import org.gradle.integtests.fixtures.TestProjectInitiation
+import org.gradle.integtests.fixtures.build.ProjectSourceRoots
+import org.gradle.integtests.fixtures.build.TestProjectInitiation
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiAdditionalClasspath
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
