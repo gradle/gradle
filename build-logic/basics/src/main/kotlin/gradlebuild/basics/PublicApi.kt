@@ -50,5 +50,5 @@ object PublicApi {
 
     val excludes = listOf("**/internal/**")
 
-    val kotlinIncludes = listOf("org/gradle/kotlin/dsl/**")
+    val kotlinIncludes = listOf("org/gradle/kotlin/**")
 }
