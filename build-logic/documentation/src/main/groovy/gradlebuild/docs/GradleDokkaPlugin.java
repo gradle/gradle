@@ -42,7 +42,7 @@ public class GradleDokkaPlugin implements Plugin<Project> {
         sourceSets.register("kotlin_dsl", new Action<>() {
             @Override
             public void execute(DokkaSourceSetSpec spec) {
-                spec.getDisplayName().set("dsl");
+                spec.getDisplayName().set("Gradle Kotlin DSL");
                 spec.getSourceRoots().setFrom(extension.getKotlinDslSource());
                 spec.getClasspath().setFrom(extension.getClasspath());
                 spec.getAnalysisPlatform().set(Platform.jvm);
