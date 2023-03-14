@@ -36,8 +36,8 @@ import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.time.Time.startTimer
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
-import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
+import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
@@ -411,12 +411,13 @@ data class KotlinScriptTargetModelBuilder(
                 additionalImports()
             } ?: emptyList()
 
+        val exceptions = classPathModeExceptionCollector.exceptions
         return StandardKotlinBuildScriptModel(
             (scriptClassPath + accessorsClassPath.bin).asFiles,
             (gradleSource() + classpathSources + accessorsClassPath.src).asFiles,
             implicitImports + additionalImports,
-            buildEditorReportsFor(classPathModeExceptionCollector.exceptions),
-            classPathModeExceptionCollector.exceptions.map(::exceptionToString),
+            buildEditorReportsFor(exceptions),
+            exceptions.asSequence().runtimeFailuresLocatedIn(this.scriptFile?.path ?: "").map(::exceptionToString).toList(),
             enclosingScriptProjectDir
         )
     }

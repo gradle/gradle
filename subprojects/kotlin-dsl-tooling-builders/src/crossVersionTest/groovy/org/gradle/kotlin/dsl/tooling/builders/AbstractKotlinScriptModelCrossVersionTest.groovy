@@ -17,6 +17,8 @@
 package org.gradle.kotlin.dsl.tooling.builders
 
 import groovy.transform.CompileStatic
+import org.gradle.integtests.fixtures.ProjectSourceRoots
+import org.gradle.integtests.fixtures.TestProjectInitiation
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiAdditionalClasspath
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -45,7 +47,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 @ToolingApiVersion(">=4.1")
 @ToolingApiAdditionalClasspath(KotlinDslToolingModelsClasspathProvider)
 @CompileStatic
-abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification  implements TestProjectInitiation {
+abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification  implements TestProjectInitiation, KotlinScriptsModelFetcher {
 
     def setup() {
         // Required for the lenient classpath mode
@@ -226,23 +228,6 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
 
     protected static String normalizedPathOf(File file) {
         return TextUtil.normaliseFileSeparators(file.path)
-    }
-
-
-    protected KotlinDslScriptsModel kotlinDslScriptsModelFor(boolean lenient = false, File... scripts) {
-        return kotlinDslScriptsModelFor(lenient, true, scripts.toList())
-    }
-
-    protected KotlinDslScriptsModel kotlinDslScriptsModelFor(boolean lenient = false, boolean explicitlyRequestPreparationTasks = true, Iterable<File> scripts) {
-        return withConnection { connection ->
-            new KotlinDslScriptsModelClient().fetchKotlinDslScriptsModel(
-                connection,
-                new KotlinDslScriptsModelRequest(
-                    scripts.toList(),
-                    null, null, [], [], lenient, explicitlyRequestPreparationTasks
-                )
-            )
-        }
     }
 
     protected static List<File> canonicalClasspathOf(KotlinDslScriptsModel model, File script) {

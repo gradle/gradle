@@ -107,8 +107,7 @@ fun Sequence<LocationAwareException>.anyNotLocatedIn(scriptPath: String): Boolea
     any { it.message?.contains(scriptPath) != true }
 
 
-private
-fun Sequence<LocationAwareException>.runtimeFailuresLocatedIn(scriptPath: String): Sequence<LocationAwareException> =
+fun Sequence<Exception>.runtimeFailuresLocatedIn(scriptPath: String): Sequence<LocationAwareException> =
     mapNotNull { it.runtimeFailureLocatedIn(scriptPath) }
 
 
