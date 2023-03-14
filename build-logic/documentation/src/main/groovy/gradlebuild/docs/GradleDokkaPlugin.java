@@ -16,13 +16,15 @@
 
 package gradlebuild.docs;
 
+import dev.adamko.dokkatoo.DokkatooBasePlugin;
 import dev.adamko.dokkatoo.DokkatooExtension;
-import dev.adamko.dokkatoo.DokkatooPlugin;
 import dev.adamko.dokkatoo.dokka.parameters.DokkaSourceSetSpec;
+import dev.adamko.dokkatoo.formats.DokkatooHtmlPlugin;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.jetbrains.dokka.Platform;
 
 public class GradleDokkaPlugin implements Plugin<Project> {
 
@@ -33,16 +35,21 @@ public class GradleDokkaPlugin implements Plugin<Project> {
     }
 
     private void generateDokkaStuff(Project project, GradleDocumentationExtension extension) {
-        project.getPlugins().apply(DokkatooPlugin.class);
+        project.getPlugins().apply(DokkatooBasePlugin.class);
 
         DokkatooExtension dokkatooExtension = project.getExtensions().getByType(DokkatooExtension.class);
         NamedDomainObjectContainer<DokkaSourceSetSpec> sourceSets = dokkatooExtension.getDokkatooSourceSets();
         sourceSets.register("kotlin_dsl", new Action<>() {
             @Override
             public void execute(DokkaSourceSetSpec spec) {
+                spec.getDisplayName().set("dsl");
                 spec.getSourceRoots().setFrom(extension.getKotlinDslSource());
+                spec.getClasspath().setFrom(extension.getClasspath());
+                spec.getAnalysisPlatform().set(Platform.jvm);
             }
         });
+
+        project.getPlugins().apply(DokkatooHtmlPlugin.class);
     }
 
 }

@@ -100,7 +100,7 @@ fun configureSourcesVariant() {
         main.groovy.srcDirs.forEach {
             outgoing.artifact(it)
         }
-        if ((main as ExtensionAware).extensions.findByName("kotlin") != null) { // TODO: improve this blasphemy
+        pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
             main.kotlin.srcDirs.forEach {
                 outgoing.artifact(it)
             }
