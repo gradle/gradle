@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-import com.google.common.collect.Iterables
 import org.gradle.api.internal.tasks.RealizeTaskBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 
@@ -25,29 +24,28 @@ class ConfigurationCacheTaskRealizationBuildOperationIntegrationTest extends Abs
 
     def "load after store emits two realization operations with the same id"() {
         buildFile << """
-            tasks.register("foo")
+            tasks.register("foo") {
+                doLast {
+                    println("\$name: \${taskIdentity.id}")
+                }
+            }
         """
 
         when:
         configurationCacheRun(":foo")
+        def realizeOp = buildOperations.only(RealizeTaskBuildOperationType)
         then:
-        def realizeOps = buildOperations.all(RealizeTaskBuildOperationType)
-        realizeOps.size() == 2
-        realizeOps*.details.each {
-            assert it.taskPath == ":foo"
+        with(realizeOp.details) {
+            taskPath == ":foo"
+            eager == false
         }
-        realizeOps.first().details.eager == false
-        realizeOps.last().details.eager == true
-        def uniqueId = Iterables.getOnlyElement(realizeOps*.details*.taskId as Set)
+        def uniqueId = realizeOp.details.taskId
+        outputContains("foo: ${uniqueId}")
 
         when:
         configurationCacheRun(":foo")
         then:
-        def realizeOp = buildOperations.only(RealizeTaskBuildOperationType)
-        with(realizeOp.details) {
-            taskPath == ":foo"
-            taskId == uniqueId
-            eager == true
-        }
+        buildOperations.none(RealizeTaskBuildOperationType)
+        outputContains("foo: ${uniqueId}")
     }
 }
