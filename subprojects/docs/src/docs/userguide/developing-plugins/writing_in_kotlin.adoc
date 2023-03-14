@@ -320,7 +320,7 @@ abstract class MyExtension {
 }
 ----
 
-In order for the overload to be generated, the object must be constructed by Gradle. For an example:
+For the overload to be generated, the object must be constructed by Gradle. For example:
 
 [source,kotlin]
 ----
