@@ -38,6 +38,13 @@ trait InspectableConfigurationFixture {
         reply.append("  name='").append(configuration.getName()).append("'")
         reply.append("  hashcode='").append(configuration.hashCode()).append("'")
 
+        if (configuration instanceof DefaultConfiguration) {
+            reply.append("  role='").append(configuration.roleAtCreation).append("'")
+            ConfigurationRole currentRole = ConfigurationRole.forUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclaredAgainst(),
+                    configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst());
+            reply.append("\nCurrent Usage:\n").append(currentRole.describeUsage());
+        }
+
         reply.append("\nLocal Dependencies:")
         if (configuration.getDependencies().size() > 0) {
             configuration.getDependencies().each { Dependency d ->
@@ -77,7 +84,6 @@ trait InspectableConfigurationFixture {
 
         return reply.toString()
     }
-
 
     /**
      * Build a formatted representation of all {@link Configuration}s in a {@link DefaultConfigurationContainer}.

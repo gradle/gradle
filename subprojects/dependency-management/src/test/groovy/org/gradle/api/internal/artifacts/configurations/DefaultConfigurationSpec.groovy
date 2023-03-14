@@ -1675,7 +1675,11 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
 
         then:
         dump(configuration) == """
-Configuration:  class='class org.gradle.api.internal.artifacts.configurations.DefaultConfiguration'  name='conf'  hashcode='${configuration.hashCode()}'
+Configuration:  class='class org.gradle.api.internal.artifacts.configurations.DefaultConfiguration'  name='conf'  hashcode='${configuration.hashCode()}'  role='LEGACY'
+Current Usage:
+\tConsumable - this configuration can be selected by another project as a dependency
+\tResolvable - this configuration can be resolved by this project to a set of files
+\tDeclarable Against - this configuration can have dependencies added to it
 Local Dependencies:
    DefaultExternalModuleDependency{group='dumpgroup1', name='dumpname1', version='dumpversion1', configuration='default'}
 Local Artifacts:
