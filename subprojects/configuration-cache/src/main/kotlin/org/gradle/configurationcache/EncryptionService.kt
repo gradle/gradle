@@ -113,13 +113,17 @@ class DefaultEncryptionService(
                 keySource.createKeyStoreAndGenerateKey(keyStoreFile())
             }
             .open().useToRun {
-                val keyStoreFile = keyStoreFile()
-                if (keyStoreFile.isFile) {
-                    keySource.loadSecretKeyFromExistingKeystore(keyStoreFile)
-                } else {
-                    // try to recover from a deleted keystore
+                try {
+                    keySource.loadSecretKeyFromExistingKeystore(keyStoreFile())
+                } catch (loadException: Exception) {
+                    // try to recover from a tampered-with keystore by generating a new key
                     // TODO:configuration-cache do we really need this?
-                    keySource.createKeyStoreAndGenerateKey(keyStoreFile)
+                    try {
+                        keySource.createKeyStoreAndGenerateKey(keyStoreFile())
+                    } catch (e: Exception) {
+                        e.addSuppressed(loadException)
+                        throw e
+                    }
                 }
             }
 
