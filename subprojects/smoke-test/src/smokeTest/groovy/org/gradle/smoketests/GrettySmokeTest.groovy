@@ -68,8 +68,9 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Consult the upgrading guide for further information: " +
                     "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations",
-                ""
-            ).build()
+                "")
+            .expectLegacyDeprecationWarning(BaseDeprecations.CONVENTION_TYPE_DEPRECATION)
+            .build()
 
         then:
         result.task(':checkContainerUp').outcome == SUCCESS

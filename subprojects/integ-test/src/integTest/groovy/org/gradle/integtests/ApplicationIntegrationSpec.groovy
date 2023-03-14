@@ -345,7 +345,7 @@ class Main {
 
         and:
         buildFile << """
-            applicationDistribution.from("src/somewhere-else") {
+            application.applicationDistribution.from("src/somewhere-else") {
                 include "**/r2.*"
             }
         """
@@ -375,7 +375,7 @@ class Main {
                 }
             }
 
-            applicationDistribution.from(createDocs) {
+            application.applicationDistribution.from(createDocs) {
                 into "docs"
                 rename 'readme(.*)', 'READ-ME\$1'
             }

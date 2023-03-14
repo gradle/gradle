@@ -74,7 +74,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.InMemoryModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ReadOnlyModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.TwoStageModuleVersionsCache;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
@@ -535,7 +535,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
-                                                                DependencyDescriptorFactory dependencyDescriptorFactory,
+                                                                DependencyMetadataFactory dependencyMetadataFactory,
                                                                 VersionComparator versionComparator,
                                                                 List<ResolverProviderFactory> resolverFactories,
                                                                 ModuleExclusions moduleExclusions,
@@ -553,7 +553,7 @@ class DependencyManagementBuildScopeServices {
             buildOperationExecutor,
             resolverFactories,
             resolveIvyFactory,
-            dependencyDescriptorFactory,
+            dependencyMetadataFactory,
             versionComparator,
             moduleExclusions,
             componentSelectorConverter,

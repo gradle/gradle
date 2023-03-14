@@ -12,7 +12,7 @@
 
 The configuration cache is a feature that significantly improves build performance by caching the result of the <<build_lifecycle#build_lifecycle,configuration phase>> and reusing this for subsequent builds.
 Using the configuration cache, Gradle can skip the configuration phase entirely when nothing that affects the build configuration, such as build scripts, has changed.
-Gradle also applies some performance improvements to task execution as well.
+Gradle also applies performance improvements to task execution as well.
 
 The configuration cache is conceptually similar to the <<build_cache#build_cache,build cache>>, but caches different information.
 The build cache takes care of caching the outputs and intermediate files of the build, such as task outputs or artifact transform outputs.
@@ -45,7 +45,8 @@ The first time you run a particular set of tasks, there will be no entry in the 
 
 Following the configuration phase, Gradle writes a snapshot of the task graph to a new configuration cache entry, for later Gradle invocations.
 Gradle then loads the task graph from the configuration cache, so that it can apply optimizations to the tasks, and then runs the execution phase as normal.
-Generally, you will not see any build performance improvement the first time you run a particular set of tasks.
+Configuration time will still be spent the first time you run a particular set of tasks.
+However, you should see build performance improvement immediately because <<#config_cache:intro:performance_improvements,tasks will run in parallel>>.
 
 When you subsequently run Gradle with this same set of tasks, for example by running `gradlew check` again, Gradle will load the tasks and their configuration directly from the configuration cache and skip the configuration phase entirely.
 Before using a configuration cache entry, Gradle checks that none of the "build configuration inputs", such as build scripts, for the entry have changed.
@@ -199,43 +200,6 @@ If you need to invalidate the cache, simply delete that directory:
 
 Configuration cache entries are checked periodically (at most every 24 hours) for whether they are still in use.
 They are deleted if they haven't been used for 7 days.
-
-[[config_cache:usage:encryption]]
-=== Encrypting the cache
-
-The configuration cache stores any data set up during the configuration phase.
-As such, if your build configuration includes any sensitive information, you should ensure
-your configuration cache is encrypted.
-
-For Gradle to be able to encrypt the data in the cache, you must provide Gradle with an AES 128-bit key
-via the `GRADLE_ENCRYPTION_KEY` environment variable (see <<build_environment.adoc#sec:gradle_environment_variables, see Environment variables>>).
-
-==== Generating an encryption key that is compatible with GRADLE_ENCRYPTION_KEY
-
-There are many ways of producing an encryption key compatible with Gradle.
-One way is by using a command like this, which should work on Linux and Mac OS, or even on Windows, if using a tool like Cygwin:
-
-```
-❯ echo $(openssl enc -aes-128-cbc -k secret -P | grep key= | sed s/key=// | base64)
-```
-
-You can then use the key produced by that command (which is encoded as a Base64 string) and set it as the value of the
-`GRADLE_ENCRYPTION_KEY` environment variable whichever way you prefer to configure environment variables in your OS.
-
-==== Disabling encryption of the configuration cache
-
-Encryption of the configuration cache is enabled for default for a good reason,
-but if you would rather not encrypt the configuration cache state, you can do so on the command line:
-
-----
-❯ gradle --no-configuration-cache-encryption
-----
-or in a `gradle.properties` file:
-
-[source,properties]
-----
-org.gradle.configuration-cache.encryption=false
-----
 
 [[config_cache:stable]]
 == Stable configuration cache
@@ -1019,14 +983,6 @@ It can be reused by hot or cold local Gradle daemons.
 But it can't be shared between developers or CI machines.
 
 See link:{gradle-issues}13510[gradle/gradle#13510].
-
-[[config_cache:not_implemented:store_parallel_execution]]
-=== Parallel task execution on cache misses
-
-When there's no configuration cache available and the work graph needs to be calculated, tasks are not executed in parallel by default.
-Only builds that reuse the configuration cache currently execute all tasks in parallel by default.
-
-See link:{gradle-issues}14624[gradle/gradle#14624].
 
 [[config_cache:not_yet_implemented:source_dependencies]]
 === Source dependencies

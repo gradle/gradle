@@ -31,13 +31,13 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
-    public ExternalModuleIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
+public class ExternalModuleDependencyMetadataConverter extends AbstractDependencyMetadataConverter {
+    public ExternalModuleDependencyMetadataConverter(ExcludeRuleConverter excludeRuleConverter) {
         super(excludeRuleConverter);
     }
 
     @Override
-    public LocalOriginDependencyMetadata createDependencyDescriptor(ComponentIdentifier componentId, @Nullable String clientConfiguration, @Nullable AttributeContainer clientAttributes, ModuleDependency dependency) {
+    public LocalOriginDependencyMetadata createDependencyMetadata(ComponentIdentifier componentId, @Nullable String clientConfiguration, @Nullable AttributeContainer clientAttributes, ModuleDependency dependency) {
         ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) dependency;
         boolean force = externalModuleDependency.isForce();
         boolean changing = externalModuleDependency.isChanging();
