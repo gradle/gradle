@@ -51,7 +51,6 @@ public abstract class WrapperPlugin implements Plugin<Project> {
                 wrapper.setGroup("Build Setup");
                 wrapper.setDescription("Generates Gradle wrapper files.");
                 wrapper.getNetworkTimeout().convention(10000);
-                wrapper.setIsOffline(project.getGradle().getStartParameter().isOffline());
                 wrapper.setWrapperVersionsResources(new DefaultWrapperVersionsResources(latest, releaseCandidate, nightly, releaseNightly));
             });
         }

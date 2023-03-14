@@ -70,8 +70,8 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
     def "generated wrapper files are reproducible"() {
         when:
-        executer.inDirectory(file("first")).withTasks("wrapper", "--offline").run()
-        executer.inDirectory(file("second")).withTasks("wrapper", "--offline").run()
+        executer.inDirectory(file("first")).withTasks("wrapper").run()
+        executer.inDirectory(file("second")).withTasks("wrapper").run()
 
         then: "the checksum should be constant (unless there are code changes)"
         Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("db163900b4008d4556d12cd8dd312dfb5b1efdb63050db5cfec4561eb4eff495")
@@ -203,16 +203,11 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "wrapper task with distribution url from command-line respects --offline"() {
+        httpServer.start()
+        def path = "/distributions/8.0-RC-5"
+        def url = "${httpServer.uri}" + path
         when:
-        run("wrapper", "--gradle-distribution-url", "https://not-a-valid-url/distributions/8.0-RC-5", "--offline")
-
-        then:
-        succeeds()
-    }
-
-    def "wrapper task with gradle version from command-line respects --offline mode"() {
-        when:
-        run "wrapper", "--gradle-version", "8.0-RC-5", "--offline"
+        run("wrapper", "--gradle-distribution-url", "${url}", "--offline")
 
         then:
         succeeds()
