@@ -16,9 +16,9 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.cache.FileLockManager
-import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.PersistentCache
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
+import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -74,10 +74,7 @@ class DefaultEncryptionService(
                 secretKeySourceFrom(startParameter).let { keySource ->
                     try {
                         secretKeyFrom(keySource, cacheBuilderFactory).also { key ->
-                            val keyLength = key.encoded.size
-                            if (keyLength < 16) {
-                                throw InvalidKeyException("Encryption key length is $keyLength bytes, but must be at least 16 bytes long")
-                            }
+                            assertKeyLength(key)
                             // acquire a cipher just to validate the key
                             encryptionAlgorithm.newSession(key).encryptingCipher {}
                         }
@@ -99,21 +96,36 @@ class DefaultEncryptionService(
     }
 
     private
+    fun assertKeyLength(key: SecretKey) {
+        val keyLength = key.encoded.size
+        if (keyLength < 16) {
+            throw InvalidKeyException("Encryption key length is $keyLength bytes, but must be at least 16 bytes long")
+        }
+    }
+
+    private
     fun secretKeyFrom(keySource: KeyStoreKeySource, cacheBuilderFactory: GlobalScopedCacheBuilderFactory) =
-        // JKS does not support non-PrivateKeys
         cacheBuilderFactory
             .run { keySource.customKeyStoreDir?.let { createCacheBuilderFactory(it) } ?: this }
             .createCacheBuilder("keystore")
             .withDisplayName("Gradle keystore")
-            .withLockOptions(exclusiveLockMode())
-            .open().use { cache ->
-                val keyStoreFile = File(cache.baseDir, "gradle.keystore")
-                keySource.loadOrCreateKey(keyStoreFile)
+            .withInitializer {
+                keySource.createKeyStoreAndGenerateKey(keyStoreFile())
+            }
+            .open().useToRun {
+                val keyStoreFile = keyStoreFile()
+                if (keyStoreFile.isFile) {
+                    keySource.loadSecretKeyFromExistingKeystore(keyStoreFile)
+                } else {
+                    // try to recover from a deleted keystore
+                    // TODO:configuration-cache do we really need this?
+                    keySource.createKeyStoreAndGenerateKey(keyStoreFile)
+                }
             }
 
     private
-    fun exclusiveLockMode(): LockOptionsBuilder =
-        LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive)
+    fun PersistentCache.keyStoreFile(): File =
+        File(baseDir, "gradle.keystore")
 
     override
     val encryptionAlgorithm: EncryptionAlgorithm by lazy {
@@ -179,59 +191,54 @@ class KeyStoreKeySource(
     private
     val keyProtection = KeyStore.PasswordProtection(CharArray(0))
 
+    private
+    val keyStore by lazy {
+        KeyStore.getInstance(KEYSTORE_TYPE)
+    }
+
     val sourceDescription: String
         get() = customKeyStoreDir?.let { "custom Java keystore at $it" }
             ?: "default Gradle keystore"
 
-    fun loadOrCreateKey(keyStoreFile: File) =
-        secretKey(keyStoreFile, KeyStore.getInstance(KEYSTORE_TYPE))
-
-    private
-    fun secretKey(keyStoreFile: File, ks: KeyStore) = when {
-        keyStoreFile.isFile -> loadSecretKeyFromExistingKeystore(keyStoreFile, ks)
-        else -> createKeyStoreAndGenerateKey(keyStoreFile, ks)
+    fun createKeyStoreAndGenerateKey(keyStoreFile: File): SecretKey {
+        logger.debug("No keystore found")
+        keyStore.load(null, null)
+        return generateKey(keyStoreFile, keyAlias).also {
+            logger.debug("Key added to a new keystore at {}", keyStoreFile)
+        }
     }
 
-    private
-    fun loadSecretKeyFromExistingKeystore(keyStoreFile: File, ks: KeyStore): SecretKey {
+    fun loadSecretKeyFromExistingKeystore(keyStoreFile: File): SecretKey {
         logger.info("Loading keystore from {}", keyStoreFile)
         keyStoreFile.inputStream().use { fis ->
-            ks.load(fis, null)
+            keyStore.load(fis, null)
         }
-        val entry = ks.getEntry(keyAlias, keyProtection) as KeyStore.SecretKeyEntry?
+        val entry = keyStore.getEntry(keyAlias, keyProtection) as KeyStore.SecretKeyEntry?
         if (entry != null) {
             return entry.secretKey.also {
                 logger.debug("Retrieved key")
             }
         }
         logger.debug("No key found")
-        return generateKey(keyStoreFile, ks, keyAlias).also {
+        return generateKey(keyStoreFile, keyAlias).also {
             logger.warn("Key added to existing keystore at {}", keyStoreFile)
         }
     }
 
     private
-    fun createKeyStoreAndGenerateKey(keyStoreFile: File, ks: KeyStore): SecretKey {
-        logger.debug("No keystore found")
-        ks.load(null, null)
-        return generateKey(keyStoreFile, ks, keyAlias).also {
-            logger.debug("Key added to a new keystore at {}", keyStoreFile)
-        }
-    }
-
-    private
-    fun generateKey(keyStoreFile: File, ks: KeyStore, alias: String): SecretKey {
+    fun generateKey(keyStoreFile: File, alias: String): SecretKey {
         val newKey = KeyGenerator.getInstance(encryptionAlgorithm).generateKey()!!
         logger.info("Generated key")
         val entry = KeyStore.SecretKeyEntry(newKey)
-        ks.setEntry(alias, entry, keyProtection)
+        keyStore.setEntry(alias, entry, keyProtection)
         keyStoreFile.outputStream().use { fos ->
-            ks.store(fos, null)
+            keyStore.store(fos, null)
         }
         return newKey
     }
 
     companion object {
+        // JKS does not support non-PrivateKeys
         const val KEYSTORE_TYPE = "pkcs12"
     }
 }
