@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.cache.CacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.configurationcache.extensions.useToRun
@@ -62,57 +63,42 @@ interface EncryptionService : EncryptionConfiguration {
 @ServiceScope(Scopes.BuildTree::class)
 internal
 class DefaultEncryptionService(
-    startParameter: ConfigurationCacheStartParameter,
-    cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
+    private val startParameter: ConfigurationCacheStartParameter,
+    private val cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
 ) : EncryptionService {
 
     private
     val secretKey: SecretKey? by lazy {
         when {
             // encryption is on by default
-            startParameter.encryptionRequested -> {
-                secretKeySourceFrom(startParameter).let { keySource ->
-                    try {
-                        secretKeyFrom(keySource, cacheBuilderFactory).also { key ->
-                            assertKeyLength(key)
-                            // acquire a cipher just to validate the key
-                            encryptionAlgorithm.newSession(key).encryptingCipher {}
-                        }
-                    } catch (e: EncryptionException) {
-                        if (e.message != null) {
-                            throw e
-                        }
-                        throw EncryptionException("Error loading encryption key from ${keySource.sourceDescription}", e.cause)
-                    } catch (e: Exception) {
-                        throw EncryptionException("Error loading encryption key from ${keySource.sourceDescription}", e)
-                    }
+            startParameter.encryptionRequested -> produceSecretKey()
+            else -> null
+        }
+    }
+
+    private
+    fun produceSecretKey() =
+        secretKeySource().let { keySource ->
+            try {
+                secretKeyFrom(keySource).also { key ->
+                    assertKeyLength(key)
                 }
-            }
-
-            else -> {
-                null
+            } catch (e: EncryptionException) {
+                if (e.message != null) {
+                    throw e
+                }
+                throw EncryptionException("Error loading encryption key from ${keySource.sourceDescription}", e.cause)
+            } catch (e: Exception) {
+                throw EncryptionException("Error loading encryption key from ${keySource.sourceDescription}", e)
             }
         }
-    }
 
     private
-    fun assertKeyLength(key: SecretKey) {
-        val keyLength = key.encoded.size
-        if (keyLength < 16) {
-            throw InvalidKeyException("Encryption key length is $keyLength bytes, but must be at least 16 bytes long")
-        }
-    }
-
-    private
-    fun secretKeyFrom(keySource: KeyStoreKeySource, cacheBuilderFactory: GlobalScopedCacheBuilderFactory) =
-        cacheBuilderFactory
-            .run { keySource.customKeyStoreDir?.let { createCacheBuilderFactory(it) } ?: this }
-            .createCacheBuilder("cc-keystore")
-            .withDisplayName("Gradle Configuration Cache keystore")
+    fun secretKeyFrom(keySource: KeyStoreKeySource) =
+        cacheBuilderFor(keySource)
             .withInitializer {
                 keySource.createKeyStoreAndGenerateKey(keyStoreFile())
-            }
-            .open().useToRun {
+            }.open().useToRun {
                 try {
                     keySource.loadSecretKeyFromExistingKeystore(keyStoreFile())
                 } catch (loadException: Exception) {
@@ -128,8 +114,23 @@ class DefaultEncryptionService(
             }
 
     private
+    fun cacheBuilderFor(keySource: KeyStoreKeySource): CacheBuilder =
+        cacheBuilderFactory
+            .run { keySource.customKeyStoreDir?.let { createCacheBuilderFactory(it) } ?: this }
+            .createCacheBuilder("cc-keystore")
+            .withDisplayName("Gradle Configuration Cache keystore")
+
+    private
     fun PersistentCache.keyStoreFile(): File =
         File(baseDir, "gradle.keystore")
+
+    private
+    fun assertKeyLength(key: SecretKey) {
+        val keyLength = key.encoded.size
+        if (keyLength < 16) {
+            throw InvalidKeyException("Encryption key length is $keyLength bytes, but must be at least 16 bytes long")
+        }
+    }
 
     override
     val encryptionAlgorithm: EncryptionAlgorithm by lazy {
@@ -166,23 +167,26 @@ class DefaultEncryptionService(
 
     private
     fun decryptingInputStream(inputStream: InputStream): InputStream {
-        val cipher = encryptionAlgorithm.newSession(secretKey).decryptingCipher(inputStream::read)
+        val cipher = newEncryptionSession().decryptingCipher(inputStream::read)
         return CipherInputStream(inputStream, cipher)
     }
 
     private
     fun encryptingOutputStream(outputStream: OutputStream): OutputStream {
-        val cipher = encryptionAlgorithm.newSession(secretKey).encryptingCipher(outputStream::write)
+        val cipher = newEncryptionSession().encryptingCipher(outputStream::write)
         return CipherOutputStream(outputStream, cipher)
     }
 
     private
-    fun secretKeySourceFrom(startParameter: ConfigurationCacheStartParameter) =
-        KeyStoreKeySource(
-            encryptionAlgorithm = encryptionAlgorithm.algorithm,
-            customKeyStoreDir = startParameter.keystoreDir?.let { File(it) },
-            keyAlias = "gradle-secret"
-        )
+    fun newEncryptionSession(): EncryptionAlgorithm.Session =
+        encryptionAlgorithm.newSession(secretKey)
+
+    private
+    fun secretKeySource() = KeyStoreKeySource(
+        encryptionAlgorithm = encryptionAlgorithm.algorithm,
+        customKeyStoreDir = startParameter.keystoreDir?.let { File(it) },
+        keyAlias = "gradle-secret"
+    )
 }
 
 
