@@ -100,11 +100,11 @@ class PropertyUpgradeClassGeneratorTest extends Specification {
 
             public class Task_Adapter {
                 public static $originalType access_get_property(Task self) {
-                    return self.getProperty().get();
+                    return self.getProperty()$getCall;
                 }
 
                 public static void access_set_property(Task self, $originalType arg0) {
-                    self.getProperty().set(arg0);
+                    self.getProperty()$setCall;
                 }
             }
         """)
@@ -114,15 +114,14 @@ class PropertyUpgradeClassGeneratorTest extends Specification {
             .hasSourceEquivalentTo(expectedOutput)
 
         where:
-        upgradedType                  | originalType | fullImport
-        "Property<Integer>"           | "Integer"    | "java.lang.Integer"
-        "Property<String>"            | "String"     | "java.lang.String"
-        "ListProperty<String>"        | "List"       | "java.util.List"
-        "MapProperty<String, String>" | "Map"        | "java.util.Map"
-        // TODO: Not yet supported
-        // "RegularFileProperty"         | "File"       | "java.io.File"
-        // "DirectoryProperty"           | "File"       | "java.io.File"
-        // "ConfigurableFileCollection"           | "FileCollection"       | "java.io.File"
+        upgradedType                  | originalType     | getCall              | setCall            | fullImport
+        "Property<Integer>"           | "Integer"        | ".get()"             | ".set(arg0)"       | "java.lang.Integer"
+        "Property<String>"            | "String"         | ".get()"             | ".set(arg0)"       | "java.lang.String"
+        "ListProperty<String>"        | "List"           | ".get()"             | ".set(arg0)"       | "java.util.List"
+        "MapProperty<String, String>" | "Map"            | ".get()"             | ".set(arg0)"       | "java.util.Map"
+        "RegularFileProperty"         | "File"           | ".getAsFile().get()" | ".fileValue(arg0)" | "java.io.File"
+        "DirectoryProperty"           | "File"           | ".getAsFile().get()" | ".fileValue(arg0)" | "java.io.File"
+        "ConfigurableFileCollection"  | "FileCollection" | ""                   | ".setFrom(arg0)"   | "org.gradle.api.file.FileCollection"
     }
 
     private static Compilation compile(JavaFileObject fileObject) {
