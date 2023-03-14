@@ -17,6 +17,7 @@
 package gradlebuild.docs;
 
 import gradlebuild.basics.PublicApi;
+import gradlebuild.basics.PublicKotlinDslApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -111,11 +112,10 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         }));
         extension.getKotlinDslSource().from(sourcesPath.getIncoming().artifactView(v -> v.lenient(true)).getFiles().getAsFileTree().matching(f -> {
             // Filter out any non-public APIs
-//            f.include(PublicKotlinDslApi.INSTANCE.getIncludes());
             f.include(PublicApi.INSTANCE.getIncludes());
-            f.include(PublicApi.INSTANCE.getKotlinIncludes());
-//            f.include(PublicKotlinDslApi.INSTANCE.getExcludes());
+            f.include(PublicKotlinDslApi.INSTANCE.getIncludes());
             f.exclude(PublicApi.INSTANCE.getExcludes());
+            f.exclude(PublicKotlinDslApi.INSTANCE.getExcludes());
         }));
     }
 
