@@ -65,8 +65,8 @@ import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.DefaultTaskExecutionTracker;
-import org.gradle.internal.execution.TaskExecutionTracker;
+import org.gradle.internal.execution.DefaultWorkExecutionTracker;
+import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.model.annotations.DisableCachingByDefaultTypeAnnotationHandler;
 import org.gradle.internal.execution.model.annotations.InputDirectoryPropertyAnnotationHandler;
@@ -124,8 +124,8 @@ public class ExecutionGlobalServices {
         ReplacedBy.class
     );
 
-    TaskExecutionTracker createTaskExecutionTracker(BuildOperationAncestryTracker ancestryTracker, BuildOperationListenerManager operationListenerManager) {
-        return new DefaultTaskExecutionTracker(ancestryTracker, operationListenerManager);
+    WorkExecutionTracker createWorkExecutionTracker(BuildOperationAncestryTracker ancestryTracker, BuildOperationListenerManager operationListenerManager) {
+        return new DefaultWorkExecutionTracker(ancestryTracker, operationListenerManager);
     }
 
     AnnotationHandlerRegistar createAnnotationRegistry(List<AnnotationHandlerRegistration> registrations) {

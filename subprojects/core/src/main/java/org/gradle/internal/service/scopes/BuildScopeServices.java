@@ -180,7 +180,7 @@ import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.TaskExecutionTracker;
+import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.Stat;
@@ -699,7 +699,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             isolatableFactory,
             sharedResourceLeaseRegistry,
             featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
-                ? new BuildServiceProviderNagger(services.get(TaskExecutionTracker.class))
+                ? new BuildServiceProviderNagger(services.get(WorkExecutionTracker.class))
                 : BuildServiceProvider.Listener.EMPTY
         );
     }
