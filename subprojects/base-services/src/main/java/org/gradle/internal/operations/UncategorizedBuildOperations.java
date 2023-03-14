@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
-
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.Optional;
+package org.gradle.internal.operations;
 
 /**
- * Provides access to the task executing on the current thread.
+ * Metadata markers for build operations that are uncategorized for the progress logging purposes.
  */
-@ServiceScope(Scope.Global.class)
-public interface TaskExecutionTracker {
-
+public enum UncategorizedBuildOperations implements BuildOperationMetadata {
     /**
-     * Finds the task executing on the current thread, if any.
+     * Creates and executes the transformation actions. {@link BuildOperationCategory#TRANSFORM} can include this operation.
      */
-    Optional<TaskInternal> getCurrentTask();
+    TRANSFORM_ACTION
 }
