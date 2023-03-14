@@ -107,8 +107,8 @@ class DefaultEncryptionService(
     fun secretKeyFrom(keySource: KeyStoreKeySource, cacheBuilderFactory: GlobalScopedCacheBuilderFactory) =
         cacheBuilderFactory
             .run { keySource.customKeyStoreDir?.let { createCacheBuilderFactory(it) } ?: this }
-            .createCacheBuilder("keystore")
-            .withDisplayName("Gradle keystore")
+            .createCacheBuilder("cc-keystore")
+            .withDisplayName("Gradle Configuration Cache keystore")
             .withInitializer {
                 keySource.createKeyStoreAndGenerateKey(keyStoreFile())
             }
@@ -202,7 +202,7 @@ class KeyStoreKeySource(
 
     val sourceDescription: String
         get() = customKeyStoreDir?.let { "custom Java keystore at $it" }
-            ?: "default Gradle keystore"
+            ?: "default Gradle configuration cache keystore"
 
     fun createKeyStoreAndGenerateKey(keyStoreFile: File): SecretKey {
         logger.debug("No keystore found")
