@@ -30,9 +30,9 @@ import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.junit.Rule
 
-class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalSpec {
+class ProjectDependencyMetadataConverterTest extends AbstractDependencyDescriptorFactoryInternalSpec {
 
-    private ProjectIvyDependencyDescriptorFactory projectDependencyDescriptorFactory = new ProjectIvyDependencyDescriptorFactory(excludeRuleConverterStub)
+    private ProjectDependencyMetadataConverter converter = new ProjectDependencyMetadataConverter(excludeRuleConverterStub)
     private final ComponentIdentifier componentId = new ComponentIdentifier() {
         @Override
         String getDisplayName() {
@@ -45,8 +45,8 @@ class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescripto
 
     def canConvert() {
         expect:
-        projectDependencyDescriptorFactory.canConvert(Mock(ProjectDependency))
-        !projectDependencyDescriptorFactory.canConvert(Mock(ExternalModuleDependency))
+        converter.canConvert(Mock(ProjectDependency))
+        !converter.canConvert(Mock(ExternalModuleDependency))
     }
 
     def "test create from project dependency"() {
@@ -54,7 +54,7 @@ class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescripto
         def configuration = withArtifacts ? null : TEST_DEP_CONF
         ProjectDependency projectDependency = createProjectDependency(configuration)
         setUpDependency(projectDependency, withArtifacts)
-        LocalOriginDependencyMetadata dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(componentId, TEST_CONF, null, projectDependency)
+        LocalOriginDependencyMetadata dependencyMetaData = converter.createDependencyMetadata(componentId, TEST_CONF, null, projectDependency)
 
         then:
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData, withArtifacts)

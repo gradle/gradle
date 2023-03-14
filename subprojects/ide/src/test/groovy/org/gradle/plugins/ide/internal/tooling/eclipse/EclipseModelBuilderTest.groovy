@@ -163,11 +163,11 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         pluginType << [JavaPlugin, GroovyPlugin, ScalaPlugin]
     }
 
-    def "custom #type language level derived Java plugin convention"() {
+    def "custom #type language level derived Java plugin extension"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
         project.plugins.apply(JavaPlugin)
-        project."$compatibilityProperty" = "1.2"
+        project.java."$compatibilityProperty" = "1.2"
 
         when:
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
@@ -181,12 +181,12 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         "target" | "targetCompatibility" | "targetBytecodeVersion"
     }
 
-    def "#type language level derived from eclipse jdt overrules java plugin convention configuration"() {
+    def "#type language level derived from eclipse jdt overrules java plugin extension configuration"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
         project.plugins.apply(JavaPlugin)
         project.plugins.apply(EclipsePlugin)
-        project."$compatibilityProperty" = "1.2"
+        project.java."$compatibilityProperty" = "1.2"
         project.eclipse.jdt."$compatibilityProperty" = "1.3"
 
         when:
@@ -209,7 +209,7 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         child1.eclipse.jdt."$compatibilityProperty" = "1.2"
         child2.plugins.apply(JavaPlugin)
         child2.plugins.apply(EclipsePlugin)
-        child2."$compatibilityProperty" = "1.3"
+        child2.java."$compatibilityProperty" = "1.3"
         child2.eclipse.jdt."$compatibilityProperty" = "1.1"
 
         when:

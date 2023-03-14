@@ -19,7 +19,6 @@ package org.gradle.integtests.fixtures.executer
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheQuietOption
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheEncryptionOption
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
@@ -30,7 +29,6 @@ class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
 
     static final List<String> CONFIGURATION_CACHE_ARGS = [
         "--${ConfigurationCacheOption.LONG_OPTION}",
-        "-D${ConfigurationCacheEncryptionOption.PROPERTY_NAME}=true",
         "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true",
         "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0",
         "-Dorg.gradle.configuration-cache.internal.load-after-store=${testWithLoadAfterStore()}"
