@@ -72,7 +72,7 @@ dependencies {
 
 The `gradleKotlinDsl()` contains helpers to work better with Kotlin.
 
-For an example:
+For example:
 
 * `tasks.withType<Jar> {}` (instead of `tasks.withType(Jar::class.java) {}`)
 * `val commonMain by getting {}` (instead of `getByName("commonMain") {}`)
