@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import org.gradle.execution.plan.PlannedNodeInternal;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedTask;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
@@ -25,7 +26,7 @@ import java.util.List;
 /**
  * Default implementation of {@link PlannedTask}.
  */
-public class DefaultPlannedTask implements PlannedTask {
+public class DefaultPlannedTask implements PlannedTask, PlannedNodeInternal {
 
     private final TaskIdentity taskIdentity;
     private final List<? extends NodeIdentity> nodeDependencies;
@@ -88,5 +89,10 @@ public class DefaultPlannedTask implements PlannedTask {
     @Override
     public String toString() {
         return taskIdentity.toString();
+    }
+
+    @Override
+    public DefaultPlannedTask withNodeDependencies(List<? extends NodeIdentity> nodeDependencies) {
+        return new DefaultPlannedTask(taskIdentity, nodeDependencies, taskDependencies, mustRunAfter, shouldRunAfter, finalizers);
     }
 }

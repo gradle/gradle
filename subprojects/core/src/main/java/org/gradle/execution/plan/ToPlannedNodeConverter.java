@@ -16,11 +16,11 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Converts a node to a planned node.
@@ -34,6 +34,11 @@ public interface ToPlannedNodeConverter {
      * Type of node that this converter can identify and convert to a planned node.
      */
     Class<? extends Node> getSupportedNodeType();
+
+    /**
+     * Node type of the planned node after conversion.
+     */
+    NodeIdentity.NodeType getConvertedNodeType();
 
     /**
      * Provides a unique identity for the node of the {@link #getSupportedNodeType() supported type}.
@@ -52,20 +57,5 @@ public interface ToPlannedNodeConverter {
      * <p>
      * Expects a node of the {@link #getSupportedNodeType() supported type} that is in the {@link #isInSamePlan(Node) same plan}.
      */
-    CalculateTaskGraphBuildOperationType.PlannedNode convert(Node node, DependencyLookup dependencyLookup);
-
-    interface DependencyLookup {
-
-        /**
-         * Finds all identifiable dependencies of the given node.
-         */
-        List<? extends NodeIdentity> findNodeDependencies(Node node);
-
-        /**
-         * Finds dependencies that are task nodes, skipping over other nodes.
-         * <p>
-         * This is required for compatibility reasons for the {@link ToPlannedTaskConverter}.
-         */
-        List<? extends TaskIdentity> findTaskDependencies(Node node);
-    }
+    PlannedNodeInternal convert(Node node, List<? extends NodeIdentity> nodeDependencies, Supplier<List<TaskIdentity>> taskDependencies);
 }
