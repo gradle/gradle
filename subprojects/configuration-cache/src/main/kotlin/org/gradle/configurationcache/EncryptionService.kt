@@ -202,7 +202,7 @@ class KeyStoreKeySource(
 
     fun createKeyStoreAndGenerateKey(keyStoreFile: File): SecretKey {
         logger.debug("No keystore found")
-        keyStore.load(null, null)
+        keyStore.load(null, KEYSTORE_PASSWORD)
         return generateKey(keyStoreFile, keyAlias).also {
             logger.debug("Key added to a new keystore at {}", keyStoreFile)
         }
@@ -211,7 +211,7 @@ class KeyStoreKeySource(
     fun loadSecretKeyFromExistingKeystore(keyStoreFile: File): SecretKey {
         logger.info("Loading keystore from {}", keyStoreFile)
         keyStoreFile.inputStream().use { fis ->
-            keyStore.load(fis, null)
+            keyStore.load(fis, KEYSTORE_PASSWORD)
         }
         val entry = keyStore.getEntry(keyAlias, keyProtection) as KeyStore.SecretKeyEntry?
         if (entry != null) {
@@ -232,7 +232,7 @@ class KeyStoreKeySource(
         val entry = KeyStore.SecretKeyEntry(newKey)
         keyStore.setEntry(alias, entry, keyProtection)
         keyStoreFile.outputStream().use { fos ->
-            keyStore.store(fos, null)
+            keyStore.store(fos, KEYSTORE_PASSWORD)
         }
         return newKey
     }
@@ -240,5 +240,6 @@ class KeyStoreKeySource(
     companion object {
         // JKS does not support non-PrivateKeys
         const val KEYSTORE_TYPE = "pkcs12"
+        val KEYSTORE_PASSWORD = charArrayOf('c', 'c')
     }
 }

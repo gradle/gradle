@@ -160,9 +160,9 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
         def keyStoreFile = findKeystoreFile()
 
         KeyStore ks = KeyStore.getInstance(KeyStoreKeySource.KEYSTORE_TYPE)
-        keyStoreFile.withInputStream { ks.load(it, new char[0]) }
+        keyStoreFile.withInputStream { ks.load(it, new char[]{'c', 'c'}) }
         ks.deleteEntry("gradle-secret")
-        keyStoreFile.withOutputStream { ks.store(it, new char[0]) }
+        keyStoreFile.withOutputStream { ks.store(it, new char[]{'c', 'c'}) }
 
         when:
         runWithEncryption()
