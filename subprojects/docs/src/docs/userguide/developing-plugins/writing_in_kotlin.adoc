@@ -83,7 +83,7 @@ You can use it optionally to build your plugins, but it's not mandatory.
 
 It is part of the Gradle distribution. You will find it under `~/.gradle/wrapper/dists/gradle-$version-bin/$sha/gradle-$version/lib/gradle-kotlin-dsl-$version.jar`.
 
-When writing `build.gradle.kts`, `gradleKotlinDsl()` is in the classpath and provide helpers to work better with Kotlin.
+When writing `build.gradle.kts`, `gradleKotlinDsl()` is in the classpath and provides helpers to work better with Kotlin.
 
 TIP: Because it is provided by Gradle at runtime, `gradleKotlinDsl()` must be a `compileOnly` dependency.
 
@@ -97,7 +97,8 @@ dependencies {
 }
 ----
 
-The Kotlin compatibility matrix can be found in the https://docs.gradle.org/current/userguide/compatibility.html#kotlin[Gradle compatibility page]. If you want your plugin to be compatible with a given version of Gradle, you need to make sure to use a compatible version of kotlin-stdlib. For an example, if you need your plugin to be compatible with Gradle 7.0, you cannot use any Kotlin 1.5 only API (like https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.text/lowercase.htmllowercase) and need to compile against `kotlin-stdlib:1.4.31`.
+The Kotlin compatibility matrix can be found in the https://docs.gradle.org/current/userguide/compatibility.html#kotlin[Gradle compatibility page]. If you want your plugin to be compatible with a given version of Gradle, you must use a compatible version of kotlin-stdlib. 
+For example, if you need your plugin to be compatible with Gradle 7.0, you cannot use any Kotlin 1.5 only API (like https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.text/lowercase.htmllowercase) and need to compile against `kotlin-stdlib:1.4.31`.
 
 [source,kotlin]
 ----
@@ -106,7 +107,8 @@ dependencies {
 }
 ----
 
-For similar reasons, any transitive dependency of your plugin needs to use a `kotlin-stdlib` version compatible with the Gradle one. While you can ensure that at compile time for your own code, it's often more complicated for dependencies so make sure to test your plugins and/or double check your transitive dependencies.
+For similar reasons, any transitive dependency of your plugin must use a `kotlin-stdlib` version compatible with the Gradle one. 
+While you can ensure that at compile time for your code, it's often more complicated for dependencies, so test your plugins and/or double-check your transitive dependencies.
 
 Note: The `kotlin-stdlib` version is independent of your Kotlin Gradle Plugin version. You can use a newer Kotlin Gradle Plugin version with an older `kotlin-stdlib` using the https://kotlinlang.org/docs/compiler-reference.html#api-version-version[`apiVersion`] compiler argument.
 
@@ -143,7 +145,7 @@ dependencies {
 }
 ----
 
-These dependencies are not provided by Gradle at runtime and should use the `implementation` configuration (or `api` if part of your plugin API). Because Gradle may load different plugins with conflicting dependencies in the same https://dev.to/autonomousapps/build-compile-run-a-crash-course-in-classpaths-f4g[classloader], your plugin users may experience crashes if symbols are incompatible or missing. To mitigate those, you can relocate your dependencies.
+Gradle does not provide these dependencies at runtime and should use the `implementation` configuration (or `api` if part of your plugin API). Because Gradle may load different plugins with conflicting dependencies in the same https://dev.to/autonomousapps/build-compile-run-a-crash-course-in-classpaths-f4g[classloader], your plugin users may experience crashes if symbols are incompatible or missing. To mitigate those, you can relocate your dependencies.
 
 [[sec:compiler_options]]
 == Different compiler configurations
@@ -174,7 +176,7 @@ tasks.register("hello") {
 }
 ----
 
-The latter looks closer to `build.gradle.kts` scripts and more concise but is more prone to scoping errors as well.
+The latter looks closer to `build.gradle.kts` scripts and is more concise but is prone to scoping errors as well.
 
 
 [[sec:kotlin_assignment]]
@@ -207,7 +209,7 @@ Note: while this enforces your code is compatible with a given version of Kotlin
 [[sec:sam_conversion_class]]
 === `-Xsam-conversions=class` compiler option
 
-`-Xsam-conversions=class` sets up the implementation strategy for SAM (single abstract method) conversion to always generate anonymous classes, instead of using the `invokedynamic` JVM instruction. This is to make sure the lambdas are serializable and provide a better support for configuration cache and incremental build. This is particularly important for lambdas used from `doLast:
+`-Xsam-conversions=class` sets up the implementation strategy for SAM (single abstract method) conversion to always generate anonymous classes, instead of using the `invokedynamic` JVM instruction. This is to make sure the lambdas are serializable and provide better support for configuration cache and incremental build. This is particularly important for lambdas used from `doLast`:
 See https://github.com/gradle/gradle/issues/17052[Issue #17052] for more information.
 
 [source,kotlin]
@@ -253,7 +255,7 @@ You always want this plugin to develop custom Gradle plugins (although other plu
 [[sec:kotlin_jvm]]
 === The `kotlin("jvm")` plugin
 
-`kotlin("jvm")` is the plugin that configures the Kotlin compiler amongst many other things.
+`kotlin("jvm")` is the plugin configuring the Kotlin compiler, amongst many other things.
 
 You usually always want this plugin to develop custom Gradle plugins (although other plugins might apply it for you). Refer to the full https://kotlinlang.org/docs/gradle.html[documentation] for more information.
 
