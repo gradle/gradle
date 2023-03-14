@@ -1030,21 +1030,6 @@ The following _Java Object Serialization_ features are **not** supported:
 
 See link:{gradle-issues}13588[gradle/gradle#13588].
 
-[[config_cache:not_yet_implemented:storing_lambdas]]
-=== Objects Storing Lambdas
-
-Currently, Gradle cannot restore objects from the configuration cache that store user-provided lambdas.
-For example, if an object provides a method that accepts a Single Abstract Method (SAM) interface argument (e.g. a `Function` argument), it is natural to implement this argument as a lambda.
-If the lambda is then stored in the object for later invocation, the object will not be compatible with the configuration cache and will cause a failure when restored.
-Instead of a lambda, the argument should be provided as a typed object implementing the SAM interface.
-
-Alternatively, for Kotlin implementations, the Kotlin compiler can be configured to generate classes instead of lambdas during SAM conversion.
-
-====
-include::sample[dir="snippets/configurationCache/samConversion/kotlin",files="build.gradle.kts[tags=configure]"]
-include::sample[dir="snippets/configurationCache/samConversion/groovy",files="build.gradle[tags=configure]"]
-====
-
 [[config_cache:not_yet_implemented:accessing_top_level_at_execution]]
 === Accessing top-level methods and variables of a build script at execution time
 
