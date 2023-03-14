@@ -32,12 +32,12 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     def "generated wrapper scripts use correct line separators"() {
         buildFile << """
             wrapper {
-                distributionUrl = 'https://services.gradle.org/distributions'
+                distributionUrl = 'http://localhost:8080/gradlew/dist'
             }
         """
 
         when:
-        run "wrapper"
+        run "wrapper", "--offline"
 
         then:
         file("gradlew").text.split(TextUtil.unixLineSeparator).length > 1
@@ -48,12 +48,12 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     def "wrapper jar is small"() {
         buildFile << """
             wrapper {
-                distributionUrl = 'https://services.gradle.org/distributions'
+                distributionUrl = 'http://localhost:8080/gradlew/dist'
             }
         """
 
         when:
-        run "wrapper"
+        run "wrapper", "--offline"
 
         then:
         // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
@@ -62,7 +62,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
     def "generated wrapper scripts for given version from command-line"() {
         when:
-        run "wrapper", "--gradle-version", "2.2.1"
+        run "wrapper", "--gradle-version", "2.2.1", "--offline"
 
         then:
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=https\\://services.gradle.org/distributions/gradle-2.2.1-bin.zip")
@@ -70,8 +70,8 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
     def "generated wrapper files are reproducible"() {
         when:
-        executer.inDirectory(file("first")).withTasks("wrapper").run()
-        executer.inDirectory(file("second")).withTasks("wrapper").run()
+        executer.inDirectory(file("first")).withTasks("wrapper", "--offline").run()
+        executer.inDirectory(file("second")).withTasks("wrapper", "--offline").run()
 
         then: "the checksum should be constant (unless there are code changes)"
         Hashing.sha256().hashFile(file("first/gradle/wrapper/gradle-wrapper.jar")) == HashCode.fromString("db163900b4008d4556d12cd8dd312dfb5b1efdb63050db5cfec4561eb4eff495")
@@ -86,7 +86,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     def "generated wrapper does not change unnecessarily"() {
         def wrapperJar = file("gradle/wrapper/gradle-wrapper.jar")
         def wrapperProperties = file("gradle/wrapper/gradle-wrapper.properties")
-        run "wrapper", "--gradle-version", "2.2.1"
+        run "wrapper", "--gradle-version", "2.2.1", "--offline"
         def testFile = file("modtime").touch()
         def originalTime = testFile.lastModified()
         when:
@@ -95,7 +95,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
             testFile.touch()
             assert (testFile.lastModified() - originalTime) >= 2000L
         }
-        run "wrapper", "--gradle-version", "2.2.1", "--rerun-tasks"
+        run "wrapper", "--gradle-version", "2.2.1", "--rerun-tasks", "--offline"
 
         then:
         result.assertTasksExecuted(":wrapper")
@@ -105,7 +105,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
     def "generated wrapper scripts for valid distribution types from command-line"() {
         when:
-        run "wrapper", "--gradle-version", "2.13", "--distribution-type", distributionType
+        run "wrapper", "--gradle-version", "2.13", "--distribution-type", distributionType, "--offline"
 
         then:
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=https\\://services.gradle.org/distributions/gradle-2.13-${distributionType}.zip")
@@ -116,7 +116,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
     def "no generated wrapper scripts for invalid distribution type from command-line"() {
         when:
-        fails "wrapper", "--gradle-version", "2.13", "--distribution-type", "invalid-distribution-type"
+        fails "wrapper", "--gradle-version", "2.13", "--distribution-type", "invalid-distribution-type", "--offline"
 
         then:
         failure.assertHasCause("Cannot convert string value 'invalid-distribution-type' to an enum value of type 'org.gradle.api.tasks.wrapper.Wrapper\$DistributionType' (valid case insensitive values: BIN, ALL)")
@@ -124,10 +124,10 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
     def "generated wrapper scripts for given distribution URL from command-line"() {
         when:
-        run "wrapper", "--gradle-distribution-url", "https://services.gradle.org/distributions"
+        run "wrapper", "--gradle-distribution-url", "http://localhost:8080/gradlew/dist", "--offline"
 
         then:
-        file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=https\\://services.gradle.org/distributions")
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=http\\://localhost\\:8080/gradlew/dist")
     }
 
     def "generated wrapper scripts for given distribution SHA-256 hash sum from command-line"() {
@@ -167,7 +167,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
     def "wrapper task fails if distribution url from command-line is invalid"() {
         given:
-        def path = "/distributions/8.0-rc-5"
+        def path = "/distributions/8.0-RC-5"
         httpServer.start()
         httpServer.expectHeadMissing(path)
         def url = "${httpServer.uri}" + path
@@ -187,12 +187,25 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         file("gradle/wrapper/gradle-wrapper.properties").assertDoesNotExist()
     }
 
-    def "wrapper task with distribution url from command-line respects --offline"() {
+    def "wrapper task succeeds if distribution url from command-line is valid"() {
         given:
+        def path = "/distributions/8.0-rc-5"
+        def file = file(path) << "some content"
         httpServer.start()
+        httpServer.expectHead(path, file)
+        def url = "${httpServer.uri}" + path
 
         when:
-        run("wrapper", "--gradle-distribution-url", "${httpServer.uri}/distributions/8.0-RC-5", "--offline")
+        run "wrapper", "--gradle-distribution-url", url
+
+        then:
+        succeeds()
+    }
+
+    def "wrapper task with distribution url from command-line respects --offline"() {
+        when:
+        run("wrapper", "--gradle-distribution-url", "https://not-a-valid-url/distributions/8.0-RC-5", "--offline")
+
         then:
         succeeds()
     }
