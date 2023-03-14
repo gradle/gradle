@@ -117,6 +117,7 @@ public abstract class Wrapper extends DefaultTask {
         jarFile = "gradle/wrapper/gradle-wrapper.jar";
         distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         archivePath = DEFAULT_DISTRIBUTION_PARENT_NAME;
+        isOffline = getProject().getGradle().getStartParameter().isOffline();
     }
 
     @Inject
@@ -517,15 +518,5 @@ public abstract class Wrapper extends DefaultTask {
     @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations")
     public Property<Integer> getNetworkTimeout() {
         return networkTimeout;
-    }
-
-    /**
-     * Sets the offline mode of the wrapper task.
-     *
-     * @since 8.2
-     */
-    @Incubating
-    public void setIsOffline(boolean isOffline) {
-        this.isOffline = isOffline;
     }
 }
