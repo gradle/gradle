@@ -19,12 +19,15 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.GradleException;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.tasks.TaskDependency;
@@ -64,6 +67,7 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
     public boolean add(final Dependency o) {
         assertConfigurationIsDeclarableAgainst();
         warnIfConfigurationIsDeprecated();
+        warnIfDetachedConfDependsOnContainingProject(o);
         if (o instanceof AbstractModuleDependency) {
             ((AbstractModuleDependency) o).addMutationValidator(mutationValidator);
         }
@@ -78,6 +82,20 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
                 .nagUser();
+        }
+    }
+
+    private void warnIfDetachedConfDependsOnContainingProject(Dependency o) {
+        if (o instanceof ProjectDependency) {
+            DefaultConfiguration conf = (DefaultConfiguration) clientConfiguration;
+            Project targetProject = ((ProjectDependency) o).getDependencyProject();
+            if (conf.isDetachedConfiguration() && conf.isConfigurationForProject(targetProject)) {
+                DeprecationLogger.deprecateAction("Adding a dependency on its containing project to a detached configuration")
+                    .withAdvice("Use a regular configuration instead of a detached configuration.")
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(8, "detached_configurations_with_project_dependencies")
+                    .nagUser();
+            }
         }
     }
 

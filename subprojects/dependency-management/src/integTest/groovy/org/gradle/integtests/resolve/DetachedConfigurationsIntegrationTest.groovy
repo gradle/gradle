@@ -131,6 +131,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         file("artifact.txt") << "sample artifact"
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Adding a dependency on its containing project to a detached configuration has been deprecated. This will fail with an error in Gradle 9.0. Use a regular configuration instead of a detached configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#detached_configurations_with_project_dependencies")
         run "checkDependencies"
     }
 
@@ -148,5 +149,29 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         name << ["detachedConfiguration", "detachedConfiguration1", "detachedConfiguration22902"]
+    }
+
+    def "detached configurations with same project dependencies warn"() {
+        given:
+        buildFile << """
+            configurations.detachedConfiguration(dependencies.create(project))
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Adding a dependency on its containing project to a detached configuration has been deprecated. This will fail with an error in Gradle 9.0. Use a regular configuration instead of a detached configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#detached_configurations_with_project_dependencies")
+        succeeds "help"
+    }
+
+    def "detached configurations with different project dependencies are allowed"() {
+        given:
+        settingsFile << "include 'A'"
+        buildFile << """
+            configurations.detachedConfiguration(dependencies.create(project(":A")))
+        """
+
+        file("A/build.gradle")
+
+        expect:
+        succeeds "help"
     }
 }

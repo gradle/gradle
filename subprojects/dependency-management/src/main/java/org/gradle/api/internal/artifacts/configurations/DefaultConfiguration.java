@@ -1840,6 +1840,14 @@ since users cannot create non-legacy configurations and there is no current publ
         return isInitializing || isDetachedConfiguration || isLegacyRole || isPermittedConfigurationChangeForKotlin;
     }
 
+    public boolean isDetachedConfiguration() {
+        return this.configurationsProvider instanceof DetachedConfigurationsProvider;
+    }
+
+    public boolean isConfigurationForProject(Project otherProject) {
+        return Objects.equals(getIdentity().getProjectPath(), otherProject.getPath());
+    }
+
     @Override
     public boolean isDeprecatedForConsumption() {
         return consumptionDeprecated;
