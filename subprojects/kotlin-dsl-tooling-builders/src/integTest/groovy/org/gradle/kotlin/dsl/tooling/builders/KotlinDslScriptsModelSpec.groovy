@@ -19,7 +19,7 @@ package org.gradle.kotlin.dsl.tooling.builders
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.TestProjectInitiation
+import org.gradle.integtests.fixtures.build.TestProjectInitiation
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection

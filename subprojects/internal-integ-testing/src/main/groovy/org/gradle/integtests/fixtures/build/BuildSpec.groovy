@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.integtests.fixtures.build
 
+import org.gradle.test.fixtures.file.TestFile
 
-
-
-class ProjectSourceRoots {
-
-    final File projectDir
-    final List<String> sourceSets
-    final List<String> languages
-
-    ProjectSourceRoots(File projectDir, List<String> sourceSets, List<String> languages) {
-        this.projectDir = projectDir
-        this.sourceSets = sourceSets
-        this.languages = languages
-    }
+class BuildSpec {
+    Map<String, TestFile> scripts
+    Map<String, TestFile> appliedScripts
+    Map<String, TestFile> jars
 }
