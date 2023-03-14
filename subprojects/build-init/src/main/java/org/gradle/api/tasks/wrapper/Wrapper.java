@@ -109,7 +109,7 @@ public abstract class Wrapper extends DefaultTask {
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
     private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private final DistributionLocator locator = new DistributionLocator();
-    private boolean distributionUrlConfiguredOnCommandLine = false;
+    private boolean distributionUrlConfigured = false;
     private boolean isOffline = false;
 
     public Wrapper() {
@@ -164,7 +164,7 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     private void testDistributionUrl() {
-        if (distributionUrlConfiguredOnCommandLine && !isOffline) {
+        if (distributionUrlConfigured && !isOffline) {
             try {
                 new Download(new Logger(true), "gradlew", Download.UNKNOWN_VERSION).sendHeadRequest(getDistributionUrl());
             } catch (Exception e) {
@@ -338,11 +338,13 @@ public abstract class Wrapper extends DefaultTask {
      * The version of the gradle distribution required by the wrapper.
      * This is usually the same version of Gradle you use for building your project.
      * The following labels are allowed to specify a version: {@code latest}, {@code release-candidate}, {@code nightly}, and {@code release-nightly}
+     *
+     * <p>The resulting distribution url is validated with a HEAD request before it is written to the gradle-wrapper.properties file.
      */
     @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper. " +
         "The following labels are allowed: latest, release-candidate, nightly, and release-nightly.")
     public void setGradleVersion(String gradleVersion) {
-        distributionUrlConfiguredOnCommandLine = true;
+        distributionUrlConfigured = true;
         this.gradleVersionResolver.setGradleVersionString(gradleVersion);
     }
 
@@ -409,10 +411,12 @@ public abstract class Wrapper extends DefaultTask {
      * project, you might submit the distribution to your version control system. That way no download is necessary at
      * all. This might be in particular interesting, if you provide a custom gradle snapshot to the wrapper, because you
      * don't need to provide a download server then.
+     *
+     * <p>The distribution url is validated with a HEAD request before it is written to the gradle-wrapper.properties file.
      */
     @Option(option = "gradle-distribution-url", description = "The URL to download the Gradle distribution from.")
     public void setDistributionUrl(String url) {
-        distributionUrlConfiguredOnCommandLine = true;
+        distributionUrlConfigured = true;
         this.distributionUrl = url;
     }
 
@@ -516,7 +520,7 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     /**
-     * Sets the offline modus of the wrapper task.
+     * Sets the offline mode of the wrapper task.
      *
      * @since 8.2
      */
