@@ -294,7 +294,9 @@ Like the `embedded-kotlin` plugin, it uses the same Kotlin version as your Gradl
 [[sec:your_public_api]]
 == Plugin API compatibility
 
-In order to make your plugin API compatible with Groovy, avoid relying on Kotlin specific features so that the developer experience is as good for Groovy scripts as for Kotlin scripts. For an example the Kotlin compiler emits https://github.com/JetBrains/kotlin/blob/master/libraries/kotlinx-metadata/jvm/ReadMe.md[metadata] that only the Kotlin compiler can understand for features like default parameters or extension function. It is OK to use those to provide a better experience for Kotlin scripts as long as same functionality is accessible through other means in Groovy.
+In order to make your plugin API compatible with Groovy, avoid relying on Kotlin specific features so that the developer experience is as good for Groovy scripts as for Kotlin scripts. 
+For example, the Kotlin compiler emits https://github.com/JetBrains/kotlin/blob/master/libraries/kotlinx-metadata/jvm/ReadMe.md[metadata] that only the Kotlin compiler can understand for features like default parameters or extension function. 
+It is OK to use those to provide a better experience for Kotlin scripts as long as the same functionality is accessible through other means in Groovy.
 
 In general, relying on link:{kotlin-reference}java-interop.html[calling Java from Kotlin recommendations] and link:{kotlin-reference}java-to-kotlin-interop.html[calling Kotlin from Java recommendations] works well for Groovy too.
 
