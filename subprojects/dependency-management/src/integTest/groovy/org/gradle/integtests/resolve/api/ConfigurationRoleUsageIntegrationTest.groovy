@@ -245,8 +245,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         'resolvable'            | "resolvable('custom')"            || false       | true          | false             | false                 | false                 | false
         'resolvableBucket'      | "resolvableBucket('custom')"      || false       | true          | true              | false                 | false                 | false
         'bucket'                | "bucket('custom')"                || false       | false         | true              | false                 | false                 | false
-        'deprecated consumable' | "deprecatedConsumable('custom')"  || true        | true          | true              | false                 | true                  | true
-        'deprecated resolvable' | "deprecatedResolvable('custom')"  || true        | true          | true              | true                  | false                 | true
     }
 
     def "can prevent usage mutation of role-based configuration #configuration added by java plugin meant for consumption"() {
@@ -297,8 +295,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         'consumable'            | "consumable('custom')"            | 'Intended Consumable'
         'resolvable'            | "resolvable('custom')"            | 'Intended Resolvable'
         'bucket'                | "bucket('custom')"                | 'Intended Bucket'
-        'deprecated consumable' | "deprecatedConsumable('custom')"  | 'Deprecated Consumable'
-        'deprecated resolvable' | "deprecatedResolvable('custom')"  | 'Deprecated Resolvable'
     }
 
     def "exhaustively try all new role-based creation syntax"() {
@@ -311,15 +307,11 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 resolvable('resolvable1')
                 resolvableBucket('resolvableBucket1')
                 bucket('bucket1')
-                deprecatedConsumable('deprecatedConsumable1')
-                deprecatedResolvable('deprecatedResolvable1')
 
                 consumable('consumable2', true)
                 resolvable('resolvable2', true)
                 resolvableBucket('resolvableBucket2', true)
                 bucket('bucket2', true)
-                deprecatedConsumable('deprecatedConsumable2', true)
-                deprecatedResolvable('deprecatedResolvable2', true)
 
                 createWithRole('consumable3', ConfigurationRoles.INTENDED_CONSUMABLE)
                 createWithRole('consumable4', ConfigurationRoles.INTENDED_CONSUMABLE, true)
