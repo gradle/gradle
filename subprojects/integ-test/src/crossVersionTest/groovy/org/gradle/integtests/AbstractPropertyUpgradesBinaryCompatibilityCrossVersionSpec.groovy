@@ -79,12 +79,43 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
             """
 
         buildFile << """
-buildscript {
-    dependencies { classpath fileTree(dir: "producer/build/libs", include: '*.jar') }
-}
+            buildscript {
+                dependencies { classpath fileTree(dir: "producer/build/libs", include: '*.jar') }
+            }
 
-apply plugin: SomePlugin
-"""
+            apply plugin: SomePlugin
+        """
+    }
+
+    protected void prepareKotlinPluginTest(String pluginApplyBody) {
+        file("producer/build.gradle.kts") << """
+            plugins {
+                `kotlin-dsl`
+            }
+            repositories {
+                mavenCentral()
+            }
+        """
+
+        file("producer/src/main/kotlin/SomePlugin.kt") << """
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+            ${importClasses().collect { "import " + it.name }.join("\\n")}
+
+            class SomePlugin: Plugin<Project> {
+                override fun apply(project: Project) {
+                    $pluginApplyBody
+                }
+            }
+            """
+
+        buildFile << """
+            buildscript {
+                dependencies { classpath fileTree(dir: "producer/build/libs", include: '*.jar') }
+            }
+
+            apply plugin: SomePlugin
+        """
     }
 }
 

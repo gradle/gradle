@@ -57,5 +57,20 @@ class PropertyUpgradesBinaryCompatibilityCrossVersionSpec extends AbstractProper
         version previous withTasks 'assemble' inDirectory(file("producer")) run()
         version current withTasks 'tasks' withStacktraceEnabled() requireDaemon() requireIsolatedDaemons() run()
     }
+
+    def "can use upgraded Checkstyle in a Kotlin plugin compiled with a previous Gradle version"() {
+        given:
+        prepareKotlinPluginTest """
+            project.tasks.register("myCheckstyle", Checkstyle::class.java) {
+                maxErrors = 1
+                val currentMaxErrors = maxErrors
+                assert(currentMaxErrors == 1)
+            }
+        """
+
+        expect:
+        version previous withTasks 'assemble' inDirectory(file("producer")) run()
+        version current withTasks 'tasks' withStacktraceEnabled() requireDaemon() requireIsolatedDaemons() run()
+    }
 }
 
