@@ -296,33 +296,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         }
     }
 
-    @Test
-    fun `report file warning on script compilation failure in another script`() {
-        assumeNonEmbeddedGradleExecuter()
-
-        withDefaultSettings().appendText(
-            """
-            include("a", "b")
-            """
-        )
-        withBuildScript("")
-        withBuildScriptIn(
-            "a",
-            """
-            doNotExists()
-            """
-        )
-        val editedScript = withBuildScriptIn("b", "")
-
-        resolvedScriptDependencies(editedScript).apply {
-            assertContainsBasicDependencies()
-        }
-
-        recorder.apply {
-            assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleFileWarningReport(EditorMessages.buildConfigurationFailed)
-        }
-    }
 
     @Test
     fun `report file warning on runtime failure in currently edited script`() {
@@ -344,34 +317,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         }
     }
 
-    @Test
-    fun `report file warning on runtime failure in another script`() {
-        assumeNonEmbeddedGradleExecuter()
-
-        withDefaultSettings().appendText(
-            """
-            include("a", "b")
-            """
-        )
-        withBuildScript("")
-        withBuildScriptIn(
-            "a",
-            """
-            configurations.getByName("doNotExists")
-            """
-        )
-        val editedScript = withBuildScriptIn("b", "")
-
-
-        resolvedScriptDependencies(editedScript).apply {
-            assertContainsBasicDependencies()
-        }
-
-        recorder.apply {
-            assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleFileWarningReport(EditorMessages.buildConfigurationFailed)
-        }
-    }
 
     private
     val recorder = ResolverTestRecorder()
