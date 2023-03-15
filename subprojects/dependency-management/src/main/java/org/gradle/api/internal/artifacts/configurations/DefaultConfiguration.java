@@ -1293,16 +1293,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      * deprecated in the copied configuration. In 9.0, we will update this to copy
      * roles and deprecations without modification. Or, better yet, we will remove support
      * for copying configurations altogether.
+     *
+     * This means the copy created is <strong>NOT</strong> a strictly identical copy of the original, as the role
+     * will be not only a different instance, but also may return different deprecation values.
      */
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints) {
-        // Begin by allowing everything, and setting deprecations for disallowed roles
+        // Begin by allowing everything, and setting deprecations for disallowed roles in a new role implementation
         boolean deprecateConsumption = !canBeConsumed || consumptionDeprecation != null;
         boolean deprecateResolution = !canBeResolved || resolutionAlternatives != null;
         boolean deprecateDeclarationAgainst = !canBeDeclaredAgainst || declarationAlternatives != null;
         ConfigurationRole adjustedCurrentUsage = new ConfigurationRole() {
             @Override
             public String getName() {
-                return "adjusted current usage";
+                return "adjusted current usage with deprecations";
             }
 
             @Override

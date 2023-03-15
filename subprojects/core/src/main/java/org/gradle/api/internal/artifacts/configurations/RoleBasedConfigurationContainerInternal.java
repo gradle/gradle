@@ -223,48 +223,12 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
 
         private static String describeDifferenceFromRole(DeprecatableConfiguration configuration, ConfigurationRole role) {
             if (!isUsageConsistentWithRole(configuration, role)) {
-                ConfigurationRole currentUsage = new ConfigurationRole() {
-                    @Override
-                    public String getName() {
-                        return "current";
-                    }
-
-                    @Override
-                    public boolean isConsumable() {
-                        return configuration.isCanBeConsumed();
-                    }
-
-                    @Override
-                    public boolean isResolvable() {
-                        return configuration.isCanBeResolved();
-                    }
-
-                    @Override
-                    public boolean isDeclarableAgainst() {
-                        return configuration.isCanBeDeclaredAgainst();
-                    }
-
-                    @Override
-                    public boolean isConsumptionDeprecated() {
-                        return configuration.isDeprecatedForConsumption();
-                    }
-
-                    @Override
-                    public boolean isResolutionDeprecated() {
-                        return configuration.isDeprecatedForResolution();
-                    }
-
-                    @Override
-                    public boolean isDeclarationAgainstDeprecated() {
-                        return configuration.isDeprecatedForDeclarationAgainst();
-                    }
-                };
-
                 return "Usage for configuration: " + configuration.getName() + " is not consistent with the role: " + role.getName() + ".\n" +
                         "Expected that it is:\n" +
                         role.describeUsage() + "\n" +
                         "But is actually is:\n" +
-                        currentUsage.describeUsage();
+                        ConfigurationRole.RoleDescriber.describeUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclaredAgainst(),
+                                configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst());
             } else {
                 return "Usage for configuration: " + configuration.getName() + " is consistent with the role: " + role.getName() + ".";
             }

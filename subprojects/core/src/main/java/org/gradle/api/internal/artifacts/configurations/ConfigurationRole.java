@@ -67,15 +67,30 @@ public interface ConfigurationRole {
          * @return a human-readable description of the role's allowed usage
          */
         public static String describeRole(ConfigurationRole role) {
+            return describeUsage(role.isConsumable(), role.isResolvable(), role.isDeclarableAgainst(), role.isConsumptionDeprecated(), role.isResolutionDeprecated(), role.isDeclarationAgainstDeprecated());
+        }
+
+        /**
+         * Builds a human-readable description of the given usage.
+         *
+         * @param consumable whether consumption is allowed
+         * @param resolvable whether resolution is allowed
+         * @param declarableAgainst whether declaring dependencies is allowed
+         * @param consumptionDeprecated whether consumption is deprecated
+         * @param resolutionDeprecated whether resolution is deprecated
+         * @param declarationAgainstDeprecated whether declaring dependencies is deprecated
+         * @return a human-readable description of the given usage
+         */
+        public static String describeUsage(boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
             List<String> descriptions = new ArrayList<>();
-            if (role.isConsumable()) {
-                descriptions.add("\t" + CONSUMABLE + describeDeprecation(role.isConsumptionDeprecated()));
+            if (consumable) {
+                descriptions.add("\t" + CONSUMABLE + describeDeprecation(consumptionDeprecated));
             }
-            if (role.isResolvable()) {
-                descriptions.add("\t" + RESOLVABLE + describeDeprecation(role.isResolutionDeprecated()));
+            if (resolvable) {
+                descriptions.add("\t" + RESOLVABLE + describeDeprecation(resolutionDeprecated));
             }
-            if (role.isDeclarableAgainst()) {
-                descriptions.add("\t" + DECLARABLE_AGAINST + describeDeprecation(role.isDeclarationAgainstDeprecated()));
+            if (declarableAgainst) {
+                descriptions.add("\t" + DECLARABLE_AGAINST + describeDeprecation(declarationAgainstDeprecated));
             }
             if (descriptions.isEmpty()) {
                 descriptions.add("\t" + UNUSABLE);
