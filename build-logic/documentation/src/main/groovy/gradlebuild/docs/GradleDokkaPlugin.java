@@ -50,6 +50,9 @@ public class GradleDokkaPlugin implements Plugin<Project> {
         });
 
         project.getPlugins().apply(DokkatooHtmlPlugin.class);
+
+        extension.getDokkadocs().getRenderedDocumentation().from(dokkatooExtension.getDokkatooPublicationDirectory());
+        //TODO: should come from task output, but we have DokkaTasks that depend on DokkatooGenerateTasks and haven't found a way to obtain the output
     }
 
 }

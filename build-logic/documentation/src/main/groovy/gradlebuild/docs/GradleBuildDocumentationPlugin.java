@@ -75,10 +75,15 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
             // Javadocs reference goes into javadoc/
             task.from(extension.getJavadocs().getRenderedDocumentation(), sub -> sub.into("javadoc"));
 
+            // Dokka Kotlin DSL reference goes into dokka/
+            task.from(extension.getDokkadocs().getRenderedDocumentation(), sub -> sub.into("dokka"));
+
             // User manual goes into userguide/ (for historical reasons)
             task.from(extension.getUserManual().getRenderedDocumentation(), sub -> sub.into("userguide"));
 
             task.into(extension.getDocumentationRenderedRoot());
+
+            task.dependsOn("dokkatooGeneratePublicationHtml"); //TODO: sucks, couldn't yet find a way to wire it in properly
         });
 
         extension.getSourceRoot().convention(layout.getProjectDirectory().dir("src/docs"));
