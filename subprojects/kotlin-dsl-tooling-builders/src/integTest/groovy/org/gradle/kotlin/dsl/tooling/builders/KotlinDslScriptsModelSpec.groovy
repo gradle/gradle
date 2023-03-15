@@ -24,9 +24,14 @@ import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
+import org.junit.Rule
+import org.junit.rules.RuleChain
 
 class KotlinDslScriptsModelSpec extends AbstractIntegrationSpec implements KotlinScriptsModelFetcher, TestProjectInitiation {
     def toolingApi = new ToolingApi(distribution, temporaryFolder)
+
+    @Rule
+    public RuleChain cleanupRule = RuleChain.outerRule(temporaryFolder).around(toolingApi)
 
     def <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         try {
