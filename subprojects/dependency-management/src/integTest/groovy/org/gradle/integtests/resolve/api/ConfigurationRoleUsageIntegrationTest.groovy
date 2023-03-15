@@ -430,12 +430,15 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             configurations {
                 assert !findByName('custom')
                 def result = maybeCreateWithRole('custom', ConfigurationRoles.INTENDED_RESOLVABLE, true, false)
-                assert !result.isUsageMutable()
+                result.canBeResolved = !result.canBeResolved
             }
         """
 
         expect:
-        succeeds 'help'
+        fails 'help'
+
+        and:
+        assertUsageLockedFailure('custom', 'Intended Resolvable')
     }
 
     def "maybeCreateWithRole can lock existing roles"() {
@@ -449,14 +452,16 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
 
             configurations {
                 def existing = findByName('implementation')
-                assert existing.isUsageMutable()
                 def result = maybeCreateWithRole('implementation', ConfigurationRoles.LEGACY, true, false)
-                assert !result.isUsageMutable()
+                result.canBeResolved = !result.canBeResolved
             }
         """
 
         expect:
-        succeeds 'help'
+        fails 'help'
+
+        and:
+        assertUsageLockedFailure('implementation', 'Intended Bucket')
     }
 
     def "can update all roles for non-locked configurations"() {
