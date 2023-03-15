@@ -137,7 +137,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
                 assert gradle.gradleVersion == '${otherVersion.version.version}'
             }
         }"""
-        executer.withTasks('wrapper').run()
+        executer.withTasks('wrapper', '--offline').run()
 
         when:
         toolingApi.withConnector { connector ->
@@ -158,7 +158,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         }
         """
         projectDir.file('child').createDir()
-        executer.withTasks('wrapper').run()
+        executer.withTasks('wrapper', '--offline').run()
 
         when:
         toolingApi.withConnector { connector ->
