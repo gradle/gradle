@@ -36,6 +36,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.library.freeze.FreezingArchRule;
 import org.gradle.util.EmptyStatement;
 import org.gradle.util.Matchers;
@@ -186,6 +187,16 @@ public interface ArchUnitFixture {
 
     static DescribedPredicate<JavaMember> annotatedMaybeInSupertypeWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return new AnnotatedMaybeInSupertypePredicate(predicate);
+    }
+
+    static ArchCondition<JavaClass> beAnnotatedMaybeInPackageWith(final Class<? extends Annotation> annotationType) {
+        return ArchConditions.be(annotatedMaybeInPackageWith(annotationType));
+    }
+
+    static DescribedPredicate<JavaClass> annotatedMaybeInPackageWith(final Class<? extends Annotation> annotationType) {
+        String annotationTypeName = annotationType.getName();
+        DescribedPredicate<HasType> typeNameMatches = GET_RAW_TYPE.then(GET_NAME).is(equalTo(annotationTypeName));
+        return new AnnotatedMaybeInPackagePredicate(typeNameMatches.as("@" + annotationTypeName));
     }
 
     class HaveOnlyArgumentsOrReturnTypesThatAre extends ArchCondition<JavaMethod> {
@@ -339,6 +350,20 @@ public interface ArchUnitFixture {
             } else {
                 return Optional.empty();
             }
+        }
+    }
+
+    class AnnotatedMaybeInPackagePredicate extends DescribedPredicate<JavaClass> {
+        private final DescribedPredicate<? super JavaAnnotation<?>> predicate;
+
+        AnnotatedMaybeInPackagePredicate(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+            super("annotated, maybe in the package, with " + predicate.getDescription());
+            this.predicate = predicate;
+        }
+
+        @Override
+        public boolean test(JavaClass input) {
+            return input.isAnnotatedWith(predicate) || input.getPackage().isAnnotatedWith(predicate);
         }
     }
 }
