@@ -321,18 +321,12 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
         @Override
         public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean endorsing, @Nullable IvyArtifactName artifact) {
-            DependencyImpl dependency = new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes, requestedCapabilities, endorsing, artifact);
-            if (!dependencies.contains(dependency)) {
-                dependencies.add(dependency);
-            }
+            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes, requestedCapabilities, endorsing, artifact));
         }
 
         @Override
         public void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason, ImmutableAttributes attributes) {
-            DependencyConstraintImpl constraint = new DependencyConstraintImpl(group, module, versionConstraint, reason, attributes);
-            if (!dependencyConstraints.contains(constraint)) {
-                dependencyConstraints.add(constraint);
-            }
+            dependencyConstraints.add(new DependencyConstraintImpl(group, module, versionConstraint, reason, attributes));
         }
 
         @Override
@@ -532,12 +526,14 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
                 && Objects.equal(excludes, that.excludes)
                 && Objects.equal(reason, that.reason)
                 && Objects.equal(attributes, that.attributes)
-                && Objects.equal(requestedCapabilities, that.requestedCapabilities);
+                && Objects.equal(requestedCapabilities, that.requestedCapabilities)
+                && Objects.equal(endorsing, that.endorsing)
+                && Objects.equal(dependencyArtifact, that.dependencyArtifact);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(group, module, versionConstraint, excludes, reason, attributes);
+            return Objects.hashCode(group, module, versionConstraint, excludes, reason, attributes, endorsing, dependencyArtifact);
         }
     }
 
