@@ -104,4 +104,77 @@ task checkResolveParentThenChild {
         succeeds "checkResolveChild"
         succeeds "checkResolveParentThenChild"
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/24109")
+    def "can resolve configuration after extending a resolved configuration"() {
+        given:
+        mavenRepo.module("org", "foo").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                superConfiguration
+                subConfiguration
+            }
+            dependencies {
+                superConfiguration 'org:foo:1.0'
+            }
+
+            task resolve {
+                println configurations.superConfiguration.files.collect { it.name }
+                configurations.subConfiguration.extendsFrom(configurations.superConfiguration)
+                println configurations.subConfiguration.files.collect { it.name }
+            }
+        """
+
+        when:
+        succeeds("resolve")
+
+        then:
+        output.contains("[foo-1.0.jar]\n[foo-1.0.jar]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24234")
+    def "configuration extensions can be changed in withDependencies during resolution"() {
+        given:
+        mavenRepo.module("org", "foo").publish()
+        buildFile << """
+            def attr = Attribute.of('org.example.attr', String)
+
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                parentConf
+                depConf {
+                    attributes {
+                        attribute(attr, 'pick-me')
+                    }
+                    withDependencies {
+                        depConf.extendsFrom(parentConf)
+                    }
+                }
+                conf
+            }
+
+            dependencies {
+                conf(project(':')) {
+                    attributes {
+                        attribute(attr, 'pick-me')
+                    }
+                }
+                parentConf 'org:foo:1.0'
+            }
+
+            task resolve {
+                assert configurations.conf.files.collect { it.name } == ["foo-1.0.jar"]
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
 }

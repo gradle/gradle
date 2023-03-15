@@ -16,7 +16,33 @@
 
 package org.gradle.configurationcache
 
+import spock.lang.Issue
+
 class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    @Issue('https://github.com/gradle/gradle/issues/22522')
+    def "reports problem for extra property accessed at execution time"() {
+        given:
+        buildKotlinFile '''
+            tasks.register("report") {
+                extra["outputFile"] = file("$buildDir/output.txt")
+                outputs.files(extra["outputFile"])
+                doLast {
+                    val outputFile: File by extra
+                    outputFile.writeText("")
+                }
+            }
+        '''
+
+        when:
+        configurationCacheFails(WARN_PROBLEMS_CLI_OPT, 'report')
+
+        then:
+        problems.assertResultHasProblems(failure) {
+            withProblem "Task `:report` of type `org.gradle.api.DefaultTask`: invocation of 'Task.extensions' at execution time is unsupported."
+        }
+    }
+
     def "honors task up-to-date spec"() {
         buildFile << """
             abstract class TaskWithComplexInputs extends DefaultTask {

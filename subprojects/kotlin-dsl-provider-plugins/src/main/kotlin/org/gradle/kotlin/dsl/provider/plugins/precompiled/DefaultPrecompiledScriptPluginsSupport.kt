@@ -443,17 +443,14 @@ fun SourceDirectorySet.collectScriptPluginFiles(): Set<File> =
         .files
 
 
-/**
- * Uses the Groovy builder to access the `kotlin` source set because KGP types are not available here.
- */
 private
 val SourceSet.kotlin: SourceDirectorySet
-    get() = withGroovyBuilder { getProperty("kotlin") } as SourceDirectorySet
+    get() = extensions.getByName("kotlin") as SourceDirectorySet
 
 
 private
-val Project.gradlePlugin
-    get() = the<GradlePluginDevelopmentExtension>()
+val Project.gradlePlugin: GradlePluginDevelopmentExtension
+    get() = extensions.getByType()
 
 
 private
@@ -482,7 +479,7 @@ fun Project.validateScriptPlugin(scriptPlugin: PrecompiledScriptPlugin) {
 private
 fun Project.declareScriptPlugins(scriptPlugins: List<PrecompiledScriptPlugin>) {
 
-    configure<GradlePluginDevelopmentExtension> {
+    gradlePlugin.apply {
         for (scriptPlugin in scriptPlugins) {
             plugins.create(scriptPlugin.id) {
                 it.id = scriptPlugin.id
@@ -527,15 +524,15 @@ fun Project.buildDir(path: String) = layout.buildDirectory.dir(path)
 
 
 private
-val Project.sourceSets
-    get() = project.the<SourceSetContainer>()
+val Project.sourceSets: SourceSetContainer
+    get() = extensions.getByType()
 
 
 private
-val Project.javaToolchainService
-    get() = serviceOf<JavaToolchainService>()
+val Project.javaToolchainService: JavaToolchainService
+    get() = serviceOf()
 
 
 private
-val Project.java
-    get() = the<JavaPluginExtension>()
+val Project.java: JavaPluginExtension
+    get() = extensions.getByType()

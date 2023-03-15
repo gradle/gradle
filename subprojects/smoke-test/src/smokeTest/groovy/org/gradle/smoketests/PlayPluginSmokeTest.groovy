@@ -57,6 +57,8 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 8))
             .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("CollectionUtils", 7))
             .expectLegacyDeprecationWarning(abstractArchiveTaskArchivePathDeprecation())
+            .expectLegacyDeprecationWarning(projectConventionDeprecation())
+            .expectLegacyDeprecationWarning(conventionTypeDeprecation())
             .build()
 
         then:
@@ -74,6 +76,20 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                 " This is scheduled to be removed in Gradle 9.0." +
                 " Please use the archiveFile property instead." +
                 " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archivePath for more details.";
+    }
+
+    private String projectConventionDeprecation() {
+        return "The Project.getConvention() method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
+    }
+
+    private String conventionTypeDeprecation() {
+        return "The org.gradle.api.plugins.Convention type has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
     }
 
     @Override

@@ -96,12 +96,10 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     }
 
     protected void createConfigurations() {
-        Configuration configuration = project.getConfigurations().create(getConfigurationName());
+        Configuration configuration = project.getConfigurations().resolvableBucket(getConfigurationName());
         configuration.setVisible(false);
         configuration.setTransitive(true);
         configuration.setDescription("The " + getToolName() + " libraries to be used for this project.");
-        configuration.setCanBeResolved(true);
-        configuration.setCanBeConsumed(false);
 
         // Don't need these things, they're provided by the runtime
         configuration.exclude(excludeProperties("ant", "ant"));

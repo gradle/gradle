@@ -235,6 +235,16 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
             && getBootstrapClasspath().getFiles().containsAll(options.getBootstrapClasspath().getFiles());
     }
 
+    @Override
+    public void checkDebugConfiguration(Iterable<?> arguments) {
+        options.checkDebugConfiguration(arguments);
+    }
+
+    @Override
+    public void setExtraJvmArgs(Iterable<?> arguments) {
+        options.setExtraJvmArgs(arguments);
+    }
+
     private static boolean hasJvmArgumentProviders(JavaForkOptions forkOptions) {
         return forkOptions instanceof DefaultJavaForkOptions
             && hasJvmArgumentProviders((DefaultJavaForkOptions) forkOptions);

@@ -56,10 +56,19 @@ subprojects/signing/                        @gradle/bt-jvm
 subprojects/testing-base/                   @gradle/bt-jvm
 subprojects/version-control/                @gradle/bt-jvm
 
-# Documentation
-subprojects/docs/src/docs/release/notes.md  @hythloda
-subprojects/docs/                           @hythloda
+# Kotlin DSL
+build-logic/kotlin-dsl/                                                                 @eskatos @jbartok
+subprojects/kotlin-dsl/                                                                 @eskatos @jbartok
+subprojects/kotlin-dsl-integ-tests/                                                     @eskatos @jbartok
+subprojects/kotlin-dsl-plugins/                                                         @eskatos @jbartok
+subprojects/kotlin-dsl-provider-plugins/                                                @eskatos @jbartok
+subprojects/kotlin-dsl-tooling-builders/                                                @eskatos @jbartok
+subprojects/kotlin-dsl-tooling-models/                                                  @eskatos @jbartok
+subprojects/docs/src/snippets/kotlinDsl/                                                @eskatos @jbartok
+subprojects/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @eskatos @jbartok
+subprojects/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @eskatos @jbartok
 
+# Documentation
 subprojects/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-jvm
@@ -77,11 +86,12 @@ subprojects/docs/src/docs/userguide/reference/directory_layout.adoc             
 subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-jvm
 
 # Dev-prod team
-.teamcity/                                  @gradle/bt-developer-productivity
-.github/                                    @gradle/bt-developer-productivity
-gradle/shared-with-buildSrc/                @gradle/bt-developer-productivity
-build-logic/                                @gradle/bt-developer-productivity
-build-logic-commons/                        @gradle/bt-developer-productivity
-build-logic-settings/                       @gradle/bt-developer-productivity
-subprojects/*/build.gradle*                 @gradle/bt-developer-productivity
-*.gradle.kts                                @gradle/bt-developer-productivity
+.teamcity/                   @gradle/bt-developer-productivity
+.github/                     @gradle/bt-developer-productivity
+gradle/shared-with-buildSrc/ @gradle/bt-developer-productivity
+/build-logic/                 @gradle/bt-developer-productivity
+/build-logic-commons/         @gradle/bt-developer-productivity
+/build-logic-settings/        @gradle/bt-developer-productivity
+subprojects/*/build.gradle*  @gradle/bt-developer-productivity
+/build.gradle*                @gradle/bt-developer-productivity
+/settings.gradle*              @gradle/bt-developer-productivity

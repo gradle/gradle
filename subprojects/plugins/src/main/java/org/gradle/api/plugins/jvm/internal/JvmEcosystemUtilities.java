@@ -56,14 +56,28 @@ public interface JvmEcosystemUtilities {
      *
      * @param configuration the configuration to be configured
      */
-    <T> void configureAsCompileClasspath(HasConfigurableAttributes<T> configuration);
+    void configureAsCompileClasspath(HasConfigurableAttributes<?> configuration);
 
     /**
      * Configures a configuration with reasonable defaults to be resolved as a runtime classpath.
      *
      * @param configuration the configuration to be configured
      */
-    <T> void configureAsRuntimeClasspath(HasConfigurableAttributes<T> configuration);
+    void configureAsRuntimeClasspath(HasConfigurableAttributes<?> configuration);
+
+    /**
+     * Configures a consumable configuration to provide an API compile classpath.
+     *
+     * @param configuration the configuration to be configured
+     */
+    void configureAsApiElements(HasConfigurableAttributes<?> configuration);
+
+    /**
+     * Configures a consumable configuration to provide a runtime classpath.
+     *
+     * @param configuration the configuration to be configured
+     */
+    void configureAsRuntimeElements(HasConfigurableAttributes<?> configuration);
 
     <T> void configureAttributes(HasConfigurableAttributes<T> configurableAttributes, Action<? super JvmEcosystemAttributesDetails> details);
 

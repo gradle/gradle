@@ -37,7 +37,9 @@ class BuildProcessTest extends Specification {
 
     private def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     private def currentJvm = Stub(JavaInfo)
-    private def agentStatus = Stub(AgentStatus)
+    private def agentStatus = Stub(AgentStatus) {
+        isAgentInstrumentationEnabled() >> true
+    }
 
     def "current and requested build vm match if vm arguments match"() {
         given:

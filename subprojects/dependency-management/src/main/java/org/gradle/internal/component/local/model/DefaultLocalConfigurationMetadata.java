@@ -18,13 +18,9 @@ package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.attributes.Category;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -33,99 +29,168 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
-import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 
-import java.util.Collection;
+import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultLocalConfigurationMetadata implements LocalConfigurationMetadata, BuildableLocalConfigurationMetadata, LocalConfigurationGraphResolveMetadata {
+/**
+ * Default implementation of {@link LocalConfigurationMetadata} used to represent a single Configuration.
+ * <p>
+ * TODO: This class should be split up into a separate Metadata and State type in order to track
+ * artifact resolution state separately.
+ */
+public final class DefaultLocalConfigurationMetadata implements LocalConfigurationMetadata, LocalConfigurationGraphResolveMetadata {
+
     private final String name;
     private final String description;
+    private final ComponentIdentifier componentId;
     private final boolean transitive;
     private final boolean visible;
     private final ImmutableSet<String> hierarchy;
-    private final Set<String> extendsFrom;
     private final ImmutableAttributes attributes;
     private final boolean canBeConsumed;
     private final DeprecationMessageBuilder.WithDocumentation consumptionDeprecation;
     private final boolean canBeResolved;
     private final ImmutableCapabilities capabilities;
-    private final ModelContainer<?> model;
+    private final List<LocalOriginDependencyMetadata> configurationDependencies;
+    private final Set<LocalFileDependencyMetadata> configurationFileDependencies;
+    private final ImmutableList<ExcludeMetadata> configurationExcludes;
+
+    // TODO: Move all this lazy artifact stuff to a "State" type.
+    private final Set<LocalVariantMetadata> variants;
     private final CalculatedValueContainerFactory factory;
-    private final DefaultLocalComponentMetadata component;
+    private final CalculatedValueContainer<ImmutableList<LocalComponentArtifactMetadata>, ?> artifacts;
 
-    public ConfigurationInternal backingConfiguration;
-    private boolean reevaluate = true;
-    public LocalConfigurationMetadataBuilder configurationMetadataBuilder;
-
-    public final List<LocalOriginDependencyMetadata> definedDependencies = Lists.newArrayList();
-    public final List<ExcludeMetadata> definedExcludes = Lists.newArrayList();
-    public final List<LocalFileDependencyMetadata> definedFiles = Lists.newArrayList();
-
-    private ImmutableList<LocalOriginDependencyMetadata> configurationDependencies;
-    private ImmutableSet<LocalFileDependencyMetadata> configurationFileDependencies;
-    private ImmutableList<ExcludeMetadata> configurationExcludes;
-
-    public List<PublishArtifact> sourceArtifacts = Lists.newArrayList();
-    public CalculatedValueContainer<ImmutableList<LocalComponentArtifactMetadata>, ?> artifacts;
-
-    public final Set<LocalVariantMetadata> variants = new LinkedHashSet<>();
-
+    /**
+     * Creates a configuration metadata with lazily constructed artifact metadata.
+     */
     public DefaultLocalConfigurationMetadata(
         String name,
         String description,
+        ComponentIdentifier componentId,
         boolean visible,
         boolean transitive,
-        Set<String> extendsFrom,
-        ImmutableSet<String> hierarchy,
+        Set<String> hierarchy,
         ImmutableAttributes attributes,
-        boolean canBeConsumed,
-        DeprecationMessageBuilder.WithDocumentation consumptionDeprecation,
-        boolean canBeResolved,
         ImmutableCapabilities capabilities,
+        boolean canBeConsumed,
+        @Nullable DeprecationMessageBuilder.WithDocumentation consumptionDeprecation,
+        boolean canBeResolved,
+        List<LocalOriginDependencyMetadata> configurationDependencies,
+        Set<LocalFileDependencyMetadata> configurationFileDependencies,
+        List<ExcludeMetadata> configurationExcludes,
+        Set<LocalVariantMetadata> variants,
+        final List<PublishArtifact> definedArtifacts,
         ModelContainer<?> model,
         CalculatedValueContainerFactory factory,
-        DefaultLocalComponentMetadata component
+        LocalComponentMetadata component
+    ) {
+        this(
+            name, description, componentId, visible, transitive, hierarchy, attributes, capabilities, canBeConsumed, consumptionDeprecation,
+            canBeResolved, configurationDependencies, configurationFileDependencies, configurationExcludes, variants, factory,
+            getLazyArtifacts(definedArtifacts, name, description, hierarchy, model, factory, component)
+        );
+    }
+
+    /**
+     * Creates a configuration metadata with eagerly constructed artifact metadata.
+     */
+    public DefaultLocalConfigurationMetadata(
+        String name,
+        String description,
+        ComponentIdentifier componentId,
+        boolean visible,
+        boolean transitive,
+        Set<String> hierarchy,
+        ImmutableAttributes attributes,
+        ImmutableCapabilities capabilities,
+        boolean canBeConsumed,
+        @Nullable DeprecationMessageBuilder.WithDocumentation consumptionDeprecation,
+        boolean canBeResolved,
+        List<LocalOriginDependencyMetadata> configurationDependencies,
+        Set<LocalFileDependencyMetadata> configurationFileDependencies,
+        List<ExcludeMetadata> configurationExcludes,
+        Set<LocalVariantMetadata> variants,
+        CalculatedValueContainerFactory factory,
+        List<LocalComponentArtifactMetadata> artifacts
+    ) {
+        this(
+            name, description, componentId, visible, transitive, hierarchy, attributes, capabilities, canBeConsumed, consumptionDeprecation,
+            canBeResolved, configurationDependencies, configurationFileDependencies, configurationExcludes, variants, factory,
+            factory.create(Describables.of(description, "artifacts"), ImmutableList.copyOf(artifacts))
+        );
+    }
+
+    private DefaultLocalConfigurationMetadata(
+        String name,
+        String description,
+        ComponentIdentifier componentId,
+        boolean visible,
+        boolean transitive,
+        Set<String> hierarchy,
+        ImmutableAttributes attributes,
+        ImmutableCapabilities capabilities,
+        boolean canBeConsumed,
+        @Nullable DeprecationMessageBuilder.WithDocumentation consumptionDeprecation,
+        boolean canBeResolved,
+        List<LocalOriginDependencyMetadata> configurationDependencies,
+        Set<LocalFileDependencyMetadata> configurationFileDependencies,
+        List<ExcludeMetadata> configurationExcludes,
+        Set<LocalVariantMetadata> variants,
+        CalculatedValueContainerFactory factory,
+        CalculatedValueContainer<ImmutableList<LocalComponentArtifactMetadata>, ?> artifacts
     ) {
         this.name = name;
         this.description = description;
-        this.transitive = transitive;
+        this.componentId = componentId;
         this.visible = visible;
-        this.hierarchy = hierarchy;
-        this.extendsFrom = extendsFrom;
+        this.transitive = transitive;
+        this.hierarchy = ImmutableSet.copyOf(hierarchy);
         this.attributes = attributes;
+        this.capabilities = capabilities;
         this.canBeConsumed = canBeConsumed;
         this.consumptionDeprecation = consumptionDeprecation;
         this.canBeResolved = canBeResolved;
-        this.capabilities = capabilities;
-        this.model = model;
+        this.configurationDependencies = configurationDependencies;
+        this.configurationFileDependencies = configurationFileDependencies;
+        this.configurationExcludes = ImmutableList.copyOf(configurationExcludes);
+        this.variants = variants;
         this.factory = factory;
-        this.component = component;
-        this.artifacts = factory.create(Describables.of(description, "artifacts"), context -> {
+        this.artifacts = artifacts;
+    }
+
+    /**
+     * Creates a calculated value container which lazily constructs this configuration's artifacts
+     * by traversing all configurations in the hierarchy and collecting their artifacts.
+     */
+    private static CalculatedValueContainer<ImmutableList<LocalComponentArtifactMetadata>, ?> getLazyArtifacts(
+        List<PublishArtifact> sourceArtifacts, String name, String description, Set<String> hierarchy,
+        ModelContainer<?> model, CalculatedValueContainerFactory factory, LocalComponentMetadata component
+    ) {
+        return factory.create(Describables.of(description, "artifacts"), context -> {
             if (sourceArtifacts.isEmpty() && hierarchy.isEmpty()) {
-                sourceArtifacts = null;
                 return ImmutableList.of();
             } else {
                 return model.fromMutableState(m -> {
                     Set<LocalComponentArtifactMetadata> result = new LinkedHashSet<>(sourceArtifacts.size());
                     for (PublishArtifact sourceArtifact : sourceArtifacts) {
+                        // The following line may realize tasks, so we wrap this code in a CalculatedValue.
                         result.add(new PublishArtifactLocalArtifactMetadata(component.getId(), sourceArtifact));
                     }
                     for (String config : hierarchy) {
                         if (config.equals(name)) {
                             continue;
                         }
-                        DefaultLocalConfigurationMetadata parent = component.getConfiguration(config);
-                        parent.prepareToResolveArtifacts();
-                        result.addAll(parent.getArtifacts());
+                        // TODO: Deprecate the behavior of inheriting artifacts from parent configurations.
+                        LocalConfigurationMetadata parent = component.getConfiguration(config);
+                        result.addAll(parent.prepareToResolveArtifacts().getArtifacts());
                     }
-                    sourceArtifacts = null;
                     return ImmutableList.copyOf(result);
                 });
             }
@@ -133,23 +198,34 @@ public class DefaultLocalConfigurationMetadata implements LocalConfigurationMeta
     }
 
     @Override
-    public ComponentIdentifier getComponentId() {
-        return component.getId();
-    }
+    public LocalConfigurationMetadata copy(Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer) {
+        // TODO: This method is implemented very inefficiently. We should apply the transformer to the artifacts
+        // lazily so that we don't need to prepareToResolveArtifacts here.
 
-    @Override
-    public void addDependency(LocalOriginDependencyMetadata dependency) {
-        definedDependencies.add(dependency);
-    }
+        ImmutableSet.Builder<LocalVariantMetadata> copiedVariants = ImmutableSet.builder();
+        for (LocalVariantMetadata oldVariant : variants) {
+            ImmutableList<LocalComponentArtifactMetadata> newArtifacts =
+                oldVariant.prepareToResolveArtifacts().getArtifacts().stream()
+                    .map(artifactTransformer::transform)
+                    .collect(ImmutableList.toImmutableList());
 
-    @Override
-    public void addExclude(ExcludeMetadata exclude) {
-        definedExcludes.add(exclude);
-    }
+            copiedVariants.add(new LocalVariantMetadata(
+                oldVariant.getName(), oldVariant.getIdentifier(), oldVariant.asDescribable(), oldVariant.getAttributes(),
+                (ImmutableCapabilities) oldVariant.getCapabilities(), newArtifacts, factory)
+            );
+        }
 
-    @Override
-    public void addFiles(LocalFileDependencyMetadata files) {
-        definedFiles.add(files);
+        ImmutableList<LocalComponentArtifactMetadata> copiedArtifacts =
+            prepareToResolveArtifacts().getArtifacts().stream()
+                .map(artifactTransformer::transform)
+                .collect(ImmutableList.toImmutableList());
+
+        return new DefaultLocalConfigurationMetadata(
+            name, description, componentId, visible, transitive, hierarchy, attributes, capabilities,
+            canBeConsumed, consumptionDeprecation, canBeResolved,
+            configurationDependencies, configurationFileDependencies, configurationExcludes,
+            copiedVariants.build(), factory, copiedArtifacts
+        );
     }
 
     @Override
@@ -159,17 +235,7 @@ public class DefaultLocalConfigurationMetadata implements LocalConfigurationMeta
 
     @Override
     public DisplayName asDescribable() {
-        return Describables.of(component.getId(), "configuration", name);
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public Set<String> getExtendsFrom() {
-        return extendsFrom;
+        return Describables.of(componentId, "configuration", name);
     }
 
     @Override
@@ -219,73 +285,17 @@ public class DefaultLocalConfigurationMetadata implements LocalConfigurationMeta
 
     @Override
     public List<? extends LocalOriginDependencyMetadata> getDependencies() {
-        if (configurationDependencies == null) {
-            ImmutableList.Builder<LocalOriginDependencyMetadata> result = ImmutableList.builder();
-            for (String configurationName : component.getConfigurationNames()) {
-                if (include(configurationName)) {
-                    component.getConfiguration(configurationName).addDefinedDependencies(result);
-                }
-            }
-            AttributeValue<Category> attributeValue = this.getAttributes().findEntry(Category.CATEGORY_ATTRIBUTE);
-            if (attributeValue.isPresent() && attributeValue.get().getName().equals(Category.ENFORCED_PLATFORM)) {
-                // need to wrap all dependencies to force them
-                ImmutableList<LocalOriginDependencyMetadata> rawDependencies = result.build();
-                result = ImmutableList.builder();
-                for (LocalOriginDependencyMetadata rawDependency : rawDependencies) {
-                    result.add(rawDependency.forced());
-                }
-            }
-            configurationDependencies = result.build();
-        }
         return configurationDependencies;
-    }
-
-    void addDefinedDependencies(ImmutableList.Builder<LocalOriginDependencyMetadata> result) {
-        realizeDependencies();
-        result.addAll(definedDependencies);
     }
 
     @Override
     public Set<LocalFileDependencyMetadata> getFiles() {
-        if (configurationFileDependencies == null) {
-            ImmutableSet.Builder<LocalFileDependencyMetadata> result = ImmutableSet.builder();
-            for (String configurationName : component.getConfigurationNames()) {
-                if (include(configurationName)) {
-                    component.getConfiguration(configurationName).addDefinedFiles(result);
-                }
-            }
-            configurationFileDependencies = result.build();
-        }
         return configurationFileDependencies;
-    }
-
-    void addDefinedFiles(ImmutableSet.Builder<LocalFileDependencyMetadata> result) {
-        realizeDependencies();
-        result.addAll(definedFiles);
     }
 
     @Override
     public ImmutableList<ExcludeMetadata> getExcludes() {
-        if (configurationExcludes == null) {
-            ImmutableList.Builder<ExcludeMetadata> result = ImmutableList.builder();
-            for (String configurationName : component.getConfigurationNames()) {
-                if (include(configurationName)) {
-                    component.getConfiguration(configurationName).addDefinedExcludes(result);
-                }
-            }
-            configurationExcludes = result.build();
-        }
         return configurationExcludes;
-    }
-
-    void addDefinedExcludes(ImmutableList.Builder<ExcludeMetadata> result) {
-        realizeDependencies();
-        result.addAll(definedExcludes);
-    }
-
-    @Override
-    public void addArtifacts(Collection<? extends PublishArtifact> artifacts) {
-        sourceArtifacts.addAll(artifacts);
     }
 
     @Override
@@ -310,7 +320,7 @@ public class DefaultLocalConfigurationMetadata implements LocalConfigurationMeta
             }
         }
 
-        return new MissingLocalArtifactMetadata(component.getId(), ivyArtifactName);
+        return new MissingLocalArtifactMetadata(componentId, ivyArtifactName);
     }
 
     @Override
@@ -323,39 +333,4 @@ public class DefaultLocalConfigurationMetadata implements LocalConfigurationMeta
         return false;
     }
 
-    private boolean include(String configurationName) {
-        return hierarchy.contains(configurationName);
-    }
-
-    @Override
-    public void addVariant(String name, VariantResolveMetadata.Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, Collection<? extends PublishArtifact> artifacts) {
-        variants.add(new LocalVariantMetadata(name, identifier, component.getId(), displayName, attributes, artifacts, capabilities, model, factory));
-    }
-
-    synchronized void realizeDependencies() {
-        if (reevaluate && backingConfiguration != null) {
-            backingConfiguration.runDependencyActions();
-            configurationMetadataBuilder.addDependenciesAndExcludes(this, backingConfiguration);
-        }
-        reevaluate = false;
-    }
-
-    /**
-     * When the backing configuration could have been modified, we need to clear our retained cache/state,
-     * so that the next evaluation is clean.
-     */
-    synchronized void reevaluate() {
-        definedDependencies.clear();
-        definedFiles.clear();
-        definedExcludes.clear();
-        configurationDependencies = null;
-        configurationExcludes = null;
-        configurationFileDependencies = null;
-        reevaluate = true;
-    }
-
-    @Override
-    public boolean needsReevaluate() {
-        return reevaluate;
-    }
 }

@@ -17,15 +17,11 @@ package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-
 import org.gradle.kotlin.dsl.*
-
 import org.gradle.kotlin.dsl.plugins.appliedKotlinDslPluginsVersion
 import org.gradle.kotlin.dsl.plugins.base.KotlinDslBasePlugin
 import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
-
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
-
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
 
 

@@ -50,10 +50,18 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.publish.Publication
 import org.gradle.api.services.BuildService
+import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.configurationcache.flow.BuildWorkResultProvider
+import org.gradle.configurationcache.problems.DocumentationSection
+import org.gradle.configurationcache.serialization.Codec
+import org.gradle.configurationcache.serialization.IsolateContext
+import org.gradle.configurationcache.serialization.ReadContext
+import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.configurationcache.serialization.logUnsupported
 import org.gradle.configurationcache.serialization.unsupported
 import org.gradle.internal.scripts.GradleScript
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -134,4 +142,46 @@ fun BindingsBuilder.unsupportedTypes() {
 
     // Gradle implementation types
     bind(unsupported<DefaultServiceRegistry>())
+}
+
+
+internal
+object UnsupportedFingerprintBuildServiceProviderCodec : Codec<BuildServiceProvider<*, *>> {
+    override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
+        logUnsupported("serialize",
+            documentationSection = DocumentationSection.NotYetImplementedBuildServiceInFingerprint) {
+            text(" BuildServiceProvider of service ")
+            reference(value.serviceDetails.implementationType)
+            text(" with name ")
+            reference(value.serviceDetails.name)
+            text(" used at configuration time")
+        }
+    }
+
+    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? {
+        logUnsupported("deserialize", BuildServiceProvider::class, documentationSection = DocumentationSection.NotYetImplementedBuildServiceInFingerprint)
+        return null
+    }
+}
+
+
+internal
+object UnsupportedFingerprintFlowProviders : Codec<BuildWorkResultProvider> {
+    override suspend fun WriteContext.encode(value: BuildWorkResultProvider) {
+        logUnsupported("serialize")
+    }
+
+    override suspend fun ReadContext.decode(): BuildWorkResultProvider? {
+        logUnsupported("deserialize")
+        return null
+    }
+
+    private
+    fun IsolateContext.logUnsupported(action: String) {
+        logUnsupported(action) {
+            text(" ")
+            reference(BuildWorkResultProvider::class)
+            text(" used at configuration time")
+        }
+    }
 }

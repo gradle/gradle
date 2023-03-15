@@ -94,6 +94,17 @@ tasks.named("test") {
         OLD3    | NEW3
     }
 
+    def 'java source file with categories is rewritten to tags'() {
+        given:
+        temporaryFolder.testDirectory.file('src/test/java/Test.java') << TEST_WITH_CATEGORIES
+
+        when:
+        JUnitPlatformTestRewriter.rewriteJavaFilesWithJupiterAnno(temporaryFolder.testDirectory)
+
+        then:
+        temporaryFolder.testDirectory.file('src/test/java/Test.java').text == TEST_WITH_TAGS
+    }
+
     static final String OLD1 = '''
 package org.gradle;
 
@@ -195,6 +206,44 @@ public class Junit4Test {
 
     @Test
     @Disabled
+    public void broken() {
+        throw new RuntimeException();
+    }
+}
+'''
+
+    static final String TEST_WITH_CATEGORIES = '''
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
+@Category({org.gradle.Category1.class, org.gradle.Category2.class})
+public class Junit4Test {
+    @Test
+    public void ok() {
+    }
+
+    @Test
+    @Category(org.gradle.Category3.class)
+    public void broken() {
+        throw new RuntimeException();
+    }
+}
+'''
+    static final String TEST_WITH_TAGS = '''
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
+
+@Tag("org.gradle.Category1")
+@Tag("org.gradle.Category2")
+public class Junit4Test {
+    @Test
+    public void ok() {
+    }
+
+    @Test
+    @Tag("org.gradle.Category3")
     public void broken() {
         throw new RuntimeException();
     }

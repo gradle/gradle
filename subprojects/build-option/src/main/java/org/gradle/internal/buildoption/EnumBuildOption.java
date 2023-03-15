@@ -35,19 +35,23 @@ public abstract class EnumBuildOption<E extends Enum<E>, T> extends AbstractBuil
     private final Class<E> enumClass;
     private final List<E> possibleValues;
 
-    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        super(gradleProperty, commandLineOptionConfigurations);
+    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String gradleProperty, String deprecatedProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(gradleProperty, deprecatedProperty, commandLineOptionConfigurations);
         this.displayName = displayName;
         this.enumClass = enumClass;
         this.possibleValues = Collections.unmodifiableList(Arrays.asList(possibleValues));
     }
 
+    public EnumBuildOption(String displayName, Class<E> enumClass, E[] possibleValues, String gradleProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        this(displayName, enumClass, possibleValues, gradleProperty, null, commandLineOptionConfigurations);
+    }
+
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
-        String value = properties.get(gradleProperty);
-
+        OptionValue<String> propertyValue = getFromProperties(properties);
+        String value = propertyValue.getValue();
         if (value != null) {
-            applyTo(value, settings, Origin.forGradleProperty(gradleProperty));
+            applyTo(value, settings, propertyValue.getOrigin());
         }
     }
 

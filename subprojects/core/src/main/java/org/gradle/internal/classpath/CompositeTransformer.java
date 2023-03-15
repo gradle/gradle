@@ -39,7 +39,7 @@ public class CompositeTransformer implements CachedClasspathTransformer.Transfor
     }
 
     @Override
-    public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) throws IOException {
-        return first.apply(entry, second.apply(entry, visitor).right);
+    public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) throws IOException {
+        return first.apply(entry, second.apply(entry, visitor, classData).right, classData);
     }
 }

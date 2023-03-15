@@ -28,14 +28,14 @@ class TapiAgentInstrumentationCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.requireDaemons()
     }
 
-    def "agent is disabled in TAPI by default"() {
+    def "agent is enabled in TAPI by default"() {
         withDumpAgentStatusTask()
 
         when:
         runDumpTaskWithTapi()
 
         then:
-        agentWasNotApplied()
+        agentWasApplied()
     }
 
     def "agent is applied if enabled in settings"() {

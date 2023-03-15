@@ -74,10 +74,7 @@ public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
     }
 
     public static SpecificInstallationToolchainSpec fromJavaExecutable(ObjectFactory objectFactory, String executable) {
-        File executableFile = JavaExecutableUtils.resolveExecutable(executable);
-        // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
-        final File parentJavaHome = executableFile.getParentFile().getParentFile();
-        return new SpecificInstallationToolchainSpec(objectFactory, parentJavaHome);
+        return new SpecificInstallationToolchainSpec(objectFactory, JavaExecutableUtils.resolveJavaHomeOfExecutable(executable));
     }
 
     @Override

@@ -103,7 +103,7 @@ include::sample[dir="snippets/initScripts/disableCacheCleanup/groovy",files="gra
 include::sample[dir="snippets/initScripts/disableCacheCleanup/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
 ====
 
-Note that cache cleanup settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle user home.  This effectively couples the configuration of cache cleanup to the Gradle user home directory those settings apply to and limits the possibility of different conflicting settings from being applied to the same directory.
+Note that cache cleanup settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle user home.  This effectively couples the configuration of cache cleanup to the Gradle user home directory those settings apply to and limits the possibility of different conflicting settings from different projects being applied to the same directory.
 
 [[dir:gradle_user_home:multi_version_cache_cleanup]]
 ==== Sharing a Gradle user home directory between multiple versions of Gradle
@@ -132,6 +132,26 @@ include::sample[dir="snippets/initScripts/multiVersionCacheRetention/kotlin",fil
 include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/gradle8/cache-settings.gradle"]
 include::sample[dir="snippets/initScripts/multiVersionCacheRetention/kotlin",files="gradleUserHome/init.d/gradle8/cache-settings.gradle.kts"]
 ====
+
+[[dir:gradle_user_home:cache_marking]]
+=== Cache marking
+Beginning with Gradle version 8.1, Gradle supports marking caches with a `CACHEDIR.TAG` file.
+It follows the format described in https://bford.info/cachedir/[the Cache Directory Tagging Specification].
+The purpose of this file is to allow tools to identify the directories that do not need to be searched or backed up.
+By default, the directories `caches`, `wrapper/dists`, `daemon`, and `jdks` in the Gradle user home directory are marked with this file.
+
+[[dir:gradle_user_home:configure_cache_marking]]
+==== Configuring cache marking
+
+The cache marking feature can be configured via an init script in the Gradle user home directory:
+
+.Configuring cache marking
+====
+include::sample[dir="snippets/initScripts/cacheMarking/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
+include::sample[dir="snippets/initScripts/cacheMarking/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
+====
+
+Note that cache marking settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle user home. This effectively couples the configuration of cache marking to the Gradle user home directory those settings apply to and limits the possibility of different conflicting settings from different projects being applied to the same directory.
 
 [[dir:project_root]]
 == Project root directory

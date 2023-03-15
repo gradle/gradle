@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.initialization.DefaultPlannedTask;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
  * <p>
  * Only can convert {@link LocalTaskNode}s to {@link org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedTask}s.
  */
+@NonNullApi
 public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
 
     @Override
@@ -43,6 +45,11 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
         TaskNode taskNode = (TaskNode) node;
         org.gradle.api.internal.project.taskfactory.TaskIdentity<?> delegate = taskNode.getTask().getTaskIdentity();
         return new TaskIdentity() {
+            @Override
+            public NodeType getNodeType() {
+                return NodeType.TASK;
+            }
+
             @Override
             public String getBuildPath() {
                 return delegate.getBuildPath();
@@ -100,5 +107,10 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
             .map(TaskNode.class::cast)
             .map(this::getNodeIdentity)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public String toString() {
+        return "ToPlannedTaskConverter(" + getSupportedNodeType().getSimpleName() + ")";
     }
 }

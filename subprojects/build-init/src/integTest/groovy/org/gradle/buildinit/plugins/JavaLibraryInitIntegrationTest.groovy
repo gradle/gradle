@@ -68,15 +68,34 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
 
         when:
         run ('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id)
+
         then:
         subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
         subprojectDir.file("src/test/java").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
+
         and:
         commonJvmFilesGenerated(scriptDsl)
         dslFixture.assertHasTestSuite('test')
 
         when:
         run('test')
+        then:
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
+        when:
+        run ('init', '--type', 'java-library', '--incubating', '--dsl', scriptDsl.id)
+
+        then:
+        gradlePropertiesGenerated()
+
+        when:
+        succeeds('test')
+        
         then:
         assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 

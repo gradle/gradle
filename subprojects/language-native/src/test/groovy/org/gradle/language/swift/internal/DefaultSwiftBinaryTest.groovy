@@ -18,10 +18,11 @@ package org.gradle.language.swift.internal
 
 import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.provider.Provider
 import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.language.nativeplatform.internal.Names
@@ -43,16 +44,16 @@ class DefaultSwiftBinaryTest extends Specification {
     def compile = Stub(Configuration)
     def link = Stub(Configuration)
     def runtime = Stub(Configuration)
-    def configurations = Stub(ConfigurationContainer)
+    def configurations = Stub(RoleBasedConfigurationContainerInternal)
     def incoming = Mock(ResolvableDependencies)
     DefaultSwiftBinary binary
 
     def setup() {
-        _ * configurations.create("swiftCompileDebug") >> compile
-        _ * configurations.create("nativeLinkDebug") >> link
-        _ * configurations.create("nativeRuntimeDebug") >> runtime
+        _ * configurations.resolvableBucket("swiftCompileDebug") >> compile
+        _ * configurations.resolvableBucket("nativeLinkDebug") >> link
+        _ * configurations.createWithRole('nativeRuntimeDebug', ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE) >> runtime
 
-        binary = new DefaultSwiftBinary(Names.of("mainDebug"), project.objects, project.taskDependencyFactory, Stub(Provider), false, Stub(FileCollection),  configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
+        binary = new DefaultSwiftBinary(Names.of("mainDebug"), project.objects, project.taskDependencyFactory, Stub(Provider), false, Stub(FileCollection), configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
     }
 
     def "compileModules is a transformed view of compile"() {

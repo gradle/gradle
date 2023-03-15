@@ -42,6 +42,7 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
@@ -136,8 +137,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     private JavaApplication addExtension(Project project) {
         ApplicationPluginConvention pluginConvention = project.getObjects().newInstance(DefaultApplicationPluginConvention.class, project);
         pluginConvention.setApplicationName(project.getName());
-        project.getConvention().getPlugins().put("application", pluginConvention);
-
+        DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("application", pluginConvention));
         return project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class, pluginConvention);
     }
 
@@ -156,7 +156,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
             run.setClasspath(runtimeClasspath);
             run.getMainModule().set(pluginExtension.getMainModule());
             run.getMainClass().set(pluginExtension.getMainClass());
-            run.getConventionMapping().map("jvmArgs", pluginExtension::getApplicationDefaultJvmArgs);
+            run.getJvmArguments().convention(project.provider(pluginExtension::getApplicationDefaultJvmArgs));
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             run.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());

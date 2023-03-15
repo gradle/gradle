@@ -17,9 +17,9 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.Try;
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 
 import javax.annotation.Nullable;
 

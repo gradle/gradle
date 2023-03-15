@@ -28,7 +28,6 @@ import org.gradle.api.PathValidation
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.Task
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
@@ -46,6 +45,7 @@ import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -63,7 +63,6 @@ import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.Property
@@ -529,7 +528,7 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.ant(configureAction)
         }
 
-        override fun getConfigurations(): ConfigurationContainer {
+        override fun getConfigurations(): RoleBasedConfigurationContainerInternal {
             onAccess()
             return delegate.configurations
         }
@@ -555,7 +554,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         @Deprecated("The concept of conventions is deprecated. Use extensions instead.")
-        override fun getConvention(): Convention {
+        override fun getConvention(): @Suppress("deprecation") org.gradle.api.plugins.Convention {
             onAccess()
             @Suppress("deprecation")
             return delegate.convention

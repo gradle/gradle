@@ -19,13 +19,11 @@ package org.gradle.instrumentation.agent
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.agents.AgentStatus
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.util.TestPrecondition
-import spock.lang.IgnoreIf
 import spock.lang.Requires
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -34,8 +32,7 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 // the test runtime classpath as part of the main source set's output.
 // It is important to have the agent appended to the classpath of all integration tests.
 class AgentApplicationTest extends AbstractIntegrationSpec {
-    @IgnoreIf({ AbstractGradleExecuter.agentInstrumentationEnabled }) // TODO: agent is enabled by default in tests
-    def "agent is disabled by default"() {
+    def "agent is enabled by default"() {
         given:
         withDumpAgentStatusTask()
 
@@ -43,7 +40,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         succeeds()
 
         then:
-        agentWasNotApplied()
+        agentWasApplied()
     }
 
     def "agent is not applied if disabled in the command-line"() {
