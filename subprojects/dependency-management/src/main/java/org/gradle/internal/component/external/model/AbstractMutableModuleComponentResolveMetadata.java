@@ -321,12 +321,18 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
         @Override
         public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean endorsing, @Nullable IvyArtifactName artifact) {
-            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes, requestedCapabilities, endorsing, artifact));
+            DependencyImpl dependency = new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes, requestedCapabilities, endorsing, artifact);
+            if (!dependencies.contains(dependency)) {
+                dependencies.add(dependency);
+            }
         }
 
         @Override
         public void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason, ImmutableAttributes attributes) {
-            dependencyConstraints.add(new DependencyConstraintImpl(group, module, versionConstraint, reason, attributes));
+            DependencyConstraintImpl constraint = new DependencyConstraintImpl(group, module, versionConstraint, reason, attributes);
+            if (!dependencyConstraints.contains(constraint)) {
+                dependencyConstraints.add(constraint);
+            }
         }
 
         @Override
