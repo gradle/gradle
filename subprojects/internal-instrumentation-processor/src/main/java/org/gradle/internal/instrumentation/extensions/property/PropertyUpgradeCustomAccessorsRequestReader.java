@@ -17,6 +17,7 @@
 package org.gradle.internal.instrumentation.extensions.property;
 
 import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.UpgradedGetter;
+import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.UpgradedGroovyProperty;
 import org.gradle.internal.instrumentation.api.annotations.UpgradedProperty.UpgradedSetter;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequestImpl;
@@ -45,8 +46,11 @@ import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -72,30 +76,89 @@ class PropertyUpgradeCustomAccessorsRequestReader {
         }
 
         Type interceptedType = extractType(method.getEnclosingElement().asType());
-        List<Element> upgradedMethods = ((DeclaredType) typeMirror).asElement().getEnclosedElements().stream()
+        List<ExecutableElement> upgradedMethods = ((DeclaredType) typeMirror).asElement().getEnclosedElements().stream()
             .filter(elements -> elements instanceof ExecutableElement)
+            .map(element -> (ExecutableElement) element)
             .filter(element -> isAccessorForProperty(element, propertyName))
             .collect(Collectors.toList());
 
+        validate(upgradedMethods, method);
+
         List<CallInterceptionRequest> upgradedGroovyPropertyRequests = upgradedMethods.stream()
-            .filter(element -> element.getAnnotation(UpgradedGetter.class) != null)
-            .map(m -> createGroovyPropertyInterceptionRequest(propertyName, (ExecutableElement) m, interceptedType))
+            .filter(element -> element.getAnnotation(UpgradedGroovyProperty.class) != null)
+            .map(m -> createGroovyPropertyInterceptionRequest(propertyName, m, interceptedType))
             .collect(Collectors.toList());
 
         List<CallInterceptionRequest> getterRequests = upgradedMethods.stream()
             .filter(element -> element.getAnnotation(UpgradedGetter.class) != null)
-            .map(m -> createJvmInterceptionRequest((ExecutableElement) m, interceptedType))
+            .map(m -> createJvmInterceptionRequest(m, interceptedType))
             .collect(Collectors.toList());
 
         List<CallInterceptionRequest> setterRequests = upgradedMethods.stream()
             .filter(element -> element.getAnnotation(UpgradedSetter.class) != null)
-            .map(m -> createJvmInterceptionRequest((ExecutableElement) m, interceptedType))
+            .map(m -> createJvmInterceptionRequest(m, interceptedType))
             .collect(Collectors.toList());
 
         return Stream.of(upgradedGroovyPropertyRequests, getterRequests, setterRequests)
                 .flatMap(Collection::stream)
                 .map(Success::new)
                 .collect(Collectors.toList());
+    }
+
+    private static void validate(List<ExecutableElement> upgradedMethods, ExecutableElement propertyMethod) {
+        String propertyDisplayName = String.format("%s.%s", propertyMethod.getEnclosingElement(), propertyMethod);
+        Set<String> validationProblems = new LinkedHashSet<>();
+        if (upgradedMethods.isEmpty()) {
+            validationProblems.add("No custom accessors found for property: " + propertyDisplayName + ".");
+        }
+
+        Element propertyMethodEnclosingElement = propertyMethod.getEnclosingElement();
+        upgradedMethods.forEach(method -> {
+            if (!method.getSimpleName().toString().startsWith("access_")) {
+                validationProblems.add(String.format("Accessor method '%s.%s' name should start with 'access_'.", method.getEnclosingElement(), method));
+            }
+            if (method.getParameters().isEmpty()) {
+                validationProblems.add(String.format("First parameter for accessor method '%s.%s' should be of type '%s', but this method has no parameter.", method.getEnclosingElement(), method, propertyMethodEnclosingElement));
+            } else if (!propertyMethodEnclosingElement.asType().equals(method.getParameters().get(0).asType())) {
+                validationProblems.add(String.format("First parameter for accessor method '%s.%s' should be of type '%s', but is '%s'.", method.getEnclosingElement(), method, propertyMethodEnclosingElement, method.getParameters().get(0).asType()));
+            }
+            if (method.getAnnotation(UpgradedGetter.class) != null && method.getAnnotation(UpgradedSetter.class) != null) {
+                validationProblems.add(String.format("Accessor method '%s.%s' should not have have @UpgradedGetter and @UpgradedSetter annotation.", method.getEnclosingElement(), method));
+            }
+            if (method.getAnnotation(UpgradedGroovyProperty.class) != null && method.getAnnotation(UpgradedSetter.class) != null) {
+                validationProblems.add(String.format("Accessor method '%s.%s' should not have have @UpgradedGroovyProperty and @UpgradedSetter annotation.", method.getEnclosingElement(), method));
+            }
+        });
+
+        long groovyPropertyUpgradesCount = upgradedMethods.stream()
+            .filter(element -> element.getAnnotation(UpgradedGroovyProperty.class) != null)
+            .count();
+        if (groovyPropertyUpgradesCount <= 0) {
+            validationProblems.add("No accessors annotated with @UpgradedGroovyProperty for property: " + propertyDisplayName + ". There should be 1 accessor with that annotation.");
+        } else if (groovyPropertyUpgradesCount > 1) {
+            validationProblems.add("Too many accessors annotated with @UpgradedGroovyProperty for property: " + propertyDisplayName + ". There should be just 1, but there are: '" + groovyPropertyUpgradesCount + "'.");
+        }
+
+        long getterUpgradesCount = upgradedMethods.stream()
+            .filter(element -> element.getAnnotation(UpgradedGetter.class) != null)
+            .count();
+        if (getterUpgradesCount <= 0) {
+            validationProblems.add("No accessors annotated with @UpgradedGetter for property: " + propertyDisplayName + ". There should be at least 1 accessor with that annotation.");
+        }
+
+        List<ExecutableElement> getterOrGroovyPropertyUpgrades = upgradedMethods.stream()
+            .filter(element -> element.getAnnotation(UpgradedGetter.class) != null || element.getAnnotation(UpgradedGroovyProperty.class) != null)
+            .collect(Collectors.toList());
+        getterOrGroovyPropertyUpgrades.stream()
+            .filter(method -> extractType(method.getReturnType()).equals(Type.VOID_TYPE))
+            .forEach(method -> validationProblems.add(String.format("Accessor method '%s.%s' annotated with @UpgradedGroovyProperty or @UpgradedGetter should not have return type 'void'.", method.getEnclosingElement(), method)));
+        getterOrGroovyPropertyUpgrades.stream()
+            .filter(method -> method.getParameters().size() > 1)
+            .forEach(method -> validationProblems.add(String.format("Too many parameters for accessor method '%s.%s' annotated with @UpgradedGroovyProperty or @UpgradedGetter. There should be just 1 parameter of type '%s', but this method has also additional parameters.", method.getEnclosingElement(), method, propertyMethodEnclosingElement)));
+
+        if (!validationProblems.isEmpty()) {
+            throw new PropertyUpgradeCodeGenFailure(validationProblems);
+        }
     }
 
     private static Optional<TypeMirror> getCustomAccessors(AnnotationMirror annotation) {
@@ -107,13 +170,18 @@ class PropertyUpgradeCustomAccessorsRequestReader {
         return Optional.empty();
     }
 
-    private static boolean isAccessorForProperty(Element element, String propertyName) {
-        Optional<? extends AnnotationValue> upgradedGetter = AnnotationUtils.findAnnotationValue(element, UpgradedGetter.class, "forProperty");
-        if (upgradedGetter.isPresent()) {
-            return upgradedGetter.get().getValue().equals(propertyName);
+    private static boolean isAccessorForProperty(ExecutableElement method, String propertyName) {
+        Set<String> forPropertyValues = new HashSet<>();
+        Optional<? extends AnnotationValue> upgradedGetter = AnnotationUtils.findAnnotationValue(method, UpgradedGetter.class, "forProperty");
+        upgradedGetter.ifPresent(forPropertyValue -> forPropertyValues.add((String) forPropertyValue.getValue()));
+        Optional<? extends AnnotationValue> upgradedProperty = AnnotationUtils.findAnnotationValue(method, UpgradedGroovyProperty.class, "forProperty");
+        upgradedProperty.ifPresent(forPropertyValue -> forPropertyValues.add((String) forPropertyValue.getValue()));
+        Optional<? extends AnnotationValue> upgradedSetter = AnnotationUtils.findAnnotationValue(method, UpgradedSetter.class, "forProperty");
+        upgradedSetter.ifPresent(forPropertyValue -> forPropertyValues.add((String) forPropertyValue.getValue()));
+        if (forPropertyValues.size() > 1) {
+            throw new PropertyUpgradeCodeGenFailure(String.format("Accessor method '%s.%s' is used multiple different properties. That use case is not supported.", method.getEnclosingElement(), method));
         }
-        Optional<? extends AnnotationValue> upgradedSetter = AnnotationUtils.findAnnotationValue(element, UpgradedSetter.class, "forProperty");
-        return upgradedSetter.map(annotationValue -> annotationValue.getValue().equals(propertyName)).orElse(false);
+        return forPropertyValues.contains(propertyName);
     }
 
     private static CallInterceptionRequest createGroovyPropertyInterceptionRequest(String propertyName, ExecutableElement method, Type interceptedType) {

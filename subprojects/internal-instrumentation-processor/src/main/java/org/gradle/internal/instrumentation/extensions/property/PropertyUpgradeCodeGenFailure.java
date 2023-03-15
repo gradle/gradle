@@ -16,10 +16,22 @@
 
 package org.gradle.internal.instrumentation.extensions.property;
 
+import java.util.Collection;
+import java.util.Collections;
+
 class PropertyUpgradeCodeGenFailure extends RuntimeException {
-    final String reason;
+    private final Collection<String> reasons;
 
     PropertyUpgradeCodeGenFailure(String reason) {
-        this.reason = reason;
+        this.reasons = Collections.singletonList(reason);
+    }
+
+    PropertyUpgradeCodeGenFailure(Collection<String> reasons) {
+        assert !reasons.isEmpty();
+        this.reasons = reasons;
+    }
+
+    public Collection<String> getReasons() {
+        return reasons;
     }
 }
