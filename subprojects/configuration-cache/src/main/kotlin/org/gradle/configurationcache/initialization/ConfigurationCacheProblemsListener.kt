@@ -19,7 +19,6 @@ package org.gradle.configurationcache.initialization
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener
 import org.gradle.api.internal.ExternalProcessStartedListener
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
@@ -75,7 +74,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     }
 
     override fun onExternalProcessStarted(command: String, consumer: String?) {
-        if (!isStableConfigurationCacheEnabled() || !atConfigurationTime() || isExecutingWork() || isInputTrackingDisabled()) {
+        if (!atConfigurationTime() || isExecutingWork() || isInputTrackingDisabled()) {
             return
         }
         problems.onProblem(
@@ -173,8 +172,6 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
 
-    private
-    fun isStableConfigurationCacheEnabled() = featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
 
     private
     fun isExecutingWork() = workExecutionTracker.currentTask.isPresent || workExecutionTracker.isExecutingTransformAction
