@@ -32,6 +32,7 @@ public abstract class GradleDocumentationExtension {
     private final UserManual userManual;
     private final DslReference dslReference;
     private final Javadocs javadocs;
+    private final Dokkadocs dokkadocs;
 
     @Inject
     public GradleDocumentationExtension(ObjectFactory objects) {
@@ -39,6 +40,7 @@ public abstract class GradleDocumentationExtension {
         userManual = objects.newInstance(UserManual.class);
         dslReference = objects.newInstance(DslReference.class);
         javadocs = objects.newInstance(Javadocs.class);
+        dokkadocs = objects.newInstance(Dokkadocs.class);
     }
 
     /**
@@ -114,6 +116,14 @@ public abstract class GradleDocumentationExtension {
 
     public void javadocs(Action<? super Javadocs> action) {
         action.execute(javadocs);
+    }
+
+    public Dokkadocs getDokkadocs() {
+        return dokkadocs;
+    }
+
+    public void dokkadocs(Action<? super Dokkadocs> action) {
+        action.execute(dokkadocs);
     }
 
     /**
