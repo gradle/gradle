@@ -22,12 +22,12 @@ import com.tngtech.archunit.lang.ArchRule;
 import org.gradle.api.NonNullApi;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static org.gradle.architecture.test.ArchUnitFixture.beAnnotatedMaybeInPackageWith;
+import static org.gradle.architecture.test.ArchUnitFixture.beAnnotatedOrInPackageAnnotatedWith;
 
 @AnalyzeClasses(packages = "org.gradle.operations")
 public class BuildOperationsApiTest {
 
     @ArchTest
     public static final ArchRule classes_in_operations_package_are_annotated_with_non_null_api =
-        classes().should(beAnnotatedMaybeInPackageWith(NonNullApi.class));
+        classes().should(beAnnotatedOrInPackageAnnotatedWith(NonNullApi.class));
 }

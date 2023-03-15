@@ -138,11 +138,11 @@ public class ArchUnitFixtureTest {
 
     @Test
     public void checks_for_annotation_presence() {
-        ArchCondition<JavaClass> condition = ArchUnitFixture.beAnnotatedMaybeInPackageWith(NonNullApi.class);
+        ArchCondition<JavaClass> condition = ArchUnitFixture.beAnnotatedOrInPackageAnnotatedWith(NonNullApi.class);
         assertNoViolation(checkClassCondition(condition, org.gradlebuild.nonnullapi.notinpackage.OwnNonNullApi.class));
         ConditionEvent event = checkClassCondition(condition, org.gradlebuild.nonnullapi.notinpackage.NoOwnNonNullApi.class);
         assertTrue(event.isViolation());
-        assertThat(eventDescription(event)).startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NoOwnNonNullApi> is not annotated, maybe in the package, with @org.gradle.api.NonNullApi");
+        assertThat(eventDescription(event)).startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NoOwnNonNullApi> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi");
         // Cannot test on-package (not on the class) annotation, due to `ClasFileImporter` limitations
     }
 
