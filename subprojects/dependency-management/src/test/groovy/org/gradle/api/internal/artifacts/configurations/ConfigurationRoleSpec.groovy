@@ -32,8 +32,6 @@ class ConfigurationRoleSpec extends Specification {
         false       | true          | false             | false                 | false                 | false                         || ConfigurationRoles.INTENDED_RESOLVABLE
         false       | true          | true              | false                 | false                 | false                         || ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET
         false       | false         | true              | false                 | false                 | false                         || ConfigurationRoles.INTENDED_BUCKET
-        true        | true          | true              | false                 | true                  | true                          || ConfigurationRoles.DEPRECATED_CONSUMABLE
-        true        | true          | true              | true                  | false                 | true                          || ConfigurationRoles.DEPRECATED_RESOLVABLE
     }
 
     def "can create role for unknown usage combinations consumable=#consumable, resolvable=#resolvable, declarableAgainst=#declarableAgainst, consumptionDeprecated=#consumptionDeprecated, resolutionDeprecated=#resolutionDeprecated, declarationAgainstDeprecated=#declarationAgainstDeprecated"() {
@@ -101,8 +99,6 @@ class ConfigurationRoleSpec extends Specification {
         ConfigurationRoles.INTENDED_RESOLVABLE          || [RESOLVABLE]
         ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET   || [RESOLVABLE, DECLARABLE_AGAINST]
         ConfigurationRoles.INTENDED_BUCKET              || [DECLARABLE_AGAINST]
-        ConfigurationRoles.DEPRECATED_CONSUMABLE        || [CONSUMABLE, deprecatedFor(RESOLVABLE), deprecatedFor(DECLARABLE_AGAINST)]
-        ConfigurationRoles.DEPRECATED_RESOLVABLE        || [RESOLVABLE, deprecatedFor(CONSUMABLE), deprecatedFor(DECLARABLE_AGAINST)]
     }
 
     def "custom role can't deprecate what it doesn't allow"() {
@@ -118,10 +114,6 @@ class ConfigurationRoleSpec extends Specification {
         false       | false         | false             | true                  | false                 | false
         false       | false         | false             | false                 | true                  | false
         false       | false         | false             | false                 | false                 | true
-    }
-
-    private String deprecatedFor(String usage) {
-        return usage + describeDeprecation(true)
     }
 
     private void assertDescriptionContains(ConfigurationRole role, List<String> usages) {

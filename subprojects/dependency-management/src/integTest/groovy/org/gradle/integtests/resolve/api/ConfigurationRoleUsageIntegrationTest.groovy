@@ -471,8 +471,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 def c4 = createWithRole('c4', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)
                 def c5 = createWithRole('c5', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)
                 def c6 = createWithRole('c6', ConfigurationRoles.INTENDED_BUCKET)
-                def c7 = createWithRole('c7', ConfigurationRoles.DEPRECATED_CONSUMABLE)
-                def c8 = createWithRole('c8', ConfigurationRoles.DEPRECATED_RESOLVABLE)
             }
 
             configurations.all {
