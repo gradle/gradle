@@ -236,12 +236,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean insideBeforeResolve;
 
     private boolean dependenciesModified;
-    private boolean canBeConsumed;
-    private boolean canBeResolved;
-    private boolean canBeDeclaredAgainst;
-    private boolean consumptionDeprecated;
-    private boolean resolutionDeprecated;
-    private boolean declarationDeprecated;
+    private byte allowedUsage = Usage.EVERYTHING_ALLOWED_NOTHING_DEPRECATED;
     private boolean usageCanBeMutated = true;
     private final ConfigurationRole roleAtCreation;
 
@@ -351,9 +346,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.path = domainObjectContext.projectPath(name);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
 
-        this.canBeConsumed = roleAtCreation.isConsumable();
-        this.canBeResolved = roleAtCreation.isResolvable();
-        this.canBeDeclaredAgainst = roleAtCreation.isDeclarableAgainst();
+        this.allowedUsage = Usage.CONSUMABLE.toggle(roleAtCreation.isConsumable(), this.allowedUsage);
+        this.allowedUsage = Usage.RESOLVABLE.toggle(roleAtCreation.isResolvable(), this.allowedUsage);
+        this.allowedUsage = Usage.DECLARABLE_AGAINST.toggle(roleAtCreation.isDeclarableAgainst(), this.allowedUsage);
 
         // Calling these during construction is not ideal, but we'd have to call the deprecateForConsumption(), etc.
         // methods anyway even if replicated the code inside these methods here, so at least this keeps a single
@@ -1298,9 +1293,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         // Begin by allowing everything, and setting deprecations for disallowed roles
         ConfigurationRole adjustedCurrentUsage = ConfigurationRole.forUsage(
                 true, true, true,
-                !canBeConsumed || consumptionDeprecation != null,
-                !canBeResolved || resolutionAlternatives != null,
-                !canBeDeclaredAgainst || declarationAlternatives != null);
+                !isCanBeConsumed() || consumptionDeprecation != null,
+                !isCanBeResolved() || resolutionAlternatives != null,
+                !isCanBeDeclaredAgainst() || declarationAlternatives != null);
 
 
         DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage, this.usageCanBeMutated);
@@ -1316,11 +1311,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.dependencyResolutionListeners = dependencyResolutionListeners.copy();
 
         copiedConfiguration.declarationAlternatives =
-            canBeDeclaredAgainst || declarationAlternatives != null ? declarationAlternatives : Collections.emptyList();
+            isCanBeDeclaredAgainst() || declarationAlternatives != null ? declarationAlternatives : Collections.emptyList();
         copiedConfiguration.resolutionAlternatives =
-            canBeResolved || resolutionAlternatives != null ? resolutionAlternatives : Collections.emptyList();
+            isCanBeResolved() || resolutionAlternatives != null ? resolutionAlternatives : Collections.emptyList();
         copiedConfiguration.consumptionDeprecation =
-            canBeConsumed || consumptionDeprecation != null ? consumptionDeprecation
+            isCanBeConsumed() || consumptionDeprecation != null ? consumptionDeprecation
                 : DeprecationLogger.deprecateConfiguration(name).forConsumption()
                     .willBecomeAnErrorInGradle9().undocumented();
 
@@ -1717,13 +1712,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void assertIsResolvable() {
-        if (!canBeResolved) {
+        if (!isCanBeResolved()) {
             throw new IllegalStateException("Resolving dependency configuration '" + name + "' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends '" + name + "' should be resolved.");
         }
     }
 
     private void assertIsDeclarableAgainst() {
-        if (!canBeDeclaredAgainst) {
+        if (!isCanBeDeclaredAgainst()) {
             throw new IllegalStateException("Declaring dependencies for configuration '" + name + "' is not allowed as it is defined as 'canBeDeclared=false'.");
         }
     }
@@ -1740,11 +1735,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @SuppressWarnings("deprecation")
     private void logIfImproperConfiguration() {
         if (roleAtCreation != ConfigurationRoles.LEGACY) {
-            if (canBeConsumed && canBeResolved) {
+            if (isCanBeConsumed() && isCanBeResolved()) {
                 LOGGER.info("The configuration " + identityPath.toString() + " is both resolvable and consumable. This is considered a legacy configuration and it will eventually only be possible to be one of these.");
             }
 
-            if (canBeConsumed && canBeDeclaredAgainst) {
+            if (isCanBeConsumed() && isCanBeDeclaredAgainst()) {
                 LOGGER.info("The configuration " + identityPath.toString() + " is both consumable and declarable. This combination is incorrect, only one of these flags should be set.");
             }
 
@@ -1842,57 +1837,57 @@ since users cannot create non-legacy configurations and there is no current publ
 
     @Override
     public boolean isDeprecatedForConsumption() {
-        return consumptionDeprecated;
+        return Usage.DEPRECATED_FOR_CONSUMPTION.isEnabled(this);
     }
 
     @Override
     public boolean isDeprecatedForResolution() {
-        return resolutionDeprecated;
+        return Usage.DEPRECATED_FOR_RESOLUTION.isEnabled(this);
     }
 
     @Override
     public boolean isDeprecatedForDeclarationAgainst() {
-        return declarationDeprecated;
+        return Usage.DEPRECATED_FOR_DECLARATION_AGAINST.isEnabled(this);
     }
 
     @Override
     public boolean isCanBeConsumed() {
-        return canBeConsumed;
+        return Usage.CONSUMABLE.isEnabled(this);
     }
 
     @Override
     public void setCanBeConsumed(boolean allowed) {
-        if (canBeConsumed != allowed) {
+        if (isCanBeConsumed() != allowed) {
             validateMutation(MutationType.USAGE);
-            canBeConsumed = allowed;
+            allowedUsage = Usage.CONSUMABLE.toggle(allowed, allowedUsage);
             maybeWarnOnChangingUsage("consumable", allowed);
         }
     }
 
     @Override
     public boolean isCanBeResolved() {
-        return canBeResolved;
+        return Usage.RESOLVABLE.isEnabled(this);
     }
 
     @Override
     public void setCanBeResolved(boolean allowed) {
-        if (canBeResolved != allowed) {
+        if (isCanBeResolved() != allowed) {
             validateMutation(MutationType.USAGE);
-            canBeResolved = allowed;
+            allowedUsage = Usage.RESOLVABLE.toggle(allowed, allowedUsage);
             maybeWarnOnChangingUsage("resolvable", allowed);
         }
     }
 
     @Override
     public boolean isCanBeDeclaredAgainst() {
-        return canBeDeclaredAgainst;
+        return Usage.DECLARABLE_AGAINST.isEnabled(this);
     }
 
     @Override
     public void setCanBeDeclaredAgainst(boolean allowed) {
-        if (canBeDeclaredAgainst != allowed) {
+        if (isCanBeDeclaredAgainst() != allowed) {
             validateMutation(MutationType.USAGE);
-            canBeDeclaredAgainst = allowed;
+            allowedUsage = Usage.DECLARABLE_AGAINST.toggle(allowed, allowedUsage);
             maybeWarnOnChangingUsage("declarable against", allowed);
         }
     }
@@ -1924,10 +1919,10 @@ since users cannot create non-legacy configurations and there is no current publ
     public DeprecatableConfiguration deprecateForDeclarationAgainst(String... alternativesForDeclaring) {
         validateMutation(MutationType.USAGE);
         this.declarationAlternatives = ImmutableList.copyOf(alternativesForDeclaring);
-        if (!declarationDeprecated) {
+        if (!isDeprecatedForDeclarationAgainst()) {
             maybeWarnOnChangingUsage("deprecated for declaration against", true);
         }
-        declarationDeprecated = true;
+        allowedUsage = Usage.DEPRECATED_FOR_DECLARATION_AGAINST.toggle(true, allowedUsage);
         return this;
     }
 
@@ -1935,10 +1930,10 @@ since users cannot create non-legacy configurations and there is no current publ
     public DeprecatableConfiguration deprecateForResolution(String... alternativesForResolving) {
         validateMutation(MutationType.USAGE);
         this.resolutionAlternatives = ImmutableList.copyOf(alternativesForResolving);
-        if (!consumptionDeprecated) {
+        if (!isDeprecatedForResolution()) {
             maybeWarnOnChangingUsage("deprecated for resolution", true);
         }
-        resolutionDeprecated = true;
+        allowedUsage = Usage.DEPRECATED_FOR_RESOLUTION.toggle(true, allowedUsage);
         return this;
     }
 
@@ -1946,10 +1941,10 @@ since users cannot create non-legacy configurations and there is no current publ
     public DeprecatableConfiguration deprecateForConsumption(Function<DeprecationMessageBuilder.DeprecateConfiguration, DeprecationMessageBuilder.WithDocumentation> deprecation) {
         validateMutation(MutationType.USAGE);
         this.consumptionDeprecation = deprecation.apply(DeprecationLogger.deprecateConfiguration(name).forConsumption());
-        if (!consumptionDeprecated) {
+        if (!isDeprecatedForConsumption()) {
             maybeWarnOnChangingUsage("deprecated for consumption", true);
         }
-        consumptionDeprecated = true;
+        allowedUsage = Usage.DEPRECATED_FOR_CONSUMPTION.toggle(true, allowedUsage);
         return this;
     }
 
@@ -2441,6 +2436,44 @@ since users cannot create non-legacy configurations and there is no current publ
         @Override
         public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
             return DefaultConfiguration.this.mapFailure(type, failures);
+        }
+    }
+
+    /**
+     * Helper class that allows all configuration usage information to be stored in a byte using bitwise operations.
+     * <p>
+     * This may slightly trim the memory usage of configuration instances, which can be numerous in larger builds.
+     */
+    private enum Usage {
+        CONSUMABLE((byte) 1),
+        RESOLVABLE((byte) 2),
+        DECLARABLE_AGAINST((byte) 4),
+        DEPRECATED_FOR_CONSUMPTION((byte) 8),
+        DEPRECATED_FOR_RESOLUTION((byte) 16),
+        DEPRECATED_FOR_DECLARATION_AGAINST((byte) 32);
+
+        private static final byte EVERYTHING_ALLOWED_NOTHING_DEPRECATED = 7; // consumable & resolvable & declarable_against
+
+        private final byte mask;
+
+        Usage(byte mask) {
+            this.mask = mask;
+        }
+
+        public byte toggle(boolean allowed, byte currentUsage) {
+            return allowed ? addTo(currentUsage) : removeFrom(currentUsage);
+        }
+
+        private byte addTo(byte currentUsage) {
+            return (byte)(mask | currentUsage);
+        }
+
+        private byte removeFrom(byte currentUsage) {
+            return (byte)(~mask & currentUsage);
+        }
+
+        public boolean isEnabled(DefaultConfiguration configuration) {
+            return (mask & configuration.allowedUsage) > 0;
         }
     }
 }
