@@ -17,6 +17,7 @@
 package org.gradle.internal.build;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
@@ -34,6 +35,7 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskId
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -53,6 +55,7 @@ import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedTask;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.Result;
 
+@NonNullApi
 public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer {
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildWorkPreparer delegate;
@@ -305,6 +308,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                 });
         }
 
+        @Nullable
         private NodeIdentity identifyAsDependencyNode(Node node, Predicate<NodeIdentity> isDependencyNode) {
             ToPlannedNodeConverter converter = converterRegistry.getConverter(node);
             if (converter == null) {

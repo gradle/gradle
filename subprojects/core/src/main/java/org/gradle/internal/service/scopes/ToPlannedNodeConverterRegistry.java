@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.NonNullApi;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
@@ -32,6 +33,7 @@ import java.util.concurrent.ConcurrentMap;
  * <p>
  * All the available converters are expected to support disjoint set of {@link Node node types}.
  */
+@NonNullApi
 public class ToPlannedNodeConverterRegistry {
 
     private static final ToPlannedNodeConverter MISSING_MARKER = new MissingToPlannedNodeConverter();
