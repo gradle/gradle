@@ -23,6 +23,8 @@ import org.gradle.internal.instrumentation.model.CallInterceptionRequestImpl;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableInfoImpl;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
+import org.gradle.internal.instrumentation.model.CallableOwnerInfo;
+import org.gradle.internal.instrumentation.model.CallableReturnTypeInfo;
 import org.gradle.internal.instrumentation.model.ImplementationInfoImpl;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfoImpl;
@@ -31,7 +33,6 @@ import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader;
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader.Result.Success;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Type;
 
 import javax.lang.model.element.AnnotationMirror;
@@ -42,6 +43,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -49,30 +51,35 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReaderExtension.DEFAULT_VALUE_TYPE;
+import static org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReaderExtension.INTERCEPTOR_GROOVY_DECLARATION_CLASS_NAME;
 import static org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReaderExtension.INTERCEPTOR_JVM_DECLARATION_CLASS_NAME;
-import static org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReaderExtension.getPropertyName;
+import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY;
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.INSTANCE_METHOD;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractReturnType;
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.extractType;
 
 @SuppressWarnings("MethodMayBeStatic")
-public class PropertyUpgradeCustomAccessorsRequestReader {
+class PropertyUpgradeCustomAccessorsRequestReader {
 
     public boolean hasCustomAccessors(AnnotationMirror annotation) {
         return getCustomAccessors(annotation).isPresent();
     }
 
-    public Collection<CallInterceptionRequestReader.Result> generateRequests(ExecutableElement method, AnnotationMirror annotationMirror) {
+    public Collection<CallInterceptionRequestReader.Result> readRequests(String propertyName, ExecutableElement method, AnnotationMirror annotationMirror) {
         TypeMirror typeMirror = getCustomAccessors(annotationMirror).orElse(null);
         if (!(typeMirror instanceof DeclaredType)) {
             throw new PropertyUpgradeCodeGenFailure(String.format("Cannot read accessors declared type for method '%s.%s'.", method.getEnclosingElement(), method));
         }
 
-        String propertyName = getPropertyName(method);
         Type interceptedType = extractType(method.getEnclosingElement().asType());
         List<Element> upgradedMethods = ((DeclaredType) typeMirror).asElement().getEnclosedElements().stream()
             .filter(elements -> elements instanceof ExecutableElement)
             .filter(element -> isAccessorForProperty(element, propertyName))
+            .collect(Collectors.toList());
+
+        List<CallInterceptionRequest> upgradedGroovyPropertyRequests = upgradedMethods.stream()
+            .filter(element -> element.getAnnotation(UpgradedGetter.class) != null)
+            .map(m -> createGroovyPropertyInterceptionRequest(propertyName, (ExecutableElement) m, interceptedType))
             .collect(Collectors.toList());
 
         List<CallInterceptionRequest> getterRequests = upgradedMethods.stream()
@@ -85,7 +92,7 @@ public class PropertyUpgradeCustomAccessorsRequestReader {
             .map(m -> createJvmInterceptionRequest((ExecutableElement) m, interceptedType))
             .collect(Collectors.toList());
 
-        return Stream.of(getterRequests, setterRequests)
+        return Stream.of(upgradedGroovyPropertyRequests, getterRequests, setterRequests)
                 .flatMap(Collection::stream)
                 .map(Success::new)
                 .collect(Collectors.toList());
@@ -109,20 +116,36 @@ public class PropertyUpgradeCustomAccessorsRequestReader {
         return upgradedSetter.map(annotationValue -> annotationValue.getValue().equals(propertyName)).orElse(false);
     }
 
+    private static CallInterceptionRequest createGroovyPropertyInterceptionRequest(String propertyName, ExecutableElement method, Type interceptedType) {
+        List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(INTERCEPTOR_GROOVY_DECLARATION_CLASS_NAME));
+        List<ParameterInfo> parameters = extractParameters(method);
+        Type returnType = extractReturnType(method);
+        CallableOwnerInfo owner = new CallableOwnerInfo(interceptedType, true);
+        CallableReturnTypeInfo returnTypeInfo = new CallableReturnTypeInfo(returnType);
+        return new CallInterceptionRequestImpl(
+            new CallableInfoImpl(GROOVY_PROPERTY, owner, propertyName, returnTypeInfo, parameters),
+            extractImplementationInfo(method, parameters),
+            extras
+        );
+    }
+
     private static CallInterceptionRequest createJvmInterceptionRequest(ExecutableElement method, Type interceptedType) {
-        List<RequestExtra> extras = getJvmRequestExtras(method);
+        List<RequestExtra> extras = new ArrayList<>();
+        extras.add(new RequestExtra.OriginatingElement(method));
+        extras.add(new RequestExtra.InterceptJvmCalls(INTERCEPTOR_JVM_DECLARATION_CLASS_NAME));
         List<ParameterInfo> parameters = extractParameters(method);
         return new CallInterceptionRequestImpl(
-                extractCallableInfo(INSTANCE_METHOD, method, interceptedType, parameters),
-                extractImplementationInfo(method, parameters),
-                extras
+            extractCallableInfo(INSTANCE_METHOD, method, interceptedType, parameters),
+            extractImplementationInfo(method, parameters),
+            extras
         );
     }
 
     private static CallableInfo extractCallableInfo(CallableKindInfo kindInfo, ExecutableElement methodElement, Type interceptedType, List<ParameterInfo> parameters) {
-        Type returnType = extractReturnType(methodElement);
+        CallableOwnerInfo owner = new CallableOwnerInfo(interceptedType, true);
+        CallableReturnTypeInfo returnTypeInfo = new CallableReturnTypeInfo(extractReturnType(methodElement));
         String originalMethodName = methodElement.getSimpleName().toString().replace("access_", "");
-        return new CallableInfoImpl(kindInfo, interceptedType, originalMethodName, returnType, parameters);
+        return new CallableInfoImpl(kindInfo, owner, originalMethodName, returnTypeInfo, parameters);
     }
 
     private static List<ParameterInfo> extractParameters(ExecutableElement element) {
@@ -153,11 +176,4 @@ public class PropertyUpgradeCustomAccessorsRequestReader {
         return array;
     }
 
-    @NotNull
-    private static List<RequestExtra> getJvmRequestExtras(ExecutableElement method) {
-        List<RequestExtra> extras = new ArrayList<>();
-        extras.add(new RequestExtra.OriginatingElement(method));
-        extras.add(new RequestExtra.InterceptJvmCalls(INTERCEPTOR_JVM_DECLARATION_CLASS_NAME));
-        return extras;
-    }
 }

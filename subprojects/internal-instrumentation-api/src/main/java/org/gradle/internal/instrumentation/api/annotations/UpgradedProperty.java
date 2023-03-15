@@ -40,13 +40,16 @@ public @interface UpgradedProperty {
 
     /**
      * Sets accessors that will be used in instrumentation calls. By default accessors are auto generated,
-     * but for special cases you can provide a custom accessors class implementation.
+     * but for special cases you can provide a custom accessors class implementation. This accessors overrides any other
      *
-     * There are certain rules to follow:
+     * There are some rules to follow:
      * - accessors methods has to be static
      * - accessors first parameter has to be an upgraded class, e.g. when upgrading Checkstyle, first parameter has to be of type Checkstyle
      * - accessors methods has start with access_<old method name>
-     * - getter has to be annotated with @UpgradedGetter and setter with @UpgradedSetter
+     * - getter has to be annotated with @UpgradedGetter and setter with @UpgradedSetter, Groovy property accessor has to be annotated with @UpgradedGroovyProperty
+     * - there must exist one method annotated with @UpgradedGroovyProperty
+     * - there must exist one or more methods annotated with @UpgradedGetter
+     * - A getter accessors can be also annotated with @UpgradedGroovyProperty
      */
     Class<?> accessors() default DefaultValue.class;
 
@@ -55,14 +58,14 @@ public @interface UpgradedProperty {
 
     @Retention(RetentionPolicy.CLASS)
     @Target({ElementType.METHOD})
+    @interface UpgradedGroovyProperty {
+        String forProperty();
+    }
+
+    @Retention(RetentionPolicy.CLASS)
+    @Target({ElementType.METHOD})
     @interface UpgradedGetter {
         String forProperty();
-
-        /**
-         * Tells processor that this getter is used also for Groovy property access.
-         * Class can have just one such getter.
-         */
-        boolean isGetterForGroovyPropertyAccess() default true;
     }
 
     @Retention(RetentionPolicy.CLASS)
