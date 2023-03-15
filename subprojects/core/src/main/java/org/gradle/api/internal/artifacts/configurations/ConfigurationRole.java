@@ -70,8 +70,10 @@ public interface ConfigurationRole {
             throw new IllegalArgumentException("Cannot create a role that deprecates a usage that is not allowed");
         }
 
-        ConfigurationRole result = ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated)
+        // Built in configuration roles are all deprecations = false, so attempt to match on allowed usage, then check if the deprecations happen to be all false on the match
+        ConfigurationRole result = ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst)
                 .map(ConfigurationRole.class::cast)
+                .filter(role -> role.isConsumptionDeprecated() == consumptionDeprecated && role.isResolutionDeprecated() == resolutionDeprecated && role.isDeclarationAgainstDeprecated() == declarationAgainstDeprecated)
                 .orElse(new CustomConfigurationRole(name, consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated, description));
 
         //noinspection SuspiciousMethodCalls
@@ -88,10 +90,6 @@ public interface ConfigurationRole {
 
     static ConfigurationRole forUsage(boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
         return forUsage(RoleDescriber.DEFAULT_CUSTOM_ROLE_NAME, consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated);
-    }
-
-    static ConfigurationRole forUsage(boolean consumable, boolean resolvable, boolean declarableAgainst) {
-        return forUsage(consumable, resolvable, declarableAgainst, false, false, false);
     }
 
     static ConfigurationRole forUsage(String name, boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
