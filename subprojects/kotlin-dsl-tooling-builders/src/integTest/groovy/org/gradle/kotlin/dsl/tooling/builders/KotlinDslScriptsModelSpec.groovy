@@ -42,8 +42,12 @@ class KotlinDslScriptsModelSpec extends AbstractIntegrationSpec implements Kotli
     }
 
     def 'exceptions in different scripts are reported on the corresponding scripts'() {
+
+        given:
+        toolingApi.requireIsolatedUserHome()
+
         when:
-        def spec = withMultiProjectBuildWithBuildSrc()
+        def spec = withMultiProject()
         spec.scripts["a"] << "throw RuntimeException(\"ex1\")"
         spec.scripts["b"] << "throw RuntimeException(\"ex2\")"
 
