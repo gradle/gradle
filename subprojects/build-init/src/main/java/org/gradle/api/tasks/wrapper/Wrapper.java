@@ -53,7 +53,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -110,7 +113,7 @@ public abstract class Wrapper extends DefaultTask {
     private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private final DistributionLocator locator = new DistributionLocator();
     private boolean distributionUrlConfigured = false;
-    private boolean isOffline = false;
+    private boolean isOffline;
 
     public Wrapper() {
         scriptFile = "gradlew";
@@ -164,12 +167,22 @@ public abstract class Wrapper extends DefaultTask {
         }
     }
 
+    private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE = "Test of distribution url failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
+
     private void testDistributionUrl() {
-        if (distributionUrlConfigured && !isOffline) {
-            try {
-                new Download(new Logger(true), "gradlew", Download.UNKNOWN_VERSION).sendHeadRequest(getDistributionUrl());
-            } catch (Exception e) {
-                throw new UncheckedIOException("Test of distribution url failed. Please check the values set with --gradle-distribution-url and --gradle-version.", e);
+        if (distributionUrlConfigured) {
+            String url = getDistributionUrl();
+            URI uri = URI.create(url);
+            if (uri.getScheme().equals("file")) {
+                if (!Files.exists(Paths.get(uri.getPath()).toAbsolutePath())) {
+                    throw new UncheckedIOException(DISTRIBUTION_URL_EXCEPTION_MESSAGE + " " + uri);
+                }
+            } else if (uri.getScheme().startsWith("http") && !isOffline) {
+                try {
+                    new Download(new Logger(true), "gradlew", Download.UNKNOWN_VERSION).sendHeadRequest(url);
+                } catch (Exception e) {
+                    throw new UncheckedIOException(DISTRIBUTION_URL_EXCEPTION_MESSAGE + " " + uri, e);
+                }
             }
         }
     }
@@ -340,7 +353,7 @@ public abstract class Wrapper extends DefaultTask {
      * This is usually the same version of Gradle you use for building your project.
      * The following labels are allowed to specify a version: {@code latest}, {@code release-candidate}, {@code nightly}, and {@code release-nightly}
      *
-     * <p>The resulting distribution url is validated with a HEAD request before it is written to the gradle-wrapper.properties file.
+     * <p>The resulting distribution url is validated before it is written to the gradle-wrapper.properties file.
      */
     @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper. " +
         "The following labels are allowed: latest, release-candidate, nightly, and release-nightly.")
@@ -413,7 +426,7 @@ public abstract class Wrapper extends DefaultTask {
      * all. This might be in particular interesting, if you provide a custom gradle snapshot to the wrapper, because you
      * don't need to provide a download server then.
      *
-     * <p>The distribution url is validated with a HEAD request before it is written to the gradle-wrapper.properties file.
+     * <p>The distribution url is validated before it is written to the gradle-wrapper.properties file.
      */
     @Option(option = "gradle-distribution-url", description = "The URL to download the Gradle distribution from.")
     public void setDistributionUrl(String url) {

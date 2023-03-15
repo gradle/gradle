@@ -16,15 +16,16 @@
 
 package org.gradle.integtests
 
-import org.gradle.api.UncheckedIOException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
-import spock.util.Exceptions
+import spock.lang.IgnoreIf
 
 import java.util.jar.Attributes
 import java.util.jar.Manifest
@@ -166,7 +167,8 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     HttpServer httpServer = new HttpServer()
 
-    def "wrapper task fails if distribution url from command-line is invalid"() {
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    def "wrapper task fails if http distribution url from command-line is invalid"() {
         given:
         def path = "/distributions/8.0-RC-5"
         httpServer.start()
@@ -177,25 +179,47 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         run "wrapper", "--gradle-distribution-url", url
 
         then:
-        Throwable throwable = thrown()
-        List<Throwable> causeChain = Exceptions.getCauseChain(throwable);
-        def exception = causeChain.get(causeChain.size()-2)
-        assert exception.class == UncheckedIOException.class
-        assert exception.message == "Test of distribution url failed. Please check the values set with --gradle-distribution-url and --gradle-version."
-
-        def wrappedException = exception.cause
-        assert wrappedException.class == RuntimeException.class
-        assert wrappedException.message == "HEAD request to " + url + " failed: response code (404)"
+        Throwable throwable = thrown(UnexpectedBuildFailure.class)
+        assert throwable.message.contains("Test of distribution url failed. Please check the values set with --gradle-distribution-url and --gradle-version.")
         file("gradle/wrapper/gradle-wrapper.properties").assertDoesNotExist()
     }
 
-    def "wrapper task succeeds if distribution url from command-line is valid"() {
+    def "wrapper task succeeds if http distribution url from command-line is valid"() {
         given:
         def path = "/distributions/8.0-rc-5"
         def file = file(path) << "some content"
         httpServer.start()
         httpServer.expectHead(path, file)
         def url = "${httpServer.uri}" + path
+
+        when:
+        run "wrapper", "--gradle-distribution-url", url
+
+        then:
+        succeeds()
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    def "wrapper task fails if file distribution url from command-line is invalid"() {
+        given:
+        def target = file("/distributions/8.0-rc-5")
+        def url = target.toURI().toString()
+        target.delete()
+        target.assertDoesNotExist()
+
+        when:
+        run "wrapper", "--gradle-distribution-url", url
+
+        then:
+        Throwable throwable = thrown(UnexpectedBuildFailure.class)
+        assert throwable.message.contains("Test of distribution url failed. Please check the values set with --gradle-distribution-url and --gradle-version.")
+        file("gradle/wrapper/gradle-wrapper.properties").assertDoesNotExist()
+    }
+
+    def "wrapper task succeeds if file distribution url from command-line is valid"() {
+        given:
+        def target = file("/distributions/8.0-rc-5") << "some content"
+        def url = target.toURI().toString()
 
         when:
         run "wrapper", "--gradle-distribution-url", url
