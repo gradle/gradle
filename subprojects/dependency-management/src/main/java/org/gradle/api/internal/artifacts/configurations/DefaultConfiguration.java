@@ -945,7 +945,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 } // Otherwise, already have a result, so reuse it
                 return initial;
             });
-        }// Otherwise, already have a result, so reuse it
+        }
         return currentState.getCachedResolverResults();
     }
 
