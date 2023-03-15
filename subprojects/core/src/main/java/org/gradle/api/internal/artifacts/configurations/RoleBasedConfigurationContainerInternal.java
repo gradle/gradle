@@ -86,6 +86,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * using the role of {@link ConfigurationRoles#INTENDED_RESOLVABLE_BUCKET} that is <strong>NOT</strong> locked
      * against further usage mutations.
      */
+    @SuppressWarnings("deprecation")
     default Configuration resolvableBucket(String name) {
         return resolvableBucket(name, false);
     }
@@ -222,9 +223,43 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
 
         private static String describeDifferenceFromRole(DeprecatableConfiguration configuration, ConfigurationRole role) {
             if (!isUsageConsistentWithRole(configuration, role)) {
-                ConfigurationRole currentUsage = ConfigurationRole.forUsage(
-                        configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclaredAgainst(),
-                        configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst());
+                ConfigurationRole currentUsage = new ConfigurationRole() {
+                    @Override
+                    public String getName() {
+                        return "current";
+                    }
+
+                    @Override
+                    public boolean isConsumable() {
+                        return configuration.isCanBeConsumed();
+                    }
+
+                    @Override
+                    public boolean isResolvable() {
+                        return configuration.isCanBeResolved();
+                    }
+
+                    @Override
+                    public boolean isDeclarableAgainst() {
+                        return configuration.isCanBeDeclaredAgainst();
+                    }
+
+                    @Override
+                    public boolean isConsumptionDeprecated() {
+                        return configuration.isDeprecatedForConsumption();
+                    }
+
+                    @Override
+                    public boolean isResolutionDeprecated() {
+                        return configuration.isDeprecatedForResolution();
+                    }
+
+                    @Override
+                    public boolean isDeclarationAgainstDeprecated() {
+                        return configuration.isDeprecatedForDeclarationAgainst();
+                    }
+                };
+
                 return "Usage for configuration: " + configuration.getName() + " is not consistent with the role: " + role.getName() + ".\n" +
                         "Expected that it is:\n" +
                         role.describeUsage() + "\n" +

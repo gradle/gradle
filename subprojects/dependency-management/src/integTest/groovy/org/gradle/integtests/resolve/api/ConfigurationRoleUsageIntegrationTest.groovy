@@ -666,83 +666,14 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         "using consumable to make a configuration"                  | "consumable('fooElements')"                                                                                   | "--warn"      || null
         "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                                                                   | "--warn"      || null
         "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"                                | "--warn"      || null
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)"                                | "--warn"      || null
+        "using consumable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)"                                | "--warn"      || null
         "using create to make an implicitly LEGACY configuration"   | "create('fooElements')"                                                                                       | "--info"      || null
         "using consumable to make a configuration"                  | "consumable('fooElements')"                                                                                   | "--info"      || null
         "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                                                                   | "--info"      || null
         "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"                                | "--info"      || null
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)"                                | "--info"      || 'The configuration :fooElements is both consumable and declarable. This combination is incorrect, only one of these flags should be set.'
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRole.forUsage('custom', true, true, false, false, false, false))" | "--warn"      || null
-        "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRole.forUsage('custom', true, true, false, false, false, false))" | "--info"      || 'The configuration :fooElements is both resolvable and consumable. This is considered a legacy configuration and it will eventually only be possible to be one of these'
+        "using consumable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)"                                | "--info"      || 'The configuration :fooElements is both consumable and declarable. This combination is incorrect, only one of these flags should be set.'
     }
     // endregion Warnings
-
-    // region Custom Roles
-    def "can create configuration with custom role"() {
-        given:
-        buildFile << """
-            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
-
-            ConfigurationRole customRole = ConfigurationRole.forUsage('custom', true, true, false, false, false, false)
-
-            configurations.createWithRole('custom', customRole) {
-                assert canBeConsumed
-                assert canBeResolved
-                assert !canBeDeclaredAgainst
-                assert !deprecatedForConsumption
-                assert !deprecatedForResolution
-                assert !deprecatedForDeclarationAgainst
-            }
-        """
-
-        expect:
-        succeeds 'help'
-    }
-
-    def "can prevent usage mutation for configuration with custom role"() {
-        given:
-        buildFile << """
-            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
-
-            ConfigurationRole customRole = ConfigurationRole.forUsage('custom', true, true, false, false, false, false)
-
-            configurations {
-                createWithRole('custom', customRole) {
-                    assert canBeConsumed
-                    preventUsageMutation()
-                    canBeConsumed = false
-                }
-            }
-        """
-
-        expect:
-        fails 'help'
-
-        and:
-        assertUsageLockedFailure('custom', 'custom')
-    }
-
-
-    def "custom role warns on creation if asked"() {
-        given:
-        buildFile << """
-            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
-
-            ConfigurationRole customRole = ConfigurationRole.forUsage('custom', $consumable, $resolvable, $declarableAgainst, $consumptionDeprecated, $resolutionDeprecated, $declarationAgainstDeprecated, null, $warn)
-        """
-        if (warn) {
-            executer.expectDocumentedDeprecationWarning("Custom configuration roles are deprecated. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Use one of the standard roles defined in ConfigurationRoles instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#custom_configuration_roles")
-        }
-
-        expect:
-        succeeds 'help'
-
-        where:
-        consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated | warn
-        true        | true         | false             | false                 | false                 | false                        | true
-        true        | true         | false             | false                 | false                 | false                        | false
-    }
-    // endregion Custom Roles
 
     private void assertUsageLockedFailure(String configurationName, String roleName = null) {
         String suffix = roleName ? "as it was locked upon creation to the role: '$roleName'." : "as it has been locked."

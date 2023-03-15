@@ -1296,12 +1296,45 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      */
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints) {
         // Begin by allowing everything, and setting deprecations for disallowed roles
-        ConfigurationRole adjustedCurrentUsage = ConfigurationRole.forUsage(
-                true, true, true,
-                !canBeConsumed || consumptionDeprecation != null,
-                !canBeResolved || resolutionAlternatives != null,
-                !canBeDeclaredAgainst || declarationAlternatives != null);
+        boolean deprecateConsumption = !canBeConsumed || consumptionDeprecation != null;
+        boolean deprecateResolution = !canBeResolved || resolutionAlternatives != null;
+        boolean deprecateDeclarationAgainst = !canBeDeclaredAgainst || declarationAlternatives != null;
+        ConfigurationRole adjustedCurrentUsage = new ConfigurationRole() {
+            @Override
+            public String getName() {
+                return "adjusted current usage";
+            }
 
+            @Override
+            public boolean isConsumable() {
+                return true;
+            }
+
+            @Override
+            public boolean isResolvable() {
+                return true;
+            }
+
+            @Override
+            public boolean isDeclarableAgainst() {
+                return true;
+            }
+
+            @Override
+            public boolean isConsumptionDeprecated() {
+                return deprecateConsumption;
+            }
+
+            @Override
+            public boolean isResolutionDeprecated() {
+                return deprecateResolution;
+            }
+
+            @Override
+            public boolean isDeclarationAgainstDeprecated() {
+                return deprecateDeclarationAgainst;
+            }
+        };
 
         DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage, this.usageCanBeMutated);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
