@@ -30,7 +30,7 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
         wrapperExecuter.withJavaHome(jdk.javaHome)
 
         expect:
-        def failure = wrapperExecuter.withTasks("help").runWithFailure()
+        def failure = wrapperExecuter.withTasks("help", "--offline").runWithFailure()
         failure.assertHasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 1.8 or later to run. You are currently using Java ${jdk.javaVersion}.")
 
         where:
@@ -43,7 +43,7 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
         file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.canonicalPath)
 
         expect:
-        def failure = wrapperExecuter.withTasks("help").runWithFailure()
+        def failure = wrapperExecuter.withTasks("help", "--offline").runWithFailure()
         failure.assertHasErrorOutput("Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}.")
 
         where:

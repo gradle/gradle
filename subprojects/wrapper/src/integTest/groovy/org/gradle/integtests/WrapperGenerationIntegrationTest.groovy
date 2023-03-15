@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
+import spock.util.Exceptions
 
 import java.util.jar.Attributes
 import java.util.jar.Manifest
@@ -177,7 +178,8 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         Throwable throwable = thrown()
-        def exception = throwable.cause.cause.cause
+        List<Throwable> causeChain = Exceptions.getCauseChain(throwable);
+        def exception = causeChain.get(causeChain.size()-2)
         assert exception.class == UncheckedIOException.class
         assert exception.message == "Test of distribution url failed. Please check the values set with --gradle-distribution-url and --gradle-version."
 
