@@ -47,47 +47,24 @@ trait TestProjectInitiation {
         def bJar = withEmptyJar("classes_b.jar")
         def precompiledJar = withEmptyJar("classes_b_precompiled.jar")
 
-        def some = withFile("some.gradle.kts", """
-            buildscript {
-                dependencies {
-                    classpath(files("${escapeString(someJar)}"))
-                }
-            }
-        """)
-        def settings = withSettings("""
-            buildscript {
-                dependencies {
-                    classpath(files("${escapeString(settingsJar)}"))
-                }
-            }
+        def some = withFile("some.gradle.kts", getBuildScriptDependency(someJar))
+        def settings = withSettings("""${getBuildScriptDependency(settingsJar)}
             apply(from = "some.gradle.kts")
             include("a", "b")
         """)
         def root = withBuildScript("""
-            buildscript {
-                dependencies {
-                    classpath(files("${escapeString(rootJar)}"))
-                }
-            }
+            ${getBuildScriptDependency(rootJar)}
             apply(from = "some.gradle.kts")
         """)
         def a = withBuildScriptIn("a", """
-            buildscript {
-                dependencies {
-                    classpath(files("${escapeString(aJar)}"))
-                }
-            }
+            ${getBuildScriptDependency(aJar)}
             apply(from = "../some.gradle.kts")
         """)
         def b = withBuildScriptIn("b", """
             plugins {
                 `kotlin-dsl`
             }
-            buildscript {
-                dependencies {
-                    classpath(files("${escapeString(bJar)}"))
-                }
-            }
+            ${getBuildScriptDependency(bJar)}
             apply(from = "../some.gradle.kts")
 
             $repositoriesBlock
@@ -117,6 +94,33 @@ trait TestProjectInitiation {
                 precompiled: precompiledJar
             ]
         )
+    }
+
+    BuildSpec withMultiProject(){
+        def settings = withSettings("""
+            include("a", "b")
+        """)
+        def a = withBuildScriptIn("a", """
+        """)
+        def b = withBuildScriptIn("b", """
+        """)
+        return new BuildSpec(
+            scripts: [
+                settings: settings,
+                a: a,
+                b: b
+            ]
+        )
+    }
+
+    String getBuildScriptDependency(someJar) {
+        """
+            buildscript {
+                dependencies {
+                    classpath(files("${escapeString(someJar)}"))
+                }
+            }
+        """
     }
 
     TestFile withDefaultSettings() {
