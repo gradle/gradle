@@ -34,8 +34,6 @@ class ConfigurationRolesSpec extends Specification {
         false       | true          | false             | false                 | false                 | false                         || ConfigurationRoles.INTENDED_RESOLVABLE
         false       | true          | true              | false                 | false                 | false                         || ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET
         false       | false         | true              | false                 | false                 | false                         || ConfigurationRoles.INTENDED_BUCKET
-        true        | true          | true              | false                 | true                  | true                          || ConfigurationRoles.DEPRECATED_CONSUMABLE
-        true        | true          | true              | true                  | false                 | true                          || ConfigurationRoles.DEPRECATED_RESOLVABLE
     }
 
     def "can not find unknown usage combinations consumable=#consumable, resolvable=#resolvable, declarableAgainst=#declarableAgainst, consumptionDeprecated=#consumptionDeprecated, resolutionDeprecated=#resolutionDeprecated, declarationAgainstDeprecated=#declarationAgainstDeprecated"() {
@@ -60,8 +58,6 @@ class ConfigurationRolesSpec extends Specification {
         ConfigurationRoles.INTENDED_CONSUMABLE          || "Intended Consumable"
         ConfigurationRoles.INTENDED_RESOLVABLE          || "Intended Resolvable"
         ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET   || "Intended Resolvable Bucket"
-        ConfigurationRoles.DEPRECATED_CONSUMABLE        || "Deprecated Consumable"
-        ConfigurationRoles.DEPRECATED_RESOLVABLE        || "Deprecated Resolvable"
         ConfigurationRoles.LEGACY                       || "Legacy"
     }
 }

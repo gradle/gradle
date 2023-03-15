@@ -69,19 +69,7 @@ public enum ConfigurationRoles implements ConfigurationRole {
      *
      * AKA {@code INTENDED_DECLARABLE}.
      */
-    INTENDED_BUCKET(false, false, true, false, false, false),
-
-    /**
-     * Meant to be used only for consumption, permits other usage but emits warnings if used otherwise.
-     */
-    @Deprecated
-    DEPRECATED_CONSUMABLE(true, true, true, false, true, true),
-
-    /**
-     * Meant to be used only for resolution, permits other usage but emits warnings if used otherwise.
-     */
-    @Deprecated
-    DEPRECATED_RESOLVABLE(true, true, true, true, false, true);
+    INTENDED_BUCKET(false, false, true, false, false, false);
 
     private final boolean consumable;
     private final boolean resolvable;

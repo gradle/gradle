@@ -100,42 +100,6 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
     }
 
     /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#DEPRECATED_CONSUMABLE}.
-     */
-    @SuppressWarnings("deprecation")
-    default Configuration deprecatedConsumable(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.DEPRECATED_CONSUMABLE, lockRole);
-    }
-
-    /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#DEPRECATED_RESOLVABLE}.
-     */
-    @SuppressWarnings("deprecation")
-    default Configuration deprecatedResolvable(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.DEPRECATED_RESOLVABLE, lockRole);
-    }
-
-    /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#DEPRECATED_CONSUMABLE} that is <strong>NOT</strong> locked
-     * against further usage mutations.
-     */
-    default Configuration deprecatedConsumable(String name) {
-        return deprecatedConsumable(name, false);
-    }
-
-    /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#DEPRECATED_RESOLVABLE} that is <strong>NOT</strong> locked
-     * against further usage mutations.
-     */
-    default Configuration deprecatedResolvable(String name) {
-        return deprecatedResolvable(name, false);
-    }
-
-    /**
      * Creates a new configuration in the same manner as {@link #create(String)} using the given role
      * at creation.
      *
