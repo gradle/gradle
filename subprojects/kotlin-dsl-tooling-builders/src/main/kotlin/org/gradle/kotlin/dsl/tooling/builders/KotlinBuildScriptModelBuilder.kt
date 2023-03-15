@@ -417,9 +417,18 @@ data class KotlinScriptTargetModelBuilder(
             (gradleSource() + classpathSources + accessorsClassPath.src).asFiles,
             implicitImports + additionalImports,
             buildEditorReportsFor(exceptions),
-            exceptions.asSequence().runtimeFailuresLocatedIn(this.scriptFile?.path ?: "").map(::exceptionToString).toList(),
+            getExceptionsForFile(exceptions, this.scriptFile),
             enclosingScriptProjectDir
         )
+    }
+
+
+    private
+    fun getExceptionsForFile(exceptions: List<Exception>, scriptFile: File?): List<String> {
+        return if (scriptFile == null)
+            emptyList()
+        else
+            exceptions.asSequence().runtimeFailuresLocatedIn(scriptFile.path).map(::exceptionToString).toList()
     }
 
     private

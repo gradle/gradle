@@ -79,7 +79,7 @@ fun reportRuntimeExceptionsLocatedIn(
     reports: MutableList<EditorReport>
 ) {
     val actualLinesRange = if (locationAwareHints) scriptFile.readLinesRange() else LongRange.EMPTY
-    exceptions.runtimeFailuresLocatedIn(scriptFile.path).forEach { failure ->
+    exceptions.runtimeFailuresLocatedInAndNotCausedScriptCompilation(scriptFile.path).forEach { failure ->
         if (locationAwareHints && failure.lineNumber in actualLinesRange) {
             reports.add(lineWarning(messageForLocationAwareEditorHint(failure), failure.lineNumber))
         } else {
@@ -107,6 +107,11 @@ fun Sequence<LocationAwareException>.anyNotLocatedIn(scriptPath: String): Boolea
     any { it.message?.contains(scriptPath) != true }
 
 
+private
+fun Sequence<Exception>.runtimeFailuresLocatedInAndNotCausedScriptCompilation(scriptPath: String): Sequence<LocationAwareException> =
+    mapNotNull { it.runtimeFailureLocatedIn(scriptPath) }.filter { !it.isCausedByScriptCompilationException }
+
+
 fun Sequence<Exception>.runtimeFailuresLocatedIn(scriptPath: String): Sequence<LocationAwareException> =
     mapNotNull { it.runtimeFailureLocatedIn(scriptPath) }
 
@@ -114,8 +119,7 @@ fun Sequence<Exception>.runtimeFailuresLocatedIn(scriptPath: String): Sequence<L
 private
 tailrec fun Throwable.runtimeFailureLocatedIn(scriptPath: String): LocationAwareException? {
     if (this is LocationAwareException && message?.contains(scriptPath) == true) {
-        return if (isCausedByScriptCompilationException) null
-        else this
+        return this
     }
     val next = cause ?: return null
     return next.runtimeFailureLocatedIn(scriptPath)

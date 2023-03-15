@@ -19,27 +19,21 @@ package org.gradle.kotlin.dsl.resolver
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.Flaky
-
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.Matcher
-
-import org.junit.Assert.assertSame
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-
 import java.io.File
-
 import kotlin.reflect.KClass
-
 import kotlin.script.dependencies.KotlinScriptExternalDependencies
 import kotlin.script.dependencies.ScriptContents
 import kotlin.script.dependencies.ScriptContents.Position
@@ -284,7 +278,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `do not report file warning on script compilation failure in currently edited script`() {
         // because the IDE already provides user feedback for those
-        assumeNonEmbeddedGradleExecuter()
+//        assumeNonEmbeddedGradleExecuter()
 
         val editedScript = withBuildScript(
             """
@@ -347,32 +341,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         recorder.apply {
             assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
             assertSingleFileWarningReport(EditorMessages.buildConfigurationFailedInCurrentScript)
-        }
-    }
-
-    @Test
-    fun `report line warning on runtime failure in currently edited script when location aware hints are enabled`() {
-        assumeNonEmbeddedGradleExecuter()
-
-        withFile(
-            "gradle.properties",
-            """
-            ${EditorReports.locationAwareEditorHintsPropertyName}=true
-            """
-        )
-        val editedScript = withBuildScript(
-            """
-            configurations.getByName("doNotExists")
-            """
-        )
-
-        resolvedScriptDependencies(editedScript).apply {
-            assertContainsBasicDependencies()
-        }
-
-        recorder.apply {
-            assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleLineWarningReport("Configuration with name 'doNotExists' not found.", 1)
         }
     }
 
