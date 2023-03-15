@@ -549,8 +549,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    @Deprecated
     @Override
     public Set<Configuration> getAll() {
+        DeprecationLogger.deprecateAction("Calling the Configuration.getAll() method")
+                .withAdvice("Use the configurations container to access the set of configurations instead.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecated_configuration_get_all")
+                .nagUser();
+
         return ImmutableSet.copyOf(configurationsProvider.getAll());
     }
 

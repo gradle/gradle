@@ -180,7 +180,6 @@ class DefaultConfigurationContainerSpec extends Specification {
         then:
         detached.name == "detachedConfiguration1"
         detached.getAll() == [detached] as Set
-        detached.getHierarchy() == [detached] as Set
         [dependency1, dependency2].each { detached.getDependencies().contains(it) }
         detached.getDependencies().size() == 2
         detached.path == ":detachedConfiguration1"

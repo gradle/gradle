@@ -362,4 +362,19 @@ task check {
         expect:
         succeeds ":check"
     }
+
+    def "configuration getAll is deprecated"() {
+        given:
+        buildFile << """
+            configurations {
+                conf {
+                    getAll()
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Calling the Configuration.getAll() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use the configurations container to access the set of configurations instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_get_all")
+        succeeds "help"
+    }
 }
