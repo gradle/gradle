@@ -57,7 +57,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         adhocTaskUsingUndeclaredService(1)
 
         when:
-        succeeds 'broken'
+        succeeds 'broken', '-s'
 
         then:
         outputDoesNotContain "'Task#usesService'"
@@ -405,7 +405,7 @@ service: closed with value 11
         enableStableConfigurationCache()
 
         when:
-        succeeds 'unambiguous'
+        succeeds 'unambiguous', '-s'
 
         then:
         outputDoesNotContain "'Task#usesService'"

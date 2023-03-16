@@ -174,7 +174,7 @@ class TaskNodeCodec(
 
     private
     suspend fun WriteContext.writeRequiredServices(task: TaskInternal) {
-        writeCollection(task.requiredServices.elements)
+        writeCollection(task.requiredServices.searchServices())
     }
 
     private
