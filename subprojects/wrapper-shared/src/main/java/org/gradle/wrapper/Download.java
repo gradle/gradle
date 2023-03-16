@@ -85,14 +85,13 @@ public class Download implements IDownload {
         }
     }
 
-    public void sendHeadRequest(String distributionUrl) throws Exception {
-        URI address = URI.create(distributionUrl);
-        URL safeUrl = safeUri(address).toURL();
+    public void sendHeadRequest(URI uri) throws Exception {
+        URL safeUrl = safeUri(uri).toURL();
         int responseCode = -1;
         try {
             HttpURLConnection conn = (HttpURLConnection)safeUrl.openConnection();
             conn.setRequestMethod("HEAD");
-            addBasicAuthentication(address, conn);
+            addBasicAuthentication(uri, conn);
             conn.setRequestProperty("User-Agent", calculateUserAgent());
             conn.setConnectTimeout(networkTimeout);
             conn.connect();
