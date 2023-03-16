@@ -27,7 +27,6 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
-import org.gradle.util.internal.VersionNumber;
 
 public class JavaToolchain implements Describable, JavaInstallationMetadata {
 
@@ -37,7 +36,6 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
 
     private final Directory javaHome;
     private final JavaLanguageVersion javaVersion;
-    private final VersionNumber toolchainVersion;
     private final JvmInstallationMetadata metadata;
     private final JavaToolchainInput input;
     private final boolean isFallbackToolchain;
@@ -50,7 +48,6 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     ) {
         this.javaHome = fileFactory.dir(metadata.getJavaHome().toFile());
         this.javaVersion = getJavaLanguageVersion(metadata);
-        this.toolchainVersion = VersionNumber.withPatchNumber().parse(metadata.getJavaVersion());
         this.metadata = metadata;
         this.input = input;
         this.isFallbackToolchain = isFallbackToolchain;
@@ -75,11 +72,6 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     @Override
     public String getJvmVersion() {
         return metadata.getJvmVersion();
-    }
-
-    @Internal
-    public VersionNumber getToolchainVersion() {
-        return toolchainVersion;
     }
 
     @Internal

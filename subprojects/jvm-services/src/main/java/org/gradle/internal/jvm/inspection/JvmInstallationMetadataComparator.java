@@ -16,17 +16,17 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.util.internal.VersionNumber;
 
+import java.io.File;
 import java.util.Comparator;
 
 public class JvmInstallationMetadataComparator implements Comparator<JvmInstallationMetadata> {
 
-    private final Jvm currentJvm;
+    private final File currentJavaHome;
 
-    public JvmInstallationMetadataComparator(Jvm currentJvm) {
-        this.currentJvm = currentJvm;
+    public JvmInstallationMetadataComparator(File currentJavaHome) {
+        this.currentJavaHome = currentJavaHome;
     }
 
     @Override
@@ -45,7 +45,7 @@ public class JvmInstallationMetadataComparator implements Comparator<JvmInstalla
     }
 
     boolean isCurrentJvm(JvmInstallationMetadata metadata) {
-        return metadata.getJavaHome().toFile().equals(currentJvm.getJavaHome());
+        return metadata.getJavaHome().toFile().equals(currentJavaHome);
     }
 
     private boolean isJdk(JvmInstallationMetadata metadata) {
