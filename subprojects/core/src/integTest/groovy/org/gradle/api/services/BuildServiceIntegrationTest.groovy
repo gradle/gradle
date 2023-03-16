@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.AbstractTask
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.internal.BuildServiceProvider
@@ -35,7 +36,6 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
-import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.Instantiator
@@ -1491,10 +1491,10 @@ Hello, subproject1
                 final Property<NestedBean> unrelated = objects.property(NestedBean).convention(project.providers.provider {
                     println("Resolving provider")
                     def trace = new Throwable().getStackTrace()
-                    def getResourcesToLock = ${LocalTaskNode.name}.methods.find { it.name == "getResourcesToLock" }
-                    assert getResourcesToLock != null
+                    def getSharedResources = ${AbstractTask.name}.methods.find { it.name == "getSharedResources" }
+                    assert getSharedResources != null
                     assert !trace.any {
-                        it.className == "${LocalTaskNode.name}" && it.methodName == getResourcesToLock.name
+                        it.className == "${AbstractTask.name}" && it.methodName == getSharedResources.name
                     }
                     objects.newInstance(NestedBean)
                 })
