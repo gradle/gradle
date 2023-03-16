@@ -736,7 +736,7 @@ In future releases, we will work on improving the IDE experience and remove thes
 [[sec:kotlin-dsl_plugin]]
 == Writing plugins in Kotlin
 
-See <<../developing-plugins/writing_in_kotlin.adoc, the dedicated page>> for more details about how to write your plugins in Kotlin
+See <<../developing-plugins/kotlin_gradle_plugins.adoc, the dedicated page>> for more details about how to write your plugins in Kotlin
 
 [[sec:interoperability]]
 == Interoperability
