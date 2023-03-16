@@ -174,14 +174,14 @@ public abstract class Wrapper extends DefaultTask {
             String url = getDistributionUrl();
             URI uri = URI.create(url);
             if (uri.getScheme().equals("file")) {
-                if (!Files.exists(Paths.get(uri.getPath()).toAbsolutePath())) {
-                    throw new UncheckedIOException(DISTRIBUTION_URL_EXCEPTION_MESSAGE + " " + uri);
+                if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
+                    throw new UncheckedIOException(DISTRIBUTION_URL_EXCEPTION_MESSAGE);
                 }
             } else if (uri.getScheme().startsWith("http") && !isOffline) {
                 try {
-                    new Download(new Logger(true), "gradlew", Download.UNKNOWN_VERSION).sendHeadRequest(url);
+                    new Download(new Logger(true), "gradlew", Download.UNKNOWN_VERSION).sendHeadRequest(uri);
                 } catch (Exception e) {
-                    throw new UncheckedIOException(DISTRIBUTION_URL_EXCEPTION_MESSAGE + " " + uri, e);
+                    throw new UncheckedIOException(DISTRIBUTION_URL_EXCEPTION_MESSAGE, e);
                 }
             }
         }
