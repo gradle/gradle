@@ -236,7 +236,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean insideBeforeResolve;
 
     private boolean dependenciesModified;
-    private byte allowedUsage = Usage.EVERYTHING_ALLOWED_NOTHING_DEPRECATED;
+    private byte allowedUsage = Usage.EVERY_NONDEPRECATED_USAGE;
     private boolean usageCanBeMutated = true;
     private final ConfigurationRole roleAtCreation;
 
@@ -2452,7 +2452,7 @@ since users cannot create non-legacy configurations and there is no current publ
         DEPRECATED_FOR_RESOLUTION((byte) 16),
         DEPRECATED_FOR_DECLARATION_AGAINST((byte) 32);
 
-        private static final byte EVERYTHING_ALLOWED_NOTHING_DEPRECATED = (byte) (CONSUMABLE.mask | RESOLVABLE.mask | DECLARABLE_AGAINST.mask);
+        private static final byte EVERY_NONDEPRECATED_USAGE = (byte) (CONSUMABLE.mask | RESOLVABLE.mask | DECLARABLE_AGAINST.mask);
 
         private final byte mask;
 
