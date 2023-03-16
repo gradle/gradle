@@ -2452,7 +2452,7 @@ since users cannot create non-legacy configurations and there is no current publ
         DEPRECATED_FOR_RESOLUTION((byte) 16),
         DEPRECATED_FOR_DECLARATION_AGAINST((byte) 32);
 
-        private static final byte EVERYTHING_ALLOWED_NOTHING_DEPRECATED = 7; // consumable & resolvable & declarable_against
+        private static final byte EVERYTHING_ALLOWED_NOTHING_DEPRECATED = (byte) (CONSUMABLE.mask | RESOLVABLE.mask | DECLARABLE_AGAINST.mask);
 
         private final byte mask;
 
