@@ -395,7 +395,8 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         }
 
         void hasDependencyAlias(String name, String methodName = "get${toJavaName(name)}", String javadoc = null) {
-            def lookup = "public Provider<MinimalExternalModuleDependency> $methodName() {"
+            name = AliasNormalizer.normalize(name)
+            def lookup = "public Provider<MinimalExternalModuleDependency> $methodName() { return create(\"$name\"); }"
             def result = Lookup.find(lines, lookup)
             assert result.match
             if (javadoc) {
@@ -404,7 +405,8 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         }
 
         void hasBundle(String name, String methodName = "get${toJavaName(name)}Bundle", String javadoc = null) {
-            def lookup = "public Provider<ExternalModuleDependencyBundle> $methodName() {"
+            name = AliasNormalizer.normalize(name)
+            def lookup = "public Provider<ExternalModuleDependencyBundle> $methodName() { return createBundle(\"$name\"); }"
             def result = Lookup.find(lines, lookup)
             assert result.match
             if (javadoc) {
@@ -413,7 +415,8 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         }
 
         void hasVersion(String name, String methodName = "get${toJavaName(name)}Version", String javadoc = null) {
-            def lookup = "public Provider<String> $methodName() {"
+            name = AliasNormalizer.normalize(name)
+            def lookup = "public Provider<String> $methodName() { return getVersion(\"$name\"); }"
             def result = Lookup.find(lines, lookup)
             assert result.match
             if (javadoc) {

@@ -23,7 +23,6 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRe
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequestsOf
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CloseTargetScope
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
-import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CollectProjectScriptDependencies
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.SetupEmbeddedKotlin
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 
@@ -95,30 +94,11 @@ class PartialEvaluator(
 
     private
     fun reduceBuildscriptProgram(program: Program.Buildscript): Static =
-
-        when (programTarget) {
-
-            ProgramTarget.Project -> when (programKind) {
-
-                ProgramKind.TopLevel -> Static(
-                    SetupEmbeddedKotlin,
-                    CollectProjectScriptDependencies(fragmentHolderSourceFor(program)),
-                    defaultStageTransition()
-                )
-
-                ProgramKind.ScriptPlugin -> Static(
-                    SetupEmbeddedKotlin,
-                    Eval(fragmentHolderSourceFor(program)),
-                    defaultStageTransition()
-                )
-            }
-
-            else -> Static(
-                SetupEmbeddedKotlin,
-                Eval(fragmentHolderSourceFor(program)),
-                defaultStageTransition()
-            )
-        }
+        Static(
+            SetupEmbeddedKotlin,
+            Eval(fragmentHolderSourceFor(program)),
+            defaultStageTransition()
+        )
 
     private
     fun fragmentHolderSourceFor(program: Program.FragmentHolder): ProgramSource {
@@ -187,23 +167,12 @@ class PartialEvaluator(
 
             when (programTarget) {
 
-                ProgramTarget.Project ->
-
-                    when (programKind) {
-                        ProgramKind.TopLevel -> Static(
-                            SetupEmbeddedKotlin,
-                            CollectProjectScriptDependencies(fragmentHolderSourceFor(stage1)),
-                            ApplyDefaultPluginRequests,
-                            ApplyBasePlugins
-                        )
-
-                        ProgramKind.ScriptPlugin -> Static(
-                            SetupEmbeddedKotlin,
-                            Eval(fragmentHolderSourceFor(stage1)),
-                            ApplyDefaultPluginRequests,
-                            ApplyBasePlugins
-                        )
-                    }
+                ProgramTarget.Project -> Static(
+                    SetupEmbeddedKotlin,
+                    Eval(fragmentHolderSourceFor(stage1)),
+                    ApplyDefaultPluginRequests,
+                    ApplyBasePlugins
+                )
 
                 else -> reduceBuildscriptProgram(stage1)
             }

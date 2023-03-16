@@ -67,7 +67,7 @@ open class CompiledKotlinBuildScript(
  */
 @ImplicitReceiver(Project::class)
 open class CompiledKotlinBuildscriptBlock(
-    private val host: KotlinScriptHost<Project>
+    host: KotlinScriptHost<Project>
 ) : CompiledKotlinBuildScript(host) {
 
     /**
@@ -76,7 +76,7 @@ open class CompiledKotlinBuildscriptBlock(
      * @see [Project.buildscript]
      */
     override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        ScriptHandlerScopeInternal(host.target, buildscript).block()
+        ScriptHandlerScope(buildscript).block()
     }
 }
 

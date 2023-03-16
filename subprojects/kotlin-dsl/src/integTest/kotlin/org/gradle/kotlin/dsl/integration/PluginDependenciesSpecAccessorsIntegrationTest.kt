@@ -25,7 +25,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class PluginSpecBuilderAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
+class PluginDependenciesSpecAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")

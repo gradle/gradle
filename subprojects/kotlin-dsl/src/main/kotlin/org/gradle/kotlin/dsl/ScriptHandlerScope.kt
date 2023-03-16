@@ -36,7 +36,7 @@ import org.gradle.kotlin.dsl.support.unsafeLazy
 /**
  * Receiver for the `buildscript` block.
  */
-open class ScriptHandlerScope(
+class ScriptHandlerScope(
     private val delegate: ScriptHandler
 ) : ScriptHandler by delegate {
 

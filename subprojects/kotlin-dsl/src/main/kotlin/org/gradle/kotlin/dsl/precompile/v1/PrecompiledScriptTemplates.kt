@@ -50,17 +50,6 @@ import kotlin.script.templates.ScriptTemplateDefinition
 
 
 /**
- * Base script template for compilation of `plugins {}` blocks extracted from precompiled scripts.
- */
-open class PrecompiledPluginsBlock(private val pluginDependencies: PluginDependenciesSpec) {
-
-    fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
-        PluginDependenciesSpecScope(pluginDependencies).configuration()
-    }
-}
-
-
-/**
  * Script template definition for precompiled Kotlin script targeting [Gradle] instances.
  *
  * @see PrecompiledProjectScript

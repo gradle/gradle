@@ -315,11 +315,7 @@ typealias KmTypeBuilder = KmTypeVisitor.() -> Unit
 
 internal
 fun jvmGetterSignatureFor(propertyName: String, desc: String): JvmMethodSignature =
-    // Accessors honor the kotlin property jvm interop convention.
-    // The only difference with JavaBean 1.01 is to prefer `get` over `is` for boolean properties.
-    // The following code also complies with Section 8.8 of the spec, "Capitalization of inferred names.".
-    // Sun: "However to support the occasional use of all upper-case names,
-    //       we check if the first two characters of the name are both upper case and if so leave it alone."
+    // TODO:accessors Honor JavaBeans convention?
     JvmMethodSignature("get${propertyName.uppercaseFirstChar()}", desc)
 
 
