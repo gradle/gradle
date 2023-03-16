@@ -68,18 +68,10 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
         return calculateOwnValue(ValueConsumer.DisallowUnsafeRead).get();
     }
 
-    @Override
-    protected Value<? extends T> calculateOwnPresentValue() {
-        Value<? extends T> value = calculateOwnValue(ValueConsumer.DisallowUnsafeRead);
-        if (value.isMissing()) {
-            throwMissingValueException(value);
-        }
-        return value;
-    }
-
-    @Override
-    public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        return super.calculateExecutionTimeValue();
+    @Nullable
+    public RegisteredBuildServiceProvider<T, ?> resolveIfPossible() {
+        resolve(false);
+        return resolvedProvider;
     }
 
     @Nullable

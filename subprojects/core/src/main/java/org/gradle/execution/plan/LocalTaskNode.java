@@ -236,7 +236,7 @@ public class LocalTaskNode extends TaskNode {
 
             mutations.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
             // piggyback on mutation resolution to declare service references as used services
-            taskProperties.getServiceReferences().forEach(it -> task.usesService(it.getBuildServiceName(), it.getBuildServiceType()));
+            task.acceptServiceReferences(taskProperties.getServiceReferences());
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
         }
