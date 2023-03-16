@@ -16,22 +16,15 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.internal.BuildServiceProvider;
-import org.gradle.internal.Cast;
-import org.gradle.internal.properties.PropertyValue;
-import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.bean.PropertyWalker;
 
 import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import static java.util.Collections.emptySet;
 
@@ -54,43 +47,12 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
 
     @Override
     public Set<Provider<? extends BuildService<?>>> getElements() {
-        ImmutableSet.Builder<Provider<? extends BuildService<?>>> allUsedServices = ImmutableSet.builder();
-        Set<Provider<? extends BuildService<?>>> registeredServices = this.registeredServices != null ? this.registeredServices : emptySet();
-        allUsedServices.addAll(registeredServices);
-        collectRequiredServices(allUsedServices);
-        return allUsedServices.build();
+        return this.registeredServices != null ? this.registeredServices : emptySet();
     }
 
     @Override
     public boolean isServiceRequired(Provider<? extends BuildService<?>> toCheck) {
         return getElements().stream().anyMatch(it -> BuildServiceProvider.isSameService(toCheck, it));
-    }
-
-    /**
-     * Collects services declared as referenced (via @ServiceReference) into the given set.
-     */
-    private void collectRequiredServices(ImmutableSet.Builder<Provider<? extends BuildService<?>>> requiredServices) {
-        visitServiceReferences(referenceProvider ->
-            requiredServices.add(asBuildServiceProvider(referenceProvider))
-        );
-    }
-
-    private Provider<? extends BuildService<?>> asBuildServiceProvider(Provider<? extends BuildService<?>> referenceProvider) {
-        if (referenceProvider instanceof DefaultProperty) {
-            DefaultProperty<?> asProperty = Cast.uncheckedNonnullCast(referenceProvider);
-            ProviderInternal<?> provider = asProperty.getProvider();
-            return Cast.uncheckedNonnullCast(provider);
-        }
-        return referenceProvider;
-    }
-
-    private void visitServiceReferences(Consumer<Provider<? extends BuildService<?>>> visitor) {
-        TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor() {
-            @Override
-            public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName, Class<? extends BuildService<?>> buildServiceType) {
-                visitor.accept(Cast.uncheckedCast(value.call()));
-            }
-        });
     }
 
     @Override

@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskRequiredServices;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.services.BuildService;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
@@ -114,6 +115,8 @@ public interface TaskInternal extends Task, Configurable<Task> {
      */
     @Internal
     List<? extends ResourceLock> getSharedResources();
+
+    void usesService(String name, Class<? extends BuildService<?>> type);
 
     /**
      * "Lifecycle dependencies" are dependencies of this task declared via an explicit {@link Task#dependsOn(Object...)} call,

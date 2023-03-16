@@ -22,9 +22,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
-import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.properties.bean.PropertyWalker;
@@ -92,7 +90,7 @@ public class LocalTaskNode extends TaskNode {
     @Override
     public List<? extends ResourceLock> getResourcesToLock() {
         if (resourceLocks == null) {
-            resourceLocks = collectResourcesToLock();
+            resourceLocks = task.getSharedResources();
         }
         return resourceLocks;
     }
@@ -222,12 +220,6 @@ public class LocalTaskNode extends TaskNode {
         }
     }
 
-    private List<? extends ResourceLock> collectResourcesToLock() {
-        BuildServiceRegistryInternal buildServiceRegistry = taskProject.getServices().get(BuildServiceRegistryInternal.class);
-        Set<ServiceReferenceSpec> serviceReferences = taskProperties.getServiceReferences();
-        return buildServiceRegistry.getSharedResources(serviceReferences);
-    }
-
     public void resolveMutations() {
         final LocalTaskNode taskNode = this;
         final TaskInternal task = getTask();
@@ -243,6 +235,8 @@ public class LocalTaskNode extends TaskNode {
             addDestroyablesToMutations(taskProperties.getDestroyableFiles());
 
             mutations.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
+            // piggyback on mutation resolution to declare service references as used services
+            taskProperties.getServiceReferences().forEach(it -> task.usesService(it.getBuildServiceName(), it.getBuildServiceType()));
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
         }

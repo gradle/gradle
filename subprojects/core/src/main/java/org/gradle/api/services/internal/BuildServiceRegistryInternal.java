@@ -16,7 +16,7 @@
 
 package org.gradle.api.services.internal;
 
-import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistration;
@@ -54,6 +54,9 @@ public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
     BuildServiceProvider<?, ?> consume(String name, Class<? extends BuildService<?>> implementationType);
 
     @Nullable
+    SharedResource forService(BuildServiceProvider<?, ?> service);
+
+    @Nullable
     BuildServiceRegistration<?, ?> findByName(String name);
 
     @Nullable
@@ -62,5 +65,7 @@ public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
     @Nullable
     BuildServiceRegistration<?, ?> findRegistration(Class<?> type, String name);
 
-    List<ResourceLock> getSharedResources(Set<ServiceReferenceSpec> services);
+    Set<BuildServiceRegistration<?, ?>> findRegistrations(Class<?> type, String name);
+
+    List<ResourceLock> getSharedResources(Set<Provider<? extends BuildService<?>>> services);
 }
