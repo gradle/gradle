@@ -286,6 +286,26 @@ class ConfigurationCacheFingerprintWriter(
         addSystemPropertyToFingerprint(key, value, consumer)
     }
 
+    override fun fileSystemEntryMutated(file: File, kind: UndeclaredBuildInputListener.FileSystemEntryMutationKind, consumer: String?) {
+        if (isInputTrackingDisabled() || isExecutingWork()) {
+            return
+        }
+        reportFileSystemEntryMutation(file, kind)
+    }
+
+    private fun reportFileSystemEntryMutation(file: File, kind: UndeclaredBuildInputListener.FileSystemEntryMutationKind) {
+        val exception = Exception("Tried to mutate a file system entry ${host.displayNameOf(file)} at configuration time")
+        host.reportProblem(exception, null) {
+            text(
+                when (kind) {
+                    UndeclaredBuildInputListener.FileSystemEntryMutationKind.DELETE -> "Deleting files or directories"
+                    UndeclaredBuildInputListener.FileSystemEntryMutationKind.MOVE -> "Moving files or directories"
+                    UndeclaredBuildInputListener.FileSystemEntryMutationKind.MKDIR -> "Creating directories"
+                })
+            text(" at configuration time is not supported")
+        }
+    }
+
     private
     fun addSystemPropertyToFingerprint(key: String, value: Any?, consumer: String? = null) {
         if (isSystemPropertyMutated(key)) {

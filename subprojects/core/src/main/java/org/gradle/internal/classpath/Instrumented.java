@@ -98,6 +98,10 @@ public class Instrumented {
         @Override
         public void directoryContentObserved(File file, String consumer) {
         }
+
+        @Override
+        public void fileSystemMutatingApiUsed(File file, FileSystemMutatingOperationKind operationKind, String consumer) {
+        }
     };
 
     private static final AtomicReference<Listener> LISTENER = new AtomicReference<>(NO_OP);
@@ -593,6 +597,15 @@ public class Instrumented {
         void fileSystemEntryObserved(File file, String consumer);
 
         void directoryContentObserved(File file, String consumer);
+
+        /**
+         * Invoked when the code performs mutating operations on file system entries, such as deleting or renaming a file,
+         * or creating a directory.
+         * @param file the file system entry that is the target of such an operation
+         * @param operationKind the kind of the mutating operation
+         * @param consumer the name of the class that is performing the mutating operation
+         */
+        void fileSystemMutatingApiUsed(File file, FileSystemMutatingOperationKind operationKind, String consumer);
     }
 
     /**

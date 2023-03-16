@@ -36,5 +36,11 @@ interface UndeclaredBuildInputListener {
 
     fun fileSystemEntryObserved(file: File, consumer: String?)
 
+    fun fileSystemEntryMutated(file: File, kind: FileSystemEntryMutationKind, consumer: String?)
+
+    enum class FileSystemEntryMutationKind {
+        DELETE, MOVE, MKDIR
+    }
+
     fun directoryChildrenObserved(directory: File, consumer: String?)
 }

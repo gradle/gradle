@@ -16,10 +16,12 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.configurationcache.UndeclaredBuildInputListener.FileSystemEntryMutationKind
 import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.classpath.Instrumented
+import org.gradle.internal.classpath.Instrumented.FileSystemMutatingOperationKind
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
@@ -133,5 +135,18 @@ class InstrumentedInputAccessListener(
             return
         }
         undeclaredInputBroadcast.directoryChildrenObserved(directory, consumer)
+    }
+
+    override fun fileSystemMutatingApiUsed(file: File, operationKind: FileSystemMutatingOperationKind, consumer: String) {
+        if (Workarounds.canReadFiles(consumer)) {
+            return
+        }
+        undeclaredInputBroadcast.fileSystemEntryMutated(file, operationKind.toReportedKind(), consumer)
+    }
+
+    private fun FileSystemMutatingOperationKind.toReportedKind(): FileSystemEntryMutationKind = when (this) {
+        FileSystemMutatingOperationKind.DELETE -> FileSystemEntryMutationKind.DELETE
+        FileSystemMutatingOperationKind.MOVE -> FileSystemEntryMutationKind.MOVE
+        FileSystemMutatingOperationKind.MKDIR -> FileSystemEntryMutationKind.MKDIR
     }
 }
