@@ -395,14 +395,18 @@ See [the upgrading guide](userguide/upgrading_version_8.html#cache_marking) for 
 
 ### IDE Integration
 
+The following improvements are for IDE integrators.
+They will be available for end-users in future IDE releases once they are used by IDE vendors.
+
 #### Builds launched via the IDE use the same log level as the command-line
 
-Previously, wehen executing a build via the IDE, the log level settings provided in the project's `gradle.properties` file were ignored.
+Previously, when executing a build via the IDE, the log level settings provided in the project's `gradle.properties` file were ignored.
 Some IDE vendors worked around this shortcoming by setting the log level in other ways to meet user expectations.
 
-The Tooling API now honors the `org.gradle.logging.loglevel` setting in the project's `gradle.properties` and applies it as expected to builds started from the IDE.
+The [Tooling API](userguide/third_party_integration.html#embedding) now honors the `org.gradle.logging.loglevel` setting in the project's `gradle.properties` and applies it as expected to builds started from the IDE.
 
 Learn more about [changing log levels](userguide/logging.html#sec:choosing_a_log_level) in the user manual.
+
 
 ## Promoted features
 
@@ -414,8 +418,16 @@ The following are the features that have been promoted in this Gradle release.
 
 ### Configuration cache
 
-The Configuration cache feature is now out of incubation and ready for general consumption.
-When enabled, the configuration cache significantly improves build performance by caching the result of the configuration phase and reusing it for subsequent builds.
+The configuration cache feature is now officially out of incubation and is ready for general use.
+It is important to note, however, that utilizing this feature may require modifications to build logic and applied plugins to ensure full support.
+
+The implementation of the configuration cache is not yet complete.
+However, you can expect the configuration cache to evolve with new features and enhancements in upcoming Gradle versions, offering support for a broader range of use cases.
+To explore the features currently under consideration for implementation, please refer to the [documentation](userguide/configuration_cache.html#config_cache:not_yet_implemented).
+
+Enabling the configuration cache can yield a significant boost in build performance, as it caches the result of the configuration phase and reuses it for subsequent builds.
+This means that subsequent builds no longer have to re-execute the configuration phase, resulting in faster and more efficient builds.
+
 Configuration cache was introduced as an experimental feature back in [Gradle 6.6](https://docs.gradle.org/6.6/release-notes.html#configuration-caching).
 
 To learn how to benefit from this feature, refer to the [Configuration Cache](userguide/configuration_cache.html) documentation.
