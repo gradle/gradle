@@ -139,7 +139,7 @@ class TaskDetails {
     public static TaskDetails from(Task task, OptionReader optionReader) {
         String path = task.getPath();
         int projectDepth = StringUtils.countMatches(path, Project.PATH_SEPARATOR);
-        List<OptionDetails> options = TaskOptionSupplier.get(task, optionReader).stream().map(OptionDetails::from).collect(Collectors.toList());
+        List<OptionDetails> options = new TaskOptionSupplier(task, optionReader).getAllOptions().stream().map(OptionDetails::from).collect(Collectors.toList());
         Class<?> declaredTaskType = getDeclaredTaskType(task);
         String taskType = declaredTaskType.getName();
         String shortTypeName = declaredTaskType.getSimpleName();

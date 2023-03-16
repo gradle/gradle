@@ -26,7 +26,7 @@ import java.util.Set;
 /**
  * A flag, does not take an argument.
  *
- * If a command line option is provided, the {@link org.gradle.execution.commandline.CommandLineTaskConfigurer} automatically creates an opposite option.
+ * If a command line option is provided, the {@link org.gradle.api.internal.tasks.TaskOptionSupplier} automatically creates an opposite option.
  * For example, {@code "--no-foo"} is created for the provided option {@code "--foo"} or {@code "--bar"} for the provided option {@code "--no-bar"}.
  *
  * Options whose names starts with "--no" are 'disable options' and set the option value to false.
@@ -35,45 +35,26 @@ public class BooleanOptionElement extends AbstractOptionElement {
     private static final String DISABLE_DESC_PREFIX = "Disables option --";
     private static final String OPPOSITE_DESC_PREFIX = "Opposite option of --";
     private static final String DISABLE_NAME_PREFIX = "no-";
-    private final boolean isOpposite;
     private final PropertySetter setter;
-    private BooleanOptionElement opposite = null;
 
     public BooleanOptionElement(String optionName, Option option, PropertySetter setter) {
         super(optionName, option, Void.TYPE, setter.getDeclaringClass());
-        this.isOpposite = false;
         this.setter = setter;
     }
 
-    private BooleanOptionElement(String optionName, String optionDescription, PropertySetter setter, BooleanOptionElement opposite) {
+    private BooleanOptionElement(String optionName, String optionDescription, PropertySetter setter) {
         super(optionDescription, optionName, Void.TYPE);
-        this.isOpposite = true;
-        this.opposite = opposite;
         this.setter = setter;
     }
 
     public static BooleanOptionElement oppositeOf(BooleanOptionElement optionElement) {
         String optionName = optionElement.getOptionName();
-        BooleanOptionElement opposite;
-        if (optionElement.isDisableOption()) {
-            opposite = new BooleanOptionElement(removeDisablePrefix(optionName), OPPOSITE_DESC_PREFIX + optionName, optionElement.setter, optionElement);
-        } else {
-            opposite = new BooleanOptionElement(DISABLE_NAME_PREFIX + optionName, DISABLE_DESC_PREFIX + optionName, optionElement.setter, optionElement);
-        }
-        optionElement.setOpposite(opposite);
-        return opposite;
+        return optionElement.isDisableOption() ? new BooleanOptionElement(removeDisablePrefix(optionName), OPPOSITE_DESC_PREFIX + optionName, optionElement.setter)
+            : new BooleanOptionElement(DISABLE_NAME_PREFIX + optionName, DISABLE_DESC_PREFIX + optionName, optionElement.setter);
     }
 
     public boolean isDisableOption() {
         return this.getOptionName().startsWith(DISABLE_NAME_PREFIX);
-    }
-
-    public boolean isOpposite() {
-        return this.isOpposite;
-    }
-
-    public BooleanOptionElement getOpposite() {
-        return this.opposite;
     }
 
     @Override
@@ -88,9 +69,6 @@ public class BooleanOptionElement extends AbstractOptionElement {
         } else {
             setter.setValue(object, Boolean.TRUE);
         }
-    }
-    private void setOpposite(BooleanOptionElement opposite) {
-        this.opposite = opposite;
     }
 
     private static String removeDisablePrefix(String optionName) {

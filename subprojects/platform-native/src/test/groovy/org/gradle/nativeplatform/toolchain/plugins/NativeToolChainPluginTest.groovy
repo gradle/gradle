@@ -43,7 +43,7 @@ abstract class NativeToolChainPluginTest extends AbstractProjectBuilderSpec {
     }
 
     NativeToolChainInternal getToolchain() {
-        registry.get("toolChains", NativeToolChainRegistryInternal).getByName(getToolchainName()) as NativeToolChainInternal
+        registry.getAllOptions("toolChains", NativeToolChainRegistryInternal).getByName(getToolchainName()) as NativeToolChainInternal
     }
 
     void register() {

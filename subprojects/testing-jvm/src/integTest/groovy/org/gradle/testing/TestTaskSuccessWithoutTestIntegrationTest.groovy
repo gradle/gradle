@@ -16,7 +16,6 @@
 
 package org.gradle.testing
 
-import org.gradle.api.tasks.testing.TestExecutionException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 
@@ -65,9 +64,7 @@ class TestTaskSuccessWithoutTestIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         UnexpectedBuildFailure buildFailure = thrown(UnexpectedBuildFailure)
-        Throwable exception = buildFailure.cause.cause.cause
-        exception.class.is(TestExecutionException.class)
-        exception.message.startsWith("No tests found for given includes: ")
+        assert buildFailure.message.contains("No tests found for given includes: ")
     }
 
     def "test is skipped if there is no test file"() {

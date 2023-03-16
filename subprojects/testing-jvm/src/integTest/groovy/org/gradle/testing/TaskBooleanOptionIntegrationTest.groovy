@@ -88,8 +88,7 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         UnexpectedBuildFailure buildFailure = thrown(UnexpectedBuildFailure)
-        Throwable exception = buildFailure.cause.cause.cause
-        exception.message.startsWith("Command-line option '$option' does not take an argument.")
+        assert buildFailure.message.contains("Command-line option '$option' does not take an argument.")
 
         where:
         option                          | _

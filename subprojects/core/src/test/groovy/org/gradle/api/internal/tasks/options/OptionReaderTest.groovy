@@ -35,7 +35,7 @@ class OptionReaderTest extends Specification {
 
     def "can read options linked to setter methods of a task"() {
         when:
-        List<InstanceOptionDescriptor> options = TaskOptionSupplier.get(new TestClassWithSetters(), reader)
+        List<InstanceOptionDescriptor> options = new TaskOptionSupplier(new TestClassWithSetters(), reader).getAllOptions()
         then:
         options[0].name == "aFlag"
         options[0].description == "simple flag"
@@ -80,7 +80,7 @@ class OptionReaderTest extends Specification {
 
     def "can read options linked to property getter methods of a task"() {
         when:
-        List<InstanceOptionDescriptor> options = TaskOptionSupplier.get(new TestClassWithProperties(), reader)
+        List<InstanceOptionDescriptor> options = new TaskOptionSupplier(new TestClassWithProperties(), reader).getAllOptions()
         then:
         options[0].name == "booleanValue"
         options[0].description == "boolean value"
@@ -110,14 +110,14 @@ class OptionReaderTest extends Specification {
 
     def "built-in options appear last"() {
         when:
-        List<OptionDescriptor> options = TaskOptionSupplier.get(new TestClassWithProperties(), reader)
+        List<OptionDescriptor> options = new TaskOptionSupplier(new TestClassWithProperties(), reader).getAllOptions()
         int ownOptions = 5
         then:
         options.forEach {it -> System.out.println(it.name + " " + it.description)}
 
-        TaskOptionSupplier.BUILT_IN_OPTIONS.values().eachWithIndex { BuiltInOptionElement entry, int i ->
-            assert options[ownOptions + i].name == entry.optionName
-            assert options[ownOptions + i].description == entry.description
+        TaskOptionSupplier.BUILT_IN_OPTIONS.eachWithIndex { BuiltInOptionElement optionElement, int i ->
+            assert options[ownOptions + i].name == optionElement.optionName
+            assert options[ownOptions + i].description == optionElement.description
             assert options[ownOptions + i].argumentType == Void.TYPE
             assert options[ownOptions + i].availableValues == [] as Set
         }
@@ -125,7 +125,7 @@ class OptionReaderTest extends Specification {
 
     def "task own options shadow built-in options"() {
         when:
-        List<InstanceOptionDescriptor> options = TaskOptionSupplier.get(new TestClassWithOptionNameClashing(), reader)
+        List<InstanceOptionDescriptor> options = new TaskOptionSupplier(new TestClassWithOptionNameClashing(), reader).getAllOptions()
         int ownOptions = 2
         List<String> clashingOptions = ["rerun"]
         then:
@@ -138,7 +138,7 @@ class OptionReaderTest extends Specification {
 
     def "task own options shadow generated opposite options"() {
         when:
-        List<InstanceOptionDescriptor> options = TaskOptionSupplier.get(new TestClassWithOppositeOptionNameClashing(), reader)
+        List<InstanceOptionDescriptor> options = new TaskOptionSupplier(new TestClassWithOppositeOptionNameClashing(), reader).getAllOptions()
         int ownOptions = 2
         then:
         options.size() == ownOptions + builtInOptionCount
@@ -152,7 +152,7 @@ class OptionReaderTest extends Specification {
 
     def "fail when multiple methods define same option"() {
         when:
-        TaskOptionSupplier.get(new TestClass2(), reader)
+        new TaskOptionSupplier(new TestClass2(), reader).getAllOptions()
         then:
         def e = thrown(OptionValidationException)
         e.message == "@Option 'stringValue' linked to multiple elements in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass2'."
@@ -160,7 +160,7 @@ class OptionReaderTest extends Specification {
 
     def "fail when multiple methods from different types define same option"() {
         when:
-        TaskOptionSupplier.get(new WithDuplicateOptionInAnotherInterface(), reader)
+        new TaskOptionSupplier(new WithDuplicateOptionInAnotherInterface(), reader).getAllOptions()
         then:
         def e = thrown(OptionValidationException)
         e.message == "@Option 'stringValue' linked to multiple elements in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$WithDuplicateOptionInAnotherInterface'."
@@ -168,7 +168,7 @@ class OptionReaderTest extends Specification {
 
     def "fails on static methods"() {
         when:
-        TaskOptionSupplier.get(new TestClass31(), reader)
+        new TaskOptionSupplier(new TestClass31(), reader).getAllOptions()
         then:
         def e = thrown(OptionValidationException)
         e.message == "@Option on static method 'setStaticString' not supported in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass31'."
@@ -176,7 +176,7 @@ class OptionReaderTest extends Specification {
 
     def "fails on static fields"() {
         when:
-        TaskOptionSupplier.get(new TestClass32(), reader)
+        new TaskOptionSupplier(new TestClass32(), reader).getAllOptions()
         then:
         def e = thrown(OptionValidationException)
         e.message == "@Option on static field 'staticField' not supported in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass32'."
@@ -184,7 +184,7 @@ class OptionReaderTest extends Specification {
 
     def "fail when parameter cannot be converted from the command-line"() {
         when:
-        TaskOptionSupplier.get(new TestClass5(), reader)
+        new TaskOptionSupplier(new TestClass5(), reader).getAllOptions()
         then:
         def e = thrown(OptionValidationException)
         e.message == "Option 'fileValue' cannot be cast to type 'java.io.File' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass5'."
@@ -192,7 +192,7 @@ class OptionReaderTest extends Specification {
 
     def "fails when method has > 1 parameter"() {
         when:
-        TaskOptionSupplier.get(new TestClass4(), reader);
+        new TaskOptionSupplier(new TestClass4(), reader).getAllOptions()
         then:
         def e = thrown(OptionValidationException)
         e.message == "Option 'stringValue' on method cannot take multiple parameters in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass4#setStrings'."
@@ -200,7 +200,7 @@ class OptionReaderTest extends Specification {
 
     def "handles field options"() {
         when:
-        List<InstanceOptionDescriptor> options = TaskOptionSupplier.get(new TestClassWithFields(), reader)
+        List<InstanceOptionDescriptor> options = new TaskOptionSupplier(new TestClassWithFields(), reader).getAllOptions()
         then:
         options[0].name == "customOptionName"
         options[0].description == "custom description"
@@ -229,7 +229,7 @@ class OptionReaderTest extends Specification {
 
     def "handles property field options"() {
         when:
-        List<InstanceOptionDescriptor> options = TaskOptionSupplier.get(new TestClassWithPropertyField(), reader)
+        List<InstanceOptionDescriptor> options = new TaskOptionSupplier(new TestClassWithPropertyField(), reader).getAllOptions()
         then:
         options[0].name == "customOptionName"
         options[0].description == "custom description"
@@ -254,13 +254,13 @@ class OptionReaderTest extends Specification {
 
     def "throws decent error when description not set"() {
         when:
-        TaskOptionSupplier.get(new TestClass7(), reader);
+        new TaskOptionSupplier(new TestClass7(), reader).getAllOptions()
         then:
         def e = thrown(OptionValidationException)
         e.message == "No description set on option 'aValue' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass7'."
 
         when:
-        TaskOptionSupplier.get(new TestClass8(), reader);
+        new TaskOptionSupplier(new TestClass8(), reader).getAllOptions()
         then:
         e = thrown(OptionValidationException)
         e.message == "No description set on option 'field' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass8'."
@@ -268,7 +268,7 @@ class OptionReaderTest extends Specification {
 
     def "throws decent error when method annotated without option name set"() {
         when:
-        TaskOptionSupplier.get(new TestClass9(), reader);
+        new TaskOptionSupplier(new TestClass9(), reader).getAllOptions()
         then:
         def e = thrown(OptionValidationException)
         e.message == "No option name set on 'setStrings' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass9'."
@@ -276,7 +276,7 @@ class OptionReaderTest extends Specification {
 
     def "throws decent error when private field is annotated as option and no setter declared"() {
         when:
-        TaskOptionSupplier.get(new TestClass10(), reader)
+        new TaskOptionSupplier(new TestClass10(), reader).getAllOptions()
         then:
         def e = thrown(OptionValidationException)
         e.message == "No setter for Option annotated field 'field' in class 'class org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass10'."
@@ -284,13 +284,13 @@ class OptionReaderTest extends Specification {
 
     def "throws decent error for invalid OptionValues annotated methods"() {
         when:
-        TaskOptionSupplier.get(new WithInvalidSomeOptionMethod(), reader);
+        new TaskOptionSupplier(new WithInvalidSomeOptionMethod(), reader).getAllOptions()
         then:
         def e = thrown(OptionValidationException)
         e.message == "@OptionValues annotation not supported on method 'getValues' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$WithInvalidSomeOptionMethod'. Supported method must be non-static, return a Collection<String> and take no parameters.";
 
         when:
-        TaskOptionSupplier.get(new TestClass8(), reader);
+        new TaskOptionSupplier(new TestClass8(), reader).getAllOptions()
         then:
         e = thrown(OptionValidationException)
         e.message == "No description set on option 'field' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass8'."
@@ -299,12 +299,12 @@ class OptionReaderTest extends Specification {
     @Issue("https://github.com/gradle/gradle/issues/18496")
     def "handles abstract classes with interfaces"() {
         when:
-        List<OptionDescriptor> options = TaskOptionSupplier.get(new AbstractTestClassWithInterface() {
+        List<OptionDescriptor> options = new TaskOptionSupplier((new AbstractTestClassWithInterface() {
             @Override
             Property<String> getStringValue() {
                 throw new UnsupportedOperationException()
             }
-        }, reader)
+        }), reader).getAllOptions()
         then:
         options.size() == 2 + builtInOptionCount
 
@@ -322,12 +322,12 @@ class OptionReaderTest extends Specification {
     @Issue("https://github.com/gradle/gradle/issues/18496")
     def "handles abstract classes with interfaces with same method but different option names"() {
         when:
-        List<OptionDescriptor> options = TaskOptionSupplier.get(new AbstractTestClassWithTwoInterfacesWithSameMethod() {
+        List<OptionDescriptor> options = new TaskOptionSupplier((new AbstractTestClassWithTwoInterfacesWithSameMethod() {
             @Override
             Property<String> getStringValue() {
                 throw new UnsupportedOperationException()
             }
-        }, reader)
+        }), reader).getAllOptions()
         then:
         options.size() == 3 + builtInOptionCount
 
@@ -349,7 +349,7 @@ class OptionReaderTest extends Specification {
 
     def "class that defines option when parent class and interface do has uses the sub-class option"() {
         when:
-        List<OptionDescriptor> options = TaskOptionSupplier.get(new OverrideCheckSubClassDefinesOption(), reader)
+        List<OptionDescriptor> options = new TaskOptionSupplier(new OverrideCheckSubClassDefinesOption(), reader).getAllOptions()
         then:
         options.size() == 1 + builtInOptionCount
 
@@ -359,7 +359,7 @@ class OptionReaderTest extends Specification {
 
     def "class that has an option defined in parent class and interface uses the parent class option"() {
         when:
-        List<OptionDescriptor> options = TaskOptionSupplier.get(new OverrideCheckSubClassSaysNothing(), reader)
+        List<OptionDescriptor> options = new TaskOptionSupplier(new OverrideCheckSubClassSaysNothing(), reader).getAllOptions()
         then:
         options.size() == 1 + builtInOptionCount
 
@@ -369,7 +369,7 @@ class OptionReaderTest extends Specification {
 
     def "class that defines option when parent class which impls interface do has uses the sub-class option"() {
         when:
-        List<OptionDescriptor> options = TaskOptionSupplier.get(new OverrideCheckSubClassImplInterfaceDefinesOption(), reader)
+        List<OptionDescriptor> options = new TaskOptionSupplier(new OverrideCheckSubClassImplInterfaceDefinesOption(), reader).getAllOptions()
         then:
         options.size() == 1 + builtInOptionCount
 
@@ -379,7 +379,7 @@ class OptionReaderTest extends Specification {
 
     def "class that has an option defined in parent class which impls interface uses the parent class option"() {
         when:
-        List<OptionDescriptor> options = TaskOptionSupplier.get(new OverrideCheckSubClassImplInterfaceSaysNothing(), reader)
+        List<OptionDescriptor> options = new TaskOptionSupplier(new OverrideCheckSubClassImplInterfaceSaysNothing(), reader).getAllOptions()
         then:
         options.size() == 1 + builtInOptionCount
 

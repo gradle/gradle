@@ -18,10 +18,7 @@ package org.gradle.execution.commandline;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskOptionSupplier;
-import org.gradle.api.internal.tasks.options.BooleanOptionElement;
-import org.gradle.api.internal.tasks.options.InstanceOptionDescriptor;
 import org.gradle.api.internal.tasks.options.OptionDescriptor;
-import org.gradle.api.internal.tasks.options.OptionElement;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
@@ -30,18 +27,12 @@ import org.gradle.cli.ParsedCommandLineOption;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.TypeConversionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @ServiceScope(Scopes.Gradle.class)
 public class CommandLineTaskConfigurer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineTaskConfigurer.class);
     private OptionReader optionReader;
 
     public CommandLineTaskConfigurer(OptionReader optionReader) {
@@ -60,17 +51,15 @@ public class CommandLineTaskConfigurer {
         List<String> remainingArguments = null;
         for (Task task : tasks) {
             CommandLineParser parser = new CommandLineParser();
-            Map<Boolean, List<OptionDescriptor>> allCommandLineOptions = TaskOptionSupplier.get(task, optionReader, false).stream().collect(Collectors.groupingBy(OptionDescriptor::isClashing));
-            List<OptionDescriptor> validCommandLineOptions = allCommandLineOptions.getOrDefault(false, Collections.emptyList());
-            List<OptionDescriptor> clashingOptions = allCommandLineOptions.getOrDefault(true, Collections.emptyList());
-            clashingOptions.forEach(it -> LOGGER.warn("Built-in option '{}' in task {} was disabled for clashing with another option of same name", it.getName(), task.getPath()));
-            for (OptionDescriptor optionDescriptor : validCommandLineOptions) {
+            TaskOptionSupplier taskOptionSupplier = new TaskOptionSupplier(task, optionReader);
+            List<OptionDescriptor> commandLineOptions = taskOptionSupplier.getAllOptions();
+            for (OptionDescriptor optionDescriptor : commandLineOptions) {
                 String optionName = optionDescriptor.getName();
                 org.gradle.cli.CommandLineOption option = parser.option(optionName);
                 option.hasDescription(optionDescriptor.getDescription());
                 option.hasArgument(optionDescriptor.getArgumentType());
             }
-            mutuallyExcludeOppositeOptions(parser, validCommandLineOptions);
+            allowOneOfEach(parser, taskOptionSupplier.getOppositeOptionPairs());
 
             ParsedCommandLine parsed;
             try {
@@ -80,7 +69,7 @@ public class CommandLineTaskConfigurer {
                 throw new TaskConfigurationException(task.getPath(), "Problem configuring task " + task.getPath() + " from command line.", e);
             }
 
-            for (OptionDescriptor commandLineOptionDescriptor : validCommandLineOptions) {
+            for (OptionDescriptor commandLineOptionDescriptor : commandLineOptions) {
                 final String name = commandLineOptionDescriptor.getName();
                 if (parsed.hasOption(name)) {
                     ParsedCommandLineOption o = parsed.option(name);
@@ -99,17 +88,9 @@ public class CommandLineTaskConfigurer {
         return remainingArguments;
     }
 
-    private void mutuallyExcludeOppositeOptions(CommandLineParser parser, List<OptionDescriptor> validCommandLineOptions) {
-        for (OptionDescriptor optionDescriptor : validCommandLineOptions) {
-            if (optionDescriptor instanceof InstanceOptionDescriptor) {
-                OptionElement optionElement = ((InstanceOptionDescriptor) optionDescriptor).getOptionElement();
-                if (optionElement instanceof BooleanOptionElement) {
-                    BooleanOptionElement booleanOptionElement = (BooleanOptionElement) optionElement;
-                    if (booleanOptionElement.isOpposite()) {
-                        parser.allowOneOf(booleanOptionElement.getOptionName(), booleanOptionElement.getOpposite().getOptionName());
-                    }
-                }
-            }
+    private void allowOneOfEach(CommandLineParser parser, List<OptionDescriptor> oppositeOptions) {
+        for (int i = 0; i < oppositeOptions.size(); i = i + 2) {
+            parser.allowOneOf(oppositeOptions.get(i).getName(), oppositeOptions.get(i+1).getName());
         }
     }
 }
