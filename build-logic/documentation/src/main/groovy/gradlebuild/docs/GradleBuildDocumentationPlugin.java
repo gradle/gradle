@@ -83,7 +83,7 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
             task.into(extension.getDocumentationRenderedRoot());
 
-            task.dependsOn("dokkatooGeneratePublicationHtml"); //TODO: sucks, couldn't yet find a way to wire it in properly
+            task.dependsOn(GradleDokkaPlugin.DOKKATOO_TASK_NAME); //TODO: sucks, couldn't yet find a way to wire it in properly
         });
 
         extension.getSourceRoot().convention(layout.getProjectDirectory().dir("src/docs"));
