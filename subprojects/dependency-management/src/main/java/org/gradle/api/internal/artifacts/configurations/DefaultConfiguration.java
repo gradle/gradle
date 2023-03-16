@@ -2473,7 +2473,7 @@ since users cannot create non-legacy configurations and there is no current publ
         }
 
         public boolean isEnabled(DefaultConfiguration configuration) {
-            return (mask & configuration.allowedUsage) > 0;
+            return (mask & configuration.allowedUsage) != 0;
         }
     }
 }
