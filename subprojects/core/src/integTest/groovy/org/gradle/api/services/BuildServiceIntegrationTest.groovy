@@ -35,6 +35,7 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.Instantiator
@@ -1461,6 +1462,50 @@ Hello, subproject1
         failure.assertHasFailure("Failed to stop service 'counter2'.") {
             it.assertHasCause("broken")
         }
+    }
+
+    def "should not resolve providers when computing shared resources"() {
+        serviceImplementation()
+        buildFile """
+            import ${Inject.name}
+
+            def serviceProvider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+            }
+
+            abstract class NestedBean {
+            }
+
+            abstract class Greeter extends DefaultTask {
+                @Inject
+                abstract ObjectFactory getObjects()
+
+                @Nested
+                final Property<NestedBean> unrelated = objects.property(NestedBean).convention(project.providers.provider {
+                    println("Resolving provider")
+                    def trace = new Throwable().getStackTrace()
+                    def getResourcesToLock = ${LocalTaskNode.name}.methods.find { it.name == "getResourcesToLock" }
+                    assert getResourcesToLock != null
+                    assert !trace.any {
+                        it.className == "${LocalTaskNode.name}" && it.methodName == getResourcesToLock.name
+                    }
+                    objects.newInstance(NestedBean)
+                })
+                @Internal
+                final Property<String> subject = project.objects.property(String).value("World")
+            }
+
+            tasks.register('hello', Greeter) {
+                it.usesService(serviceProvider)
+                doLast {
+                    println("Hello, \${subject.get()}")
+                }
+            }
+        """
+        expect:
+        succeeds("hello")
+        outputContains("Hello, World")
+        outputContains("Resolving provider")
     }
 
     private void enableStableConfigurationCache() {

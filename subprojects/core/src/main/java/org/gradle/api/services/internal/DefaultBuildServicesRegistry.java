@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
@@ -110,9 +111,14 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         return registrations;
     }
 
-    @Override
-    public SharedResource forService(BuildServiceProvider<?, ?> service) {
-        DefaultServiceRegistration<?, ?> registration = findRegistration(service.getType(), service.getName());
+    @Nullable
+    private SharedResource forService(ServiceReferenceSpec service) {
+        return getServiceAsSharedResource(service.getBuildServiceType(), service.getBuildServiceName());
+    }
+
+    @Nullable
+    private SharedResource getServiceAsSharedResource(Class<?> serviceType, String serviceName) {
+        DefaultServiceRegistration<?, ?> registration = findRegistration(serviceType, serviceName);
         if (registration == null) {
             // no corresponding service registered
             return null;
@@ -198,28 +204,19 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         });
     }
 
-    public List<ResourceLock> getSharedResources(Set<Provider<? extends BuildService<?>>> services) {
+    @Override
+    public List<ResourceLock> getSharedResources(Set<ServiceReferenceSpec> services) {
         if (services.isEmpty()) {
             return Collections.emptyList();
         }
         ImmutableList.Builder<ResourceLock> locks = ImmutableList.builder();
-        for (Provider<? extends BuildService<?>> service : services) {
-            if (!service.isPresent()) {
-                continue;
-            }
-            SharedResource resource = forService(asBuildServiceProvider(service));
+        for (ServiceReferenceSpec service : services) {
+            SharedResource resource = forService(service);
             if (resource != null && resource.getMaxUsages() > 0) {
                 locks.add(resource.getResourceLock());
             }
         }
         return locks.build();
-    }
-
-    private BuildServiceProvider<?, ?> asBuildServiceProvider(Provider<? extends BuildService<?>> service) {
-        if (service instanceof BuildServiceProvider) {
-            return uncheckedCast(service);
-        }
-        throw new UnsupportedOperationException("Unexpected provider for a build service: " + service);
     }
 
     @Nullable
