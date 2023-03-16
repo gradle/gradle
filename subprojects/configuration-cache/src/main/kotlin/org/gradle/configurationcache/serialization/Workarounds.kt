@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization
 
+import org.gradle.api.internal.TaskInternal
 import java.lang.reflect.Field
 
 
@@ -49,6 +50,14 @@ object Workarounds {
     fun canReadFiles(from: String): Boolean =
         withWorkaroundsFor("files") {
             isBuildScanPlugin(from)
+        }
+
+    fun canAccessProjectAtExecutionTime(task: TaskInternal) =
+        withWorkaroundsFor("task-project") {
+            val className = task.javaClass.name
+            className.startsWith("com.android.build.gradle.tasks.ShaderCompile") ||
+                className.startsWith("com.android.build.gradle.tasks.MapSourceSetPathsTask") ||
+                className.startsWith("com.android.build.gradle.tasks.MergeResources")
         }
 
     fun canAccessConventions(from: String, area: String) =
