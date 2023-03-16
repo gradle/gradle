@@ -97,7 +97,7 @@ dependencies {
 }
 ----
 
-The Kotlin compatibility matrix can be found in the https://docs.gradle.org/current/userguide/compatibility.html#kotlin[Gradle compatibility page]. If you want your plugin to be compatible with a given version of Gradle, you must use a compatible version of kotlin-stdlib. 
+The Kotlin compatibility matrix can be found in the https://docs.gradle.org/current/userguide/compatibility.html#kotlin[Gradle compatibility page]. If you want your plugin to be compatible with a given version of Gradle, you must use a compatible version of kotlin-stdlib.
 For example, if you need your plugin to be compatible with Gradle 7.0, you cannot use any Kotlin 1.5 only API (like https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.text/lowercase.htmllowercase) and need to compile against `kotlin-stdlib:1.4.31`.
 
 [source,kotlin]
@@ -107,7 +107,7 @@ dependencies {
 }
 ----
 
-For similar reasons, any transitive dependency of your plugin must use a `kotlin-stdlib` version compatible with the Gradle one. 
+For similar reasons, any transitive dependency of your plugin must use a `kotlin-stdlib` version compatible with the Gradle one.
 While you can ensure that at compile time for your code, it's often more complicated for dependencies, so test your plugins and/or double-check your transitive dependencies.
 
 Note: The `kotlin-stdlib` version is independent of your Kotlin Gradle Plugin version. You can use a newer Kotlin Gradle Plugin version with an older `kotlin-stdlib` using the https://kotlinlang.org/docs/compiler-reference.html#api-version-version[`apiVersion`] compiler argument.
@@ -227,13 +227,13 @@ task.doLast {
 In order to configure all the above options and more, Gradle offers several plugins:
 
 * `"java-gradle-plugin"`
-* `kotlin("jvm")` (id `"org.jetbrains.kotlin.jvm"`)
-* `embedded-kotlin` (id `"org.gradle.kotlin.embedded-kotlin"`))
-* `kotlin-dsl` (id `"org.gradle.kotlin.kotlin-dsl"`)
+* `"org.jetbrains.kotlin.jvm"` (also used as `kotlin("jvm")`)
+* `"org.gradle.kotlin.embedded-kotlin"` (also used as `embedded-kotlin` ))
+* `"org.gradle.kotlin.kotlin-dsl"` (also used as `kotlin-dsl`)
 
 Usually you would choose one of those combinations:
 
-* `"java-gradle-plugin"` and `kotlin("jvm")`
+* `"java-gradle-plugin"` and `"org.jetbrains.kotlin.jvm"`
 * `"java-gradle-plugin"` and `embedded-kotlin`
 * `kotlin-dsl`
 
@@ -253,18 +253,18 @@ Let's see what each plugin is doing.
 You always want this plugin to develop custom Gradle plugins (although other plugins might apply it for you). Refer to the full <<java_gradle_plugin.adoc, documentation>> for more information.
 
 [[sec:kotlin_jvm]]
-=== The `kotlin("jvm")` plugin
+=== The `"org.jetbrains.kotlin.jvm"` plugin
 
-`kotlin("jvm")` is the plugin configuring the Kotlin compiler, amongst many other things.
+`"org.jetbrains.kotlin.jvm"` is the plugin configuring the Kotlin compiler, amongst many other things.
 
 You usually always want this plugin to develop custom Gradle plugins (although other plugins might apply it for you). Refer to the full https://kotlinlang.org/docs/gradle.html[documentation] for more information.
 
 [[sec:embedded-kotlin]]
 === The `embedded-kotlin` plugin
 
-`embedded-kotlin` is built on top of `kotlin("jvm")` and does the following:
+`embedded-kotlin` is built on top of `"org.jetbrains.kotlin.jvm"` and does the following:
 
-* applies the `kotlin("jvm")` plugin using the same version as the Gradle embedded version
+* applies the `"org.jetbrains.kotlin.jvm"` plugin using the same version as the Gradle embedded version
 * adds `kotlin-stdlib` and `kotlin-reflect` to the `compileOnly` dependency
 
 Use this plugin if you want to use the same Kotlin version to develop your plugins that the version used by your Gradle build. This is especially useful if you do not intend to distribute your plugins, for an example, for convention plugins.
