@@ -60,11 +60,95 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 ### Configuration cache improvements
 
-TODO - Java lambdas are supported, and unsupported captured values are reported.
+The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
+This feature, [now promoted  to stable status](#promoted-features), can significantly improve build performance.
 
-TODO - File collections queried at configuration time are treated as configuration inputs.
+#### Securing the configuration cache
 
-TODO - File system repositories are fully supported including dynamic versions in Maven, Maven local, and Ivy repositories
+To mitigate the risk of accidental exposure of sensitive data, Gradle now encrypts the configuration cache.
+Gradle will transparently generate a machine-specific secret key as required, cache it under the [_Gradle user home directory_](userguide/directory_layout.html#dir:gradle_user_home) and use it to encrypt the data in the project specific caches.
+
+By default, the Gradle configuration cache is located under `.gradle/configuration-cache` in your project directory.
+
+Every cache entry contains information about the set of tasks to run, along with their configuration and dependency information.
+
+However, based on a task's implementation or the way it is configured by a plugin or build script, its configuration might contain sensitive information.
+It is crucial to keep this information secure.
+
+To enhance security further, make sure to:
+
+* prevent the `.gradle/configuration-cache` folder from being committed to source control or exposed in CI environments;
+* secure the _Gradle user home directory_.
+
+#### Dependency verification support
+
+The configuration cache now fully supports [dependency verification](userguide/dependency_verification.html).
+Changes to associated files (keyring files or `verification-metadata.xml`) are correctly detected and invalidate the configuration cache if necessary.
+
+#### File system-based repositories support
+
+The configuration cache now fully supports [file-system-based Ivy and Maven repositories](userguide/declaring_repositories.html#sec:supported_transport_protocols).
+In particular, this release adds support for dynamic dependencies.
+Suppose a dynamic dependency is declared in the build script. 
+In that case, changes to the dependency in the file-system-based repository now invalidate the configuration cache to pick up an updated version.
+
+#### Expanded compatibility with core plugins
+
+The [Ivy publishing plugin](userguide/publishing_ivy.html) and the [Signing plugin](userguide/signing_plugin.html) are now compatible with the configuration cache.
+
+The current status of the configuration cache support for all core Gradle plugins can be found in the [configuration cache documentation](userguide/configuration_cache.html#config_cache:plugins).
+
+#### Support of Java lambdas
+
+Gradle can now restore user-provided lambdas from the configuration cache.
+Using anonymous classes to implement Single Abstract Method (SAM) interfaces is no longer necessary.
+This also applies to Kotlin code: there is no more need to configure the Kotlin compiler to generate classes instead of lambdas during SAM conversion.
+
+This release also improves error reporting for lambdas that capture [unsupported types](userguide/configuration_cache.html#config_cache:requirements:disallowed_types), like `Configuration`.
+
+#### Better error reporting for Groovy closures
+
+This release improves error reporting of unsupported method calls in Groovy closures.
+For example, a `doFirst`/`doLast` action uses a method or property of the `Project`, which is unsupported with the configuration cache:
+
+```
+tasks.register('echo') {
+    doLast { println buildDir }
+}
+```
+
+Previously, a confusing message of `Could not get unknown property 'buildDir' for task ':echo'` was displayed, but now the error is more accurate:
+
+```
+* Where:
+Build file 'build.gradle' line: 2
+
+
+* What went wrong:
+Execution failed for task ':echo'.
+> Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.
+```
+
+#### Configuration inputs detection improvements
+
+The configuration cache needs to detect when the build logic accesses the "outside world" at configuration time (for example, reading files or environment variables) to invalidate the cache if accessed information changes.
+Every recent Gradle release added new detection capabilities, and this release is no exception.
+Gradle now detects:
+
+* `FileCollection`s queried at configuration time.
+* Methods of `java.io.File` class used to check file existence and read directory contents.
+* Methods of `java.nio.files.File` class used to open files for reading and to check file existence.
+* Kotlin and Groovy helper methods used to read file contents.
+
+### Dataflow Actions
+
+The new Flow Actions API allows scheduling some build work outside of tasks.
+In this release, the focus is on providing a configuration-cache compatible alternative to the deprecated `project.buildFinished` callback.
+Unlike callbacks, dataflow actions are isolated and more aligned with the Gradle execution model.
+
+Dataflow actions run as soon as their inputs are ready.
+When the newly added [build work result provider](javadoc/org/gradle/api/flow/FlowProviders.html#getBuildWorkResult--) is used as input,
+the action runs when the build finishes and can process the build outcome - for example, to play a sound if the build completes successfully.
 
 <a name="kotlin-dsl"></a>
 ### Kotlin DSL improvements
