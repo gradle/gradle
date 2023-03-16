@@ -143,7 +143,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Creating a configuration named '$name' (which begins with 'detachedConfiguration' and is optionally followed by a number) has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a different name for this configuration. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#reserved_configuration_names")
+        executer.expectDocumentedDeprecationWarning("Creating a configuration with a name that starts with 'detachedConfiguration' has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a different name for the configuration '$name'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#reserved_configuration_names")
         succeeds "help"
 
         where:
