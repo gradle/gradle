@@ -17,11 +17,17 @@
 package gradlebuild.docs;
 
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.RegularFileProperty;
 
 /**
  * Configuration for generating Dokka based Kotlin DSL docs.
  */
 public abstract class Dokkadocs {
+
+    /**
+     * The CSS file to style Dokka with
+     */
+    public abstract RegularFileProperty getDokkaCss();
 
     /**
      * A collection of the final rendered Dokka content.
