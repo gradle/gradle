@@ -153,7 +153,7 @@ the action runs when the build finishes and can process the build outcome - for 
 <a name="kotlin-dsl"></a>
 ### Kotlin DSL improvements
 
-Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the Groovy DSL with an enhanced editing experience in supported IDEs — superior content assistance, refactoring, documentation, and more.
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the Groovy DSL with an enhanced editing experience in supported IDEs — superior content assistance, refactoring documentation, and more.
 
 <a name="kotlin-assign"></a>
 #### Experimental simple property assignment in Kotlin DSL scripts
@@ -167,7 +167,7 @@ interface Extension {
 
 // register "extension" with type Extension
 extension {
-    // Current: Using the `set()` method call
+    // Current: Using the set() method call
     description.set("Hello Property")
     // Experimental: lazy property assignment enabled
     description = "Hello Property"
@@ -178,7 +178,9 @@ This reduces the verbosity of Kotlin DSL when [lazy property types](userguide/la
 It also makes Kotlin DSL behavior consistent with Groovy DSL behavior, where using `=` to assign lazy properties has always been available.
 
 Lazy property assignment for Kotlin scripts is an experimental opt-in feature.
-For more information, see [Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:assignment).
+It is enabled by adding `systemProp.org.gradle.unsafe.kotlin.assignment=true` to the `gradle.properties` file.
+
+For more information and current limitations, see the [Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:assignment).
 
 #### Access to version catalog for plugins in the `plugins {}` block
 
@@ -244,7 +246,7 @@ See the [ExtensionAware](dsl/org.gradle.api.plugins.ExtensionAware.html#org.grad
 #### Easier configuration of `Test.forkEvery` from Kotlin
 
 It is now easier to configure the `forkEvery` property of `Test` tasks from Kotlin to set the maximum number of test classes to execute in a forked test process.
-The property nullability is now coherent and instead of requiring to use its `setForkEvery(<number>)` setter you can now simply assign it a value:
+Instead of requiring to use its `setForkEvery(<number>)` setter you can now simply assign it a value:
 
 ```kotlin
 tasks.test {
@@ -254,7 +256,7 @@ tasks.test {
 
 See the [Test.forkEvery](dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery) property documentation for more information.
 
-### Kotlin Gradle plugin development improvements
+### Improvements to development of Gradle plugins in Kotlin
 
 The [`kotlin-dsl` plugin](userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin) provides a convenient way to develop Kotlin-based plugins that contribute build logic.
 
@@ -263,13 +265,13 @@ You write these as `*.gradle.kts` files in `src/main/kotlin` directory.
 
 #### Easier customization of Kotlin options
 
-Thanks to the Kotlin Gradle Plugin using Gradle lazy properties, the `kotlin-dsl` plugin does not use `afterEvaluate {}` for configuring Kotlin compiler options anymore.
-This allows for easier customization of Kotlin options in your build logic without requiring `afterEvaluate {}`.
+Customization of Kotlin options in your build logic is now easier and no longer  requires `afterEvaluate {}`.
 
 ```kotlin
 plugins {
     `kotlin-dsl`
 }
+
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         languageVersion.set(KotlinVersion.KOTLIN_1_9)
@@ -277,7 +279,7 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 ```
 
-The standalone script compilation is also configured to skip the pre-release check to allow referencing Kotlin code compiled with more recent Kotlin language versions on a best-effort basis.
+The standalone script compilation for build scripts, init scripts, and applied scripts are configured to skip the pre-release check to allow referencing Kotlin code compiled with more recent Kotlin language versions on a best-effort basis.
 
 #### `kotlin-dsl` published with proper licensing information
 
@@ -299,8 +301,6 @@ This can produce some console output.
 
 The output is now captured and only shown in case of failures.
 By default, this is now less verbose and does not clutter the console output.
-
-The output is captured and only shown in case of failures.
 
 #### Better validation of name and path of precompiled script plugins
 
