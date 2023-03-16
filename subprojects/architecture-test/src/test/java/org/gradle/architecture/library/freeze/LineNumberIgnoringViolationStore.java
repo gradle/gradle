@@ -25,6 +25,10 @@ import java.util.Properties;
 
 import static java.util.stream.Collectors.toList;
 
+/**
+ * Changes the line numbers in all sources to 0. That way line changes are not captured when
+ * refreezing the ArchUnit tests. With that there is less noise on refreeze and changes are easier to review.
+ */
 public class LineNumberIgnoringViolationStore implements ViolationStore {
 
     private final ViolationStore delegate;
