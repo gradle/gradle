@@ -34,6 +34,7 @@ import java.lang.invoke.MethodHandle;
 import java.nio.charset.Charset;
 import java.util.List;
 
+import static org.gradle.internal.classpath.Instrumented.FileSystemMutatingOperationKind.DELETE;
 import static org.gradle.internal.classpath.MethodHandleUtils.invokeKotlinStaticDefault;
 import static org.gradle.internal.classpath.MethodHandleUtils.lazyKotlinStaticDefaultHandle;
 import static org.gradle.internal.classpath.declarations.Handles.FOR_EACH_LINE_DEFAULT;
@@ -123,6 +124,15 @@ public class KotlinStdlibFileInterceptors {
             : invokeKotlinStaticDefault(USE_LINES_DEFAULT, mask, self, charset, block);
     }
 
+    @InterceptCalls
+    @StaticMethod(ofClass = FilesKt.class)
+    public static boolean intercept_deleteRecursively(
+        File self,
+        @CallerClassName String consumer
+    ) {
+        Instrumented.fileSystemMutatingApiUsed(self, DELETE, consumer);
+        return FilesKt.deleteRecursively(self);
+    }
 }
 
 class Handles {

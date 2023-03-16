@@ -77,7 +77,7 @@ public class FileUtils {
      * Returns the result of {@link Path#toFile()} if that will not throw an exception, null otherwise.
      */
     @Nullable
-    private static File toFileIfAvailable(Path path) {
+    public static File toFileIfAvailable(Path path) {
         if (path.getFileSystem() == FileSystems.getDefault()) {
             return path.toFile();
         }

@@ -532,6 +532,14 @@ public class Instrumented {
         return command.stream().map(String::valueOf).collect(Collectors.joining(" "));
     }
 
+    public static void fileSystemMutatingApiUsed(File file, FileSystemMutatingOperationKind operationKind, String consumer) {
+        listener().fileSystemMutatingApiUsed(file, operationKind, consumer);
+    }
+
+    public enum FileSystemMutatingOperationKind {
+        DELETE, MOVE, MKDIR
+    }
+
     public interface Listener {
         /**
          * Invoked when the code reads the system property with the String key.

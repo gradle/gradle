@@ -17,6 +17,7 @@
 package org.gradle.internal.classpath.declarations;
 
 import org.gradle.internal.Cast;
+import org.gradle.internal.classpath.FileUtils;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind.InstanceMethod;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind.StaticMethod;
@@ -28,11 +29,13 @@ import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInt
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.charset.Charset;
+import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -49,6 +52,8 @@ import static org.gradle.internal.classpath.FileUtils.optionsAllowReading;
 import static org.gradle.internal.classpath.FileUtils.tryReportDirectoryContentObserved;
 import static org.gradle.internal.classpath.FileUtils.tryReportFileOpened;
 import static org.gradle.internal.classpath.FileUtils.tryReportFileSystemEntryObserved;
+import static org.gradle.internal.classpath.Instrumented.FileSystemMutatingOperationKind.DELETE;
+import static org.gradle.internal.classpath.Instrumented.FileSystemMutatingOperationKind.MOVE;
 
 @SuppressWarnings("NewMethodNamingConvention")
 @SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
@@ -359,5 +364,46 @@ public class NioFileInterceptors {
             tryReportFileOpened(path, consumer);
         }
         return FileChannel.open(path, Cast.uncheckedCast(options), attrs);
+    }
+
+    @InterceptCalls
+    @StaticMethod(ofClass = Files.class)
+    public static void intercept_delete(
+        Path path,
+        @CallerClassName String consumer
+    ) throws IOException {
+        File file = FileUtils.toFileIfAvailable(path);
+        if (file != null) {
+            Instrumented.fileSystemMutatingApiUsed(file, DELETE, consumer);
+        }
+        Files.delete(path);
+    }
+
+    @InterceptCalls
+    @StaticMethod(ofClass = Files.class)
+    public static void intercept_deleteIfExists(
+        Path path,
+        @CallerClassName String consumer
+    ) throws IOException {
+        File file = FileUtils.toFileIfAvailable(path);
+        if (file != null) {
+            Instrumented.fileSystemMutatingApiUsed(file, DELETE, consumer);
+        }
+        Files.deleteIfExists(path);
+    }
+
+    @InterceptCalls
+    @StaticMethod(ofClass = Files.class)
+    public static Path intercept_move(
+        Path source,
+        Path target,
+        @VarargParameter CopyOption[] options,
+        @CallerClassName String consumer
+    ) throws IOException {
+        File file = FileUtils.toFileIfAvailable(source);
+        if (file != null) {
+            Instrumented.fileSystemMutatingApiUsed(file, MOVE, consumer);
+        }
+        return Files.move(source, target, options);
     }
 }

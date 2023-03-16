@@ -18,15 +18,19 @@ package org.gradle.internal.classpath.declarations;
 
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind.InstanceMethod;
-import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
-import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.CallerClassName;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind.Receiver;
+import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
+import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
+
+import static org.gradle.internal.classpath.Instrumented.FileSystemMutatingOperationKind.DELETE;
+import static org.gradle.internal.classpath.Instrumented.FileSystemMutatingOperationKind.MKDIR;
+import static org.gradle.internal.classpath.Instrumented.FileSystemMutatingOperationKind.MOVE;
 
 @SuppressWarnings("NewMethodNamingConvention")
 @SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
@@ -117,5 +121,46 @@ public class FileInterceptorsDeclaration {
     ) {
         Instrumented.fileOpened(thisFile, consumer);
         return thisFile.length();
+    }
+
+    @InterceptCalls
+    @InstanceMethod
+    public static boolean intercept_delete(
+        @Receiver File self,
+        @CallerClassName String consumer
+    ) {
+        Instrumented.fileSystemMutatingApiUsed(self, DELETE, consumer);
+        return self.delete();
+    }
+
+    @InterceptCalls
+    @InstanceMethod
+    public static boolean intercept_mkdir(
+        @Receiver File self,
+        @CallerClassName String consumer
+    ) {
+        Instrumented.fileSystemMutatingApiUsed(self, MKDIR, consumer);
+        return self.mkdir();
+    }
+
+    @InterceptCalls
+    @InstanceMethod
+    public static boolean intercept_mkdirs(
+        @Receiver File self,
+        @CallerClassName String consumer
+    ) {
+        Instrumented.fileSystemMutatingApiUsed(self, MKDIR, consumer);
+        return self.mkdirs();
+    }
+
+    @InterceptCalls
+    @InstanceMethod
+    public static boolean intercept_renameTo(
+        @Receiver File self,
+        File dest,
+        @CallerClassName String consumer
+    ) {
+        Instrumented.fileSystemMutatingApiUsed(self, MOVE, consumer);
+        return self.renameTo(dest);
     }
 }
