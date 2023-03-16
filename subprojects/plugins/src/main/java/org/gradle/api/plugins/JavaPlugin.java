@@ -256,7 +256,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
         // Set the 'java' component as the project's default.
         Configuration defaultConfiguration = project.getConfigurations().getByName(Dependency.DEFAULT_CONFIGURATION);
-        defaultConfiguration.extendsFrom(component.getRuntimeElementsConfiguration());
+        defaultConfiguration.extendsFrom(component.getMainFeature().getRuntimeElementsConfiguration());
         ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(component);
 
         JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
@@ -302,7 +302,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
             // relies on the main source set being created before the tests. So, this code here cannot live in the
             // JvmTestSuitePlugin and must live here, so that we can ensure we register this test suite after we've
             // created the main source set.
-            final SourceSet mainSourceSet = component.getSourceSet();
+            final SourceSet mainSourceSet = component.getMainFeature().getSourceSet();
             final FileCollection mainSourceSetOutput = mainSourceSet.getOutput();
             final FileCollection testSourceSetOutput = testSourceSet.getOutput();
             testSourceSet.setCompileClasspath(project.getObjects().fileCollection().from(mainSourceSetOutput, testCompileClasspathConfiguration));
@@ -320,7 +320,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
     private static void configureDiagnostics(Project project, JvmSoftwareComponentInternal component) {
         project.getTasks().withType(DependencyInsightReportTask.class).configureEach(task -> {
-            new DslObject(task).getConventionMapping().map("configuration", component::getCompileClasspathConfiguration);
+            new DslObject(task).getConventionMapping().map("configuration", component.getMainFeature()::getCompileClasspathConfiguration);
         });
     }
 

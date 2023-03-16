@@ -15,19 +15,27 @@
  */
 package org.gradle.api.plugins.jvm.internal;
 
-import org.gradle.api.Task;
+import org.apache.commons.lang.StringUtils;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConfigurationPublications;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
@@ -41,40 +49,58 @@ import static org.gradle.api.attributes.DocsType.JAVADOC;
 import static org.gradle.api.attributes.DocsType.SOURCES;
 
 /**
- * Represents a generic "java feature", using the specified source set and it's corresponding
- * configurations, compile tasks and jar tasks. This feature can optionally also create
- * javadoc and sources jars.
+ * Represents a generic "Java feature", using the specified source set and it's corresponding
+ * configurations, compile task, and jar task. This feature creates a jar task and javadoc task, and
+ * can optionally also create consumable javadoc and sources jar variants.
  *
- * This feature treats the {@code main} source set specially, in that it will extend the existing
- * feature represented by the main source set instead of creating a new one. In practice, this
- * means that whenever the main source set is used, this builder will create new configurations
- * which live adjacent to the main source set, but still compile against the main sources. However,
- * when using any other source set, the configurations of the provided source set are used.
+ * <p>This can be used to create production libraries, applications, test suites, test fixtures,
+ * or any other consumable JVM feature.</p>
  *
- * This can be used to create new tests, test fixtures, or any other Java feature which
- * needs to live alongside the main Java feature.
+ * <p>This feature can conditionally be configured to instead "extend" the production code. In that case, this
+ * feature creates additional dependency configurations which live adjacent to the main source set's buckets,
+ * which allow users to declare optional dependencies that the production code will compile and test against.
+ * These extra dependencies are not published as part of the production variants, but as separate apiElements
+ * and runtimeElements variants as defined by this feature. Then, users can declare a dependency on this
+ * feature to get access to the optional dependencies.</p>
+ *
+ * <p>This "extending" functionality is fragile, in that it allows the production code to be compiled and
+ * tested against dependencies which will not necessarily be present at runtime. For this reason, we are
+ * planning to deprecate the "extending" functionality. For more information, see {@link #doExtendProductionCode}.</p>
+ *
+ * <p>For backwards compatibility reasons, when this feature is operating in the "extending" mode,
+ * this feature is able to operate without the presence of the main feature, as long as the user
+ * explicitly configures the project by manually creating a main and test source set themselves.
+ * In that case, this feature will additionally create the jar and javadoc tasks which the main
+ * source set would normally create. Additionally, this extension feature is able to create the
+ * sources and javadoc variants that the main feature would also conditionally create.</p>
  */
 public class DefaultJvmFeature implements JvmFeatureInternal {
 
     private final String name;
     private final SourceSet sourceSet;
     private final List<Capability> capabilities;
-    private final String displayName;
+    private final boolean extendProductionCode;
 
     // Services
     private final ProjectInternal project;
     private final JvmPluginServices jvmPluginServices;
 
     // Tasks
-    private final TaskProvider<Task> jar;
+    private final TaskProvider<Jar> jar;
     private final TaskProvider<JavaCompile> compileJava;
 
     // Dependency configurations
     private final Configuration implementation;
     private final Configuration runtimeOnly;
     private final Configuration compileOnly;
-    private final Configuration compileOnlyApi;
-    private final Configuration api;
+
+    // Configurable dependency configurations
+    private Configuration compileOnlyApi;
+    private Configuration api;
+
+    // Resolvable configurations
+    private final Configuration runtimeClasspath;
+    private final Configuration compileClasspath;
 
     // Outgoing variants
     private final Configuration apiElements;
@@ -89,131 +115,167 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         SourceSet sourceSet,
         List<Capability> capabilities,
         ProjectInternal project,
-        String displayName,
         // The elements configurations' roles should always be consumable only, but
         // some users of this class are still migrating towards that. In 9.0, we can remove this
         // parameter and hard-code the elements configurations' roles to consumable only.
-        ConfigurationRole elementsConfigurationRole
+        ConfigurationRole elementsConfigurationRole,
+        boolean extendProductionCode
     ) {
         this.name = name;
         this.sourceSet = sourceSet;
         this.capabilities = capabilities;
         this.project = project;
-        this.displayName = displayName;
+        this.extendProductionCode = extendProductionCode;
+
+        // TODO: Deprecate allowing user to extend main feature.
+        if (extendProductionCode && !SourceSet.isMain(sourceSet)) {
+            throw new GradleException("Cannot extend main feature if source set is not also main.");
+        }
 
         this.jvmPluginServices = project.getServices().get(JvmPluginServices.class);
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
 
         this.compileJava = tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
-        this.jar = registerOrGetJarTask(sourceSet, tasks, displayName);
+        this.jar = registerOrGetJarTask(sourceSet, tasks);
 
-        String apiConfigurationName;
-        String implementationConfigurationName;
-        String apiElementsConfigurationName;
-        String runtimeElementsConfigurationName;
-        String compileOnlyConfigurationName;
-        String compileOnlyApiConfigurationName;
-        String runtimeOnlyConfigurationName;
-        if (SourceSet.isMain(sourceSet)) {
-            apiConfigurationName = name + "Api";
-            implementationConfigurationName = name + "Implementation";
-            apiElementsConfigurationName = apiConfigurationName + "Elements";
-            runtimeElementsConfigurationName = name + "RuntimeElements";
-            compileOnlyConfigurationName = name + "CompileOnly";
-            compileOnlyApiConfigurationName = name + "CompileOnlyApi";
-            runtimeOnlyConfigurationName = name + "RuntimeOnly";
-        } else {
-            apiConfigurationName = sourceSet.getApiConfigurationName();
-            implementationConfigurationName = sourceSet.getImplementationConfigurationName();
-            apiElementsConfigurationName = sourceSet.getApiElementsConfigurationName();
-            runtimeElementsConfigurationName = sourceSet.getRuntimeElementsConfigurationName();
-            compileOnlyConfigurationName = sourceSet.getCompileOnlyConfigurationName();
-            compileOnlyApiConfigurationName = sourceSet.getCompileOnlyApiConfigurationName();
-            runtimeOnlyConfigurationName = sourceSet.getRuntimeOnlyConfigurationName();
-        }
+        // If extendProductionCode=false, the source set has already created these configurations.
+        // If extendProductionCode=true, then we create new buckets and later update the main and
+        // test source sets to extend from these buckets.
+        this.implementation = bucket("Implementation", JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME);
+        this.compileOnly = bucket("Compile-only", JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME);
+        this.runtimeOnly = bucket("Runtime-only", JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME);
 
-        // In the general case, the following configurations are already created
-        // but if we're using the "main" source set, it means that the component we're creating shares
-        // the same source set (main) but declares its dependencies in its own buckets, so we need
-        // to create them
-        this.implementation = bucket("Implementation", configurations, implementationConfigurationName, displayName);
-        this.compileOnly = bucket("Compile-Only", configurations, compileOnlyConfigurationName, displayName);
-        this.runtimeOnly = bucket("Runtime-Only", configurations, runtimeOnlyConfigurationName, displayName);
+        this.runtimeClasspath = configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
+        this.compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
 
-        this.api = bucket("API", configurations, apiConfigurationName, displayName);
-        this.compileOnlyApi = bucket("Compile-Only API", configurations, compileOnlyApiConfigurationName, displayName);
+        PublishArtifact jarArtifact = new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory());
+        this.apiElements = createApiElements(configurations, jarArtifact, compileJava, elementsConfigurationRole);
+        this.runtimeElements = createRuntimeElements(configurations, jarArtifact, compileJava, elementsConfigurationRole);
 
-        // TODO: compileOnly should probably also extend from compileOnlyApi
-        this.implementation.extendsFrom(api);
-
-        this.apiElements = createApiElements(configurations, apiElementsConfigurationName, jar, compileJava, elementsConfigurationRole);
-        this.runtimeElements = createRuntimeElements(configurations, runtimeElementsConfigurationName, jar, compileJava, elementsConfigurationRole);
-
-        // TODO: This behavior is weird. Specifically for the main source set, we do this thing where
-        // main classpaths "extend" the new feature. What is the use case for this? Any new features would
-        // get their own buckets, but share the same source set, compile task, jar task, sources jar, and javadoc jar.
-        // The documentation provides an example of creating multiple features with the main source set, but the
-        // use case is still confusing to consider. It seems this is some overly complex alternative to optional dependencies. See:
-        // https://docs.gradle.org/current/userguide/feature_variants.html#sec:feature_variant_source_set
-        if (SourceSet.isMain(sourceSet)) {
-            // we need to wire the compile only and runtime only to the classpath configurations
-            configurations.getByName(sourceSet.getCompileClasspathConfigurationName()).extendsFrom(implementation, compileOnly);
-            configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()).extendsFrom(implementation, runtimeOnly);
-            // and we also want the feature dependencies to be available on the test classpath
-            configurations.getByName(JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation, compileOnlyApi);
-            configurations.getByName(JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation, runtimeOnly);
+        if (extendProductionCode) {
+            doExtendProductionCode();
         }
 
         JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
-        JvmPluginsHelper.configureJavaDocTask(displayName, sourceSet, tasks, javaPluginExtension);
+        JvmPluginsHelper.configureJavaDocTask("'" + name + "' feature", sourceSet, tasks, javaPluginExtension);
+    }
+
+    /**
+     * This method is one of the primary reasons that we want to deprecate the "extending" behavior. It updates
+     * the main source set and test source set to "extend" this feature. That means any dependencies declared on
+     * this feature's dependency configurations will be available locally, during compilation and runtime, to the main
+     * production code and default test suite. However, when publishing the production code, these dependencies will
+     * not be included in its consumable variants. Therefore, the main code is compiled _and tested_ against
+     * dependencies which will not necessarily be available at runtime when it is consumed from other projects
+     * or in its published form.
+     *
+     * <p>This leads to a case where, in order for the production code to not throw NoClassDefFoundErrors during runtime,
+     * it must detect the presence of the dependencies added by this feature, and then conditionally enable and disable
+     * certain optional behavior. We do not want to promote this pattern.</p>
+     *
+     * <p>A much safer pattern would be to create normal features as opposed to an "extending" feature. Then, the normal
+     * feature would have a project dependency on the main feature. It would provide an extra jar with any additional code,
+     * and also bring along any extra dependencies that code requires. The main feature would then be able to detect the
+     * presence of the feature through some {@code ServiceLoader} mechanism, as opposed to detecting the existence of
+     * dependencies directly.</p>
+     *
+     * <p>This pattern is also more flexible than the "extending" pattern in that it allows features to extend arbitrary
+     * features as opposed to just the main feature.</p>
+     */
+    void doExtendProductionCode() {
+        ConfigurationContainer configurations = project.getConfigurations();
+        SourceSet mainSourceSet = project.getExtensions().findByType(JavaPluginExtension.class)
+            .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+
+        // Update the main feature's source set to extend our "extension" feature's buckets.
+        configurations.getByName(mainSourceSet.getCompileClasspathConfigurationName()).extendsFrom(implementation, compileOnly);
+        configurations.getByName(mainSourceSet.getRuntimeClasspathConfigurationName()).extendsFrom(implementation, runtimeOnly);
+        // Update the default test suite's source set to extend our "extension" feature's buckets.
+        configurations.getByName(JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation);
+        configurations.getByName(JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation, runtimeOnly);
+    }
+
+    /**
+     * Hack to allow us to create configurations for normal and "extending" features. This should go away.
+     */
+    private String getConfigurationName(String suffix) {
+        if (extendProductionCode) {
+            return name + StringUtils.capitalize(suffix);
+        } else {
+            return ((DefaultSourceSet) sourceSet).configurationNameOf(suffix);
+        }
+    }
+
+    private static void addJarArtifactToConfiguration(Configuration configuration, PublishArtifact jarArtifact) {
+        ConfigurationPublications publications = configuration.getOutgoing();
+
+        // Configure an implicit variant
+        publications.getArtifacts().add(jarArtifact);
+        publications.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE);
     }
 
     private Configuration createApiElements(
         RoleBasedConfigurationContainerInternal configurations,
-        String apiElementsConfigurationName,
-        TaskProvider<Task> jarTask,
+        PublishArtifact jarArtifact,
         TaskProvider<JavaCompile> compileJava,
         ConfigurationRole elementsRole
     ) {
-        Configuration apiElements = configurations.maybeCreateWithRole(apiElementsConfigurationName, elementsRole, false, false);
+        String configName = getConfigurationName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME);
+        Configuration apiElements = configurations.maybeCreateWithRole(configName, elementsRole, false, false);
 
         apiElements.setVisible(false);
         jvmPluginServices.useDefaultTargetPlatformInference(apiElements, compileJava);
         jvmPluginServices.configureAsApiElements(apiElements);
         capabilities.forEach(apiElements.getOutgoing()::capability);
-        apiElements.setDescription("API elements for " + displayName + ".");
-
-        apiElements.extendsFrom(api, compileOnlyApi);
+        apiElements.setDescription("API elements for the '" + name + "' feature.");
 
         // Configure variants
-        apiElements.getOutgoing().artifact(jarTask);
-        jvmPluginServices.configureClassesDirectoryVariant(apiElements, sourceSet);
+        addJarArtifactToConfiguration(apiElements, jarArtifact);
 
         return apiElements;
     }
 
-    public Configuration createRuntimeElements(
+    private Configuration createRuntimeElements(
         RoleBasedConfigurationContainerInternal configurations,
-        String runtimeElementsConfigurationName,
-        TaskProvider<Task> jarTask,
+        PublishArtifact jarArtifact,
         TaskProvider<JavaCompile> compileJava,
         ConfigurationRole elementsRole
     ) {
-        Configuration runtimeElements = configurations.maybeCreateWithRole(runtimeElementsConfigurationName, elementsRole, false, false);
+        String configName = getConfigurationName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
+        Configuration runtimeElements = configurations.maybeCreateWithRole(configName, elementsRole, false, false);
 
         runtimeElements.setVisible(false);
         jvmPluginServices.useDefaultTargetPlatformInference(runtimeElements, compileJava);
         jvmPluginServices.configureAsRuntimeElements(runtimeElements);
         capabilities.forEach(runtimeElements.getOutgoing()::capability);
-        runtimeElements.setDescription("Runtime elements for " + displayName + ".");
+        runtimeElements.setDescription("Runtime elements for the '" + name + "' feature.");
 
         runtimeElements.extendsFrom(implementation, runtimeOnly);
 
         // Configure variants
-        runtimeElements.getOutgoing().artifact(jarTask);
+        addJarArtifactToConfiguration(runtimeElements, jarArtifact);
+        jvmPluginServices.configureClassesDirectoryVariant(runtimeElements, sourceSet);
+        jvmPluginServices.configureResourcesDirectoryVariant(runtimeElements, sourceSet);
 
         return runtimeElements;
+    }
+
+    @Override
+    public void withApi() {
+        this.api = bucket("API", JvmConstants.API_CONFIGURATION_NAME);
+        this.compileOnlyApi = bucket("Compile-only API", JvmConstants.COMPILE_ONLY_API_CONFIGURATION_NAME);
+
+        this.apiElements.extendsFrom(api, compileOnlyApi);
+        this.implementation.extendsFrom(api);
+        this.compileOnly.extendsFrom(compileOnlyApi);
+
+        // TODO: Why do we not always do this? Why only when we have an API?
+        jvmPluginServices.configureClassesDirectoryVariant(apiElements, sourceSet);
+
+        if (extendProductionCode) {
+            project.getConfigurations().getByName(JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(compileOnlyApi);
+        }
     }
 
     @Override
@@ -248,29 +310,52 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         );
     }
 
-    private static Configuration bucket(String kind, RoleBasedConfigurationContainerInternal configurations, String configName, String displayName) {
-        Configuration configuration = configurations.maybeCreateWithRole(configName, ConfigurationRoles.INTENDED_BUCKET, false, false);
-        configuration.setDescription(kind + " dependencies for the " + displayName + ".");
+    private Configuration bucket(String kind, String suffix) {
+        String configName = getConfigurationName(suffix);
+        Configuration configuration = project.getConfigurations().maybeCreateWithRole(configName, ConfigurationRoles.INTENDED_BUCKET, false, false);
+        configuration.setDescription(kind + " dependencies for the '" + name + "' feature.");
         configuration.setVisible(false);
         return configuration;
     }
 
-    private TaskProvider<Task> registerOrGetJarTask(SourceSet sourceSet, TaskContainer tasks, String displayName) {
+    private TaskProvider<Jar> registerOrGetJarTask(SourceSet sourceSet, TaskContainer tasks) {
         String jarTaskName = sourceSet.getJarTaskName();
         if (!tasks.getNames().contains(jarTaskName)) {
-            tasks.register(jarTaskName, Jar.class, jar -> {
-                jar.setDescription("Assembles a jar archive containing the classes of the " + displayName + ".");
+            return tasks.register(jarTaskName, Jar.class, jar -> {
+                jar.setDescription("Assembles a jar archive containing the classes of the '" + name + "' feature.");
                 jar.setGroup(BasePlugin.BUILD_GROUP);
                 jar.from(sourceSet.getOutput());
-                jar.getArchiveClassifier().set(TextUtil.camelToKebabCase(name));
+                if (!capabilities.isEmpty()) {
+                    jar.getArchiveClassifier().set(TextUtil.camelToKebabCase(name));
+                }
             });
         }
-        return tasks.named(jarTaskName);
+        return tasks.named(jarTaskName, Jar.class);
     }
 
     @Override
     public CapabilitiesMetadata getCapabilities() {
         return ImmutableCapabilities.of(capabilities);
+    }
+
+    @Override
+    public TaskProvider<Jar> getJarTask() {
+        return jar;
+    }
+
+    @Override
+    public TaskProvider<JavaCompile> getCompileJavaTask() {
+        return compileJava;
+    }
+
+    @Override
+    public SourceSetOutput getOutput() {
+        return sourceSet.getOutput();
+    }
+
+    @Override
+    public SourceSet getSourceSet() {
+        return sourceSet;
     }
 
     @Override
@@ -289,13 +374,23 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     }
 
     @Override
+    public Configuration getApiConfiguration() {
+        return api;
+    }
+
+    @Override
     public Configuration getCompileOnlyApiConfiguration() {
         return compileOnlyApi;
     }
 
     @Override
-    public Configuration getApiConfiguration() {
-        return api;
+    public Configuration getRuntimeClasspathConfiguration() {
+        return runtimeClasspath;
+    }
+
+    @Override
+    public Configuration getCompileClasspathConfiguration() {
+        return compileClasspath;
     }
 
     @Override

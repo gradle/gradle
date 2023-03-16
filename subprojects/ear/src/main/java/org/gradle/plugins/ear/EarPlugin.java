@@ -31,8 +31,9 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
@@ -94,13 +95,13 @@ public abstract class EarPlugin implements Plugin<Project> {
 
     private void wireEarTaskConventionsWithJavaPluginApplied(final Project project, PluginContainer plugins) {
         plugins.withType(JavaPlugin.class, javaPlugin -> {
-            final JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
+            final JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
             project.getTasks().withType(Ear.class).configureEach(task -> {
                 task.dependsOn((Callable<FileCollection>) () ->
-                    component.getSourceSet().getRuntimeClasspath()
+                    mainFeature.getSourceSet().getRuntimeClasspath()
                 );
                 task.from((Callable<FileCollection>) () ->
-                    component.getMainOutput()
+                    mainFeature.getOutput()
                 );
             });
         });
@@ -114,7 +115,7 @@ public abstract class EarPlugin implements Plugin<Project> {
 
             plugins.withType(JavaPlugin.class, javaPlugin -> {
                 final JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
-                    component.getSourceSet().getResources().srcDir(task.getAppDirectory());
+                component.getMainFeature().getSourceSet().getResources().srcDir(task.getAppDirectory());
             });
         });
 

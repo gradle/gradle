@@ -17,6 +17,11 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetOutput;
+import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.compile.JavaCompile;
 
 import javax.annotation.Nullable;
 
@@ -33,11 +38,10 @@ import javax.annotation.Nullable;
  * capabilities. Some variants may expose additional capabilities than those of its owning feature,
  * for example with fat jars.</p>
  *
- * TODO: The current API is written as if this were a single-target feature.
- * <p>Some feature implementations may support multiple targets. For example a multi-target Java feature
- * may expose variants which target java 8, 11, and 17. A multi-target Scala feature may expose variants
- * for Scala 2.12, 2.13, and 3. A multi-target Gradle Plugin feature may expose variants targeting
- * Gradle 6, 7, and 8.</p>
+ * <p>TODO: The current API is written as if this were a single-target feature. Before we make this API
+ * public, we should make this API multi-target aware. Alternatively, we could implement a
+ * SingleTargetJvmFeature now and in the future implement a MultiTargetJvmFeature when we're ready.
+ * This would allow us to use the JvmFeature interface as a common parent interface.</p>
  */
 public interface JvmFeatureInternal {
 
@@ -55,40 +59,163 @@ public interface JvmFeatureInternal {
     // Scala and groovy have Groovydoc and Scaladoc. Kotlin has KDoc.
 
     /**
-     * Tells that this component should build a javadoc jar too
+     * Configures this feature to publish a javadoc jar alongside the primary artifacts. As a result,
+     * this method also configures the necessary configurations and tasks required to produce
+     * the javadoc artifact.
      */
     void withJavadocJar();
 
     /**
-     * Tells that this component should build a sources jar too
+     * Configures this feature to publish a sources jar alongside the primary artifacts. As a result,
+     * this method also configures the necessary configurations and tasks required to produce
+     * the sources artifact.
      */
     void withSourcesJar();
 
+    /**
+     * Adds the {@code api} and {@code compileOnlyApi} dependency configurations to this feature.
+     *
+     * TODO: Should this live on the "base" JVM feature? Should all JVM features know how to add
+     * an API? Or should we have subclasses which have APIs and others, which support
+     * application features and test suites, which do not have APIs?
+     */
+    void withApi();
+
+    /**
+     * Gets the consumable configuration created by {@link #withJavadocJar()}.
+     *
+     * @return null if {@link #withJavadocJar()} has not been called.
+     */
     @Nullable
     Configuration getJavadocElementsConfiguration();
 
+    /**
+     * Gets the consumable configuration created by {@link #withSourcesJar()}.
+     *
+     * @return null if {@link #withSourcesJar()} has not been called.
+     */
     @Nullable
     Configuration getSourcesElementsConfiguration();
 
     // TODO: Many of the methods below probably belong on a JvmTarget. Features may have many targets
-    // and thus many configurations.
+    // and thus many configurations, jar tasks, compile tasks, etc.
 
-    // TODO: Document these below before this becomes a public API.
-    // Much of the existing documentation from `JvmSoftwareComponentInternal`
-    // can be reused here, since that class will eventually be updated to
-    // create instances of JvmFeatures instead of exposing these methods itself.
+    /**
+     * Get the {@link Jar} task which assembles the resources and compilation outputs into
+     * a single artifact.
+     *
+     * @return A provider which supplies the feature's {@link Jar} task.
+     */
+    TaskProvider<Jar> getJarTask();
 
+    /**
+     * Get the {@link JavaCompile} task which compiles the Java source files into classes.
+     *
+     * @return A provider which supplies the feature's {@link JavaCompile} task.
+     */
+    TaskProvider<JavaCompile> getCompileJavaTask();
+
+    /**
+     * Get the resources and compilation outputs for this feature which are used as
+     * inputs for the {@link #getJarTask() jar} task.
+     *
+     * @return The source set outputs.
+     */
+    SourceSetOutput getOutput();
+
+    /**
+     * Get this feature's backing source set.
+     * <p>
+     * {@link SourceSet#getOutput()} and the classpath-returning methods on the returned
+     * source set should ideally be avoided in favor of the similarly-named methods on
+     * this feature. The concept of source sets having a single set of outputs is only
+     * relevant for single-target features.
+     *
+     * @return This feature's source set.
+     */
+    SourceSet getSourceSet();
+
+    /**
+     * Gets the dependency configuration for which to declare dependencies internal to the feature.
+     * Dependencies declared on this configuration are present during compilation and runtime, but are not
+     * exposed as part of the feature's API variant.
+     *
+     * @return The {@code implementation} configuration.
+     */
     Configuration getImplementationConfiguration();
 
+    /**
+     * Gets the dependency configuration for which to declare runtime-only dependencies.
+     * Dependencies declared on this configuration are present only during runtime, are not
+     * present during compilation, and are not exposed as part of the feature's API variant.
+     *
+     * @return The {@code runtimeOnly} configuration.
+     */
     Configuration getRuntimeOnlyConfiguration();
 
+    /**
+     * Gets the dependency configuration for which to declare compile-only dependencies.
+     * Dependencies declared on this configuration are present only during compilation, are not
+     * present during runtime, and are not exposed as part of the feature's API variant.
+     *
+     * @return The {@code compileOnly} configuration.
+     */
     Configuration getCompileOnlyConfiguration();
 
-    Configuration getCompileOnlyApiConfiguration();
-
+    /**
+     * Gets the dependency configuration for which to declare API dependencies.
+     * Dependencies declared on this configuration are present during compilation
+     * and runtime, and are exposed as part of the feature's API variant.
+     *
+     * @return null if {@link #withApi()} has not been called.
+     */
+    @Nullable
     Configuration getApiConfiguration();
 
+    /**
+     * Gets the dependency configuration for which to declare compile-only API dependencies.
+     * Dependencies declared on this configuration are present during compilation
+     * but not runtime, and are exposed as part of the feature's API variant.
+     *
+     * @return null if {@link #withApi()} has not been called.
+     */
+    @Nullable
+    Configuration getCompileOnlyApiConfiguration();
+
+    /**
+     * Get the resolvable configuration containing the resolved runtime dependencies
+     * for this feature. This configuration does not contain the artifacts from the
+     * feature's compilation itself.
+     *
+     * @return The {@code runtimeClasspath} configuration.
+     */
+    Configuration getRuntimeClasspathConfiguration();
+
+    /**
+     * Get the resolvable configuration containing the resolved compile dependencies
+     * for this feature.
+     *
+     * @return The {@code compileClasspath} configuration.
+     */
+    Configuration getCompileClasspathConfiguration();
+
+    /**
+     * Get the consumable configuration which produces the {@code apiElements} variant of this feature.
+     * This configuration includes all API compilation dependencies as well as the feature's
+     * compilation outputs, but does not include {@code implementation}, {@code compileOnly},
+     * or {@code runtimeOnly} dependencies.
+     *
+     * @return The {@code apiElements} configuration.
+     */
     Configuration getApiElementsConfiguration();
 
+    /**
+     * Get the consumable configuration which produces the {@code runtimeElements} variant of this feature.
+     * This configuration includes all runtime dependencies as well as the feature's
+     * compilation outputs, but does not include {@code compileOnly} dependencies.
+     *
+     * @return The {@code runtimeElements} configuration.
+     */
     Configuration getRuntimeElementsConfiguration();
+
 }
