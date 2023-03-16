@@ -19,7 +19,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
@@ -89,7 +89,7 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
                 }
             }
             String version = parts.length == 3 ? parts[2] : null;
-            return new ImmutableCapability(parts[0], parts[1], version);
+            return new DefaultImmutableCapability(parts[0], parts[1], version);
         }
 
         private static void reportInvalidNotation(String notation) {
@@ -108,7 +108,7 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
         protected Capability parseMap(@MapKey("group") String group,
                                       @MapKey("name") String name,
                                       @MapKey("version") String version) {
-            return new ImmutableCapability(group, name, version);
+            return new DefaultImmutableCapability(group, name, version);
         }
     }
 
@@ -121,7 +121,7 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
         protected Capability parseMap(@MapKey("group") String group,
                                       @MapKey("name") String name,
                                       @MapKey("version") @Nullable String version) {
-            return new ImmutableCapability(group, name, version);
+            return new DefaultImmutableCapability(group, name, version);
         }
     }
 }

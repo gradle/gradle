@@ -19,7 +19,9 @@ task compileWithoutOptimization(type: GroovyCompile) {
 }
 
 task sanityCheck(dependsOn: [compileWithOptimization, compileWithoutOptimization]) {
+    def optDestDir = compileWithOptimization.destinationDirectory
+    def noOptDestDir = compileWithoutOptimization.destinationDirectory
     doLast {
-        assert compileWithOptimization.destinationDirectory.getAsFileTree().singleFile.size() != compileWithoutOptimization.destinationDirectory.getAsFileTree().singleFile.size()
+        assert optDestDir.getAsFileTree().singleFile.size() != noOptDestDir.getAsFileTree().singleFile.size()
     }
 }

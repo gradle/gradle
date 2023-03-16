@@ -29,6 +29,13 @@ public interface VariantSelector {
      */
     ResolvedArtifactSet select(ResolvedVariantSet candidates, Factory factory);
 
+    /**
+     * As per {@link #select(ResolvedVariantSet, Factory)} but ignores no matching variants.
+     */
+    default ResolvedArtifactSet maybeSelect(ResolvedVariantSet candidates, Factory factory) {
+        return select(candidates, factory);
+    }
+
     ImmutableAttributes getRequestedAttributes();
 
     interface Factory {

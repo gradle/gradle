@@ -52,7 +52,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -80,9 +79,7 @@ import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintIntern
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
-import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
@@ -101,7 +98,6 @@ import org.gradle.api.internal.initialization.ResettableConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.provider.BuildableBackedSetProvider;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -131,7 +127,6 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.model.CalculatedModelValue;
-import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -141,6 +136,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerThreadRegistry;
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;
@@ -162,7 +158,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -172,6 +167,12 @@ import static org.gradle.api.internal.artifacts.configurations.ConfigurationInte
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
+/**
+ * The default {@link Configuration} implementation.
+ * <p>
+ * After initialization, when the allowed usage is changed then role-related deprecation warnings will be emitted, except for the special cases
+ * noted in {@link #isSpecialCaseOfChangingUsage(String, boolean)}}.  Initialization is complete when the {@link #roleAtCreation} field is set.
+ */
 @SuppressWarnings("rawtypes")
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConfiguration.class);
@@ -243,7 +244,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean declarationDeprecated;
     private boolean usageCanBeMutated = true;
     private final ConfigurationRole roleAtCreation;
-    private boolean warnOnChangingUsage = false; // TODO: This should always be true in Gradle 8.1, and can be removed
 
     private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
@@ -351,8 +351,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.path = domainObjectContext.projectPath(name);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
 
-        this.roleAtCreation = roleAtCreation;
-
         this.canBeConsumed = roleAtCreation.isConsumable();
         this.canBeResolved = roleAtCreation.isResolvable();
         this.canBeDeclaredAgainst = roleAtCreation.isDeclarableAgainst();
@@ -369,9 +367,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (roleAtCreation.isDeclarationAgainstDeprecated()) {
             deprecateForDeclarationAgainst();
         }
+
         if (lockUsage) {
             preventUsageMutation();
         }
+
+        // Until the role at creation is set, changing usage won't trigger warnings
+        this.roleAtCreation = roleAtCreation;
     }
 
     private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -427,7 +429,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
-        validateMutation(MutationType.DEPENDENCIES);
+        validateMutation(MutationType.HIERARCHY);
         for (Configuration configuration : this.extendsFrom) {
             if (inheritedArtifacts != null) {
                 inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
@@ -449,7 +451,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration extendsFrom(Configuration... extendsFrom) {
-        validateMutation(MutationType.DEPENDENCIES);
+        validateMutation(MutationType.HIERARCHY);
         for (Configuration configuration : extendsFrom) {
             if (configuration.getHierarchy().contains(this)) {
                 throw new InvalidUserDataException(String.format(
@@ -897,7 +899,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
         if (dependenciesResolverFactory == null) {
-            dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
+            dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(getIdentity(), new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
                 (attributes, filter) -> {
                     ImmutableAttributes fullAttributes = attributesFactory.concat(configurationAttributes.asImmutable(), attributes);
                     return new ResolutionBackedFileCollection(
@@ -1574,6 +1576,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private ConfigurationIdentity getIdentity() {
+        String name = getName();
+        String projectPath = domainObjectContext.getProjectPath() == null ? null : domainObjectContext.getProjectPath().toString();
+        String buildPath = domainObjectContext.getBuildPath().toString();
+        return new DefaultConfigurationIdentity(buildPath, projectPath, name);
+    }
+
     private static class ConfigurationDescription implements Describable {
         private final Path identityPath;
 
@@ -1587,7 +1596,46 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private static class DefaultConfigurationIdentity implements ConfigurationIdentity {
+        private final String buildPath;
+        private final String projectPath;
+        private final String name;
+
+        public DefaultConfigurationIdentity(String buildPath, @Nullable String projectPath, String name) {
+            this.buildPath = buildPath;
+            this.projectPath = projectPath;
+            this.name = name;
+        }
+
+        @Override
+        public String getBuildPath() {
+            return buildPath;
+        }
+
+        @Nullable
+        @Override
+        public String getProjectPath() {
+            return projectPath;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String toString() {
+            Path path = Path.path(buildPath);
+            if (projectPath != null) {
+                path = path.append(Path.path(projectPath));
+            }
+            path = path.child(name);
+            return "Configuration '" + path.toString() + "'";
+        }
+    }
+
     private class DefaultResolutionResultProvider implements ResolutionResultProvider<ResolutionResult> {
+
         @Override
         public ResolutionResult getTaskDependencyValue() {
             return getResultsForBuildDependencies().getResolutionResult();
@@ -1600,6 +1648,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private class VisitedArtifactsSetProvider implements ResolutionResultProvider<VisitedArtifactSet> {
+
         @Override
         public VisitedArtifactSet getTaskDependencyValue() {
             assertIsResolvable();
@@ -1667,11 +1716,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Optional.of(new DefaultLenientConfiguration.ArtifactResolveException(type, getIdentityPath().toString(), getDisplayName(), failures));
     }
 
-    @VisibleForTesting
-    public void setWarnOnChangingUsage(boolean warnOnChangingUsage) {
-        this.warnOnChangingUsage = warnOnChangingUsage;
-    }
-
     private void assertIsResolvable() {
         if (!canBeResolved) {
             throw new IllegalStateException("Resolving dependency configuration '" + name + "' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends '" + name + "' should be resolved.");
@@ -1686,20 +1730,26 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     /**
      * Check that the combination of consumable, resolvable and declarable flags is sensible.
-     * This method should be called only after all mutations are known to be complete.
-     * This shouldn't do anything stronger than log to info, otherwise it will interrupt dependency reports.
-     * Many improper configurations are still in use, we can't just fail if one is detected here.
+     * <p>
+     * This should only check configurations <strong>not</strong> created in the {@link ConfigurationRoles#LEGACY} role.
+     * <p>
+     * This method should be called only after all mutations are known to be complete.  This shouldn't do
+     * anything stronger than log to info, otherwise it will interrupt dependency reports. Many improper
+     * configurations are still in use, we can't just fail if one is detected here.
      */
+    @SuppressWarnings("deprecation")
     private void logIfImproperConfiguration() {
-        if (canBeConsumed && canBeResolved) {
-            LOGGER.info("The configuration " + identityPath.toString() + " is both resolvable and consumable. This is considered a legacy configuration and it will eventually only be possible to be one of these.");
-        }
+        if (roleAtCreation != ConfigurationRoles.LEGACY) {
+            if (canBeConsumed && canBeResolved) {
+                LOGGER.info("The configuration " + identityPath.toString() + " is both resolvable and consumable. This is considered a legacy configuration and it will eventually only be possible to be one of these.");
+            }
 
-        if (canBeConsumed && canBeDeclaredAgainst) {
-            LOGGER.info("The configuration " + identityPath.toString() + " is both consumable and declarable. This combination is incorrect, only one of these flags should be set.");
-        }
+            if (canBeConsumed && canBeDeclaredAgainst) {
+                LOGGER.info("The configuration " + identityPath.toString() + " is both consumable and declarable. This combination is incorrect, only one of these flags should be set.");
+            }
 
-        // canBeDeclared && canBeResolved is a valid and expected combination
+            // canBeDeclared && canBeResolved is a valid and expected combination
+        }
     }
 
     @Override
@@ -1745,21 +1795,49 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void logChangingUsage(String usage, boolean allowed) {
-        String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
-        if (warnOnChangingUsage) {
-            DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), describeChangingUsage(usage, allowed)))
+    private void maybeWarnOnChangingUsage(String usage, boolean current) {
+        if (!isSpecialCaseOfChangingUsage(usage, current)) {
+            String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
+            String changingUsage = usage + " was " + !current + " and is now " + current;
+            
+            DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), changingUsage))
                     .withAdvice("Usage should be fixed upon creation.")
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "configurations_allowed_usage")
                     .nagUser();
-        } else if (LOGGER.isInfoEnabled()) {
-            LOGGER.info(String.format(msgTemplate, getDisplayName(), describeChangingUsage(usage, allowed)));
         }
     }
 
-    private String describeChangingUsage(String usage, boolean allowed) {
-        return usage + " was " + !allowed + " and is now " + allowed;
+    /**
+     * This is a temporary method that decides if a usage change is a known/supported special case, where a deprecation warning message
+     * should not be emitted.
+     * <p>
+     * Many of these exceptions are needed to avoid spamming deprecations warnings whenever the Kotlin plugin is used.  This method is
+     * temporary as the eventual goal is that all configuration usage be specified upon creation and immutable thereafter.
+     * <p>
+     * <ol>
+     *     <li>While {#roleAtCreation} is {@code null}, we are still initializing, so we should NOT warn.</li>
+     *     <li>Changes to the usage of the detached configurations should NOT warn (this done by the Kotlin plugin).</li>
+     *     <li>Configurations with a legacy role should NOT warn when changing usage, 
+since users cannot create non-legacy configurations and there is no current public API for setting roles upon creation</li>
+     *     <li>Setting consumable usage to false on the {@code apiElements} and {@code runtimeElements} configurations should NOT warn (this is done by the Kotlin plugin).</li>
+     *     <li>All other usage changes should warn.</li>
+     * </ol>
+     * <p>
+     * This method is temporary, so the duplication of the configuration names defined in
+     * {@link JvmConstants}, which are not available to be referenced directly from here, is unfortunate, but not a showstopper.
+     *
+     * @param usage the name usage that is being changed
+     * @param current the current value of the usage after the change
+     */
+    @SuppressWarnings({"JavadocReference", "deprecation"})
+    private boolean isSpecialCaseOfChangingUsage(String usage, boolean current) {
+        boolean isInitializing = roleAtCreation == null;
+        boolean isDetachedConfiguration = this.configurationsProvider instanceof DetachedConfigurationsProvider;
+        boolean isLegacyRole = roleAtCreation == ConfigurationRoles.LEGACY;
+        boolean isPermittedConfigurationChangeForKotlin = name.equals("apiElements") || name.equals("runtimeElements") && usage.equals("consumable") && !current;
+
+        return isInitializing || isDetachedConfiguration || isLegacyRole || isPermittedConfigurationChangeForKotlin;
     }
 
     @Override
@@ -1787,7 +1865,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (canBeConsumed != allowed) {
             validateMutation(MutationType.USAGE);
             canBeConsumed = allowed;
-            logChangingUsage("consumable", allowed);
+            maybeWarnOnChangingUsage("consumable", allowed);
         }
     }
 
@@ -1801,7 +1879,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (canBeResolved != allowed) {
             validateMutation(MutationType.USAGE);
             canBeResolved = allowed;
-            logChangingUsage("resolvable", allowed);
+            maybeWarnOnChangingUsage("resolvable", allowed);
         }
     }
 
@@ -1815,7 +1893,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (canBeDeclaredAgainst != allowed) {
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
-            logChangingUsage("declarable against", allowed);
+            maybeWarnOnChangingUsage("declarable against", allowed);
         }
     }
 
@@ -1847,7 +1925,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         validateMutation(MutationType.USAGE);
         this.declarationAlternatives = ImmutableList.copyOf(alternativesForDeclaring);
         if (!declarationDeprecated) {
-            logChangingUsage("deprecated for declaration against", true);
+            maybeWarnOnChangingUsage("deprecated for declaration against", true);
         }
         declarationDeprecated = true;
         return this;
@@ -1858,7 +1936,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         validateMutation(MutationType.USAGE);
         this.resolutionAlternatives = ImmutableList.copyOf(alternativesForResolving);
         if (!consumptionDeprecated) {
-            logChangingUsage("deprecated for resolution", true);
+            maybeWarnOnChangingUsage("deprecated for resolution", true);
         }
         resolutionDeprecated = true;
         return this;
@@ -1869,7 +1947,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         validateMutation(MutationType.USAGE);
         this.consumptionDeprecation = deprecation.apply(DeprecationLogger.deprecateConfiguration(name).forConsumption());
         if (!consumptionDeprecated) {
-            logChangingUsage("deprecated for consumption", true);
+            maybeWarnOnChangingUsage("deprecated for consumption", true);
         }
         consumptionDeprecated = true;
         return this;
@@ -2013,13 +2091,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private ConfigurationArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
+    private DefaultArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
         ImmutableAttributes viewAttributes = attributes.asImmutable();
         DefaultResolutionHost failureHandler = new DefaultResolutionHost();
         ResolutionBackedFileCollection files = new ResolutionBackedFileCollection(
             new SelectedArtifactsProvider(Specs.satisfyAll(), viewAttributes, componentFilter, allowNoMatchingVariants, selectFromAllVariants, new VisitedArtifactsSetProvider()), lenient, failureHandler, taskDependencyFactory
         );
-        return new ConfigurationArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
+        return new DefaultArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
     }
 
     @Override
@@ -2342,93 +2420,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private static class ArtifactSetResult {
-        private final Set<ResolvedArtifactResult> artifactResults;
-        private final Set<Throwable> failures;
-
-        ArtifactSetResult(Set<ResolvedArtifactResult> artifactResults, Set<Throwable> failures) {
-            this.artifactResults = artifactResults;
-            this.failures = failures;
-        }
-    }
-
-    private static class ConfigurationArtifactCollection implements ArtifactCollectionInternal {
-        private final ResolutionBackedFileCollection fileCollection;
-        private final boolean lenient;
-        private final CalculatedValueContainer<ArtifactSetResult, ?> result;
-
-        ConfigurationArtifactCollection(ResolutionBackedFileCollection files, boolean lenient, ResolutionHost resolutionHost, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            this.fileCollection = files;
-            this.lenient = lenient;
-            this.result = calculatedValueContainerFactory.create(resolutionHost.displayName("files"), (Supplier<ArtifactSetResult>) () -> {
-                ResolvedArtifactCollectingVisitor visitor = new ResolvedArtifactCollectingVisitor();
-                fileCollection.getSelectedArtifacts().visitArtifacts(visitor, lenient);
-
-                Set<ResolvedArtifactResult> artifactResults = visitor.getArtifacts();
-                Set<Throwable> failures = visitor.getFailures();
-
-                if (!lenient) {
-                    resolutionHost.rethrowFailure("artifacts", failures);
-                }
-                return new ArtifactSetResult(artifactResults, failures);
-            });
-        }
-
-        @Override
-        public FileCollection getArtifactFiles() {
-            return fileCollection;
-        }
-
-        @Override
-        public Set<ResolvedArtifactResult> getArtifacts() {
-            ensureResolved();
-            return result.get().artifactResults;
-        }
-
-        @Override
-        public Provider<Set<ResolvedArtifactResult>> getResolvedArtifacts() {
-            return new BuildableBackedSetProvider<>(getArtifactFiles(), new ArtifactCollectionResolvedArtifactsFactory(this));
-        }
-
-        @Override
-        public Iterator<ResolvedArtifactResult> iterator() {
-            ensureResolved();
-            return result.get().artifactResults.iterator();
-        }
-
-        @Override
-        public Collection<Throwable> getFailures() {
-            ensureResolved();
-            return result.get().failures;
-        }
-
-        @Override
-        public void visitArtifacts(ArtifactVisitor visitor) {
-            // TODO - if already resolved, use the results
-            fileCollection.getSelectedArtifacts().visitArtifacts(visitor, lenient);
-        }
-
-        private void ensureResolved() {
-            result.finalizeIfNotAlready();
-        }
-    }
-
-    private static class ArtifactCollectionResolvedArtifactsFactory implements Factory<Set<ResolvedArtifactResult>> {
-
-        private final ArtifactCollection artifactCollection;
-
-        private ArtifactCollectionResolvedArtifactsFactory(ArtifactCollection artifactCollection) {
-            this.artifactCollection = artifactCollection;
-        }
-
-        @Override
-        public Set<ResolvedArtifactResult> create() {
-            return artifactCollection.getArtifacts();
-        }
-    }
-
     private class AllArtifactsProvider implements PublishArtifactSetProvider {
-
         @Override
         public PublishArtifactSet getPublishArtifactSet() {
             return getAllArtifacts();

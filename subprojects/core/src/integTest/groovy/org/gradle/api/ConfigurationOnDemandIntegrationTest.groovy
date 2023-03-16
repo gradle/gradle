@@ -35,6 +35,21 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         file("gradle.properties") << "org.gradle.configureondemand=true"
     }
 
+    def "print deprecation warning when used with the Kotlin DSL"() {
+        buildFile.delete()
+        buildKotlinFile << ""
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Using the configuration on demand feature with the Kotlin DSL. " +
+            "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
+            "See https://docs.gradle.org/current/userguide/kotlin_dsl.html#kotdsl:limitations for more details.")
+        run("help")
+
+        then:
+        fixture.assertProjectsConfigured(":")
+        output.count("Configuration on demand is an incubating feature") == 1
+    }
+
     @IgnoreIf({ GradleContextualExecuter.isParallel() }) //parallel mode hides incubating message
     def "presents incubating message"() {
         file("gradle.properties") << "org.gradle.configureondemand=false"
@@ -254,6 +269,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":api")
     }
 
+    @ToBeFixedForConfigurationCache(because = "test expects configuration phase")
     def "respects buildProjectDependencies setting"() {
         settingsFile << "include 'api', 'impl', 'other'"
         file("impl/build.gradle") << """
@@ -269,6 +285,15 @@ project(':api') {
 
         then:
         executed ":api:jar", ":impl:jar"
+        fixture.assertProjectsConfigured(":", ":impl", ":api")
+
+        when:
+        run("impl:build", "--no-rebuild") // impl -> api
+
+        then:
+        executed ":impl:jar"
+        notExecuted ":api:jar"
+        // :api is configured to resolve impl.compileClasspath configuration
         fixture.assertProjectsConfigured(":", ":impl", ":api")
     }
 

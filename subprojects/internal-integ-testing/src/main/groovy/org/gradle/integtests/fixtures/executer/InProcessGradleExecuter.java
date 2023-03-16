@@ -48,6 +48,8 @@ import org.gradle.internal.InternalListener;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.agents.AgentInitializer;
+import org.gradle.internal.agents.AgentUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
@@ -61,6 +63,7 @@ import org.gradle.internal.time.Time;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.cli.ParametersConverter;
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -131,6 +134,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     static {
         LoggingManagerInternal loggingManager = GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
         loggingManager.start();
+
+        GLOBAL_SERVICES.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
     }
 
     public InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
@@ -204,7 +209,10 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             Properties properties = GUtil.loadProperties(gradleProperties);
             return properties.getProperty("org.gradle.java.home") != null || properties.getProperty("org.gradle.jvmargs") != null;
         }
-        return false;
+        boolean isInstrumentationEnabledForProcess = isAgentInstrumentationEnabled();
+        boolean differentInstrumentationRequested = getAllArgs().stream().anyMatch(
+            ("-D" + DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY + "=" + !isInstrumentationEnabledForProcess)::equals);
+        return differentInstrumentationRequested;
     }
 
     private <T extends ExecutionResult> T assertResult(T result) {
@@ -228,6 +236,10 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             builder.setExecutable(new File(getJavaHome(), "bin/java"));
             builder.classpath(getExecHandleFactoryClasspath());
             builder.jvmArgs(invocation.launcherJvmArgs);
+            // Apply the agent to the newly created daemon. The feature flag decides if it is going to be used.
+            for (File agent : cleanup(GLOBAL_SERVICES.get(ModuleRegistry.class).getModule(AgentUtils.AGENT_MODULE_NAME).getClasspath().getAsFiles())) {
+                builder.jvmArgs("-javaagent:" + agent.getAbsolutePath());
+            }
             builder.environment(invocation.environmentVars);
 
             builder.getMainClass().set(Main.class.getName());

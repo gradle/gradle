@@ -74,7 +74,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.InMemoryModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ReadOnlyModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.TwoStageModuleVersionsCache;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
@@ -127,7 +127,7 @@ import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.DependenciesAccessors;
-import org.gradle.initialization.internal.InternalBuildFinishedListener;
+import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildoption.FeatureFlags;
@@ -535,7 +535,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
-                                                                DependencyDescriptorFactory dependencyDescriptorFactory,
+                                                                DependencyMetadataFactory dependencyMetadataFactory,
                                                                 VersionComparator versionComparator,
                                                                 List<ResolverProviderFactory> resolverFactories,
                                                                 ModuleExclusions moduleExclusions,
@@ -553,7 +553,7 @@ class DependencyManagementBuildScopeServices {
             buildOperationExecutor,
             resolverFactories,
             resolveIvyFactory,
-            dependencyDescriptorFactory,
+            dependencyMetadataFactory,
             versionComparator,
             moduleExclusions,
             componentSelectorConverter,
@@ -605,9 +605,9 @@ class DependencyManagementBuildScopeServices {
                                                                                       SuppliedComponentMetadataSerializer suppliedComponentMetadataSerializer,
                                                                                       ListenerManager listenerManager) {
         if (cacheDecoratorFactory instanceof CleaningInMemoryCacheDecoratorFactory) {
-            listenerManager.addListener(new InternalBuildFinishedListener() {
+            listenerManager.addListener(new BuildModelLifecycleListener() {
                 @Override
-                public void buildFinished(GradleInternal build, boolean failed) {
+                public void beforeModelDiscarded(GradleInternal model, boolean buildFailed) {
                     ((CleaningInMemoryCacheDecoratorFactory) cacheDecoratorFactory).clearCaches(ComponentMetadataRuleExecutor::isMetadataRuleExecutorCache);
                 }
             });
@@ -629,10 +629,10 @@ class DependencyManagementBuildScopeServices {
     }
 
     private void registerBuildFinishedHooks(ListenerManager listenerManager, DependencyVerificationOverride dependencyVerificationOverride) {
-        listenerManager.addListener(new InternalBuildFinishedListener() {
+        listenerManager.addListener(new BuildModelLifecycleListener() {
             @Override
-            public void buildFinished(GradleInternal build, boolean failed) {
-                dependencyVerificationOverride.buildFinished(build);
+            public void beforeModelDiscarded(GradleInternal model, boolean buildFailed) {
+                dependencyVerificationOverride.buildFinished(model);
             }
         });
     }

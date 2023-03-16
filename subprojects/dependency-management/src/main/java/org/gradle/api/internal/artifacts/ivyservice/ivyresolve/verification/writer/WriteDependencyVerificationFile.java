@@ -27,6 +27,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyVerifyingModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
@@ -176,7 +177,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     @Override
-    public void buildFinished(Gradle gradle) {
+    public void buildFinished(GradleInternal gradle) {
         ensureOutputDirCreated();
         maybeReadExistingFile();
         // when we generate the verification file, we intentionally ignore if the "use key servers" flag is false

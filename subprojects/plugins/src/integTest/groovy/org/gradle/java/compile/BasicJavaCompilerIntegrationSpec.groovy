@@ -223,11 +223,18 @@ compileJava {
 java.targetCompatibility = JavaVersion.VERSION_1_7
 compileJava.options.compilerArgs.addAll(['--release', $notation])
 compileJava {
+    def targetVersionOf = { config ->
+        provider { config.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) }
+    }
+    def apiElementsTarget = targetVersionOf(configurations.apiElements)
+    def runtimeElementsTarget = targetVersionOf(configurations.runtimeElements)
+    def compileClasspathTarget = targetVersionOf(configurations.compileClasspath)
+    def runtimeClasspathTarget = targetVersionOf(configurations.runtimeClasspath)
     doFirst {
-        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert apiElementsTarget.get() == 8
+        assert runtimeElementsTarget.get() == 8
+        assert compileClasspathTarget.get() == 8
+        assert runtimeClasspathTarget.get() == 8
     }
 }
 """
@@ -253,11 +260,18 @@ java.targetCompatibility = JavaVersion.VERSION_1_7 // ignored
 compileJava.targetCompatibility = '10' // ignored
 compileJava.options.release.set(8)
 compileJava {
+    def targetVersionOf = { config ->
+        provider { config.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) }
+    }
+    def apiElementsTarget = targetVersionOf(configurations.apiElements)
+    def runtimeElementsTarget = targetVersionOf(configurations.runtimeElements)
+    def compileClasspathTarget = targetVersionOf(configurations.compileClasspath)
+    def runtimeClasspathTarget = targetVersionOf(configurations.runtimeClasspath)
     doFirst {
-        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert apiElementsTarget.get() == 8
+        assert runtimeElementsTarget.get() == 8
+        assert compileClasspathTarget.get() == 8
+        assert runtimeClasspathTarget.get() == 8
     }
 }
 """
@@ -291,11 +305,15 @@ compileJava.targetCompatibility = '10' // ignored
 compileJava.options.release.set(8)
 java.disableAutoTargetJvm()
 compileJava {
+    def apiElementsAttributes = configurations.apiElements.attributes
+    def runtimeElementsAttributes = configurations.runtimeElements.attributes
+    def compileClasspathAttributes = configurations.compileClasspath.attributes
+    def runtimeClasspathAttributes = configurations.runtimeClasspath.attributes
     doFirst {
-        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert !configurations.compileClasspath.attributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
-        assert !configurations.runtimeClasspath.attributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
+        assert apiElementsAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert runtimeElementsAttributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert !compileClasspathAttributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
+        assert !runtimeClasspathAttributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
     }
 }
 """
@@ -314,11 +332,18 @@ java.targetCompatibility = JavaVersion.VERSION_1_9 // ignored
 compileJava.targetCompatibility = '1.8'
 compileJava.sourceCompatibility = '1.8'
 compileJava {
+    def targetVersionOf = { config ->
+        provider { config.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) }
+    }
+    def apiElementsTarget = targetVersionOf(configurations.apiElements)
+    def runtimeElementsTarget = targetVersionOf(configurations.runtimeElements)
+    def compileClasspathTarget = targetVersionOf(configurations.compileClasspath)
+    def runtimeClasspathTarget = targetVersionOf(configurations.runtimeClasspath)
     doFirst {
-        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert apiElementsTarget.get() == 8
+        assert runtimeElementsTarget.get() == 8
+        assert compileClasspathTarget.get() == 8
+        assert runtimeClasspathTarget.get() == 8
     }
 }
 """
@@ -336,11 +361,18 @@ compileJava {
 java.targetCompatibility = JavaVersion.VERSION_1_8
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 compileJava {
+    def targetVersionOf = { config ->
+        provider { config.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) }
+    }
+    def apiElementsTarget = targetVersionOf(configurations.apiElements)
+    def runtimeElementsTarget = targetVersionOf(configurations.runtimeElements)
+    def compileClasspathTarget = targetVersionOf(configurations.compileClasspath)
+    def runtimeClasspathTarget = targetVersionOf(configurations.runtimeClasspath)
     doFirst {
-        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
-        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 8
+        assert apiElementsTarget.get() == 8
+        assert runtimeElementsTarget.get() == 8
+        assert compileClasspathTarget.get() == 8
+        assert runtimeClasspathTarget.get() == 8
     }
 }
 """

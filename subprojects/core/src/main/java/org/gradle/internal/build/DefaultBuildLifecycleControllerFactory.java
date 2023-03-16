@@ -21,7 +21,6 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.initialization.exception.ExceptionAnalyser;
-import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.event.ListenerManager;
@@ -50,12 +49,12 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
         StartParameter startParameter = buildDefinition.getStartParameter();
 
         @SuppressWarnings("deprecation")
-        File customSettingsFile = startParameter.getSettingsFile();
+        File customSettingsFile = DeprecationLogger.whileDisabled(startParameter::getSettingsFile);
         if (customSettingsFile != null) {
             logFileDeprecationWarning(DeprecationLogger.deprecateAction("Specifying custom settings file location"));
         }
         @SuppressWarnings("deprecation")
-        File customBuildFile = startParameter.getBuildFile();
+        File customBuildFile = DeprecationLogger.whileDisabled(startParameter::getBuildFile);
         if (customBuildFile != null) {
             logFileDeprecationWarning(DeprecationLogger.deprecateAction("Specifying custom build file location"));
         }
@@ -70,7 +69,7 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
             buildModelController,
             exceptionAnalyser,
             gradle.getBuildListenerBroadcaster(),
-            listenerManager.getBroadcaster(InternalBuildFinishedListener.class),
+            listenerManager.getBroadcaster(BuildModelLifecycleListener.class),
             gradle.getServices().get(BuildWorkPreparer.class),
             gradle.getServices().get(BuildWorkExecutor.class),
             buildToolingModelControllerFactory,

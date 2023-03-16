@@ -796,7 +796,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -880,7 +880,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b'
         """
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         def typeName = propertyType instanceof Class ? propertyType.name : propertyType.toString()
         buildFile << """
             project(':a') {
@@ -921,7 +921,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b'
         """
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -958,7 +958,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {

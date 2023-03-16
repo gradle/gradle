@@ -1,0 +1,14 @@
+apply plugin: "java"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
+}
+test {
+    useJUnitPlatform {
+        includeTags 'org.gradle.SomeCategory'
+    }
+}

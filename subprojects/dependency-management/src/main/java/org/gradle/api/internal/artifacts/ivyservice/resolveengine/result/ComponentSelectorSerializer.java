@@ -31,7 +31,7 @@ import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -118,7 +118,7 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         }
         ImmutableList.Builder<Capability> builder = ImmutableList.builderWithExpectedSize(size);
         for (int i = 0; i < size; i++) {
-            builder.add(new ImmutableCapability(decoder.readString(), decoder.readString(), decoder.readNullableString()));
+            builder.add(new DefaultImmutableCapability(decoder.readString(), decoder.readString(), decoder.readNullableString()));
         }
         return builder.build();
     }

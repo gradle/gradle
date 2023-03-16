@@ -30,6 +30,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.CleanupFrequency;
+import org.gradle.cache.internal.LegacyCacheCleanupEnablement;
 import org.gradle.cache.internal.WrapperDistributionCleanupAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -56,23 +57,29 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private final CacheResourceConfigurationInternal createdResourcesConfiguration;
     private final Property<Cleanup> cleanup;
     private final Property<MarkingStrategy> markingStrategy;
+    private final LegacyCacheCleanupEnablement legacyCacheCleanupEnablement;
 
     private boolean cleanupHasBeenConfigured;
 
     @Inject
-    public DefaultCacheConfigurations(ObjectFactory objectFactory, PropertyHost propertyHost) {
+    public DefaultCacheConfigurations(ObjectFactory objectFactory, PropertyHost propertyHost, LegacyCacheCleanupEnablement legacyCacheCleanupEnablement) {
         this.releasedWrappersConfiguration = createResourceConfiguration(objectFactory, RELEASED_WRAPPERS, DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS);
         this.snapshotWrappersConfiguration = createResourceConfiguration(objectFactory, SNAPSHOT_WRAPPERS, DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
         this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, DOWNLOADED_RESOURCES, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
         this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, CREATED_RESOURCES, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
-        this.cleanup = new ContextualErrorMessageProperty<>(propertyHost, Cleanup.class, "cleanup").convention(Cleanup.DEFAULT);
+        this.cleanup = new ContextualErrorMessageProperty<>(propertyHost, Cleanup.class, "cleanup").convention(createCleanupConvention());
         this.markingStrategy = new ContextualErrorMessageProperty<>(propertyHost, MarkingStrategy.class, "markingStrategy").convention(MarkingStrategy.CACHEDIR_TAG);
+        this.legacyCacheCleanupEnablement = legacyCacheCleanupEnablement;
     }
 
     private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, String name, int defaultDays) {
         CacheResourceConfigurationInternal resourceConfiguration = objectFactory.newInstance(DefaultCacheResourceConfiguration.class, name);
         resourceConfiguration.getRemoveUnusedEntriesOlderThan().convention(providerFromSupplier(daysAgo(defaultDays)));
         return resourceConfiguration;
+    }
+
+    private Provider<Cleanup> createCleanupConvention() {
+        return providerFromSupplier(() -> legacyCacheCleanupEnablement.isDisabledByProperty() ? Cleanup.DISABLED : Cleanup.DEFAULT);
     }
 
     @Override

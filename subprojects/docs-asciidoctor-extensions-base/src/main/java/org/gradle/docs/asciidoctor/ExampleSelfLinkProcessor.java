@@ -42,11 +42,16 @@ public class ExampleSelfLinkProcessor extends Treeprocessor {
     public Document process(Document document) {
         List<StructuralNode> examples = document.findBy(EXAMPLE_SELECTOR);
         for (StructuralNode example : examples) {
-            if (example.getTitle() != null) {
-                if (example.getId() == null) {
-                    example.setId(IdGenerator.generateId(ID_PREFIX + example.getTitle()));
+            if (example.hasAttribute("title")) {
+                // Using attribute value, since it contains Asciidoc markup, as opposed to getTitle() that returns rendered html
+                String title = example.getAttribute("title").toString();
+                String exampleId = example.getId();
+                if (exampleId == null) {
+                    exampleId = IdGenerator.generateId(ID_PREFIX + title);
+                    example.setId(exampleId);
                 }
-                example.setTitle(String.format("link:#%s[%s]", example.getId(), example.getTitle()));
+                // Using setTitle() instead of setAttribute(), because the latter has no effect
+                example.setTitle(String.format("link:#%s[%s]", exampleId, title));
             }
         }
         return document;

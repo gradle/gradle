@@ -18,6 +18,7 @@ package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import spock.lang.Issue
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX
 
@@ -168,6 +169,44 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         ivyRepo.module('com.example', 'plugins', '1.0')
             .assertArtifactsPublished("ivy-1.0.xml", "plugins-1.0.module", "plugins-1.0.jar", "plugins-1.0-sources.jar")
         ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23551")
+    def "Can publish maven with changed artifactId"() {
+
+        given:
+        plugin('foo', 'com.example.foo')
+        publishToMaven()
+
+        and:
+        buildFile << """
+            publishing {
+                afterEvaluate {
+                    publications {
+                        getByName("pluginMaven") {
+                            configure {
+                                artifactId = "foo-new"
+                                groupId = "com.example.foo.new"
+                                version = "1.2.3"
+                            }
+                        }
+                    }
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds 'publish'
+
+
+        then:
+        mavenRepo.module('com.example.foo.new', 'foo-new', '1.2.3').assertPublished()
+
+        def module = mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0')
+        module.assertPublished()
+        module.getPomFile().text.contains('foo-new')
+        module.getPomFile().text.contains('com.example.foo.new')
+        module.getPomFile().text.contains('1.2.3')
     }
 
     @ToBeFixedForConfigurationCache(because = "publishing")

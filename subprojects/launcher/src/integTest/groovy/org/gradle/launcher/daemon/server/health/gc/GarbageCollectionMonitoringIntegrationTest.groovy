@@ -34,7 +34,7 @@ import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_WI
 @MultiVersionTestCategory
 class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
     static def version
-    static final String MEMORY_URL = new DocumentationRegistry().getDocumentationFor("build_environment", "configuring_jvm_memory")
+    static final String MEMORY_URL = new DocumentationRegistry().getDocumentationFor("build_environment", "sec:configuring_jvm_memory")
     GarbageCollectorUnderTest garbageCollector
 
     def setup() {

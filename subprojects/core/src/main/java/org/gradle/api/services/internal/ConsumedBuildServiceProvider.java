@@ -25,6 +25,7 @@ import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.service.ServiceRegistry;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -72,7 +73,7 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
         return resolvedProvider;
     }
 
-    @Nullable
+    @Nonnull
     @Override
     public Class<T> getType() {
         return serviceType;
@@ -97,5 +98,10 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     public ProviderInternal<T> withFinalValue(ValueConsumer consumer) {
         RegisteredBuildServiceProvider<T, BuildServiceParameters> resolved = resolve();
         return resolved != null ? resolved.withFinalValue(consumer) : super.withFinalValue(consumer);
+    }
+
+    @Override
+    public boolean calculatePresence(ValueConsumer consumer) {
+        return resolve() != null;
     }
 }
