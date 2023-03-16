@@ -62,7 +62,7 @@ public interface TaskProperties {
     /**
      * Service reference properties (those annotated with {@link org.gradle.api.services.ServiceReference}).
      *
-     * It is guaranteed that all the {@link InputFilePropertySpec}s have a name and that the names are unique.
+     * It is guaranteed that all the {@link ServiceReferenceSpec}s have a name and that the names are unique.
      *
      * @see org.gradle.api.services.ServiceReference
      */
