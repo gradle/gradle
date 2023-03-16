@@ -141,7 +141,7 @@ public abstract class DefaultSourceSet implements SourceSet {
         return baseName;
     }
 
-    private String configurationNameOf(String baseName) {
+    public String configurationNameOf(String baseName) {
         return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(baseName));
     }
 
