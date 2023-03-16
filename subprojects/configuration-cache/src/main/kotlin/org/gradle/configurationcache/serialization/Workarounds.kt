@@ -53,13 +53,19 @@ object Workarounds {
 
     fun canAccessConventions(from: String, area: String) =
         withWorkaroundsFor(area) {
-            from.startsWith("com.android.build.gradle.tasks.factory.AndroidUnitTest")
+            from.startsWith("com.android.build.gradle.tasks.factory.AndroidUnitTest") || callStackHasElement {
+                isBuildScanPlugin(className)
+            }
         }
+
+    private
+    inline fun callStackHasElement(stackElementMatcher: StackTraceElement.() -> Boolean) = Thread.currentThread().stackTrace.any(stackElementMatcher)
 
     private
     fun isBuildScanPlugin(from: String): Boolean = from.run {
         startsWith("com.gradle.scan.plugin.internal.")
             || startsWith("com.gradle.enterprise.agent.")
+            || startsWith("com.gradle.enterprise.gradleplugin.testacceleration.")
     }
 
     // TODO(https://github.com/gradle/gradle-org-conventions-plugin/issues/18) Remove the workaround when our conventions plugin is compatible.
