@@ -1,13 +1,14 @@
 The Gradle team is excited to announce Gradle @version@.
 
-Time spent in the configuration phase slows down feedback loops.
-In Gradle 6.6, Gradle introduced the configuration cache, which speeds up builds by caching and skipping the configuration phase.
-This release [promotes the configuration cache feature to stable](#promoted-features) with a [large number of other improvements to it](#configuration-cache-improvements).
+You'll be happy to know that the configuration cache is now stable and ready for general use.
+The configuration cache was introduced in Gradle 6.6 to help speed up builds by caching the result of the [configuration phase](userguide/build_lifecycle.html) and reusing it for subsequent builds.
+Plus, there are [several other improvements](#configuration-cache-improvements) that enhance its usability and compatibility that pave the way for further  performance boosts.
 
-The Kotlin DSL has been improved with [many changes](#kotlin-dsl) to help build authors write simpler build scripts and better plugins.
+The Kotlin DSL has undergone [significant improvements](#kotlin-dsl) to make it easier for build authors to create simpler build scripts and better plugins.
 As an experimental feature, Kotlin DSL also has a [simple assignment for Gradle `Property` types](#kotlin-assign).
 
-In [JVM-based projects](#jvm), Java 20 can be used to compile, test and run Java projects and CodeNarc analysis runs in parallel by default.
+In [JVM-based projects](#jvm), it is now possible to use Java 20 for compiling, testing, and running Java projects.
+Additionally, CodeNarc analysis runs in parallel by default, allowing for faster code quality analysis.
 
 This release also contains several other [general improvements](#general) and [bug fixes](#fixed-issues).
 
