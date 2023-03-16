@@ -53,7 +53,7 @@ WARNING: If you're not using a lifecycle event provider as an input to the dataf
 
 == Supplying the action for execution
 
-You should not create FlowAction objects manually.
+You should not create `FlowAction` objects manually.
 Instead, you request to execute them in the appropriate scope of link:{javadocPath}/org/gradle/api/flow/FlowScope.html[`FlowScope`].
 When doing that, you can configure the parameters for task to use.
 
