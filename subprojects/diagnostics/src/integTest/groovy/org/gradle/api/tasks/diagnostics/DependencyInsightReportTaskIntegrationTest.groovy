@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
 
@@ -299,6 +300,7 @@ org:leaf:1.0
 """
     }
 
+    @ToBeFixedForConfigurationCache(because = "StyledTextOutput is not serializable")
     def "displays information about conflicting modules when failOnVersionConflict is used"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -370,6 +372,7 @@ org:leaf2:1.5 -> 2.5
 """
     }
 
+    @ToBeFixedForConfigurationCache(because = "StyledTextOutput is not serializable")
     def "displays information about conflicting modules when failOnVersionConflict is used and afterResolve is used"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
