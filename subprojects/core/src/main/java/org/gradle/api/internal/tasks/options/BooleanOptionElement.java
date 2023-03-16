@@ -26,7 +26,7 @@ import java.util.Set;
 /**
  * A flag, does not take an argument.
  *
- * If a command line option is provided, the {@link org.gradle.api.internal.tasks.TaskOptionSupplier} automatically creates an opposite option.
+ * If a command line option is provided, the {@link org.gradle.api.internal.tasks.TaskOptionsSupplier} automatically creates an opposite option.
  * For example, {@code "--no-foo"} is created for the provided option {@code "--foo"} or {@code "--bar"} for the provided option {@code "--no-bar"}.
  *
  * Options whose names starts with "--no" are 'disable options' and set the option value to false.

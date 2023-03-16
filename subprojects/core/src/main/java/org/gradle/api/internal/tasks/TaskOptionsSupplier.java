@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.options.OptionDescriptor;
 import org.gradle.api.internal.tasks.options.OptionElement;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.Pair;
 import org.gradle.util.internal.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,15 +40,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * This class is responsible for adding built-in task options and
- * {@link BooleanOptionElement boolean opposite options} to the options
- * provided by the {@link OptionReader}.
+ * This class is responsible for supplying the built-in options and
+ * the {@link BooleanOptionElement mutually exclusive options} of a task,
+ * based on the task options provided by the {@link OptionReader}.
  */
-public class TaskOptionSupplier {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaskOptionSupplier.class);
-    private final Object target;
-    private final OptionReader optionReader;
-    private final List<OptionDescriptor> oppositeOptionPairs = new LinkedList<>();
+public class TaskOptionsSupplier {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskOptionsSupplier.class);
 
     @VisibleForTesting
     static final List<BuiltInOptionElement> BUILT_IN_OPTIONS = Stream.of(
@@ -58,15 +56,10 @@ public class TaskOptionSupplier {
         )
     ).collect(Collectors.toList());
 
-    public TaskOptionSupplier(Object target, OptionReader optionReader) {
-        this.target = target;
-        this.optionReader = optionReader;
-    }
-
     /**
      * Builds a list of implicit built-in options available for every task.
      */
-    private List<OptionDescriptor> getBuiltInOptions(Collection<String> reserved) {
+    private static List<OptionDescriptor> getBuiltInOptions(Object target, Collection<String> reserved) {
         List<OptionDescriptor> allBuiltInOptions = BUILT_IN_OPTIONS.stream().map(optionElement ->
             new InstanceOptionDescriptor(target, optionElement, null, reserved.contains(optionElement.getOptionName()))
         ).collect(Collectors.toList());
@@ -84,43 +77,53 @@ public class TaskOptionSupplier {
 
     /**
      * Builds a map of generated opposite options and
-     * writes each opposite option pair to {@link #oppositeOptionPairs}.
+     * add pairs of mutually exclusive options to the {@link TaskOptions taskOptions}.
      */
-    private Map<String, OptionDescriptor> getOppositeOptions(Map<String, OptionDescriptor> options) {
+    private static Map<String, OptionDescriptor> getOppositeOptions(Object target, Map<String, OptionDescriptor> options, TaskOptions taskOptions) {
         Map<String, OptionDescriptor> oppositeOptions = new HashMap<>();
+        List<Pair<OptionDescriptor, OptionDescriptor>> mutuallyExclusiveOptions = new LinkedList<>();
 
-        for (OptionDescriptor optionDescriptor : options.values()) {
-            if (optionDescriptor instanceof InstanceOptionDescriptor) {
-                OptionElement optionElement = ((InstanceOptionDescriptor) optionDescriptor).getOptionElement();
+        for (OptionDescriptor option : options.values()) {
+            if (option instanceof InstanceOptionDescriptor) {
+                OptionElement optionElement = ((InstanceOptionDescriptor) option).getOptionElement();
                 if (optionElement instanceof BooleanOptionElement) {
                     BooleanOptionElement oppositeOptionElement = BooleanOptionElement.oppositeOf((BooleanOptionElement) optionElement);
                     String oppositeOptionName = oppositeOptionElement.getOptionName();
                     if (options.containsKey(oppositeOptionName)) {
                         LOGGER.warn("Opposite option '{}' was disabled for clashing with another option of same name", oppositeOptionName);
                     } else {
-                        oppositeOptions.put(oppositeOptionName, new InstanceOptionDescriptor(target, oppositeOptionElement, null));
-                        addOppositeOptionPair(optionDescriptor, oppositeOptionElement);
+                        OptionDescriptor oppositeOption = new InstanceOptionDescriptor(target, oppositeOptionElement, null);
+                        oppositeOptions.put(oppositeOptionName, oppositeOption);
+                        mutuallyExclusiveOptions.add(Pair.of(option, oppositeOption));
                     }
                 }
             }
         }
+        taskOptions.mutuallyExclusiveOptions = Collections.unmodifiableList(mutuallyExclusiveOptions);
         return oppositeOptions;
     }
 
-    private void addOppositeOptionPair(OptionDescriptor optionDescriptor, BooleanOptionElement oppositeOptionElement) {
-        oppositeOptionPairs.add(optionDescriptor);
-        oppositeOptionPairs.add(new InstanceOptionDescriptor(target, oppositeOptionElement, null));
-    }
-
-    public List<OptionDescriptor> getAllOptions() {
+    public static TaskOptions get(Object target, OptionReader optionReader) {
+        TaskOptions taskOptions = new TaskOptions();
         Map<String, OptionDescriptor> options = optionReader.getOptions(target);
-        options.putAll(getOppositeOptions(options));
-        List<OptionDescriptor> taskOptions = CollectionUtils.sort(options.values());
-        taskOptions.addAll(getBuiltInOptions(options.keySet()));
+        options.putAll(getOppositeOptions(target, options, taskOptions));
+        List<OptionDescriptor> sortedOptions = CollectionUtils.sort(options.values());
+        sortedOptions.addAll(getBuiltInOptions(target, options.keySet()));
+        taskOptions.allTaskOptions = Collections.unmodifiableList(sortedOptions);
         return taskOptions;
     }
 
-    public List<OptionDescriptor> getOppositeOptionPairs() {
-        return Collections.unmodifiableList(oppositeOptionPairs);
+    public static class TaskOptions {
+        private List<OptionDescriptor> allTaskOptions;
+        private List<Pair<OptionDescriptor, OptionDescriptor>> mutuallyExclusiveOptions;
+        private TaskOptions() {}
+
+        public List<OptionDescriptor> getAll() {
+            return allTaskOptions;
+        }
+
+        public List<Pair<OptionDescriptor, OptionDescriptor>> getMutuallyExclusive() {
+            return mutuallyExclusiveOptions;
+        }
     }
 }
