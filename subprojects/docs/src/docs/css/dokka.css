@@ -1,0 +1,15 @@
+.library-name a {
+    position: relative;
+    margin-left: 55px;
+}
+
+.library-name a::before {
+    content: '';
+    background: url("../images/gradle-logo.png") center no-repeat;
+    background-size: contain;
+    position: absolute;
+    width: 75px;
+    height: 75px;
+    top: -30px;
+    left: -70px;
+}
