@@ -16,8 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import org.gradle.api.JavaVersion
-import org.gradle.internal.jvm.Jvm
+
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadataComparator
 import spock.lang.Issue
@@ -45,7 +44,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
         ]
 
         when:
-        metadata.sort(new JvmInstallationMetadataComparator(newJvm()))
+        metadata.sort(new JvmInstallationMetadataComparator(getJavaHome()))
 
         then:
         assertOrder(metadata, "11.0", "8.0", "6.0", "5.1")
@@ -63,7 +62,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
         ]
 
         when:
-        metadata.sort(new JvmInstallationMetadataComparator(newJvm()))
+        metadata.sort(new JvmInstallationMetadataComparator(getJavaHome()))
 
         then:
         assertOrder(metadata, "8.3", "8.2", "8.1", "8.8", "8.7", "8.4")
@@ -78,7 +77,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
         ]
 
         when:
-        metadata.sort(new JvmInstallationMetadataComparator(newJvm()))
+        metadata.sort(new JvmInstallationMetadataComparator(getJavaHome()))
 
         then:
         assertOrder(metadata, "8.0.1234", "8.0.123", "8.0.1")
@@ -92,7 +91,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
         def metadata = [jre, jdk]
 
         when:
-        metadata.sort(new JvmInstallationMetadataComparator(newJvm()))
+        metadata.sort(new JvmInstallationMetadataComparator(getJavaHome()))
 
         then:
         metadata == [jdk, jre]
@@ -106,7 +105,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
         def metadata = [prevJdk, nextJdk]
 
         when:
-        metadata.sort(new JvmInstallationMetadataComparator(newJvm()))
+        metadata.sort(new JvmInstallationMetadataComparator(getJavaHome()))
 
         then:
         metadata == [nextJdk, prevJdk]
@@ -125,7 +124,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
         ]
 
         when:
-        metadata.sort(new JvmInstallationMetadataComparator(newJvm("8.0", false, null)))
+        metadata.sort(new JvmInstallationMetadataComparator(getJavaHome("8.0", false, null)))
 
         then:
         assertOrder(metadata, "8.0", "8.3", "8.2", "8.1", "8.8", "8.7", "8.4")
@@ -144,11 +143,7 @@ class JvmInstallationMetadataComparatorTest extends Specification {
         }
     }
 
-    private static Jvm newJvm(String implementationVersion = "1.1", boolean isJdk = false, String installPath = null) {
-        return Jvm.discovered(getJavaHome(implementationVersion, isJdk, installPath), implementationVersion, JavaVersion.toVersion(implementationVersion))
-    }
-
-    private static File getJavaHome(String implementationVersion, boolean isJdk = false, String installPath = null) {
+    private static File getJavaHome(String implementationVersion = "1.1", boolean isJdk = false, String installPath = null) {
         return new File(installPath != null ? installPath : ("/" + (isJdk ? "jdk" : "jre") + "s/" + implementationVersion)).absoluteFile
     }
 }

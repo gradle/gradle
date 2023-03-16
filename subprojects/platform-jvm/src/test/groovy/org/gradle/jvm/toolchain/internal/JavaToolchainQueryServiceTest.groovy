@@ -23,7 +23,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.jvm.inspection.JvmVendor
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
@@ -184,8 +183,8 @@ class JavaToolchainQueryServiceTest extends Specification {
     def "returns current JVM toolchain if requested"() {
         given:
         def registry = createInstallationRegistry(versionRange(8, 19))
-        def currentJvm = Jvm.discovered(registry.listInstallations().find { it.location.name == "17" }.location, "17", JavaVersion.toVersion("17"))
-        def queryService = queryService(registry, newJvmMetadataDetector(), createProvisioningService(), currentJvm)
+        def currentJavaHome = registry.listInstallations().find { it.location.name == "17" }.location
+        def queryService = queryService(registry, newJvmMetadataDetector(), createProvisioningService(), currentJavaHome)
 
         when:
         def filter = new CurrentJvmToolchainSpec(TestUtil.objectFactory())
@@ -194,15 +193,15 @@ class JavaToolchainQueryServiceTest extends Specification {
         then:
         toolchain.isPresent()
         !toolchain.get().isFallbackToolchain()
-        toolchain.get().languageVersion == JavaLanguageVersion.of(currentJvm.javaVersion.majorVersion)
-        toolchain.get().getInstallationPath().toString() == currentJvm.javaHome.absolutePath
+        toolchain.get().languageVersion == JavaLanguageVersion.of(17)
+        toolchain.get().getInstallationPath().toString() == currentJavaHome.absolutePath
     }
 
     def "returns fallback toolchain if filter is not configured"() {
         given:
         def registry = createInstallationRegistry(versionRange(8, 19))
-        def currentJvm = Jvm.discovered(registry.listInstallations().find { it.location.name == "17" }.location, "17", JavaVersion.toVersion("17"))
-        def queryService = queryService(registry, newJvmMetadataDetector(), createProvisioningService(), currentJvm)
+        def currentJavaHome = registry.listInstallations().find { it.location.name == "17" }.location
+        def queryService = queryService(registry, newJvmMetadataDetector(), createProvisioningService(), currentJavaHome)
 
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
@@ -211,15 +210,15 @@ class JavaToolchainQueryServiceTest extends Specification {
         then:
         toolchain.isPresent()
         toolchain.get().isFallbackToolchain()
-        toolchain.get().languageVersion == JavaLanguageVersion.of(currentJvm.javaVersion.majorVersion)
-        toolchain.get().getInstallationPath().toString() == currentJvm.javaHome.absolutePath
+        toolchain.get().languageVersion == JavaLanguageVersion.of(17)
+        toolchain.get().getInstallationPath().toString() == currentJavaHome.absolutePath
     }
 
     def "returns non-fallback current JVM toolchain for matching filter"() {
         given:
         def registry = createInstallationRegistry(versionRange(8, 19))
-        def currentJvm = Jvm.discovered(registry.listInstallations().find { it.location.name == "17" }.location, "17", JavaVersion.toVersion("17"))
-        def queryService = queryService(registry, newJvmMetadataDetector(), createProvisioningService(), currentJvm)
+        def currentJavaHome = registry.listInstallations().find { it.location.name == "17" }.location
+        def queryService = queryService(registry, newJvmMetadataDetector(), createProvisioningService(), currentJavaHome)
         def versionToFind = JavaLanguageVersion.of(17)
 
         when:
@@ -240,8 +239,8 @@ class JavaToolchainQueryServiceTest extends Specification {
     def "returns fallback toolchain if filter is not configured even after returning current JVM"() {
         given:
         def registry = createInstallationRegistry(versionRange(8, 19))
-        def currentJvm = Jvm.discovered(registry.listInstallations().find { it.location.name == "17" }.location, "17", JavaVersion.toVersion("17"))
-        def queryService = queryService(registry, newJvmMetadataDetector(), createProvisioningService(), currentJvm)
+        def currentJavaHome = registry.listInstallations().find { it.location.name == "17" }.location
+        def queryService = queryService(registry, newJvmMetadataDetector(), createProvisioningService(), currentJavaHome)
 
         when:
         def currentJvmFilter = new CurrentJvmToolchainSpec(TestUtil.objectFactory())
@@ -264,8 +263,8 @@ class JavaToolchainQueryServiceTest extends Specification {
     def "returns non-fallback current JVM toolchain if requested even after returning fallback toolchain"() {
         given:
         def registry = createInstallationRegistry(versionRange(8, 19))
-        def currentJvm = Jvm.discovered(registry.listInstallations().find { it.location.name == "17" }.location, "17", JavaVersion.toVersion("17"))
-        def queryService = queryService(registry, newJvmMetadataDetector(), createProvisioningService(), currentJvm)
+        def currentJavaHome = registry.listInstallations().find { it.location.name == "17" }.location
+        def queryService = queryService(registry, newJvmMetadataDetector(), createProvisioningService(), currentJavaHome)
 
         when:
         def fallbackFilter = new DefaultToolchainSpec(TestUtil.objectFactory())
@@ -401,8 +400,8 @@ class JavaToolchainQueryServiceTest extends Specification {
     def "prefer version Gradle is running on as long as it is a match"() {
         given:
         def registry = createDeterministicInstallationRegistry(["1.8.1", "1.8.2", "1.8.3"])
-        def currentJvm = Jvm.discovered(registry.listInstallations().find { it.location.name == "1.8.2" }.location, "1.8.2", JavaVersion.toVersion("1.8.2"))
-        def queryService = queryService(registry, newJvmMetadataDetector(), createProvisioningService(), currentJvm)
+        def currentJavaHome = registry.listInstallations().find { it.location.name == "1.8.2" }.location
+        def queryService = queryService(registry, newJvmMetadataDetector(), createProvisioningService(), currentJavaHome)
         def versionToFind = JavaLanguageVersion.of(8)
 
         when:
@@ -490,12 +489,8 @@ class JavaToolchainQueryServiceTest extends Specification {
         JavaInstallationRegistry registry,
         JvmMetadataDetector detector,
         JavaToolchainProvisioningService provisioningService,
-        Jvm currentJvm = Jvm.current())
+        File currentJavaHome = Jvm.current().getJavaHome())
     {
-        new JavaToolchainQueryService(registry, detector, TestFiles.fileFactory(), provisioningService, TestUtil.objectFactory(), createEventEmitter(), currentJvm)
-    }
-
-    BuildOperationProgressEventEmitter createEventEmitter() {
-        return Mock(BuildOperationProgressEventEmitter)
+        new JavaToolchainQueryService(registry, detector, TestFiles.fileFactory(), provisioningService, TestUtil.objectFactory(), currentJavaHome)
     }
 }
