@@ -87,7 +87,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
     private void visitServiceReferences(Consumer<Provider<? extends BuildService<?>>> visitor) {
         TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor() {
             @Override
-            public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName) {
+            public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName, Class<? extends BuildService<?>> buildServiceType) {
                 visitor.accept(Cast.uncheckedCast(value.call()));
             }
         });

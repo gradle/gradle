@@ -55,7 +55,6 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
-import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
@@ -1045,14 +1044,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public List<ResourceLock> getSharedResources() {
-        return getBuildServiceRegistry().getSharedResources(taskRequiredServices.getElements());
+        //TODO can we remove methods from TaskInternal?
+        throw new UnsupportedOperationException();
     }
 
     private void notifyConventionAccess(String invocationDescription) {
         taskExecutionAccessChecker.notifyConventionAccess(this, invocationDescription);
-    }
-
-    private BuildServiceRegistryInternal getBuildServiceRegistry() {
-        return getServices().get(BuildServiceRegistryInternal.class);
     }
 }
