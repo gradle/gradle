@@ -380,17 +380,23 @@ service: closed with value 11
         customTaskUsingServiceViaProperty("@${ServiceReference.name}")
         buildFile """
             def service1 = gradle.sharedServices.registerIfAbsent("counter1", CountingService) {
-                parameters.initial = 10
+                parameters.initial = 1
                 maxParallelUsages = 1
             }
             def service2 = gradle.sharedServices.registerIfAbsent("counter2", CountingService) {
                 parameters.initial = 10
                 maxParallelUsages = 1
             }
+            def service3 = gradle.sharedServices.registerIfAbsent("counter3", CountingService) {
+                parameters.initial = 100
+                maxParallelUsages = 1
+            }
 
             task unambiguous(type: Consumer) {
                 // explicit assignment avoids ambiguity
-                counter.convention(service1)
+                counter.convention(service2)
+                // explicit usage declaration required to avoid warning
+                usesService(service2)
                 doLast {
                     counter.get()
                 }
@@ -427,6 +433,7 @@ service: closed with value 11
             task named(type: Consumer) {
                 // override service with an explicit assignment
                 counter.set(counterProvider2)
+                usesService(counterProvider2)
             }
         """
         enableStableConfigurationCache()
