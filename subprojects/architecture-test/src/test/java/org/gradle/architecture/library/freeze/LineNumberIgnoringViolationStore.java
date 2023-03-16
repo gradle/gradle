@@ -48,7 +48,7 @@ public class LineNumberIgnoringViolationStore implements ViolationStore {
     @Override
     public void save(ArchRule rule, List<String> violations) {
         List<String> violationsWithoutLineNumbers = violations.stream()
-            .map(it -> it.replaceAll("\\.(java|kt):\\d+", ".$1"))
+            .map(it -> it.replaceAll("\\.(java|kt):\\d+", ".$1:0"))
             .collect(toList());
         delegate.save(rule, violationsWithoutLineNumbers);
     }
