@@ -839,6 +839,7 @@ That is listeners registered at configuration time that get notified at executio
 For example a `BuildListener` or a `TaskExecutionListener`.
 
 These should be replaced by <<build_services#build_services,build services>>, registered to receive information about <<build_services#operation_listener, task execution>> if needed.
+Use <<dataflow_actions.adoc#dataflow_action,dataflow actions>> to handle the build result instead of `buildFinished` listeners.
 
 [[config_cache:requirements:external_processes]]
 === Running external processes
