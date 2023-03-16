@@ -217,7 +217,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheFails(":failedCount", "-s")
+        configurationCacheFails(":failedCount")
 
         then:
         configurationCache.assertStateStored()
