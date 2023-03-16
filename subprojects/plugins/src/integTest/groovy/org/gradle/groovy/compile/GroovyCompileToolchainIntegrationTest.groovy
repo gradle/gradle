@@ -197,6 +197,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
     }
 
     def "can compile source and run tests using Java #javaVersion for Groovy "() {
+        Assume.assumeTrue(GroovyCoverage.supportsJavaVersion("$versionNumber", javaVersion))
         def jdk = AvailableJavaHomes.getJdk(javaVersion)
         Assume.assumeTrue(jdk != null)
 

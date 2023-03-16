@@ -41,13 +41,9 @@ public class OkTest {
             String workerJar = splitCliClasspath[0];
             assertTrue(workerJar + " is the worker jar", workerJar.contains("gradle-worker.jar"));
 
-            // In between, we expect the test runtime classpath.
-            String[] filteredCliClasspath = Arrays.copyOfRange(splitCliClasspath, 1, splitCliClasspath.length - 1);
+            // After, we expect the test runtime classpath.
+            String[] filteredCliClasspath = Arrays.copyOfRange(splitCliClasspath, 1, splitCliClasspath.length);
             assertEquals(splitTestRuntimeClasspath, filteredCliClasspath);
-
-            // We inject our own junit jar from the distribution on the end of the classpath.
-            String distributionJUnitJar = splitCliClasspath[splitCliClasspath.length - 1];
-            assertTrue(distributionJUnitJar + " is the injected junit jar", distributionJUnitJar.endsWith("junit-4.13.2.jar"));
         } else {
             List<URL> systemClasspath = Arrays.asList(((URLClassLoader) ClassLoader.getSystemClassLoader()).getURLs());
 
@@ -55,14 +51,10 @@ public class OkTest {
             String workerJar = systemClasspath.get(0).getPath();
             assertTrue(workerJar + " is the worker jar", workerJar.endsWith("gradle-worker.jar"));
 
-            // In between, we expect the test runtime classpath.
-            List<URL> filteredSystemClasspath = systemClasspath.subList(1, systemClasspath.size() - 1);
+            // After, we expect the test runtime classpath.
+            List<URL> filteredSystemClasspath = systemClasspath.subList(1, systemClasspath.size());
             List<URL> testRuntimeClasspath = getTestRuntimeClasspath(splitTestRuntimeClasspath);
             assertEquals(testRuntimeClasspath, filteredSystemClasspath);
-
-            // We inject our own junit jar from the distribution on the end of the classpath.
-            String distributionJUnitJar = systemClasspath.get(systemClasspath.size() - 1).getPath();
-            assertTrue(distributionJUnitJar + " is the injected junit jar", distributionJUnitJar.endsWith("junit-4.13.2.jar"));
         }
 
         // check Gradle and impl classes not visible

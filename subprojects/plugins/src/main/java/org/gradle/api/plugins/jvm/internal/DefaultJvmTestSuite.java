@@ -25,14 +25,14 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
+import org.gradle.api.internal.tasks.JvmConstants;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -230,7 +230,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private void addDefaultTestTarget() {
         final String target;
         if (getName().equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
-            target = JavaPlugin.TEST_TASK_NAME;
+            target = JvmConstants.TEST_TASK_NAME;
         } else {
             target = getName(); // For now, we'll just name the test task for the single target for the suite with the suite name
         }

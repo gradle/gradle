@@ -469,6 +469,92 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         JavaVersion.current()   | "[deprecation] foo() in Foo has been deprecated"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/23990")
+    def "can compile with a custom compiler executable"() {
+        def otherJdk = AvailableJavaHomes.getJdk(JavaVersion.current())
+        def jdk = AvailableJavaHomes.getDifferentVersion {
+            def v = it.languageVersion.majorVersion.toInteger()
+            11 <= v && v <= 18 // Java versions supported by ECJ releases used in the test
+        }
+
+        buildFile << """
+            plugins {
+                id("java")
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${otherJdk.javaVersion.majorVersion})
+                }
+            }
+
+            configurations {
+                ecj {
+                    canBeConsumed = false
+                    canBeResolved = true
+                }
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                def changed = providers.gradleProperty("changed").isPresent()
+                ecj(!changed ? "org.eclipse.jdt:ecj:3.31.0" : "org.eclipse.jdt:ecj:3.32.0")
+            }
+
+            // Make sure the provider is up-to-date only if the ECJ classpath does not change
+            class EcjClasspathProvider implements CommandLineArgumentProvider {
+                @Classpath
+                final FileCollection ecjClasspath
+
+                EcjClasspathProvider(FileCollection ecjClasspath) {
+                    this.ecjClasspath = ecjClasspath
+                }
+
+                @Override
+                List<String> asArguments() {
+                    return ["-cp", ecjClasspath.asPath, "org.eclipse.jdt.internal.compiler.batch.Main"]
+                 }
+            }
+
+            compileJava {
+                def customJavaLauncher = javaToolchains.launcherFor {
+                    languageVersion.set(JavaLanguageVersion.of(${jdk.javaVersion.majorVersion}))
+                }.get()
+
+                // ECJ does not support generating JNI headers
+                options.headerOutputDirectory.set(provider { null })
+                options.fork = true
+                options.forkOptions.executable = customJavaLauncher.executablePath.asFile.absolutePath
+                options.forkOptions.jvmArgumentProviders.add(new EcjClasspathProvider(configurations.ecj))
+            }
+        """
+
+        when:
+        withInstallations(jdk, otherJdk).run(":compileJava", "--info")
+        then:
+        executedAndNotSkipped(":compileJava")
+        outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'")
+        outputContains("Compiling with Java command line compiler '${jdk.javaExecutable.absolutePath}'")
+        classJavaVersion(javaClassFile("Foo.class")) == jdk.javaVersion
+
+        // Test up-to-date checks
+        when:
+        withInstallations(jdk, otherJdk).run(":compileJava")
+        then:
+        skipped(":compileJava")
+
+        when:
+        withInstallations(jdk, otherJdk).run(":compileJava", "-Pchanged")
+        then:
+        executedAndNotSkipped(":compileJava")
+
+        when:
+        withInstallations(jdk, otherJdk).run(":compileJava", "-Pchanged")
+        then:
+        skipped(":compileJava")
+    }
+
     private TestFile configureForkOptionsExecutable(Jvm jdk) {
         buildFile << """
             compileJava {

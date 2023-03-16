@@ -28,9 +28,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.external.model.CapabilityInternal;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.internal.component.external.model.DefaultComponentVariantIdentifier;
-import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import java.util.List;
@@ -72,7 +72,7 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
     @Override
     public void apply(CapabilitiesConflictHandler.ResolutionDetails details) {
         details.getCapabilityVersions().stream()
-            .collect(Collectors.groupingBy(c -> new ImmutableCapability(c.getGroup(), c.getName(), null)))
+            .collect(Collectors.groupingBy(c -> new DefaultImmutableCapability(c.getGroup(), c.getName(), null)))
             .forEach((key1, versions) -> {
                 List<ComponentVariantIdentifier> candidateIds = versions.stream()
                     .flatMap(c -> details.getCandidates(c).stream())

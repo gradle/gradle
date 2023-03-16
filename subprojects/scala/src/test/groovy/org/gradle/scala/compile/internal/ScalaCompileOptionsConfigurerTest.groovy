@@ -81,9 +81,9 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         17            | false             | '2.13.10'           | '-release:17'
         17            | false             | '3.2.1'             | '-release:17'
 
-        17            | true              | '2.13.9'            | '-release:8'
-        17            | true              | '2.13.10'           | '-release:8'
-        17            | true              | '3.2.1'             | '-release:8'
+        17            | true              | '2.13.9'            | '-target:8'
+        17            | true              | '2.13.10'           | '-target:8'
+        17            | true              | '3.2.1'             | '-Xtarget:8'
 
         toolchain = fallbackToolchain ? "$javaToolchain (fallback)" : javaToolchain
     }
@@ -120,21 +120,38 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         ]
     }
 
-    def 'does not configure target jvm if scala compiler already has a target via #targetFlag flag'() {
+    def 'does not configure target jvm if scala compiler already has a configured target via #targetFlagName flag'() {
         given:
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
-        scalaCompileOptions.additionalParameters = [targetFlag]
+        scalaCompileOptions.additionalParameters = targetFlagParts.toList()
         Set<File> classpath = [new File("scala-library-2.13.1.jar")]
 
         when:
         ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(17, false), classpath)
 
         then:
-        scalaCompileOptions.additionalParameters.find { it == targetFlag }
+        scalaCompileOptions.additionalParameters.find { it == targetFlagParts[0] }
         scalaCompileOptions.additionalParameters.find { it.contains("17") } == null
 
         where:
-        targetFlag << ['-target:8', '--target:8', '-release:8', '--release:8', '-Xtarget:8', '-java-output-version:8', '-Xunchecked-java-output-version:8']
+        targetFlagParts                          | _
+        ['-target:8']                            | _
+        ['--target:8']                           | _
+        ['-target', '8']                         | _
+        ['-release:8']                           | _
+        ['--release:8']                          | _
+        ['-release', '8']                        | _
+        ['--release', '8']                       | _
+        ['-java-output-version:8']               | _
+        ['-java-output-version', '8']            | _
+        ['-Xtarget:8']                           | _
+        ['-Xtarget', '8']                        | _
+        ['--Xtarget:8']                          | _
+        ['--Xtarget', '8']                       | _
+        ['-Xunchecked-java-output-version:8']    | _
+        ['-Xunchecked-java-output-version', '8'] | _
+
+        targetFlagName = targetFlagParts[0]
     }
 
     private JavaToolchain createToolchain(int javaVersion, boolean isFallback) {

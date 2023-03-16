@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableMap;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
@@ -30,7 +28,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
@@ -49,13 +46,10 @@ import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
-import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.service.ServiceLookup;
-import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-import java.util.stream.Collectors;
 
 public class DefaultTransformationRegistrationFactory implements TransformationRegistrationFactory {
 
@@ -137,19 +131,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
                 DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), dependenciesNormalizer, cacheable, validationContext);
             }
         }
-        ImmutableMap<String, Severity> validationMessages = validationContext.getProblems();
-        if (!validationMessages.isEmpty()) {
-            String formatString = validationMessages.size() == 1
-                ? "A problem was found with the configuration of %s."
-                : "Some problems were found with the configuration of %s.";
-            throw new DefaultMultiCauseException(
-                String.format(formatString, ModelType.of(implementation).getDisplayName()),
-                validationMessages.keySet().stream()
-                    .sorted()
-                    .map(InvalidUserDataException::new)
-                    .collect(Collectors.toList())
-            );
-        }
+        DefaultTypeValidationContext.throwOnProblemsOf(implementation, validationContext.getProblems());
         Transformer transformer = new DefaultTransformer(
             implementation,
             parameterObject,
@@ -216,14 +198,14 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
 
         @Override
         public void visitInputFileProperty(
-                String propertyName,
-                boolean optional,
-                InputBehavior behavior,
-                DirectorySensitivity directorySensitivity,
-                LineEndingSensitivity lineEndingSensitivity,
-                @Nullable FileNormalizer fileNormalizer,
-                PropertyValue value,
-                InputFilePropertyType filePropertyType
+            String propertyName,
+            boolean optional,
+            InputBehavior behavior,
+            DirectorySensitivity directorySensitivity,
+            LineEndingSensitivity lineEndingSensitivity,
+            @Nullable FileNormalizer fileNormalizer,
+            PropertyValue value,
+            InputFilePropertyType filePropertyType
         ) {
             this.normalizer = fileNormalizer;
             this.directorySensitivity = directorySensitivity;

@@ -121,11 +121,13 @@ Artifacts
                 sourceElements project
             }
 
-            def expectedResolvedFiles = [project.file("src/main/resources"), project.file("src/main/java")]
-
             def testResolve = tasks.register('testResolve') {
+                def expectedResolvedFiles = [project.file("src/main/resources"), project.file("src/main/java")]
+                def resolvedConfigFiles = provider {
+                    sourceElementsConfig.getResolvedConfiguration().files
+                }
                 doLast {
-                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll(expectedResolvedFiles)
+                    assert resolvedConfigFiles.get().containsAll(expectedResolvedFiles)
                 }
             }
             """.stripIndent()
@@ -212,8 +214,11 @@ Artifacts
                                          project(':subB').file("src/main/java")]
 
             def testResolve = tasks.register('testResolve') {
+                def actual = provider {
+                    sourceElementsConfig.getResolvedConfiguration().getFiles()
+                }
                 doLast {
-                    assert sourceElementsConfig.getResolvedConfiguration().getFiles().containsAll(expectedResolvedFiles)
+                    assert actual.get().containsAll(expectedResolvedFiles)
                 }
             }
             """.stripIndent()
@@ -482,9 +487,10 @@ Artifacts
                 config project(":")
             }
             tasks.register("consumeRuntimeClasses") {
-                dependsOn configurations.config
+                def config = configurations.config
+                dependsOn config
                 doLast {
-                    assert configurations.config.files*.name.contains("custom")
+                    assert config.files*.name.contains("custom")
                 }
             }
         """

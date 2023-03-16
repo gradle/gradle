@@ -114,7 +114,7 @@ open class BuildFlowScope @Inject constructor(
     }
 
     override fun buildFinished(result: BuildResult) {
-        setRequestedTasksResult(result.failure)
+        setBuildWorkResult(result.failure)
         schedulePendingActions()
     }
 
@@ -129,8 +129,8 @@ open class BuildFlowScope @Inject constructor(
     }
 
     private
-    fun setRequestedTasksResult(failure: Throwable?) {
-        flowProviders.requestedTasksResult.uncheckedCast<RequestedTasksResultProvider>().apply {
+    fun setBuildWorkResult(failure: Throwable?) {
+        flowProviders.buildWorkResult.uncheckedCast<BuildWorkResultProvider>().apply {
             set { Optional.ofNullable(failure) }
         }
     }

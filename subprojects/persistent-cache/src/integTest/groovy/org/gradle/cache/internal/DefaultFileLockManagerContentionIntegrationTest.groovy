@@ -25,6 +25,7 @@ import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.internal.agents.AgentStatus
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.internal.service.ServiceRegistry
@@ -235,6 +236,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             import org.gradle.internal.service.scopes.GlobalScopeServices
             import org.gradle.workers.WorkParameters
             import ${GradleUserHomeScopeServices.name}
+            import ${AgentStatus.name}
 
             task doWorkInWorker(type: WorkerTask)
 
@@ -274,7 +276,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                     super(NativeServices.getInstance());
 
                     add(OutputEventListener.class, OutputEventListener.NO_OP);
-                    addProvider(new GlobalScopeServices(true));
+                    addProvider(new GlobalScopeServices(true, AgentStatus.disabled()));
                 }
 
                 public static ServiceRegistry getInstance(File gradleUserHome) {

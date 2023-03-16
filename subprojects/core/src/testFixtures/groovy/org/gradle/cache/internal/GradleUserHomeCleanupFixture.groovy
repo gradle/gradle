@@ -65,12 +65,16 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
     void disableCacheCleanupViaProperty() {
         gradleUserHomeDir.mkdirs()
         new File(gradleUserHomeDir, 'gradle.properties') << """
-            ${GradleUserHomeCacheCleanupActionDecorator.CACHE_CLEANUP_PROPERTY}=false
+            ${LegacyCacheCleanupEnablement.CACHE_CLEANUP_PROPERTY}=false
         """.stripIndent()
     }
 
     void disableCacheCleanupViaDsl() {
         setCleanupInterval("DISABLED")
+    }
+
+    void explicitlyEnableCacheCleanupViaDsl() {
+        setCleanupInterval("DEFAULT")
     }
 
     void disableCacheCleanup(CleanupMethod method) {
@@ -79,6 +83,10 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
                 disableCacheCleanupViaProperty()
                 break
             case CleanupMethod.DSL:
+                disableCacheCleanupViaDsl()
+                break
+            case CleanupMethod.BOTH:
+                disableCacheCleanupViaProperty()
                 disableCacheCleanupViaDsl()
                 break
             default:
@@ -129,11 +137,31 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
     abstract TestFile getGradleUserHomeDir()
 
     enum CleanupMethod {
-        PROPERTY, DSL
+        PROPERTY("legacy property only", true),
+        DSL("DSL only", false),
+        BOTH("both legacy property and DSL", false)
+
+        final String description
+        final boolean deprecationExpected
+
+        CleanupMethod(String description, boolean deprecationExpected) {
+            this.description = description
+            this.deprecationExpected = deprecationExpected
+        }
 
         @Override
         String toString() {
-            return super.toString().toLowerCase()
+            return description
+        }
+
+        void maybeExpectDeprecationWarning(executer) {
+            if (deprecationExpected) {
+                executer.expectDocumentedDeprecationWarning(
+                    "Disabling Gradle user home cache cleanup with the 'org.gradle.cache.cleanup' property has been deprecated. " +
+                        "This is scheduled to be removed in Gradle 9.0. " +
+                        "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#disabling_user_home_cache_cleanup"
+                )
+            }
         }
     }
 

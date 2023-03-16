@@ -25,6 +25,7 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.WarPlugin;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.internal.reflect.Instantiator;
@@ -158,7 +159,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
 
                 Set<Configuration> libConfigurations = component.getLibConfigurations();
 
-                libConfigurations.add(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+                libConfigurations.add(JavaPluginHelper.getJavaComponent(project).getRuntimeClasspathConfiguration());
                 component.setClassesDeployPath("/");
                 ((IConventionAware) component).getConventionMapping().map("libDeployPath", new Callable<String>() {
                     @Override
@@ -181,7 +182,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 Set<Configuration> libConfigurations = component.getLibConfigurations();
                 Set<Configuration> minusConfigurations = component.getMinusConfigurations();
 
-                libConfigurations.add(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+                libConfigurations.add(JavaPluginHelper.getJavaComponent(project).getRuntimeClasspathConfiguration());
                 minusConfigurations.add(project.getConfigurations().getByName("providedRuntime"));
                 component.setClassesDeployPath("/WEB-INF/classes");
                 ConventionMapping convention = ((IConventionAware) component).getConventionMapping();

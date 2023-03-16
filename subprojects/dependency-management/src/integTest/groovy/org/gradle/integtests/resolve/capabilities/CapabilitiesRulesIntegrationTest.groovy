@@ -198,7 +198,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
                             throw new IllegalStateException("Expected default capability to be explicit")
                         } else {
                             println "  - capabilities: " + capabilities.collect {
-                                if (!(it instanceof org.gradle.internal.component.external.model.ImmutableCapability)) {
+                                if (!(it instanceof org.gradle.internal.component.external.model.DefaultImmutableCapability)) {
                                     throw new IllegalStateException("Unexpected capability type: \$it")
                                 }
                                 "\${it}"

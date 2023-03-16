@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 
@@ -50,7 +52,6 @@ class ScalaCompileIntegrationTest extends MultiVersionIntegrationSpec implements
 
         then:
         executedAndNotSkipped(":compileScala")
-        outputDoesNotContain("[Warn]")
 
         JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == currentJdk.javaVersion
         JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
@@ -86,7 +87,6 @@ class Person {
 
         then:
         executedAndNotSkipped(":compileScala")
-        outputDoesNotContain("[Warn]")
         JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
 
         where:
@@ -94,6 +94,27 @@ class Person {
         "null"           | "null"
         "mutable list"   | "[]"
         "immutable list" | "[].asImmutable()"
+    }
+
+    @Requires(TestPrecondition.JDK11_OR_LATER)
+    def "can compile sources using later JDK APIs"() {
+        file("src/main/scala/App.scala") << """
+            object App {
+              def main(args: Array[String]): Unit = {
+                var x : String = "Test String"
+                // isBlank is from JDK 11
+                println(x.isBlank)
+              }
+            }
+        """
+
+        when:
+        run ":compileScala"
+
+        then:
+        executedAndNotSkipped(":compileScala")
+
+        JavaVersion.forClass(scalaClassFile("App.class").bytes) == JavaVersion.VERSION_1_8
     }
 
 }

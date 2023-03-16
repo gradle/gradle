@@ -1,6 +1,7 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.clickableUrlFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -342,5 +343,17 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                 """.trimIndent()
             )
         )
+    }
+
+    @Test
+    fun `script compilation warnings are output on the console`() {
+        val script = withBuildScript("""
+            @Deprecated("BECAUSE")
+            fun deprecatedFunction() {}
+            deprecatedFunction()
+        """)
+        build("help").apply {
+            assertOutputContains("w: ${clickableUrlFor(script)}:4:13: 'deprecatedFunction(): Unit' is deprecated. BECAUSE")
+        }
     }
 }

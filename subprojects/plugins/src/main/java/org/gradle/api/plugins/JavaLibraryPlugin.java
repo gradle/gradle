@@ -20,7 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.tasks.SourceSet;
@@ -48,7 +48,7 @@ public abstract class JavaLibraryPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
 
-        JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
+        JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
         SourceSet sourceSet = component.getSourceSet();
 
         // TODO: Why do we not do this in createApiElements?
@@ -69,7 +69,7 @@ public abstract class JavaLibraryPlugin implements Plugin<Project> {
         component.getCompileOnlyConfiguration().extendsFrom(compileOnlyApi);
 
         // Make compileOnlyApi visible to tests.
-        JvmTestSuite defaultTestSuite = JvmPluginsHelper.getDefaultTestSuite(project);
+        JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
         configurations.getByName(defaultTestSuite.getSources().getCompileOnlyConfigurationName()).extendsFrom(compileOnlyApi);
     }
 }

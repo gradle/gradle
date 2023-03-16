@@ -46,9 +46,9 @@ You can use the command line switches shown in <<#logLevelCommandLineOptions, Lo
 [%header%autowidth,compact]
 |===
 | Option | Outputs Log Levels
-| no logging options | LIFECYCLE and higher
 | `-q` or `--quiet` | QUIET and higher
 | `-w` or `--warn` | WARN and higher
+| no logging options | LIFECYCLE and higher
 | `-i` or `--info` | INFO and higher
 | `-d` or `--debug` | DEBUG and higher (that is, all log messages)
 |===
@@ -154,6 +154,12 @@ Gradle also provides integration with the Java Util Logging, Jakarta Commons Log
 
 [[sec:changing_what_gradle_logs]]
 == Changing what Gradle logs
+[WARNING]
+====
+The <<configuration_cache.adoc#config_cache,configuration cache>> limits the ability to customize Gradle's logging UI.
+The custom logger can only implement <<configuration_cache.adoc#config_cache:requirements:build_listeners,supported listener interfaces>>.
+These interfaces do not receive events when the configuration cache entry is reused, because the whole configuration phase is skipped.
+====
 
 You can replace much of Gradle's logging UI with your own. You might do this, for example, if you want to customize the UI in some way - to log more or less information, or to change the formatting. You replace the logging using the link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:useLogger(java.lang.Object)[Gradle.useLogger(java.lang.Object)] method. This is accessible from a build script, or an init script, or via the embedding API. Note that this completely disables Gradle's default output. Below is an example init script which changes how task execution and build completion is logged.
 
@@ -176,8 +182,8 @@ include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
 
 Your logger can implement any of the listener interfaces listed below. When you register a logger, only the logging for the interfaces that it implements is replaced. Logging for the other interfaces is left untouched. You can find out more about the listener interfaces in <<build_lifecycle.adoc#build_lifecycle_events,Build lifecycle events>>.
 
-* link:{javadocPath}/org/gradle/BuildListener.html[BuildListener]
+* link:{javadocPath}/org/gradle/BuildListener.html[BuildListener]footnote:config_cache_incompat[Not compatible with the configuration cache.]
 * link:{javadocPath}/org/gradle/api/ProjectEvaluationListener.html[ProjectEvaluationListener]
 * link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraphListener.html[TaskExecutionGraphListener]
-* link:{javadocPath}/org/gradle/api/execution/TaskExecutionListener.html[TaskExecutionListener]
-* link:{javadocPath}/org/gradle/api/execution/TaskActionListener.html[TaskActionListener]
+* link:{javadocPath}/org/gradle/api/execution/TaskExecutionListener.html[TaskExecutionListener]footnote:config_cache_incompat[]
+* link:{javadocPath}/org/gradle/api/execution/TaskActionListener.html[TaskActionListener]footnote:config_cache_incompat[]

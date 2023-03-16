@@ -23,7 +23,6 @@ public class GradleDocsAsciidoctorExtensionRegistry implements ExtensionRegistry
 
     @Override
     public void register(Asciidoctor asciidoctor) {
-
         JavaExtensionRegistry registry = asciidoctor.javaExtensionRegistry();
 
         registry.docinfoProcessor(MetadataDocinfoProcessor.class);
@@ -33,13 +32,5 @@ public class GradleDocsAsciidoctorExtensionRegistry implements ExtensionRegistry
         registry.includeProcessor(SampleIncludeProcessor.class);
 
         registry.treeprocessor(ExampleSelfLinkProcessor.class);
-
-//        registry.docinfoProcessor(new LinkingDataDocinfoProcessor(footerOptions));
-        // TODO: satisfaction widget processor
-
-//        registry.inlineMacro("javadoc", JavadocLinkInlineMacroProcessor.class);
-//        registry.blockMacro("sample", IncludeSampleBlockMacroProcessor.class);
-
-        // TODO: consider project layout macro inspired by https://github.com/gradle/gradle/pull/6006/files#diff-8c02799b6a73d6394741c4e2933273ae
     }
 }

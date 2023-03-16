@@ -43,8 +43,11 @@ class BucketOfDependenciesIntegrationTest extends AbstractIntegrationSpec {
             def bucket2 = jvm.registerDependencyBucket('other', 'some other description')
 
             tasks.register("dump") {
+                def otherDescription = provider {
+                    configurations.other.description
+                }
                 doLast {
-                    assert configurations.other.description == 'some other description'
+                    assert otherDescription.get() == 'some other description'
                 }
             }
         """

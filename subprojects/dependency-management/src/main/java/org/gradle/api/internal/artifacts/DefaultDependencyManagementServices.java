@@ -108,8 +108,8 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
+import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -448,10 +448,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
             DefaultDependencyLockingProvider dependencyLockingProvider = new DefaultDependencyLockingProvider(fileResolver, startParameter, context, globalDependencyResolutionRules.getDependencySubstitutionRules(), propertyFactory, filePropertyFactory, listenerManager.getBroadcaster(FileResourceListener.class));
             if (startParameter.isWriteDependencyLocks()) {
-                listenerManager.addListener(new InternalBuildFinishedListener() {
+                listenerManager.addListener(new BuildModelLifecycleListener() {
                     @Override
-                    public void buildFinished(GradleInternal gradle, boolean failed) {
-                        if (!failed) {
+                    public void beforeModelDiscarded(GradleInternal model, boolean buildFailed) {
+                        if (!buildFailed) {
                             dependencyLockingProvider.buildFinished();
                         }
                     }

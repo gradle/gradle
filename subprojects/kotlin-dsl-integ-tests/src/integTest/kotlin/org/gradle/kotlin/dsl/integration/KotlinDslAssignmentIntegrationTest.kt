@@ -197,6 +197,8 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
                 abstract val listInput: ListProperty<String>
                 @get:InputDirectory
                 abstract val dirInput: DirectoryProperty
+                @get:Internal
+                abstract val fileCollectionInput: ConfigurableFileCollection
                 @get:OutputFile
                 abstract val fileOutput: RegularFileProperty
 
@@ -232,6 +234,8 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
                 dirInput = objects.directoryProperty() as Provider<Directory>
                 dirInput = file("src")
                 dirInput = provider { file("src") }
+                fileCollectionInput = files("a.txt")
+                fileCollectionInput = files("a.txt") as FileCollection
                 fileOutput = null as File?
                 fileOutput = null as RegularFile?
                 fileOutput = provider { null as File? }

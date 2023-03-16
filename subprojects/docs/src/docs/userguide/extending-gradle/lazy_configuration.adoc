@@ -50,6 +50,11 @@ The following demonstrates a task with a configurable `greeting` property and a 
 include::sample[dir="snippets/providers/propertyAndProvider/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/providers/propertyAndProvider/groovy",files="build.gradle[]"]
 ====
+<1> A task that displays a greeting
+<2> A configurable greeting
+<3> Read-only property calculated from the greeting
+<4> Configure the greeting
+<5> Alternative notation to calling Property.set() (experimental opt-in for Kotlin, see <<kotlin_dsl.adoc#kotdsl:assignment,Kotlin DSL Primer>>)
 
 .Output of **`gradle greeting`**
 ----

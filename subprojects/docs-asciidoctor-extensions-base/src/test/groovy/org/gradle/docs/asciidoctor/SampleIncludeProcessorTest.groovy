@@ -165,9 +165,9 @@ include::sample[dir="src/samples",files="build.gradle[tags=foo,bar]"]
     /**
      * https://docs.asciidoctor.org/asciidoc/latest/directives/include-tagged-regions/#tag-filtering
      */
-    def 'allows sample included with double wildcard tag'() {
+    def "allows sample included with #description"() {
         given:
-        tmpDir.newFile("src/samples/build.gradle") << '''
+        tmpDir.newFile("src/samples/build.gradle") << """
 task hello {
     // tag::foo[]
     doLast {
@@ -177,13 +177,13 @@ task hello {
     }
     // end::bar[]
 }
-'''
+"""
 
         String asciidocContent = """
 = Doctitle
 :samples-dir: ${tmpDir.root.canonicalPath}
 
-include::sample[dir="src/samples",files="build.gradle[tag=**]"]
+include::sample[dir="src/samples",files="build.gradle[${tag}]"]
 """
 
         when:
@@ -197,6 +197,11 @@ include::sample[dir="src/samples",files="build.gradle[tag=**]"]
         |}'''.stripMargin()
 
         content.contains(expectedContent)
+
+        where:
+        description           | tag
+        "no tags"             | ""
+        "double wildcard tag" | "tags=**"
     }
 
     def "allows sample included with tags in XML"() {

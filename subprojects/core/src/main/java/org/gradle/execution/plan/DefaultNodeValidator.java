@@ -73,14 +73,18 @@ public class DefaultNodeValidator implements NodeValidator {
     }
 
     private void reportErrors(List<TypeValidationProblem> problems, TaskInternal task, WorkValidationContext validationContext) {
-        ImmutableSet<String> uniqueErrors = problems.stream()
-                .filter(problem -> !problem.getSeverity().isWarning())
-                .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-                .collect(ImmutableSet.toImmutableSet());
+        ImmutableSet<String> uniqueErrors = getUniqueErrors(problems);
         if (!uniqueErrors.isEmpty()) {
             throw WorkValidationException.forProblems(uniqueErrors)
-                    .withSummaryForContext(task.toString(), validationContext)
-                    .get();
+                .withSummaryForContext(task.toString(), validationContext)
+                .get();
         }
+    }
+
+    private static ImmutableSet<String> getUniqueErrors(List<TypeValidationProblem> problems) {
+        return problems.stream()
+            .filter(problem -> !problem.getSeverity().isWarning())
+            .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
+            .collect(ImmutableSet.toImmutableSet());
     }
 }

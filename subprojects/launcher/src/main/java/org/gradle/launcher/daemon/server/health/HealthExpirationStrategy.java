@@ -134,7 +134,7 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
 
             String maxHeap = heapStats.isValid() ? NumberUtil.formatBytes(heapStats.getMaxSizeInBytes()) : "unknown";
             String maxMetaspace = nonHeapStats.isValid() ? NumberUtil.formatBytes(nonHeapStats.getMaxSizeInBytes()) : "unknown";
-            String url = new DocumentationRegistry().getDocumentationFor("build_environment", "configuring_jvm_memory");
+            String url = new DocumentationRegistry().getDocumentationFor("build_environment", "sec:configuring_jvm_memory");
 
             logger.warn(EXPIRE_DAEMON_MESSAGE + when + " " + reason + ".\n"
                 + "The project memory settings are likely not configured or are configured to an insufficient value.\n"

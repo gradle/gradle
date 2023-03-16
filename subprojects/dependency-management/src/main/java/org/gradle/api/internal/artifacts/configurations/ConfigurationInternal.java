@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public interface ConfigurationInternal extends ResolveContext, Configuration, DeprecatableConfiguration, DependencyMetaDataProvider, FinalizableValue {
+public interface ConfigurationInternal extends ResolveContext, DeprecatableConfiguration, DependencyMetaDataProvider, FinalizableValue, Configuration {
     enum InternalState {
         UNRESOLVED,
         BUILD_DEPENDENCIES_RESOLVED,
@@ -132,26 +132,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     default boolean isDeclarableAgainstByExtension() {
         return isDeclarableAgainstByExtension(this);
     }
-
-    /**
-     * Configures if a configuration can have dependencies declared upon it.
-     *
-     */
-    void setCanBeDeclaredAgainst(boolean allowed);
-
-    /**
-     * Returns true if it is allowed to declare dependencies upon this configuration.
-     * Defaults to true.
-     * @return true if this configuration can have dependencies declared
-     */
-    boolean isCanBeDeclaredAgainst();
-
-    /**
-     * Prevents any calls to methods that change this configuration's allowed usage (e.g. {@link #setCanBeConsumed(boolean)},
-     * {@link #setCanBeResolved(boolean)}, {@link #deprecateForResolution(String...)}) from succeeding; and causes them
-     * to throw an exception.
-     */
-    void preventUsageMutation();
 
     /**
      * Returns the role used to create this configuration and set its initial allowed usage.

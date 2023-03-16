@@ -277,7 +277,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     @Override
     public void resetStateForAllBuilds() {
         for (BuildState build : buildsByIdentifier.values()) {
-            build.resetLifecycle();
+            build.resetModel();
         }
     }
 

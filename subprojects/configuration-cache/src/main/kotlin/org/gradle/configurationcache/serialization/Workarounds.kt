@@ -51,6 +51,11 @@ object Workarounds {
             isBuildScanPlugin(from)
         }
 
+    fun canAccessConventions(from: String, area: String) =
+        withWorkaroundsFor(area) {
+            from.startsWith("com.android.build.gradle.tasks.factory.AndroidUnitTest")
+        }
+
     private
     fun isBuildScanPlugin(from: String): Boolean = from.run {
         startsWith("com.gradle.scan.plugin.internal.")

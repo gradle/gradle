@@ -21,7 +21,6 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategy;
-import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheVersionMapping;
@@ -52,12 +51,10 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final UsedGradleVersions usedGradleVersions;
-    private final CleanupActionDecorator cleanupActionDecorator;
     private final CacheConfigurationsInternal cacheConfigurations;
 
-    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CleanupActionDecorator cleanupActionDecorator, CacheConfigurationsInternal cacheConfigurations) {
+    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CacheConfigurationsInternal cacheConfigurations) {
         this.usedGradleVersions = usedGradleVersions;
-        this.cleanupActionDecorator = cleanupActionDecorator;
         this.cacheConfigurations = cacheConfigurations;
     }
 
@@ -74,7 +71,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
 
     private CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal) {
         return DefaultCacheCleanupStrategy.from(
-            cleanupActionDecorator.decorate(createCleanupAction(fileAccessTimeJournal)),
+            createCleanupAction(fileAccessTimeJournal),
             cacheConfigurations.getCleanupFrequency()
         );
     }

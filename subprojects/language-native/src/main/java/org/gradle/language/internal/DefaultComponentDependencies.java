@@ -18,9 +18,9 @@ package org.gradle.language.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.language.ComponentDependencies;
 
 import javax.inject.Inject;
@@ -29,10 +29,8 @@ public class DefaultComponentDependencies implements ComponentDependencies {
     private final Configuration implementation;
 
     @Inject
-    public DefaultComponentDependencies(ConfigurationContainer configurations, String implementationName) {
-        implementation = configurations.create(implementationName);
-        implementation.setCanBeConsumed(false);
-        implementation.setCanBeResolved(false);
+    public DefaultComponentDependencies(RoleBasedConfigurationContainerInternal configurations, String implementationName) {
+        implementation = configurations.bucket(implementationName);
     }
 
     public Configuration getImplementationDependencies() {

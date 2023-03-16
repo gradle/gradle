@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache
 
-
+import org.gradle.configurationcache.fixtures.GradlePropertiesIncludedBuildFixture
 import org.gradle.configurationcache.fixtures.SystemPropertiesCompositeBuildFixture
 import spock.lang.Issue
 
@@ -148,6 +148,31 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
             'gradleProp',
             'ext.gradleProp'
         ]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19793")
+    def "gradle properties must be accessible from task in #build"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        build.setup(this)
+
+        when:
+        configurationCacheRun build.task()
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains build.expectedPropertyOutput()
+
+        when:
+        configurationCacheRun build.task()
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains build.expectedPropertyOutput()
+        outputDoesNotContain "GradleProperties has not been loaded yet."
+
+        where:
+        build << GradlePropertiesIncludedBuildFixture.builds()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19184")

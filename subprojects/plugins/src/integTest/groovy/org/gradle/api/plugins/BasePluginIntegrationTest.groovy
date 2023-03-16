@@ -87,14 +87,13 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
                     archiveBaseName.set("myjar")
                 }
             }
-            task myJar(type: MyJar)
-            task assertCheck {
-                doLast {
-                    assert tasks.myJar.archiveBaseName.get() == "myjar"
+            task myJar(type: MyJar) {
+                doLast { task ->
+                    assert task.archiveBaseName.get() == "myjar"
                 }
             }
         """
         expect:
-        succeeds("assertCheck")
+        succeeds("myJar")
     }
 }
