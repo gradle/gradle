@@ -62,12 +62,6 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
         return resolvedProvider.calculateValue(consumer);
     }
 
-    @Override
-    public T get() {
-        // disallow unsafe read to report
-        return calculateOwnValue(ValueConsumer.DisallowUnsafeRead).get();
-    }
-
     @Nullable
     public RegisteredBuildServiceProvider<T, ?> resolveIfPossible() {
         resolve(false);
