@@ -29,7 +29,9 @@ import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.internal.Factory
 import org.gradle.internal.deprecation.DeprecatableConfiguration
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.accessors.ConfigurationEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
@@ -81,9 +83,11 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
         }
         if (target is Project) {
             @Suppress("deprecation")
-            accessibleConventionsSchema(target.convention.plugins).forEach { (name, type) ->
+            val plugins: Map<String, Any> = DeprecationLogger.whileDisabled(Factory { target.convention.plugins })!!
+            accessibleConventionsSchema(plugins).forEach { (name, type) ->
                 conventions.add(ProjectSchemaEntry(targetType, name, type))
-                collectSchemaOf(target.convention.plugins[name]!!, type)
+                val plugin = DeprecationLogger.whileDisabled(Factory { plugins[name] })!!
+                collectSchemaOf(plugin, type)
             }
             accessibleContainerSchema(target.tasks.collectionSchema).forEach { schema ->
                 tasks.add(ProjectSchemaEntry(typeOfTaskContainer, schema.name, schema.publicType))
@@ -115,7 +119,9 @@ fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
 
 private
 fun accessibleConventionsSchema(plugins: Map<String, Any>) =
-    plugins.filterKeys(::isPublic).mapValues { inferPublicTypeOfConvention(it.value) }
+    DeprecationLogger.whileDisabled(Factory {
+        plugins.filterKeys(::isPublic).mapValues { inferPublicTypeOfConvention(it.value) }
+    })!!
 
 
 private

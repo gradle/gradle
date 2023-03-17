@@ -26,7 +26,7 @@ subprojects {
 
     group = 'org.gradle'
     version = '1.0'
-    sourceCompatibility = '1.6'
+    java.sourceCompatibility = '1.6'
 }
 
 cleanIdea.doLast {

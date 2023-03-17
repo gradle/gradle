@@ -1967,57 +1967,6 @@ since users cannot create non-legacy configurations and there is no current publ
         return this;
     }
 
-    /**
-     * Print a formatted representation of a Configuration
-     */
-    public String dump() {
-        StringBuilder reply = new StringBuilder();
-
-        reply.append("\nConfiguration:");
-        reply.append("  class='").append(this.getClass()).append("'");
-        reply.append("  name='").append(this.getName()).append("'");
-        reply.append("  hashcode='").append(this.hashCode()).append("'");
-
-        reply.append("\nLocal Dependencies:");
-        if (getDependencies().size() > 0) {
-            for (Dependency d : getDependencies()) {
-                reply.append("\n   ").append(d);
-            }
-        } else {
-            reply.append("\n   none");
-        }
-
-        reply.append("\nLocal Artifacts:");
-        if (getArtifacts().size() > 0) {
-            for (PublishArtifact a : getArtifacts()) {
-                reply.append("\n   ").append(a);
-            }
-        } else {
-            reply.append("\n   none");
-        }
-
-        reply.append("\nAll Dependencies:");
-        if (getAllDependencies().size() > 0) {
-            for (Dependency d : getAllDependencies()) {
-                reply.append("\n   ").append(d);
-            }
-        } else {
-            reply.append("\n   none");
-        }
-
-
-        reply.append("\nAll Artifacts:");
-        if (getAllArtifacts().size() > 0) {
-            for (PublishArtifact a : getAllArtifacts()) {
-                reply.append("\n   ").append(a);
-            }
-        } else {
-            reply.append("\n   none");
-        }
-
-        return reply.toString();
-    }
-
     private abstract static class ResolveState {
         static final ResolveState NOT_RESOLVED = new ResolveState(UNRESOLVED) {
             @Override

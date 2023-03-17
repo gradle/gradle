@@ -1,12 +1,18 @@
-// tag::source-set-convention[]
 plugins {
-    groovy
+    java
 }
 
+interface CustomSourceSetConvention {
+    val someOption: Property<String>
+}
+
+(sourceSets["main"].extensions as Convention).plugins["custom"] = objects.newInstance<CustomSourceSetConvention>()
+
+// tag::source-set-convention[]
 sourceSets {
     main {
-        withConvention(GroovySourceSet::class) {
-            groovy.srcDir("src/core/groovy")
+        withConvention(CustomSourceSetConvention::class) {
+            someOption.set("some value")
         }
     }
 }

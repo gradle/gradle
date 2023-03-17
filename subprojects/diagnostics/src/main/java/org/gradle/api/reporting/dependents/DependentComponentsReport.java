@@ -53,6 +53,10 @@ public abstract class DependentComponentsReport extends DefaultTask {
     private boolean showTestSuites;
     private List<String> components;
 
+    {
+        notCompatibleWithConfigurationCache("Requires access to the component model at execution time.");
+    }
+
     /**
      * Should this include non-buildable components in the report?
      */

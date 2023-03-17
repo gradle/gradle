@@ -44,7 +44,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -147,21 +146,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                                                   ConfigurationRole role,
                                                   boolean lockUsage) {
         return defaultConfigurationFactory.create(name, detachedConfigurationsProvider, resolutionStrategyFactory, componentMetadataBuilder, role, lockUsage);
-    }
-
-    /**
-     * Build a formatted representation of all Configurations in this ConfigurationContainer. Configuration(s) being toStringed are likely derivations of DefaultConfiguration.
-     */
-    public String dump() {
-        StringBuilder reply = new StringBuilder();
-
-        reply.append("Configuration of type: ").append(getTypeDisplayName());
-        Collection<? extends Configuration> configs = getAll();
-        for (Configuration c : configs) {
-            reply.append("\n  ").append(c.toString());
-        }
-
-        return reply.toString();
     }
 
     @Override

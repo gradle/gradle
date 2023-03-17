@@ -163,7 +163,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
 
         when:
         def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
-        component.enableJavadocJarVariant()
+        component.withJavadocJar()
 
         then:
         def configuration = project.configurations.getByName(JvmConstants.JAVADOC_ELEMENTS_CONFIGURATION_NAME)
@@ -192,7 +192,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
 
         when:
         def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
-        component.enableSourcesJarVariant()
+        component.withSourcesJar()
 
         then:
         def configuration = project.configurations.getByName(JvmConstants.SOURCES_ELEMENTS_CONFIGURATION_NAME)

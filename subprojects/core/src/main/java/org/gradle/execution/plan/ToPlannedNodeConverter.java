@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
@@ -28,6 +29,7 @@ import java.util.List;
  * Each implementation of this interface is responsible for nodes of {@link #getSupportedNodeType()}.
  * The converter can obtain the node identity for each node of the supported type via {@link #getNodeIdentity(Node)}.
  */
+@NonNullApi
 public interface ToPlannedNodeConverter {
 
     /**
@@ -41,7 +43,9 @@ public interface ToPlannedNodeConverter {
     NodeIdentity getNodeIdentity(Node node);
 
     /**
-     * Returns true if the given {@link Node} is not an actual executable node but only represents a node from another execution plan.
+     * Returns true if the given {@link Node} is from the same execution plan.
+     * <p>
+     * A node can be in another execution plan if it is, for instance, from an included build ({@link TaskInAnotherBuild}).
      */
     boolean isInSamePlan(Node node);
 

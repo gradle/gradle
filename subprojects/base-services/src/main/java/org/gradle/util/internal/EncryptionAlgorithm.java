@@ -55,8 +55,11 @@ public interface EncryptionAlgorithm {
     }
 
     class EncryptionException extends RuntimeException {
-        public EncryptionException(Exception cause) {
-            super(cause);
+        public EncryptionException(String message, Throwable cause) {
+            super(message, cause);
+        }
+        public EncryptionException(Throwable cause) {
+            super(null, cause);
         }
     }
 
