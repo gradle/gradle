@@ -49,6 +49,6 @@ class InitialTransformationNodeCodec(
         val sourceAttributes = readNonNull<AttributeContainer>()
         val transformationStep = readNonNull<TransformStepSpec>()
         val artifacts = readNonNull<ResolvableArtifact>()
-        return transformationNodeFactory.recreateInitial(transformationNodeId, targetComponentVariant, sourceAttributes, transformationStep.transformation, artifacts, transformationStep.recreate(), buildOperationExecutor, calculatedValueContainerFactory)
+        return transformationNodeFactory.recreateInitial(transformationNodeId, targetComponentVariant, sourceAttributes, transformationStep.transformation, artifacts, transformationStep.recreateDependencies(), buildOperationExecutor, calculatedValueContainerFactory)
     }
 }
