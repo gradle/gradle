@@ -54,7 +54,7 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
         project.apply(target -> target.plugin(GradleReleaseNotesPlugin.class));
         project.apply(target -> target.plugin(GradleJavadocsPlugin.class));
-        project.apply(target -> target.plugin(GradleDokkaPlugin.class));
+        project.apply(target -> target.plugin(GradleKotlinDslReferencePlugin.class));
         project.apply(target -> target.plugin(GradleDslReferencePlugin.class));
         project.apply(target -> target.plugin(GradleUserManualPlugin.class));
 
@@ -76,14 +76,14 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
             task.from(extension.getJavadocs().getRenderedDocumentation(), sub -> sub.into("javadoc"));
 
             // Dokka Kotlin DSL reference goes into dokka/
-            task.from(extension.getDokkadocs().getRenderedDocumentation(), sub -> sub.into("dokka"));
+            task.from(extension.getKotlinDslReference().getRenderedDocumentation(), sub -> sub.into("kotlin-dsl"));
 
             // User manual goes into userguide/ (for historical reasons)
             task.from(extension.getUserManual().getRenderedDocumentation(), sub -> sub.into("userguide"));
 
             task.into(extension.getDocumentationRenderedRoot());
 
-            task.dependsOn(GradleDokkaPlugin.DOKKATOO_TASK_NAME); //TODO: sucks, couldn't yet find a way to wire it in properly
+            task.dependsOn(GradleKotlinDslReferencePlugin.TASK_NAME); //TODO: sucks, couldn't yet find a way to wire it in properly
         });
 
         extension.getSourceRoot().convention(layout.getProjectDirectory().dir("src/docs"));

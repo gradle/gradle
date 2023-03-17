@@ -22,7 +22,7 @@ import org.gradle.api.file.RegularFileProperty;
 /**
  * Configuration for generating Dokka based Kotlin DSL docs.
  */
-public abstract class Dokkadocs {
+public abstract class KotlinDslReference {
 
     /**
      * The CSS file to style Dokka with
