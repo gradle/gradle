@@ -19,6 +19,7 @@ package org.gradle.execution.plan;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -27,7 +28,10 @@ import java.util.function.Supplier;
  * <p>
  * Each implementation of this interface is responsible for nodes of {@link #getSupportedNodeType()}.
  * The converter can obtain the node identity for each node of the supported type via {@link #getNodeIdentity(Node)}.
+ * <p>
+ * Instances of this class are expected to be thread-safe.
  */
+@ThreadSafe
 public interface ToPlannedNodeConverter {
 
     /**
