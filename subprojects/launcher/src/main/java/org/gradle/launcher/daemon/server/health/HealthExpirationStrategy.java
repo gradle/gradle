@@ -88,6 +88,7 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
 
     @Override
     public DaemonExpirationResult checkExpiration() {
+        // We cannot check this in the constructor since system properties are copied to the daemon after initialization.
         if (!Boolean.parseBoolean(System.getProperty(ENABLE_PERFORMANCE_MONITORING, "true"))) {
             return DaemonExpirationResult.NOT_TRIGGERED;
         }
