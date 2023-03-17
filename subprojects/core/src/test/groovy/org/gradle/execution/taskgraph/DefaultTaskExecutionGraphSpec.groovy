@@ -70,6 +70,8 @@ import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
 
+import java.util.concurrent.atomic.AtomicLong
+
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
 class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
@@ -85,6 +87,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def workerLeases = new DefaultWorkerLeaseService(coordinator, parallelismConfiguration)
     def executorFactory = Mock(ExecutorFactory)
     def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
+    def taskIdCounter = new AtomicLong()
     def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor(), accessHierarchies)
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
     def projectStateRegistry = Stub(ProjectStateRegistry)
@@ -658,7 +661,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         _ * mock.destroyables >> Stub(TaskDestroyablesInternal)
         _ * mock.localState >> Stub(TaskLocalStateInternal)
         _ * mock.path >> ":${name}"
-        _ * mock.taskIdentity >> TaskIdentity.create(name, DefaultTask, project as ProjectInternal)
+        _ * mock.taskIdentity >> TaskIdentity.create(name, DefaultTask, project as ProjectInternal, taskIdCounter.incrementAndGet())
         return mock
     }
 }
