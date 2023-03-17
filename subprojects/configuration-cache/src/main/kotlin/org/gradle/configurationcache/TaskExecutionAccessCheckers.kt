@@ -20,6 +20,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
+import org.gradle.configurationcache.serialization.Workarounds
 
 
 abstract class AbstractTaskProjectAccessChecker(
@@ -60,6 +61,6 @@ object TaskExecutionAccessCheckers {
     ) : AbstractTaskProjectAccessChecker(broadcaster) {
 
         override fun shouldReportExecutionTimeAccess(task: TaskInternal): Boolean =
-            !configurationTimeBarrier.isAtConfigurationTime
+            !configurationTimeBarrier.isAtConfigurationTime && !Workarounds.canAccessProjectAtExecutionTime(task)
     }
 }
