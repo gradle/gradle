@@ -110,7 +110,7 @@ This release also improves error reporting for lambdas that capture [unsupported
 This release improves error reporting of unsupported method calls in Groovy closures.
 For example, a `doFirst`/`doLast` action uses a method or property of the `Project`, which is unsupported with the configuration cache:
 
-```
+```groovy
 tasks.register('echo') {
     doLast { println buildDir }
 }
@@ -118,7 +118,7 @@ tasks.register('echo') {
 
 Previously, a confusing message of `Could not get unknown property 'buildDir' for task ':echo'` was displayed, but now the error is more accurate:
 
-```
+```text
 * Where:
 Build file 'build.gradle' line: 2
 
