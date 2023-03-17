@@ -139,7 +139,7 @@ Registering conventions does not emit a deprecation warning yet to provide a mig
 Future Gradle versions will do.
 
 [[deprecated_configuration_get_all]]
-==== `link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[CompileOptions]` method deprecations
+==== `link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration]` method deprecations
 
 The following method on `Configuration` is deprecated for removal:
 
