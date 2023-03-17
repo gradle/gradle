@@ -167,7 +167,7 @@ public abstract class Wrapper extends DefaultTask {
         }
     }
 
-    private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE = "Test of distribution url failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
+    private static final String DISTRIBUTION_URL_EXCEPTION_MESSAGE = "Test of distribution url %s failed. Please check the values set with --gradle-distribution-url and --gradle-version.";
 
     private void testDistributionUrl() {
         if (distributionUrlConfigured) {
@@ -175,13 +175,13 @@ public abstract class Wrapper extends DefaultTask {
             URI uri = URI.create(url);
             if (uri.getScheme().equals("file")) {
                 if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
-                    throw new UncheckedIOException(DISTRIBUTION_URL_EXCEPTION_MESSAGE);
+                    throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url));
                 }
             } else if (uri.getScheme().startsWith("http") && !isOffline) {
                 try {
                     new Download(new Logger(true), "gradlew", Download.UNKNOWN_VERSION).sendHeadRequest(uri);
                 } catch (Exception e) {
-                    throw new UncheckedIOException(DISTRIBUTION_URL_EXCEPTION_MESSAGE, e);
+                    throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url), e);
                 }
             }
         }

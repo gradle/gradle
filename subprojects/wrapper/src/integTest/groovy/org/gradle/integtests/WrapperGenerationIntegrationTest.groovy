@@ -180,7 +180,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         Throwable throwable = thrown(UnexpectedBuildFailure.class)
-        assert throwable.message.contains("Test of distribution url failed. Please check the values set with --gradle-distribution-url and --gradle-version.")
+        assert throwable.message.contains("Test of distribution url ${url} failed. Please check the values set with --gradle-distribution-url and --gradle-version.")
         file("gradle/wrapper/gradle-wrapper.properties").assertDoesNotExist()
     }
 
@@ -212,7 +212,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         Throwable throwable = thrown(UnexpectedBuildFailure.class)
-        assert throwable.message.contains("Test of distribution url failed. Please check the values set with --gradle-distribution-url and --gradle-version.")
+        assert throwable.message.contains("Test of distribution url ${url} failed. Please check the values set with --gradle-distribution-url and --gradle-version.")
         file("gradle/wrapper/gradle-wrapper.properties").assertDoesNotExist()
     }
 
