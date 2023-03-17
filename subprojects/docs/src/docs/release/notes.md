@@ -12,6 +12,8 @@ Additionally, CodeNarc analysis runs in parallel by default, allowing for faster
 
 This release also contains several [other improvements](#other) and [bug fixes](#fixed-issues).
 
+See the [What's new in Gradle 8.0](https://gradle.org/whats-new/gradle-8/) for a discussion of changes from 7.0 to 8.0. 
+
 <!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
