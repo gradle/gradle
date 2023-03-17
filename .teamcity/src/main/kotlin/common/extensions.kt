@@ -31,6 +31,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildTypeSettings
 import jetbrains.buildServer.configs.kotlin.v2019_2.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.v2019_2.Dependencies
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.Requirements
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
@@ -173,9 +174,13 @@ fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX, buildType: Buil
         name = "CHECK_CLEAN_M2_ANDROID_USER_HOME"
         executionMode = BuildStep.ExecutionMode.ALWAYS
         scriptContent = if (os == Os.WINDOWS) {
-            checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\repository") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.gradle-enterprise") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.android", false)
+            checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\repository") +
+                checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.gradle-enterprise") +
+                checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.android", false)
         } else {
-            checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.android", false)
+            checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") +
+                checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") +
+                checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.android", false)
         }
         skipConditionally(buildType)
     }
@@ -262,3 +267,27 @@ fun BuildType.killProcessStep(stepName: String, os: Os, arch: Arch = Arch.AMD64)
 }
 
 fun String.toCapitalized() = this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+
+/**
+ * Define clean up rules for the project.
+ * See https://www.jetbrains.com/help/teamcity/teamcity-data-clean-up.html#Clean-up+Rules
+ *
+ * @param historyDays days number of days to store artifacts
+ * @param artifactsDays number of days to store artifacts. In the stored history, artifacts older than this number will be cleaned up.
+ * @param artifactPatterns patterns for artifacts clean-up. If not specified, all artifacts will be removed.
+ */
+fun Project.cleanupRule(historyDays: Int, artifactsDays: Int, artifactsPatterns: String? = null) {
+    features {
+        this@cleanupRule.cleanup {
+            baseRule {
+                history(days = historyDays)
+            }
+            baseRule {
+                artifacts(
+                    days = artifactsDays,
+                    artifactPatterns = artifactsPatterns
+                )
+            }
+        }
+    }
+}
