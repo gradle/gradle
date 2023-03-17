@@ -25,7 +25,7 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stri
 class ProcessInPluginBuildScriptIntegrationTest extends AbstractProcessIntegrationTest {
     def "using #snippetsFactory.summary in included plugin settings #file is a problem"() {
         given:
-        settingsFileWithStableConfigurationCache("""
+        settingsFile("""
             pluginManagement {
                 includeBuild('included')
             }
@@ -62,7 +62,7 @@ class ProcessInPluginBuildScriptIntegrationTest extends AbstractProcessIntegrati
 
     def "using #snippetsFactory.summary in included plugin build #file is a problem"() {
         given:
-        settingsFileWithStableConfigurationCache("""
+        settingsFile("""
             pluginManagement {
                 includeBuild('included')
             }

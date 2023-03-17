@@ -29,7 +29,6 @@ class FilesInTransformIntegrationTest extends AbstractProcessIntegrationTest {
 
     def "reading a file in transform action with #task does not create a build input"() {
         given:
-        settingsFileWithStableConfigurationCache()
         getTransformFixture().tap {
             withTransformPlugin(testDirectory.createDir("buildSrc"))
             withJavaLibrarySubproject(testDirectory.createDir("subproject"))
@@ -63,8 +62,6 @@ class FilesInTransformIntegrationTest extends AbstractProcessIntegrationTest {
 
     def "reading a file in transform action with #task of buildSrc build does not create a build input"() {
         given:
-        settingsFileWithStableConfigurationCache()
-
         createDir("buildSrc") {
             getTransformFixture().tap {
                 withTransformPlugin(dir("transform-plugin"))
