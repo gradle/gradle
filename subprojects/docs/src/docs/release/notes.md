@@ -142,7 +142,7 @@ Gradle now detects:
 
 ### Dataflow Actions
 
-The new Flow Actions API allows scheduling some build work outside of tasks.
+The new [Flow Actions API](userguide/dataflow_actions.html) allows scheduling some build work outside of tasks.
 In this release, the focus is on providing a configuration-cache compatible alternative to the deprecated `project.buildFinished` callback.
 Unlike callbacks, dataflow actions are isolated and more aligned with the Gradle execution model.
 
