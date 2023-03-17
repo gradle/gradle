@@ -26,6 +26,10 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+/**
+ * Transformation node factory that ensures that unique ids are used correctly
+ * when creating new instances and/or loading from the configuration cache.
+ */
 @ThreadSafe
 @ServiceScope(Scopes.BuildTree.class)
 public class TransformationNodeFactory {
