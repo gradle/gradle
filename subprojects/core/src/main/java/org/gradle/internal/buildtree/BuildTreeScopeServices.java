@@ -26,6 +26,7 @@ import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
+import org.gradle.configuration.internal.InConfigurationIdFactory;
 import org.gradle.execution.DefaultTaskSelector;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.TaskNameResolver;
@@ -83,6 +84,7 @@ public class BuildTreeScopeServices {
         registration.add(DefaultProblemLocationAnalyzer.class);
         registration.add(DefaultExceptionAnalyser.class);
         registration.add(ScriptUsageLocationReporter.class);
+        registration.add(InConfigurationIdFactory.class);
         modelServices.applyServicesTo(registration);
     }
 
