@@ -24,6 +24,7 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
  * <p>
  * All the available converters are expected to support disjoint set of {@link Node node types}.
  */
+@ThreadSafe
 public class ToPlannedNodeConverterRegistry {
 
     private static final ToPlannedNodeConverter MISSING_MARKER = new MissingToPlannedNodeConverter();
