@@ -1622,11 +1622,12 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     }
 
     private <U extends TaskInternal> U task(final String name, Class<U> type) {
-        Mock(type, name: "[task" + taskCount++ + "]") {
+        def taskId = (long) taskCount++
+        Mock(type, name: "[task$taskId]") {
             getName() >> name
             getTaskDependency() >> Mock(TaskDependency)
-            getTaskIdentity() >> TaskIdentity.create(name, type, project)
-        }
+            getTaskIdentity() >> TaskIdentity.create(name, type, project as ProjectInternal, taskId)
+        } as U
     }
 
     private Task addTask(String name) {

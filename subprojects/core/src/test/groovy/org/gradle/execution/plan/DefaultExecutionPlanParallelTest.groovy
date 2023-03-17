@@ -43,6 +43,7 @@ import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 import javax.annotation.Nullable
+import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
@@ -52,6 +53,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     DefaultFinalizedExecutionPlan finalizedPlan
 
     def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
+    def taskIdCounter = new AtomicLong()
     def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor(), accessHierarchies)
 
     def setup() {
@@ -72,7 +74,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         _ * task.shouldRunAfter >> taskDependencyResolvingTo(task, options.shouldRunAfter ?: [])
         _ * task.mustRunAfter >> taskDependencyResolvingTo(task, options.mustRunAfter ?: [])
         _ * task.sharedResources >> (options.resources ?: [])
-        _ * task.taskIdentity >> TaskIdentity.create(name, DefaultTask, project)
+        _ * task.taskIdentity >> TaskIdentity.create(name, DefaultTask, project, taskIdCounter.incrementAndGet())
         TaskStateInternal state = Mock()
         _ * task.state >> state
         if (options.failure != null) {

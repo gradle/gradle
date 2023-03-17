@@ -68,7 +68,7 @@ class NameValidatorTest extends Specification {
                 getIdentityPath() >> Path.path(":build:foo:bar")
             }
         }
-        new TaskInstantiator(new TaskFactory(project, Mock(InstantiationScheme)), project).create(name, DefaultTask)
+        new TaskInstantiator(taskIdentityFactory, new TaskFactory(project, Mock(InstantiationScheme)), project).create(name, DefaultTask)
 
         then:
         def exception = thrown(InvalidUserDataException)

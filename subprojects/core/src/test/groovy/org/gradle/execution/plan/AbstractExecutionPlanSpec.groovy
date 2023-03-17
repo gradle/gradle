@@ -41,12 +41,15 @@ import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.concurrent.atomic.AtomicLong
+
 abstract class AbstractExecutionPlanSpec extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
     private def backing = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private def locks = new ArrayList<MockLock>()
     private def acquired = new HashSet<MockLock>()
+    private taskIdCounter = new AtomicLong()
     def thisBuild = backing.gradle
     def project = project()
     def nodeValidator = Mock(NodeValidator)
@@ -99,7 +102,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         task.localState >> emptyTaskLocalState()
         task.inputs >> emptyTaskInputs()
         task.requiredServices >> emptyTaskRequiredServices()
-        task.taskIdentity >> TaskIdentity.create(name, DefaultTask, project)
+        task.taskIdentity >> TaskIdentity.create(name, DefaultTask, project, taskIdCounter.incrementAndGet())
         return task
     }
 

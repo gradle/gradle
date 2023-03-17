@@ -59,7 +59,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "default task"() {
         given:
-        def identity = TaskIdentity.create(TEST_TASK_NAME, Task, project)
+        def identity = TaskIdentity.create(TEST_TASK_NAME, Task, project, 1)
         Task task = AbstractTask.injectIntoNewInstance(project, identity, { TestUtil.newInstance(DefaultTask) } as Callable)
 
         expect:
@@ -75,7 +75,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "can inject values into task when using no-args constructor"() {
         given:
-        def identity = TaskIdentity.create(TEST_TASK_NAME, Task, project)
+        def identity = TaskIdentity.create(TEST_TASK_NAME, Task, project, 1)
         def task = AbstractTask.injectIntoNewInstance(project, identity, { TestUtil.newInstance(DefaultTask) } as Callable)
 
         expect:

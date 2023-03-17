@@ -79,6 +79,7 @@ import spock.lang.Timeout
 
 import javax.annotation.Nullable
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 import java.util.function.Consumer
 import java.util.function.Function
 
@@ -95,6 +96,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     def manyWorkers = 10
     def cancellationToken = new DefaultBuildCancellationToken()
     def preparer = Stub(BuildTreeWorkGraphPreparer)
+    def taskIdCounter = new AtomicLong()
 
     def "does nothing when nothing scheduled"() {
         when:
@@ -278,7 +280,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         _ * task.taskDependencies >> dependencies
         _ * task.project >> project
         _ * task.identityPath >> Path.path(":${services.identifier.name}:task")
-        _ * task.taskIdentity >> TaskIdentity.create("task", DefaultTask, project)
+        _ * task.taskIdentity >> TaskIdentity.create("task", DefaultTask, project, taskIdCounter.incrementAndGet())
         _ * task.destroyables >> Stub(TaskDestroyablesInternal)
         _ * task.localState >> Stub(TaskLocalStateInternal)
         _ * project.gradle >> services.gradle
