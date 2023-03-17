@@ -376,7 +376,7 @@ More details in the Shared Build Services documentation on [using build services
 #### New Dataflow Actions replace `buildFinished` listeners
 
 Previously, Gradle had only `Gradle.buildFinished` listeners to handle the result of the build.
-For many reasons, this API doesn't work well with the configuration cache, but there were no proper replacement.
+For many reasons, this API doesn't work well with the configuration cache, but there were no proper replacements.
 With the new [Dataflow Actions](userguide/dataflow_actions.html) you can now schedule pieces of work to process the result of the build in a way that is configuration-cache compatible.
 For example, you can add code to play a sound when the build completes successfully:
 
