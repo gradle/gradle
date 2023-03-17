@@ -17,7 +17,6 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 
 class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -83,12 +82,9 @@ class TaskBooleanOptionIntegrationTest extends AbstractIntegrationSpec {
         file('buildSrc/src/main/java/SampleTask.java') << taskWithBooleanOptions()
         buildFile << sampleTask()
 
-        when:
-        run('sample', "$option=false")
-
-        then:
-        UnexpectedBuildFailure buildFailure = thrown(UnexpectedBuildFailure)
-        assert buildFailure.message.contains("Command-line option '$option' does not take an argument.")
+        expect:
+        def failure = fails('sample', "$option=false")
+        failure.assertHasCause("Command-line option '$option' does not take an argument.")
 
         where:
         option                          | _

@@ -16,8 +16,6 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
-
 class TestNGSuccessWithoutTestIntegrationTest extends TestNGTestFrameworkIntegrationTest {
 
     def "test source and test task use same test framework"() {
@@ -53,12 +51,10 @@ class TestNGSuccessWithoutTestIntegrationTest extends TestNGTestFrameworkIntegra
         then:
         noExceptionThrown()
 
-        when:
-        run('test', '--no-success-without-test')
+        expect:
+        def failure = fails("test", "--no-success-without-test")
+        failure.assertHasErrorOutput("No tests found for given includes: ")
 
-        then:
-        UnexpectedBuildFailure buildFailure = thrown(UnexpectedBuildFailure)
-        assert buildFailure.message.contains("No tests found for given includes: ")
     }
 
     def "test source and test task use different test frameworks"() {
@@ -91,11 +87,8 @@ class TestNGSuccessWithoutTestIntegrationTest extends TestNGTestFrameworkIntegra
         then:
         noExceptionThrown()
 
-        when:
-        run('test', '--no-success-without-test')
-
-        then:
-        UnexpectedBuildFailure buildFailure = thrown(UnexpectedBuildFailure)
-        assert buildFailure.message.contains("No tests found for given includes: ")
+        expect:
+        def failure = fails("test", "--no-success-without-test")
+        failure.assertHasErrorOutput("No tests found for given includes: ")
     }
 }
