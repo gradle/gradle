@@ -48,6 +48,6 @@ class ChainedTransformationNodeCodec(
         val sourceAttributes = readNonNull<AttributeContainer>()
         val transformationStep = readNonNull<TransformStepSpec>()
         val previousStep = readNonNull<TransformationNode>()
-        return transformationNodeFactory.recreateChained(transformationNodeId, targetComponentVariant, sourceAttributes, transformationStep.transformation, previousStep, transformationStep.recreate(), buildOperationExecutor, calculatedValueContainerFactory)
+        return transformationNodeFactory.recreateChained(transformationNodeId, targetComponentVariant, sourceAttributes, transformationStep.transformation, previousStep, transformationStep.recreateDependencies(), buildOperationExecutor, calculatedValueContainerFactory)
     }
 }
