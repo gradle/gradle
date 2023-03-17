@@ -24,7 +24,6 @@ We would like to thank the following community members for their contributions t
 [Attila Király](https://github.com/akiraly),
 [Aurimas](https://github.com/liutikas),
 [Björn Kautler](https://github.com/Vampire),
-[Bo Zhang](https://github.com/blindpirate),
 [Christoph Dreis](https://github.com/dreis2211),
 [David Morris](https://github.com/codefish1),
 [DJtheRedstoner](https://github.com/DJtheRedstoner),
