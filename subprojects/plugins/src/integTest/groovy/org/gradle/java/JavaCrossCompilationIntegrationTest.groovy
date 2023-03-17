@@ -95,7 +95,9 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
         given:
         withJavaProjectUsingToolchainsForJavaVersion(version)
         buildFile << """
+            ${mavenCentralRepository()}
             dependencies { testImplementation 'org.testng:testng:6.8.8' }
+            test { useTestNG() }
         """
 
         file("src/test/java/ThingTest.java") << """

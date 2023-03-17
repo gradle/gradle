@@ -54,7 +54,7 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         then:
-        fails("check")
+        fails("test", "--success-without-test", "check")
         failure.assertHasDescription("Execution failed for task ':pmdTest'.")
         and:
         succeeds("dependencies", "--configuration", "pmd")
@@ -83,7 +83,7 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD 5.1.1 or disable incremental analysis.")
 
         when:
-        fails("check")
+        fails("test", "--success-without-test", "check")
 
         then:
         failure.assertHasFailures(2)

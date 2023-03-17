@@ -135,7 +135,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         file("src/test/java/HelloTest.java") << "public class HelloTest {}"
 
         when:
-        succeeds([":test", *param] as String[])
+        succeeds([":test", "--success-without-test", *param] as String[])
 
         then:
         errorOutput.contains("""Dependency verification failed for configuration ':compileClasspath':

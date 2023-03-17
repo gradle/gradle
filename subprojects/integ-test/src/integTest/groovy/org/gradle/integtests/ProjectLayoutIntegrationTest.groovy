@@ -86,7 +86,7 @@ sourceSets.each {
         file('src/scala/org/gradle/main/ScalaClass2.scala') << 'package org.gradle; class ScalaClass2 { }'
         file('src/scala/org/gradle/test/ScalaClassTest2.scala') << 'package org.gradle; class ScalaClassTest2 { val c: ScalaClass = new ScalaClass() }'
 
-        executer.withTasks('build').run()
+        executer.withTasks('test', '--success-without-test', 'build').run()
 
         File buildDir = file('build')
 

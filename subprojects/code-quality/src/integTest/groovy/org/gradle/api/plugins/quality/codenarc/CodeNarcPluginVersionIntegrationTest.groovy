@@ -63,7 +63,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         goodCode()
 
         expect:
-        succeeds("check")
+        succeeds("test", "--success-without-test", "check")
         report("main").exists()
         report("test").exists()
     }
@@ -102,7 +102,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         goodCode()
 
         expect:
-        succeeds("check")
+        succeeds("test", "--success-without-test", "check")
         executedAndNotSkipped(":codenarcMain")
         ["html", "xml", "txt"].each {
             assert report("main", it).exists()
@@ -113,7 +113,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         badCode()
 
         expect:
-        fails("check")
+        fails("test", "--success-without-test", "check")
         failure.assertHasDescription("Execution failed for task ':codenarcTest'.")
         failure.assertThatCause(startsWith("CodeNarc rule violations were found. See the report at:"))
         !report("main").text.contains("Class2")
@@ -129,7 +129,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         """
 
         expect:
-        succeeds("check")
+        succeeds("test", "--success-without-test", "check")
         output.contains("CodeNarc rule violations were found. See the report at:")
         !report("main").text.contains("Class2")
         report("test").text.contains("testclass2")
@@ -145,7 +145,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         """
 
         expect:
-        succeeds("check")
+        succeeds("test", "--success-without-test", "check")
         !output.contains("CodeNarc rule violations were found. See the report at:")
         report("test").text.contains("testclass2")
     }
@@ -165,7 +165,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         """.stripIndent()
 
         expect:
-        succeeds("check")
+        succeeds("test", "--success-without-test", "check")
     }
 
     def "output should be printed in stdout if console type is specified"() {
@@ -179,7 +179,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         file('src/main/groovy/a/A.groovy') << 'package a;class A{}'
 
         then:
-        succeeds('check')
+        succeeds('test', '--success-without-test', 'check')
         output.contains('CodeNarc Report')
         output.contains('CodeNarc completed: (p1=0; p2=0; p3=0)')
     }

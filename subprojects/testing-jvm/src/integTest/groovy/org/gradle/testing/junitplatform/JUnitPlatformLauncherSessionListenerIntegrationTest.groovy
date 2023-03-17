@@ -69,6 +69,7 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
 
             dependencies {
                 testImplementation project(':other')
+                testCompileOnly 'org.junit.jupiter:junit-jupiter:5.9.1'
                 testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.1'
             }
 
@@ -77,7 +78,14 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
                 testLogging.showStandardStreams = true
             }
         """
-        file("src/test/java/com/example/MyTest.java") << "package com.example; public class MyTest {} "
+        file("src/test/java/com/example/MyTest.java") << """
+            package com.example;
+
+            public class MyTest {
+                @org.junit.jupiter.api.Test
+                public void myTest() { }
+            }
+        """
 
         when:
         succeeds "test"

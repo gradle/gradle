@@ -49,7 +49,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         goodCode()
 
         expect:
-        succeeds('check')
+        succeeds('test', '--success-without-test', 'check')
         file("build/reports/checkstyle/main.sarif").assertDoesNotExist()
         file("build/reports/checkstyle/test.sarif").assertDoesNotExist()
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.Class1"))
@@ -84,24 +84,24 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         """
 
         expect:
-        succeeds('check')
+        succeeds('test', '--success-without-test', 'check')
     }
 
     def "changes to files in config dir causes task to be out-of-date"() {
         goodCode()
         when:
-        succeeds('check')
+        succeeds('test', '--success-without-test', 'check')
         then:
         result.assertTaskExecuted(":checkstyleMain")
 
         when:
-        succeeds('check')
+        succeeds('test', '--success-without-test', 'check')
         then:
         result.assertTaskSkipped(":checkstyleMain")
 
         when:
         file("config/checkstyle/new-file.xml").touch()
-        succeeds('check')
+        succeeds('test', '--success-without-test', 'check')
         then:
         result.assertTaskNotSkipped(":checkstyleMain")
     }
@@ -147,7 +147,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         goodCode()
 
         expect:
-        succeeds('check')
+        succeeds('test', '--success-without-test', 'check')
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.Class1"))
     }
 

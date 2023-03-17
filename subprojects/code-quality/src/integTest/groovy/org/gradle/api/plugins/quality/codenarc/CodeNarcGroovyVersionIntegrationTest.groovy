@@ -50,7 +50,7 @@ class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec imple
         writeBuildFile(groovyVersion, codenarcVersion)
 
         expect:
-        succeeds("check")
+        succeeds("test", "--success-without-test", "check")
         report("main").exists()
         report("test").exists()
 
@@ -65,7 +65,7 @@ class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec imple
         writeBuildFile(groovyVersion, codenarcVersion)
 
         expect:
-        fails("check")
+        fails("test", "--success-without-test", "check")
         failure.assertHasDescription("Execution failed for task ':codenarcTest'.")
         failure.assertThatCause(startsWith("CodeNarc rule violations were found. See the report at:"))
         !report("main").text.contains("Class2")

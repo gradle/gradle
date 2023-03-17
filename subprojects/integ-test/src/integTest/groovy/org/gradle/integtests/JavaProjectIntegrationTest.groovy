@@ -56,7 +56,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
             public class NotATest {}
         """
 
-        executer.withTasks("build").run()
+        executer.withTasks("test", "--success-without-test", "build").run()
     }
 
     @Test
@@ -93,7 +93,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         testFile("src/test/java/TestFoo.java") << "class TestFoo {}"
 
         //when
-        executer.withTasks("build").run()
+        executer.withTasks("test", "--success-without-test", "build").run()
 
         //then
         testFile("build/resources/main/prod.resource").assertExists()

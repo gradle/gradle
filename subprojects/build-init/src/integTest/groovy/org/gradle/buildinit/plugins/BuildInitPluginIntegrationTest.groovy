@@ -303,6 +303,10 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                                   UPGRADE
                                   WARN
 
+     --no-incubating     Disables option --incubating
+
+     --no-split-project     Disables option --split-project
+
      --package     Set the package for source files.
 
      --project-name     Set the project name.

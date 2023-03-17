@@ -258,7 +258,7 @@ public class StaticInnerTest {
                 }
             }
         """)
-        createSimpleJupiterTest()
+        createSimpleJupiterTests()
 
         when:
         succeeds ':test'
@@ -281,10 +281,10 @@ public class StaticInnerTest {
 
         where:
         key              | value
-        'includeTags'    | '"ok"'
-        'excludeTags'    | '"ok"'
+        'includeTags'    | '"good"'
+        'excludeTags'    | '"bad"'
         'includeEngines' | '"junit-jupiter"'
-        'excludeEngines' | '"junit-jupiter"'
+        'excludeEngines' | '"junit-vintage-engine"'
     }
 
     @Timeout(60)

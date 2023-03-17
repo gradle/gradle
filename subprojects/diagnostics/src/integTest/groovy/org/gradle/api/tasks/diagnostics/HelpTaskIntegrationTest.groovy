@@ -553,6 +553,8 @@ Options
                           DEF
                           GHIJKL
 
+     --no-booleanValue     Disables option --booleanValue
+
 ${builtInOptions}
 
 Description
@@ -602,6 +604,12 @@ BUILD SUCCESSFUL"""
         then:
         output.contains """
 Options
+     --no-valueA     Disables option --valueA
+
+     --no-valueB     Disables option --valueB
+
+     --no-valueC     Disables option --valueC
+
      --valueA     descA
 
      --valueB     descB

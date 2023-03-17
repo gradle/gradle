@@ -179,9 +179,9 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         """
 
         expect:
-        succeeds "build", ":included:build"
+        succeeds "test", "--success-without-test", "build", ":included:test", "--success-without-test", ":included:first:test", "--success-without-test", ":included:second:test", "--success-without-test", ":included:build"
         succeeds "clean", ":included:clean"
-        succeeds "build", ":included:build", "--info"
+        succeeds "test", "--success-without-test", "build", ":included:test", "--success-without-test", ":included:first:test", "--success-without-test", ":included:second:test", "--success-without-test", ":included:build", "--info"
 
         and:
         // Will run after the root build has finished

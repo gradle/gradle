@@ -95,7 +95,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
 
         when:
         succeeds('test')
-        
+
         then:
         assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 
@@ -285,6 +285,9 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
                 package org.acme;
 
                 public class SampleMainTest {
+
+                    @org.junit.jupiter.api.Test
+                    public void sampleTest() { }
                 }
         """
         when:

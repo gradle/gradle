@@ -20,6 +20,28 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TestTaskSuccessWithoutTestIntegrationTest extends AbstractIntegrationSpec {
 
+    def "test succeeds if there is a test"() {
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies { testImplementation 'org.testng:testng:6.3.1' }
+            test { useTestNG() }
+        """.stripIndent()
+
+        file("src/test/java/SomeTest.java") << """
+            public class SomeTest {
+                @org.testng.annotations.Test
+                public void foo() { }
+            }
+        """
+
+        when:
+        succeeds("test")
+
+        then:
+        noExceptionThrown()
+    }
+
     def "test succeeds with warning if there is no test"() {
         buildFile << "apply plugin: 'java'"
 

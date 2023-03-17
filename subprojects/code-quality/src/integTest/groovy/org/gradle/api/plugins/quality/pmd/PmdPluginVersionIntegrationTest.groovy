@@ -55,7 +55,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         goodCode()
 
         expect:
-        succeeds("check")
+        succeeds("test", "--success-without-test", "check")
         file("build/reports/pmd/main.xml").exists()
         file("build/reports/pmd/test.xml").exists()
     }
@@ -64,7 +64,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         badCode()
 
         expect:
-        fails("check")
+        fails("test", "--success-without-test", "check")
         failure.assertHasDescription("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
@@ -80,7 +80,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
-        succeeds("check")
+        succeeds("test", "--success-without-test", "check")
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
         output.contains("2 PMD rule violations were found. See the report at:")
@@ -95,7 +95,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
-        succeeds("check")
+        succeeds("test", "--success-without-test", "check")
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
         output.contains("2 PMD rule violations were found. See the report at:")
@@ -110,7 +110,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
-        fails("check")
+        fails("test", "--success-without-test", "check")
         failure.assertHasDescription("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
@@ -126,7 +126,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
-        fails("check")
+        fails("test", "--success-without-test", "check")
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").
             assertContents(containsClass("org.gradle.Class1Test")).
@@ -144,7 +144,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         expect:
         // Use --continue so that when executing in parallel mode a deterministic set of tests run
         // without --continue, sometimes both pmd tasks are run and sometimes only the only one task is run
-        fails("check", "--continue")
+        fails("test", "--success-without-test", "check", "--continue")
         failure.assertHasCause("Invalid rulesMinimumPriority '11'.  Valid range 1 (highest) to 5 (lowest).")
         // pmdMain and pmdTest
         failure.assertHasFailures(2)
@@ -158,7 +158,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         }
 """
         expect:
-        fails("check")
+        fails("test", "--success-without-test", "check")
         failure.assertHasCause("Invalid rulesMinimumPriority '11'.  Valid range 1 (highest) to 5 (lowest).")
     }
 
@@ -174,7 +174,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
-        succeeds("check")
+        succeeds("test", "--success-without-test", "check")
         !file("build/reports/pmd/main.xml").exists()
         file("htmlReport.html").exists()
     }
@@ -247,7 +247,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         badCode()
 
         expect:
-        fails("check")
+        fails("test", "--success-without-test", "check")
         failure.assertHasDescription("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
@@ -264,7 +264,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
-        succeeds("check")
+        succeeds("test", "--success-without-test", "check")
         file("build/reports/pmd/main.xml").exists()
         file("build/reports/pmd/test.xml").exists()
     }
@@ -278,7 +278,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
-        fails("check")
+        fails("test", "--success-without-test", "check")
         failure.assertHasDescription("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
@@ -296,7 +296,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         expect:
         // Use --continue so that when executing in parallel mode a deterministic set of tests run
         // without --continue, sometimes both pmd tasks are run and sometimes only the only one task is run
-        fails("check", "--continue")
+        fails("test", "--success-without-test", "check", "--continue")
         failure.assertHasCause("Invalid number of threads '-1'.  Number should not be negative.")
         // pmdMain and pmdTest
         failure.assertHasFailures(2)
@@ -311,7 +311,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
-        fails("check")
+        fails("test", "--success-without-test", "check")
         failure.assertHasCause("Invalid number of threads '-1'.  Number should not be negative.")
     }
 
@@ -333,8 +333,8 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         when:
-        succeeds('check')
-        succeeds('clean', 'check')
+        succeeds('test', '--success-without-test', 'check')
+        succeeds('clean', 'test', '--success-without-test', 'check')
 
         then:
         executedAndNotSkipped(':pmdMain')
