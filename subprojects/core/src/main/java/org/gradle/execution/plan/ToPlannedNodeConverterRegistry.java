@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.scopes;
+package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.execution.plan.Node;
-import org.gradle.execution.plan.PlannedNodeInternal;
-import org.gradle.execution.plan.ToPlannedNodeConverter;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
@@ -38,6 +37,7 @@ import java.util.stream.Collectors;
  * All the available converters are expected to support disjoint set of {@link Node node types}.
  */
 @ThreadSafe
+@ServiceScope(Scopes.UserHome.class)
 public class ToPlannedNodeConverterRegistry {
 
     private static final ToPlannedNodeConverter MISSING_MARKER = new MissingToPlannedNodeConverter();

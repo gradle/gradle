@@ -26,7 +26,7 @@ import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.QueryableExecutionPlan
 import org.gradle.execution.plan.ToPlannedTaskConverter
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.service.scopes.ToPlannedNodeConverterRegistry
+import org.gradle.execution.plan.ToPlannedNodeConverterRegistry
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.NodeIdentity
 import org.gradle.util.Path

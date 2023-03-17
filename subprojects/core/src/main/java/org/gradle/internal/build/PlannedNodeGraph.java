@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.PlannedNodeInternal;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
-import org.gradle.internal.service.scopes.ToPlannedNodeConverterRegistry;
+import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
