@@ -54,12 +54,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public abstract class TransformationNode extends CreationOrderedNode implements SelfExecutingNode {
-
-    private static final AtomicLong SEQUENCE = new AtomicLong();
 
     protected final TransformationStep transformationStep;
     protected final ResolvableArtifact artifact;
@@ -69,83 +66,6 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
     private final long transformationNodeId;
 
     private PlannedTransformStepIdentity cachedIdentity;
-
-    /**
-     * Create a chained transformation node.
-     */
-    public static ChainedTransformationNode chained(
-        ComponentVariantIdentifier targetComponentVariant,
-        AttributeContainer sourceAttributes,
-        TransformationStep current,
-        TransformationNode previous,
-        TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationExecutor buildOperationExecutor,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
-        return new ChainedTransformationNode(createId(), targetComponentVariant, sourceAttributes, current, previous, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
-    }
-
-    /**
-     * Create a chained transformation node.
-     * <p>
-     * Should only be used when loading from the configuration cache to set the node id.
-     */
-    public static ChainedTransformationNode chained(
-        long transformationNodeId,
-        ComponentVariantIdentifier targetComponentVariant,
-        AttributeContainer sourceAttributes,
-        TransformationStep current,
-        TransformationNode previous,
-        TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationExecutor buildOperationExecutor,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
-        useAssignedId(transformationNodeId);
-        return new ChainedTransformationNode(transformationNodeId, targetComponentVariant, sourceAttributes, current, previous, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
-    }
-
-    /**
-     * Create an initial transformation node.
-     */
-    public static InitialTransformationNode initial(
-        ComponentVariantIdentifier targetComponentVariant,
-        AttributeContainer sourceAttributes,
-        TransformationStep initial,
-        ResolvableArtifact artifact,
-        TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationExecutor buildOperationExecutor,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
-        return new InitialTransformationNode(createId(), targetComponentVariant, sourceAttributes, initial, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
-    }
-
-    /**
-     * Create an initial transformation node.
-     * <p>
-     * Should only be used when loading from the configuration cache to set the node id.
-     */
-    public static InitialTransformationNode initial(
-        long transformationNodeId,
-        ComponentVariantIdentifier targetComponentVariant,
-        AttributeContainer sourceAttributes,
-        TransformationStep initial,
-        ResolvableArtifact artifact,
-        TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationExecutor buildOperationExecutor,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
-        useAssignedId(transformationNodeId);
-        return new InitialTransformationNode(transformationNodeId, targetComponentVariant, sourceAttributes, initial, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
-    }
-
-    private static long createId() {
-        return SEQUENCE.incrementAndGet();
-    }
-
-    private static void useAssignedId(long assignedUniqueId) {
-        // Increment the sequence so later assigned transform ids don't clash with the one manually assigned.
-        SEQUENCE.getAndAccumulate(assignedUniqueId, (current, assignedId) -> current > assignedId ? current : assignedId + 1);
-    }
 
     protected TransformationNode(
         long id,
