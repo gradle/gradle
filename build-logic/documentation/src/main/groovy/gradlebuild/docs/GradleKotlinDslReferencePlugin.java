@@ -29,9 +29,9 @@ import org.gradle.api.file.DirectoryProperty;
 import org.jetbrains.dokka.DokkaConfiguration;
 import org.jetbrains.dokka.Platform;
 
-public class GradleDokkaPlugin implements Plugin<Project> {
+public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
-    public static final String DOKKATOO_TASK_NAME = "dokkatooGeneratePublicationHtml";
+    public static final String TASK_NAME = "dokkatooGeneratePublicationHtml";
 
     @Override
     public void apply(Project project) {
@@ -63,18 +63,17 @@ public class GradleDokkaPlugin implements Plugin<Project> {
 
     private void updateExtension(Project project, GradleDocumentationExtension extension) {
         DirectoryProperty publicationDirectory = getDokkatooExtension(project).getDokkatooPublicationDirectory();
-        extension.getDokkadocs().getRenderedDocumentation().from(publicationDirectory);
+        extension.getKotlinDslReference().getRenderedDocumentation().from(publicationDirectory);
         //TODO: publication directory should come from task output instead, but we have DokkaTasks that depend on DokkatooGenerateTasks and haven't found a way to obtain the output
 
-        extension.getDokkadocs().getDokkaCss().convention(extension.getSourceRoot().file("css/dokka.css"));
+        extension.getKotlinDslReference().getDokkaCss().convention(extension.getSourceRoot().file("css/dokka.css"));
     }
 
     private void configurePublication(Project project, GradleDocumentationExtension extension) {
-        String cssFile = extension.getDokkadocs().getDokkaCss().get().getAsFile().getAbsolutePath();
+        String cssFile = extension.getKotlinDslReference().getDokkaCss().get().getAsFile().getAbsolutePath();
         String logoFile = extension.getSourceRoot().file("images/gradle-logo.png").get().getAsFile().getAbsolutePath();
 
-        getDokkatooExtension(project).getDokkatooPublications().configureEach( publication -> {
-            publication.getSuppressObviousFunctions().set(true);
+        getDokkatooExtension(project).getDokkatooPublications().configureEach(publication -> {
             publication.getPluginsConfiguration().create("org.jetbrains.dokka.base.DokkaBase", config -> {
                 config.getSerializationFormat().set(DokkaConfiguration.SerializationFormat.JSON);
                 config.getValues().set("" +
@@ -88,12 +87,9 @@ public class GradleDokkaPlugin implements Plugin<Project> {
                     "}"
                 );
             });
-            publication.getSuppressObviousFunctions().set(false); // TODO: taken from docs, but what does it do?
         });
 
-        // TODO: what's the role of suppressObviousFunctions? just copied from the docs for now
-
-        Task task = project.getTasks().getByName(DOKKATOO_TASK_NAME);
+        Task task = project.getTasks().getByName(TASK_NAME);
         task.getInputs().file(cssFile);
         task.getInputs().file(logoFile);
 

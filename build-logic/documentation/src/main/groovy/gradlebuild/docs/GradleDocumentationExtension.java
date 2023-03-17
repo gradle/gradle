@@ -32,7 +32,7 @@ public abstract class GradleDocumentationExtension {
     private final UserManual userManual;
     private final DslReference dslReference;
     private final Javadocs javadocs;
-    private final Dokkadocs dokkadocs;
+    private final KotlinDslReference kotlinDslReference;
 
     @Inject
     public GradleDocumentationExtension(ObjectFactory objects) {
@@ -40,7 +40,7 @@ public abstract class GradleDocumentationExtension {
         userManual = objects.newInstance(UserManual.class);
         dslReference = objects.newInstance(DslReference.class);
         javadocs = objects.newInstance(Javadocs.class);
-        dokkadocs = objects.newInstance(Dokkadocs.class);
+        kotlinDslReference = objects.newInstance(KotlinDslReference.class);
     }
 
     /**
@@ -118,12 +118,12 @@ public abstract class GradleDocumentationExtension {
         action.execute(javadocs);
     }
 
-    public Dokkadocs getDokkadocs() {
-        return dokkadocs;
+    public KotlinDslReference getKotlinDslReference() {
+        return kotlinDslReference;
     }
 
-    public void dokkadocs(Action<? super Dokkadocs> action) {
-        action.execute(dokkadocs);
+    public void kotlinDslReference(Action<? super KotlinDslReference> action) {
+        action.execute(kotlinDslReference);
     }
 
     /**
