@@ -23,6 +23,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.util.PropertiesUtils
 import org.gradle.work.DisableCachingByDefault
+import org.jsoup.Jsoup
 import org.w3c.dom.Element
 import java.util.Properties
 import javax.xml.parsers.DocumentBuilderFactory
@@ -42,9 +43,6 @@ abstract class UpdateAgpVersions : DefaultTask() {
     abstract val minimumSupportedMinor: Property<String>
 
     @get:Internal
-    abstract val fetchNightly: Property<Boolean>
-
-    @get:Internal
     abstract val propertiesFile: RegularFileProperty
 
     @TaskAction
@@ -59,10 +57,15 @@ abstract class UpdateAgpVersions : DefaultTask() {
             )
             setProperty("latests", latests.joinToString(","))
 
-            if (fetchNightly.get()) {
-                val nightly = dbf.fetchNightly()
-                setProperty("nightly", nightly)
-            }
+            val nightlyBuildId = fetchNightlyBuildId(
+                "https://androidx.dev/studio/builds"
+            )
+            setProperty("nightlyBuildId", nightlyBuildId)
+
+            val nightlyVersion = dbf.fetchNightlyVersion(
+                "https://androidx.dev/studio/builds/$nightlyBuildId/artifacts/artifacts/repository/com/android/application/com.android.application.gradle.plugin/maven-metadata.xml"
+            )
+            setProperty("nightlyVersion", nightlyVersion)
         }
         properties.store(
             propertiesFile.get().asFile,
@@ -81,9 +84,17 @@ abstract class UpdateAgpVersions : DefaultTask() {
     }
 
     private
-    fun DocumentBuilderFactory.fetchNightly(): String =
-        fetchVersionsFromMavenMetadata("https://repo.gradle.org/gradle/ext-snapshots-local/com/android/tools/build/gradle/maven-metadata.xml")
-            .first()
+    fun fetchNightlyBuildId(buildListUrl: String): String =
+        Jsoup.connect(buildListUrl)
+            .get()
+            .select("li a")
+            .first()!!
+            .text()
+
+    private
+    fun DocumentBuilderFactory.fetchNightlyVersion(mavenMetadataUrl: String): String =
+        fetchVersionsFromMavenMetadata(mavenMetadataUrl)
+            .single()
 }
 
 
