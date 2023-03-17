@@ -389,9 +389,9 @@ This is done to reduce confusion about what such relative paths should resolve a
 
 [[test_task_success_without_test]]
 ==== Deprecated running the test task successfully without a test present
-Running the test task successfully without a test present is now deprecated and will become an error in Gradle 9.
+Running the `Test` task successfully without a test present is now deprecated and will become an error in Gradle 9.
 This is done to avoid accidental successful test runs due to erroneous configuration.
-The behaviour can be controlled with the task options --success-without-test and --no-success-without-test.
+The behaviour can be controlled with the task options `--success-without-test` and `--no-success-without-test` or on the `Test` task using link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#setSuccessWithoutTest-java.lang.Boolean-[setSuccessWithoutTest(Boolean)].
 
 === Changes in the IDE integration
 

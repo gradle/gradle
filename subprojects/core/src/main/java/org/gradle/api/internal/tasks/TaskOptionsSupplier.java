@@ -90,7 +90,7 @@ public class TaskOptionsSupplier {
                     BooleanOptionElement oppositeOptionElement = BooleanOptionElement.oppositeOf((BooleanOptionElement) optionElement);
                     String oppositeOptionName = oppositeOptionElement.getOptionName();
                     if (options.containsKey(oppositeOptionName)) {
-                        LOGGER.warn("Opposite option '{}' was disabled for clashing with another option of same name", oppositeOptionName);
+                        LOGGER.warn("Opposite option '{}' in task {} was disabled for clashing with another option of same name", oppositeOptionName, target);
                     } else {
                         OptionDescriptor oppositeOption = new InstanceOptionDescriptor(target, oppositeOptionElement, null);
                         oppositeOptions.put(oppositeOptionName, oppositeOption);
