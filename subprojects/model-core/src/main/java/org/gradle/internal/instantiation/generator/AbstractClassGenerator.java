@@ -993,10 +993,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         void applyTo(ClassGenerationVisitor visitor) {
-            if (extensible && !hasExtensionAwareImplementation) {
+            boolean addExtensionProperty = extensible && !hasExtensionAwareImplementation;
+            boolean mixInConventionAware = conventionAware && !IConventionAware.class.isAssignableFrom(type);
+            if (addExtensionProperty || mixInConventionAware) {
+                visitor.addNoDeprecationConventionPrivateGetter();
+            }
+            if (addExtensionProperty) {
                 visitor.addExtensionsProperty();
             }
-            if (conventionAware && !IConventionAware.class.isAssignableFrom(type)) {
+            if (mixInConventionAware) {
                 visitor.mixInConventionAware();
             }
             for (PropertyMetadata property : conventionProperties) {
@@ -1440,6 +1445,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void addNameConstructor();
 
         void mixInDynamicAware();
+
+        void addNoDeprecationConventionPrivateGetter();
 
         void mixInConventionAware();
 

@@ -15,8 +15,6 @@
 [[publishing_ivy]]
 = Ivy Publish Plugin
 
-WARNING: The Ivy Publish Plugin is not yet compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 The Ivy Publish Plugin provides the ability to publish build artifacts in the http://ant.apache.org/ivy/[Apache Ivy] format, usually to a repository for consumption by other builds or projects. What is published is one or more artifacts created by the build, and an Ivy _module descriptor_ (normally `ivy.xml`) that describes the artifacts and the dependencies of the artifacts, if any.
 
 A published Ivy module can be consumed by Gradle (see <<declaring_dependencies.adoc#declaring-dependencies,Declaring Dependencies>>) and other tools that understand the Ivy format. You can learn about the fundamentals of publishing in <<publishing_setup.adoc#publishing_overview,Publishing Overview>>.

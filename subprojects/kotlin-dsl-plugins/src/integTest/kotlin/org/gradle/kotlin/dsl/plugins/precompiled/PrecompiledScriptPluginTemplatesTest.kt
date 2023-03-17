@@ -16,7 +16,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
-import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.bundling.Jar
@@ -623,7 +622,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             """
         )
 
-        val convention = mock<Convention>()
+        val convention = mock<org.gradle.api.plugins.Convention>()
         val receiver = mock<org.gradle.api.internal.HasConvention>(extraInterfaces = arrayOf(T::class)) {
             on { getConvention() } doReturn convention
         }

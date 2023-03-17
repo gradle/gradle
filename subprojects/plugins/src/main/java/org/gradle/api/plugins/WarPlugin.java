@@ -79,7 +79,7 @@ public abstract class WarPlugin implements Plugin<Project> {
         this.component = JavaPluginHelper.getJavaComponent(project);
 
         final WarPluginConvention pluginConvention = objectFactory.newInstance(DefaultWarPluginConvention.class, project);
-        project.getConvention().getPlugins().put("war", pluginConvention);
+        DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("war", pluginConvention));
 
         project.getTasks().withType(War.class).configureEach(task -> {
             task.getWebAppDirectory().convention(project.getLayout().dir(project.provider(() -> pluginConvention.getWebAppDir())));
