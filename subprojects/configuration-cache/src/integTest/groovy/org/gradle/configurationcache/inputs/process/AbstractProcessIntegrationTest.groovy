@@ -18,19 +18,7 @@ package org.gradle.configurationcache.inputs.process
 
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 import org.gradle.configurationcache.fixtures.ExternalProcessFixture
-import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 
 abstract class AbstractProcessIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     ExternalProcessFixture execOperationsFixture = new ExternalProcessFixture(testDirectory)
-
-    def settingsFileWithStableConfigurationCache() {
-        settingsFileWithStableConfigurationCache("")
-    }
-
-    def settingsFileWithStableConfigurationCache(@GroovyBuildScriptLanguage String script) {
-        settingsFile << script
-        settingsFile << """
-            enableFeaturePreview('STABLE_CONFIGURATION_CACHE')
-        """
-    }
 }
