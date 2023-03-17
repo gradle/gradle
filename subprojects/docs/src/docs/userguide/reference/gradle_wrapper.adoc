@@ -103,7 +103,7 @@ The SHA256 hash sum used for <<#sec:verification,verifying the downloaded Gradle
 `--network-timeout`::
 The network timeout to use when downloading the gradle distribution, in ms. The default value is `10000`.
 
-If the distribution url is configured with `--gradle-version` or `--gradle-distribution-url`, the url is validated by sending a HEAD request in the case of the `http` scheme or by checking the existence of the file in the case of the `file` scheme.
+If the distribution url is configured with `--gradle-version` or `--gradle-distribution-url`, the url is validated by sending a HEAD request in the case of the `https` scheme or by checking the existence of the file in the case of the `file` scheme.
 
 Let’s assume the following use case to illustrate the use of the command line options. You would like to generate the Wrapper with version {gradleVersion} and use the `-all` distribution to enable your IDE to enable code-completion and being able to navigate to the Gradle source code. Those requirements are captured by the following command line execution:
 
