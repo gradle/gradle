@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
@@ -69,6 +68,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -138,7 +138,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             throw new InvalidUserDataException("The task name must be provided.");
         }
 
-        final Class<? extends TaskInternal> type = Cast.uncheckedCast(actualArgs.get(Task.TASK_TYPE));
+        final Class<? extends TaskInternal> type = Objects.requireNonNull(Cast.uncheckedCast(actualArgs.get(Task.TASK_TYPE)), "Task type must not be null");
 
         final TaskIdentity<? extends TaskInternal> identity = taskIdentityFactory.create(name, type, project);
         return buildOperationExecutor.call(new CallableBuildOperation<Task>() {
@@ -171,7 +171,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                         Action<? super Task> taskAction = Cast.uncheckedCast(action);
                         task.doFirst(taskAction);
                     } else if (action != null) {
-                        Closure closure = (Closure) action;
+                        Closure<?> closure = (Closure<?>) action;
                         task.doFirst(closure);
                     }
 
@@ -190,7 +190,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         Object constructorArgs = args.get(Task.TASK_CONSTRUCTOR_ARGS);
         if (constructorArgs instanceof List) {
             List<?> asList = (List<?>) constructorArgs;
-            return asList.toArray(new Object[asList.size()]);
+            return asList.toArray();
         }
         if (constructorArgs instanceof Object[]) {
             return (Object[]) constructorArgs;
@@ -204,9 +204,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private static Map<String, ?> checkTaskArgsAndCreateDefaultValues(Map<String, ?> args) {
         validateArgs(args);
         if (!args.keySet().containsAll(MANDATORY_TASK_ARGUMENTS)) {
-            Map<String, Object> argsWithDefaults = Maps.newHashMap(args);
-            setIfNull(argsWithDefaults, Task.TASK_NAME, "");
-            setIfNull(argsWithDefaults, Task.TASK_TYPE, DefaultTask.class);
+            Map<String, Object> argsWithDefaults = new HashMap<>(args);
+            argsWithDefaults.putIfAbsent(Task.TASK_NAME, "");
+            argsWithDefaults.putIfAbsent(Task.TASK_TYPE, DefaultTask.class);
             return argsWithDefaults;
         }
         return args;
@@ -214,16 +214,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private static void validateArgs(Map<String, ?> args) {
         if (!VALID_TASK_ARGUMENTS.containsAll(args.keySet())) {
-            Map<String, Object> unknownArguments = new HashMap<String, Object>(args);
+            Map<String, Object> unknownArguments = new HashMap<>(args);
             unknownArguments.keySet().removeAll(VALID_TASK_ARGUMENTS);
             throw new InvalidUserDataException(String.format("Could not create task '%s': Unknown argument(s) in task definition: %s",
                 args.get(Task.TASK_NAME), unknownArguments.keySet()));
-        }
-    }
-
-    private static void setIfNull(Map<String, Object> map, String key, Object defaultValue) {
-        if (map.get(key) == null) {
-            map.put(key, defaultValue);
         }
     }
 
@@ -237,7 +231,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             } else {
                 TaskCreatingProvider<? extends Task> taskProvider = Cast.uncheckedCast(findByNameLaterWithoutRules(name));
                 if (taskProvider != null) {
-                    removeInternal(taskProvider);
+                    super.remove(taskProvider);
 
                     final Action<? super T> onCreate;
                     if (!taskProvider.getType().isAssignableFrom(task.getClass())) {
@@ -259,7 +253,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         addInternal(task);
     }
 
-    private void failOnDuplicateTask(String task) {
+    private static void failOnDuplicateTask(String task) {
         throw new DuplicateTaskException(String.format("Cannot add task '%s' as a task with that name already exists.", task));
     }
 
@@ -525,7 +519,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (modelNode == null) {
             return names;
         } else {
-            TreeSet<String> allNames = new TreeSet<String>(names);
+            TreeSet<String> allNames = new TreeSet<>(names);
             allNames.addAll(modelNode.getLinkNames());
             return allNames;
         }
@@ -577,8 +571,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return super.findByNameWithoutRules(name);
     }
 
-    private Task realizeTask(ModelPath taskPath, ModelNode.State minState) {
-        return project.getModelRegistry().atStateOrLater(taskPath, ModelType.of(Task.class), minState);
+    private void realizeTask(ModelPath taskPath, ModelNode.State minState) {
+        project.getModelRegistry().atStateOrLater(taskPath, ModelType.of(Task.class), minState);
     }
 
     @Override
@@ -605,10 +599,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public boolean remove(Object o) {
         throw unsupportedTaskRemovalException();
-    }
-
-    private boolean removeInternal(Object o) {
-        return super.remove(o);
     }
 
     @Deprecated
@@ -787,13 +777,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
     private static class DuplicateTaskException extends InvalidUserDataException {
         public DuplicateTaskException(String message) {
-            super(message);
-        }
-    }
-
-    @Contextual
-    private static class IncompatibleTaskTypeException extends InvalidUserDataException {
-        public IncompatibleTaskTypeException(String message) {
             super(message);
         }
     }
