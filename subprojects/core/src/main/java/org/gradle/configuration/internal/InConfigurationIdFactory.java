@@ -48,7 +48,7 @@ public class InConfigurationIdFactory {
     public long createId() {
         long newId = sequence.incrementAndGet();
         if (newId == USED_ASSIGNED_ID_MARKER + 1) {
-            throw new IllegalStateException("Cannot create a new id after one has been loaded.");
+            throw new IllegalStateException("Cannot create a new id after one has been loaded");
         }
 
         return newId;
