@@ -64,7 +64,8 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
 
     public DefaultTaskContainerFactory(
         Instantiator instantiator,
-        TaskIdentityFactory taskIdentityFactory, ITaskFactory taskFactory,
+        TaskIdentityFactory taskIdentityFactory,
+        ITaskFactory taskFactory,
         ProjectInternal project,
         TaskStatistics statistics,
         BuildOperationExecutor buildOperationExecutor,
