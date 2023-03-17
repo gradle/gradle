@@ -139,16 +139,6 @@ Gradle now detects:
 * Methods of `java.nio.files.File` class used to open files for reading and to check file existence.
 * Kotlin and Groovy helper methods used to read file contents.
 
-### Dataflow Actions
-
-The new [Flow Actions API](userguide/dataflow_actions.html) allows scheduling some build work outside of tasks.
-In this release, the focus is on providing a configuration-cache compatible alternative to the deprecated `project.buildFinished` callback.
-Unlike callbacks, dataflow actions are isolated and more aligned with the Gradle execution model.
-
-Dataflow actions run as soon as their inputs are ready.
-When the newly added [build work result provider](javadoc/org/gradle/api/flow/FlowProviders.html#getBuildWorkResult--) is used as input,
-the action runs when the build finishes and can process the build outcome - for example, to play a sound if the build completes successfully.
-
 <a name="kotlin-dsl"></a>
 ### Kotlin DSL improvements
 
@@ -382,6 +372,53 @@ If you also provide the name of the service in the annotation, you no longer nee
 if a service registration with the given name exists, the corresponding reference is automatically assigned to the property.
 
 More details in the Shared Build Services documentation on [using build services](userguide/build_services.html#sec:using_a_build_service_from_a_task).
+
+#### New Dataflow Actions replace `buildFinished` listeners
+
+Previously, Gradle had only `Gradle.buildFinished` listeners to handle the result of the build.
+For many reasons, this API doesn't work well with the configuration cache, but there were no proper replacement.
+With the new [Dataflow Actions](userguide/dataflow_actions.html) you can now schedule pieces of work to process the result of the build in a way that is configuration-cache compatible.
+For example, you can add code to play a sound when the build completes successfully:
+
+```java
+class FFPlay implements FlowAction<FFPlay.Parameters> {
+    interface Parameters extends FlowParameters {
+        @Input
+        Property<File> getMediaFile();
+    }
+
+    @Inject
+    protected abstract ExecOperations getExecOperations();
+
+    @Override
+    public void execute(Parameters parameters) {
+        getExecOperations().exec(spec -> {
+            spec.commandLine(
+                "ffplay", "-nodisp", "-autoexit", "-hide_banner", "-loglevel", "quiet",
+                parameters.getMediaFile().get().getAbsolutePath()
+            );
+            spec.setIgnoreExitValue(true);
+        });
+    }
+}
+```
+
+```java
+flowScope.always(FFPlay.class, spec ->
+      spec.getParameters().getMediaFile().fileProvider(
+          flowProviders.getBuildWorkResult().map(result ->
+              new File(
+                  soundsDir,
+                  result.getFailure().isPresent() ? "sad-trombone.mp3" : "tada.mp3"
+              )
+          )
+      )
+  );
+```
+
+Unlike callbacks, actions provide the necessary level of isolation to ensure safe configuration caching.
+
+In this release, dataflow actions only provide a replacement for the deprecated `Gradle.buildFinished` callback, but more options to add work outside the task graph are planned.
 
 #### Gradle user home caches are ignored by backup tools that honor `CACHEDIR.TAG`
 
