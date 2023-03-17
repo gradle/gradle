@@ -294,6 +294,15 @@ public class GradleModuleMetadataParser {
         return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.of(), null, ImmutableAttributes.EMPTY, Collections.emptyList(), false, null));
     }
 
+    /**
+     * Consume the dependencies of a given variant.
+     * <p>
+     * This method needs to remove any duplicates from said dependencies.
+     *
+     * @param reader The Json to read from
+     * @return a list of dependencies
+     * @throws IOException when the reader fails
+     */
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
         Set<ModuleDependency> dependencies = new LinkedHashSet<>();
         reader.beginArray();
@@ -435,6 +444,15 @@ public class GradleModuleMetadataParser {
         return capabilities.build();
     }
 
+    /**
+     * Consume the dependency constraints of a given variant.
+     * <p>
+     * This method needs to remove any duplicates from said constraints.
+     *
+     * @param reader The Json to read from
+     * @return a list of dependencies
+     * @throws IOException when the reader fails
+     */
     private List<ModuleDependencyConstraint> consumeDependencyConstraints(JsonReader reader) throws IOException {
         Set<ModuleDependencyConstraint> dependencies = new LinkedHashSet<>();
         reader.beginArray();
