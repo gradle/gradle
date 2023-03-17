@@ -33,6 +33,8 @@ import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.stream.Collectors
+
 import static org.gradle.util.AttributeTestUtil.attributes
 
 class GradleModuleMetadataParserTest extends Specification {
@@ -867,6 +869,32 @@ class GradleModuleMetadataParserTest extends Specification {
 
     String replaceMetadataVersion(String json, String metadataVersion) {
         json.replace('"formatVersion": "1.1"', '"formatVersion": "' + metadataVersion + '"')
+    }
+
+    def "new fields in ModuleDependency are added to equals and hashcode"() {
+        when:
+        // If this test fails, you added a field to GradleModuleMetadataParser.ModuleDependency, add it here _after_ making sure it is considered by hashcode and equals
+        def knownFields = ["group", "module", "versionConstraint", "excludes", "reason", "attributes", "requestedCapabilities", "endorsing", "artifact"]
+        def modDepClass = GradleModuleMetadataParser.ModuleDependency.class
+        def newFields = Arrays.stream(modDepClass.getDeclaredFields()).filter { !knownFields.contains(it.getName()) }
+            .map { it.getName() }
+            .collect(Collectors.toList())
+
+        then:
+        newFields == []
+    }
+
+    def "new fields in ModuleDependencyConstraint are added to equals and hashcode"() {
+        when:
+        // If this test fails, you added a field to GradleModuleMetadataParser.ModuleDependencyConstraint, add it here _after_ making sure it is considered by hashcode and equals
+        def knownFields = ["group", "module", "versionConstraint", "reason", "attributes"]
+        def modDepClass = GradleModuleMetadataParser.ModuleDependencyConstraint.class
+        def newFields = Arrays.stream(modDepClass.getDeclaredFields()).filter { !knownFields.contains(it.getName()) }
+            .map { it.getName() }
+            .collect(Collectors.toList())
+
+        then:
+        newFields == []
     }
 
     def resource(String content) {
