@@ -165,6 +165,12 @@ import static org.gradle.api.internal.artifacts.configurations.ConfigurationInte
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
+import static org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.Usage.CONSUMABLE;
+import static org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.Usage.DECLARABLE_AGAINST;
+import static org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.Usage.DEPRECATED_FOR_CONSUMPTION;
+import static org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.Usage.DEPRECATED_FOR_DECLARATION_AGAINST;
+import static org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.Usage.DEPRECATED_FOR_RESOLUTION;
+import static org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.Usage.RESOLVABLE;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
@@ -346,9 +352,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.path = domainObjectContext.projectPath(name);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
 
-        this.allowedUsage = Usage.CONSUMABLE.toggle(roleAtCreation.isConsumable(), this.allowedUsage);
-        this.allowedUsage = Usage.RESOLVABLE.toggle(roleAtCreation.isResolvable(), this.allowedUsage);
-        this.allowedUsage = Usage.DECLARABLE_AGAINST.toggle(roleAtCreation.isDeclarableAgainst(), this.allowedUsage);
+        this.allowedUsage = CONSUMABLE.updateUsage(roleAtCreation.isConsumable(), this.allowedUsage);
+        this.allowedUsage = RESOLVABLE.updateUsage(roleAtCreation.isResolvable(), this.allowedUsage);
+        this.allowedUsage = DECLARABLE_AGAINST.updateUsage(roleAtCreation.isDeclarableAgainst(), this.allowedUsage);
 
         // Calling these during construction is not ideal, but we'd have to call the deprecateForConsumption(), etc.
         // methods anyway even if replicated the code inside these methods here, so at least this keeps a single
@@ -1837,57 +1843,57 @@ since users cannot create non-legacy configurations and there is no current publ
 
     @Override
     public boolean isDeprecatedForConsumption() {
-        return Usage.DEPRECATED_FOR_CONSUMPTION.isEnabled(this);
+        return DEPRECATED_FOR_CONSUMPTION.isEnabled(this);
     }
 
     @Override
     public boolean isDeprecatedForResolution() {
-        return Usage.DEPRECATED_FOR_RESOLUTION.isEnabled(this);
+        return DEPRECATED_FOR_RESOLUTION.isEnabled(this);
     }
 
     @Override
     public boolean isDeprecatedForDeclarationAgainst() {
-        return Usage.DEPRECATED_FOR_DECLARATION_AGAINST.isEnabled(this);
+        return DEPRECATED_FOR_DECLARATION_AGAINST.isEnabled(this);
     }
 
     @Override
     public boolean isCanBeConsumed() {
-        return Usage.CONSUMABLE.isEnabled(this);
+        return CONSUMABLE.isEnabled(this);
     }
 
     @Override
     public void setCanBeConsumed(boolean allowed) {
         if (isCanBeConsumed() != allowed) {
             validateMutation(MutationType.USAGE);
-            allowedUsage = Usage.CONSUMABLE.toggle(allowed, allowedUsage);
+            allowedUsage = CONSUMABLE.updateUsage(allowed, allowedUsage);
             maybeWarnOnChangingUsage("consumable", allowed);
         }
     }
 
     @Override
     public boolean isCanBeResolved() {
-        return Usage.RESOLVABLE.isEnabled(this);
+        return RESOLVABLE.isEnabled(this);
     }
 
     @Override
     public void setCanBeResolved(boolean allowed) {
         if (isCanBeResolved() != allowed) {
             validateMutation(MutationType.USAGE);
-            allowedUsage = Usage.RESOLVABLE.toggle(allowed, allowedUsage);
+            allowedUsage = RESOLVABLE.updateUsage(allowed, allowedUsage);
             maybeWarnOnChangingUsage("resolvable", allowed);
         }
     }
 
     @Override
     public boolean isCanBeDeclaredAgainst() {
-        return Usage.DECLARABLE_AGAINST.isEnabled(this);
+        return DECLARABLE_AGAINST.isEnabled(this);
     }
 
     @Override
     public void setCanBeDeclaredAgainst(boolean allowed) {
         if (isCanBeDeclaredAgainst() != allowed) {
             validateMutation(MutationType.USAGE);
-            allowedUsage = Usage.DECLARABLE_AGAINST.toggle(allowed, allowedUsage);
+            allowedUsage = DECLARABLE_AGAINST.updateUsage(allowed, allowedUsage);
             maybeWarnOnChangingUsage("declarable against", allowed);
         }
     }
@@ -1922,7 +1928,7 @@ since users cannot create non-legacy configurations and there is no current publ
         if (!isDeprecatedForDeclarationAgainst()) {
             maybeWarnOnChangingUsage("deprecated for declaration against", true);
         }
-        allowedUsage = Usage.DEPRECATED_FOR_DECLARATION_AGAINST.toggle(true, allowedUsage);
+        allowedUsage = DEPRECATED_FOR_DECLARATION_AGAINST.updateUsage(true, allowedUsage);
         return this;
     }
 
@@ -1933,7 +1939,7 @@ since users cannot create non-legacy configurations and there is no current publ
         if (!isDeprecatedForResolution()) {
             maybeWarnOnChangingUsage("deprecated for resolution", true);
         }
-        allowedUsage = Usage.DEPRECATED_FOR_RESOLUTION.toggle(true, allowedUsage);
+        allowedUsage = DEPRECATED_FOR_RESOLUTION.updateUsage(true, allowedUsage);
         return this;
     }
 
@@ -1944,7 +1950,7 @@ since users cannot create non-legacy configurations and there is no current publ
         if (!isDeprecatedForConsumption()) {
             maybeWarnOnChangingUsage("deprecated for consumption", true);
         }
-        allowedUsage = Usage.DEPRECATED_FOR_CONSUMPTION.toggle(true, allowedUsage);
+        allowedUsage = DEPRECATED_FOR_CONSUMPTION.updateUsage(true, allowedUsage);
         return this;
     }
 
@@ -2444,7 +2450,7 @@ since users cannot create non-legacy configurations and there is no current publ
      * <p>
      * This may slightly trim the memory usage of configuration instances, which can be numerous in larger builds.
      */
-    private enum Usage {
+    enum Usage {
         CONSUMABLE((byte) 1),
         RESOLVABLE((byte) 2),
         DECLARABLE_AGAINST((byte) 4),
@@ -2460,7 +2466,7 @@ since users cannot create non-legacy configurations and there is no current publ
             this.mask = mask;
         }
 
-        public byte toggle(boolean allowed, byte currentUsage) {
+        public byte updateUsage(boolean allowed, byte currentUsage) {
             return allowed ? addTo(currentUsage) : removeFrom(currentUsage);
         }
 
