@@ -1,0 +1,73 @@
+[[dataflow_action]]
+= Dataflow Actions
+
+[NOTE]
+====
+The dataflow actions support is an <<feature_lifecycle.adoc#feature_lifecycle,incubating>> feature, and the details described here may change.
+====
+
+A preferred way of executing work in a Gradle build is using a task.
+However, there are some kinds of work that do not fit tasks well, for example, custom handling of the build failure.
+What if you want to play a cheerful sound when the build succeeds and a sad one when it fails?
+This work piece has to process the task execution result, so it cannot be a task itself.
+
+The dataflow actions API provides a way to schedule such kind of work.
+A dataflow action is a parameterized isolated piece of work that becomes eligible for execution as soon as all of its input parameters become available.
+
+== Implementing a dataflow action
+
+The first step is to implement the action itself.
+To do that you create a class implementing link:{javadocPath}/org/gradle/api/flow/FlowAction.html[FlowAction] interface.
+The `execute` method must be implemented because this is where the work happens.
+An action implementation is treated as a <<custom_gradle_types.adoc#custom_gradle_types,custom Gradle type>> and can use any of the features available to custom Gradle types.
+In particular, some Gradle services can be injected into the implementation.
+
+A dataflow action may accept parameters.
+To provide parameters, you define an abstract class (or interface) to hold the parameters.
+The parameters type must implement (or extend) link:{javadocPath}/org/gradle/api/flow/FlowParameters.html[FlowParameters].
+The action implementation gets the parameters as an argument of the `execute` method.
+The parameters type is also a <<custom_gradle_types.adoc#custom_gradle_types,custom Gradle type>>.
+
+When the action requires no parameters, you can use link:{javadocPath}/org/gradle/api/flow/FlowParameters.None.html[FlowParameters.None] as the parameters type.
+
+Here is an example of a dataflow action that takes a shared build service and a file path as parameters.
+====
+[source.multi-language-sample,java]
+.SoundPlay.java
+----
+include::{snippetsPath}/dataflowActions/playSound/groovy/plugin/src/main/java/org/gradle/sample/sound/SoundPlay.java[]
+----
+====
+<1> Parameters in the parameter type must be annotated. If a parameter is annotated with link:{javadocPath}/org/gradle/api/services/ServiceReference.html[`@ServiceReference`] then a suitable shared build service implementation is automatically assigned to the parameter when the action is created, according to the <<build_services.adoc#sec:service_references,usual rules>>.
+<2> All other parameters must be annotated with link:{javadocPath}/org/gradle/api/tasks/Input.html[`@Input`].
+
+== Lifecycle event providers
+
+Besides the usual value providers, Gradle provides dedicated providers for build lifecycle events, like build completion.
+These providers are intended for dataflow actions and provide additional ordering guarantees when used as inputs.
+The ordering also applies if you derive a provider from the event provider by, for example, calling `map` or `flatMap`.
+You can obtain these providers from the link:{javadocPath}/org/gradle/api/flow/FlowProviders.html[FlowProviders] class.
+
+WARNING: If you're not using a lifecycle event provider as an input to the dataflow action, then the exact timing when the action is executed is not defined and may change in the next version of Gradle.
+
+
+== Supplying the action for execution
+
+You should not create `FlowAction` objects manually.
+Instead, you request to execute them in the appropriate scope of link:{javadocPath}/org/gradle/api/flow/FlowScope.html[`FlowScope`].
+When doing that, you can configure the parameters for task to use.
+
+====
+[source.multi-language-sample,java]
+.SoundFeedbackPlugin.java
+----
+include::{snippetsPath}/dataflowActions/playSound/groovy/plugin/src/main/java/org/gradle/sample/sound/SoundFeedbackPlugin.java[tag=flow-action]
+----
+====
+<1> Use service injection to obtain `FlowScope` and `FlowProviders` instances. They are available for project and settings plugins.
+<2> Use an appropriate scope to run your actions. As the name suggests, actions in the `always` scope are executed every time the build runs.
+<3> Specify the class that implements the action.
+<4> Use the spec argument to configure the action parameters.
+<5> A lifecycle event provider can be mapped into something else while preserving the action ordering.
+
+As a result, when you run the build, and it completes successfully, the action will play the "tada" sound. If the build fails at configuration or execution time, then you'll hear "sad-trombone" -- assuming, of course, that build configuration proceeds far enough for the action to be registered.
