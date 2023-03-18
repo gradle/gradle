@@ -1,0 +1,46 @@
+name: Update tested third party versions
+
+on:
+  workflow_dispatch:
+
+env:
+  # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
+  GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
+  # Enable debug for the `gradle-build-action` cache operations
+  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
+
+jobs:
+  update-tested-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: git clone
+        uses: actions/checkout@v3
+      - name: setup java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 11
+      - name: setup gradle
+        uses: gradle/gradle-build-action@v2
+      - name: update-tested-versions
+        run: ./gradlew --no-configuration-cache updateAgpVersions updateKotlinVersions
+      - name: git diff
+        run: git diff
+      - name: pull-request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: Update tested third party versions
+          signoff: true
+          branch: support/automated/update-tested-versions
+          base: master
+          draft: true
+          delete-branch: true
+          title: Update tested third party versions
+          body: Update tested third party versions
+          labels: a:chore, in:building-gradle
+      - name: bot-gradle test
+        if: ${{ steps.pull-request.outputs.pull-request-number }}
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: "@bot-gradle test AST, AFT, APT"
+          pr_number: ${{ steps.pull-request.outputs.pull-request-number }}
