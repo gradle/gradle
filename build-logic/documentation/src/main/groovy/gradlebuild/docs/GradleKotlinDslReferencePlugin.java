@@ -26,6 +26,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.tasks.TaskProvider;
 import org.jetbrains.dokka.DokkaConfiguration;
 import org.jetbrains.dokka.Platform;
 
@@ -42,6 +43,12 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
     }
 
     private void applyAndConfigurePlugin(Project project, GradleDocumentationExtension extension) {
+        TaskProvider<GradleKotlinDslRuntimeGeneratedSources> runtimeExtensions = project.getTasks()
+            .register("gradleKotlinDslRuntimeGeneratedSources", GradleKotlinDslRuntimeGeneratedSources.class, task -> {
+                task.getGeneratedSources().set(project.getLayout().getBuildDirectory().dir("gradle-kotlin-dsl-extensions/sources"));
+                task.getGeneratedClasses().set(project.getLayout().getBuildDirectory().dir("gradle-kotlin-dsl-extensions/classes"));
+            });
+
         // apply base plugin for the extension to exist
         project.getPlugins().apply(DokkatooBasePlugin.class);
 
@@ -51,8 +58,10 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
             @Override
             public void execute(DokkaSourceSetSpec spec) {
                 spec.getDisplayName().set("Gradle Kotlin DSL");
-                spec.getSourceRoots().setFrom(extension.getKotlinDslSource());
-                spec.getClasspath().setFrom(extension.getClasspath());
+                spec.getSourceRoots().from(extension.getKotlinDslSource());
+                spec.getSourceRoots().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedSources));
+                spec.getClasspath().from(extension.getClasspath());
+                spec.getClasspath().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedClasses));
                 spec.getAnalysisPlatform().set(Platform.jvm);
             }
         });
