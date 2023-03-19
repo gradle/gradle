@@ -60,6 +60,15 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return state instanceof FinalizedValue;
     }
 
+    /**
+     * A simple getter that checks if this property is still mutable.
+     *
+     * @return {@code true} unless this property has been finalized, or {@link #disallowChanges()} has been called
+     */
+    public boolean isMutable() {
+        return state.isMutable();
+    }
+
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
         beforeRead(producer, consumer);
@@ -339,6 +348,8 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         public abstract void beforeMutate(DisplayName displayName);
 
         public abstract ValueConsumer forUpstream(ValueConsumer consumer);
+
+        public abstract boolean isMutable();
     }
 
     private static class NonFinalizedValue<S> extends FinalizationState<S> {
@@ -447,6 +458,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
             this.convention = convention;
         }
 
+        @Override
+        public boolean isMutable() {
+            return !disallowChanges;
+        }
+
         private String cannotFinalizeValueOf(DisplayName displayName, String reason) {
             return cannot("finalize", displayName, reason);
         }
@@ -533,6 +549,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         @Override
         void setConvention(S convention) {
             throw unexpected();
+        }
+
+        @Override
+        public boolean isMutable() {
+            return false;
         }
 
         private UnsupportedOperationException unexpected() {

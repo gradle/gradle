@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
+import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -49,6 +50,7 @@ import org.gradle.util.internal.VersionNumber;
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
@@ -58,34 +60,72 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
      */
     @VisibleForTesting
     public enum TestingFramework {
-        JUNIT4("junit", "junit", "4.13.2"),
-        JUNIT_JUPITER("org.junit.jupiter", "junit-jupiter", "5.8.2", Collections.singletonList(
+        JUNIT4(
+            "junit",
+            "junit",
+            "4.13.2",
+            JUnitTestFramework.class,
+            (test, objectFactory) -> new JUnitTestFramework(test, new DefaultTestFilter(), false)),
+        JUNIT_JUPITER(
+            "org.junit.jupiter",
+            "junit-jupiter",
+            "5.8.2",
+            Collections.singletonList(
                 // junit-jupiter's BOM, junit-bom, specifies the platform version
                 "org.junit.platform:junit-platform-launcher"
-        )),
-        SPOCK("org.spockframework", "spock-core", getAppropriateSpockVersion(), Collections.singletonList(
+            ),
+            JUnitPlatformTestFramework.class,
+            (test, objectFactory) -> new JUnitPlatformTestFramework((DefaultTestFilter) test.getFilter(), false)
+        ),
+        SPOCK(
+            "org.spockframework",
+            "spock-core",
+            getAppropriateSpockVersion(),
+            Collections.singletonList(
                 // spock-core references junit-jupiter's BOM, which in turn specifies the platform version
                 "org.junit.platform:junit-platform-launcher"
-        )),
-        KOTLIN_TEST("org.jetbrains.kotlin", "kotlin-test-junit5", "1.8.10", Collections.singletonList(
+            ),
+            JUnitPlatformTestFramework.class,
+            (test, objectFactory) -> new JUnitPlatformTestFramework((DefaultTestFilter) test.getFilter(), false)
+        ),
+        KOTLIN_TEST(
+            "org.jetbrains.kotlin",
+            "kotlin-test-junit5",
+            "1.8.10",
+            Collections.singletonList(
                 // kotlin-test-junit5 depends on junit-jupiter, which in turn specifies the platform version
                 "org.junit.platform:junit-platform-launcher"
-        )),
-        TESTNG("org.testng", "testng", "7.5");
+            ),
+            JUnitPlatformTestFramework.class,
+            (test, objectFactory) -> new JUnitPlatformTestFramework((DefaultTestFilter) test.getFilter(), false)
+        ),
+        TESTNG(
+            "org.testng",
+            "testng",
+            "7.5",
+            TestNGTestFramework.class,
+            (test, objectFactory) -> new TestNGTestFramework(test, (DefaultTestFilter) test.getFilter(), objectFactory)
+        );
 
         private final String groupName;
 
         private final String defaultVersion;
         private final List<String> runtimeDependencies;
 
-        TestingFramework(String group, String name, String defaultVersion) {
-            this(group, name, defaultVersion, Collections.emptyList());
+        private final Class<? extends TestFramework> testFrameworkClass;
+
+        private final BiFunction<Test, ObjectFactory, ? extends TestFramework> testFrameworkFactory;
+
+        <T extends TestFramework> TestingFramework(String group, String name, String defaultVersion, Class<T> testFrameworkClass, BiFunction<Test, ObjectFactory, T> testFrameworkFactory) {
+            this(group, name, defaultVersion, Collections.emptyList(), testFrameworkClass, testFrameworkFactory);
         }
 
-        TestingFramework(String group, String name, String defaultVersion, List<String> runtimeDependencies) {
+        <T extends TestFramework> TestingFramework(String group, String name, String defaultVersion, List<String> runtimeDependencies, Class<T> testFrameworkClass, BiFunction<Test, ObjectFactory, T> testFrameworkFactory) {
             this.groupName = group + ":" + name;
             this.defaultVersion = defaultVersion;
             this.runtimeDependencies = runtimeDependencies;
+            this.testFrameworkClass = testFrameworkClass;
+            this.testFrameworkFactory = testFrameworkFactory;
         }
 
         public String getDefaultVersion() {
@@ -114,6 +154,14 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 return "2.2-groovy-4.0";
             }
             return "2.2-groovy-3.0";
+        }
+
+        public Class<? extends TestFramework> getTestFrameworkClass() {
+            return testFrameworkClass;
+        }
+
+        public TestFramework createTestFramework(Test task, ObjectFactory objectFactory) {
+            return testFrameworkFactory.apply(task, objectFactory);
         }
     }
 
@@ -196,34 +244,28 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     private void initializeTestFramework(String name, Test task) {
-        Provider<TestFramework> mapTestingFrameworkToTestFramework = getTestSuiteTestingFramework().map(vtf -> {
-            switch (vtf.getFramework()) {
-                case JUNIT4:
-                    return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), false);
-                case KOTLIN_TEST: // fall-through
-                case JUNIT_JUPITER: // fall-through
-                case SPOCK:
-                    return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter(), false);
-                case TESTNG:
-                    return new TestNGTestFramework(task, (DefaultTestFilter) task.getFilter(), getObjectFactory());
-                default:
-                    throw new IllegalStateException("do not know how to handle " + vtf);
-            }
-        });
+        Provider<TestFramework> mapTestingFrameworkToTestFramework =
+            getTestSuiteTestingFramework().map(vtf -> vtf.getFramework().createTestFramework(task, getObjectFactory()));
 
-        if (name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
-            // In order to maintain compatibility for the default test suite, we need to load JUnit4 from the Gradle distribution
-            // instead of including it in testImplementation.
-            task.getTestFrameworkProperty().convention(mapTestingFrameworkToTestFramework.orElse(getProviderFactory().provider(() -> new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), true))));
-            // We can't disallow changes to the test framework yet because we need to allow the test task to be configured without the test suite
-            task.getTestFrameworkProperty().finalizeValueOnRead();
-        } else {
-            // The Test task's testing framework is derived from the test suite's testing framework
-            task.getTestFrameworkProperty().convention(mapTestingFrameworkToTestFramework);
-            // The Test task cannot override the testing framework chosen by the test suite
-            task.getTestFrameworkProperty().disallowChanges();
-            // The Test task's testing framework is locked in as soon as its needed
-            task.getTestFrameworkProperty().finalizeValueOnRead();
+        // The Test task's testing framework is ideally derived from the test suite's testing framework. However, if the testing framework
+        // of the task is already finalized (perhaps by a task rule configuring the framework options), there is no point in setting
+        // these conventions.  We'll catch this error later if the user attempts to change the test suite framework to something other
+        // than the finalized test task framework.
+        if (!((DefaultProperty<?>)task.getTestFrameworkProperty()).isFinalized()) {
+            if (name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
+                // In order to maintain compatibility for the default test suite, we need to load JUnit4 from the Gradle distribution
+                // instead of including it in testImplementation.
+                task.getTestFrameworkProperty().convention(mapTestingFrameworkToTestFramework.orElse(getProviderFactory().provider(() -> new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), true))));
+                // We can't disallow changes to the test framework yet because we need to allow the test task to be configured without the test suite
+                task.getTestFrameworkProperty().finalizeValueOnRead();
+            } else {
+                // The Test task's testing framework is derived from the test suite's testing framework
+                task.getTestFrameworkProperty().convention(mapTestingFrameworkToTestFramework);
+                // The Test task cannot override the testing framework chosen by the test suite
+                task.getTestFrameworkProperty().disallowChanges();
+                // The Test task's testing framework is locked in as soon as its needed
+                task.getTestFrameworkProperty().finalizeValueOnRead();
+            }
         }
     }
 
@@ -244,6 +286,17 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     private void setFrameworkTo(TestingFramework framework, Provider<String> version) {
+        targets.forEach(target -> {
+            target.getTestTask().configure(test -> {
+                if (((DefaultProperty<?>)test.getTestFrameworkProperty()).isFinalized()) {
+                    Class<? extends TestFramework> finalizedTestFrameworkClass = test.getTestFrameworkProperty().get().getClass();
+                    if (finalizedTestFrameworkClass != framework.getTestFrameworkClass()) {
+                        throw new IllegalStateException("The test framework for the test task '" + test.getPath() + "' has already been finalized to '" + finalizedTestFrameworkClass.getSimpleName() + "' and cannot be changed to '" + framework.getTestFrameworkClass().getSimpleName() + "'." +
+                            " This is likely due to the test framework of the '" + test.getPath() + "' task being configured or consumed before the test suite '" + getName() + "' was configured.");
+                    }
+                }
+            });
+        });
         getTestSuiteTestingFramework().set(version.map(v -> new VersionedTestingFramework(framework, v)));
     }
 

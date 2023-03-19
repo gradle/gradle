@@ -1058,7 +1058,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     void useTestFramework(TestFramework testFramework) {
-        if (((DefaultProperty<?>) this.testFramework).isFinalized()) {
+        if (!((DefaultProperty<?>) this.testFramework).isMutable()) {
             Class<?> currentFramework = this.testFramework.get().getClass();
             Class<?> newFramework = testFramework.getClass();
             if (currentFramework == newFramework) {

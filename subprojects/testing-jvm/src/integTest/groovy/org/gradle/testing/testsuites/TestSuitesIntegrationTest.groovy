@@ -412,7 +412,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("help")
-        failure.assertHasCause("The value for task ':integTest' property 'testFrameworkProperty' cannot be changed any further.")
+        failure.assertHasCause("The value for task ':integTest' property 'testFrameworkProperty' is final and cannot be changed any further.")
     }
 
     def "task configuration overrules test suite configuration with test suite set test framework"() {
@@ -444,7 +444,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("help")
-        failure.assertHasCause("The value for task ':integTest' property 'testFrameworkProperty' cannot be changed any further.")
+        failure.assertHasCause("The value for task ':integTest' property 'testFrameworkProperty' is final and cannot be changed any further.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18622")
