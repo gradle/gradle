@@ -69,11 +69,15 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     def setup() {
         requireOwnGradleUserHomeDir()
 
+        // group name is included in the capabilities of components, which are part of the transform identity
         buildFile << """
             allprojects {
                 group = "colored"
             }
+        """
 
+        // Log a task-only execution plan, which can only be computed during the runtime of the build
+        buildFile << """
             import org.gradle.api.services.BuildService
             import org.gradle.api.services.BuildServiceParameters
             import org.gradle.internal.operations.*
