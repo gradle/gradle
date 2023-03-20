@@ -83,7 +83,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         nativeLink.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
         nativeLink.extendsFrom(getImplementationDependencies());
 
-        @SuppressWarnings("deprecation") Configuration nativeRuntime = configurations.createWithRole(names.withPrefix("nativeRuntime"), ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE);
+        @SuppressWarnings("deprecation") Configuration nativeRuntime = configurations.createWithRole(names.withPrefix("nativeRuntime"), ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_RESOLVABLE);
         nativeRuntime.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_RUNTIME));
         nativeRuntime.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
         nativeRuntime.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());

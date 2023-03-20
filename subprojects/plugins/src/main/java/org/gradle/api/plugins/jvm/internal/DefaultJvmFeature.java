@@ -249,7 +249,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     }
 
     private static Configuration bucket(String kind, RoleBasedConfigurationContainerInternal configurations, String configName, String displayName) {
-        Configuration configuration = configurations.maybeCreateWithRole(configName, ConfigurationRoles.INTENDED_BUCKET, false, false);
+        Configuration configuration = configurations.maybeCreateWithRole(configName, ConfigurationRoles.BUCKET, false, false);
         configuration.setDescription(kind + " dependencies for the " + displayName + ".");
         configuration.setVisible(false);
         return configuration;

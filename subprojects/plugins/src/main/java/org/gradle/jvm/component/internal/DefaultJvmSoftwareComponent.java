@@ -191,7 +191,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         PublishArtifact jarArtifact
     ) {
         Configuration runtimeElementsConfiguration = configurations.maybeCreateWithRole(
-            sourceSet.getRuntimeElementsConfigurationName(), ConfigurationRoles.INTENDED_CONSUMABLE, false, false);
+            sourceSet.getRuntimeElementsConfigurationName(), ConfigurationRoles.CONSUMABLE, false, false);
 
         runtimeElementsConfiguration.setVisible(false);
         jvmPluginServices.useDefaultTargetPlatformInference(runtimeElementsConfiguration, compileJava);
@@ -214,7 +214,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         PublishArtifact jarArtifact
     ) {
         Configuration apiElementsConfiguration = configurations.maybeCreateWithRole(
-            sourceSet.getApiElementsConfigurationName(), ConfigurationRoles.INTENDED_CONSUMABLE, false, false);
+            sourceSet.getApiElementsConfigurationName(), ConfigurationRoles.CONSUMABLE, false, false);
 
         apiElementsConfiguration.setVisible(false);
         jvmPluginServices.useDefaultTargetPlatformInference(apiElementsConfiguration, compileJava);
@@ -235,7 +235,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         // of the component's API?
         String variantName = sourceSet.getName() + SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX;
 
-        @SuppressWarnings("deprecation") Configuration variant = configurations.createWithRole(variantName, ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE);
+        @SuppressWarnings("deprecation") Configuration variant = configurations.createWithRole(variantName, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
         variant.setDescription("List of source directories contained in the Main SourceSet.");
         variant.setVisible(false);
         variant.extendsFrom(implementation);

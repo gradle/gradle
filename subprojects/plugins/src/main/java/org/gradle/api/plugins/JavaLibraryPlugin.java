@@ -56,11 +56,11 @@ public abstract class JavaLibraryPlugin implements Plugin<Project> {
 
         RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
 
-        Configuration api = configurations.maybeCreateWithRole(sourceSet.getApiConfigurationName(), ConfigurationRoles.INTENDED_BUCKET, false, false);
+        Configuration api = configurations.maybeCreateWithRole(sourceSet.getApiConfigurationName(), ConfigurationRoles.BUCKET, false, false);
         api.setDescription("API dependencies for " + sourceSet + ".");
         api.setVisible(false);
 
-        Configuration compileOnlyApi = configurations.maybeCreateWithRole(sourceSet.getCompileOnlyApiConfigurationName(), ConfigurationRoles.INTENDED_BUCKET, false, false);
+        Configuration compileOnlyApi = configurations.maybeCreateWithRole(sourceSet.getCompileOnlyApiConfigurationName(), ConfigurationRoles.BUCKET, false, false);
         compileOnlyApi.setDescription("Compile only API dependencies for " + sourceSet + ".");
         compileOnlyApi.setVisible(false);
 
