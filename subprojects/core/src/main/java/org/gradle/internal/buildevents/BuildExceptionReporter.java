@@ -17,6 +17,7 @@ package org.gradle.internal.buildevents;
 
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -335,6 +336,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     private class ContextImpl implements FailureResolutionAware.Context {
         private final BufferingStyledTextOutput resolution;
+
+        private final DocumentationRegistry documentationRegistry = new DocumentationRegistry();
+
         private boolean missingBuild;
 
         public ContextImpl(BufferingStyledTextOutput resolution) {
@@ -358,6 +362,11 @@ public class BuildExceptionReporter implements Action<Throwable> {
             }
             resolution.style(Info).text("> ").style(Normal);
             resolutionProducer.accept(resolution);
+        }
+
+        @Override
+        public void appendDocumentationResolution(String prefix, String userGuideId, String userGuideSection) {
+            appendResolution(output -> output.text(prefix + " " + documentationRegistry.getDocumentationFor(userGuideId, userGuideSection) + "."));
         }
     }
 }
