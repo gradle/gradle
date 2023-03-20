@@ -1179,6 +1179,37 @@ Hello, subproject1
         outputContains("service: value is 2")
     }
 
+    def "service can take byte array as parameters"() {
+        buildFile << """
+        abstract class ByteArrayParameters implements ${BuildServiceParameters.name}, Serializable {
+            byte[] bytes
+            String toString() {
+                return new String(bytes)
+            }
+        }
+        """
+        serviceImplementationWithParameters("ByteArrayParameters")
+        buildFile << """
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.bytes = "Hello".getBytes()
+            }
+            task tryIt {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+        """
+
+        when:
+        run("tryIt")
+
+        then:
+        output.count("service:") == 3
+        outputContains("service: created with value = 0")
+        outputContains("service: created with parameters = Hello")
+        outputContains("service: value is 1")
+    }
+
     def "service can take another service as a parameter"() {
         serviceImplementation()
         buildFile << """
@@ -1591,13 +1622,18 @@ Hello, subproject1
     }
 
     def noParametersServiceImplementation() {
+        serviceImplementationWithParameters("${BuildServiceParameters.name}.None")
+    }
+
+    def serviceImplementationWithParameters(String parameters) {
         buildFile << """
-            abstract class CountingService implements BuildService<${BuildServiceParameters.name}.None> {
+            abstract class CountingService implements BuildService<${parameters}> {
                 int value
 
                 CountingService() {
                     value = 0
                     println("service: created with value = \${value}")
+                    println("service: created with parameters = \${parameters}")
                 }
 
                 // Service must be thread-safe
