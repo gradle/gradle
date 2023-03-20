@@ -1269,24 +1269,28 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Override
     public ConfigurationInternal copy() {
         return createCopy(getDependencies(), getDependencyConstraints());
     }
 
     @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Override
     public Configuration copyRecursive() {
         return createCopy(getAllDependencies(), getAllDependencyConstraints());
     }
 
     @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Override
     public Configuration copy(Spec<? super Dependency> dependencySpec) {
         return createCopy(CollectionUtils.filter(getDependencies(), dependencySpec), getDependencyConstraints());
     }
 
     @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Override
     public Configuration copyRecursive(Spec<? super Dependency> dependencySpec) {
         return createCopy(CollectionUtils.filter(getAllDependencies(), dependencySpec), getAllDependencyConstraints());
@@ -1299,7 +1303,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      * roles and deprecations without modification. Or, better yet, we will remove support
      * for copying configurations altogether.
      */
+    @Deprecated
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints) {
+        DeprecationLogger.deprecateAction("Copying configurations is deprecated")
+                .withAdvice("Consider creating a new configuration or extending an existing one instead.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "configuration_copying_deprecated")
+                .nagUser();
+
         // Begin by allowing everything, and setting deprecations for disallowed roles
         ConfigurationRole adjustedCurrentUsage = ConfigurationRole.forUsage(
                 true, true, true,

@@ -138,6 +138,18 @@ Some of them still registers conventions for backwards compatibility.
 Registering conventions does not emit a deprecation warning yet to provide a migration window.
 Future Gradle versions will do.
 
+[[configuration_copying_deprecated]]
+
+Copying `Configuration` using any of the following methods deprecated for removal:
+
+- `copy()`
+- `copy(Spec)`
+- `copyRecursive()`
+- `copyRecursive(Spec)`
+
+Instead of copying configurations, create a new configuration and extend existing configurations using `extendsFrom` where necessary.
+These methods will be removed in Gradle 9.0.
+
 [[deprecated_configuration_get_all]]
 ==== `link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration]` method deprecations
 
@@ -146,6 +158,7 @@ The following method on `Configuration` is deprecated for removal:
 - `getAll()`
 
 Obtain the set of all configurations from the project's `configurations` container instead.
+This method will be removed in Gradle 9.0.
 
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
