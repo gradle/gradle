@@ -1,7 +1,7 @@
 ${extraCompileJava.raw}> Task :${subprojectName.raw}:compile${language.raw}
 > Task :${subprojectName.raw}:processResources NO-SOURCE
 > Task :${subprojectName.raw}:classes${classesUpToDate.raw}
-${inspectClassesForKotlinICTask.raw}> Task :${subprojectName.raw}:jar
+> Task :${subprojectName.raw}:jar
 > Task :${subprojectName.raw}:assemble
 ${extraCompileTestJava.raw}> Task :${subprojectName.raw}:compileTest${language.raw}
 > Task :${subprojectName.raw}:processTestResources NO-SOURCE

@@ -145,8 +145,52 @@ Calling `setCanBeConsumed(boolean)` or `setCanBeResolved(boolean)` on a configur
 
 This deprecation is intended to help users identify unnecessary configuration usage modifications.
 
+[[deprecated_configuration_get_all]]
+==== `link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration]` method deprecations
+
+The following method on `Configuration` is deprecated for removal:
+
+- `getAll()`
+
+Obtain the set of all configurations from the project's `configurations` container instead.
+
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
+
+[[cache_marking]]
+=== CACHEDIR.TAG files are created in global cache directories
+Gradle now emits a `CACHEDIR.TAG` file in some global cache directories, as specified in <<directory_layout#dir:gradle_user_home:cache_marking>>.
+
+This may cause these directories to no longer be searched or backed up by some tools. To disable it, use the following code in an <<init_scripts#sec:using_an_init_script,init script>> in the Gradle user home directory:
+
+====
+[.multi-language-sample]
+=====
+.init.gradle.kts
+[source,kotlin]
+----
+beforeSettings {
+    caches {
+        // Disable cache marking for all caches
+        markingStrategy.set(MarkingStrategy.NONE)
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.init.gradle
+[source,groovy]
+----
+beforeSettings { settings ->
+    settings.caches {
+        // Disable cache marking for all caches
+        markingStrategy = MarkingStrategy.NONE
+    }
+}
+----
+=====
+====
 
 === Potential breaking changes
 
@@ -179,6 +223,13 @@ using select popular third-party plugins.
 This change is part of a larger ongoing effort to make the intended behavior of configurations more consistent and predictable, and to unlock further speed and memory improvements in this area of Gradle.
 
 The ability to change the allowed usage of a configuration after creation will be removed in Gradle 9.0.
+
+[[reserved_configuration_names]]
+==== Reserved configuration names
+
+Configuration names "detachedConfiguration" and "detachedConfigurationX" (where X is any integer) are reserved for internal use when creating detached configurations.
+
+The ability to create non-detached configurations with these names will be removed in Gradle 9.0.
 
 [[java_extension_without_java_component]]
 ==== Calling select methods on the `JavaPluginExtension` without the `java` component present

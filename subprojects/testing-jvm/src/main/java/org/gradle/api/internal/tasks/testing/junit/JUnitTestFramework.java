@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestFrameworkDistributionModule;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
@@ -33,10 +36,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @UsedByScanPlugin("test-retry")
 public class JUnitTestFramework implements TestFramework {
+    private static final Logger LOGGER = Logging.getLogger(JUnitTestFramework.class);
 
     private static final List<TestFrameworkDistributionModule> DISTRIBUTION_MODULES =
         Collections.singletonList(new TestFrameworkDistributionModule(
@@ -79,6 +85,7 @@ public class JUnitTestFramework implements TestFramework {
 
     @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
+        validateOptions();
         return new JUnitTestClassProcessorFactory(new JUnitSpec(
             filter.toSpec(), options.getIncludeCategories(), options.getExcludeCategories()));
     }
@@ -123,4 +130,20 @@ public class JUnitTestFramework implements TestFramework {
         detector = null;
     }
 
+    private void validateOptions() {
+        Set<String> intersection = Sets.newHashSet(options.getIncludeCategories());
+        intersection.retainAll(options.getExcludeCategories());
+        if (!intersection.isEmpty()) {
+            if (intersection.size() == 1) {
+                LOGGER.warn("The category '" + intersection.iterator().next() + "' is both included and excluded.  " +
+                    "This will result in the category being excluded, which may not be what was intended.  " +
+                    "Please either include or exclude the category but not both.");
+            } else {
+                String allCategories = intersection.stream().sorted().map(s -> "'" + s + "'").collect(Collectors.joining(", "));
+                LOGGER.warn("The categories " + allCategories + " are both included and excluded.  " +
+                    "This will result in the categories being excluded, which may not be what was intended. " +
+                    "Please either include or exclude the categories but not both.");
+            }
+        }
+    }
 }

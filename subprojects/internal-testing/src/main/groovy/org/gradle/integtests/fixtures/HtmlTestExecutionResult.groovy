@@ -15,15 +15,13 @@
  */
 package org.gradle.integtests.fixtures
 
-import groovy.transform.EqualsAndHashCode
-import groovy.transform.ToString
 import org.gradle.internal.FileUtils
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
-import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
+import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.testCase
 import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
@@ -91,28 +89,6 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         return getExecutedTestClasses().size()
     }
 
-    @ToString
-    @EqualsAndHashCode(includes = ['name', 'displayName'])
-    private static class TestCase {
-        String name
-        String displayName
-        List<String> messages
-
-        TestCase(String name) {
-            this(name, name)
-        }
-
-        TestCase(String name, String displayName) {
-            this(name, displayName, [])
-        }
-
-        TestCase(String name, String displayName, List<String> messages) {
-            this.name = removeParentheses(name)
-            this.displayName = removeParentheses(displayName)
-            this.messages = messages
-        }
-    }
-
     private static class HtmlTestClassExecutionResult implements TestClassExecutionResult {
         private String classDisplayName
         private File htmlFile
@@ -133,7 +109,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
                 def testDisplayName = it.textNodes().first().wholeText.trim()
                 def testName = hasMethodNameColumn() ? it.nextElementSibling().text() : testDisplayName
                 def failureMessage = getFailureMessages(testName)
-                def testCase = new TestCase(testName, testDisplayName, failureMessage)
+                def testCase = testCase(testName, testDisplayName, failureMessage)
                 testsExecuted << testCase
                 target << testCase
             }
@@ -156,9 +132,14 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestsExecuted(String... testNames) {
+            return assertTestsExecuted(testNames.collect { testCase(it) } as TestCase[])
+        }
+
+        @Override
+        TestClassExecutionResult assertTestsExecuted(TestCase... testCases) {
             def executedAndNotSkipped = testsExecuted - testsSkipped
-            assert executedAndNotSkipped.containsAll(testNames.collect { new TestCase(it) })
-            assert executedAndNotSkipped.size() == testNames.size()
+            assert executedAndNotSkipped.containsAll(testCases)
+            assert executedAndNotSkipped.size() == testCases.size()
             return this
         }
 
@@ -173,13 +154,13 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestsSkipped(String... testNames) {
-            assert testsSkipped == testNames.collect { new TestCase(it) } as Set
+            assert testsSkipped == testNames.collect { testCase(it) } as Set
             return this
         }
 
         @Override
         TestClassExecutionResult assertTestPassed(String name, String displayName) {
-            assert testsSucceeded.contains(new TestCase(name, displayName))
+            assert testsSucceeded.contains(testCase(name, displayName))
             return this
         }
 
@@ -188,7 +169,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestPassed(String name) {
-            assert testsSucceeded.contains(new TestCase(name))
+            assert testsSucceeded.contains(testCase(name))
             return this
         }
 
@@ -227,7 +208,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
         @Override
         TestClassExecutionResult assertTestSkipped(String name, String displayName) {
-            assert testsSkipped.contains(new TestCase(name, displayName))
+            assert testsSkipped.contains(testCase(name, displayName))
             return this
         }
 
@@ -250,7 +231,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestSkipped(String name) {
-            assert testsSkipped.contains(new TestCase(name))
+            assert testsSkipped.contains(testCase(name))
             return this
         }
 

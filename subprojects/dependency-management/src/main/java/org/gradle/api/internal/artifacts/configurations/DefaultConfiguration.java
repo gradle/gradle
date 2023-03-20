@@ -89,7 +89,6 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.attributes.IncubatingAttributesChecker;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -549,8 +548,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    @Deprecated
     @Override
     public Set<Configuration> getAll() {
+        DeprecationLogger.deprecateAction("Calling the Configuration.getAll() method")
+                .withAdvice("Use the configurations container to access the set of configurations instead.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecated_configuration_get_all")
+                .nagUser();
+
         return ImmutableSet.copyOf(configurationsProvider.getAll());
     }
 
@@ -1258,11 +1264,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public boolean isIncubating() {
-        return IncubatingAttributesChecker.isAnyIncubating(getAttributes());
-    }
-
-    @Override
     public void outgoing(Action<? super ConfigurationPublications> action) {
         action.execute(outgoing);
     }
@@ -1773,11 +1774,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         usageCanBeMutated = false;
     }
 
-    @VisibleForTesting
-    public boolean isUsageMutable() {
-        return usageCanBeMutated;
-    }
-
     @SuppressWarnings("deprecation")
     private void assertUsageIsMutable() {
         if (!usageCanBeMutated) {
@@ -2036,57 +2032,6 @@ since users cannot create non-legacy configurations and there is no current publ
         this.consistentResolutionSource = null;
         this.consistentResolutionReason = null;
         return this;
-    }
-
-    /**
-     * Print a formatted representation of a Configuration
-     */
-    public String dump() {
-        StringBuilder reply = new StringBuilder();
-
-        reply.append("\nConfiguration:");
-        reply.append("  class='").append(this.getClass()).append("'");
-        reply.append("  name='").append(this.getName()).append("'");
-        reply.append("  hashcode='").append(this.hashCode()).append("'");
-
-        reply.append("\nLocal Dependencies:");
-        if (getDependencies().size() > 0) {
-            for (Dependency d : getDependencies()) {
-                reply.append("\n   ").append(d);
-            }
-        } else {
-            reply.append("\n   none");
-        }
-
-        reply.append("\nLocal Artifacts:");
-        if (getArtifacts().size() > 0) {
-            for (PublishArtifact a : getArtifacts()) {
-                reply.append("\n   ").append(a);
-            }
-        } else {
-            reply.append("\n   none");
-        }
-
-        reply.append("\nAll Dependencies:");
-        if (getAllDependencies().size() > 0) {
-            for (Dependency d : getAllDependencies()) {
-                reply.append("\n   ").append(d);
-            }
-        } else {
-            reply.append("\n   none");
-        }
-
-
-        reply.append("\nAll Artifacts:");
-        if (getAllArtifacts().size() > 0) {
-            for (PublishArtifact a : getAllArtifacts()) {
-                reply.append("\n   ").append(a);
-            }
-        } else {
-            reply.append("\n   none");
-        }
-
-        return reply.toString();
     }
 
     private abstract static class ResolveState {
