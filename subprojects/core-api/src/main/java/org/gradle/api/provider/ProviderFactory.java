@@ -254,7 +254,6 @@ public interface ProviderFactory {
      * @return the provider, never returns null
      * @since 6.1
      */
-    @Incubating
     <T, P extends ValueSourceParameters>
     Provider<T> of(
         Class<? extends ValueSource<T, P>> valueSourceType,

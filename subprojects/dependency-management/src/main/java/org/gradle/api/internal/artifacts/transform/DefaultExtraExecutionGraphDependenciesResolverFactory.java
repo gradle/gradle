@@ -19,9 +19,9 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationIdentity;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 
 public class DefaultExtraExecutionGraphDependenciesResolverFactory implements ExtraExecutionGraphDependenciesResolverFactory {
     public static final TransformUpstreamDependenciesResolver NO_DEPENDENCIES_RESOLVER = transformationStep -> DefaultTransformUpstreamDependenciesResolver.NO_DEPENDENCIES;

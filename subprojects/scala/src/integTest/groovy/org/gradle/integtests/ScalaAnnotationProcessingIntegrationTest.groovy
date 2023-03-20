@@ -181,7 +181,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
     static String annotationProcessorDependency(File repoDir, String processorDependency) {
         """
-            sourceCompatibility = '1.7'
+            java.sourceCompatibility = '1.7'
 
             repositories {
                 maven {
@@ -266,7 +266,7 @@ class ScalaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
                 group = '$group'
                 version = '$version'
-                sourceCompatibility = '1.7'
+                java.sourceCompatibility = '1.7'
 
                 publishing {
                    publications {

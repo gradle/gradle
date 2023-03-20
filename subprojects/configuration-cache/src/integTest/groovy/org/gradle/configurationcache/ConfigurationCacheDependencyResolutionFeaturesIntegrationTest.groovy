@@ -730,7 +730,6 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         configurationCacheRun("resolve1", "--write-verification-metadata", "sha256")
 
         then:
-        configurationCache.assertStateStored()
         def verificationFile = file("gradle/verification-metadata.xml")
         verificationFile.isFile()
 

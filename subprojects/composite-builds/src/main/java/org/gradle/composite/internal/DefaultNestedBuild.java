@@ -135,20 +135,4 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
             return exceptionAnalyser.transform(failures);
         }
     }
-
-    private class FinishThisBuildOnlyFinishExecutor implements BuildTreeFinishExecutor {
-        private final ExceptionAnalyser exceptionAnalyser;
-
-        public FinishThisBuildOnlyFinishExecutor(ExceptionAnalyser exceptionAnalyser) {
-            this.exceptionAnalyser = exceptionAnalyser;
-        }
-
-        @Override
-        @Nullable
-        public RuntimeException finishBuildTree(List<Throwable> failures) {
-            RuntimeException reportable = exceptionAnalyser.transform(failures);
-            ExecutionResult<Void> finishResult = getBuildController().finishBuild(reportable);
-            return exceptionAnalyser.transform(ExecutionResult.maybeFailed(reportable).withFailures(finishResult).getFailures());
-        }
-    }
 }

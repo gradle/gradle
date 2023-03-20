@@ -127,6 +127,14 @@ sealed class IsolateOwner {
     class OwnerHost(override val delegate: DefaultConfigurationCache.Host) : IsolateOwner() {
         override fun <T> service(type: Class<T>): T = delegate.service(type)
     }
+
+    class OwnerFlowScope(override val delegate: Gradle) : IsolateOwner() {
+        override fun <T> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
+    }
+
+    class OwnerFlowAction(override val delegate: OwnerFlowScope) : IsolateOwner() {
+        override fun <T> service(type: Class<T>): T = delegate.service(type)
+    }
 }
 
 
@@ -158,6 +166,7 @@ interface MutableIsolateContext : IsolateContext {
     override var trace: PropertyTrace
 
     fun push(codec: Codec<Any?>)
+    fun push(owner: IsolateOwner)
     fun push(owner: IsolateOwner, codec: Codec<Any?>)
     fun pop()
 
@@ -191,6 +200,17 @@ inline fun <T : MutableIsolateContext, R> T.withGradleIsolate(
 internal
 inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, codec: Codec<Any?>, block: T.() -> R): R {
     push(owner, codec)
+    try {
+        return block()
+    } finally {
+        pop()
+    }
+}
+
+
+internal
+inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, block: T.() -> R): R {
+    push(owner)
     try {
         return block()
     } finally {

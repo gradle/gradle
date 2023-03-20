@@ -758,7 +758,7 @@ lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
         then:
         verifyContains(failure.error, parseError {
             inCatalog('libs')
-            addError('At line 3, column 1: Unexpected \'/\', expected a newline or end-of-input')
+            addError("In file '${tomlFile.absolutePath}' at line 3, column 1: Unexpected \'/\', expected a newline or end-of-input")
         })
     }
 

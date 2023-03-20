@@ -22,7 +22,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCaches;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceServices;
-import org.gradle.api.internal.artifacts.transform.ToPlannedTransformConverter;
+import org.gradle.api.internal.artifacts.transform.ToPlannedTransformStepConverter;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
@@ -43,8 +43,8 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
 public class DependencyManagementGradleUserHomeScopeServices {
 
-    ToPlannedNodeConverter createToPlannedTransformConverter() {
-        return new ToPlannedTransformConverter();
+    ToPlannedNodeConverter createToPlannedTransformStepConverter() {
+        return new ToPlannedTransformStepConverter();
     }
 
     DefaultArtifactCaches.WritableArtifactCacheLockingParameters createWritableArtifactCacheLockingParameters(FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions) {

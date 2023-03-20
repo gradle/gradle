@@ -370,8 +370,8 @@ In this case, there's no need to import the `Test` task type as it is part of th
 
 Some of the Gradle core plugins expose configurability with the help of a so-called _convention_ object.
 These serve a similar purpose to — and have now been superseded by — _extensions_.
+Conventions are deprecated.
 Please avoid using convention objects when writing new plugins.
-The long term plan is to migrate all Gradle core plugins to use extensions and remove the convention objects altogether.
 
 As seen above, the Kotlin DSL provides accessors only for convention objects on `Project`.
 There are situations that require you to interact with a Gradle plugin that uses convention objects on other types.
@@ -382,7 +382,7 @@ The Kotlin DSL provides the `withConvention(T::class) {}` extension function to 
 include::sample[dir="snippets/kotlinDsl/sourceSetConvention/kotlin",files="build.gradle.kts[tags=source-set-convention]"]
 ====
 
-This technique is most commonly required for source sets that are added by language plugins other than the Java Plugin, e.g. the Groovy Plugin and the Scala Plugin. You can see which plugins add which properties to source sets in the link:{groovyDslPath}/org.gradle.api.tasks.SourceSet.html[SourceSet] reference documentation.
+This technique is primarily necessary for source sets added by language plugins that have yet to be migrated to extensions.
 
 [[kotdsl:multi_project_builds]]
 [[sec:multi_project_builds]]
@@ -700,6 +700,37 @@ tasks.create("myTask") {
 <2> Reads the value from the project extra property we created — note the `project.` qualifier on `extra[...]`, otherwise Gradle will assume we want to read an extra property from the _task_
 
 // === `Property`, `Provider` and `NamedDomainObjectProvider`
+
+
+[[kotdsl:assignment]]
+== Kotlin lazy property assignment
+
+Gradle's Kotlin DSL supports lazy property assignment using the `=` operator as an experimental feature that can be enabled by adding `systemProp.org.gradle.unsafe.kotlin.assignment=true` to the `gradle.properties` file.
+Lazy property assignment reduces the verbosity for Kotlin DSL when <<lazy_configuration#lazy_properties,lazy properties>> are used.
+It works for properties that are publicly seen as `final` (without a setter) and have type `Property` or `ConfigurableFileCollection`.
+Since properties have to be `final`, our general recommendation is not to implement custom setters for properties with lazy types and, if possible, implement such properties via an abstract getter.
+
+Once the feature is released out of experimental status, using the `=` operator will be the preferred way to calling `set()` in the Kotlin DSL.
+
+.Kotlin lazy property assignment
+====
+include::sample[dir="snippets/kotlinDsl/assignment/kotlin",files="build.gradle.kts[tags=assignment]"]
+====
+<1> Set value with the `.set()` method
+<2> Set value with lazy property assignment using the `=` operator
+<3> The `=` operator can be used also for assigning lazy values
+
+[CAUTION]
+====
+Enabling lazy property assignment will fail your build if the Kotlin compiler `allWarningsAsErrors` option is enabled for the build logic, since the Kotlin compiler plugin is still experimental and emits a warning.
+====
+
+=== IDE support
+
+Lazy property assignment is supported from IntelliJ 2022.3 and from Android Studio Giraffe.
+For IDE to detect the Kotlin assignment, `systemProp.org.gradle.unsafe.kotlin.assignment=true` has to be added to the root project `gradle.properties` file (also for all included builds).
+Additionally, the project has to be reopened after the property value is changed.
+In future releases, we will work on improving the IDE experience and remove these requirements.
 
 
 [[sec:kotlin-dsl_plugin]]

@@ -237,8 +237,9 @@ config
             }
 
             task resolveConf {
+                def foo = configurations.foo
                 doLast {
-                    configurations.foo.each { println it }
+                    foo.each { println it }
                 }
             }
         """

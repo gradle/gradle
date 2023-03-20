@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public interface ConfigurationsProvider {
@@ -29,4 +30,8 @@ public interface ConfigurationsProvider {
     int size();
 
     Set<? extends ConfigurationInternal> getAll();
+
+    @Nullable
+    ConfigurationInternal findByName(String name);
+
 }

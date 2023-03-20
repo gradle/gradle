@@ -146,8 +146,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
     private DefaultJavaPluginExtension addExtensions(final Project project) {
         DefaultToolchainSpec toolchainSpec = objectFactory.newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
-        DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec, jvmPluginServices);
-        project.getConvention().getPlugins().put("java", objectFactory.newInstance(DefaultJavaPluginConvention.class, project, javaPluginExtension));
+        DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec);
+        DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("java", objectFactory.newInstance(DefaultJavaPluginConvention.class, project, javaPluginExtension)));
         return javaPluginExtension;
     }
 
@@ -170,6 +170,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     private void configureLibraryElements(TaskProvider<JavaCompile> compileTaskProvider, SourceSet sourceSet, ConfigurationContainer configurations, ObjectFactory objectFactory) {
         ConfigurationInternal compileClasspath = (ConfigurationInternal) configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
+        // TODO:configuration-cache this is a callback that affects configuration attributes #23732
         compileClasspath.beforeLocking(conf -> {
             AttributeContainerInternal attributes = conf.getAttributes();
             if (!attributes.contains(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)) {

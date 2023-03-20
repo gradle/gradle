@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import spock.lang.Issue
 import spock.lang.Timeout
 
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 import static org.hamcrest.CoreMatchers.containsString
 
@@ -38,28 +37,6 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
 
         expect:
         succeeds('test')
-    }
-
-    def 'should prompt user to add dependencies when they are not in test runtime classpath'() {
-        given:
-        buildFile.text = """
-            apply plugin: 'java'
-            ${mavenCentralRepository()}
-            dependencies {
-                testCompileOnly 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'
-            }
-
-            test { useJUnitPlatform() }
-            """
-        createSimpleJupiterTest()
-
-        when:
-        fails('test')
-
-        then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClassStartsWith('Gradle Test Executor')
-            .assertExecutionFailedWithCause(containsString('consider adding an engine implementation JAR to the classpath'))
     }
 
     def 'can handle class level ignored tests'() {

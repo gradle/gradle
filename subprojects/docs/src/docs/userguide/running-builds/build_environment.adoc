@@ -101,7 +101,7 @@ _A reasonable default is derived from your environment (`JAVA_HOME` or the path 
 
 `org.gradle.jvmargs=(JVM arguments)`::
 Specifies the JVM arguments used for the Gradle Daemon. The setting is particularly useful for <<#sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance. This does not affect the JVM settings for the Gradle client VM.
-_The default is `-Xmx512m "-XX:MaxMetaspaceSize=256m"`._
+_The default is `-Xmx512m "-XX:MaxMetaspaceSize=384m"`._
 
 `org.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
 When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. See <<logging.adoc#sec:choosing_a_log_level,Choosing a log level>>.
@@ -339,7 +339,7 @@ You should check for existence of optional project properties before you access 
 
 You can adjust JVM options for Gradle in the following ways:
 
-The `org.gradle.jvmargs` Gradle property controls the VM running the build. It defaults to `-Xmx512m "-XX:MaxMetaspaceSize=256m"`
+The `org.gradle.jvmargs` Gradle property controls the VM running the build. It defaults to `-Xmx512m "-XX:MaxMetaspaceSize=384m"`
 
 .Changing JVM settings for the build VM
 ====

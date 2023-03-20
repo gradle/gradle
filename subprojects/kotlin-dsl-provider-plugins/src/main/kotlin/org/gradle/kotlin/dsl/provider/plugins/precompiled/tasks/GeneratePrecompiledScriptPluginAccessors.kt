@@ -558,31 +558,38 @@ class ThreadLocalCapturePrintStream(originalOutput: PrintStream) : PrintStream(o
         isCapturing!!.set(true)
     }
 
-    override fun write(b: ByteArray) {
-        if (isCapturing!!.get()) captureOutput.write(b)
-        else super.write(b)
-    }
-
-    override fun write(buf: ByteArray, off: Int, len: Int) {
-        if (isCapturing!!.get()) captureOutput.write(buf, off, len)
+    override fun write(buf: ByteArray, off: Int, len: Int) = safely {
+        if (doCapture) captureOutput.write(buf, off, len)
         else super.write(buf, off, len)
     }
 
-    override fun write(b: Int) {
-        if (isCapturing!!.get()) captureOutput.write(b)
+    override fun write(b: Int) = safely {
+        if (doCapture) captureOutput.write(b)
         else super.write(b)
     }
 
-    override fun flush() {
+    override fun flush() = safely {
         captureOutput.flush()
         super.flush()
     }
 
-    fun stop() {
+    fun stop() = safely {
         isCapturing!!.remove()
         // Give a chance for other threads' weak references to the local to be GCed if any
         isCapturing = null
     }
+
+    private
+    fun safely(block: () -> Unit) =
+        try {
+            synchronized(this, block)
+        } catch (ex: InterruptedException) {
+            Thread.currentThread().interrupt()
+        }
+
+    private
+    val doCapture: Boolean
+        get() = isCapturing != null && isCapturing!!.get()
 }
 
 

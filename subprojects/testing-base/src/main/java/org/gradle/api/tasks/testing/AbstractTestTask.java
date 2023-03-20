@@ -551,7 +551,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * For more information on supported patterns see {@link TestFilter}
      */
-    @Option(option = "tests", description = "Sets test class or method name to be included, '*' is supported.")
+    @Option(option = "tests", description = "Sets test class or method name to be included (in addition to the test task filters), '*' is supported.")
     public AbstractTestTask setTestNameIncludePatterns(List<String> testNamePattern) {
         filter.setCommandLineIncludePatterns(testNamePattern);
         return this;
