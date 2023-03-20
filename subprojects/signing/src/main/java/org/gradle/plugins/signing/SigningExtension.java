@@ -162,7 +162,7 @@ public abstract class SigningExtension {
         final Configuration configuration = configurations.findByName(DEFAULT_CONFIGURATION_NAME);
         return configuration != null
             ? configuration
-            : configurations.createWithRole(DEFAULT_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_INTENDED_CONSUMABLE);
+            : configurations.createWithRole(DEFAULT_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE);
     }
 
     /**

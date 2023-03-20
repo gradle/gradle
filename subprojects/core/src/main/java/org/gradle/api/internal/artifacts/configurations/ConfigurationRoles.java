@@ -41,12 +41,12 @@ public enum ConfigurationRoles implements ConfigurationRole {
     /**
      * Meant to be used only for consumption by other projects.
      */
-    INTENDED_CONSUMABLE(true, false, false, false, false, false),
+    CONSUMABLE(true, false, false, false, false, false),
 
     /**
      * Meant to be used only for resolving dependencies.
      */
-    INTENDED_RESOLVABLE(false, true, false, false, false, false),
+    RESOLVABLE(false, true, false, false, false, false),
 
     /**
      * Meant as a temporary solution for situations where we need to declare dependencies against a resolvable configuration.
@@ -54,7 +54,7 @@ public enum ConfigurationRoles implements ConfigurationRole {
      * These situations should be updated to use a separate bucket configuration for declaring dependencies and extend it with a separate resolvable configuration.
      */
     @Deprecated
-    INTENDED_RESOLVABLE_BUCKET(false, true, true, false, false, false),
+    RESOLVABLE_BUCKET(false, true, true, false, false, false),
 
     /**
      * Meant as a temporary solution for situations where we need to declare dependencies against a consumable configuration.
@@ -62,14 +62,14 @@ public enum ConfigurationRoles implements ConfigurationRole {
      * This <strong>SHOULD NOT</strong> be necessary, and is a symptom of an over-permissive configuration.
      */
     @Deprecated
-    INTENDED_CONSUMABLE_BUCKET(true, false, true, false, false, false),
+    CONSUMABLE_BUCKET(true, false, true, false, false, false),
 
     /**
      * Meant to be used only for declaring dependencies.
      *
      * AKA {@code INTENDED_DECLARABLE}.
      */
-    INTENDED_BUCKET(false, false, true, false, false, false),
+    BUCKET(false, false, true, false, false, false),
 
     /**
      * Meant to be used only for consumption, permits other usage but emits warnings if used otherwise.

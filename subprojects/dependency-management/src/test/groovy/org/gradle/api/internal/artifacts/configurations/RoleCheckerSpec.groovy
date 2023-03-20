@@ -83,7 +83,7 @@ class RoleCheckerSpec extends Specification {
         configuration.isDeprecatedForDeclarationAgainst() >> false
 
         when:
-        RoleChecker.assertIsInRole(configuration, ConfigurationRoles.INTENDED_RESOLVABLE)
+        RoleChecker.assertIsInRole(configuration, ConfigurationRoles.RESOLVABLE)
 
         then:
         GradleException e = thrown()

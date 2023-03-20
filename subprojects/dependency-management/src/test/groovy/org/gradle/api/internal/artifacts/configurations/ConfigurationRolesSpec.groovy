@@ -30,10 +30,10 @@ class ConfigurationRolesSpec extends Specification {
         where:
         consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated  || role
         true        | true          | true              | false                 | false                 | false                         || ConfigurationRoles.LEGACY
-        true        | false         | false             | false                 | false                 | false                         || ConfigurationRoles.INTENDED_CONSUMABLE
-        false       | true          | false             | false                 | false                 | false                         || ConfigurationRoles.INTENDED_RESOLVABLE
-        false       | true          | true              | false                 | false                 | false                         || ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET
-        false       | false         | true              | false                 | false                 | false                         || ConfigurationRoles.INTENDED_BUCKET
+        true        | false         | false             | false                 | false                 | false                         || ConfigurationRoles.CONSUMABLE
+        false       | true          | false             | false                 | false                 | false                         || ConfigurationRoles.RESOLVABLE
+        false       | true          | true              | false                 | false                 | false                         || ConfigurationRoles.RESOLVABLE_BUCKET
+        false       | false         | true              | false                 | false                 | false                         || ConfigurationRoles.BUCKET
         true        | true          | true              | false                 | true                  | true                          || ConfigurationRoles.DEPRECATED_CONSUMABLE
         true        | true          | true              | true                  | false                 | true                          || ConfigurationRoles.DEPRECATED_RESOLVABLE
     }
@@ -56,10 +56,10 @@ class ConfigurationRolesSpec extends Specification {
 
         where:
         role                                            || name
-        ConfigurationRoles.INTENDED_BUCKET              || "Intended Bucket"
-        ConfigurationRoles.INTENDED_CONSUMABLE          || "Intended Consumable"
-        ConfigurationRoles.INTENDED_RESOLVABLE          || "Intended Resolvable"
-        ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET   || "Intended Resolvable Bucket"
+        ConfigurationRoles.BUCKET || "Intended Bucket"
+        ConfigurationRoles.CONSUMABLE || "Intended Consumable"
+        ConfigurationRoles.RESOLVABLE || "Intended Resolvable"
+        ConfigurationRoles.RESOLVABLE_BUCKET || "Intended Resolvable Bucket"
         ConfigurationRoles.DEPRECATED_CONSUMABLE        || "Deprecated Consumable"
         ConfigurationRoles.DEPRECATED_RESOLVABLE        || "Deprecated Resolvable"
         ConfigurationRoles.LEGACY                       || "Legacy"
