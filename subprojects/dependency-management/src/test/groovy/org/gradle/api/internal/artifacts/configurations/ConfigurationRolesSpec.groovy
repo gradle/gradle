@@ -56,10 +56,10 @@ class ConfigurationRolesSpec extends Specification {
 
         where:
         role                                            || name
-        ConfigurationRoles.BUCKET || "Intended Bucket"
-        ConfigurationRoles.CONSUMABLE || "Intended Consumable"
-        ConfigurationRoles.RESOLVABLE || "Intended Resolvable"
-        ConfigurationRoles.RESOLVABLE_BUCKET || "Intended Resolvable Bucket"
+        ConfigurationRoles.BUCKET || "Bucket"
+        ConfigurationRoles.CONSUMABLE || "Consumable"
+        ConfigurationRoles.RESOLVABLE || "Resolvable"
+        ConfigurationRoles.RESOLVABLE_BUCKET || "Resolvable Bucket"
         ConfigurationRoles.DEPRECATED_CONSUMABLE        || "Deprecated Consumable"
         ConfigurationRoles.DEPRECATED_RESOLVABLE        || "Deprecated Resolvable"
         ConfigurationRoles.LEGACY                       || "Legacy"
