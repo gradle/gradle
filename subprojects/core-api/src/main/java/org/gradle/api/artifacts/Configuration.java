@@ -471,6 +471,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * {@link #getHierarchy()} for the copy will not include any superconfigurations.
      * @return copy of this configuration
      */
+    @Deprecated
     Configuration copy();
 
     /**
@@ -480,6 +481,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * {@link #getHierarchy()} for the copy will not include any superconfigurations.
      * @return copy of this configuration
      */
+    @Deprecated
     Configuration copyRecursive();
 
     /**

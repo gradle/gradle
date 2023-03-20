@@ -410,6 +410,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.outgoing(action: Configurat
 /**
  * See [Configuration.copy].
  */
+@Suppress("deprecation")
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().copy()"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.copy() =
     get().copy()
@@ -418,6 +419,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.copy() =
 /**
  * See [Configuration.copyRecursive].
  */
+@Suppress("deprecation")
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().copyRecursive()"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.copyRecursive() =
     get().copyRecursive()
@@ -426,6 +428,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.copyRecursive() =
 /**
  * See [Configuration.copy].
  */
+@Suppress("deprecation")
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().copy(dependencySpec)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.copy(dependencySpec: Spec<Dependency>) =
     get().copy(dependencySpec)
@@ -434,6 +437,7 @@ fun <T : Configuration> NamedDomainObjectProvider<T>.copy(dependencySpec: Spec<D
 /**
  * See [Configuration.copyRecursive].
  */
+@Suppress("deprecation")
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().copyRecursive(dependencySpec)"), level = DeprecationLevel.HIDDEN)
 fun <T : Configuration> NamedDomainObjectProvider<T>.copyRecursive(dependencySpec: Spec<Dependency>) =
     get().copyRecursive(dependencySpec)
