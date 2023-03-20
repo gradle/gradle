@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.configurations
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRole.RoleDescriber
 
 /**
  * A fixture containing methods useful for inspecting {@link Configuration}s and the {@link DefaultConfigurationContainer}s that create them.
@@ -40,9 +41,9 @@ trait InspectableConfigurationFixture {
 
         if (configuration instanceof DefaultConfiguration) {
             reply.append("  role='").append(configuration.roleAtCreation).append("'")
-            ConfigurationRole currentRole = ConfigurationRole.forUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclaredAgainst(),
+            String roleDesc = RoleDescriber.describeUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclaredAgainst(),
                     configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst());
-            reply.append("\nCurrent Usage:\n").append(currentRole.describeUsage());
+            reply.append("\nCurrent Usage:\n").append(roleDesc);
         }
 
         reply.append("\nLocal Dependencies:")
