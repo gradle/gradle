@@ -3,12 +3,15 @@ package promotion
 import common.BuildToolBuildJvm
 import common.Os
 import common.VersionedSettingsBranch
+import common.cleanupRule
 import common.javaHome
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 
 class PromotionProject(branch: VersionedSettingsBranch) : Project({
     id("Promotion")
     name = "Promotion"
+
+    cleanupRule(historyDays = 14, artifactsDays = 7)
 
     buildType(SanityCheck)
     buildType(PublishNightlySnapshot(branch))

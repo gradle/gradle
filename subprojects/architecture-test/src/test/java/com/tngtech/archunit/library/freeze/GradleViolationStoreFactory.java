@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-plugins {
-    kotlin("jvm") version "1.8.10"
-}
+package com.tngtech.archunit.library.freeze;
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-repositories {
-    mavenCentral()
+/**
+ * Remove this class once ArchUnit 1.0.2 is released and use TextFileBasedViolationStore directly once it becomes public.
+ * See: https://github.com/TNG/ArchUnit/pull/1046.
+ */
+@SuppressWarnings("JavadocLinkAsPlainText")
+public class GradleViolationStoreFactory {
+    public static ViolationStore create() {
+        return new ViolationStoreFactory.TextFileBasedViolationStore();
+    }
 }
-
-// tag::configure[]
-tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions.freeCompilerArgs.add("-Xsam-conversions=class")
-}
-// tag::configure[]
