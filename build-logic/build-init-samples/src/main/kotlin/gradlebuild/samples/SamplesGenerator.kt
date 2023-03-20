@@ -198,10 +198,6 @@ Enter selection (default: JUnit 4) [1..4]
         """.trimIndent() else ""
         val nativeTestTaskPrefix = if (descriptor.language === Language.SWIFT) "xc" else "run"
         val classesUpToDate = if (descriptor.language === Language.KOTLIN) " UP-TO-DATE" else ""
-        val inspectClassesForKotlinICTask = if (descriptor.language === Language.KOTLIN) """
-     > Task :$subprojectName:inspectClassesForKotlinIC
-
-        """.trimIndent() else ""
         projectLayoutSetupRegistry.templateOperationFactory.newTemplateOperation()
             .withTemplate(templateFolder.template("$templateFragment-build.out"))
             .withTarget(settings.target.file("../tests/build.out").asFile)
@@ -212,7 +208,6 @@ Enter selection (default: JUnit 4) [1..4]
             .withBinding("nativeTestTaskPrefix", nativeTestTaskPrefix)
             .withBinding("tasksExecuted", "" + tasksExecuted(descriptor))
             .withBinding("classesUpToDate", "" + classesUpToDate)
-            .withBinding("inspectClassesForKotlinICTask", "" + inspectClassesForKotlinICTask)
             .create().generate()
         projectLayoutSetupRegistry.templateOperationFactory.newTemplateOperation()
             .withTemplate(templateFolder.template("build.sample.conf"))
@@ -223,9 +218,6 @@ Enter selection (default: JUnit 4) [1..4]
     private
     fun tasksExecuted(descriptor: CompositeProjectInitDescriptor): Int {
         var tasksExecuted = if (descriptor.componentType === ComponentType.LIBRARY) 4 else 7
-        if (descriptor.language === Language.KOTLIN) {
-            tasksExecuted++
-        }
         return tasksExecuted
     }
 

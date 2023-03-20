@@ -113,8 +113,6 @@ include::sample[dir="snippets/ivy-publish/distribution/kotlin",files="build.grad
 include::sample[dir="snippets/ivy-publish/distribution/groovy",files="build.gradle[tags=publishing]"]
 ====
 
-WARNING: The Ivy Publish Plugin is not yet compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 Similarly, to publish a distribution to a Maven repository using the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>, add one or both of its archive tasks to a link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] as follows:
 
 .Adding distribution archives to a Maven publication
