@@ -44,8 +44,6 @@ class BinaryCompatibilityHelper {
         Directory projectRootDir
     ) {
         japicmpTask.tap {
-            doNotTrackState("classloading issues with rules")
-
             addExcludeFilter(AnonymousClassesFilter)
             addExcludeFilter(KotlinInternalFilter)
 

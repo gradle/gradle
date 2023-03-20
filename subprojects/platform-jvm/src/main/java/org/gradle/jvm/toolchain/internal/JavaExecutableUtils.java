@@ -36,7 +36,7 @@ public class JavaExecutableUtils {
                     .withContext("Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against.")
                     .withAdvice("Configure an absolute path to a Java executable instead.")
                     .willBecomeAnErrorInGradle9()
-                    .undocumented()
+                    .withUpgradeGuideSection(8, "no_relative_paths_for_java_executables")
                     .nagUser();
         }
         File executableAbsoluteFile = executableFile.getAbsoluteFile();

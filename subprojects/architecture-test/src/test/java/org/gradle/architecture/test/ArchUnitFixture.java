@@ -36,6 +36,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.library.freeze.FreezingArchRule;
 import org.gradle.util.EmptyStatement;
 import org.gradle.util.Matchers;
@@ -186,6 +187,17 @@ public interface ArchUnitFixture {
 
     static DescribedPredicate<JavaMember> annotatedMaybeInSupertypeWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return new AnnotatedMaybeInSupertypePredicate(predicate);
+    }
+
+    static ArchCondition<JavaClass> beAnnotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return ArchConditions.be(annotatedOrInPackageAnnotatedWith(annotationType));
+    }
+
+    /**
+     * Either the class is directly annotated with the given annotation type or the class is in a package that is annotated with the given annotation type.
+     */
+    static DescribedPredicate<JavaClass> annotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return new AnnotatedOrInPackageAnnotatedPredicate(annotationType);
     }
 
     class HaveOnlyArgumentsOrReturnTypesThatAre extends ArchCondition<JavaMethod> {
@@ -339,6 +351,20 @@ public interface ArchUnitFixture {
             } else {
                 return Optional.empty();
             }
+        }
+    }
+
+    class AnnotatedOrInPackageAnnotatedPredicate extends DescribedPredicate<JavaClass> {
+        private final Class<? extends Annotation> annotationType;
+
+        AnnotatedOrInPackageAnnotatedPredicate(Class<? extends Annotation> annotationType) {
+            super("annotated (directly or via its package) with @" + annotationType.getName());
+            this.annotationType = annotationType;
+        }
+
+        @Override
+        public boolean test(JavaClass input) {
+            return input.isAnnotatedWith(annotationType) || input.getPackage().isAnnotatedWith(annotationType);
         }
     }
 }

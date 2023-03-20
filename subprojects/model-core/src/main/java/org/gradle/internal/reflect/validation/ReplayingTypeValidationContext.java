@@ -34,7 +34,7 @@ public class ReplayingTypeValidationContext implements TypeValidationContext {
     public void visitPropertyProblem(Action<? super PropertyProblemBuilder> problemSpec) {
         problems.add((ownerProperty, validationContext) -> validationContext.visitPropertyProblem(builder -> {
             problemSpec.execute(builder);
-            ((PropertyProblemBuilderInternal)builder).forOwner(ownerProperty);
+            ((PropertyProblemBuilderInternal) builder).forOwner(ownerProperty);
         }));
     }
 

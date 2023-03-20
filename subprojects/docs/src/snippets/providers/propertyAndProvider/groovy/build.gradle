@@ -1,12 +1,9 @@
-// A task that displays a greeting
-abstract class Greeting extends DefaultTask {
-    // A configurable greeting
+abstract class Greeting extends DefaultTask { // <1>
     @Input
-    abstract Property<String> getGreeting()
+    abstract Property<String> getGreeting() // <2>
 
-    // Read-only property calculated from the greeting
     @Internal
-    final Provider<String> message = greeting.map { it + ' from Gradle' }
+    final Provider<String> message = greeting.map { it + ' from Gradle' } // <3>
 
     @TaskAction
     void printMessage() {
@@ -15,7 +12,6 @@ abstract class Greeting extends DefaultTask {
 }
 
 tasks.register("greeting", Greeting) {
-    // Configure the greeting
-    greeting.set('Hi')
-    greeting = 'Hi' // Alternative notation to calling Property.set() - only available in Groovy DSL
+    greeting.set('Hi') // <4>
+    greeting = 'Hi' // <5>
 }

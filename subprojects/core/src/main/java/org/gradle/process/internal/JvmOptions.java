@@ -199,7 +199,46 @@ public class JvmOptions {
         jvmArgs(arguments);
     }
 
+    public void setExtraJvmArgs(Iterable<?> arguments) {
+        extraJvmArgs.clear();
+        addExtraJvmArgs(arguments);
+    }
+
+    public void checkDebugConfiguration(Iterable<?> arguments) {
+        List<String> debugArgs = collectDebugArgs(arguments);
+        if (!debugArgs.isEmpty() && debugOptions.getEnabled().get()) {
+            LOGGER.warn("Debug configuration ignored in favor of the supplied JVM arguments: " + debugArgs);
+            debugOptions.getEnabled().set(false);
+        }
+    }
+
+    private static List<String> collectDebugArgs(Iterable<?> arguments) {
+        List<String> debugArgs = new ArrayList<>();
+        for (Object extraJvmArg : arguments) {
+            String extraJvmArgString = extraJvmArg.toString();
+            if (isDebugArg(extraJvmArgString)) {
+                debugArgs.add(extraJvmArgString);
+            }
+        }
+        return debugArgs;
+    }
+
+    private static boolean isDebugArg(String extraJvmArgString) {
+        return extraJvmArgString.equals("-Xdebug")
+            || extraJvmArgString.startsWith("-Xrunjdwp")
+            || extraJvmArgString.startsWith("-agentlib:jdwp");
+    }
+
     public void jvmArgs(Iterable<?> arguments) {
+        addExtraJvmArgs(arguments);
+        checkDebugConfiguration(extraJvmArgs);
+    }
+
+    public void jvmArgs(Object... arguments) {
+        jvmArgs(Arrays.asList(arguments));
+    }
+
+    private void addExtraJvmArgs(Iterable<?> arguments) {
         for (Object argument : arguments) {
             String argStr = argument.toString();
 
@@ -226,22 +265,6 @@ public class JvmOptions {
                 extraJvmArgs.add(argument);
             }
         }
-
-        List<String> debugArgs = new ArrayList<>();
-        for (Object extraJvmArg : extraJvmArgs) {
-            String extraJvmArgString = extraJvmArg.toString();
-            if (extraJvmArgString.equals("-Xdebug") || extraJvmArgString.startsWith("-Xrunjdwp") || extraJvmArgString.startsWith("-agentlib:jdwp")) {
-                debugArgs.add(extraJvmArgString);
-            }
-        }
-        if (!debugArgs.isEmpty() && debugOptions.getEnabled().get()) {
-            LOGGER.warn("Debug configuration ignored in favor of the supplied JVM arguments: " + debugArgs);
-            debugOptions.getEnabled().set(false);
-        }
-    }
-
-    public void jvmArgs(Object... arguments) {
-        jvmArgs(Arrays.asList(arguments));
     }
 
     public Map<String, Object> getMutableSystemProperties() {

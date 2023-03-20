@@ -18,36 +18,28 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.DelegatingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
-import org.gradle.internal.component.model.VariantSelectionResult;
 
-import java.util.Collection;
 import java.util.List;
 
-public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMetadata, LocalOriginDependencyMetadata {
+public class DslOriginDependencyMetadataWrapper extends DelegatingDependencyMetadata implements DslOriginDependencyMetadata, LocalOriginDependencyMetadata {
     private final LocalOriginDependencyMetadata delegate;
     private final Dependency source;
-    private final boolean isTransitive;
-    private List<IvyArtifactName> artifacts;
+    private final List<IvyArtifactName> artifacts;
 
     public DslOriginDependencyMetadataWrapper(LocalOriginDependencyMetadata delegate, Dependency source) {
+        super(delegate);
         this.delegate = delegate;
         this.source = source;
-        this.isTransitive = delegate.isTransitive();
         this.artifacts = delegate.getArtifacts();
     }
 
     private DslOriginDependencyMetadataWrapper(LocalOriginDependencyMetadata delegate, Dependency source, List<IvyArtifactName> artifacts) {
+        super(delegate);
         this.delegate = delegate;
         this.source = source;
-        this.isTransitive = delegate.isTransitive();
         this.artifacts = artifacts;
     }
 
@@ -67,28 +59,8 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-        return delegate.selectVariants(consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
-    }
-
-    @Override
     public String getDependencyConfiguration() {
         return delegate.getDependencyConfiguration();
-    }
-
-    @Override
-    public List<ExcludeMetadata> getExcludes() {
-        return delegate.getExcludes();
-    }
-
-    @Override
-    public boolean isChanging() {
-        return delegate.isChanging();
-    }
-
-    @Override
-    public boolean isTransitive() {
-        return isTransitive;
     }
 
     @Override
@@ -97,27 +69,8 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public boolean isConstraint() {
-        return delegate.isConstraint();
-    }
-
-    @Override
-    public boolean isEndorsingStrictVersions() {
-        return delegate.isEndorsingStrictVersions();
-    }
-
-    private boolean isExternalVariant() {
-        return false;
-    }
-
-    @Override
     public boolean isFromLock() {
         return delegate.isFromLock();
-    }
-
-    @Override
-    public String getReason() {
-        return delegate.getReason();
     }
 
     @Override
@@ -133,16 +86,6 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     @Override
     public LocalOriginDependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
         return new DslOriginDependencyMetadataWrapper(delegate.withTarget(target), source, artifacts);
-    }
-
-    @Override
-    public DependencyMetadata withReason(String reason) {
-        return delegate.withReason(reason);
-    }
-
-    @Override
-    public ComponentSelector getSelector() {
-        return delegate.getSelector();
     }
 
     @Override

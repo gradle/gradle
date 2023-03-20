@@ -60,7 +60,7 @@ class IntegrationTestSamplesRunner extends SamplesRunner {
                     "-PenableConfigurationCacheForDocsTests=true" : "";
                 notifier.fireTestFailure(new Failure(failure.getDescription(), new GradleException(
                     "Sample test run failed.\nTo understand how docsTest works, See:\n" +
-                        "  https://github.com/gradle/gradle/blob/master/subprojects/docs/README.md#testing-samples-and-snippets\n" +
+                        "  https://github.com/gradle/gradle/blob/master/subprojects/docs/README.md#testing-docs\n" +
                         "To reproduce this failure, run:\n" +
                         "  ./gradlew docs:docsTest --tests '*" + sample.getId() + "*' " + extraParameter,
                     failure.getException()

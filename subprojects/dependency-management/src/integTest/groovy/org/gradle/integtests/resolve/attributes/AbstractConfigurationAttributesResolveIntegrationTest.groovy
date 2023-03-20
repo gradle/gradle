@@ -18,11 +18,12 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 @FluidDependenciesResolveTest
-abstract class AbstractConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
 
     abstract String getTypeDefs()
 
@@ -621,6 +622,7 @@ All of them match the consumer attributes:
         """
 
         when:
+        expectConsumableChanging(':b:default', false)
         fails ':a:checkDebug'
 
         then:
@@ -712,6 +714,7 @@ All of them match the consumer attributes:
         """
 
         when:
+        expectConsumableChanging(':b:default', false)
         fails ':a:checkDebug'
 
         then:

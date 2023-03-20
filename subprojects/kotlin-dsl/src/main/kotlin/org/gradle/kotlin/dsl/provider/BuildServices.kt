@@ -46,7 +46,7 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 
 internal
-const val BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED = true
+const val BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED = false
 
 
 internal

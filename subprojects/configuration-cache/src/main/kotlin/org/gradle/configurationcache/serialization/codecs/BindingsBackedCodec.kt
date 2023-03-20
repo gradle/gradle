@@ -123,6 +123,7 @@ class Bindings(
 
 internal
 class BindingsBuilder(initialBindings: List<Binding>) {
+
     private
     val bindings = ArrayList(initialBindings)
 

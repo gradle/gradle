@@ -115,6 +115,10 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         }
     }
 
+    ToPlannedNodeConverterRegistry createToPlannedNodeConverterRegistry(List<ToPlannedNodeConverter> converters) {
+        return new ToPlannedNodeConverterRegistry(converters);
+    }
+
     ToPlannedNodeConverter createToPlannedTransformConverter() {
         return new ToPlannedTaskConverter();
     }
