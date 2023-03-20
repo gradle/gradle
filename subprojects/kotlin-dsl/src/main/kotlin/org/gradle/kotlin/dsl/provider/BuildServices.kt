@@ -22,9 +22,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
-import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.GradlePropertiesController
@@ -60,9 +58,6 @@ object BuildServices {
         classPathRegistry: ClassPathRegistry,
         classLoaderScopeRegistry: ClassLoaderScopeRegistry,
         dependencyFactory: DependencyFactoryInternal,
-        jarCache: GeneratedGradleJarCache,
-        temporaryFileProvider: TemporaryFileProvider,
-        progressLoggerFactory: ProgressLoggerFactory
     ) =
 
         KotlinScriptClassPathProvider(
@@ -70,9 +65,6 @@ object BuildServices {
             classPathRegistry,
             classLoaderScopeRegistry.coreAndPluginsScope,
             gradleApiJarsProviderFor(dependencyFactory),
-            versionedJarCacheFor(jarCache),
-            temporaryFileProvider,
-            StandardJarGenerationProgressMonitorProvider(progressLoggerFactory)
         )
 
     @Suppress("unused")
@@ -157,10 +149,6 @@ object BuildServices {
     @Suppress("unused")
     fun createKotlinCompilerContextDisposer(listenerManager: ListenerManager) =
         KotlinCompilerContextDisposer(listenerManager)
-
-    private
-    fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =
-        { id, creator -> jarCache[id, creator] }
 
     private
     val isKotlinScriptCompilationAvoidanceEnabled: Boolean
