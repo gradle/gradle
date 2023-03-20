@@ -1303,42 +1303,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         boolean deprecateConsumption = !canBeConsumed || consumptionDeprecation != null;
         boolean deprecateResolution = !canBeResolved || resolutionAlternatives != null;
         boolean deprecateDeclarationAgainst = !canBeDeclaredAgainst || declarationAlternatives != null;
-        ConfigurationRole adjustedCurrentUsage = new ConfigurationRole() {
-            @Override
-            public String getName() {
-                return "adjusted current usage with deprecations";
-            }
-
-            @Override
-            public boolean isConsumable() {
-                return true;
-            }
-
-            @Override
-            public boolean isResolvable() {
-                return true;
-            }
-
-            @Override
-            public boolean isDeclarableAgainst() {
-                return true;
-            }
-
-            @Override
-            public boolean isConsumptionDeprecated() {
-                return deprecateConsumption;
-            }
-
-            @Override
-            public boolean isResolutionDeprecated() {
-                return deprecateResolution;
-            }
-
-            @Override
-            public boolean isDeclarationAgainstDeprecated() {
-                return deprecateDeclarationAgainst;
-            }
-        };
+        ConfigurationRole adjustedCurrentUsage = new CopiedConfigurationRole(deprecateConsumption, deprecateResolution, deprecateDeclarationAgainst);
 
         DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage, this.usageCanBeMutated);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
@@ -2423,5 +2388,60 @@ since users cannot create non-legacy configurations and there is no current publ
         public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
             return DefaultConfiguration.this.mapFailure(type, failures);
         }
+    }
+
+    /**
+     * A custom configuration role that is used to copy a configuration.
+     *
+     * We allow copied configurations to assume any role. However, any roles which were previously disabled will become
+     * deprecated in the copied configuration.
+     *
+     * See the notes on {@link DefaultConfiguration#createCopy(Set, Set)}.
+     */
+    private final static class CopiedConfigurationRole implements ConfigurationRole {
+        private final boolean deprecateConsumption;
+        private final boolean deprecateResolution;
+        private final boolean deprecateDeclarationAgainst;
+
+        public CopiedConfigurationRole(boolean deprecateConsumption, boolean deprecateResolution, boolean deprecateDeclarationAgainst) {
+            this.deprecateConsumption = deprecateConsumption;
+            this.deprecateResolution = deprecateResolution;
+            this.deprecateDeclarationAgainst = deprecateDeclarationAgainst;
+        }
+
+        @Override
+        public String getName() {
+            return "adjusted current usage with deprecations";
+        }
+
+        @Override
+        public boolean isConsumable() {
+            return true;
+        }
+
+        @Override
+        public boolean isResolvable() {
+            return true;
+        }
+
+        @Override
+        public boolean isDeclarableAgainst() {
+            return true;
+        }
+
+        @Override
+        public boolean isConsumptionDeprecated() {
+            return deprecateConsumption;
+        }
+
+        @Override
+        public boolean isResolutionDeprecated() {
+            return deprecateResolution;
+        }
+
+        @Override
+        public boolean isDeclarationAgainstDeprecated() {
+            return deprecateDeclarationAgainst;
+            }
     }
 }
