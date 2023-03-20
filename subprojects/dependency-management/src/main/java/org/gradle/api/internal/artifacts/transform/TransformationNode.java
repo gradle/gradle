@@ -184,7 +184,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
     private PlannedTransformStepIdentity createIdentity() {
         String consumerBuildPath = transformationStep.getOwningProject().getBuildPath().toString();
-        String consumerProjectPath = transformationStep.getOwningProject().getIdentityPath().toString();
+        String consumerProjectPath = transformationStep.getOwningProject().getProjectPath().toString();
         ComponentIdentifier componentId = getComponentIdentifier(targetComponentVariant.getComponentId());
         Map<String, String> sourceAttributes = AttributesToMapConverter.convertToMap(this.sourceAttributes);
         Map<String, String> targetAttributes = AttributesToMapConverter.convertToMap(targetComponentVariant.getAttributes());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,4 +14,11 @@
  * limitations under the License.
  */
 
-rootProject.name = 'samConversion'
+package org.gradle.api.internal.tasks.properties;
+
+import org.gradle.api.services.BuildService;
+
+public interface ServiceReferenceSpec extends PropertySpec {
+    Class<? extends BuildService<?>> getBuildServiceType();
+    String getBuildServiceName();
+}

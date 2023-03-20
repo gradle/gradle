@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,8 @@
  * limitations under the License.
  */
 
-plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.8.10"
-}
-
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-repositories {
-    mavenCentral()
-}
-
-// tag::configure[]
-tasks.withType(KotlinCompile).configureEach {
-    compilerOptions.freeCompilerArgs.add("-Xsam-conversions=class")
-}
-// tag::configure[]
+/**
+ * Build operations and data types for component variants.
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.operations.dependencies.variants;

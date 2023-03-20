@@ -138,6 +138,15 @@ Some of them still registers conventions for backwards compatibility.
 Registering conventions does not emit a deprecation warning yet to provide a migration window.
 Future Gradle versions will do.
 
+[[deprecated_configuration_get_all]]
+==== `link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration]` method deprecations
+
+The following method on `Configuration` is deprecated for removal:
+
+- `getAll()`
+
+Obtain the set of all configurations from the project's `configurations` container instead.
+
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
 
@@ -207,6 +216,13 @@ using select popular third-party plugins.
 This change is part of a larger ongoing effort to make the intended behavior of configurations more consistent and predictable, and to unlock further speed and memory improvements in this area of Gradle.
 
 The ability to change the allowed usage of a configuration after creation will be removed in Gradle 9.0.
+
+[[reserved_configuration_names]]
+==== Reserved configuration names
+
+Configuration names "detachedConfiguration" and "detachedConfigurationX" (where X is any integer) are reserved for internal use when creating detached configurations.
+
+The ability to create non-detached configurations with these names will be removed in Gradle 9.0.
 
 [[java_extension_without_java_component]]
 ==== Calling select methods on the `JavaPluginExtension` without the `java` component present
