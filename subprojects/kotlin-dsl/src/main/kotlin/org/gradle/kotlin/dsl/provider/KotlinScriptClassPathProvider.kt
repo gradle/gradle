@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
 
+import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.file.FileCollection
 
 import org.gradle.api.internal.ClassPathRegistry
@@ -67,10 +68,15 @@ fun kotlinScriptClassPathProviderOf(project: Project) =
     project.serviceOf<KotlinScriptClassPathProvider>()
 
 
+internal
+typealias JarsProvider = () -> Collection<File>
+
+
 class KotlinScriptClassPathProvider(
     private val moduleRegistry: ModuleRegistry,
     private val classPathRegistry: ClassPathRegistry,
     private val coreAndPluginsScope: ClassLoaderScope,
+    private val gradleApiJarsProvider: JarsProvider,
 ) {
 
     /**
@@ -83,7 +89,7 @@ class KotlinScriptClassPathProvider(
 
     private
     val gradleApi: ClassPath by lazy {
-        DefaultClassPath.of(gradleApiJars())
+        DefaultClassPath.of(gradleApiJarsProvider())
     }
 
     /**
@@ -129,12 +135,6 @@ class KotlinScriptClassPathProvider(
     }
 
     private
-    fun gradleApiJars(): List<File> =
-        gradleJars.filter { file ->
-            file.name.let { !isKotlinJar(it) && !isGradleKotlinDslJarName(it) }
-        }
-
-    private
     fun gradleKotlinDslJars(): List<File> =
         gradleJars.filter { file ->
             file.name.let { isKotlinJar(it) || isGradleKotlinDslJarName(it) }
@@ -151,6 +151,11 @@ class KotlinScriptClassPathProvider(
     private
     val cachedClassLoaderClassPath = ClassLoaderClassPathCache()
 }
+
+
+internal
+fun gradleApiJarsProviderFor(dependencyFactory: DependencyFactoryInternal): JarsProvider =
+    { (dependencyFactory.gradleApi() as SelfResolvingDependency).resolve() }
 
 
 private
