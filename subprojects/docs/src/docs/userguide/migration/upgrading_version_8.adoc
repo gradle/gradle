@@ -138,6 +138,15 @@ Some of them still registers conventions for backwards compatibility.
 Registering conventions does not emit a deprecation warning yet to provide a migration window.
 Future Gradle versions will do.
 
+[[deprecated_configuration_get_all]]
+==== `link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration]` method deprecations
+
+The following method on `Configuration` is deprecated for removal:
+
+- `getAll()`
+
+Obtain the set of all configurations from the project's `configurations` container instead.
+
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
 
