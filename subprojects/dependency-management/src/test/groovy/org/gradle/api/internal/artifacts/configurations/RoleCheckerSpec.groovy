@@ -87,6 +87,6 @@ class RoleCheckerSpec extends Specification {
 
         then:
         GradleException e = thrown()
-        e.message.contains("Usage for configuration: custom is not consistent with the role: Intended Resolvable.")
+        e.message.contains("Usage for configuration: custom is not consistent with the role: Resolvable.")
     }
 }
