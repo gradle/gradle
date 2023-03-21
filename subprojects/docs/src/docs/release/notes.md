@@ -170,6 +170,7 @@ It also makes Kotlin DSL behavior consistent with Groovy DSL behavior, where usi
 
 Lazy property assignment for Kotlin scripts is an experimental opt-in feature.
 It is enabled by adding `systemProp.org.gradle.unsafe.kotlin.assignment=true` to the `gradle.properties` file.
+
 There are three known issues with the IDE integration: [KT-56941](https://youtrack.jetbrains.com/issue/KT-56941), [KT-56221](https://youtrack.jetbrains.com/issue/KT-56221) and [KTIJ-24390](https://youtrack.jetbrains.com/issue/KTIJ-24390).
 
 For more information and current limitations, see the [Kotlin DSL Primer](userguide/kotlin_dsl.html#kotdsl:assignment).
