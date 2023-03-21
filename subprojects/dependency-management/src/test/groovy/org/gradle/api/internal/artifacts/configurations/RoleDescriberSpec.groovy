@@ -24,8 +24,8 @@ class RoleDescriberSpec extends Specification {
         def role = ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE
 
         expect:
-        UsageDescriber.describeRole(role) == "\tResolvable - this configuration can be resolved by this project to a set of files (but this behavior is marked deprecated)\n" +
-                "\tDeclarable Against - this configuration can have dependencies added to it"
+        UsageDescriber.describeRole(role) == "\tResolvable - this configuration can be resolved by this project to a set of files\n" +
+                "\tDeclarable Against - this configuration can have dependencies added to it (but this behavior is marked deprecated)"
     }
 
     def "can describe usage for role which allows nothing"() {

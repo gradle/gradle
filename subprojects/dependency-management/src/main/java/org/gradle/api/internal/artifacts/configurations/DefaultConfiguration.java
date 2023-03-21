@@ -1025,7 +1025,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DependencyConstraintSet getAllDependencyConstraints() {
-        maybeWarnOnDeprecatedUsage("getAllDependencyConstraints()", ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE);
         if (allDependencyConstraints == null) {
             initAllDependencyConstraints();
         }
@@ -1146,7 +1145,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ResolvableDependencies getIncoming() {
-        maybeWarnOnDeprecatedUsage("getIncoming()", ProperMethodUsage.RESOLVABLE);
+        maybeWarnOnDeprecatedUsage("getIncoming()", ProperMethodUsage.RESOLVABLE, ProperMethodUsage.CONSUMABLE);
         return resolvableDependencies;
     }
 

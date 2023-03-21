@@ -30,23 +30,6 @@ class ConfigurationRoleSpec extends Specification {
         ConfigurationRoles.INTENDED_RESOLVABLE          || [UsageDescriber.RESOLVABLE]
         ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET   || [UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
         ConfigurationRoles.INTENDED_BUCKET              || [UsageDescriber.DECLARABLE_AGAINST]
-        ConfigurationRoles.DEPRECATED_CONSUMABLE        || [UsageDescriber.CONSUMABLE, deprecatedFor(UsageDescriber.RESOLVABLE), deprecatedFor(UsageDescriber.DECLARABLE_AGAINST)]
-        ConfigurationRoles.DEPRECATED_RESOLVABLE        || [UsageDescriber.RESOLVABLE, deprecatedFor(UsageDescriber.CONSUMABLE), deprecatedFor(UsageDescriber.DECLARABLE_AGAINST)]
-    }
-
-    def "custom role can't deprecate what it doesn't allow"() {
-        when:
-        ConfigurationRole.forUsage(consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated)
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == 'Cannot create a role that deprecates a usage that is not allowed'
-
-        where:
-        consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
-        false       | false         | false             | true                  | false                 | false
-        false       | false         | false             | false                 | true                  | false
-        false       | false         | false             | false                 | false                 | true
     }
 
     private String deprecatedFor(String usage) {
