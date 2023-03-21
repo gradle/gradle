@@ -24,14 +24,16 @@ import org.gradle.execution.plan.ToPlannedNodeConverterRegistry
 import org.gradle.internal.taskgraph.NodeIdentity
 import spock.lang.Specification
 
+import static org.gradle.internal.taskgraph.NodeIdentity.*
+
 class PlannedNodeGraphTest extends Specification {
 
     // Anonymous classes to use as supported node types for converters (the count should be equal to the number of NodeIdentity.NodeType values)
     private static List<Class<? extends Node>> anonymousNodeTypes = [new TestNode("") {}, new TestNode("") {}]*.class
 
     def "can create collectors with different level of detail"() {
-        def taskConverter = stubConverter(anonymousNodeTypes[0], NodeIdentity.NodeType.TASK)
-        def transformStepConverter = stubConverter(anonymousNodeTypes[1], NodeIdentity.NodeType.TRANSFORM_STEP)
+        def taskConverter = stubConverter(anonymousNodeTypes[0], NodeType.TASK)
+        def transformStepConverter = stubConverter(anonymousNodeTypes[1], NodeType.TRANSFORM_STEP)
 
         when:
         def collector = new PlannedNodeGraph.Collector(new ToPlannedNodeConverterRegistry([taskConverter]))
@@ -44,7 +46,7 @@ class PlannedNodeGraphTest extends Specification {
         collector.detailLevel == PlannedNodeGraph.DetailLevel.LEVEL2_TRANSFORM_STEPS
 
         when:
-        collector = new PlannedNodeGraph.Collector(new ToPlannedNodeConverterRegistry(NodeIdentity.NodeType.values().toList().withIndex().collect { nodeType, index ->
+        collector = new PlannedNodeGraph.Collector(new ToPlannedNodeConverterRegistry(NodeType.values().toList().withIndex().collect { nodeType, index ->
             stubConverter(anonymousNodeTypes[index], nodeType)
         }))
         then:
@@ -64,7 +66,7 @@ class PlannedNodeGraphTest extends Specification {
     }
 
     def "plan node dependencies include transitively closest identifiable nodes"() {
-        def taskConverter = new ToTestPlannedNodeConverter(TestTaskNode, NodeIdentity.NodeType.TASK)
+        def taskConverter = new ToTestPlannedNodeConverter(TestTaskNode, NodeType.TASK)
         def collector = new PlannedNodeGraph.Collector(new ToPlannedNodeConverterRegistry([taskConverter]))
 
         def task1 = new TestTaskNode("task1")
@@ -75,6 +77,7 @@ class PlannedNodeGraphTest extends Specification {
 
         dependsOn(task1, [task2, transform1])
         dependsOn(task2, [task3])
+        dependsOn(task3, [task4])
         dependsOn(transform1, [task4])
 
         when:
@@ -83,14 +86,14 @@ class PlannedNodeGraphTest extends Specification {
         def nodes = graph.getNodes(PlannedNodeGraph.DetailLevel.LEVEL1_TASKS) as List<TestPlannedNode>
         then:
         nodes.size() == 4
-        nodes*.nodeIdentity*.nodeType =~ [NodeIdentity.NodeType.TASK]
+        nodes*.nodeIdentity*.nodeType =~ [NodeType.TASK]
         verifyAll {
             nodes[0].nodeIdentity.name == "task1"
             nodes[0].nodeDependencies*.name == ["task2", "task4"] // does not include task3, because it is "behind" task2, but includes task4, because it is "behind" non-identifiable transform1
             nodes[1].nodeIdentity.name == "task2"
             nodes[1].nodeDependencies*.name == ["task3"]
             nodes[2].nodeIdentity.name == "task3"
-            nodes[2].nodeDependencies*.name == []
+            nodes[2].nodeDependencies*.name == ["task4"]
             nodes[3].nodeIdentity.name == "task4"
             nodes[3].nodeDependencies*.name == []
         }
@@ -102,11 +105,70 @@ class PlannedNodeGraphTest extends Specification {
         nextLevelNodes == nodes
     }
 
+    def "can obtain a plan with lower detail level"() {
+        def taskConverter = new ToTestPlannedNodeConverter(TestTaskNode, NodeType.TASK)
+        def transformStepConverter = new ToTestPlannedNodeConverter(TestTransformStepNode, NodeType.TRANSFORM_STEP)
+        def collector = new PlannedNodeGraph.Collector(new ToPlannedNodeConverterRegistry([taskConverter, transformStepConverter]))
+
+        def task1 = new TestTaskNode("task1")
+        def task2 = new TestTaskNode("task2")
+        def task3 = new TestTaskNode("task3")
+        def task4 = new TestTaskNode("task4")
+        def transformStep1 = new TestTransformStepNode("transformStep1")
+        def transformStep2 = new TestTransformStepNode("transformStep2")
+        def other1 = new TestNode("other1")
+        def other2 = new TestNode("other2")
+
+        dependsOn(task1, [other1])
+        dependsOn(other1, [transformStep1])
+        dependsOn(transformStep1, [task2, other2])
+        dependsOn(other2, [task3])
+        dependsOn(task4, [transformStep2])
+
+        when:
+        collector.collectNodes([task1, task2, task3, task4, transformStep1, transformStep2, other1, other2])
+        def graph = collector.getGraph()
+        def nodes = graph.getNodes(PlannedNodeGraph.DetailLevel.LEVEL2_TRANSFORM_STEPS) as List<TestPlannedNode>
+        then:
+        nodes.size() == 6
+        nodes*.nodeIdentity*.nodeType =~ [NodeType.TASK, NodeType.TRANSFORM_STEP]
+        verifyAll {
+            nodes[0].nodeIdentity.name == "task1"
+            nodes[0].nodeDependencies*.name == ["transformStep1"]
+            nodes[1].nodeIdentity.name == "task2"
+            nodes[1].nodeDependencies*.name == []
+            nodes[2].nodeIdentity.name == "task3"
+            nodes[2].nodeDependencies*.name == []
+            nodes[3].nodeIdentity.name == "task4"
+            nodes[3].nodeDependencies*.name == ["transformStep2"]
+            nodes[4].nodeIdentity.name == "transformStep1"
+            nodes[4].nodeDependencies*.name == ["task2", "task3"]
+            nodes[5].nodeIdentity.name == "transformStep2"
+            nodes[5].nodeDependencies*.name == []
+        }
+
+        when:
+        nodes = graph.getNodes(PlannedNodeGraph.DetailLevel.LEVEL1_TASKS) as List<TestPlannedNode>
+        then:
+        nodes.size() == 4
+        nodes*.nodeIdentity*.nodeType =~ [NodeType.TASK]
+        verifyAll {
+            nodes[0].nodeIdentity.name == "task1"
+            nodes[0].nodeDependencies*.name == ["task2", "task3"]
+            nodes[1].nodeIdentity.name == "task2"
+            nodes[1].nodeDependencies*.name == []
+            nodes[2].nodeIdentity.name == "task3"
+            nodes[2].nodeDependencies*.name == []
+            nodes[3].nodeIdentity.name == "task4"
+            nodes[3].nodeDependencies*.name == []
+        }
+    }
+
     def dependsOn(TestNode node, List<TestNode> dependencies) {
         dependencies.forEach { node.addDependencySuccessor(it) }
     }
 
-    def stubConverter(Class<? extends Node> supportedNodeType, NodeIdentity.NodeType nodeType) {
+    def stubConverter(Class<? extends Node> supportedNodeType, NodeType nodeType) {
         Stub(ToPlannedNodeConverter) {
             getSupportedNodeType() >> supportedNodeType
             getConvertedNodeType() >> nodeType
@@ -116,9 +178,9 @@ class PlannedNodeGraphTest extends Specification {
     static class ToTestPlannedNodeConverter implements ToPlannedNodeConverter {
 
         private final Class<? extends Node> supportedNodeType
-        private final NodeIdentity.NodeType convertedNodeType
+        private final NodeType convertedNodeType
 
-        ToTestPlannedNodeConverter(Class<? extends Node> supportedNodeType, NodeIdentity.NodeType convertedNodeType) {
+        ToTestPlannedNodeConverter(Class<? extends Node> supportedNodeType, NodeType convertedNodeType) {
             this.supportedNodeType = supportedNodeType
             this.convertedNodeType = convertedNodeType
         }
@@ -129,7 +191,7 @@ class PlannedNodeGraphTest extends Specification {
         }
 
         @Override
-        NodeIdentity.NodeType getConvertedNodeType() {
+        NodeType getConvertedNodeType() {
             return convertedNodeType
         }
 
@@ -162,6 +224,40 @@ class PlannedNodeGraphTest extends Specification {
         NodeType getNodeType() {
             return nodeType
         }
+
+        @Override
+        String toString() {
+            return name
+        }
+
+        @Override
+        boolean equals(o) {
+            if (this.is(o)) {
+                return true
+            }
+            if (!(o instanceof TestNodeIdentity)) {
+                return false
+            }
+
+            TestNodeIdentity that = (TestNodeIdentity) o
+
+            if (name != that.name) {
+                return false
+            }
+            if (nodeType != that.nodeType) {
+                return false
+            }
+
+            return true
+        }
+
+        @Override
+        int hashCode() {
+            int result
+            result = nodeType.hashCode()
+            result = 31 * result + name.hashCode()
+            return result
+        }
     }
 
     static class TestPlannedNode implements PlannedNodeInternal {
@@ -188,6 +284,11 @@ class PlannedNodeGraphTest extends Specification {
         List<? extends NodeIdentity> getNodeDependencies() {
             return dependencies
         }
+
+        @Override
+        String toString() {
+            return "TestPlannedNode($nodeIdentity)"
+        }
     }
 
     static class TestNode extends Node {
@@ -207,7 +308,7 @@ class PlannedNodeGraphTest extends Specification {
 
         @Override
         String toString() {
-            return "TestNode"
+            return "TestNode($name)"
         }
     }
 

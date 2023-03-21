@@ -23,6 +23,7 @@ import org.gradle.internal.taskgraph.NodeIdentity;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -45,33 +46,57 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
     @Override
     public TaskIdentity getNodeIdentity(Node node) {
         TaskNode taskNode = (TaskNode) node;
-        org.gradle.api.internal.project.taskfactory.TaskIdentity<?> delegate = taskNode.getTask().getTaskIdentity();
-        return new TaskIdentity() {
-            @Override
-            public NodeType getNodeType() {
-                return NodeType.TASK;
-            }
+        return new PlannedTaskIdentity(taskNode.getTask().getTaskIdentity());
+    }
 
-            @Override
-            public String getBuildPath() {
-                return delegate.getBuildPath();
-            }
+    private static class PlannedTaskIdentity implements TaskIdentity {
+        private final org.gradle.api.internal.project.taskfactory.TaskIdentity<?> delegate;
 
-            @Override
-            public String getTaskPath() {
-                return delegate.getTaskPath();
-            }
+        public PlannedTaskIdentity(org.gradle.api.internal.project.taskfactory.TaskIdentity<?> delegate) {
+            this.delegate = delegate;
+        }
 
-            @Override
-            public long getTaskId() {
-                return delegate.getId();
-            }
+        @Override
+        public NodeIdentity.NodeType getNodeType() {
+            return NodeIdentity.NodeType.TASK;
+        }
 
-            @Override
-            public String toString() {
-                return "Task " + delegate.getIdentityPath();
+        @Override
+        public String getBuildPath() {
+            return delegate.getBuildPath();
+        }
+
+        @Override
+        public String getTaskPath() {
+            return delegate.getTaskPath();
+        }
+
+        @Override
+        public long getTaskId() {
+            return delegate.getId();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
             }
-        };
+            if (!(o instanceof PlannedTaskIdentity)) {
+                return false;
+            }
+            PlannedTaskIdentity that = (PlannedTaskIdentity) o;
+            return delegate.equals(that.delegate);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(delegate);
+        }
+
+        @Override
+        public String toString() {
+            return "Task " + delegate.getIdentityPath();
+        }
     }
 
     @Override
