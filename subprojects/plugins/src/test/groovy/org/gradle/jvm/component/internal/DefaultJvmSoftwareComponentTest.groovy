@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.component.internal
 
+import org.gradle.api.GradleException
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.DocsType
@@ -23,15 +24,14 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature
-import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.SourceSet
+import org.gradle.jvm.component.SingleTargetJvmFeature
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 /**
  * Tests {@link DefaultJvmSoftwareComponent}.
  *
- * TODO: This tests a lot of the functionality of the {@link DefaultJvmFeature}. We should probably
+ * TODO: This tests a lot of the functionality of the {@link DefaultSingleTargetJvmFeature}. We should probably
  *       move some of the testing to another feature-specific test class. However, given that the
  *       DefaultJvmFeature itself is probably going to change heavily when adding multi-target support,
  *       we should wait to avoid rework.
@@ -62,22 +62,23 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName(JvmConstants.PROCESS_RESOURCES_TASK_NAME) == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
+        component.features.create("main", SingleTargetJvmFeature)
 
         then:
-        component.mainFeature instanceof DefaultJvmFeature
-        component.mainFeature.sourceSet == ext.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
-        component.mainFeature.runtimeClasspathConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-        component.mainFeature.compileClasspathConfiguration == project.configurations.getByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME)
-        component.mainFeature.runtimeElementsConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
-        component.mainFeature.apiElementsConfiguration == project.configurations.getByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME)
-        project.configurations.getByName('mainSourceElements')
-        component.mainFeature.implementationConfiguration == project.configurations.getByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME)
-        component.mainFeature.runtimeOnlyConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME)
-        component.mainFeature.compileOnlyConfiguration == project.configurations.getByName(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME)
+        def mainFeature = component.features.main as SingleTargetJvmFeature
+        mainFeature instanceof DefaultSingleTargetJvmFeature
+        mainFeature.sourceSet == ext.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
+        mainFeature.runtimeClasspathConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+        mainFeature.compileClasspathConfiguration == project.configurations.getByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME)
+        mainFeature.runtimeElementsConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+        mainFeature.apiElementsConfiguration == project.configurations.getByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME)
+        mainFeature.implementationConfiguration == project.configurations.getByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME)
+        mainFeature.runtimeOnlyConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME)
+        mainFeature.compileOnlyConfiguration == project.configurations.getByName(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME)
         project.configurations.getByName(JvmConstants.ANNOTATION_PROCESSOR_CONFIGURATION_NAME)
-        component.mainFeature.compileJavaTask.get() == project.tasks.getByName(JvmConstants.COMPILE_JAVA_TASK_NAME)
-        component.mainFeature.jarTask.get() == project.tasks.getByName(JvmConstants.JAR_TASK_NAME)
+        mainFeature.compileJavaTask.get() == project.tasks.getByName(JvmConstants.COMPILE_JAVA_TASK_NAME)
+        mainFeature.jarTask.get() == project.tasks.getByName(JvmConstants.JAR_TASK_NAME)
         project.tasks.getByName(JvmConstants.JAVADOC_TASK_NAME)
         project.tasks.getByName(JvmConstants.PROCESS_RESOURCES_TASK_NAME)
     }
@@ -106,22 +107,23 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName('processFeatureResources') == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "feature")
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
+        component.features.create("feature", SingleTargetJvmFeature)
 
         then:
-        component.mainFeature instanceof DefaultJvmFeature
-        component.mainFeature.sourceSet == ext.sourceSets.getByName('feature')
-        component.mainFeature.runtimeClasspathConfiguration == project.configurations.getByName('featureRuntimeClasspath')
-        component.mainFeature.compileClasspathConfiguration == project.configurations.getByName('featureCompileClasspath')
-        component.mainFeature.runtimeElementsConfiguration == project.configurations.getByName('featureRuntimeElements')
-        component.mainFeature.apiElementsConfiguration == project.configurations.getByName('featureApiElements')
-        project.configurations.getByName('featureSourceElements')
-        component.mainFeature.implementationConfiguration == project.configurations.getByName('featureImplementation')
-        component.mainFeature.runtimeOnlyConfiguration == project.configurations.getByName('featureRuntimeOnly')
-        component.mainFeature.compileOnlyConfiguration == project.configurations.getByName('featureCompileOnly')
+        def feature = component.features.feature as SingleTargetJvmFeature
+        feature instanceof DefaultSingleTargetJvmFeature
+        feature.sourceSet == ext.sourceSets.getByName('feature')
+        feature.runtimeClasspathConfiguration == project.configurations.getByName('featureRuntimeClasspath')
+        feature.compileClasspathConfiguration == project.configurations.getByName('featureCompileClasspath')
+        feature.runtimeElementsConfiguration == project.configurations.getByName('featureRuntimeElements')
+        feature.apiElementsConfiguration == project.configurations.getByName('featureApiElements')
+        feature.implementationConfiguration == project.configurations.getByName('featureImplementation')
+        feature.runtimeOnlyConfiguration == project.configurations.getByName('featureRuntimeOnly')
+        feature.compileOnlyConfiguration == project.configurations.getByName('featureCompileOnly')
         project.configurations.getByName('featureAnnotationProcessor')
-        component.mainFeature.compileJavaTask.get() == project.tasks.getByName('compileFeatureJava')
-        component.mainFeature.jarTask.get() == project.tasks.getByName('featureJar')
+        feature.compileJavaTask.get() == project.tasks.getByName('compileFeatureJava')
+        feature.jarTask.get() == project.tasks.getByName('featureJar')
         project.tasks.getByName('featureJavadoc')
         project.tasks.getByName('processFeatureResources')
     }
@@ -132,34 +134,34 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         def ext = project.getExtensions().getByType(JavaPluginExtension.class)
 
         when:
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "feature1")
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "feature2")
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name1").getFeatures().create("feat1", SingleTargetJvmFeature)
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name2").getFeatures().create("feat2", SingleTargetJvmFeature)
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name3").getFeatures().create("feat3", SingleTargetJvmFeature)
 
         then:
-        ext.sourceSets.getByName('main')
-        ext.sourceSets.getByName('feature1')
-        ext.sourceSets.getByName('feature2')
+        ext.sourceSets.getByName('feat1')
+        ext.sourceSets.getByName('feat2')
+        ext.sourceSets.getByName('feat3')
     }
 
     def "cannot create multiple component instances with the same source set name"() {
         given:
         project.plugins.apply(JavaBasePlugin)
-        def ext = project.getExtensions().getByType(JavaPluginExtension.class)
 
         when:
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name1", "feature")
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name2", "feature")
+        def comp1 = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
+        comp1.features.create("feature", SingleTargetJvmFeature)
+        def comp2 = project.objects.newInstance(DefaultJvmSoftwareComponent, "name2")
+        comp2.features.create("feature", SingleTargetJvmFeature)
 
         then:
-        def e = thrown(ObjectInstantiationException)
-        e.cause.message == "Cannot create multiple instances of DefaultJvmSoftwareComponent with source set name 'feature'."
+        def e = thrown(GradleException)
+        e.message == "Cannot create SingleTargetJvmFeature since source set 'feature' already exists."
     }
 
     def "can configure javadoc jar variant"() {
         when:
         project.plugins.apply(JavaBasePlugin)
-        def ext = project.getExtensions().getByType(JavaPluginExtension.class)
 
         // Verify the JavaBasePlugin does not create the below tested objects so we can
         // ensure the DefaultJvmSoftwareComponent is actually creating these domain objects.
@@ -168,8 +170,9 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName("javadoc") == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
-        component.withJavadocJar()
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
+        def mainFeature = component.features.create("main", SingleTargetJvmFeature)
+        mainFeature.withJavadocJar()
 
         then:
         def configuration = project.configurations.getByName(JvmConstants.JAVADOC_ELEMENTS_CONFIGURATION_NAME)
@@ -181,14 +184,13 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         (configuration.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE) as Category).name == Category.DOCUMENTATION
         (configuration.attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE) as Bundling).name == Bundling.EXTERNAL
         (configuration.attributes.getAttribute(DocsType.DOCS_TYPE_ATTRIBUTE) as DocsType).name == DocsType.JAVADOC
-        project.tasks.getByName(component.mainFeature.sourceSet.javadocJarTaskName)
+        project.tasks.getByName(mainFeature.sourceSet.javadocJarTaskName)
         component.usages.find { it.name == JvmConstants.JAVADOC_ELEMENTS_CONFIGURATION_NAME}
     }
 
     def "can configure sources jar variant"() {
         when:
         project.plugins.apply(JavaBasePlugin)
-        def ext = project.getExtensions().getByType(JavaPluginExtension.class)
 
         // Verify the JavaBasePlugin does not create the below tested objects so we can
         // ensure the DefaultJvmSoftwareComponent is actually creating these domain objects.
@@ -197,8 +199,9 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         project.tasks.findByName("sources") == null
 
         when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
-        component.withSourcesJar()
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
+        def mainFeature = component.features.create("main", SingleTargetJvmFeature)
+        mainFeature.withSourcesJar()
 
         then:
         def configuration = project.configurations.getByName(JvmConstants.SOURCES_ELEMENTS_CONFIGURATION_NAME)
@@ -210,15 +213,15 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         (configuration.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE) as Category).name == Category.DOCUMENTATION
         (configuration.attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE) as Bundling).name == Bundling.EXTERNAL
         (configuration.attributes.getAttribute(DocsType.DOCS_TYPE_ATTRIBUTE) as DocsType).name == DocsType.SOURCES
-        project.tasks.getByName(component.mainFeature.sourceSet.sourcesJarTaskName)
+        project.tasks.getByName(mainFeature.sourceSet.sourcesJarTaskName)
         component.usages.find { it.name == JvmConstants.SOURCES_ELEMENTS_CONFIGURATION_NAME}
     }
 
     def "has expected variants"() {
         when:
         project.plugins.apply(JavaBasePlugin)
-        def ext = project.getExtensions().getByType(JavaPluginExtension.class)
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", "main")
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
+        component.features.create("main", SingleTargetJvmFeature)
 
         then:
         component.usages*.name == ["apiElements", "runtimeElements"]

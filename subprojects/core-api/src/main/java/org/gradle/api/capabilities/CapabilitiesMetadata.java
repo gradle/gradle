@@ -18,7 +18,7 @@ package org.gradle.api.capabilities;
 import java.util.List;
 
 /**
- * Gives access to the list of capabilities of a component.
+ * Gives access to the list of capabilities of a variant.
  *
  * @since 4.7
  */

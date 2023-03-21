@@ -16,89 +16,95 @@
 
 package org.gradle.jvm.component.internal;
 
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
-import org.gradle.api.attributes.Bundling;
-import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.VerificationType;
+import org.gradle.api.capabilities.Capability;
+import org.gradle.api.component.ComponentFeature;
+import org.gradle.api.component.ConfigurationBackedConsumableVariant;
+import org.gradle.api.component.ConsumableVariant;
+import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
-import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature;
-import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
-import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.publish.PublishingExtension;
-import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
-import org.gradle.api.publish.ivy.IvyPublication;
-import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
-import org.gradle.api.publish.maven.MavenPublication;
-import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.jvm.component.JvmSoftwareComponent;
+import org.gradle.jvm.component.SingleTargetJvmFeature;
 
 import javax.inject.Inject;
 import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 /**
- * The software component created by the Java plugin. This component owns the main {@link JvmFeatureInternal} which itself
- * is responsible for compiling and packaging the main production jar. Therefore, this component transitively owns the
- * corresponding source set and any domain objects which are created by the {@link BasePlugin} on the source set's behalf.
- * This includes the source set's resolvable configurations and buckets, as well as any associated tasks.
+ * The software component created by the Java plugin.
  */
-public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent implements JvmSoftwareComponentInternal {
+public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent implements JvmSoftwareComponent {
 
-    private static final String SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX = "SourceElements";
-
-    private final JvmFeatureInternal mainFeature;
+    private final CompositeDomainObjectSet<ConsumableVariant> variants;
+    private final ExtensiblePolymorphicDomainObjectContainer<ComponentFeature> features;
 
     @Inject
     public DefaultJvmSoftwareComponent(
         String componentName,
-        String sourceSetName,
         Project project,
-        ObjectFactory objectFactory,
-        ProviderFactory providerFactory,
         Instantiator instantiator
     ) {
         super(componentName, instantiator);
+        this.variants = CompositeDomainObjectSet.create(ConsumableVariant.class);
+        this.features = project.getObjects().polymorphicDomainObjectContainer(ComponentFeature.class);
 
-        RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
-        PluginContainer plugins = project.getPlugins();
-        ExtensionContainer extensions = project.getExtensions();
+        // Map ConsumableVariant API to UsageContext API.
+        variants.all(variant -> {
+            if (variant instanceof ConfigurationBackedConsumableVariant) {
+                Configuration configuration = ((ConfigurationBackedConsumableVariant) variant).getConfiguration();
+                Usage usage = configuration.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
 
-        JavaPluginExtension javaExtension = getJavaPluginExtension(extensions);
-        SourceSet sourceSet = createSourceSet(sourceSetName, javaExtension.getSourceSets());
+                String scope = usage != null && usage.getName().equals(Usage.JAVA_API)
+                    ? "compile" : "runtime";
+                boolean optional = !configuration.getName().equals("apiElements") &&
+                    !configuration.getName().equals("runtimeElements");
 
-        this.mainFeature = new DefaultJvmFeature(
-            sourceSetName, sourceSet, Collections.emptyList(),
-            (ProjectInternal) project, ConfigurationRoles.CONSUMABLE, false);
+                addVariantsFromConfiguration(configuration, new JavaConfigurationVariantMapping(scope, optional));
+            }
+        });
 
-        // TODO: Should all features also have this variant? Why just the main feature?
-        createSourceElements(configurations, providerFactory, objectFactory, mainFeature);
+        registerFeatureImplementations(project);
 
-        // Build the main jar when running `assemble`.
-        extensions.getByType(DefaultArtifactPublicationSet.class)
-            .addCandidate(mainFeature.getRuntimeElementsConfiguration().getArtifacts().iterator().next());
+        // The current CompositeDomainObjectSet implementation is not lazy and eagerly realizes all
+        // elements of child collections. We should fix this to allow component variants to be lazy.
+        features.whenObjectAdded(feature -> this.variants.addCollection(feature.getVariants()));
+        features.whenObjectRemoved(feature -> this.variants.removeCollection(feature.getVariants()));
+    }
 
-        configurePublishing(plugins, extensions, sourceSet);
+    /**
+     * Registers general-purpose {@link ComponentFeature} implementations.
+     */
+    private void registerFeatureImplementations(Project project) {
+        ObjectFactory objectFactory = project.getObjects();
+        SourceSetContainer sourceSets = getJavaPluginExtension(project.getExtensions()).getSourceSets();
 
-        // Register the consumable configurations as providing variants for consumption.
-        addVariantsFromConfiguration(mainFeature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", false));
-        addVariantsFromConfiguration(mainFeature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", false));
+        features.registerFactory(SingleTargetJvmFeature.class, featureName -> {
+            if (sourceSets.findByName(featureName) != null) {
+                throw new GradleException("Cannot create SingleTargetJvmFeature since source set '" + featureName +"' already exists.");
+            }
+
+            List<Capability> capabilities = Collections.singletonList(new ProjectDerivedCapability(project, featureName));
+            SourceSet sourceSet = sourceSets.create(featureName);
+
+            return objectFactory.newInstance(DefaultSingleTargetJvmFeature.class,
+                featureName, sourceSet, capabilities,
+                project, ConfigurationRoles.INTENDED_CONSUMABLE, false
+            );
+        });
     }
 
     private static JavaPluginExtension getJavaPluginExtension(ExtensionContainer extensions) {
@@ -109,88 +115,12 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         return javaExtension;
     }
 
-    private static SourceSet createSourceSet(String name, SourceSetContainer sourceSets) {
-        if (sourceSets.findByName(name) != null) {
-            throw new GradleException("Cannot create multiple instances of " + DefaultJvmSoftwareComponent.class.getSimpleName() + " with source set name '" + name +"'.");
-        }
 
-        return sourceSets.create(name);
+    public Set<? extends ConsumableVariant> getVariants() {
+        return variants;
     }
 
-    private Configuration createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, JvmFeatureInternal feature) {
-
-        // TODO: Why are we using this non-standard name? For the `java` component, this
-        // equates to `mainSourceElements` instead of `sourceElements` as one would expect.
-        // Can we change this name without breaking compatibility? Is the variant name part
-        // of the component's API?
-        String variantName = feature.getSourceSet().getName() + SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX;
-
-        @SuppressWarnings("deprecation") Configuration variant = configurations.createWithRole(variantName, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
-        variant.setDescription("List of source directories contained in the Main SourceSet.");
-        variant.setVisible(false);
-        variant.extendsFrom(mainFeature.getImplementationConfiguration());
-
-        variant.attributes(attributes -> {
-            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.VERIFICATION));
-            attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objectFactory.named(VerificationType.class, VerificationType.MAIN_SOURCES));
-        });
-
-        variant.getOutgoing().artifacts(
-            feature.getSourceSet().getAllSource().getSourceDirectories().getElements().flatMap(e -> providerFactory.provider(() -> e)),
-            artifact -> artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE)
-        );
-
-        return variant;
-    }
-
-    // TODO: This approach is not necessarily correct for non-main features. All publications will attempt to use the main feature's
-    // compile and runtime classpaths for version mapping, even if a non-main feature is being published.
-    private static void configurePublishing(PluginContainer plugins, ExtensionContainer extensions, SourceSet sourceSet) {
-        plugins.withType(PublishingPlugin.class, plugin -> {
-            PublishingExtension publishing = extensions.getByType(PublishingExtension.class);
-
-            // Set up the default configurations used when mapping to resolved versions
-            publishing.getPublications().withType(IvyPublication.class, publication -> {
-                VersionMappingStrategyInternal strategy = ((IvyPublicationInternal) publication).getVersionMappingStrategy();
-                strategy.defaultResolutionConfiguration(Usage.JAVA_API, sourceSet.getCompileClasspathConfigurationName());
-                strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, sourceSet.getRuntimeClasspathConfigurationName());
-            });
-            publishing.getPublications().withType(MavenPublication.class, publication -> {
-                VersionMappingStrategyInternal strategy = ((MavenPublicationInternal) publication).getVersionMappingStrategy();
-                strategy.defaultResolutionConfiguration(Usage.JAVA_API, sourceSet.getCompileClasspathConfigurationName());
-                strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, sourceSet.getRuntimeClasspathConfigurationName());
-            });
-        });
-    }
-
-    // TODO: The component itself should not be concerned with configuring the sources and javadoc jars
-    // of its features. It should lazily react to the variants of the feature being added and configure
-    // itself to in turn advertise those variants. However, this requires a more complete variant API,
-    // which is still being designed. For now, we'll add the variants manually.
-
-    @Override
-    public void withJavadocJar() {
-        mainFeature.withJavadocJar();
-
-        Configuration javadocElements = mainFeature.getJavadocElementsConfiguration();
-        if (!isRegisteredAsLegacyVariant(javadocElements)) {
-            addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
-        }
-    }
-
-    @Override
-    public void withSourcesJar() {
-        mainFeature.withSourcesJar();
-
-        Configuration sourcesElements = mainFeature.getSourcesElementsConfiguration();
-        if (!isRegisteredAsLegacyVariant(sourcesElements)) {
-            addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
-        }
-    }
-
-    @Override
-    public JvmFeatureInternal getMainFeature() {
-        return mainFeature;
+    public ExtensiblePolymorphicDomainObjectContainer<ComponentFeature> getFeatures() {
+        return features;
     }
 }

@@ -33,11 +33,10 @@ import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
-import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.jvm.component.SingleTargetJvmFeature;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 import javax.inject.Inject;
@@ -97,7 +96,7 @@ public abstract class EarPlugin implements Plugin<Project> {
 
     private void wireEarTaskConventionsWithJavaPluginApplied(final Project project, PluginContainer plugins) {
         plugins.withType(JavaPlugin.class, javaPlugin -> {
-            final JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
+            final SingleTargetJvmFeature mainFeature = JavaPluginHelper.getMainFeature(project);
             project.getTasks().withType(Ear.class).configureEach(task -> {
                 task.dependsOn((Callable<FileCollection>) () ->
                     mainFeature.getSourceSet().getRuntimeClasspath()
@@ -116,8 +115,7 @@ public abstract class EarPlugin implements Plugin<Project> {
             DeprecationLogger.whileDisabled(() -> task.getGenerateDeploymentDescriptor().convention(convention.getGenerateDeploymentDescriptor()));
 
             plugins.withType(JavaPlugin.class, javaPlugin -> {
-                final JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
-                component.getMainFeature().getSourceSet().getResources().srcDir(task.getAppDirectory());
+                JavaPluginHelper.getMainFeature(project).getSourceSet().getResources().srcDir(task.getAppDirectory());
             });
         });
 

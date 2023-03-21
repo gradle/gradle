@@ -35,7 +35,7 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JavaResolutionConsistency;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
+import org.gradle.jvm.component.SingleTargetJvmFeature;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -203,7 +203,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         maybeEmitMissingJavaComponentDeprecation("withJavadocJar()");
 
         if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-            JavaPluginHelper.getJavaComponent(project).withJavadocJar();
+            JavaPluginHelper.getMainFeature(project).withJavadocJar();
         } else {
             SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
             JvmPluginsHelper.createDocumentationVariantWithArtifact(
@@ -223,7 +223,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         maybeEmitMissingJavaComponentDeprecation("withSourcesJar()");
 
         if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-            JavaPluginHelper.getJavaComponent(project).withSourcesJar();
+            JavaPluginHelper.getMainFeature(project).withSourcesJar();
         } else {
             SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
             JvmPluginsHelper.createDocumentationVariantWithArtifact(
@@ -294,7 +294,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
             this.configurations = configurations;
 
             if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-                JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
+                SingleTargetJvmFeature mainFeature = JavaPluginHelper.getMainFeature(project);
                 JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
 
                 mainCompileClasspath = mainFeature.getCompileClasspathConfiguration();

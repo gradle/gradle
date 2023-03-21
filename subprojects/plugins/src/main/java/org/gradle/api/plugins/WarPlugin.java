@@ -33,7 +33,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultWarPluginConvention;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
+import org.gradle.jvm.component.SingleTargetJvmFeature;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -64,7 +64,7 @@ public abstract class WarPlugin implements Plugin<Project> {
     private final ImmutableAttributesFactory attributesFactory;
 
     private Project project;
-    private JvmFeatureInternal mainFeature;
+    private SingleTargetJvmFeature mainFeature;
 
     @Inject
     public WarPlugin(ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory) {
@@ -76,7 +76,7 @@ public abstract class WarPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
         this.project = project;
-        this.mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
+        this.mainFeature = JavaPluginHelper.getMainFeature(project);
 
         final WarPluginConvention pluginConvention = objectFactory.newInstance(DefaultWarPluginConvention.class, project);
         DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("war", pluginConvention));
@@ -117,7 +117,7 @@ public abstract class WarPlugin implements Plugin<Project> {
         configureConfigurations((RoleBasedConfigurationContainerInternal) configurationContainer, mainFeature);
     }
 
-    private void configureConfigurations(RoleBasedConfigurationContainerInternal configurationContainer, JvmFeatureInternal mainFeature) {
+    private void configureConfigurations(RoleBasedConfigurationContainerInternal configurationContainer, SingleTargetJvmFeature mainFeature) {
         Configuration providedCompileConfiguration = configurationContainer.resolvableBucket(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
             setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
 

@@ -23,8 +23,8 @@ import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature;
-import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
+import org.gradle.jvm.component.internal.DefaultSingleTargetJvmFeature;
+import org.gradle.jvm.component.SingleTargetJvmFeature;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
@@ -89,7 +89,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
 
         @SuppressWarnings("deprecation")
         ConfigurationRole role = ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE;
-        JvmFeatureInternal feature = new DefaultJvmFeature(name, sourceSet, capabilities, project, role, SourceSet.isMain(sourceSet));
+        SingleTargetJvmFeature feature = new DefaultSingleTargetJvmFeature(name, sourceSet, capabilities, project, role, SourceSet.isMain(sourceSet));
         feature.withApi();
 
         AdhocComponentWithVariants component = findJavaComponent();

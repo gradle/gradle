@@ -29,7 +29,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             ${factoryRegistrationGroovy()}
 
             components {
-                comp(JvmSoftwareComponentInternal)
+                comp(JvmSoftwareComponent)
             }
         """
 
@@ -38,7 +38,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
         result.assertHasErrorOutput("The java-base plugin must be applied in order to create instances of DefaultJvmSoftwareComponent.")
     }
 
-    def "can instantiate component instances with java-base plugin applied in Groovy DSL"() {
+    def "can instantiate components and features with java-base plugin applied in Groovy DSL"() {
         given:
         buildFile << """
             plugins {
@@ -48,16 +48,24 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             ${factoryRegistrationGroovy()}
 
             components {
-                thing(JvmSoftwareComponentInternal)
-                feature(JvmSoftwareComponentInternal)
+                comp(JvmSoftwareComponent) {
+                    features {
+                        feat(SingleTargetJvmFeature)
+                    }
+                }
+                comp2(JvmSoftwareComponent) {
+                    features {
+                        feat2(SingleTargetJvmFeature)
+                    }
+                }
             }
 
             task verify {
-                assert components.thing instanceof DefaultJvmSoftwareComponent
-                assert sourceSets.thing
+                assert components.comp instanceof DefaultJvmSoftwareComponent
+                assert sourceSets.feat
 
-                assert components.feature instanceof DefaultJvmSoftwareComponent
-                assert sourceSets.feature
+                assert components.comp2 instanceof DefaultJvmSoftwareComponent
+                assert sourceSets.feat2
             }
         """
 
@@ -65,7 +73,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
         succeeds "verify"
     }
 
-    def "can instantiate component instances with java-base plugin applied in Kotlin DSL"() {
+    def "can instantiate component and features with java-base plugin applied in Kotlin DSL"() {
         given:
         buildKotlinFile << """
             plugins {
@@ -75,16 +83,24 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             ${factoryRegistrationKotlin()}
 
             components {
-                create<JvmSoftwareComponentInternal>("thing")
-                create<JvmSoftwareComponentInternal>("feature")
+                create<JvmSoftwareComponent>("comp") {
+                    features {
+                        create<SingleTargetJvmFeature>("feat")
+                    }
+                }
+                create<JvmSoftwareComponent>("comp2") {
+                    features {
+                        create<SingleTargetJvmFeature>("feat2")
+                    }
+                }
             }
 
             tasks.register("verify") {
-                assert(components.named("thing").get() is DefaultJvmSoftwareComponent)
-                assert(sourceSets.named("thing").isPresent())
+                assert(components.named("comp").get() is DefaultJvmSoftwareComponent)
+                assert(sourceSets.named("feat").isPresent())
 
-                assert(components.named("feature").get() is DefaultJvmSoftwareComponent)
-                assert(sourceSets.named("feature").isPresent())
+                assert(components.named("comp2").get() is DefaultJvmSoftwareComponent)
+                assert(sourceSets.named("feat2").isPresent())
             }
         """
 
@@ -102,7 +118,11 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             ${factoryRegistrationGroovy()}
 
             components {
-                comp(JvmSoftwareComponentInternal)
+                comp(JvmSoftwareComponent) {
+                    features {
+                        feat(SingleTargetJvmFeature)
+                    }
+                }
             }
 
             task verify {
@@ -110,7 +130,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
                 assert sourceSets.main
 
                 assert components.comp instanceof DefaultJvmSoftwareComponent
-                assert sourceSets.comp
+                assert sourceSets.feat
             }
         """
 
@@ -128,7 +148,11 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             ${factoryRegistrationKotlin()}
 
             components {
-                create<JvmSoftwareComponentInternal>("comp")
+                create<JvmSoftwareComponent>("comp") {
+                    features {
+                        create<SingleTargetJvmFeature>("feat")
+                    }
+                }
             }
 
             tasks.register("verify") {
@@ -136,7 +160,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
                 assert(sourceSets.named("main").isPresent())
 
                 assert(components.named("comp").get() is DefaultJvmSoftwareComponent)
-                assert(sourceSets.named("comp").isPresent())
+                assert(sourceSets.named("feat").isPresent())
             }
         """
 
@@ -144,7 +168,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
         succeeds "verify"
     }
 
-    def "can configure java component added by java-library plugin in Groovy DSL"() {
+    def "can configure main feature in java component added by java-library plugin in Groovy DSL"() {
         given:
         buildFile << """
             plugins {
@@ -155,7 +179,9 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
 
             components {
                 java {
-                    withJavadocJar()
+                    features.main {
+                        withJavadocJar()
+                    }
                 }
             }
 
@@ -171,8 +197,8 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
     }
 
     // TODO: Eventually we want accessors to be generated for the `java` component so that
-    // we can use `java {}` instead of `named<JvmSoftwareComponentInternal>("java") {}`.
-    def "can configure java component added by java-library plugin in Kotlin DSL"() {
+    // we can use `java {}` instead of `named<JvmSoftwareComponent>("java") {}`.
+    def "can configure main feature in java component added by java-library plugin in Kotlin DSL"() {
         given:
         buildKotlinFile << """
             plugins {
@@ -182,8 +208,10 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             ${importStatements()}
 
             components {
-                named<JvmSoftwareComponentInternal>("java") {
-                    withJavadocJar()
+                named<JvmSoftwareComponent>("java") {
+                    features.named<SingleTargetJvmFeature>("main") {
+                        withJavadocJar()
+                    }
                 }
             }
 
@@ -198,13 +226,312 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
         succeeds "verify"
     }
 
+    def "component contains no features by default"() {
+        given:
+        buildFile << """
+            plugins {
+                id('java-base')
+            }
+
+            ${factoryRegistrationGroovy()}
+
+            components {
+                comp(JvmSoftwareComponent)
+            }
+
+            task verify {
+                assert components.comp
+                assert components.comp.features.empty
+                assert components.comp.variants.empty
+            }
+        """
+
+        expect:
+        succeeds "verify"
+    }
+
+    def "can add features to component"() {
+        given:
+        buildFile << """
+            plugins {
+                id('java-base')
+            }
+
+            ${factoryRegistrationGroovy()}
+
+            components {
+                comp(JvmSoftwareComponent) {
+                    features {
+                        feat(SingleTargetJvmFeature)
+                    }
+                }
+            }
+
+            task verify {
+                assert components.comp.features.collect { it.name } == ['feat']
+                assert components.comp.features.feat.variants.collect { it.name } == ['featApiElements', 'featRuntimeElements']
+                assert components.comp.variants.collect { it.name } == ['featApiElements', 'featRuntimeElements']
+            }
+        """
+
+        expect:
+        succeeds "verify"
+    }
+
+    def "features can configure own variants"() {
+        given:
+        buildFile << """
+            plugins {
+                id('java-base')
+            }
+
+            ${factoryRegistrationGroovy()}
+
+            components {
+                comp(JvmSoftwareComponent) {
+                    features {
+                        feat(SingleTargetJvmFeature) {
+                            variants {
+                                featApiElements {
+                                    assert attributes.getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_API
+                                }
+                                featRuntimeElements {
+                                    assert attributes.getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_RUNTIME
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "help"
+    }
+
+    def "dynamic variants of features are accessible from the component"() {
+        given:
+        buildFile << """
+            plugins {
+                id('java-base')
+            }
+
+            ${factoryRegistrationGroovy()}
+
+            components {
+                comp(JvmSoftwareComponent) {
+                    features {
+                        feat(SingleTargetJvmFeature) {
+                            withJavadocJar()
+                            withSourcesJar()
+                        }
+                    }
+                }
+            }
+
+            task verify {
+                assert components.comp
+                assert components.comp.features.collect { it.name } == ['feat']
+                assert components.comp.features.feat.variants.collect { it.name } == ['featApiElements', 'featJavadocElements', 'featRuntimeElements', 'featSourcesElements']
+                assert components.comp.variants.collect { it.name } == ['featApiElements', 'featJavadocElements', 'featRuntimeElements', 'featSourcesElements']
+            }
+        """
+
+        expect:
+        succeeds "verify"
+    }
+
+    def "component exposes variants from multiple features"() {
+        given:
+        buildFile << """
+            plugins {
+                id('java-base')
+            }
+
+            ${factoryRegistrationGroovy()}
+
+            components {
+                comp(JvmSoftwareComponent) {
+                    features {
+                        feat1(SingleTargetJvmFeature) {
+                            withJavadocJar()
+                            withSourcesJar()
+                        }
+                        feat2(SingleTargetJvmFeature)
+                    }
+                }
+            }
+
+            task verify {
+                assert components.comp
+                assert components.comp.features.collect { it.name } == ['feat1', 'feat2']
+                assert components.comp.features.feat1.variants.collect { it.name } == ['feat1ApiElements', 'feat1JavadocElements', 'feat1RuntimeElements', 'feat1SourcesElements']
+                assert components.comp.features.feat2.variants.collect { it.name } == ['feat2ApiElements', 'feat2RuntimeElements']
+                assert components.comp.variants.collect { it.name } == ['feat1ApiElements', 'feat1JavadocElements', 'feat1RuntimeElements', 'feat1SourcesElements', 'feat2ApiElements', 'feat2RuntimeElements']
+            }
+        """
+
+        expect:
+        succeeds "verify"
+    }
+
+    def "can configure custom variants for single target features"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+
+        given:
+        buildFile << """
+            plugins {
+                id('java-base')
+            }
+
+            ${factoryRegistrationGroovy()}
+            repositories { maven { url '${mavenRepo.uri}' } }
+
+            configurations {
+                customConfiguration
+            }
+
+            dependencies {
+                customConfiguration 'org:foo:1.0'
+            }
+
+            components {
+                comp(JvmSoftwareComponent) {
+                    features {
+                        feat(SingleTargetJvmFeature) {
+                            variants {
+                                customRuntimeElements(ConfigurationBackedConsumableVariant) {
+                                    configuration {
+                                        extendsFrom configurations.customConfiguration
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            task verify {
+                assert components.comp
+                assert components.comp.features.feat.variants.collect { it.name } == ['customRuntimeElements', 'featApiElements', 'featRuntimeElements']
+                assert components.comp.variants.collect { it.name } == ['customRuntimeElements', 'featApiElements', 'featRuntimeElements']
+
+                assert configurations.customRuntimeElements.allDependencies.collect { it.group + ":" + it.name + ":" + it.version } == ['org:foo:1.0']
+            }
+        """
+
+        expect:
+        succeeds "verify"
+    }
+
+    def "custom variants can access configurations from parent feature"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+
+        given:
+        buildFile << """
+            plugins {
+                id('java-base')
+            }
+
+            ${factoryRegistrationGroovy()}
+            repositories { maven { url '${mavenRepo.uri}' } }
+
+            components {
+                comp(JvmSoftwareComponent) {
+                    features {
+                        feat(SingleTargetJvmFeature) {
+                            variants {
+                                customRuntimeElements(ConfigurationBackedConsumableVariant) {
+                                    configuration {
+                                        extendsFrom implementationConfiguration
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            dependencies {
+                featImplementation 'org:foo:1.0'
+            }
+
+            task verify {
+                assert configurations.customRuntimeElements.allDependencies.collect { it.group + ":" + it.name + ":" + it.version } == ['org:foo:1.0']
+            }
+        """
+
+        expect:
+        succeeds "verify"
+    }
+
+    def "configuration state is accessible through wrapping variant"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+
+        given:
+        settingsFile << "rootProject.name = 'proj'"
+        buildFile << """
+            plugins {
+                id('java-base')
+            }
+
+            ${factoryRegistrationGroovy()}
+            repositories { maven { url '${mavenRepo.uri}' } }
+
+            configurations {
+                customConfiguration
+            }
+
+            dependencies {
+                customConfiguration 'org:foo:1.0'
+                constraints {
+                    customConfiguration 'org:baz:1.0'
+                }
+            }
+
+            task myJar(type: Jar)
+
+            group = 'group'
+            version = '1.1'
+
+            components {
+                comp(JvmSoftwareComponent) {
+                    features {
+                        feat(SingleTargetJvmFeature) {
+                            variants {
+                                customRuntimeElements(ConfigurationBackedConsumableVariant) {
+                                    configuration {
+                                        extendsFrom configurations.customConfiguration
+                                        attributes {
+                                            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                                        }
+                                        outgoing.artifact(myJar)
+                                        outgoing.capability("com:foo:1.0")
+                                    }
+                                    assert dependencies.collect { it.group + ":" + it.name + ":" + it.version } == ['org:foo:1.0']
+                                    assert dependencyConstraints.collect { it.group + ":" + it.name + ":" + it.version } == ['org:baz:1.0']
+                                    assert attributes.getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_RUNTIME
+                                    assert artifacts.files == [tasks.myJar.archiveFile.get().asFile] as Set
+                                    assert capabilities.capabilities.collect { it.group + ":" + it.name + ":" + it.version } == ['group:proj-feat:1.1', 'com:foo:1.0']
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "help"
+    }
+
     private static final String factoryRegistrationGroovy() {
         """
             ${importStatements()}
 
             components {
-                registerFactory(JvmSoftwareComponentInternal) {
-                    objects.newInstance(DefaultJvmSoftwareComponent, it, it)
+                registerFactory(JvmSoftwareComponent) {
+                    objects.newInstance(DefaultJvmSoftwareComponent, it)
                 }
             }
         """
@@ -215,8 +542,8 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             ${importStatements()}
 
             components {
-                registerFactory(JvmSoftwareComponentInternal::class.java) {
-                    objects.newInstance(DefaultJvmSoftwareComponent::class.java, it, it)
+                registerFactory(JvmSoftwareComponent::class.java) {
+                    objects.newInstance(DefaultJvmSoftwareComponent::class.java, it)
                 }
             }
         """
@@ -227,7 +554,6 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
      */
     private static final String importStatements() {
         """
-            import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal
             import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent
         """
     }

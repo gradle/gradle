@@ -23,13 +23,30 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.Bundling;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.component.SoftwareComponentContainerInternal;
+import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
+import org.gradle.api.publish.ivy.IvyPublication;
+import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
+import org.gradle.api.publish.maven.MavenPublication;
+import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
+import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskContainer;
@@ -37,11 +54,13 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
+import org.gradle.jvm.component.SingleTargetJvmFeature;
 import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
-import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
+import org.gradle.jvm.component.internal.DefaultSingleTargetJvmFeature;
 import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
+import java.util.Collections;
 
 import static org.gradle.api.plugins.JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME;
 
@@ -229,6 +248,8 @@ public abstract class JavaPlugin implements Plugin<Project> {
      */
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 
+    private static final String SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX = "SourceElements";
+
     private final ObjectFactory objectFactory;
 
     @Inject
@@ -248,30 +269,27 @@ public abstract class JavaPlugin implements Plugin<Project> {
         project.getPluginManager().apply("org.gradle.jvm-test-suite");
 
         // Create the 'java' component.
-        JvmSoftwareComponentInternal component = objectFactory.newInstance(
-            DefaultJvmSoftwareComponent.class,
-            JvmConstants.JAVA_COMPONENT_NAME, SourceSet.MAIN_SOURCE_SET_NAME
-        );
+        DefaultJvmSoftwareComponent component = objectFactory.newInstance(
+            DefaultJvmSoftwareComponent.class, JvmConstants.JAVA_COMPONENT_NAME);
+        SingleTargetJvmFeature mainFeature = configureMainFeature(project, component);
+        configureBuiltInTest(project, mainFeature);
         project.getComponents().add(component);
 
         // Set the 'java' component as the project's default.
         Configuration defaultConfiguration = project.getConfigurations().getByName(Dependency.DEFAULT_CONFIGURATION);
-        defaultConfiguration.extendsFrom(component.getMainFeature().getRuntimeElementsConfiguration());
+        defaultConfiguration.extendsFrom(mainFeature.getRuntimeElementsConfiguration());
         ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(component);
 
-        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
-        configureSourceSets(javaExtension, buildOutputCleanupRegistry);
-
+        configureSourceSets(projectInternal);
         configureTestTaskOrdering(project.getTasks());
-        configureBuiltInTest(project, component);
-        configureDiagnostics(project, component);
         configureBuild(project);
     }
 
-    private static void configureSourceSets(JavaPluginExtension pluginExtension, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
+    private static void configureSourceSets(ProjectInternal project) {
         // Register the project's source set output directories
-        pluginExtension.getSourceSets().all(sourceSet -> buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput()));
+        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
+        javaExtension.getSourceSets().all(sourceSet -> buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput()));
     }
 
     /**
@@ -287,7 +305,90 @@ public abstract class JavaPlugin implements Plugin<Project> {
         tasks.withType(Test.class).configureEach(test -> test.shouldRunAfter(jarTasks));
     }
 
-    private static void configureBuiltInTest(Project project, JvmSoftwareComponentInternal component) {
+    // TODO: We should be configuring the main feature in the the sub-plugins, like application and java-library.
+    // Since the feature itself represents the software product being built, the sub-plugins, which decide which
+    // products are built, should be responsible for configuring the feature.
+    private static SingleTargetJvmFeature configureMainFeature(Project project, DefaultJvmSoftwareComponent component) {
+
+        ExtensionContainer extensions = project.getExtensions();
+        JavaPluginExtension javaExtension = extensions.findByType(JavaPluginExtension.class);
+
+        SourceSet mainSourceSet = javaExtension.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
+
+        // We construct the feature manually instead of with component.getFeatures().create() since this feature
+        // should have empty capabilities, representing the "implicit capability" as opposed to the default, which
+        // derives the capabilities from the feature name.
+        SingleTargetJvmFeature mainFeature = project.getObjects().newInstance(DefaultSingleTargetJvmFeature.class,
+            SourceSet.MAIN_SOURCE_SET_NAME, mainSourceSet, Collections.emptyList(),
+            project, ConfigurationRoles.CONSUMABLE, false
+        );
+        component.getFeatures().add(mainFeature);
+
+        // TODO: Should all features also have this variant? Why just the main feature?
+        // TODO: If we add this as a variant, how do we make sure its not published?
+        RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
+        createSourceElements(configurations, project.getProviders(), project.getObjects(), mainFeature);
+
+        // Build the main jar when running `assemble`.
+        extensions.getByType(DefaultArtifactPublicationSet.class)
+            .addCandidate(mainFeature.getRuntimeElementsConfiguration().getArtifacts().iterator().next());
+
+        configurePublishing(project.getPlugins(), extensions, mainFeature);
+        configureDiagnostics(project, mainFeature);
+
+        return mainFeature;
+    }
+
+    private static Configuration createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, SingleTargetJvmFeature feature) {
+
+        // TODO: Why are we using this non-standard name? For the `java` component, this
+        // equates to `mainSourceElements` instead of `sourceElements` as one would expect.
+        // Can we change this name without breaking compatibility? Is the variant name part
+        // of the component's API?
+        String variantName = feature.getSourceSet().getName() + SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX;
+
+        @SuppressWarnings("deprecation") Configuration variant = configurations.createWithRole(variantName, ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE);
+        variant.setDescription("List of source directories contained in the Main SourceSet.");
+        variant.setVisible(false);
+        variant.extendsFrom(feature.getImplementationConfiguration());
+
+        variant.attributes(attributes -> {
+            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.VERIFICATION));
+            attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objectFactory.named(VerificationType.class, VerificationType.MAIN_SOURCES));
+        });
+
+        variant.getOutgoing().artifacts(
+            feature.getSourceSet().getAllSource().getSourceDirectories().getElements().flatMap(e -> providerFactory.provider(() -> e)),
+            artifact -> artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE)
+        );
+
+        return variant;
+    }
+
+    // TODO: This approach is not necessarily correct for non-main features. All publications will attempt to use the main feature's
+    // compile and runtime classpaths for version mapping, even if a non-main feature is being published.
+    private static void configurePublishing(PluginContainer plugins, ExtensionContainer extensions, SingleTargetJvmFeature mainFeature) {
+        plugins.withType(PublishingPlugin.class, plugin -> {
+            PublishingExtension publishing = extensions.getByType(PublishingExtension.class);
+
+            SourceSet sourceSet = mainFeature.getSourceSet();
+
+            // Set up the default configurations used when mapping to resolved versions
+            publishing.getPublications().withType(IvyPublication.class, publication -> {
+                VersionMappingStrategyInternal strategy = ((IvyPublicationInternal) publication).getVersionMappingStrategy();
+                strategy.defaultResolutionConfiguration(Usage.JAVA_API, sourceSet.getCompileClasspathConfigurationName());
+                strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, sourceSet.getRuntimeClasspathConfigurationName());
+            });
+            publishing.getPublications().withType(MavenPublication.class, publication -> {
+                VersionMappingStrategyInternal strategy = ((MavenPublicationInternal) publication).getVersionMappingStrategy();
+                strategy.defaultResolutionConfiguration(Usage.JAVA_API, sourceSet.getCompileClasspathConfigurationName());
+                strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, sourceSet.getRuntimeClasspathConfigurationName());
+            });
+        });
+    }
+
+    private static void configureBuiltInTest(Project project, SingleTargetJvmFeature mainFeature) {
         TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
             final SourceSet testSourceSet = suite.getSources();
@@ -302,7 +403,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
             // relies on the main source set being created before the tests. So, this code here cannot live in the
             // JvmTestSuitePlugin and must live here, so that we can ensure we register this test suite after we've
             // created the main source set.
-            final SourceSet mainSourceSet = component.getMainFeature().getSourceSet();
+            final SourceSet mainSourceSet = mainFeature.getSourceSet();
             final FileCollection mainSourceSetOutput = mainSourceSet.getOutput();
             final FileCollection testSourceSetOutput = testSourceSet.getOutput();
             testSourceSet.setCompileClasspath(project.getObjects().fileCollection().from(mainSourceSetOutput, testCompileClasspathConfiguration));
@@ -318,9 +419,9 @@ public abstract class JavaPlugin implements Plugin<Project> {
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite));
     }
 
-    private static void configureDiagnostics(Project project, JvmSoftwareComponentInternal component) {
+    private static void configureDiagnostics(Project project, SingleTargetJvmFeature mainFeature) {
         project.getTasks().withType(DependencyInsightReportTask.class).configureEach(task -> {
-            new DslObject(task).getConventionMapping().map("configuration", component.getMainFeature()::getCompileClasspathConfiguration);
+            new DslObject(task).getConventionMapping().map("configuration", mainFeature::getCompileClasspathConfiguration);
         });
     }
 
@@ -346,4 +447,5 @@ public abstract class JavaPlugin implements Plugin<Project> {
         final Configuration configuration = project.getConfigurations().getByName(configurationName);
         task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
     }
+
 }
