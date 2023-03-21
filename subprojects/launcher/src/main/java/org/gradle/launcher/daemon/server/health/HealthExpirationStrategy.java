@@ -75,7 +75,6 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
     private final DaemonHealthStats stats;
     private final GarbageCollectorMonitoringStrategy strategy;
     private final Logger logger;
-    private final boolean enabled;
 
     public HealthExpirationStrategy(DaemonHealthStats stats, GarbageCollectorMonitoringStrategy strategy) {
         this(stats, strategy, LoggerFactory.getLogger(HealthExpirationStrategy.class));
@@ -85,12 +84,12 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
         this.stats = stats;
         this.strategy = strategy;
         this.logger = logger;
-        this.enabled = Boolean.parseBoolean(System.getProperty(ENABLE_PERFORMANCE_MONITORING, "true"));
     }
 
     @Override
     public DaemonExpirationResult checkExpiration() {
-        if (!enabled) {
+        // We cannot check this in the constructor since system properties are copied to the daemon after initialization.
+        if (!Boolean.parseBoolean(System.getProperty(ENABLE_PERFORMANCE_MONITORING, "true"))) {
             return DaemonExpirationResult.NOT_TRIGGERED;
         }
 

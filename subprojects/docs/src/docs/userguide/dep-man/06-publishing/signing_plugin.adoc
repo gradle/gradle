@@ -15,8 +15,6 @@
 [[signing_plugin]]
 = The Signing Plugin
 
-WARNING: The Signing Plugin is not yet compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 The Signing Plugin adds the ability to digitally sign built files and artifacts. These digital signatures can then be used to prove who built the artifact the signature is attached to as well as other information such as when the signature was generated.
 
 The Signing Plugin currently only provides support for generating https://en.wikipedia.org/wiki/Pretty_Good_Privacy#OpenPGP[OpenPGP signatures] (which is the signature format http://central.sonatype.org/pages/requirements.html#sign-files-with-gpgpgp[required for publication to the Maven Central Repository]).

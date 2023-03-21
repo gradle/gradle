@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -29,6 +30,7 @@ import java.util.List;
  * <p>
  * Instances of this class are expected to be thread-safe.
  */
+@NonNullApi
 @ThreadSafe
 public interface ToPlannedNodeConverter {
 
