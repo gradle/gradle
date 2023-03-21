@@ -68,8 +68,9 @@ public interface ConfigurationRole {
             throw new IllegalArgumentException("Cannot create a role that deprecates a usage that is not allowed");
         }
 
-        ConfigurationRole result = ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated)
+        ConfigurationRole result = ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst)
                 .map(ConfigurationRole.class::cast)
+                .filter(role -> role.isConsumptionDeprecated() == consumptionDeprecated && role.isResolutionDeprecated() == resolutionDeprecated && role.isDeclarationAgainstDeprecated() == declarationAgainstDeprecated)
                 .orElse(new CustomConfigurationRole(name, consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated, description));
 
         //noinspection SuspiciousMethodCalls
