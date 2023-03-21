@@ -17,7 +17,9 @@
 package org.gradle.caching.internal.controller
 
 import org.gradle.api.Action
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
@@ -30,7 +32,7 @@ import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistr
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType
 import org.gradle.caching.internal.origin.OriginMetadataFactory
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
-import org.gradle.caching.internal.services.BuildCacheControllerFactory
+import org.gradle.caching.internal.services.LegacyBuildCacheControllerFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -39,11 +41,7 @@ import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-import static org.gradle.caching.internal.services.BuildCacheControllerFactory.BuildCacheMode.DISABLED
-import static org.gradle.caching.internal.services.BuildCacheControllerFactory.BuildCacheMode.ENABLED
-import static org.gradle.caching.internal.services.BuildCacheControllerFactory.RemoteAccessMode.ONLINE
-
-class BuildCacheControllerFactoryTest extends Specification {
+class LegacyBuildCacheControllerFactoryTest extends Specification {
 
     def buildCacheEnabled = true
     def buildOperationExecuter = new TestBuildOperationExecutor()
@@ -53,7 +51,6 @@ class BuildCacheControllerFactoryTest extends Specification {
         new DefaultBuildCacheServiceRegistration(TestRemoteBuildCache, TestRemoteBuildCacheServiceFactory),
     ])
 
-    boolean logStacktraces
     boolean emitDebugLogging
 
     private DefaultBuildCacheController createController() {
@@ -61,21 +58,18 @@ class BuildCacheControllerFactoryTest extends Specification {
     }
 
     private <T extends BuildCacheController> T createController(Class<T> controllerType) {
-        def controller = BuildCacheControllerFactory.create(
+        def controller = new LegacyBuildCacheControllerFactory(
+            Stub(StartParameterInternal) {
+                isBuildCacheEnabled() >> buildCacheEnabled
+                isBuildCacheDebugLogging() >> emitDebugLogging
+            },
             buildOperationExecuter,
-            Path.path("test"),
-            null,
-            config,
-            buildCacheEnabled ? ENABLED : DISABLED,
-            ONLINE,
-            logStacktraces,
-            emitDebugLogging,
-            TestUtil.instantiatorFactory().inject(),
-            Stub(FileSystemAccess),
-            Stub(BuildCacheEntryPacker),
             Stub(OriginMetadataFactory),
-            Stub(StringInterner)
-        )
+            Stub(FileSystemAccess),
+            Stub(StringInterner),
+            Stub(TemporaryFileProvider),
+            Stub(BuildCacheEntryPacker)
+        ).createController(Path.path("test"), config, TestUtil.instantiatorFactory().inject())
         assert controllerType.isInstance(controller)
         controllerType.cast(controller)
     }

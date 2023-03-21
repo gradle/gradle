@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.services;
+CREATE SCHEMA IF NOT EXISTS filestore;
 
-import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
-import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.internal.instantiation.InstanceGenerator;
-import org.gradle.util.Path;
-
-public interface BuildCacheControllerFactory {
-    String REMOTE_CONTINUE_ON_ERROR_PROPERTY = "org.gradle.unsafe.build-cache.remote-continue-on-error";
-
-    BuildCacheController createController(Path buildIdentityPath, BuildCacheConfigurationInternal buildCacheConfiguration, InstanceGenerator instanceGenerator);
-}
+CREATE TABLE IF NOT EXISTS filestore.catalog
+(
+    entry_key     VARCHAR(32)         NOT NULL PRIMARY KEY,
+    entry_size    BIGINT              NOT NULL,
+    entry_content BINARY LARGE OBJECT NOT NULL
+);
