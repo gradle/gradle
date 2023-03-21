@@ -42,7 +42,7 @@ import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
+import org.gradle.jvm.component.SingleTargetJvmFeature;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -363,7 +363,7 @@ public abstract class IdeaPlugin extends IdePlugin {
     }
 
     private void configureIdeaModuleForJava(final Project project) {
-        JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
+        SingleTargetJvmFeature mainFeature = JavaPluginHelper.getMainFeature(project);
         JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
 
         project.getTasks().withType(GenerateIdeaModule.class).configureEach(ideaModule -> {
@@ -426,7 +426,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         });
     }
 
-    private void setupScopes(JvmFeatureInternal mainFeature, JvmTestSuite defaultTestSuite) {
+    private void setupScopes(SingleTargetJvmFeature mainFeature, JvmTestSuite defaultTestSuite) {
         Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
             Map<String, Collection<Configuration>> plusMinus = Maps.newLinkedHashMap();

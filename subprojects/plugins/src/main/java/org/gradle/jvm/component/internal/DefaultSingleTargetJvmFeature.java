@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jvm.internal;
+package org.gradle.jvm.component.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.GradleException;
+import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -24,6 +26,9 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.component.ConfigurationBackedConsumableVariant;
+import org.gradle.api.component.ConsumableVariant;
+import org.gradle.api.component.internal.DefaultConfigurationBackedConsumableVariant;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
@@ -34,26 +39,25 @@ import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.jvm.component.SingleTargetJvmFeature;
 import org.gradle.util.internal.TextUtil;
 
+import javax.inject.Inject;
 import java.util.List;
 
 import static org.gradle.api.attributes.DocsType.JAVADOC;
 import static org.gradle.api.attributes.DocsType.SOURCES;
 
 /**
- * Represents a generic "Java feature", using the specified source set and it's corresponding
- * configurations, compile task, and jar task. This feature creates a jar task and javadoc task, and
- * can optionally also create consumable javadoc and sources jar variants.
- *
- * <p>This can be used to create production libraries, applications, test suites, test fixtures,
- * or any other consumable JVM feature.</p>
+ * The default implementation of a {@link SingleTargetJvmFeature}, which is provided its backing
+ * {@link SourceSet} upon initialization.
  *
  * <p>This feature can conditionally be configured to instead "extend" the production code. In that case, this
  * feature creates additional dependency configurations which live adjacent to the main source set's buckets,
@@ -73,12 +77,13 @@ import static org.gradle.api.attributes.DocsType.SOURCES;
  * source set would normally create. Additionally, this extension feature is able to create the
  * sources and javadoc variants that the main feature would also conditionally create.</p>
  */
-public class DefaultJvmFeature implements JvmFeatureInternal {
+public class DefaultSingleTargetJvmFeature implements SingleTargetJvmFeature {
 
     private final String name;
     private final SourceSet sourceSet;
     private final List<Capability> capabilities;
     private final boolean extendProductionCode;
+    private final ExtensiblePolymorphicDomainObjectContainer<ConsumableVariant> variants;
 
     // Services
     private final ProjectInternal project;
@@ -109,7 +114,8 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     private Configuration javadocElements;
     private Configuration sourcesElements;
 
-    public DefaultJvmFeature(
+    @Inject
+    public DefaultSingleTargetJvmFeature(
         String name,
         SourceSet sourceSet,
         List<Capability> capabilities,
@@ -125,6 +131,15 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         this.capabilities = capabilities;
         this.project = project;
         this.extendProductionCode = extendProductionCode;
+
+        this.variants = project.getObjects().polymorphicDomainObjectContainer(ConsumableVariant.class);
+        this.variants.registerFactory(ConfigurationBackedConsumableVariant.class, configName -> {
+            // TODO: Should we create the configuration with a different name?
+            // If the user creates an apiElements and the feature name is test should we use testApiElements for the configuration name?
+            Configuration config = project.getConfigurations().createWithRole(configName, elementsConfigurationRole);
+            capabilities.forEach(config.getOutgoing()::capability);
+            return project.getObjects().newInstance(DefaultConfigurationBackedConsumableVariant.class, config);
+        });
 
         // TODO: Deprecate allowing user to extend main feature.
         if (extendProductionCode && !SourceSet.isMain(sourceSet)) {
@@ -151,6 +166,8 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         PublishArtifact jarArtifact = new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory());
         this.apiElements = createApiElements(configurations, jarArtifact, compileJava, elementsConfigurationRole);
         this.runtimeElements = createRuntimeElements(configurations, jarArtifact, compileJava, elementsConfigurationRole);
+        variants.add(new DefaultConfigurationBackedConsumableVariant(apiElements));
+        variants.add(new DefaultConfigurationBackedConsumableVariant(runtimeElements));
 
         if (extendProductionCode) {
             doExtendProductionCode();
@@ -290,6 +307,8 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
             project.getTasks().named(sourceSet.getJavadocTaskName()),
             project
         );
+
+        variants.add(new DefaultConfigurationBackedConsumableVariant(javadocElements));
     }
 
     @Override
@@ -306,6 +325,8 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
             sourceSet.getAllSource(),
             project
         );
+
+        variants.add(new DefaultConfigurationBackedConsumableVariant(sourcesElements));
     }
 
     private Configuration bucket(String kind, String suffix) {
@@ -329,6 +350,16 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
             });
         }
         return tasks.named(jarTaskName, Jar.class);
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public PolymorphicDomainObjectContainer<? extends ConsumableVariant> getVariants() {
+        return variants;
     }
 
     @Override

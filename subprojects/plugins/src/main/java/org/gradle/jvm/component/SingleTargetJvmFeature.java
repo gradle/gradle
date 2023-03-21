@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jvm.internal;
+package org.gradle.jvm.component;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
+import org.gradle.api.component.ComponentFeature;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
@@ -25,34 +26,21 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import javax.annotation.Nullable;
 
 /**
- * A Jvm Feature wraps a source set to encapsulate the logic and domain objects required to
- * implement a feature of a JVM component. Features are used to model constructs like
- * production libraries, test suites, test fixtures, applications, etc. While features are not
- * individually consumable themselves for publication or through dependency-management,
- * they can be exposed to consumers via an owning component.
+ * A {@link ComponentFeature} which wraps a single {@link SourceSet} and exposes variants for a single
+ * JVM compilation. Given that all variants are derived from the same sources, they all expose the
+ * same API or "content" and thus provide the same capabilities.
  *
- * <p>Features are classified by their capabilities. Each variant of a feature provides at least
- * the same set of capabilities as the feature itself. Since all variants of a feature are derived
- * from the same sources, they all expose the same API or "content" and thus provide the same
- * capabilities. Some variants may expose additional capabilities than those of its owning feature,
- * for example with fat jars.</p>
+ * <p>This feature transitively owns all tasks and configurations created on behalf of the owned source set,
+ * and provides convenience methods to access these objects without needing to query the global containers.</p>
  *
- * <p>TODO: The current API is written as if this were a single-target feature. Before we make this API
- * public, we should make this API multi-target aware. Alternatively, we could implement a
- * SingleTargetJvmFeature now and in the future implement a MultiTargetJvmFeature when we're ready.
- * This would allow us to use the JvmFeature interface as a common parent interface.</p>
+ * <p>This feature is configurable in that it can optionally expose additional variants for javadoc and sources jars.
+ * Furthermore, this feature by default does not expose an API. However, it can be configured to do so in order to
+ * model constructs like a standard JVM library.</p>
+ *
+ * @since 8.2
  */
-public interface JvmFeatureInternal {
-
-    /**
-     * Get the capabilities of this feature. All variants exposed by this feature must provide at least
-     * the same capabilities as this feature.
-     */
-    CapabilitiesMetadata getCapabilities();
-
-    // TODO: Are sources and javadoc also target-specific? Some targets, for example java 8 vs 11, may use
-    // separate sources which compile to version-specific APIs. Same for javadoc. They are built from the sources
-    // used for compilation. Also each version of java comes with a separate javadoc tool.
+@Incubating
+public interface SingleTargetJvmFeature extends ComponentFeature {
 
     // TODO: Should Javadoc even live on a generic JVM target? May be can call it withDocumentationJar?
     // Scala and groovy have Groovydoc and Scaladoc. Kotlin has KDoc.
@@ -71,12 +59,12 @@ public interface JvmFeatureInternal {
      */
     void withSourcesJar();
 
+    // TODO: Should this live on the "base" JVM feature? Should all JVM features know how to add
+    // an API? Or should we have subclasses which have APIs and others, which support
+    // application features and test suites, which do not have APIs?
+
     /**
      * Adds the {@code api} and {@code compileOnlyApi} dependency configurations to this feature.
-     *
-     * TODO: Should this live on the "base" JVM feature? Should all JVM features know how to add
-     * an API? Or should we have subclasses which have APIs and others, which support
-     * application features and test suites, which do not have APIs?
      */
     void withApi();
 
@@ -95,9 +83,6 @@ public interface JvmFeatureInternal {
      */
     @Nullable
     Configuration getSourcesElementsConfiguration();
-
-    // TODO: Many of the methods below probably belong on a JvmTarget. Features may have many targets
-    // and thus many configurations, jar tasks, compile tasks, etc.
 
     /**
      * Get the {@link Jar} task which assembles the resources and compilation outputs into

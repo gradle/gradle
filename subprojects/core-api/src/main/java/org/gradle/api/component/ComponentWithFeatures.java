@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.capabilities;
 
-import javax.annotation.Nullable;
+package org.gradle.api.component;
+
+import org.gradle.api.Incubating;
+
+import java.util.Set;
 
 /**
- * A capability represents the content or API of a variant's artifacts. Capabilities are versioned, since a
- * variant's content changes between versions. Multiple variants with the same capability may not exist in a
- * dependency graph simultaneously.
+ * A {@link ConsumableComponent} which is composed of multiple {@link ComponentFeature}s.
  *
- * @since 4.7
+ * <p>Variants of this component are derived by aggregating all variants of child features.</p>
+ *
+ * @since 8.2
  */
-public interface Capability {
-    String getGroup();
-    String getName();
-    @Nullable
-    String getVersion();
+@Incubating
+public interface ComponentWithFeatures extends ConsumableComponent {
+
+    /**
+     * The software products which make up this component.
+     */
+    Set<? extends ComponentFeature> getFeatures();
+
 }

@@ -20,7 +20,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
-import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
+import org.gradle.jvm.component.SingleTargetJvmFeature;
 import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 
@@ -45,7 +45,7 @@ public abstract class GroovyPlugin implements Plugin<Project> {
             groovyDoc.setDescription("Generates Groovydoc API documentation for the main source code.");
             groovyDoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
 
-            JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
+            SingleTargetJvmFeature mainFeature = JavaPluginHelper.getMainFeature(project);
             groovyDoc.setClasspath(mainFeature.getSourceSet().getOutput().plus(mainFeature.getSourceSet().getCompileClasspath()));
 
             SourceDirectorySet groovySourceSet = mainFeature.getSourceSet().getExtensions().getByType(GroovySourceDirectorySet.class);

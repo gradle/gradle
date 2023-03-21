@@ -18,12 +18,15 @@ package org.gradle.api.plugins.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.component.ComponentFeature;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.jvm.component.JvmSoftwareComponent;
+import org.gradle.jvm.component.SingleTargetJvmFeature;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 
@@ -32,25 +35,42 @@ import org.gradle.testing.base.TestingExtension;
  * This class exists to avoid adding these methods to the {@code JavaPlugin} itself,
  * and thus avoids adding these methods to the public API.
  */
-public class JavaPluginHelper {
+public final class JavaPluginHelper {
 
     private JavaPluginHelper() {
         // Private to prevent instantiation.
     }
 
     /**
-     * Gets the main Java component. This method assumes the Java plugin is applied.
+     * Gets the Java component. This method assumes the Java plugin is applied.
      *
      * @throws GradleException If the {@code java} component does not exist.
      */
-    public static JvmSoftwareComponentInternal getJavaComponent(Project project) {
+    public static JvmSoftwareComponent getJavaComponent(Project project) {
         SoftwareComponent component = project.getComponents().findByName(JvmConstants.JAVA_COMPONENT_NAME);
 
-        if (!(component instanceof JvmSoftwareComponentInternal)) {
+        if (!(component instanceof JvmSoftwareComponent)) {
             throw new GradleException("The Java plugin must be applied to access the java component.");
         }
 
-        return (JvmSoftwareComponentInternal) component;
+        return (JvmSoftwareComponent) component;
+    }
+
+    /**
+     * Gets the main feature. This method assumes the Java plugin is applied.
+     *
+     * @throws GradleException If the {@code main} feature of the {@code java} component does not exist.
+     */
+    public static SingleTargetJvmFeature getMainFeature(Project project) {
+        JvmSoftwareComponent component = getJavaComponent(project);
+        ComponentFeature main = component.getFeatures().findByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        if (main == null) {
+            throw new GradleException("The main feature must be registered before it can be retrieved.");
+        }
+        if (!(main instanceof SingleTargetJvmFeature)) {
+            throw new GradleException("The main feature must be a SingleTargetJvmFeature.");
+        }
+        return (SingleTargetJvmFeature) main;
     }
 
     /**
