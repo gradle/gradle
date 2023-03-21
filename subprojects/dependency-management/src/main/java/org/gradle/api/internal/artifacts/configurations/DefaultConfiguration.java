@@ -480,7 +480,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public boolean isTransitive() {
-        maybeWarnOnDeprecatedUsage("isTransitive()", ProperMethodUsage.RESOLVABLE, ProperMethodUsage.DECLARABLE_AGAINST);
         return transitive;
     }
 
@@ -537,7 +536,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration withDependencies(final Action<? super DependencySet> action) {
-        maybeWarnOnDeprecatedUsage("visitDependencies(Action)", ProperMethodUsage.RESOLVABLE);
+        maybeWarnOnDeprecatedUsage("visitDependencies(Action)", ProperMethodUsage.RESOLVABLE, ProperMethodUsage.DECLARABLE_AGAINST);
         validateMutation(MutationType.DEPENDENCIES);
         withDependencyActions = withDependencyActions.add(action);
         return this;
@@ -545,7 +544,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void runDependencyActions() {
-        maybeWarnOnDeprecatedUsage("runDependencyActions()", ProperMethodUsage.DECLARABLE_AGAINST);
         defaultDependencyActions.execute(dependencies);
         withDependencyActions.execute(dependencies);
 
@@ -911,7 +909,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
-        maybeWarnOnDeprecatedUsage("getDependenciesResolver()", ProperMethodUsage.DECLARABLE_AGAINST);
+        maybeWarnOnDeprecatedUsage("getDependenciesResolver()", ProperMethodUsage.RESOLVABLE);
         if (dependenciesResolverFactory == null) {
             dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(getIdentity(), new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
                 (attributes, filter) -> {
@@ -992,13 +990,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DependencySet getDependencies() {
-        maybeWarnOnDeprecatedUsage("getDependencies()", ProperMethodUsage.DECLARABLE_AGAINST);
         return dependencies;
     }
 
     @Override
     public DependencySet getAllDependencies() {
-        maybeWarnOnDeprecatedUsage("getAllDependencies()", ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE);
         if (allDependencies == null) {
             initAllDependencies();
         }
@@ -1018,7 +1014,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DependencyConstraintSet getDependencyConstraints() {
-        maybeWarnOnDeprecatedUsage("getDependencyConstraints()", ProperMethodUsage.DECLARABLE_AGAINST);
         return dependencyConstraints;
     }
 
@@ -1044,13 +1039,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public PublishArtifactSet getArtifacts() {
-        maybeWarnOnDeprecatedUsage("getArtifacts()", ProperMethodUsage.CONSUMABLE);
         return artifacts;
     }
 
     @Override
     public PublishArtifactSet getAllArtifacts() {
-        maybeWarnOnDeprecatedUsage("getAllArtifacts()", ProperMethodUsage.CONSUMABLE);
         initAllArtifacts();
         return allArtifacts;
     }
@@ -1090,14 +1083,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Set<ExcludeRule> getExcludeRules() {
-        maybeWarnOnDeprecatedUsage("getExcludeRules()", ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE);
         initExcludeRules();
         return Collections.unmodifiableSet(parsedExcludeRules);
     }
 
     @Override
     public Set<ExcludeRule> getAllExcludeRules() {
-        maybeWarnOnDeprecatedUsage("getAllExcludeRules()", ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE);
         Set<ExcludeRule> result = Sets.newLinkedHashSet();
         result.addAll(getExcludeRules());
         for (Configuration config : extendsFrom) {
@@ -1155,7 +1146,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ConfigurationPublications getOutgoing() {
-        maybeWarnOnDeprecatedUsage("getOutgoing()", ProperMethodUsage.CONSUMABLE);
         return outgoing;
     }
 
@@ -1420,7 +1410,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ResolutionStrategyInternal getResolutionStrategy() {
-        maybeWarnOnDeprecatedUsage("getResolutionStrategy()", ProperMethodUsage.RESOLVABLE);
         if (resolutionStrategy == null) {
             resolutionStrategy = resolutionStrategyFactory.create();
             resolutionStrategy.setMutationValidator(this);
@@ -1431,7 +1420,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public LocalComponentMetadata toRootComponentMetaData() {
-        maybeWarnOnDeprecatedUsage("toRootComponentMetaData()", ProperMethodUsage.CONSUMABLE);
+        maybeWarnOnDeprecatedUsage("toRootComponentMetaData()", ProperMethodUsage.RESOLVABLE);
         return rootComponentMetadataBuilder.toRootComponentMetaData();
     }
 
@@ -1503,20 +1492,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public boolean getReturnAllVariants() {
-        maybeWarnOnDeprecatedUsage("getReturnAllVariants()", ProperMethodUsage.CONSUMABLE);
+        maybeWarnOnDeprecatedUsage("getReturnAllVariants()", ProperMethodUsage.RESOLVABLE);
         return this.returnAllVariants;
     }
 
     @Override
     public Configuration resolutionStrategy(Closure closure) {
-        maybeWarnOnDeprecatedUsage("resolutionStrategy(Closure)", ProperMethodUsage.RESOLVABLE);
         configure(closure, getResolutionStrategy());
         return this;
     }
 
     @Override
     public Configuration resolutionStrategy(Action<? super ResolutionStrategy> action) {
-        maybeWarnOnDeprecatedUsage("resolutionStrategy(Action)", ProperMethodUsage.RESOLVABLE);
         action.execute(getResolutionStrategy());
         return this;
     }
@@ -1809,7 +1796,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public AttributeContainerInternal getAttributes() {
-        maybeWarnOnDeprecatedUsage("getAttributes()", ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE);
         return configurationAttributes;
     }
 
