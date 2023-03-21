@@ -368,6 +368,11 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
                 @Override
                 public void writeTo(OutputStream output) throws IOException {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                     try (InputStream input = openStream()) {
                         IOUtils.copyLarge(input, output, bufferProvider.getBuffer());
                     }
@@ -392,6 +397,11 @@ public class NextGenBuildCacheController implements BuildCacheController {
 
                 @Override
                 public void writeTo(OutputStream output) throws IOException {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                     output.write(bytes);
                 }
 
