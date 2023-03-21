@@ -31,17 +31,14 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultNextGenBuildCacheAccess.class);
-
-    private static final CompletableFuture<?>[] EMPTY_COMPLETABLE_FUTURE_ARRAY = new CompletableFuture<?>[0];
 
     private final NextGenBuildCacheHandler local;
     private final NextGenBuildCacheHandler remote;
@@ -65,33 +62,46 @@ public class DefaultNextGenBuildCacheAccess implements NextGenBuildCacheAccess {
 
     @Override
     public <T> void load(Map<BuildCacheKey, T> entries, LoadHandler<T> handler) {
-        List<CompletableFuture<Void>> remoteDownloads = new ArrayList<>();
-        entries.forEach((key, payload) -> {
-            boolean foundLocally = local.canLoad() && local.load(key, input -> handler.handle(input, payload));
-            if (!foundLocally && remote.canLoad()) {
-                remoteDownloads.add(CompletableFuture.runAsync(counter.wrap(new RemoteDownload<>(key, payload, handler)), remoteProcessor));
-            }
-        });
-        // TODO Add error handling
-        CompletableFuture.allOf(remoteDownloads.toArray(EMPTY_COMPLETABLE_FUTURE_ARRAY))
+        CompletableFuture<?>[] asyncLoads = entries.entrySet().stream()
+            .flatMap(entry -> {
+                BuildCacheKey key = entry.getKey();
+                T payload = entry.getValue();
+                boolean foundLocally = local.canLoad() && local.load(key, input -> handler.handle(input, payload));
+                if (!foundLocally && remote.canLoad()) {
+                    // TODO Improve error handling
+                    return Stream.of(CompletableFuture.runAsync(counter.wrap(new RemoteDownload<>(key, payload, handler)), remoteProcessor));
+                } else {
+                    return Stream.empty();
+                }
+            })
+            .toArray(CompletableFuture[]::new);
+        CompletableFuture.allOf(asyncLoads)
             .join();
     }
 
     @Override
     public <T> void store(Map<BuildCacheKey, T> entries, StoreHandler<T> handler) {
-        entries.forEach((key, payload) -> {
-            if (!local.canStore()) {
-                // TODO Handle the case when local store is disabled but the remote is not?
-                return;
-            }
-            if (!local.contains(key)) {
-                local.store(key, handler.handle(payload));
-            }
-            // TODO Add error handling
-            if (remote.canStore()) {
-                remoteProcessor.submit(counter.wrap(new RemoteUpload(key)));
-            }
-        });
+        CompletableFuture<?>[] asyncStores = entries.entrySet().stream()
+            .flatMap(entry -> {
+                BuildCacheKey key = entry.getKey();
+                T payload = entry.getValue();
+                if (!local.canStore()) {
+                    // TODO Handle the case when local store is disabled but the remote is not?
+                    return Stream.empty();
+                }
+                if (!local.contains(key)) {
+                    local.store(key, handler.handle(payload));
+                }
+                // TODO Improve error handling
+                if (remote.canStore()) {
+                    return Stream.of(CompletableFuture.runAsync(counter.wrap(new RemoteUpload(key)), remoteProcessor));
+                } else {
+                    return Stream.empty();
+                }
+            })
+            .toArray(CompletableFuture[]::new);
+        CompletableFuture.allOf(asyncStores)
+            .join();
     }
 
     @Override
