@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.services;
+package org.gradle.internal.file;
 
-import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
-import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.internal.instantiation.InstanceGenerator;
-import org.gradle.util.Path;
-
-public interface BuildCacheControllerFactory {
-    String REMOTE_CONTINUE_ON_ERROR_PROPERTY = "org.gradle.unsafe.build-cache.remote-continue-on-error";
-
-    BuildCacheController createController(Path buildIdentityPath, BuildCacheConfigurationInternal buildCacheConfiguration, InstanceGenerator instanceGenerator);
+/**
+ * Providers a byte buffer to be used in processing streams.
+ */
+public interface BufferProvider {
+    byte[] getBuffer();
 }

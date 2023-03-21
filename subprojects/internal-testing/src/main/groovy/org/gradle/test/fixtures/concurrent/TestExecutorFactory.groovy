@@ -17,8 +17,11 @@
 package org.gradle.test.fixtures.concurrent
 
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.concurrent.ManagedScheduledExecutor
 import org.gradle.internal.concurrent.ManagedExecutor
+import org.gradle.internal.concurrent.ManagedScheduledExecutor
+import org.gradle.internal.concurrent.ManagedThreadPoolExecutor
+
+import java.util.concurrent.TimeUnit
 
 class TestExecutorFactory implements ExecutorFactory {
     private final TestExecutor executor
@@ -27,15 +30,23 @@ class TestExecutorFactory implements ExecutorFactory {
         this.executor = executor
     }
 
+    @Override
     ManagedExecutor create(String displayName) {
         return new TestManagedExecutor(executor)
     }
 
+    @Override
     ManagedExecutor create(String displayName, int fixedSize) {
         // Ignores size of thread pool
         return new TestManagedExecutor(executor)
     }
 
+    @Override
+    ManagedThreadPoolExecutor createThreadPool(String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit) {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
     ManagedScheduledExecutor createScheduled(String displayName, int fixedSize) {
         throw new UnsupportedOperationException()
     }

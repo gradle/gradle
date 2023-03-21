@@ -14,15 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.services;
+package org.gradle.internal.file;
 
-import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
-import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.internal.instantiation.InstanceGenerator;
-import org.gradle.util.Path;
+/**
+ * Provides a buffer that is bound to the current thread.
+ */
+public class ThreadLocalBufferProvider implements BufferProvider {
+    private final ThreadLocal<byte[]> copyBuffers;
 
-public interface BuildCacheControllerFactory {
-    String REMOTE_CONTINUE_ON_ERROR_PROPERTY = "org.gradle.unsafe.build-cache.remote-continue-on-error";
+    public ThreadLocalBufferProvider(final int bufferSize) {
+        this.copyBuffers = new ThreadLocal<byte[]>() {
+            @Override
+            protected byte[] initialValue() {
+                return new byte[bufferSize];
+            }
+        };
+    }
 
-    BuildCacheController createController(Path buildIdentityPath, BuildCacheConfigurationInternal buildCacheConfiguration, InstanceGenerator instanceGenerator);
+    @Override
+    public byte[] getBuffer() {
+        return copyBuffers.get();
+    }
 }
