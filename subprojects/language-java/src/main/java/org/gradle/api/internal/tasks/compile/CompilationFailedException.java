@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.internal.exceptions.NonGradleCauseException;
+
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class CompilationFailedException extends RuntimeException {
+public class CompilationFailedException extends RuntimeException implements NonGradleCauseException {
 
     private final ApiCompilerResult compilerPartialResult;
 
