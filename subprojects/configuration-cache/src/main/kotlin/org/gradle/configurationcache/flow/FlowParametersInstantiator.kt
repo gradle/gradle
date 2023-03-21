@@ -22,6 +22,7 @@ import org.gradle.api.flow.FlowParameters
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
+import org.gradle.api.services.BuildService
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Input
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -66,7 +67,7 @@ class FlowParametersInstantiator(
                 }
             },
             object : PropertyVisitor {
-                override fun visitServiceReference(propertyName: String, optional: Boolean, value: PropertyValue, serviceName: String?) {
+                override fun visitServiceReference(propertyName: String, optional: Boolean, value: PropertyValue, serviceName: String?, buildServiceType: Class<out BuildService<*>>) {
                     value.maybeFinalizeValue()
                 }
 

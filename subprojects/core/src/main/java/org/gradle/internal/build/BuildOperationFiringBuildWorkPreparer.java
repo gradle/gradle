@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
@@ -44,6 +45,7 @@ import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedTask;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.Result;
 
+@NonNullApi
 public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer {
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildWorkPreparer delegate;
