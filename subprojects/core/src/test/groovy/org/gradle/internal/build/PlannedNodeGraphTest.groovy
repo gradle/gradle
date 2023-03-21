@@ -21,11 +21,8 @@ import org.gradle.execution.plan.PlannedNodeInternal
 import org.gradle.execution.plan.TaskDependencyResolver
 import org.gradle.execution.plan.ToPlannedNodeConverter
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.NodeIdentity
 import spock.lang.Specification
-
-import java.util.function.Supplier
 
 class PlannedNodeGraphTest extends Specification {
 
@@ -147,7 +144,7 @@ class PlannedNodeGraphTest extends Specification {
         }
 
         @Override
-        PlannedNodeInternal convert(Node node, List<? extends NodeIdentity> nodeDependencies, Supplier<List<CalculateTaskGraphBuildOperationType.TaskIdentity>> taskDependencies) {
+        PlannedNodeInternal convert(Node node, List<? extends NodeIdentity> nodeDependencies) {
             return new TestPlannedNode(getNodeIdentity(node), nodeDependencies)
         }
     }

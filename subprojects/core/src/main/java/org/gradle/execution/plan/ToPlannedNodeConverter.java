@@ -16,12 +16,10 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Converts a node to a planned node.
@@ -61,5 +59,5 @@ public interface ToPlannedNodeConverter {
      * <p>
      * Expects a node of the {@link #getSupportedNodeType() supported type} that is in the {@link #isInSamePlan(Node) same plan}.
      */
-    PlannedNodeInternal convert(Node node, List<? extends NodeIdentity> nodeDependencies, Supplier<List<TaskIdentity>> taskDependencies);
+    PlannedNodeInternal convert(Node node, List<? extends NodeIdentity> nodeDependencies);
 }

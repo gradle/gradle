@@ -30,7 +30,6 @@ public class DefaultPlannedTask implements PlannedTask, PlannedNodeInternal {
 
     private final TaskIdentity taskIdentity;
     private final List<? extends NodeIdentity> nodeDependencies;
-    private final List<TaskIdentity> taskDependencies;
     private final List<TaskIdentity> mustRunAfter;
     private final List<TaskIdentity> shouldRunAfter;
     private final List<TaskIdentity> finalizers;
@@ -38,14 +37,12 @@ public class DefaultPlannedTask implements PlannedTask, PlannedNodeInternal {
     public DefaultPlannedTask(
         TaskIdentity taskIdentity,
         List<? extends NodeIdentity> nodeDependencies,
-        List<TaskIdentity> taskDependencies,
         List<TaskIdentity> mustRunAfter,
         List<TaskIdentity> shouldRunAfter,
         List<TaskIdentity> finalizers
     ) {
         this.taskIdentity = taskIdentity;
         this.nodeDependencies = nodeDependencies;
-        this.taskDependencies = taskDependencies;
         this.mustRunAfter = mustRunAfter;
         this.shouldRunAfter = shouldRunAfter;
         this.finalizers = finalizers;
@@ -56,8 +53,15 @@ public class DefaultPlannedTask implements PlannedTask, PlannedNodeInternal {
         return taskIdentity;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public List<TaskIdentity> getDependencies() {
+        if (!nodeDependencies.stream().allMatch(TaskIdentity.class::isInstance)) {
+            throw new IllegalStateException("Task-only dependencies are available only for task plans");
+        }
+
+        @SuppressWarnings("unchecked")
+        List<TaskIdentity> taskDependencies = (List<TaskIdentity>) nodeDependencies;
         return taskDependencies;
     }
 
@@ -93,6 +97,6 @@ public class DefaultPlannedTask implements PlannedTask, PlannedNodeInternal {
 
     @Override
     public DefaultPlannedTask withNodeDependencies(List<? extends NodeIdentity> nodeDependencies) {
-        return new DefaultPlannedTask(taskIdentity, nodeDependencies, taskDependencies, mustRunAfter, shouldRunAfter, finalizers);
+        return new DefaultPlannedTask(taskIdentity, nodeDependencies, mustRunAfter, shouldRunAfter, finalizers);
     }
 }

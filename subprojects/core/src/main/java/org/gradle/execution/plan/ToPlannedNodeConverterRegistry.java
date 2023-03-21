@@ -19,7 +19,6 @@ package org.gradle.execution.plan;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.Nullable;
@@ -28,7 +27,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -126,7 +124,7 @@ public class ToPlannedNodeConverterRegistry {
         }
 
         @Override
-        public PlannedNodeInternal convert(Node node, List<? extends NodeIdentity> nodeDependencies, Supplier<List<CalculateTaskGraphBuildOperationType.TaskIdentity>> taskDependencies) {
+        public PlannedNodeInternal convert(Node node, List<? extends NodeIdentity> nodeDependencies) {
             throw new UnsupportedOperationException();
         }
     }

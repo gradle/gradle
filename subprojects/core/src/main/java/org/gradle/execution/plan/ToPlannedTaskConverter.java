@@ -23,7 +23,6 @@ import org.gradle.internal.taskgraph.NodeIdentity;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -81,7 +80,7 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
     }
 
     @Override
-    public DefaultPlannedTask convert(Node node, List<? extends NodeIdentity> nodeDependencies, Supplier<List<TaskIdentity>> taskDependencies) {
+    public DefaultPlannedTask convert(Node node, List<? extends NodeIdentity> nodeDependencies) {
         if (!isInSamePlan(node)) {
             throw new IllegalArgumentException("Cannot convert task from another plan: " + node);
         }
@@ -90,7 +89,6 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
         return new DefaultPlannedTask(
             getNodeIdentity(taskNode),
             nodeDependencies,
-            taskDependencies.get(),
             getTaskIdentities(taskNode.getMustSuccessors()),
             getTaskIdentities(taskNode.getShouldSuccessors()),
             getTaskIdentities(taskNode.getFinalizers())
