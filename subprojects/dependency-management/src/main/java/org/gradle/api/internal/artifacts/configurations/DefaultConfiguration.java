@@ -1302,6 +1302,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      * deprecated in the copied configuration. In 9.0, we will update this to copy
      * roles and deprecations without modification. Or, better yet, we will remove support
      * for copying configurations altogether.
+     *
+     * This means the copy created is <strong>NOT</strong> a strictly identical copy of the original, as the role
+     * will be not only a different instance, but also may return different deprecation values.
      */
     @Deprecated
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints) {
@@ -1311,13 +1314,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 .withUpgradeGuideSection(8, "configuration_copying_deprecated")
                 .nagUser();
 
-        // Begin by allowing everything, and setting deprecations for disallowed roles
-        ConfigurationRole adjustedCurrentUsage = ConfigurationRole.forUsage(
-                true, true, true,
-                !canBeConsumed || consumptionDeprecation != null,
-                !canBeResolved || resolutionAlternatives != null,
-                !canBeDeclaredAgainst || declarationAlternatives != null);
-
+        // Begin by allowing everything, and setting deprecations for disallowed roles in a new role implementation
+        boolean deprecateConsumption = !canBeConsumed || consumptionDeprecation != null;
+        boolean deprecateResolution = !canBeResolved || resolutionAlternatives != null;
+        boolean deprecateDeclarationAgainst = !canBeDeclaredAgainst || declarationAlternatives != null;
+        ConfigurationRole adjustedCurrentUsage = new CopiedConfigurationRole(deprecateConsumption, deprecateResolution, deprecateDeclarationAgainst);
 
         DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage, this.usageCanBeMutated);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
@@ -2402,5 +2403,60 @@ since users cannot create non-legacy configurations and there is no current publ
         public Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures) {
             return DefaultConfiguration.this.mapFailure(type, failures);
         }
+    }
+
+    /**
+     * A custom configuration role that is used to copy a configuration.
+     *
+     * We allow copied configurations to assume any role. However, any roles which were previously disabled will become
+     * deprecated in the copied configuration.
+     *
+     * See the notes on {@link DefaultConfiguration#createCopy(Set, Set)}.
+     */
+    private final static class CopiedConfigurationRole implements ConfigurationRole {
+        private final boolean deprecateConsumption;
+        private final boolean deprecateResolution;
+        private final boolean deprecateDeclarationAgainst;
+
+        public CopiedConfigurationRole(boolean deprecateConsumption, boolean deprecateResolution, boolean deprecateDeclarationAgainst) {
+            this.deprecateConsumption = deprecateConsumption;
+            this.deprecateResolution = deprecateResolution;
+            this.deprecateDeclarationAgainst = deprecateDeclarationAgainst;
+        }
+
+        @Override
+        public String getName() {
+            return "adjusted current usage with deprecations";
+        }
+
+        @Override
+        public boolean isConsumable() {
+            return true;
+        }
+
+        @Override
+        public boolean isResolvable() {
+            return true;
+        }
+
+        @Override
+        public boolean isDeclarableAgainst() {
+            return true;
+        }
+
+        @Override
+        public boolean isConsumptionDeprecated() {
+            return deprecateConsumption;
+        }
+
+        @Override
+        public boolean isResolutionDeprecated() {
+            return deprecateResolution;
+        }
+
+        @Override
+        public boolean isDeclarationAgainstDeprecated() {
+            return deprecateDeclarationAgainst;
+            }
     }
 }
