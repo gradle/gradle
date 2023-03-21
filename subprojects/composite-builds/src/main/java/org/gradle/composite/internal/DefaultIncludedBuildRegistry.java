@@ -171,7 +171,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
         BuildDefinition buildDefinition = buildStateFactory.buildDefinitionFor(buildSrcDir, owner);
         Path identityPath = assignPath(owner, buildDefinition.getName(), buildDefinition.getBuildRootDir());
-        BuildIdentifier buildIdentifier = idFor(buildDefinition.getName());
+        BuildIdentifier buildIdentifier = idFor(buildDefinition.getName(), identityPath);
         StandAloneNestedBuild build = buildStateFactory.createNestedBuild(buildIdentifier, identityPath, buildDefinition, owner);
         buildSrcBuildsByOwner.put(owner, build);
         nestedBuildsByRootDir.put(buildSrcDir, build);
@@ -187,7 +187,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         String name = MoreObjects.firstNonNull(buildName, dir.getName());
         validateNameIsNotBuildSrc(name, dir);
         Path identityPath = assignPath(owner, name, dir);
-        BuildIdentifier buildIdentifier = idFor(name);
+        BuildIdentifier buildIdentifier = idFor(name, identityPath);
         return buildStateFactory.createNestedTree(buildDefinition, buildIdentifier, identityPath, owner);
     }
 
@@ -223,7 +223,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             }
             validateNameIsNotBuildSrc(buildName, buildDir);
             Path idPath = buildPath != null ? buildPath : assignPath(rootBuild, buildDefinition.getName(), buildDir);
-            BuildIdentifier buildIdentifier = idFor(buildName);
+            BuildIdentifier buildIdentifier = idFor(buildName, idPath);
 
             includedBuild = includedBuildFactory.createBuild(buildIdentifier, idPath, buildDefinition, isImplicit, rootBuild);
             includedBuildsByRootDir.put(buildDir, includedBuild);
@@ -239,8 +239,8 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         return includedBuild;
     }
 
-    private BuildIdentifier idFor(String buildName) {
-        BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(buildName);
+    private BuildIdentifier idFor(String buildName, Path buildPath) {
+        BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(buildPath.getPath());
 
         // Create a synthetic id for the build, if the id is already used
         // Should instead use a structured id implementation of some kind instead
