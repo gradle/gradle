@@ -58,8 +58,8 @@ public abstract class UsageDescriber {
             configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst());
     }
 
-    private static String describeUsage(boolean isConsumable, boolean isResolvable, boolean isDeclarableAgainst,
-                                        boolean isConsumptionDeprecated, boolean isResolutionDeprecated, boolean isDeclarationAgainstDeprecated) {
+    public static String describeUsage(boolean isConsumable, boolean isResolvable, boolean isDeclarableAgainst,
+                                       boolean isConsumptionDeprecated, boolean isResolutionDeprecated, boolean isDeclarationAgainstDeprecated) {
         List<String> descriptions = new ArrayList<>();
         if (isConsumable) {
             descriptions.add("\t" + CONSUMABLE + describeDeprecation(isConsumptionDeprecated));

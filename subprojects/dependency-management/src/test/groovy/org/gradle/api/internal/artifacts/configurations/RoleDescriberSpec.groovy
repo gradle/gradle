@@ -21,16 +21,51 @@ import spock.lang.Specification
 class RoleDescriberSpec extends Specification {
     def "can describe usage for role"() {
         given:
-        def role = ConfigurationRole.forUsage(false, true, true, false, true, false)
+        def role = ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE
 
         expect:
         UsageDescriber.describeRole(role) == "\tResolvable - this configuration can be resolved by this project to a set of files (but this behavior is marked deprecated)\n" +
                 "\tDeclarable Against - this configuration can have dependencies added to it"
     }
 
-    def "can describe if usage for role which allows nothing"() {
+    def "can describe usage for role which allows nothing"() {
         given:
-        def role = ConfigurationRole.forUsage(false, false, false, false, false, false)
+        def role = new ConfigurationRole() {
+            @Override
+            String getName() {
+                return "test"
+            }
+
+            @Override
+            boolean isConsumable() {
+                return false
+            }
+
+            @Override
+            boolean isResolvable() {
+                return false
+            }
+
+            @Override
+            boolean isDeclarableAgainst() {
+                return false
+            }
+
+            @Override
+            boolean isConsumptionDeprecated() {
+                return false
+            }
+
+            @Override
+            boolean isResolutionDeprecated() {
+                return false
+            }
+
+            @Override
+            boolean isDeclarationAgainstDeprecated() {
+                return false
+            }
+        }
 
         expect:
         UsageDescriber.describeRole(role) == "\tThis configuration does not allow any usage"
