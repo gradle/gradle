@@ -535,7 +535,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration withDependencies(final Action<? super DependencySet> action) {
-        maybeWarnOnDeprecatedUsage("visitDependencies(Action)", ProperMethodUsage.RESOLVABLE, ProperMethodUsage.DECLARABLE_AGAINST);
         validateMutation(MutationType.DEPENDENCIES);
         withDependencyActions = withDependencyActions.add(action);
         return this;
@@ -977,7 +976,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        maybeWarnOnDeprecatedUsage("visitDependencies(TaskDependencyResolveContext)", ProperMethodUsage.RESOLVABLE);
+        maybeWarnOnDeprecatedUsage("visitDependencies(TaskDependencyResolveContext)", ProperMethodUsage.RESOLVABLE, ProperMethodUsage.DECLARABLE_AGAINST);
         assertIsResolvable();
         context.add(intrinsicFiles);
     }
@@ -1283,7 +1282,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void outgoing(Action<? super ConfigurationPublications> action) {
-        maybeWarnOnDeprecatedUsage("outgoing(Action)", ProperMethodUsage.CONSUMABLE);
         action.execute(outgoing);
     }
 

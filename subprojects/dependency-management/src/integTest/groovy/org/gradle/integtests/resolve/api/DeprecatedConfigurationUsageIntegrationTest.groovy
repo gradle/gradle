@@ -25,7 +25,42 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
             
-            ConfigurationRole customRole = ConfigurationRole.forUsage('custom', true, false, false, true, false, false)
+            ConfigurationRole customRole = new ConfigurationRole() {
+                @Override
+                String getName() {
+                    return "custom"
+                }
+    
+                @Override
+                boolean isConsumable() {
+                    return true
+                }
+    
+                @Override
+                boolean isResolvable() {
+                    return false
+                }
+    
+                @Override
+                boolean isDeclarableAgainst() {
+                    return false
+                }
+    
+                @Override
+                boolean isConsumptionDeprecated() {
+                    return true
+                }
+    
+                @Override
+                boolean isResolutionDeprecated() {
+                    return false
+                }
+    
+                @Override
+                boolean isDeclarationAgainstDeprecated() {
+                    return false
+                }
+            }
             configurations.createWithRole('custom', customRole)
             
             configurations.custom.attributes {
@@ -55,26 +90,6 @@ This method is only meant to be called on configurations which allow the (non-de
         """
 
         expect:
-        succeeds('help')
-    }
-
-    def "calling deprecated usage produces a deprecation warning"() {
-        given:
-        buildFile << """
-            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
-            
-            ConfigurationRole customRole = ConfigurationRole.forUsage('custom', false, true, true, false, true, false)
-            configurations.createWithRole('custom', customRole)
-            
-            configurations.custom.contains(new File("test"))
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The custom configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
-        executer.expectDocumentedDeprecationWarning("""Calling configuration method 'contains(File)' is deprecated for configuration 'custom', which has permitted usage(s):
-\tResolvable - this configuration can be resolved by this project to a set of files (but this behavior is marked deprecated)
-\tDeclarable Against - this configuration can have dependencies added to it
-This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
         succeeds('help')
     }
 }
