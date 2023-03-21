@@ -21,6 +21,7 @@ import org.gradle.cache.PersistentCache
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.io.ParallelOutputStream
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.service.scopes.Scopes
@@ -154,16 +155,20 @@ class DefaultEncryptionService(
         isEncrypting && stateType.encryptable
 
     override fun outputStream(stateType: StateType, output: () -> OutputStream): OutputStream =
-        if (shouldEncryptStreams(stateType))
-            encryptingOutputStream(output.invoke())
-        else
+        if (shouldEncryptStreams(stateType)) {
+            ParallelOutputStream.of {
+                encryptingOutputStream(output.invoke())
+            }
+        } else {
             output.invoke()
+        }
 
     override fun inputStream(stateType: StateType, input: () -> InputStream): InputStream =
-        if (shouldEncryptStreams(stateType))
+        if (shouldEncryptStreams(stateType)) {
             decryptingInputStream(input.invoke())
-        else
+        } else {
             input.invoke()
+        }
 
     private
     fun decryptingInputStream(inputStream: InputStream): InputStream {

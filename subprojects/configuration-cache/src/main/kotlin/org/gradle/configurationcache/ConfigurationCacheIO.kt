@@ -23,6 +23,7 @@ import org.gradle.configurationcache.cacheentry.EntryDetails
 import org.gradle.configurationcache.cacheentry.ModelKey
 import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.io.ByteBufferPool
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
@@ -212,7 +213,7 @@ class ConfigurationCacheIO internal constructor(
 
     internal
     fun writerContextFor(outputStream: OutputStream, profile: String): Pair<DefaultWriteContext, Codecs> =
-        KryoBackedEncoder(outputStream).let { encoder ->
+        KryoBackedEncoder(outputStream, ByteBufferPool.bufferCapacity).let { encoder ->
             writeContextFor(
                 encoder,
                 loggingTracerFor(profile, encoder),
