@@ -73,6 +73,32 @@ beforeSettings { settings ->
 =====
 ====
 
+[[configuration_caching_options_renamed]]
+=== Configuration cache options renamed
+
+In this release, the configuration cache feature was promoted from incubating to stable, and as such, all properties
+originally mentioned in the feature documentation (which had an `unsafe` part in their names, e.g. `org.gradle.unsafe.configuration-cache`)
+were renamed, in some cases, by just removing the `unsafe` bit.
+
+[cols="1,1", options="header"]
+|===
+
+| Incubating property
+| Finalized property
+
+|`org.gradle.unsafe.configuration-cache`
+|`org.gradle.configuration-cache`
+
+|`org.gradle.unsafe.configuration-cache-problems`
+|`org.gradle.configuration-cache.problems`*
+
+|`org.gradle.unsafe.configuration-cache.max-problems`
+|`org.gradle.configuration-cache.max-problems`
+|===
+
+Note that the original `org.gradle.unsafe.configuration-cache...` properties continue to be honored in this release,
+and no warnings will be produced if they are used, but they will be deprecated and removed in a future release.
+
 === Potential breaking changes
 
 ==== Kotlin DSL scripts emit compilation warnings
