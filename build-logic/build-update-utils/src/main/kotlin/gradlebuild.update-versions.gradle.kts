@@ -3,6 +3,7 @@ import com.google.gson.Gson
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.buildutils.model.ReleasedVersion
 import gradlebuild.buildutils.tasks.UpdateAgpVersions
+import gradlebuild.buildutils.tasks.UpdateKotlinVersions
 import gradlebuild.buildutils.tasks.UpdateReleasedVersions
 import java.net.URL
 
@@ -33,6 +34,12 @@ tasks.register<UpdateAgpVersions>("updateAgpVersions") {
     minimumSupportedMinor = "7.3"
     fetchNightly = false
     propertiesFile = layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties")
+}
+
+tasks.register<UpdateKotlinVersions>("updateKotlinVersions") {
+    comment = " Generated - Update by running `./gradlew updateKotlinVersions`"
+    minimumSupported = "1.6.10"
+    propertiesFile = layout.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties")
 }
 
 data class VersionBuildTimeInfo(val version: String, val buildTime: String)

@@ -19,6 +19,8 @@ package org.gradle.integtests.resolve.transform
 import groovy.transform.EqualsAndHashCode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.executer.ConfigurationCacheGradleExecuter
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode
@@ -71,6 +73,25 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
             allprojects {
                 group = "colored"
             }
+
+            import org.gradle.api.services.BuildService
+            import org.gradle.api.services.BuildServiceParameters
+            import org.gradle.internal.operations.*
+            import org.gradle.internal.taskgraph.*
+
+            abstract class LoggingListener implements BuildOperationListener, BuildService<BuildServiceParameters.None> {
+                void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) { throw new RuntimeException() }
+                void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) { throw new RuntimeException() }
+                void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+                    if (finishEvent.result instanceof CalculateTaskGraphBuildOperationType.Result) {
+                        def plannedTasks = finishEvent.result.getExecutionPlan([NodeIdentity.NodeType.TASK] as Set)
+                        println("Task-only execution plan: " + plannedTasks.collect { "PlannedTask('\${it.nodeIdentity}', deps=\${it.nodeDependencies})" })
+                    }
+                }
+            }
+
+            def listener = gradle.sharedServices.registerIfAbsent("listener", LoggingListener) { }
+            services.get(BuildEventsListenerRegistry).onOperationCompletion(listener)
         """
     }
 
@@ -121,6 +142,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         then:
         executedAndNotSkipped(":consumer:resolve")
+
+        outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolve', deps=[Task :producer:producer])]")
 
         result.groupedOutput.transform("MakeGreen")
             .assertOutputContains("processing [producer.jar]")
@@ -182,6 +205,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         then:
         executedAndNotSkipped(":consumer:resolve")
+
+        outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolve', deps=[Task :producer:producer])]")
 
         result.groupedOutput.transform("MakeColor")
             .assertOutputContains("processing [producer.jar]")
@@ -264,6 +289,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         then:
         executedAndNotSkipped(":consumer:resolve")
+
+        outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolve', deps=[Task :producer:producer])]")
 
         result.groupedOutput.transform("MakeGreen")
             .assertOutputContains("processing producer.jar using [producer.jar.red, test-4.2.jar]")
@@ -355,6 +382,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         then:
         executedAndNotSkipped(":consumer:resolve")
 
+        outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolve', deps=[Task :producer:producer])]")
+
         result.groupedOutput.transform("MakeGreen")
             .assertOutputContains("processing producer.jar using [test-4.2.jar]")
 
@@ -413,6 +442,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         then:
         executedAndNotSkipped(":consumer:resolve")
+
+        outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolve', deps=[Task :producer:producer])]")
 
         result.groupedOutput.transform("MakeRed")
             .assertOutputContains("processing [producer.jar]")
@@ -536,6 +567,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         then:
         executedAndNotSkipped(":consumer:resolve")
+
+        outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolve', deps=[Task :producer:producer])]")
 
         result.groupedOutput.transform("MakeColor")
             .assertOutputContains("processing [producer.jar]")
@@ -665,6 +698,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         then:
         executedAndNotSkipped(":consumer:resolve")
 
+        outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolve', deps=[Task :producer:producer])]")
+
         result.groupedOutput.transform("MakeGreen", "producer.out1.jar (project :producer)")
             .assertOutputContains("processing [producer.out1.jar]")
         result.groupedOutput.transform("MakeGreen", "producer.out2.jar (project :producer)")
@@ -762,6 +797,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         then:
         failureCauseContains("failed making green: producer.jar")
+
+        outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolve', deps=[Task :producer:producer])]")
 
         result.groupedOutput.transform("MakeGreen", "producer.jar (project :producer)")
             .assertOutputContains("processing [producer.jar]")
@@ -896,10 +933,20 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     }
 
     def getPlannedNodes(int transformNodeCount) {
-        def plannedNodes = buildOperations.only(CalculateTaskGraphBuildOperationType).result.executionPlan as List<PlannedNode>
-        assert plannedNodes.every { KNOWN_NODE_TYPES.contains(it.nodeIdentity.nodeType) }
-        assert plannedNodes.count { it.nodeIdentity.nodeType.toString() == TRANSFORM_STEP } == transformNodeCount
-        return plannedNodes
+        def ops = buildOperations.all(CalculateTaskGraphBuildOperationType)
+        assert !ops.empty
+        if (GradleContextualExecuter.configCache) {
+            assert ops.size() <= 2
+            assert !ConfigurationCacheGradleExecuter.testWithLoadAfterStore() : "Change the line above to == 2 when running with load after store"
+        } else {
+            assert ops.size() == 1
+        }
+        return ops.collect { op ->
+            def plannedNodes = op.result.executionPlan as List<PlannedNode>
+            assert plannedNodes.every { KNOWN_NODE_TYPES.contains(it.nodeIdentity.nodeType) }
+            assert plannedNodes.count { it.nodeIdentity.nodeType.toString() == TRANSFORM_STEP } == transformNodeCount
+            return plannedNodes
+        }.first()
     }
 
     def getExecuteTransformOperations(int expectOperationsCount, boolean expectFailure = false) {

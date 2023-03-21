@@ -49,7 +49,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         given:
         BuildResult result
         useSample("gmm-example")
-        def kotlinVersion = TestedVersions.kotlin.latestStartsWith("1.7.10")
+        def kotlinVersion = "1.7.10"
         def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("7.3")
         def arch = OperatingSystem.current().macOsX ? 'MacosX64' : 'LinuxX64'
 
@@ -147,6 +147,8 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
     private static SmokeTestGradleRunner expectingDeprecations(SmokeTestGradleRunner runner, String kotlinVersion, String agpVersion) {
         return runner.deprecations(KotlinPluginSmokeTest.KotlinDeprecations) {
             expectOrgGradleUtilWrapUtilDeprecation(kotlinVersion)
+            expectProjectConventionDeprecation(kotlinVersion, agpVersion)
+            expectConventionTypeDeprecation(kotlinVersion, agpVersion)
         }
     }
 

@@ -93,6 +93,24 @@ test {
 }
 ```
 
+Additionally, setting the test framework multiple times to the _same_ framework now accumulates any options that might be set on the framework.
+Previously, each time the framework was set, it would cause the framework options to be overwritten.
+
+The following code now results in both the "foo" and "bar" tags to be included for the `test` task:
+```
+test {
+   useJUnitPlatform {
+        includeTags("foo")
+   }
+}
+tasks.withType(Test).configureEach {
+   // previously, this would overwrite the included tags to only include "bar"
+   useJUnitPlatform {
+        includeTags("bar")
+   }
+}
+```
+
 === Removed APIs
 
 ==== Legacy ArtifactTransform API
@@ -1670,7 +1688,7 @@ Existing clients should migrate to the <<publishing_maven.adoc#publishing_maven,
 The concept of conventions is outdated and superseded by extensions.
 To reflect this in the Gradle API, the following elements are now deprecated:
 
-- link:{javadocPath}/org/gradle/api/Project.html#getConvention--[Project.html#getConvention()]
+- link:{javadocPath}/org/gradle/api/Project.html#getConvention--[org.gradle.api.Project.getConvention()]
 - `org.gradle.api.internal.HasConvention` (deprecated)
 
 The internal usages of conventions have been also cleaned up (see the deprecated items below).

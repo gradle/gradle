@@ -288,19 +288,25 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
      * @param constructorArgs null == do not invoke constructor, empty == invoke constructor with no args, non-empty = invoke constructor with args
      */
     private <T extends Task> T doCreate(final String name, final Class<T> type, @Nullable final Object[] constructorArgs, final Action<? super T> configureAction) throws InvalidUserDataException {
-        final TaskIdentity<T> identity = TaskIdentity.create(name, type, project);
+        return doCreate(TaskIdentity.create(name, type, project), constructorArgs, configureAction);
+    }
+
+    /**
+     * @param constructorArgs null == do not invoke constructor, empty == invoke constructor with no args, non-empty = invoke constructor with args
+     */
+    private <T extends Task> T doCreate(TaskIdentity<T> identity, @Nullable final Object[] constructorArgs, final Action<? super T> configureAction) throws InvalidUserDataException {
         return buildOperationExecutor.call(new CallableBuildOperation<T>() {
             @Override
             public T call(BuildOperationContext context) {
                 try {
                     T task = createTask(identity, constructorArgs);
-                    statistics.eagerTask(type);
+                    statistics.eagerTask(identity.type);
                     addTask(task, false);
                     configureAction.execute(task);
                     context.setResult(REALIZE_RESULT);
                     return task;
                 } catch (Throwable t) {
-                    throw taskCreationException(name, t);
+                    throw taskCreationException(identity.name, t);
                 }
             }
 
@@ -451,9 +457,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public <T extends Task> T createWithoutConstructor(String name, Class<T> type) {
+    public <T extends Task> T createWithoutConstructor(String name, Class<T> type, long uniqueId) {
         assertMutable("createWithoutConstructor(String, Class, Object...)");
-        return doCreate(name, type, null, Actions.doNothing());
+        return doCreate(TaskIdentity.create(name, type, project, uniqueId), null, Actions.doNothing());
     }
 
     @Override

@@ -51,6 +51,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
 
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
         registration.run {
+            add(DefaultEncryptionService::class.java)
             add(ConfigurationCacheKey::class.java)
             add(ConfigurationCacheReport::class.java)
             add(DeprecatedFeaturesListener::class.java)

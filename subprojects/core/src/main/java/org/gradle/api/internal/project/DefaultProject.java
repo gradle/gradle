@@ -74,7 +74,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -90,6 +89,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.extensibility.NoConventionMapping;
@@ -586,8 +586,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Deprecated
     @Override
-    public Convention getConvention() {
-        // TODO (donat) deprecate after all internal usages have been eliminated
+    public org.gradle.api.plugins.Convention getConvention() {
+        DeprecationLogger.deprecateMethod(Project.class, "getConvention()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
+            .nagUser();
         return extensibleDynamicObject.getConvention();
     }
 
@@ -1405,7 +1408,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ExtensionContainerInternal getExtensions() {
-        return (ExtensionContainerInternal) getConvention();
+        return (ExtensionContainerInternal) DeprecationLogger.whileDisabled(this::getConvention);
     }
 
     // Not part of the public API

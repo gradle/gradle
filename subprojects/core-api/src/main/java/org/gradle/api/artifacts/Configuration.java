@@ -436,6 +436,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @return All the configurations belonging to the configuration container that this set belongs to itself.
      */
+    @Deprecated
     Set<Configuration> getAll();
 
     /**

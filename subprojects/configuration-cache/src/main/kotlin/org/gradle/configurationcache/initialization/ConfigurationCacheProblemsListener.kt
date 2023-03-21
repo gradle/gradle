@@ -19,7 +19,6 @@ package org.gradle.configurationcache.initialization
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener
 import org.gradle.api.internal.ExternalProcessStartedListener
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
@@ -37,8 +36,9 @@ import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
+import org.gradle.configurationcache.serialization.Workarounds.canAccessConventions
 import org.gradle.internal.buildoption.FeatureFlags
-import org.gradle.internal.execution.TaskExecutionTracker
+import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
@@ -53,27 +53,28 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private val problems: ProblemsListener,
     private val problemFactory: ProblemFactory,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
-    private val taskExecutionTracker: TaskExecutionTracker,
+    private val workExecutionTracker: WorkExecutionTracker,
     private val featureFlags: FeatureFlags,
     private val inputTrackingState: InputTrackingState,
 ) : ConfigurationCacheProblemsListener {
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
-        if (atConfigurationTime()) {
+        onTaskExecutionAccessProblem(invocationDescription, task)
+    }
+
+    override fun onConventionAccess(invocationDescription: String, task: TaskInternal) {
+        if (canAccessConventions(task.javaClass.name, invocationDescription)) {
             return
         }
         onTaskExecutionAccessProblem(invocationDescription, task)
     }
 
     override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal) {
-        if (atConfigurationTime()) {
-            return
-        }
         onTaskExecutionAccessProblem(invocationDescription, task)
     }
 
     override fun onExternalProcessStarted(command: String, consumer: String?) {
-        if (!isStableConfigurationCacheEnabled() || !atConfigurationTime() || isExecutingTask() || isInputTrackingDisabled()) {
+        if (!atConfigurationTime() || isExecutingWork() || isInputTrackingDisabled()) {
             return
         }
         problems.onProblem(
@@ -166,15 +167,12 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         } ?: false
 
     private
-    fun atConfigurationTime() =
-        configurationTimeBarrier.isAtConfigurationTime
+    fun atConfigurationTime() = configurationTimeBarrier.isAtConfigurationTime
 
     private
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
 
-    private
-    fun isStableConfigurationCacheEnabled() = featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
 
     private
-    fun isExecutingTask() = taskExecutionTracker.currentTask.isPresent
+    fun isExecutingWork() = workExecutionTracker.currentTask.isPresent || workExecutionTracker.isExecutingTransformAction
 }
