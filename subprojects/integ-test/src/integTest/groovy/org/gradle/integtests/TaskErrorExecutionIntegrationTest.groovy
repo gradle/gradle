@@ -22,6 +22,13 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 
 class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
+
+    public static final String LIST_OF_PROJECTS = "Run gradle projects to get a list of available projects."
+    public static final String INFO_DEBUG = "Run with --info or --debug option to get more log output."
+    public static final String SCAN = "Run with --scan to get full insights."
+    public static final String GET_HELP = "Get more help at https://help.gradle.org"
+    public static final String GET_TASKS = "Run gradle tasks to get a list of available tasks."
+
     def setup() {
         expectReindentedValidationMessage()
         executer.beforeExecute {
@@ -151,9 +158,10 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         then:
         failure.assertHasDescription("Task 'someTest' not found in root project 'test' and its subprojects. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'.")
         failure.assertHasResolutions(
-            "Run gradle tasks to get a list of available tasks.",
-            "Run with --info or --debug option to get more log output.",
-            "Run with --scan to get full insights.",
+            GET_TASKS,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
 
         when:
@@ -161,9 +169,10 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         then:
         failure.assertHasDescription("Cannot locate tasks that match ':someTest' as task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'.")
         failure.assertHasResolutions(
-            "Run gradle tasks to get a list of available tasks.",
-            "Run with --info or --debug option to get more log output.",
-            "Run with --scan to get full insights.",
+            GET_TASKS,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
 
         when:
@@ -171,9 +180,10 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         then:
         failure.assertHasDescription("Cannot locate tasks that match 'a:someTest' as task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'.")
         failure.assertHasResolutions(
-            "Run gradle tasks to get a list of available tasks.",
-            "Run with --info or --debug option to get more log output.",
-            "Run with --scan to get full insights.",
+            GET_TASKS,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
     }
 
@@ -193,9 +203,10 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         then:
         failure.assertHasDescription("Task 'soTa' is ambiguous in root project 'test' and its subprojects. Candidates are: 'someTaskA', 'someTaskAll', 'someTaskB'.")
         failure.assertHasResolutions(
-            "Run gradle tasks to get a list of available tasks.",
-            "Run with --info or --debug option to get more log output.",
-            "Run with --scan to get full insights.",
+            GET_TASKS,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
 
         when:
@@ -203,9 +214,10 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         then:
         failure.assertHasDescription("Cannot locate tasks that match 'a:soTa' as task 'soTa' is ambiguous in project ':a'. Candidates are: 'someTaskA', 'someTaskAll'.")
         failure.assertHasResolutions(
-            "Run gradle tasks to get a list of available tasks.",
-            "Run with --info or --debug option to get more log output.",
-            "Run with --scan to get full insights.",
+            GET_TASKS,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
     }
 
@@ -224,9 +236,10 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         then:
         failure.assertHasDescription("Cannot locate tasks that match 'prog:someTask' as project 'prog' not found in root project 'test'. Some candidates are: 'projA', 'projB'.")
         failure.assertHasResolutions(
-            "Run gradle projects to get a list of available projects.",
-            "Run with --info or --debug option to get more log output.",
-            "Run with --scan to get full insights.",
+            LIST_OF_PROJECTS,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
     }
 
@@ -245,9 +258,10 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         then:
         failure.assertHasDescription("Cannot locate tasks that match 'proj:someTask' as project 'proj' is ambiguous in root project 'test'. Candidates are: 'projA', 'projB'.")
         failure.assertHasResolutions(
-            "Run gradle projects to get a list of available projects.",
-            "Run with --info or --debug option to get more log output.",
-            "Run with --scan to get full insights.",
+            LIST_OF_PROJECTS,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
     }
 }
