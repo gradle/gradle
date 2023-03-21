@@ -29,9 +29,11 @@ import java.io.File
 
 
 @ServiceScope(Scopes.BuildTree::class)
+internal
 class ConfigurationCacheKey(
     private val startParameter: ConfigurationCacheStartParameter,
-    private val buildActionRequirements: BuildActionModelRequirements
+    private val buildActionRequirements: BuildActionModelRequirements,
+    private val encryptionConfiguration: EncryptionConfiguration
 ) {
 
     val string: String by unsafeLazy {
@@ -72,6 +74,8 @@ class ConfigurationCacheKey(
 
         putBoolean(startParameter.isOffline)
         putBuildScan()
+        putBoolean(encryptionConfiguration.isEncrypting)
+        putHash(encryptionConfiguration.encryptionKeyHashCode)
     }
 
     private

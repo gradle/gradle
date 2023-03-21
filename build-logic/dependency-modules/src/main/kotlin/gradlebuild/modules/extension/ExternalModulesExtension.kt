@@ -20,7 +20,7 @@ import gradlebuild.modules.model.License
 
 abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
-    val groovyVersion = if (isBundleGroovy4) "4.0.7" else "3.0.13"
+    val groovyVersion = if (isBundleGroovy4) "4.0.7" else "3.0.15"
     val configurationCacheReportVersion = "1.2"
     val kotlinVersion = "1.8.10"
 
@@ -88,6 +88,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val jakartaXmlBind = "jakarta.xml.bind:jakarta.xml.bind-api"
     val jansi = "org.fusesource.jansi:jansi"
     val jatl = "com.googlecode.jatl:jatl"
+    val javaPoet = "com.squareup:javapoet"
     val jaxbCore = "com.sun.xml.bind:jaxb-core"
     val jaxbImpl = "com.sun.xml.bind:jaxb-impl"
     val jcifs = "jcifs:jcifs"
@@ -227,6 +228,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         jakartaXmlBind to License.EDL,
         jansi to License.Apache2,
         jatl to License.Apache2,
+        javaPoet to License.Apache2,
         jaxbCore to License.EDL,
         jaxbImpl to License.EDL,
         jcifs to License.LGPL21,

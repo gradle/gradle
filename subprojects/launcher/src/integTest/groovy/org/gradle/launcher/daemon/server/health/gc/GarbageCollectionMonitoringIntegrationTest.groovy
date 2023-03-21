@@ -25,6 +25,7 @@ import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.JavaGarbageCollector
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy
 
 import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_STOPPING_IMMEDIATELY_MESSAGE
 import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE
@@ -41,6 +42,17 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
         garbageCollector = version
         executer.withBuildJvmOpts(garbageCollector.configuration.jvmArgs.split(" "))
         executer.withEnvironmentVars(JAVA_TOOL_OPTIONS: "-D${DefaultGarbageCollectionMonitor.DISABLE_POLLING_SYSTEM_PROPERTY}=true")
+    }
+
+    def "does not expire daemon when performance monitoring is disabled"() {
+        given:
+        configureGarbageCollectionHeapEventsFor(256, 512, 35, garbageCollector.monitoringStrategy.gcRateThreshold + 0.2)
+
+        when:
+        run "injectEvents", "-D${HealthExpirationStrategy.ENABLE_PERFORMANCE_MONITORING}=false"
+
+        then:
+        !daemons.daemon.log.contains(DAEMON_WILL_STOP_MESSAGE)
     }
 
     def "expires daemon when heap leaks slowly"() {

@@ -31,8 +31,6 @@ import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslJarsOf
 import org.gradle.kotlin.dsl.support.serviceOf
 
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-
 
 /**
  * Exposes `*.gradle.kts` scripts from regular Kotlin source-sets as binary Gradle plugins.
@@ -58,7 +56,7 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
         override val jvmTarget: Provider<JavaVersion> =
             DeprecationLogger.whileDisabled(Factory {
                 @Suppress("DEPRECATION")
-                project.the<KotlinDslPluginOptions>().jvmTarget.map { JavaVersion.toVersion(it) }
+                project.kotlinDslPluginOptions.jvmTarget.map { JavaVersion.toVersion(it) }
             })!!
 
         override val kotlinSourceDirectorySet: SourceDirectorySet
@@ -67,11 +65,15 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
 }
 
 
+val Project.kotlinDslPluginOptions: KotlinDslPluginOptions
+    get() = extensions.getByType()
+
+
 private
-val Project.sourceSets
-    get() = project.the<SourceSetContainer>()
+val Project.sourceSets: SourceSetContainer
+    get() = extensions.getByType()
 
 
 private
 val SourceSet.kotlin: SourceDirectorySet
-    get() = @Suppress("deprecation") withConvention(KotlinSourceSet::class) { kotlin }
+    get() = extensions.getByName("kotlin") as SourceDirectorySet

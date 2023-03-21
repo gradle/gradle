@@ -119,7 +119,7 @@ public interface DeprecatableConfiguration extends Configuration {
     /**
      * Configures if a configuration can have dependencies declared upon it.
      *
-     * @since 8.1
+     * @since 8.0
      */
     @Incubating
     void setCanBeDeclaredAgainst(boolean allowed);
@@ -129,7 +129,7 @@ public interface DeprecatableConfiguration extends Configuration {
      * Defaults to true.
      * @return true if this configuration can have dependencies declared
      *
-     * @since 8.1
+     * @since 8.0
      */
     @Incubating
     boolean isCanBeDeclaredAgainst();

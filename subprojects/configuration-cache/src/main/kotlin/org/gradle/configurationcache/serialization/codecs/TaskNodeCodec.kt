@@ -90,6 +90,7 @@ class TaskNodeCodec(
             writeClass(taskType)
             writeString(projectPath)
             writeString(taskName)
+            writeLong(task.taskIdentity.uniqueId)
             writeNullableString(task.reasonTaskIsIncompatibleWithConfigurationCache.orElse(null))
 
             withDebugFrame({ taskType.name }) {
@@ -118,9 +119,10 @@ class TaskNodeCodec(
         val taskType = readClassOf<Task>()
         val projectPath = readString()
         val taskName = readString()
+        val uniqueId = readLong()
         val incompatibleReason = readNullableString()
 
-        val task = createTask(projectPath, taskName, taskType, incompatibleReason)
+        val task = createTask(projectPath, taskName, taskType, uniqueId, incompatibleReason)
 
         withTaskOf(taskType, task, userTypesCodec) {
             readUpToDateSpec(task)
@@ -172,7 +174,7 @@ class TaskNodeCodec(
 
     private
     suspend fun WriteContext.writeRequiredServices(task: TaskInternal) {
-        writeCollection(task.requiredServices.elements)
+        writeCollection(task.requiredServices.searchServices())
     }
 
     private
@@ -475,8 +477,8 @@ suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
 
 
 private
-fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>, incompatibleReason: String?): TaskInternal {
-    val task = getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass) as TaskInternal
+fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>, uniqueId: Long, incompatibleReason: String?): TaskInternal {
+    val task = getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass, uniqueId) as TaskInternal
     if (incompatibleReason != null) {
         task.notCompatibleWithConfigurationCache(incompatibleReason)
     }

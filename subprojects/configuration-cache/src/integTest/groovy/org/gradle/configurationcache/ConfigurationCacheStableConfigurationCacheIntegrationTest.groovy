@@ -19,7 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.configurationcache.fixtures.ExternalProcessFixture
 
 class ConfigurationCacheStableConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    def "external processes at the configuration time do not fail build if the flag is not enabled"() {
+    def "external processes at configuration time are reported as problems"() {
         given:
         def snippets = ExternalProcessFixture.processBuilder().groovy.newSnippets(new ExternalProcessFixture(testDirectory))
 
@@ -29,9 +29,11 @@ class ConfigurationCacheStableConfigurationCacheIntegrationTest extends Abstract
         """)
 
         when:
-        configurationCacheRun(":help")
+        configurationCacheFails(":help")
 
         then:
-        outputContains("Hello")
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'build.gradle': external process started")
+        }
     }
 }

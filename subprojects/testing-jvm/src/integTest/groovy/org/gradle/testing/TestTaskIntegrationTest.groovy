@@ -544,8 +544,10 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 testImplementation 'junit:junit:4.13'
             }
 
-            sourceCompatibility = 1.9
-            targetCompatibility = 1.9
+            java {
+                sourceCompatibility = 1.9
+                targetCompatibility = 1.9
+            }
         """
     }
 

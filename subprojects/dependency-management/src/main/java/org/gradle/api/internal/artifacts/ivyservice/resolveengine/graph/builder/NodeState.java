@@ -43,7 +43,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Describables;
@@ -54,11 +53,10 @@ import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.DelegatingDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
-import org.gradle.internal.component.model.VariantSelectionResult;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.slf4j.Logger;
@@ -1336,31 +1334,12 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
-    private static class NonTransitiveVariantDependencyMetadata implements DependencyMetadata {
+    private static class NonTransitiveVariantDependencyMetadata extends DelegatingDependencyMetadata {
         private final DependencyMetadata dependencyMetadata;
 
         public NonTransitiveVariantDependencyMetadata(DependencyMetadata dependencyMetadata) {
+            super(dependencyMetadata);
             this.dependencyMetadata = dependencyMetadata;
-        }
-
-        @Override
-        public ComponentSelector getSelector() {
-            return dependencyMetadata.getSelector();
-        }
-
-        @Override
-        public VariantSelectionResult selectVariants(ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
-            return dependencyMetadata.selectVariants(consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
-        }
-
-        @Override
-        public List<ExcludeMetadata> getExcludes() {
-            return dependencyMetadata.getExcludes();
-        }
-
-        @Override
-        public List<IvyArtifactName> getArtifacts() {
-            return dependencyMetadata.getArtifacts();
         }
 
         @Override
@@ -1374,28 +1353,8 @@ public class NodeState implements DependencyGraphNode {
         }
 
         @Override
-        public boolean isChanging() {
-            return dependencyMetadata.isChanging();
-        }
-
-        @Override
         public boolean isTransitive() {
             return false;
-        }
-
-        @Override
-        public boolean isConstraint() {
-            return dependencyMetadata.isConstraint();
-        }
-
-        @Override
-        public boolean isEndorsingStrictVersions() {
-            return dependencyMetadata.isEndorsingStrictVersions();
-        }
-
-        @Override
-        public String getReason() {
-            return dependencyMetadata.getReason();
         }
 
         @Override

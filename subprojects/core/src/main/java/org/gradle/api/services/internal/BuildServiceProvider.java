@@ -19,6 +19,7 @@ package org.gradle.api.services.internal;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
@@ -29,11 +30,24 @@ import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nonnull;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 /**
  * A provider for build services that are registered or consumed.
  */
 @SuppressWarnings("rawtypes")
 public abstract class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements Managed {
+
+    static <T> Class<T> getProvidedType(Provider<T> provider) {
+        return ((ProviderInternal<T>) provider).getType();
+    }
+
+    static BuildServiceProvider<?, ?> asBuildServiceProvider(Provider<? extends BuildService<?>> service) {
+        if (service instanceof BuildServiceProvider) {
+            return uncheckedCast(service);
+        }
+        throw new UnsupportedOperationException("Unexpected provider for a build service: " + service);
+    }
 
     public interface Listener {
         Listener EMPTY = provider -> {

@@ -27,6 +27,7 @@ import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 /**
@@ -45,17 +46,21 @@ public abstract class BasePlugin implements Plugin<Project> {
 
         BasePluginExtension baseExtension = project.getExtensions().create(BasePluginExtension.class, "base", DefaultBasePluginExtension.class, project);
 
-        @SuppressWarnings("deprecation")
-        BasePluginConvention convention = project.getObjects().newInstance(org.gradle.api.plugins.internal.DefaultBasePluginConvention.class, baseExtension);
-        @SuppressWarnings("deprecation")
-        Convention projectConvention = project.getConvention();
-        projectConvention.getPlugins().put("base", convention);
-
+        addConvention(project, baseExtension);
         configureExtension(project, baseExtension);
         configureBuildConfigurationRule(project);
         configureArchiveDefaults(project, baseExtension);
         configureConfigurations(project);
         configureAssemble((ProjectInternal) project);
+    }
+
+
+    @SuppressWarnings("deprecation")
+    private void addConvention(Project project, BasePluginExtension baseExtension) {
+        BasePluginConvention convention = project.getObjects().newInstance(org.gradle.api.plugins.internal.DefaultBasePluginConvention.class, baseExtension);
+        DeprecationLogger.whileDisabled(() -> {
+            project.getConvention().getPlugins().put("base", convention);
+        });
     }
 
     private void configureExtension(Project project, BasePluginExtension extension) {
@@ -81,12 +86,12 @@ public abstract class BasePlugin implements Plugin<Project> {
 
     private void configureConfigurations(final Project project) {
         RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
-        ((ProjectInternal)project).getInternalStatus().convention("integration");
+        ((ProjectInternal) project).getInternalStatus().convention("integration");
 
         final Configuration archivesConfiguration = configurations.maybeCreateWithRole(Dependency.ARCHIVES_CONFIGURATION, ConfigurationRoles.INTENDED_CONSUMABLE, false, false).
             setDescription("Configuration for archive artifacts.");
 
-        final Configuration defaultConfiguration =  configurations.maybeCreateWithRole(Dependency.DEFAULT_CONFIGURATION, ConfigurationRoles.INTENDED_CONSUMABLE, false, false).
+        final Configuration defaultConfiguration = configurations.maybeCreateWithRole(Dependency.DEFAULT_CONFIGURATION, ConfigurationRoles.INTENDED_CONSUMABLE, false, false).
             setDescription("Configuration for default artifacts.");
 
         final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(

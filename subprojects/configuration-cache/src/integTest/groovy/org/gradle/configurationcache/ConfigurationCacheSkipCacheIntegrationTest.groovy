@@ -34,8 +34,8 @@ class ConfigurationCacheSkipCacheIntegrationTest extends AbstractConfigurationCa
             }
             tasks.register("myTask", MyTask) {
                 // use an undeclared input so we can test --refresh-dependencies
-                // File.bytes is not tracked for now; we'll have to change it once we start to track it
-                message.set(new String(new File("message").bytes))
+                // URL.text is not tracked for now; we'll have to change it once we start to track it
+                message.set(file("message").toPath().toUri().toURL().text)
             }
         """
         file("message") << "foo"

@@ -90,7 +90,6 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.attributes.IncubatingAttributesChecker;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -556,8 +555,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    @Deprecated
     @Override
     public Set<Configuration> getAll() {
+        DeprecationLogger.deprecateAction("Calling the Configuration.getAll() method")
+                .withAdvice("Use the configurations container to access the set of configurations instead.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecated_configuration_get_all")
+                .nagUser();
+
         return ImmutableSet.copyOf(configurationsProvider.getAll());
     }
 
@@ -1277,11 +1283,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public boolean isIncubating() {
-        return IncubatingAttributesChecker.isAnyIncubating(getAttributes());
-    }
-
-    @Override
     public void outgoing(Action<? super ConfigurationPublications> action) {
         maybeWarnOnDeprecatedUsage("outgoing(Action)", ProperMethodUsage.CONSUMABLE);
         action.execute(outgoing);
@@ -1773,20 +1774,26 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     /**
      * Check that the combination of consumable, resolvable and declarable flags is sensible.
-     * This method should be called only after all mutations are known to be complete.
-     * This shouldn't do anything stronger than log to info, otherwise it will interrupt dependency reports.
-     * Many improper configurations are still in use, we can't just fail if one is detected here.
+     * <p>
+     * This should only check configurations <strong>not</strong> created in the {@link ConfigurationRoles#LEGACY} role.
+     * <p>
+     * This method should be called only after all mutations are known to be complete.  This shouldn't do
+     * anything stronger than log to info, otherwise it will interrupt dependency reports. Many improper
+     * configurations are still in use, we can't just fail if one is detected here.
      */
+    @SuppressWarnings("deprecation")
     private void logIfImproperConfiguration() {
-        if (canBeConsumed && canBeResolved) {
-            LOGGER.info("The configuration " + identityPath.toString() + " is both resolvable and consumable. This is considered a legacy configuration and it will eventually only be possible to be one of these.");
-        }
+        if (roleAtCreation != ConfigurationRoles.LEGACY) {
+            if (canBeConsumed && canBeResolved) {
+                LOGGER.info("The configuration " + identityPath.toString() + " is both resolvable and consumable. This is considered a legacy configuration and it will eventually only be possible to be one of these.");
+            }
 
-        if (canBeConsumed && canBeDeclaredAgainst) {
-            LOGGER.info("The configuration " + identityPath.toString() + " is both consumable and declarable. This combination is incorrect, only one of these flags should be set.");
-        }
+            if (canBeConsumed && canBeDeclaredAgainst) {
+                LOGGER.info("The configuration " + identityPath.toString() + " is both consumable and declarable. This combination is incorrect, only one of these flags should be set.");
+            }
 
-        // canBeDeclared && canBeResolved is a valid and expected combination
+            // canBeDeclared && canBeResolved is a valid and expected combination
+        }
     }
 
     @Override
@@ -1809,11 +1816,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public void preventUsageMutation() {
         usageCanBeMutated = false;
-    }
-
-    @VisibleForTesting
-    public boolean isUsageMutable() {
-        return usageCanBeMutated;
     }
 
     @SuppressWarnings("deprecation")
@@ -2005,57 +2007,6 @@ since users cannot create non-legacy configurations and there is no current publ
         this.consistentResolutionSource = null;
         this.consistentResolutionReason = null;
         return this;
-    }
-
-    /**
-     * Print a formatted representation of a Configuration
-     */
-    public String dump() {
-        StringBuilder reply = new StringBuilder();
-
-        reply.append("\nConfiguration:");
-        reply.append("  class='").append(this.getClass()).append("'");
-        reply.append("  name='").append(this.getName()).append("'");
-        reply.append("  hashcode='").append(this.hashCode()).append("'");
-
-        reply.append("\nLocal Dependencies:");
-        if (getDependencies().size() > 0) {
-            for (Dependency d : getDependencies()) {
-                reply.append("\n   ").append(d);
-            }
-        } else {
-            reply.append("\n   none");
-        }
-
-        reply.append("\nLocal Artifacts:");
-        if (getArtifacts().size() > 0) {
-            for (PublishArtifact a : getArtifacts()) {
-                reply.append("\n   ").append(a);
-            }
-        } else {
-            reply.append("\n   none");
-        }
-
-        reply.append("\nAll Dependencies:");
-        if (getAllDependencies().size() > 0) {
-            for (Dependency d : getAllDependencies()) {
-                reply.append("\n   ").append(d);
-            }
-        } else {
-            reply.append("\n   none");
-        }
-
-
-        reply.append("\nAll Artifacts:");
-        if (getAllArtifacts().size() > 0) {
-            for (PublishArtifact a : getAllArtifacts()) {
-                reply.append("\n   ").append(a);
-            }
-        } else {
-            reply.append("\n   none");
-        }
-
-        return reply.toString();
     }
 
     private abstract static class ResolveState {

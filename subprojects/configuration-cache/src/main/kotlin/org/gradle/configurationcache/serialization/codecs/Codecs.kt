@@ -120,6 +120,7 @@ class Codecs(
 ) {
     private
     val userTypesBindings: Bindings
+
     private
     val fingerprintUserTypesBindings: Bindings
 
@@ -200,6 +201,8 @@ class Codecs(
             bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
 
             bind(BeanSpecCodec)
+
+            bind(RegisteredFlowActionCodec)
         }
 
         userTypesBindings = makeUserTypeBindings {
@@ -209,7 +212,8 @@ class Codecs(
                 nestedProviderCodec(
                     valueSourceProviderFactory,
                     buildStateRegistry,
-                    flowProviders)
+                    flowProviders
+                )
             )
         }
 
@@ -218,7 +222,8 @@ class Codecs(
                 propertyFactory,
                 filePropertyFactory,
                 nestedProviderCodecForFingerprint(
-                    valueSourceProviderFactory)
+                    valueSourceProviderFactory
+                )
             )
         }
     }
