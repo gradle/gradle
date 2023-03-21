@@ -379,8 +379,6 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
         given:
         ShellScript script = ShellScript.builder().printText("Hello, world").writeTo(testDirectory, "script")
 
-        withStableConfigurationCacheEnabled()
-
         buildFile << """
             import ${CompletableFuture.name}
 
@@ -406,8 +404,6 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
     def "background job can execute external process with Gradle API at configuration time"() {
         given:
         ShellScript script = ShellScript.builder().printText("Hello, world").writeTo(testDirectory, "script")
-
-        withStableConfigurationCacheEnabled()
 
         buildFile << """
             import ${CompletableFuture.name}
@@ -441,11 +437,5 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
 
     private static String getExecutors() {
         return """(gradle.extensions.serviceRef.get()._requiredServices.backgroundJobExecutors)"""
-    }
-
-    private withStableConfigurationCacheEnabled() {
-        settingsFile("""
-            enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
-        """)
     }
 }
