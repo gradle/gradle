@@ -22,25 +22,23 @@ import org.gradle.execution.plan.PlannedNodeInternal;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity.NodeType;
 
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Predicate;
-
-import static java.util.Collections.newSetFromMap;
 
 /**
  * A graph of planned nodes that supports extracting sub-graphs of different {@link DetailLevel levels of detail}
@@ -71,14 +69,15 @@ public class PlannedNodeGraph {
     }
 
     private List<PlannedNodeInternal> computePlan(DetailLevel detailLevel) {
-        HashMap<NodeIdentity, List<? extends NodeIdentity>> plannedNodeByIdentity = new HashMap<>();
+        Map<NodeIdentity, List<? extends NodeIdentity>> plannedNodeDependenciesByIdentity = new HashMap<>();
         for (PlannedNodeInternal plannedNode : plannedNodes) {
-            plannedNodeByIdentity.put(plannedNode.getNodeIdentity(), plannedNode.getNodeDependencies());
+            plannedNodeDependenciesByIdentity.put(plannedNode.getNodeIdentity(), plannedNode.getNodeDependencies());
         }
 
-        Function<NodeIdentity, NodeIdentity> maybeIdentityProvider = id -> detailLevel.contains(id.getNodeType()) ? id : null;
-        Function<NodeIdentity, List<? extends NodeIdentity>> traverser = id -> {
-            List<? extends NodeIdentity> deps = plannedNodeByIdentity.get(id);
+        Predicate<NodeIdentity> inDetailLevel = id -> detailLevel.contains(id.getNodeType());
+        IdentityProvider<NodeIdentity> identityProvider = id -> inDetailLevel.test(id) ? id : null;
+        DependencyTraverser<NodeIdentity> traverser = id -> {
+            List<? extends NodeIdentity> deps = plannedNodeDependenciesByIdentity.get(id);
             if (deps == null) {
                 throw new IllegalStateException("No dependencies for node: " + id);
             }
@@ -93,10 +92,10 @@ public class PlannedNodeGraph {
             }
 
             List<? extends NodeIdentity> nodeDependencies = plannedNode.getNodeDependencies();
-            if (nodeDependencies.isEmpty() || nodeDependencies.stream().allMatch(it -> detailLevel.contains(it.getNodeType()))) {
+            if (nodeDependencies.isEmpty() || nodeDependencies.stream().allMatch(inDetailLevel)) {
                 newPlannedNodes.add(plannedNode);
             } else {
-                List<NodeIdentity> newNodeDependencies = computeDependencies(traverser, maybeIdentityProvider, nodeIdentity);
+                List<NodeIdentity> newNodeDependencies = computeDependencies(traverser, identityProvider, nodeIdentity);
                 newPlannedNodes.add(plannedNode.withNodeDependencies(newNodeDependencies));
             }
         }
@@ -162,7 +161,7 @@ public class PlannedNodeGraph {
                 ToPlannedNodeConverter converter = converterRegistry.getConverter(node);
                 if (converter != null && converter.isInSamePlan(node)) {
                     List<? extends NodeIdentity> nodeDependencies = findNodeDependencies(node);
-                    PlannedNodeInternal plannedNode = converter.convert(node, nodeDependencies, () -> findTaskDependencies(node));
+                    PlannedNodeInternal plannedNode = converter.convert(node, nodeDependencies);
                     plannedNodes.add(plannedNode);
                 }
             }
@@ -173,32 +172,16 @@ public class PlannedNodeGraph {
         }
 
         private List<? extends NodeIdentity> findNodeDependencies(Node node) {
-            return findDependencies(node, Node::getDependencySuccessors, it -> true);
+            return computeDependencies(Node::getDependencySuccessors, this::getNodeIdentityOrNull, node);
         }
 
-        private List<TaskIdentity> findTaskDependencies(Node node) {
-            @SuppressWarnings("unchecked")
-            List<TaskIdentity> dependencies = (List<TaskIdentity>) findDependencies(node, Node::getDependencySuccessors, TaskIdentity.class::isInstance);
-            return dependencies;
-        }
-
-        private List<? extends NodeIdentity> findDependencies(
-            Node node,
-            Function<? super Node, ? extends Collection<Node>> traverser,
-            Predicate<NodeIdentity> identityFilter
-        ) {
-            return computeDependencies(traverser, n -> getNodeIdentityOrNull(n, identityFilter), node);
-        }
-
-        private NodeIdentity getNodeIdentityOrNull(Node node, Predicate<NodeIdentity> identityFilter) {
+        private NodeIdentity getNodeIdentityOrNull(Node node) {
             ToPlannedNodeConverter converter = converterRegistry.getConverter(node);
             if (converter == null) {
                 return null;
             }
 
-            // Cache all identities even if the current predicate will filter them out afterwards
-            NodeIdentity nodeIdentity = nodeIdentityCache.computeIfAbsent(node, converter::getNodeIdentity);
-            return identityFilter.test(nodeIdentity) ? nodeIdentity : null;
+            return nodeIdentityCache.computeIfAbsent(node, converter::getNodeIdentity);
         }
     }
 
@@ -206,14 +189,14 @@ public class PlannedNodeGraph {
      * Computes dependencies of a node in breadth-first order, stopping at each dependency for which identity is provided.
      */
     private static <T> List<NodeIdentity> computeDependencies(
-        Function<? super T, ? extends Collection<? extends T>> traverser,
-        Function<T, NodeIdentity> maybeIdentityProvider,
+        DependencyTraverser<T> traverser,
+        IdentityProvider<T> identityProvider,
         T start
     ) {
         List<NodeIdentity> resultDependencies = new ArrayList<>();
 
-        Queue<T> queue = new ArrayDeque<>(traverser.apply(start));
-        Set<T> seen = newSetFromMap(new IdentityHashMap<>());
+        Queue<T> queue = new ArrayDeque<>(traverser.getDependencies(start));
+        Set<T> seen = new HashSet<>();
 
         while (!queue.isEmpty()) {
             T node = queue.remove();
@@ -221,15 +204,24 @@ public class PlannedNodeGraph {
                 continue;
             }
 
-            NodeIdentity identity = maybeIdentityProvider.apply(node);
-            if (identity != null) {
+            NodeIdentity identity = identityProvider.get(node);
+            if (identity == null) {
+                // skip the node and look at its dependencies
+                queue.addAll(traverser.getDependencies(node));
+            } else {
                 resultDependencies.add(identity);
-                continue;
             }
-
-            queue.addAll(traverser.apply(node));
         }
 
         return resultDependencies;
+    }
+
+    private interface DependencyTraverser<T> {
+        Collection<? extends T> getDependencies(T node);
+    }
+
+    private interface IdentityProvider<T> {
+        @Nullable
+        NodeIdentity get(T node);
     }
 }
