@@ -42,6 +42,7 @@ import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,6 +105,8 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
     @Nonnull
     private static List<ExecutableElement> getExecutableElementsFromAnnotatedElements(Collection<? extends Element> annotatedClassElements) {
         return annotatedClassElements.stream()
+            // Ensure that the type elements have a stable order, as the annotation processing engine does not guarantee it
+            .sorted(Comparator.comparing(AbstractInstrumentationProcessor::elementQualifiedNameIfPresent))
             .flatMap(element -> element.getKind() == ElementKind.METHOD ? Stream.of(element) : element.getEnclosedElements().stream())
             .filter(it -> it.getKind() == ElementKind.METHOD)
             .map(it -> (ExecutableElement) it)
@@ -143,5 +146,12 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
         );
 
         generatorHost.generateCodeForRequestedInterceptors(requests);
+    }
+
+    private static String elementQualifiedNameIfPresent(Element element) {
+        if (element instanceof TypeElement) {
+            return ((TypeElement) element).getQualifiedName().toString();
+        }
+        return element.getSimpleName().toString();
     }
 }
