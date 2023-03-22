@@ -25,6 +25,7 @@ import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
@@ -143,7 +144,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .addParameter(String.class, "name")
             .addParameter(String.class, "descriptor")
             .addParameter(boolean.class, "isInterface")
-            .addParameter(ParameterizedTypeName.get(Supplier.class, MethodNode.class), "readMethodNode");
+            .addParameter(InstrumentationMetadata.class, "metadata");
     }
 
     private static final MethodSpec BINARY_CLASS_NAME_OF = MethodSpec.methodBuilder("binaryClassNameOf")
@@ -172,7 +173,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         Consumer<? super FailureInfo> onFailure
     ) {
         if (owner.isInterceptSubtypes()) {
-            code.beginControlFlow("if (typeRegistry.isInstanceOf(owner, $S))", owner.getType().getInternalName());
+            code.beginControlFlow("if (metadata.isInstanceOf(owner, $S))", owner.getType().getInternalName());
         } else {
             code.beginControlFlow("if (owner.equals($S))", owner.getType().getInternalName());
         }
@@ -278,7 +279,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         }
 
         CodeBlock maxLocalsVar = CodeBlock.of("maxLocals");
-        code.addStatement("int $L = readMethodNode.get().maxLocals", maxLocalsVar);
+        code.addStatement("int $L = metadata.getMethodNode().maxLocals", maxLocalsVar);
 
         // Store the constructor arguments in local variables, so that we can duplicate them for both the constructor and the interceptor:
         Type[] params = Type.getArgumentTypes(standardCallableDescriptor(callable));

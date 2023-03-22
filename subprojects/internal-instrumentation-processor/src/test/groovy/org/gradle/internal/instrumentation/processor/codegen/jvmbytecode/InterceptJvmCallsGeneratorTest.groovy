@@ -53,8 +53,8 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
             class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
-                        String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
-                    if (typeRegistry.isInstanceOf(owner, "java/io/File")) {
+                        String descriptor, boolean isInterface, InstrumentationMetadata metadata) {
+                    if (metadata.isInstanceOf(owner, "java/io/File")) {
                         /**
                          * Intercepting instance method: {@link java.io.File#listFiles()}
                          * Intercepted by {@link FileInterceptorsDeclaration#intercept_listFiles(File)}
