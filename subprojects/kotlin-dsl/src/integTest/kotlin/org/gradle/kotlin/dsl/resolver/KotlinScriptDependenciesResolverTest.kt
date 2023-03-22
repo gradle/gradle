@@ -277,9 +277,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `do not report file warning on script compilation failure in currently edited script`() {
-        // because the IDE already provides user feedback for those
-//        assumeNonEmbeddedGradleExecuter()
-
         val editedScript = withBuildScript(
             """
             doNotExists()
@@ -317,6 +314,31 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         }
     }
 
+    @Test
+    fun `report line warning on runtime failure in currently edited script when location aware hints are enabled`() {
+        assumeNonEmbeddedGradleExecuter()
+
+        withFile(
+            "gradle.properties",
+            """
+            ${EditorReports.locationAwareEditorHintsPropertyName}=true
+            """
+        )
+        val editedScript = withBuildScript(
+            """
+            configurations.getByName("doNotExists")
+            """
+        )
+
+        resolvedScriptDependencies(editedScript).apply {
+            assertContainsBasicDependencies()
+        }
+
+        recorder.apply {
+            assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
+            assertSingleLineWarningReport("Configuration with name 'doNotExists' not found.", 1)
+        }
+    }
 
     private
     val recorder = ResolverTestRecorder()
