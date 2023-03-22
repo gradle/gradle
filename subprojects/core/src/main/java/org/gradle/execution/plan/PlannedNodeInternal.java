@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.taskgraph;
+package org.gradle.execution.plan;
 
-/**
- * The identity of a node in the execution graph.
- * <p>
- * Needs to be unique across all the execution graphs of the current build.
- *
- * @implNote The implementations must provide value-based equality.
- * @since 8.1
- */
-public interface NodeIdentity {
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.internal.taskgraph.NodeIdentity;
 
-    enum NodeType {
-        TASK,
-        TRANSFORM_STEP
-    }
+import java.util.List;
 
-    NodeType getNodeType();
+public interface PlannedNodeInternal extends CalculateTaskGraphBuildOperationType.PlannedNode {
+
+    /**
+     * Creates a copy of this node with the given dependencies.
+     */
+    PlannedNodeInternal withNodeDependencies(List<? extends NodeIdentity> nodeDependencies);
 
 }
