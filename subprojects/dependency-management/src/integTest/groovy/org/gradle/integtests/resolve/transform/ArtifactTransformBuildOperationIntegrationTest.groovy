@@ -1000,7 +1000,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def expectedTransformId2 = new PlannedTransformStepIdentityWithoutId([
             consumerBuildPath: ":",
             consumerProjectPath: ":consumer",
-            componentId: [buildPath: "included", projectPath: ":nested-producer"],
+            componentId: [buildPath: ":included", projectPath: ":nested-producer"],
             sourceAttributes: [color: "blue", artifactType: "jar"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "included", name: "nested-producer", version: "unspecified"]],
@@ -1087,7 +1087,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         def expectedTransformId = new PlannedTransformStepIdentityWithoutId([
             consumerBuildPath: ":included",
             consumerProjectPath: ":consumer",
-            componentId: [buildPath: "included", projectPath: ":producer"],
+            componentId: [buildPath: ":included", projectPath: ":producer"],
             sourceAttributes: [color: "blue", artifactType: "jar"],
             targetAttributes: [color: "green", artifactType: "jar"],
             capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
