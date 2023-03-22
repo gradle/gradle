@@ -28,6 +28,7 @@ import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterc
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
+import org.gradle.internal.instrumentation.model.CallableOwnerInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
@@ -163,14 +164,18 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         FieldSpec.builder(MethodVisitor.class, "methodVisitor", Modifier.PRIVATE, Modifier.FINAL).build();
 
     private static void generateCodeForOwner(
-        Type owner,
+        CallableOwnerInfo owner,
         Map<Type, FieldSpec> implTypeFields,
         List<CallInterceptionRequest> requestsForOwner,
         CodeBlock.Builder code,
         Consumer<? super CallInterceptionRequest> onProcessedRequest,
         Consumer<? super FailureInfo> onFailure
     ) {
-        code.beginControlFlow("if (owner.equals($S))", owner.getInternalName());
+        if (owner.isInterceptSubtypes()) {
+            code.beginControlFlow("if (typeRegistry.isInstanceOf(owner, $S))", owner.getType().getInternalName());
+        } else {
+            code.beginControlFlow("if (owner.equals($S))", owner.getType().getInternalName());
+        }
         for (CallInterceptionRequest request : requestsForOwner) {
             CodeBlock.Builder nested = CodeBlock.builder();
             try {
