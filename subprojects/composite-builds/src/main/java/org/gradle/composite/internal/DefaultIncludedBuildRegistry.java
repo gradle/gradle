@@ -240,7 +240,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     private BuildIdentifier idFor(String buildName, Path buildPath) {
-        BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(buildPath.getPath());
+        BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(buildPath.getPath().substring(1));
 
         // Create a synthetic id for the build, if the id is already used
         // Should instead use a structured id implementation of some kind instead
