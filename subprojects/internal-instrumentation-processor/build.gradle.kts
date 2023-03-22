@@ -31,3 +31,12 @@ dependencies {
     testImplementation(libs.compileTesting)
     testImplementation(project(":core"))
 }
+
+tasks.named<Test>("test").configure {
+    // Needed on Java19 for com.google.testing.compile:compile-testing methods
+    jvmArgs(
+        "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+        "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+        "--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED"
+    )
+}
