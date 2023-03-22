@@ -472,6 +472,9 @@ Configuration cache was introduced as an experimental feature back in [Gradle 6.
 
 To learn how to benefit from this feature, refer to the [Configuration Cache](userguide/configuration_cache.html) documentation.
 
+See [the upgrading guide](userguide/upgrading_version_8.html#configuration_caching_options_renamed) if you were already using this feature in previous releases, 
+as all `org.gradle.unsafe.configuration-cache...` properties were renamed to reflect the fact they are now fully supported.
+
 ### Promoted features in the Provider API
 
 The `ValueSource` API is no longer incubating. The following classes and methods are now considered stable:
