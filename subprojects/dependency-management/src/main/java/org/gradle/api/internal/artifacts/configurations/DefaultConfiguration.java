@@ -1308,8 +1308,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      */
     @Deprecated
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints) {
-        DeprecationLogger.deprecateAction("Copying configurations is deprecated")
-                .withAdvice("Consider creating a new configuration or extending an existing one instead.")
+        DeprecationLogger.deprecateAction("Copying configurations")
+                .withAdvice("Consider creating a new configuration and extending " + this.getDisplayName() + " instead.")
                 .willBeRemovedInGradle9()
                 .withUpgradeGuideSection(8, "configuration_copying_deprecated")
                 .nagUser();

@@ -58,13 +58,25 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             .withJvmArguments("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
             .forwardOutput()
 
-        def declarationConfiguration = ["compileClasspathCopy", "compileClasspathCopy2", "runtimeClasspathCopy", "runtimeClasspathCopy2", "testCompileClasspathCopy", "testCompileClasspathCopy2", "testRuntimeClasspathCopy", "testRuntimeClasspathCopy2"]
-        declarationConfiguration.each {
+        def nonDelcarableConfigurations = ["compileClasspathCopy", "compileClasspathCopy2", "runtimeClasspathCopy", "runtimeClasspathCopy2", "testCompileClasspathCopy", "testCompileClasspathCopy2", "testRuntimeClasspathCopy", "testRuntimeClasspathCopy2"]
+        nonDelcarableConfigurations.each { conf ->
             runner.expectDeprecationWarning(
-                "The $it configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations",
-                "https://github.com/ben-manes/gradle-versions-plugin/issues/718"
+                    "The $conf configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations",
+                    "https://github.com/ben-manes/gradle-versions-plugin/issues/718"
             )
         }
+
+        def copiedConfigurations = ["annotationProcessor", "compileClasspath", "runtimeClasspath", "testAnnotationProcessor", "testCompileClasspath", "testRuntimeClasspath", "classpath"]
+        copiedConfigurations.each { conf ->
+            ['sub1', 'sub2'].each { sub ->
+                runner.expectDeprecationWarning(
+                        "Copying configurations has been deprecated. This is scheduled to be removed in Gradle 9.0. Consider creating a new configuration and extending configuration ':$sub:$conf' instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#configuration_copying_deprecated",
+                        "https://github.com/ben-manes/gradle-versions-plugin/issues/718")
+            }
+        }
+        runner.expectDeprecationWarning(
+                "Copying configurations has been deprecated. This is scheduled to be removed in Gradle 9.0. Consider creating a new configuration and extending configuration ':classpath' instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#configuration_copying_deprecated",
+                "https://github.com/ben-manes/gradle-versions-plugin/issues/718")
 
         def result = runner.build()
 
