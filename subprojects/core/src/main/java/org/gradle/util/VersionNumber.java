@@ -64,7 +64,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
         this.patch = patch;
         this.qualifier = qualifier;
         this.scheme = scheme;
-        // TODO log deprecation once protobuf/osdetector plugin is fixed
+        // TODO log deprecation once intellij/studio are fixed
         if (logDeprecation) {
             logDeprecation();
             deprecationLogged = true;
@@ -110,7 +110,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     @Override
     public int compareTo(VersionNumber other) {
-        // TODO log deprecation once protobuf/osdetector plugin is fixed
+        // TODO log deprecation once intellij/studio are fixed
         if (major != other.major) {
             return major - other.major;
         }
@@ -172,7 +172,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
     public static VersionNumber parse(String versionString) {
-        // TODO log deprecation once protobuf/osdetector plugin is fixed
+        // TODO log deprecation once intellij/studio are fixed
         return DEFAULT_SCHEME.parse(versionString);
     }
 
