@@ -298,6 +298,12 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
         expect: "build warned about transitive = true variant"
         executer.withStackTraceChecksDisabled()
+        executer.expectDocumentedDeprecationWarning("""Calling configuration method 'setTransitive(boolean)' is deprecated for configuration 'apiElements', which has permitted usage(s):
+\tConsumable - this configuration can be selected by another project as a dependency
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Declarable Against'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+        executer.expectDocumentedDeprecationWarning("""Calling configuration method 'setTransitive(boolean)' is deprecated for configuration 'runtimeElements', which has permitted usage(s):
+\tConsumable - this configuration can be selected by another project as a dependency
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Declarable Against'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
         executer.expectDeprecationWarning("Publication ignores 'transitive = false' at configuration level. This behavior is deprecated. Consider using 'transitive = false' at the dependency level if you need this to be published.")
         succeeds 'publish'
     }
