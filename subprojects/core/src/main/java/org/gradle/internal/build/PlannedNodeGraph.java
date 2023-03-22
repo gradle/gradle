@@ -144,7 +144,6 @@ public class PlannedNodeGraph {
         private final DetailLevel detailLevel;
 
         private final List<PlannedNodeInternal> plannedNodes = new ArrayList<>();
-        // This cache is necessary, because PlannedNodeGraph relies on node identities being reference-equal
         private final Map<Node, NodeIdentity> nodeIdentityCache = new IdentityHashMap<>();
 
         public Collector(ToPlannedNodeConverterRegistry converterRegistry) {
