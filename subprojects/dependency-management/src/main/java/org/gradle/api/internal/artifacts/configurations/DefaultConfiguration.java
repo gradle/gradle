@@ -1124,7 +1124,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DefaultConfiguration exclude(Map<String, String> excludeRuleArgs) {
-        maybeWarnOnDeprecatedUsage("exclude(Map)", ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE);
         validateMutation(MutationType.DEPENDENCIES);
         parsedExcludeRules = null;
         excludeRules.add(excludeRuleArgs);
@@ -1482,7 +1481,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void setReturnAllVariants(boolean returnAllVariants) {
-        maybeWarnOnDeprecatedUsage("setReturnAllVariants(boolean)", ProperMethodUsage.CONSUMABLE);
+        maybeWarnOnDeprecatedUsage("setReturnAllVariants(boolean)", ProperMethodUsage.RESOLVABLE);
         if (!canBeMutated) {
             throw new IllegalStateException("Configuration is unmodifiable");
         }
@@ -1993,7 +1992,7 @@ since users cannot create non-legacy configurations and there is no current publ
 
     @Override
     public Configuration shouldResolveConsistentlyWith(Configuration versionsSource) {
-        maybeWarnOnDeprecatedUsage("shouldResolveConsistentlyWith(Configuration)", ProperMethodUsage.DECLARABLE_AGAINST);
+        maybeWarnOnDeprecatedUsage("shouldResolveConsistentlyWith(Configuration)", ProperMethodUsage.RESOLVABLE);
         this.consistentResolutionSource = (ConfigurationInternal) versionsSource;
         this.consistentResolutionReason = "version resolved in " + versionsSource + " by consistent resolution";
         return this;

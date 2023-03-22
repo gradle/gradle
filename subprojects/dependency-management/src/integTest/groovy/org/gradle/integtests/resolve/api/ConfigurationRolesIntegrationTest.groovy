@@ -46,6 +46,17 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        if (code == 'canBeResolved = false') {
+            executer.expectDocumentedDeprecationWarning("""Calling configuration method 'resolve()' is deprecated for configuration 'internal', which has permitted usage(s):
+\tConsumable - this configuration can be selected by another project as a dependency
+\tDeclarable Against - this configuration can have dependencies added to it
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+        } else {
+            executer.expectDocumentedDeprecationWarning("""Calling configuration method 'resolve()' is deprecated for configuration 'internal', which has permitted usage(s):
+\tDeclarable Against - this configuration can have dependencies added to it
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+
+        }
         fails 'checkState'
 
         then:
@@ -113,6 +124,28 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        if (method == 'getResolvedConfiguration()') {
+            if (role == 'canBeResolved = false') {
+                executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getResolvedConfiguration()' is deprecated for configuration 'internal', which has permitted usage(s):
+\tConsumable - this configuration can be selected by another project as a dependency
+\tDeclarable Against - this configuration can have dependencies added to it
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+            } else {
+                executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getResolvedConfiguration()' is deprecated for configuration 'internal', which has permitted usage(s):
+\tDeclarable Against - this configuration can have dependencies added to it
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+            }
+        } else if (method == 'getIncoming().getFiles()') {
+            executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getIncoming()' is deprecated for configuration 'internal', which has permitted usage(s):
+\tDeclarable Against - this configuration can have dependencies added to it
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+
+        } else if (method == 'getIncoming().getResolutionResult()') {
+            executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getIncoming()' is deprecated for configuration 'internal', which has permitted usage(s):
+\tDeclarable Against - this configuration can have dependencies added to it
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
+
+        }
         fails 'checkState'
 
         then:
