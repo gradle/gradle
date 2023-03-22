@@ -871,6 +871,24 @@ class GradleModuleMetadataParserTest extends Specification {
         json.replace('"formatVersion": "1.1"', '"formatVersion": "' + metadataVersion + '"')
     }
 
+    def "new hierarchy in ModuleDependency is added to equals and hashcode"() {
+        when:
+        // If this test fails, you added a type hierarchy to GradleModuleMetadataParser.ModuleDependency, update this test _after_ making sure it is considered by hashcode and equals
+        def modDepClass = GradleModuleMetadataParser.ModuleDependency.class
+
+        then:
+        modDepClass.getSuperclass() == Object.class
+    }
+
+    def "new hierarchy in ModuleDependencyConstraint is added to equals and hashcode"() {
+        when:
+        // If this test fails, you added a type hierarchy to GradleModuleMetadataParser.ModuleDependency, update this test _after_ making sure it is considered by hashcode and equals
+        def modDepClass = GradleModuleMetadataParser.ModuleDependencyConstraint.class
+
+        then:
+        modDepClass.getSuperclass() == Object.class
+    }
+
     def "new fields in ModuleDependency are added to equals and hashcode"() {
         when:
         // If this test fails, you added a field to GradleModuleMetadataParser.ModuleDependency, add it here _after_ making sure it is considered by hashcode and equals
