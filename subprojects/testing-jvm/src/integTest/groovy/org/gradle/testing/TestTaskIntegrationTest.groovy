@@ -37,7 +37,11 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
 
-            configurations.all { incoming.beforeResolve { throw new RuntimeException() } }
+            configurations.all { 
+                if (it.canBeResolved || it.canBeConsumed) {
+                    incoming.beforeResolve { throw new RuntimeException() } 
+                }
+            }
         """
 
         when:
