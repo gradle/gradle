@@ -66,6 +66,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 '''
 
         when:
+        executer.expectDocumentedDeprecationWarning("Copying configurations has been deprecated. This is scheduled to be removed in Gradle 9.0. Consider creating a new configuration and extending configuration ':compile' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configuration_copying_deprecated")
         run taskName
 
         then:
