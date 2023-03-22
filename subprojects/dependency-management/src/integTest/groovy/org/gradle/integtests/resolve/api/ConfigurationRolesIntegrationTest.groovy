@@ -135,16 +135,10 @@ This method is only meant to be called on configurations which allow the (non-de
 \tDeclarable Against - this configuration can have dependencies added to it
 This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
             }
-        } else if (method == 'getIncoming().getFiles()') {
+        } else if (role == 'canBeResolved = false; canBeConsumed = false' && method.toString().startsWith('getIncoming()')) {
             executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getIncoming()' is deprecated for configuration 'internal', which has permitted usage(s):
 \tDeclarable Against - this configuration can have dependencies added to it
-This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
-
-        } else if (method == 'getIncoming().getResolutionResult()') {
-            executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getIncoming()' is deprecated for configuration 'internal', which has permitted usage(s):
-\tDeclarable Against - this configuration can have dependencies added to it
-This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
-
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable, Consumable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
         }
         fails 'checkState'
 
@@ -235,5 +229,4 @@ This method is only meant to be called on configurations which allow the (non-de
         'query or resolve only' | 'canBeConsumed = false'
         'bucket'                | 'canBeResolved = false; canBeConsumed = false'
     }
-
 }
