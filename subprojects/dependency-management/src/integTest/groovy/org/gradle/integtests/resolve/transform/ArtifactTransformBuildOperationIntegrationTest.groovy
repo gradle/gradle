@@ -26,6 +26,7 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode
 import org.gradle.internal.taskgraph.NodeIdentity
 import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType
+import org.gradle.test.fixtures.file.TestFile
 
 import java.util.function.Predicate
 
@@ -46,6 +47,11 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
 
         def matchNode(plannedNode) {
             plannedNode.nodeIdentity.nodeType.toString() == nodeType && identityPredicate.test(plannedNode.nodeIdentity)
+        }
+
+        @Override
+        String toString() {
+            "NodeMatcher(nodeId=$nodeId, nodeType=$nodeType)"
         }
     }
 
@@ -69,11 +75,19 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
     def setup() {
         requireOwnGradleUserHomeDir()
 
+        // group name is included in the capabilities of components, which are part of the transform identity
         buildFile << """
             allprojects {
                 group = "colored"
             }
+        """
 
+        printTaskOnlyExecutionPlan()
+    }
+
+    def printTaskOnlyExecutionPlan(TestFile buildFile = getBuildFile()) {
+        // Log a task-only execution plan, which can only be computed during the runtime of the build
+        buildFile << """
             import org.gradle.api.services.BuildService
             import org.gradle.api.services.BuildServiceParameters
             import org.gradle.internal.operations.*
@@ -95,7 +109,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         """
     }
 
-    def setupExternalDependency() {
+    def setupExternalDependency(TestFile buildFile = getBuildFile()) {
         def m1 = mavenRepo.module("test", "test", "4.2").publish()
         m1.artifactFile.text = "test-test"
 
@@ -121,15 +135,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         setupExternalDependency()
 
         buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                    }
-                }
-            }
-
             project(":consumer") {
                 dependencies {
                     implementation project(":producer")
@@ -756,6 +761,96 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         ])
     }
 
+    def "single transform used by multiple consumers creates a node per consumer"() {
+        settingsFile << """
+            include 'producer', 'consumer1', 'consumer2'
+        """
+
+        setupBuildWithColorTransformImplementation()
+        setupExternalDependency()
+
+        buildFile << """
+            project(":consumer1") {
+                dependencies {
+                    implementation project(":producer")
+                }
+            }
+            project(":consumer2") {
+                dependencies {
+                    implementation project(":producer")
+                }
+            }
+        """
+
+        when:
+        run ":consumer1:resolve", ":consumer2:resolve"
+
+        then:
+        executedAndNotSkipped(":consumer1:resolve", ":consumer2:resolve")
+
+        outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer1:resolve', deps=[Task :producer:producer]), PlannedTask('Task :consumer2:resolve', deps=[Task :producer:producer])]")
+
+        result.groupedOutput.transform("MakeGreen")
+            .assertOutputContains("processing [producer.jar]")
+        result.groupedOutput.task(":consumer1:resolve")
+            .assertOutputContains("result = [producer.jar.green, test-4.2.jar]")
+        result.groupedOutput.task(":consumer2:resolve")
+            .assertOutputContains("result = [producer.jar.green, test-4.2.jar]")
+
+        List<PlannedNode> plannedNodes = getPlannedNodes(2)
+
+        def expectedTransformId1 = new PlannedTransformStepIdentityWithoutId([
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer1",
+            componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "blue", artifactType: "jar"],
+            targetAttributes: [color: "green", artifactType: "jar"],
+            capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
+            artifactName: "producer.jar",
+            dependenciesConfigurationIdentity: null,
+        ])
+
+        def expectedTransformId2 = new PlannedTransformStepIdentityWithoutId([
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer2",
+            componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "blue", artifactType: "jar"],
+            targetAttributes: [color: "green", artifactType: "jar"],
+            capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
+            artifactName: "producer.jar",
+            dependenciesConfigurationIdentity: null,
+        ])
+
+        checkExecutionPlanMatchingDependencies(
+            plannedNodes,
+            [
+                taskMatcher("node1", ":producer:producer", []),
+                transformStepMatcher("node2", expectedTransformId1, ["node1"]),
+                transformStepMatcher("node3", expectedTransformId2, ["node1"]),
+                taskMatcher("node4", ":consumer1:resolve", ["node2"]),
+                taskMatcher("node5", ":consumer2:resolve", ["node3"]),
+            ]
+        )
+
+        List<BuildOperationRecord> executeTransformationOps = getExecuteTransformOperations(2)
+
+        with(executeTransformationOps[0].details) {
+            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
+            transformActionClass == "MakeGreen"
+
+            transformerName == "MakeGreen"
+            subjectName == "producer.jar (project :producer)"
+        }
+
+        with(executeTransformationOps[0].details) {
+            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
+            transformActionClass == "MakeGreen"
+
+            transformerName == "MakeGreen"
+            subjectName == "producer.jar (project :producer)"
+        }
+    }
+
     def "failing transform"() {
         settingsFile << """
             include 'producer', 'consumer'
@@ -838,18 +933,205 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
     }
 
+    def "planned transform for external dependency substituted by included build"() {
+        file("included/settings.gradle") << """
+            include 'nested-producer'
+        """
+        setupBuildWithColorAttributes(file("included/build.gradle"))
+
+        settingsFile << """
+            includeBuild("included") {
+                dependencySubstitution {
+                    substitute(module("test:test")).using(project(":nested-producer"))
+                }
+            }
+        """
+
+        settingsFile << """
+            include 'producer', 'consumer'
+        """
+
+        setupBuildWithColorTransformImplementation()
+        setupExternalDependency()
+
+        buildFile << """
+            project(":consumer") {
+                dependencies {
+                    implementation project(":producer")
+                }
+            }
+        """
+
+        when:
+        run ":consumer:resolve"
+
+        then:
+        executedAndNotSkipped(":consumer:resolve")
+
+        outputContains("Task-only execution plan: [PlannedTask('Task :producer:producer', deps=[]), PlannedTask('Task :consumer:resolve', deps=[Task :producer:producer, Task :included:nested-producer:producer])]")
+        outputContains("Task-only execution plan: [PlannedTask('Task :included:nested-producer:producer', deps=[])]")
+
+        result.groupedOutput.transform("MakeGreen", "producer.jar (project :producer)")
+            .assertOutputContains("processing [producer.jar]")
+
+        result.groupedOutput.transform("MakeGreen", "nested-producer.jar (project :included:nested-producer)")
+            .assertOutputContains("processing [nested-producer.jar]")
+
+        result.groupedOutput.task(":consumer:resolve")
+            .assertOutputContains("result = [producer.jar.green, nested-producer.jar.green]")
+
+        // Included build runs a single task and no transforms
+        def includedPlannedNodes = getPlannedNodes(0, ":included")
+        includedPlannedNodes.size() == 1
+
+        def plannedNodes = getPlannedNodes(2, ":")
+
+        def expectedTransformId1 = new PlannedTransformStepIdentityWithoutId([
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer",
+            componentId: [buildPath: ":", projectPath: ":producer"],
+            sourceAttributes: [color: "blue", artifactType: "jar"],
+            targetAttributes: [color: "green", artifactType: "jar"],
+            capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
+            artifactName: "producer.jar",
+            dependenciesConfigurationIdentity: null,
+        ])
+
+        def expectedTransformId2 = new PlannedTransformStepIdentityWithoutId([
+            consumerBuildPath: ":",
+            consumerProjectPath: ":consumer",
+            componentId: [buildPath: "included", projectPath: ":nested-producer"],
+            sourceAttributes: [color: "blue", artifactType: "jar"],
+            targetAttributes: [color: "green", artifactType: "jar"],
+            capabilities: [[group: "included", name: "nested-producer", version: "unspecified"]],
+            artifactName: "nested-producer.jar",
+            dependenciesConfigurationIdentity: null,
+        ])
+
+        checkExecutionPlanMatchingDependencies(
+            [*includedPlannedNodes, *plannedNodes],
+            [
+                taskMatcher("node1", ":producer:producer", []),
+                transformStepMatcher("node2", expectedTransformId1, ["node1"]),
+                taskMatcher("node3", ":included:nested-producer:producer", []),
+                transformStepMatcher("node4", expectedTransformId2, ["node3"]),
+                taskMatcher("node5", ":consumer:resolve", ["node2", "node4"]),
+            ]
+        )
+
+        List<BuildOperationRecord> executeTransformationOps = getExecuteTransformOperations(2)
+
+        // Order of scheduling/execution is not guaranteed between the transforms
+        checkExecuteTransformOperation(executeTransformationOps, expectedTransformId1, [
+            transformActionClass: "MakeGreen",
+            transformerName: "MakeGreen",
+            subjectName: "producer.jar (project :producer)",
+        ])
+        checkExecuteTransformOperation(executeTransformationOps, expectedTransformId2, [
+            transformActionClass: "MakeGreen",
+            transformerName: "MakeGreen",
+            subjectName: "nested-producer.jar (project :included:nested-producer)",
+        ])
+    }
+
+    def "included build transform operations are captured"() {
+        file("included/settings.gradle") << """
+            include 'producer', 'consumer'
+        """
+        def includedBuildFile = file("included/build.gradle")
+        includedBuildFile << """
+            allprojects {
+                group = "colored"
+            }
+        """
+        setupBuildWithColorTransformImplementation(includedBuildFile)
+        setupExternalDependency(includedBuildFile)
+        includedBuildFile << """
+            project(":consumer") {
+                dependencies {
+                    implementation project(":producer")
+                }
+            }
+        """
+
+        settingsFile << """
+            includeBuild("included")
+        """
+
+        buildFile << """
+            task rootConsumer() {
+                dependsOn(gradle.includedBuild("included").task(":consumer:resolve"))
+            }
+        """
+
+        when:
+        run ":rootConsumer"
+
+        then:
+        executedAndNotSkipped(":rootConsumer")
+
+        outputContains("Task-only execution plan: [PlannedTask('Task :rootConsumer', deps=[Task :included:consumer:resolve])]")
+        outputContains("Task-only execution plan: [PlannedTask('Task :included:producer:producer', deps=[]), PlannedTask('Task :included:consumer:resolve', deps=[Task :included:producer:producer])]")
+
+        result.groupedOutput.transform("MakeGreen", "producer.jar (project :included:producer)")
+            .assertOutputContains("processing [producer.jar]")
+
+        result.groupedOutput.task(":included:consumer:resolve")
+            .assertOutputContains("result = [producer.jar.green, test-4.2.jar]")
+
+        // Root build runs a single task and no transforms
+        getPlannedNodes(0, ":").size() == 1
+
+        def plannedNodes = getPlannedNodes(1, ":included")
+
+        def expectedTransformId = new PlannedTransformStepIdentityWithoutId([
+            consumerBuildPath: ":included",
+            consumerProjectPath: ":consumer",
+            componentId: [buildPath: "included", projectPath: ":producer"],
+            sourceAttributes: [color: "blue", artifactType: "jar"],
+            targetAttributes: [color: "green", artifactType: "jar"],
+            capabilities: [[group: "colored", name: "producer", version: "unspecified"]],
+            artifactName: "producer.jar",
+            dependenciesConfigurationIdentity: null,
+        ])
+
+        checkExecutionPlanMatchingDependencies(
+            plannedNodes,
+            [
+                taskMatcher("node1", ":included:producer:producer", []),
+                transformStepMatcher("node2", expectedTransformId, ["node1"]),
+                taskMatcher("node3", ":included:consumer:resolve", ["node2"]),
+            ]
+        )
+
+        List<BuildOperationRecord> executeTransformationOps = getExecuteTransformOperations(1)
+
+        with(executeTransformationOps[0].details) {
+            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId)
+            transformActionClass == "MakeGreen"
+
+            transformerName == "MakeGreen"
+            subjectName == "producer.jar (project :included:producer)"
+        }
+    }
+
     void checkExecutionPlanMatchingDependencies(List<PlannedNode> plannedNodes, List<NodeMatcher> nodeMatchers) {
         Map<TypedNodeId, List<String>> expectedDependencyNodeIdsByTypedNodeId = [:]
         Map<TypedNodeId, String> nodeIdByTypedNodeId = [:]
 
+        def usedMatchers = new HashSet<NodeMatcher>()
         for (def plannedNode : plannedNodes) {
             def matchers = nodeMatchers.findAll { it.matchNode(plannedNode) }
             assert matchers.size() == 1, "Expected exactly one matcher for node ${plannedNode.nodeIdentity}, but found ${matchers.size()}"
             def nodeMatcher = matchers[0]
             def nodeId = getTypedNodeId(plannedNode.nodeIdentity)
+            assert !usedMatchers.contains(nodeMatcher)
+            usedMatchers.add(nodeMatcher)
             nodeIdByTypedNodeId[nodeId] = nodeMatcher.nodeId
             expectedDependencyNodeIdsByTypedNodeId[nodeId] = nodeMatcher.dependencyNodeIds
         }
+        def unusedMatchers = nodeMatchers.toSet().tap { it.removeAll(usedMatchers) }
+        assert unusedMatchers.size() == 0
 
         for (def plannedNode : plannedNodes) {
             def typedNodeId = getTypedNodeId(plannedNode.nodeIdentity)
@@ -932,12 +1214,13 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         }
     }
 
-    def getPlannedNodes(int transformNodeCount) {
+    List<PlannedNode> getPlannedNodes(int transformNodeCount, String buildPath = ":") {
         def ops = buildOperations.all(CalculateTaskGraphBuildOperationType)
+            .findAll { it.details.buildPath == buildPath }
         assert !ops.empty
         if (GradleContextualExecuter.configCache) {
             assert ops.size() <= 2
-            assert !ConfigurationCacheGradleExecuter.testWithLoadAfterStore() : "Change the line above to == 2 when running with load after store"
+            assert !ConfigurationCacheGradleExecuter.testWithLoadAfterStore(): "Change the line above to == 2 when running with load after store"
         } else {
             assert ops.size() == 1
         }
