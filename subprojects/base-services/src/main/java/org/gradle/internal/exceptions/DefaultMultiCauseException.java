@@ -162,4 +162,13 @@ public class DefaultMultiCauseException extends GradleException implements Multi
         }
         return message;
     }
+
+    public boolean hasOnlyNonGradleSpecifiedCauses() {
+        for (Throwable cause : getCauses()) {
+            if (!(cause instanceof NonGradleCauseException)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
