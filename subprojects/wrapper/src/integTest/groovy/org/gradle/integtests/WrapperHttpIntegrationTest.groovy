@@ -67,8 +67,9 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Issue('https://github.com/gradle/gradle-private/issues/1537')
     def "downloads wrapper from http server and caches"() {
         given:
-        prepareWrapper(getDefaultBaseUrl())
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+        prepareWrapper(getDefaultBaseUrl())
 
         when:
         def result = wrapperExecuter.withTasks('hello').run()
@@ -86,8 +87,9 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Issue('https://github.com/gradle/gradle-private/issues/1537')
     def "recovers from failed download"() {
         given:
-        prepareWrapper(getDefaultBaseUrl())
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
+        prepareWrapper(getDefaultBaseUrl())
 
         when:
         wrapperExecuter.withStackTraceChecksDisabled()
@@ -109,8 +111,9 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Issue('https://github.com/gradle/gradle-private/issues/3032')
     def "fails with reasonable message when download times out"() {
         given:
-        prepareWrapper(getDefaultBaseUrl())
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expectAndBlock(server.get("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultBaseUrl())
 
         when:
         wrapperExecuter.withStackTraceChecksDisabled()
@@ -124,8 +127,9 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Issue('https://github.com/gradle/gradle-private/issues/3032')
     def "does not leak credentials when download times out"() {
         given:
-        prepareWrapper("http://username:password@localhost:${server.port}")
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expectAndBlock(server.get("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper("http://username:password@localhost:${server.port}")
 
         when:
         wrapperExecuter.withStackTraceChecksDisabled()
@@ -140,8 +144,9 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def "reads timeout from wrapper properties"() {
         given:
-        prepareWrapper(getDefaultBaseUrl())
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expectAndBlock(server.get("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultBaseUrl())
 
         and:
         file('gradle/wrapper/gradle-wrapper.properties') << "networkTimeout=5000"
@@ -157,14 +162,17 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "downloads wrapper via proxy"() {
         given:
         proxyServer.start()
+
+        and:
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
         prepareWrapper(server.uri.toString())
+
         file("gradle.properties") << """
     systemProp.http.proxyHost=localhost
     systemProp.http.proxyPort=${proxyServer.port}
     systemProp.http.nonProxyHosts=
 """
-        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
-
         when:
         def result = wrapperExecuter.withTasks('hello').run()
 
@@ -180,8 +188,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         proxyServer.start('my_user', 'my_password')
 
         and:
-        prepareWrapper(server.uri.toString())
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+        prepareWrapper(server.uri.toString())
+
         file("gradle.properties") << """
     systemProp.http.proxyHost=localhost
     systemProp.http.proxyPort=${proxyServer.port}
@@ -189,7 +199,6 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     systemProp.http.proxyUser=my_user
     systemProp.http.proxyPassword=my_password
 """
-
         when:
         def result = wrapperExecuter.withTasks('hello').run()
 
@@ -202,9 +211,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def "downloads wrapper from basic authenticated server and caches"() {
         given:
-        prepareWrapper(getDefaultAuthenticatedBaseUrl())
         server.withBasicAuthentication("jdoe", "changeit")
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+        prepareWrapper(getDefaultAuthenticatedBaseUrl())
 
         when:
         result = wrapperExecuter.withTasks('hello').run()
@@ -227,9 +237,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         '''.stripIndent()
 
         and:
-        prepareWrapper(getDefaultBaseUrl())
         server.withBasicAuthentication("jdoe", "changeit")
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+        prepareWrapper(getDefaultBaseUrl())
 
         when:
         result = wrapperExecuter.withTasks('hello').run()
@@ -240,9 +251,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def "warns about using basic authentication over insecure connection"() {
         given:
-        prepareWrapper(getDefaultAuthenticatedBaseUrl())
         server.withBasicAuthentication("jdoe", "changeit")
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+        prepareWrapper(getDefaultAuthenticatedBaseUrl())
 
         when:
         result = wrapperExecuter.withTasks('hello').run()
@@ -253,9 +265,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def "does not leak basic authentication credentials in output"() {
         given:
-        prepareWrapper(getDefaultAuthenticatedBaseUrl())
         server.withBasicAuthentication("jdoe", "changeit")
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+        prepareWrapper(getDefaultAuthenticatedBaseUrl())
 
         when:
         def result = wrapperExecuter.withTasks('hello').run()
@@ -266,8 +279,9 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def "does not leak basic authentication credentials in exception messages"() {
         given:
-        prepareWrapper(getDefaultAuthenticatedBaseUrl())
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
+        prepareWrapper(getDefaultAuthenticatedBaseUrl())
 
         when:
         wrapperExecuter.withTasks('hello').run()
@@ -291,17 +305,17 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         )
 
         and:
-        prepareWrapper(getDefaultAuthenticatedBaseUrl())
         server.withBasicAuthentication("jdoe", "changeit")
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+        prepareWrapper(getDefaultAuthenticatedBaseUrl())
 
         when:
         result = wrapperExecuter.withTasks('hello').run()
 
         then:
         outputContains('hello')
-        
         and:
-        proxyServer.requestCount == 1
+        proxyServer.requestCount == 2
     }
 }
