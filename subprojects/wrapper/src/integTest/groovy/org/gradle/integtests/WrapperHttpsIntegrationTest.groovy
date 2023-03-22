@@ -77,6 +77,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "does not warn about using basic authentication over secure connection"() {
         given:
         prepareWrapper(getAuthenticatedBaseUrl())
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL")
             .expectUserAgent(matchesNameAndVersion("gradlew", Download.UNKNOWN_VERSION))
             .sendFile(distribution.binDistribution))
@@ -99,6 +100,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     systemProp.https.proxyPort=${proxyServer.port}
     systemProp.http.nonProxyHosts=
 """
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
         when:
@@ -118,6 +120,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         and:
         prepareWrapper(getAuthenticatedBaseUrl())
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
         // Note that the HTTPS protocol handler uses the same nonProxyHosts property as the HTTP protocol.
@@ -148,6 +151,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         given:
         def baseUrl = getAuthenticatedBaseUrl()
         prepareWrapper(baseUrl)
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL")
             .sendFile(distribution.binDistribution))
         server.expect(server.get("/versions/current").send("""{ "version" : "7.6" }"""))
@@ -163,8 +167,8 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         given:
         def baseUrl = getAuthenticatedBaseUrl()
         prepareWrapper(baseUrl)
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
-
 
         def version = "7.6"
         when:
