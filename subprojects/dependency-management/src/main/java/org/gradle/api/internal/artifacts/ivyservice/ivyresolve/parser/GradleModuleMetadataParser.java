@@ -450,7 +450,7 @@ public class GradleModuleMetadataParser {
      * This method needs to remove any duplicates from said constraints.
      *
      * @param reader The Json to read from
-     * @return a list of dependencies
+     * @return a list of constraints
      * @throws IOException when the reader fails
      */
     private List<ModuleDependencyConstraint> consumeDependencyConstraints(JsonReader reader) throws IOException {
