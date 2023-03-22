@@ -388,7 +388,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public State getState() {
-        maybeWarnOnDeprecatedUsage("getState()", ProperMethodUsage.RESOLVABLE);
         ResolveState currentState = currentResolveState.get();
         InternalState resolvedState = currentState.state;
         if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
@@ -484,7 +483,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration setTransitive(boolean transitive) {
-        maybeWarnOnDeprecatedUsage("setTransitive(boolean)", ProperMethodUsage.DECLARABLE_AGAINST);
         validateMutation(MutationType.DEPENDENCIES);
         this.transitive = transitive;
         return this;
