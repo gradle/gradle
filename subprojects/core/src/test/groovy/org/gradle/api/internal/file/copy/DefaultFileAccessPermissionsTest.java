@@ -16,37 +16,128 @@
 
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileAccessPermission;
 import org.gradle.api.internal.file.DefaultFileAccessPermissions;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import javax.annotation.Nullable;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+@SuppressWarnings("OctalInteger")
 public class DefaultFileAccessPermissionsTest {
 
     @Test
     public void directoryInitializedWithSensibleDefaults() {
-        DefaultFileAccessPermissions permissions = new DefaultFileAccessPermissions(TestUtil.objectFactory(), DefaultFileAccessPermissions.getDefaultMode(true));
+        DefaultFileAccessPermissions permissions = newPermission(true);
         assertPermissions(permissions.getUser(), true, true, true);
         assertPermissions(permissions.getGroup(), true, false, true);
         assertPermissions(permissions.getOther(), true, false, true);
-        assertEquals(0755, permissions.toMode());
+        assertEquals(0755, permissions.toUnixNumeric());
     }
 
     @Test
     public void fileInitializedWithSensibleDefaults() {
-        DefaultFileAccessPermissions permissions = new DefaultFileAccessPermissions(TestUtil.objectFactory(), DefaultFileAccessPermissions.getDefaultMode(false));
+        DefaultFileAccessPermissions permissions = newPermission(false);
         assertPermissions(permissions.getUser(), true, true, false);
         assertPermissions(permissions.getGroup(), true, false, false);
         assertPermissions(permissions.getOther(), true, false, false);
-        assertEquals(0644, permissions.toMode());
+        assertEquals(0644, permissions.toUnixNumeric());
+    }
+
+    @Test
+    public void unixPermissionInNumericNotation() {
+        for (int u = 0; u <=7; u++) {
+            for (int g = 0; g <= 7; g++) {
+                for (int o = 0; o <= 7; o++) {
+                    String numericNotation = String.format("%d%d%d", u, g, o);
+                    int mode = u * 64 + g * 8 + o;
+                    assertEquals(mode, newUnixPermission(numericNotation).toUnixNumeric());
+                }
+            }
+        }
+        assertEquals(0754, newUnixPermission("  754   ").toUnixNumeric());
+    }
+
+    @Test
+    public void unixPermissionInSymbolicNotation() {
+        for (int u = 0; u <=7; u++) {
+            for (int g = 0; g <= 7; g++) {
+                for (int o = 0; o <= 7; o++) {
+                    String symbolicNotation = String.format("%s%s%s", toUnixSymbolic(u), toUnixSymbolic(g), toUnixSymbolic(o));
+                    int mode = u * 64 + g * 8 + o;
+                    assertEquals(mode, newUnixPermission(symbolicNotation).toUnixNumeric());
+                }
+            }
+        }
+        assertEquals(0754, newUnixPermission("  rwxr-xr--   ").toUnixNumeric());
+    }
+
+    @Test
+    public void unixPermissionBadValues() {
+        assertInvalidUnixPermission(null, "Null isn't a proper Unix permission. A value must be specified.");
+        assertInvalidUnixPermission("", "'' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+        assertInvalidUnixPermission(" ", "' ' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+        assertInvalidUnixPermission("   ", "'   ' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+        assertInvalidUnixPermission("         ", "'         ' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+        assertInvalidUnixPermission("812", "'812' isn't a proper Unix permission. Can't be parsed as octal number.");
+        assertInvalidUnixPermission("790", "'790' isn't a proper Unix permission. Can't be parsed as octal number.");
+        assertInvalidUnixPermission("649", "'649' isn't a proper Unix permission. Can't be parsed as octal number.");
+        assertInvalidUnixPermission("64 9", "'64 9' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+        assertInvalidUnixPermission("|wxrwxrwx", "'|wxrwxrwx' isn't a proper Unix permission. '|' is not a valid Unix permission READ flag, must be 'r' or '-'.");
+        assertInvalidUnixPermission("rwx|wxrwx", "'rwx|wxrwx' isn't a proper Unix permission. '|' is not a valid Unix permission READ flag, must be 'r' or '-'.");
+        assertInvalidUnixPermission("rwxrwx|wx", "'rwxrwx|wx' isn't a proper Unix permission. '|' is not a valid Unix permission READ flag, must be 'r' or '-'.");
+        assertInvalidUnixPermission("r|xrwxrwx", "'r|xrwxrwx' isn't a proper Unix permission. '|' is not a valid Unix permission WRITE flag, must be 'w' or '-'.");
+        assertInvalidUnixPermission("rwxr|xrwx", "'rwxr|xrwx' isn't a proper Unix permission. '|' is not a valid Unix permission WRITE flag, must be 'w' or '-'.");
+        assertInvalidUnixPermission("rwxrwxr|x", "'rwxrwxr|x' isn't a proper Unix permission. '|' is not a valid Unix permission WRITE flag, must be 'w' or '-'.");
+        assertInvalidUnixPermission("rw|rwxrwx", "'rw|rwxrwx' isn't a proper Unix permission. '|' is not a valid Unix permission EXECUTE flag, must be 'x' or '-'.");
+        assertInvalidUnixPermission("rwxrw|rwx", "'rwxrw|rwx' isn't a proper Unix permission. '|' is not a valid Unix permission EXECUTE flag, must be 'x' or '-'.");
+        assertInvalidUnixPermission("rwxrwxrw|", "'rwxrwxrw|' isn't a proper Unix permission. '|' is not a valid Unix permission EXECUTE flag, must be 'x' or '-'.");
+        assertInvalidUnixPermission("rwxrw xrwx", "'rwxrw xrwx' isn't a proper Unix permission. Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+    }
+
+    private static DefaultFileAccessPermissions newUnixPermission(@Nullable String unixPermission) {
+        DefaultFileAccessPermissions permissions = newPermission(false);
+        permissions.unix(unixPermission);
+        return permissions;
+    }
+
+    private static DefaultFileAccessPermissions newPermission(boolean isDirectory) {
+        return new DefaultFileAccessPermissions(TestUtil.objectFactory(), DefaultFileAccessPermissions.getDefaultMode(isDirectory));
     }
 
     private static void assertPermissions(FileAccessPermission permission, boolean read, boolean write, boolean execute) {
         assertEquals("READ permission incorrect", read, permission.getRead().get());
         assertEquals("WRITE permission incorrect", write, permission.getWrite().get());
         assertEquals("EXECUTE permission incorrect", execute, permission.getExecute().get());
+    }
+
+    private static void assertInvalidUnixPermission(@Nullable String unixPermission, String errorMessage) {
+        try {
+            newUnixPermission(unixPermission);
+            fail("Expected exception not thrown!");
+        } catch (InvalidUserDataException e) {
+            assertEquals(errorMessage, e.getMessage());
+        }
+    }
+
+    private static String toUnixSymbolic(int unitNumeric) {
+        return String.format("%s%s%s", isRead(unitNumeric) ? "r" : "-", isWrite(unitNumeric) ? "w" : "-", isExecute(unitNumeric) ? "x" : "-");
+    }
+
+    private static boolean isRead(int unixNumeric) {
+        return (unixNumeric & 4) >> 2 == 1;
+    }
+
+    private static boolean isWrite(int unixNumeric) {
+        return (unixNumeric & 2) >> 1 == 1;
+    }
+
+    private static boolean isExecute(int unixNumeric) {
+        return (unixNumeric & 1) == 1;
     }
 
 }

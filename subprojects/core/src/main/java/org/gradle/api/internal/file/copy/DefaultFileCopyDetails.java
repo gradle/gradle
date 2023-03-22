@@ -158,7 +158,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     public int getMode() {
         if (permissions != null) {
             permissions.finalizeValue();
-            return permissions.get().toMode();
+            return permissions.get().toUnixNumeric();
         }
 
         Integer specMode = getSpecMode();

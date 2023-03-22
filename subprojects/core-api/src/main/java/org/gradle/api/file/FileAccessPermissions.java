@@ -61,6 +61,99 @@ public interface FileAccessPermissions {
 
     void other(Action<? super FileAccessPermission> configureAction);
 
+    /**
+     * Convenience method for setting the same permissions for all user groups.
+     */
     void all(Action<? super FileAccessPermission> cofigureAction);
 
+    /**
+     * Sets Unix style permissions. Accept values in two styles of notation:
+     * <ul>
+     *     <li>NUMERIC notation: uses 3 octal (base-8) digits representing permissions for the 3 categories of users; for example "755"</li>
+     *     <li>SYMBOLIC notation: uses 3 sets of 3 characters, each set representing the permissions for one of the user categories; for example "rwxr-xr-x"</li>
+     * </ul>
+     * <p>
+     * The NUMERIC notation consist of 3 digits having values from 0 to 7.
+     * 1st digit represents the OWNER, 2nd represents the GROUP while the 3rd represents OTHER users.
+     * <p>
+     * Each of the digits is the sum of its component bits in the binary numeral system.
+     * Each of the 3 bits represents a permission.
+     * 1st bit is the READ bit, adds 4 to the digit (binary 100).
+     * 2nd bit is the WRITE bit, adds 2 to the digit (binary 010).
+     * 3rd bit is the EXECUTE bit, adds 1 to the digit (binary 001).
+     * <p>
+     * See the examples below.
+     * <p>
+     * The SYMBOLIC notation consists of 3 sets of 3 characters. The 1st set represents the OWNER,
+     * the 2nd set represents the GROUP, the 3rd set represents OTHER users.
+     * <p>
+     * Each of the tree characters represents the read, write and execute permissions:
+     * <ul>
+     *     <li><code>r</code> if READING is permitted, <code>-</code> if it is not; must be 1st in the set</li>
+     *     <li><code>w</code> if WRITING is permitted, <code>-</code> if it is not; must be 2nd in the set</li>
+     *     <li><code>x</code> if EXECUTING is permitted, <code>-</code> if it is not; must be 3rd in the set</li>
+     * </ul>
+     * <p>
+     * Examples:
+     * <table>
+     *   <tr>
+     *     <th>Numeric</th>
+     *     <th>Symbolic</th>
+     *     <th>Meaning</th>
+     *   </tr>
+     *   <tr>
+     *     <td>000</td>
+     *     <td>---------</td>
+     *     <td>no permissions</td>
+     *   </tr>
+     *   <tr>
+     *     <td>700</td>
+     *     <td>rwx------</td>
+     *     <td>read, write &amp; execute only for owner</td>
+     *   </tr>
+     *   <tr>
+     *     <td>770</td>
+     *     <td>rwxrwx---</td>
+     *     <td>read, write &amp; execute for owner and group</td>
+     *   </tr>
+     *   <tr>
+     *     <td>111</td>
+     *     <td>--x--x--x</td>
+     *     <td>execute</td>
+     *   </tr>
+     *   <tr>
+     *     <td>222</td>
+     *     <td>-w--w--w-</td>
+     *     <td>write</td>
+     *   </tr>
+     *   <tr>
+     *     <td>333</td>
+     *     <td>-wx-wx-wx</td>
+     *     <td>write &amp; execute</td>
+     *   </tr>
+     *   <tr>
+     *     <td>444</td>
+     *     <td>r--r--r--</td>
+     *     <td>read</td>
+     *   </tr>
+     *   <tr>
+     *     <td>555</td>
+     *     <td>r-xr-xr-x</td>
+     *     <td>read &amp; execute</td>
+     *   </tr>
+     *   <tr>
+     *     <td>666</td>
+     *     <td>rw-rw-rw-</td>
+     *     <td>read &amp; write</td>
+     *   </tr>
+     *   <tr>
+     *     <td>740</td>
+     *     <td>rwxr-----</td>
+     *     <td>owner can read, write &amp; execute; group can only read; others have no permissions</td>
+     *   </tr>
+     * </table>
+     */
+    void unix(String permissions);
+
+    //TODO: deprecate the old "mode" methods
 }

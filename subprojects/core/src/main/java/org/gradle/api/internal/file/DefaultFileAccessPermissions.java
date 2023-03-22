@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileAccessPermission;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -36,10 +37,10 @@ public class DefaultFileAccessPermissions implements FileAccessPermissionsIntern
     private final FileAccessPermissionInternal other;
 
     @Inject
-    public DefaultFileAccessPermissions(ObjectFactory objectFactory, int mode) {
-        this.user = objectFactory.newInstance(DefaultFileAccessPermission.class, getUserMask(mode));
-        this.group = objectFactory.newInstance(DefaultFileAccessPermission.class, getGroupMask(mode));
-        this.other = objectFactory.newInstance(DefaultFileAccessPermission.class, getOtherMask(mode));
+    public DefaultFileAccessPermissions(ObjectFactory objectFactory, int unixNumeric) {
+        this.user = objectFactory.newInstance(DefaultFileAccessPermission.class, getUserMask(unixNumeric));
+        this.group = objectFactory.newInstance(DefaultFileAccessPermission.class, getGroupMask(unixNumeric));
+        this.other = objectFactory.newInstance(DefaultFileAccessPermission.class, getOtherMask(unixNumeric));
     }
 
     @Override
@@ -80,19 +81,74 @@ public class DefaultFileAccessPermissions implements FileAccessPermissionsIntern
     }
 
     @Override
-    public int toMode() {
-        return 64 * user.toMode() + 8 * group.toMode() + other.toMode();
+    public void unix(String permissions) {
+        try {
+            if (permissions == null) {
+                throw new IllegalArgumentException("A value must be specified.");
+            }
+            String trimmedPermissions = permissions.trim();
+            if (trimmedPermissions.length() == 3) {
+                int unixNumeric = toUnixNumericPermissions(trimmedPermissions);
+                fromUnixNumeric(unixNumeric);
+            } else if (trimmedPermissions.length() == 9) {
+                fromUnixSymbolic(trimmedPermissions);
+            } else {
+                throw new IllegalArgumentException("Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
+            }
+
+        } catch (IllegalArgumentException cause) {
+            throw new InvalidUserDataException((permissions == null ? "Null" : "'" + permissions + "'") + " isn't a proper Unix permission. " + cause.getMessage());
+            //TODO: is this the right type to throw?
+        }
     }
 
-    private static int getUserMask(int mode) {
-        return (mode & 0_700) >> 6;
+    @Override
+    public int toUnixNumeric() {
+        return toUnixNumericPermissions(user.toUnixNumeric(), group.toUnixNumeric(), other.toUnixNumeric());
     }
 
-    private static int getGroupMask(int mode) {
-        return (mode & 0_070) >> 3;
+    @Override
+    public void fromUnixNumeric(int unixNumeric) {
+        user.fromUnixNumeric(getUserMask(unixNumeric));
+        group.fromUnixNumeric(getGroupMask(unixNumeric));
+        other.fromUnixNumeric(getOtherMask(unixNumeric));
     }
 
-    private static int getOtherMask(int mode) {
-        return mode & 0_007;
+    @Override
+    public void fromUnixSymbolic(String unixSymbolic) {
+        user.fromUnixSymbolic(unixSymbolic.substring(0, 3));
+        group.fromUnixSymbolic(unixSymbolic.substring(3, 6));
+        other.fromUnixSymbolic(unixSymbolic.substring(6, 9));
+    }
+
+    private static int toUnixNumericPermissions(int user, int group, int other) {
+        return 64 * user + 8 * group + other;
+    }
+
+    private static int toUnixNumericPermissions(String permissions) {
+        try {
+            return Integer.parseInt(permissions, 8);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Can't be parsed as octal number.");
+        }
+    }
+
+    private static int toNumericPermission(String unixSymbolic) {
+        int numeric = 0;
+        char r = unixSymbolic.charAt(0);
+
+        return numeric;
+    }
+
+    private static int getUserMask(int unixNumeric) {
+        return (unixNumeric & 0_700) >> 6;
+    }
+
+    private static int getGroupMask(int unixNumeric) {
+        return (unixNumeric & 0_070) >> 3;
+    }
+
+    private static int getOtherMask(int unixNumeric) {
+        return unixNumeric & 0_007;
     }
 }

@@ -23,10 +23,8 @@ import javax.inject.Inject;
 public abstract class DefaultFileAccessPermission implements FileAccessPermissionInternal {
 
     @Inject
-    public DefaultFileAccessPermission(int modeMask) {
-        getRead().value(isRead(modeMask));
-        getWrite().value(isWrite(modeMask));
-        getExecute().value(isExecute(modeMask));
+    public DefaultFileAccessPermission(int unixMode) {
+        fromUnixNumeric(unixMode);
     }
 
     @Override
@@ -38,31 +36,75 @@ public abstract class DefaultFileAccessPermission implements FileAccessPermissio
     @Override
     public abstract Property<Boolean> getExecute();
 
-    private static boolean isRead(int modeMask) {
-        return (modeMask & 4) >> 2 == 1;
-    }
+    @Override
+    public int toUnixNumeric() {
+        int unixNumeric = 0;
 
-    private static boolean isWrite(int modeMask) {
-        return (modeMask & 2) >> 1 == 1;
-    }
+        getRead().finalizeValue();
+        unixNumeric += getRead().get() ? 4 : 0;
 
-    private static boolean isExecute(int modeMask) {
-        return (modeMask & 1) == 1;
+        getWrite().finalizeValue();
+        unixNumeric += getWrite().get() ? 2 : 0;
+
+        getExecute().finalizeValue();
+        unixNumeric += getExecute().get() ? 1 : 0;
+
+        return unixNumeric;
     }
 
     @Override
-    public int toMode() {
-        int mode = 0;
+    public void fromUnixNumeric(int unixNumeric) {
+        getRead().value(isRead(unixNumeric));
+        getWrite().value(isWrite(unixNumeric));
+        getExecute().value(isExecute(unixNumeric));
+    }
 
-        getRead().finalizeValue();
-        mode += getRead().get() ? 4 : 0;
+    @Override
+    public void fromUnixSymbolic(String unixSymbolic) {
+        getRead().value(isRead(unixSymbolic.charAt(0)));
+        getWrite().value(isWrite(unixSymbolic.charAt(1)));
+        getExecute().value(isExecute(unixSymbolic.charAt(2)));
+    }
 
-        getWrite().finalizeValue();
-        mode += getWrite().get() ? 2 : 0;
+    private static boolean isRead(int unixNumeric) {
+        return (unixNumeric & 4) >> 2 == 1;
+    }
 
-        getExecute().finalizeValue();
-        mode += getExecute().get() ? 1 : 0;
+    private static boolean isRead(char symbol) {
+        if (symbol == 'r') {
+            return true;
+        } else if (symbol == '-') {
+            return false;
+        } else {
+            throw new IllegalArgumentException("'" + symbol + "' is not a valid Unix permission READ flag, must be 'r' or '-'.");
+        }
+    }
 
-        return mode;
+    private static boolean isWrite(int unixNumeric) {
+        return (unixNumeric & 2) >> 1 == 1;
+    }
+
+    private static boolean isWrite(char symbol) {
+        if (symbol == 'w') {
+            return true;
+        } else if (symbol == '-') {
+            return false;
+        } else {
+            throw new IllegalArgumentException("'" + symbol + "' is not a valid Unix permission WRITE flag, must be 'w' or '-'.");
+        }
+    }
+
+    private static boolean isExecute(int unixNumeric) {
+        return (unixNumeric & 1) == 1;
+    }
+
+    private static boolean isExecute(char symbol) {
+        if (symbol == 'x') {
+            return true;
+        } else if (symbol == '-') {
+            return false;
+        } else {
+            throw new IllegalArgumentException("'" + symbol + "' is not a valid Unix permission EXECUTE flag, must be 'x' or '-'.");
+        }
     }
 }

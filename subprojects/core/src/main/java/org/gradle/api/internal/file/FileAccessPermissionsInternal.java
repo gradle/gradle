@@ -21,9 +21,20 @@ import org.gradle.api.file.FileAccessPermissions;
 public interface FileAccessPermissionsInternal extends FileAccessPermissions {
 
     /**
-     * Returns the Unix permissions of a file or directory, e.g. {@code 0644},
-     * see {@link FileAccessPermissions}.
+     * Converts the permissions for the various user groups to a numeric Unix permission.
+     * See {@link FileAccessPermissions#unix(String)} for details.
      */
-    int toMode();
+    int toUnixNumeric();
 
+    /**
+     * Sets permissions for the various user groups from a numeric Unix permission.
+     * See {@link FileAccessPermissions#unix(String)} for details.
+     */
+    void fromUnixNumeric(int unixNumeric);
+
+    /**
+     * Sets permissions for the various user groups from a symbolic Unix permission.
+     * See {@link FileAccessPermissions#unix(String)} for details.
+     */
+    void fromUnixSymbolic(String unixSymbolic);
 }
