@@ -180,7 +180,7 @@ val gradleApiKotlinExtensionsJar by tasks.registering(Jar::class) {
 // A standard Java runtime variant for embedded integration testing
 consumableVariant("runtime", LibraryElements.JAR, Bundling.EXTERNAL, listOf(coreRuntimeOnly, pluginsRuntimeOnly), runtimeApiInfoJar, gradleApiKotlinExtensionsJar)
 // To make all source code of a distribution accessible transitively
-consumableSourcesVariant("transitiveSources", listOf(coreRuntimeOnly, pluginsRuntimeOnly))
+consumableSourcesVariant("transitiveSources", listOf(coreRuntimeOnly, pluginsRuntimeOnly), gradleApiKotlinExtensions.map { it.destinationDirectory })
 // A platform variant without 'runtime-api-info' artifact such that distributions can depend on each other
 consumablePlatformVariant("runtimePlatform", listOf(coreRuntimeOnly, pluginsRuntimeOnly))
 
@@ -327,7 +327,7 @@ fun consumableVariant(name: String, elements: String, bundling: String, extends:
         artifacts.forEach { outgoing.artifact(it) }
     }
 
-fun consumableSourcesVariant(name: String, extends: List<Configuration>) =
+fun consumableSourcesVariant(name: String, extends: List<Configuration>, vararg artifacts: Any) =
     configurations.create("${name}Elements") {
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
@@ -338,6 +338,7 @@ fun consumableSourcesVariant(name: String, extends: List<Configuration>) =
         isCanBeConsumed = true
         isVisible = false
         extends.forEach { extendsFrom(it) }
+        artifacts.forEach { outgoing.artifact(it) }
     }
 
 fun consumablePlatformVariant(name: String, extends: List<Configuration>) =
