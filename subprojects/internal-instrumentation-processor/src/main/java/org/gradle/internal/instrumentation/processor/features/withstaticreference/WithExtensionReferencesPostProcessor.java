@@ -21,6 +21,7 @@ import org.gradle.internal.instrumentation.model.CallInterceptionRequestImpl;
 import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableInfoImpl;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
+import org.gradle.internal.instrumentation.model.CallableOwnerInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfoImpl;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
@@ -58,9 +59,9 @@ public class WithExtensionReferencesPostProcessor implements RequestPostProcesso
     }
 
     private static CallableInfo modifiedCallableInfo(CallableInfo originalInfo, WithExtensionReferencesExtra extra) {
-        Type ownerType = extra.ownerType;
+        CallableOwnerInfo owner = new CallableOwnerInfo(extra.ownerType, false);
         String methodName = extra.methodName;
-        return new CallableInfoImpl(CallableKindInfo.STATIC_METHOD, ownerType, methodName, originalInfo.getReturnType(), modifiedParameters(originalInfo.getParameters()));
+        return new CallableInfoImpl(CallableKindInfo.STATIC_METHOD, owner, methodName, originalInfo.getReturnType(), modifiedParameters(originalInfo.getParameters()));
     }
 
     private static List<ParameterInfo> modifiedParameters(List<ParameterInfo> originalParameters) {

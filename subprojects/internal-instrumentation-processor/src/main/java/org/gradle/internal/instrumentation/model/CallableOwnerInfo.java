@@ -18,12 +18,20 @@ package org.gradle.internal.instrumentation.model;
 
 import org.objectweb.asm.Type;
 
-import java.util.List;
+public class CallableOwnerInfo {
+    private final Type type;
+    private final boolean interceptSubtypes;
 
-public interface CallableInfo {
-    CallableKindInfo getKind();
-    CallableOwnerInfo getOwner();
-    String getCallableName();
-    Type getReturnType();
-    List<ParameterInfo> getParameters();
+    public CallableOwnerInfo(Type type, boolean interceptSubtypes) {
+        this.type = type;
+        this.interceptSubtypes = interceptSubtypes;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public boolean isInterceptSubtypes() {
+        return interceptSubtypes;
+    }
 }

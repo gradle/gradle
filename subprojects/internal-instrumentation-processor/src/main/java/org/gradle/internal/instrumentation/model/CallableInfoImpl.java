@@ -22,12 +22,12 @@ import java.util.List;
 
 public class CallableInfoImpl implements CallableInfo {
     private final CallableKindInfo kind;
-    private final Type owner;
+    private final CallableOwnerInfo owner;
     private final String callableName;
     private final Type returnType;
     private final List<ParameterInfo> parameters;
 
-    public CallableInfoImpl(CallableKindInfo kind, Type owner, String callableName, Type returnType, List<ParameterInfo> parameters) {
+    public CallableInfoImpl(CallableKindInfo kind, CallableOwnerInfo owner, String callableName, Type returnType, List<ParameterInfo> parameters) {
         this.kind = kind;
         this.owner = owner;
         this.callableName = callableName;
@@ -41,7 +41,7 @@ public class CallableInfoImpl implements CallableInfo {
     }
 
     @Override
-    public Type getOwner() {
+    public CallableOwnerInfo getOwner() {
         return owner;
     }
 
