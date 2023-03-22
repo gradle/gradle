@@ -24,6 +24,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.classpath.declarations.InterceptorDeclaration;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.ClassVisitor;
@@ -316,15 +317,25 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static class InstrumentingMethodVisitor extends MethodVisitorScope {
         private final InstrumentingVisitor owner;
         private final String className;
-        private final Lazy<MethodNode> asNode;
-
         private final JvmBytecodeCallInterceptor generatedInterceptor;
+        private final InstrumentationMetadata metadata;
 
         public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
-            this.asNode = asNode;
+            this.metadata = new InstrumentationMetadata() {
+                @Override
+                public boolean isInstanceOf(String type, String superType) {
+                    // TODO implement properly
+                    return type.equals(superType);
+                }
+
+                @Override
+                public MethodNode getMethodNode() {
+                    return asNode.get();
+                }
+            };
 
             try {
                 generatedInterceptor = (JvmBytecodeCallInterceptor) Class.forName(InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
@@ -347,7 +358,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return;
             }
 
-            if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface, asNode)) {
+            if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface, metadata)) {
                 return;
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);

@@ -14,21 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.api.jvmbytecode;
+package org.gradle.internal.instrumentation.api.metadata;
 
-import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.util.function.Supplier;
-
-public interface JvmBytecodeCallInterceptor {
-    boolean visitMethodInsn(
-            String className,
-            int opcode,
-            String owner,
-            String name,
-            String descriptor,
-            boolean isInterface,
-            InstrumentationMetadata metadata
-    );
+public interface InstrumentationMetadata {
+    boolean isInstanceOf(String type, String superType);
+    MethodNode getMethodNode();
 }
