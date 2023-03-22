@@ -30,10 +30,10 @@ import javax.annotation.Nullable;
 @Deprecated
 public class VersionNumber implements Comparable<VersionNumber> {
 
-    private static void logDeprecation(int majorVersion) {
+    private static void logDeprecation() {
         DeprecationLogger.deprecateType(VersionNumber.class)
             .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(majorVersion, "org_gradle_util_reports_deprecations")
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
             .nagUser();
     }
 
@@ -64,15 +64,16 @@ public class VersionNumber implements Comparable<VersionNumber> {
         this.patch = patch;
         this.qualifier = qualifier;
         this.scheme = scheme;
+        // TODO log deprecation once protobuf/osdetector plugin is fixed
         if (logDeprecation) {
-            logDeprecation(7);
+            logDeprecation();
             deprecationLogged = true;
         }
     }
 
     private void maybeLogDeprecation() {
         if(!deprecationLogged) {
-            logDeprecation(7);
+            logDeprecation();
         }
     }
 
@@ -109,7 +110,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     @Override
     public int compareTo(VersionNumber other) {
-        logDeprecation(8);
+        // TODO log deprecation once protobuf/osdetector plugin is fixed
         if (major != other.major) {
             return major - other.major;
         }
@@ -158,7 +159,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
      * Returns the default MAJOR.MINOR.MICRO-QUALIFIER scheme.
      */
     public static Scheme scheme() {
-        logDeprecation(7);
+        logDeprecation();
         return DEFAULT_SCHEME;
     }
 
@@ -166,12 +167,12 @@ public class VersionNumber implements Comparable<VersionNumber> {
      * Returns the MAJOR.MINOR.MICRO.PATCH-QUALIFIER scheme.
      */
     public static Scheme withPatchNumber() {
-        logDeprecation(7);
+        logDeprecation();
         return PATCH_SCHEME;
     }
 
     public static VersionNumber parse(String versionString) {
-        logDeprecation(8);
+        // TODO log deprecation once protobuf/osdetector plugin is fixed
         return DEFAULT_SCHEME.parse(versionString);
     }
 
