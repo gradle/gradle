@@ -87,7 +87,7 @@ public class PlannedNodeGraph {
         List<PlannedNodeInternal> newPlannedNodes = new ArrayList<>();
         for (PlannedNodeInternal plannedNode : plannedNodes) {
             NodeIdentity nodeIdentity = plannedNode.getNodeIdentity();
-            if (!detailLevel.contains(nodeIdentity.getNodeType())) {
+            if (!inDetailLevel.test(nodeIdentity)) {
                 continue;
             }
 
