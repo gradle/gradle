@@ -60,6 +60,18 @@ abstract class GenerateKotlinExtensionsForGradleApi : DefaultTask() {
             from(archives.zipTree(tempJar))
             into(destinationDirectory)
         }
+
+        // TODO REMOVE - This patches the sources for the binary compatibility check until generation code is moved to `build-logic`
+        destinationDirectory.get().asFile.walkTopDown().filter { it.extension == "kt" }.forEach { sourceFile ->
+            sourceFile.writeText(buildString {
+                sourceFile.readLines().forEach { line ->
+                    appendLine(line)
+                    if (line == " */") {
+                        appendLine("@org.gradle.api.Generated")
+                    }
+                }
+            })
+        }
     }
 
     @get:Inject
