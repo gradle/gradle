@@ -66,4 +66,9 @@ public final class ExpectedDeprecationWarning {
             return message.equals(actualLines);
         }
     }
+
+    @Override
+    public String toString() {
+        return message;
+    }
 }
