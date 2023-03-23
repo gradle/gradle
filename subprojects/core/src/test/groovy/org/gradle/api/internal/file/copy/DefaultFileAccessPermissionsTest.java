@@ -106,7 +106,7 @@ public class DefaultFileAccessPermissionsTest {
     }
 
     private static DefaultFileAccessPermissions newPermission(boolean isDirectory) {
-        return new DefaultFileAccessPermissions(TestUtil.objectFactory(), DefaultFileAccessPermissions.getDefaultMode(isDirectory));
+        return new DefaultFileAccessPermissions(TestUtil.objectFactory(), DefaultFileAccessPermissions.getDefaultUnixNumeric(isDirectory));
     }
 
     private static void assertPermissions(FileAccessPermission permission, boolean read, boolean write, boolean execute) {

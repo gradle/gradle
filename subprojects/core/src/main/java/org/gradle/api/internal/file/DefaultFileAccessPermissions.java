@@ -26,7 +26,7 @@ import javax.inject.Inject;
 
 public class DefaultFileAccessPermissions implements FileAccessPermissionsInternal {
 
-    public static int getDefaultMode(boolean isDirectory) {
+    public static int getDefaultUnixNumeric(boolean isDirectory) {
         return isDirectory ? FileSystem.DEFAULT_DIR_MODE : FileSystem.DEFAULT_FILE_MODE;
     }
 

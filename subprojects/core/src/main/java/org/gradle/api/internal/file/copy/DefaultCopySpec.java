@@ -494,7 +494,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopyProcessingSpec filePermissions(Action<? super FileAccessPermissions> configureAction) {
-        DefaultFileAccessPermissions permissions = objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, DefaultFileAccessPermissions.getDefaultMode(false));
+        DefaultFileAccessPermissions permissions = objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, DefaultFileAccessPermissions.getDefaultUnixNumeric(false));
         configureAction.execute(permissions);
         filePermissions.set(permissions);
         return this;
@@ -507,7 +507,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopyProcessingSpec dirPermissions(Action<? super FileAccessPermissions> configureAction) {
-        DefaultFileAccessPermissions permissions = objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, DefaultFileAccessPermissions.getDefaultMode(true));
+        DefaultFileAccessPermissions permissions = objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, DefaultFileAccessPermissions.getDefaultUnixNumeric(true));
         configureAction.execute(permissions);
         dirPermissions.set(permissions);
         return this;

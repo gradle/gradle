@@ -23,8 +23,8 @@ import javax.inject.Inject;
 public abstract class DefaultFileAccessPermission implements FileAccessPermissionInternal {
 
     @Inject
-    public DefaultFileAccessPermission(int unixMode) {
-        fromUnixNumeric(unixMode);
+    public DefaultFileAccessPermission(int unixNumeric) {
+        fromUnixNumeric(unixNumeric);
     }
 
     @Override

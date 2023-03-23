@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 
 /**
  * Provides the means of specifying file and directory access permissions.
- * Follows the style of Unix access modes, based on the concept of file ownership.
+ * Follows the style of Unix file permissions, based on the concept of file ownership.
  * <p>
  * Permissions are grouped into 3 distinct categories:
  * <ul>
