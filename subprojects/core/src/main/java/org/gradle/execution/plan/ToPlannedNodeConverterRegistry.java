@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.scopes;
+package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
-import org.gradle.execution.plan.Node;
-import org.gradle.execution.plan.ToPlannedNodeConverter;
-import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 /**
  * A Gradle user home level registry of {@link ToPlannedNodeConverter} instances.
@@ -34,6 +36,8 @@ import java.util.concurrent.ConcurrentMap;
  * All the available converters are expected to support disjoint set of {@link Node node types}.
  */
 @NonNullApi
+@ThreadSafe
+@ServiceScope(Scopes.UserHome.class)
 public class ToPlannedNodeConverterRegistry {
 
     private static final ToPlannedNodeConverter MISSING_MARKER = new MissingToPlannedNodeConverter();
@@ -49,6 +53,15 @@ public class ToPlannedNodeConverterRegistry {
         for (ToPlannedNodeConverter converter : this.converters) {
             convertersByNodeType.put(converter.getSupportedNodeType(), converter);
         }
+    }
+
+    /**
+     * Returns a set of node types that this converter registry can provide.
+     */
+    public Set<NodeIdentity.NodeType> getConvertedNodeTypes() {
+        return converters.stream()
+            .map(ToPlannedNodeConverter::getConvertedNodeType)
+            .collect(Collectors.toSet());
     }
 
     /**
@@ -98,6 +111,11 @@ public class ToPlannedNodeConverterRegistry {
         }
 
         @Override
+        public NodeIdentity.NodeType getConvertedNodeType() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public NodeIdentity getNodeIdentity(Node node) {
             throw new UnsupportedOperationException();
         }
@@ -108,7 +126,7 @@ public class ToPlannedNodeConverterRegistry {
         }
 
         @Override
-        public CalculateTaskGraphBuildOperationType.PlannedNode convert(Node node, DependencyLookup dependencyLookup) {
+        public PlannedNodeInternal convert(Node node, List<? extends NodeIdentity> nodeDependencies) {
             throw new UnsupportedOperationException();
         }
     }

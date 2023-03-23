@@ -30,7 +30,6 @@ abstract class AbstractProcessInstrumentationIntegrationTest extends AbstractCon
 
     def setup() {
         testDirectory.createDir(pwd)
-        settingsFile("enableFeaturePreview('STABLE_CONFIGURATION_CACHE')")
     }
 
 

@@ -253,7 +253,7 @@ class Interpreter(val host: Host) {
         // TODO: consider computing stage 1 accessors only when there's a buildscript or plugins block
         // TODO: consider splitting buildscript/plugins block accessors
         val stage1BlocksAccessorsClassPath = when {
-            requiresAccessors(programTarget, programKind) -> host.stage1BlocksAccessorsFor(scriptHost)
+            requiresAccessors(programTarget) -> host.stage1BlocksAccessorsFor(scriptHost)
             else -> ClassPath.EMPTY
         }
 
