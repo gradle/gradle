@@ -181,6 +181,21 @@ class JavaInstallationRegistryTest extends Specification {
         1 * logger.warn(logOutput, "'" + tempFolder + "' (testSource)")
     }
 
+    def "can detect enclosed jre installations"() {
+        given:
+        createExecutable(tempFolder)
+        def jreHome = new File(tempFolder, "jre")
+        createExecutable(jreHome)
+
+        def registry = newRegistry(jreHome)
+
+        when:
+        def installations = registry.listInstallations()
+
+        then:
+        installations*.location.contains(tempFolder)
+    }
+
     InstallationSupplier forDirectory(File directory) {
         { it -> Collections.singleton(new InstallationLocation(directory, "testSource")) }
     }
