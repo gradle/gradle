@@ -18,6 +18,8 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import org.gradle.testing.fixture.JUnitCoverage
+import spock.lang.Issue
 
 /**
  * These tests demonstrate what is and isn't allowed in terms of modifying the {@link org.gradle.api.tasks.testing.TestFrameworkOptions TestFrameworkOptions}
@@ -68,29 +70,6 @@ public class SomeIntegTestClass {
         """
     }
     // region default test suite
-    def "can NOT set options and then change framework within the default suite"() {
-        given:
-        buildFile << """
-        testing {
-           suites {
-               test {
-                   targets.all {
-                       testTask.configure {
-                           options {
-                               // forces the test framework to be JUnit
-                               includeCategories 'org.gradle.CategoryA'
-                           }
-                           useJUnitPlatform()
-                       }
-                   }
-               }
-           }
-        }""".stripMargin()
-
-        expect:
-        fails ":test"
-        failure.assertHasCause("The value for task ':test' property 'testFrameworkProperty' is final and cannot be changed any further.")
-    }
 
     def "can set test framework in default test suite prior to setting options within test task"() {
         given:
@@ -242,56 +221,6 @@ public class SomeIntegTestClass {
         succeeds ":integTest"
         assertIntegTestsExecuted()
     }
-
-    def "can NOT set new framework for custom suite in different testing block after configuring options"() {
-        buildFile << """
-            testing {
-                suites {
-                    integTest(JvmTestSuite) {
-                        useJUnit()
-                        targets.all {
-                            // explicitly realize the task now to cause this configuration to run now
-                            testTask.get().configure {
-                                options {
-                                    excludeCategories "com.example.Exclude"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            testing.suites.integTest {
-                useTestNG()
-            }
-        """
-
-        when:
-        fails("integTest")
-
-        then:
-        failure.assertHasCause("The value for property 'testSuiteTestingFramework' is final and cannot be changed any further.")
-    }
-
-    def "can NOT set test framework in test task when created by test suite"() {
-        given:
-        buildFile << """
-        // Ensure non-default suites exist
-        testing {
-           suites {
-               integTest(JvmTestSuite)
-            }
-        }
-
-        // Configure task directly using name
-        integTest {
-            useJUnitPlatform()
-        }""".stripMargin()
-
-        expect:
-        fails ":integTest"
-        failure.assertHasCause("The value for task ':integTest' property 'testFrameworkProperty' cannot be changed any further.")
-    }
     // endregion custom test suite
 
     // region all suites
@@ -404,6 +333,108 @@ public class SomeIntegTestClass {
         succeeds "help"
     }
     // endregion stand-alone test tasks
+
+    @Issue("https://github.com/gradle/gradle/issues/24331")
+    def "options can be set with framework before java plugin is applied"() {
+        given:
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile.text = """
+            tasks.withType(Test).configureEach {
+                useJUnitPlatform() {
+                    excludeTags = ["Slow"]
+                }
+                doFirst {
+                    assert options.excludeTags.contains("Slow")
+                }
+            }
+
+            apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds("check")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24331")
+    def "options can be set with matching framework after test suite is created"() {
+        given:
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """
+            dependencies {
+                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
+            }
+
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+                    }
+                    integrationTest(JvmTestSuite) {
+                        useJUnitJupiter()
+                    }
+                }
+            }
+
+            tasks.withType(Test).configureEach {
+                useJUnitPlatform() {
+                    excludeTags = ["Slow"]
+                }
+                doFirst {
+                    assert options.excludeTags.contains("Slow")
+                }
+            }
+
+            tasks.named('check') {
+                dependsOn(testing.suites.integrationTest)
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds("check")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/24331")
+    def "options can be set with matching framework before test suite is created"() {
+        given:
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """
+            dependencies {
+                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
+            }
+
+            tasks.withType(Test).configureEach {
+                useJUnitPlatform() {
+                    excludeTags = ["Slow"]
+                }
+                doFirst {
+                    assert options.excludeTags.contains("Slow")
+                }
+            }
+
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+                    }
+                    integrationTest(JvmTestSuite) {
+                        useJUnitJupiter()
+                    }
+                }
+            }
+
+            tasks.named('check') {
+                dependsOn(testing.suites.integrationTest)
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds("check")
+    }
 
     private void assertTestsExecuted() {
         def result = new HtmlTestExecutionResult(testDirectory)

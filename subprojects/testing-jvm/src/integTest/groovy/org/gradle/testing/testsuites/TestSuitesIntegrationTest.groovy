@@ -383,70 +383,6 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("integTest")
     }
 
-    def "task configuration overrules test suite configuration"() {
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
-            testing {
-                suites {
-                    integTest(JvmTestSuite) {
-                        // uses junit jupiter by default
-                        targets {
-                            all {
-                                testTask.configure {
-                                    useJUnit()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // force integTest to be configured
-            tasks.named("integTest").get()
-        """
-
-        expect:
-        fails("help")
-        failure.assertHasCause("The value for task ':integTest' property 'testFrameworkProperty' cannot be changed any further.")
-    }
-
-    def "task configuration overrules test suite configuration with test suite set test framework"() {
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
-            testing {
-                suites {
-                    integTest(JvmTestSuite) {
-                        useJUnit()
-                        targets {
-                            all {
-                                testTask.configure {
-                                    useJUnitPlatform()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // force integTest to be configured
-            tasks.named("integTest").get()
-        """
-
-        expect:
-        fails("help")
-        failure.assertHasCause("The value for task ':integTest' property 'testFrameworkProperty' cannot be changed any further.")
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/18622")
     def "custom Test tasks eagerly realized prior to Java and Test Suite plugin application do not fail to be configured when combined with test suites"() {
         buildFile << """
@@ -530,35 +466,6 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             tasks.register('assertSameFrameworkInstance') {
                 doLast {
                     assert first.getOrNull() === second.getOrNull()
-                }
-            }""".stripIndent()
-
-        expect:
-        succeeds("assertSameFrameworkInstance")
-    }
-
-    def "multiple getTestingFramework() calls on a test suite return same instance even when calling useJUnit"() {
-        given:
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            def first = testing.suites.test.getTestSuiteTestingFramework()
-
-            testing {
-                suites {
-                    test {
-                        useJUnit()
-                    }
-                }
-            }
-
-            def second = testing.suites.test.getTestSuiteTestingFramework()
-
-            tasks.register('assertSameFrameworkInstance') {
-                doLast {
-                    assert first.get() === second.get()
                 }
             }""".stripIndent()
 
