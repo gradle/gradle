@@ -1141,7 +1141,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ResolvableDependencies getIncoming() {
-        maybeWarnOnDeprecatedUsage("getIncoming()", ProperMethodUsage.RESOLVABLE, ProperMethodUsage.CONSUMABLE);
         return resolvableDependencies;
     }
 
