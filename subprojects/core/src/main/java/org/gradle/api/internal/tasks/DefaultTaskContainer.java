@@ -231,7 +231,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             } else {
                 TaskCreatingProvider<? extends Task> taskProvider = Cast.uncheckedCast(findByNameLaterWithoutRules(name));
                 if (taskProvider != null) {
-                    super.remove(taskProvider);
+                    removeInternal(taskProvider);
 
                     final Action<? super T> onCreate;
                     if (!taskProvider.getType().isAssignableFrom(task.getClass())) {
@@ -599,6 +599,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public boolean remove(Object o) {
         throw unsupportedTaskRemovalException();
+    }
+
+    private void removeInternal(Object o) {
+        super.remove(o);
     }
 
     @Deprecated
