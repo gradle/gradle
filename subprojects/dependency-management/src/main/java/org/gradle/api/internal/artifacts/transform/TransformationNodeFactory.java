@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
-import org.gradle.configuration.internal.InConfigurationIdFactory;
+import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.Scopes;
@@ -34,9 +34,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ServiceScope(Scopes.BuildTree.class)
 public class TransformationNodeFactory {
 
-    private final InConfigurationIdFactory idFactory;
+    private final ConfigurationCacheableIdFactory idFactory;
 
-    public TransformationNodeFactory(InConfigurationIdFactory idFactory) {
+    public TransformationNodeFactory(ConfigurationCacheableIdFactory idFactory) {
         this.idFactory = idFactory;
     }
 
@@ -71,7 +71,7 @@ public class TransformationNodeFactory {
         BuildOperationExecutor buildOperationExecutor,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        idFactory.reportLoadedId();
+        idFactory.idRecreated();
         return new TransformationNode.InitialTransformationNode(transformationNodeId, targetComponentVariant, sourceAttributes, initial, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
     }
 
@@ -106,7 +106,7 @@ public class TransformationNodeFactory {
         BuildOperationExecutor buildOperationExecutor,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        idFactory.reportLoadedId();
+        idFactory.idRecreated();
         return new TransformationNode.ChainedTransformationNode(transformationNodeId, targetComponentVariant, sourceAttributes, current, previous, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
     }
 

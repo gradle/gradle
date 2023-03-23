@@ -18,7 +18,7 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.configuration.internal.InConfigurationIdFactory;
+import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -32,9 +32,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ServiceScope(Scopes.BuildTree.class)
 public class TaskIdentityFactory {
 
-    private final InConfigurationIdFactory idFactory;
+    private final ConfigurationCacheableIdFactory idFactory;
 
-    public TaskIdentityFactory(InConfigurationIdFactory idFactory) {
+    public TaskIdentityFactory(ConfigurationCacheableIdFactory idFactory) {
         this.idFactory = idFactory;
     }
 
@@ -52,7 +52,7 @@ public class TaskIdentityFactory {
      * Should only be used when loading from the configuration cache to preserve task ids.
      */
     public <T extends Task> TaskIdentity<T> recreate(String name, Class<T> type, ProjectInternal project, long uniqueId) {
-        idFactory.reportLoadedId();
+        idFactory.idRecreated();
         return TaskIdentity.create(name, type, project, uniqueId);
     }
 

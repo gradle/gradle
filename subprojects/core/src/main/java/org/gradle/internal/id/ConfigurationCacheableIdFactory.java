@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.internal;
+package org.gradle.internal.id;
 
 
 import org.gradle.internal.service.scopes.Scopes;
@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @ThreadSafe
 @ServiceScope(Scopes.BuildTree.class)
-public class InConfigurationIdFactory {
+public class ConfigurationCacheableIdFactory {
 
     private static final long USED_ASSIGNED_ID_MARKER = -1;
 
@@ -41,7 +41,7 @@ public class InConfigurationIdFactory {
      * <p>
      * New ids can only be created if no ids have been loaded from the configuration cache.
      * When re-creating an object due to loading from the configuration cache,
-     * {@link #reportLoadedId()} must be called before the object is re-created to make sure the consistency of the ids.
+     * {@link #idRecreated()} must be called before the object is re-created to make sure the consistency of the ids.
      *
      * @throws IllegalStateException if an id has already been loaded.
      */
@@ -58,7 +58,7 @@ public class InConfigurationIdFactory {
      * This method must be called whenever an object is about to be re-created with the previously assigned id
      * due to loading from the configuration cache.
      */
-    public void reportLoadedId() {
+    public void idRecreated() {
         sequence.set(USED_ASSIGNED_ID_MARKER);
     }
 }
