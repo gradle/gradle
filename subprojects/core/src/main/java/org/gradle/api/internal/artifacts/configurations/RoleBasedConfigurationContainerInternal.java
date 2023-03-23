@@ -86,6 +86,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * using the role of {@link ConfigurationRoles#INTENDED_RESOLVABLE_BUCKET} that is <strong>NOT</strong> locked
      * against further usage mutations.
      */
+    @SuppressWarnings("deprecation")
     default Configuration resolvableBucket(String name) {
         return resolvableBucket(name, false);
     }
@@ -97,42 +98,6 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      */
     default Configuration bucket(String name) {
         return bucket(name, false);
-    }
-
-    /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#DEPRECATED_CONSUMABLE}.
-     */
-    @SuppressWarnings("deprecation")
-    default Configuration deprecatedConsumable(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.DEPRECATED_CONSUMABLE, lockRole);
-    }
-
-    /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#DEPRECATED_RESOLVABLE}.
-     */
-    @SuppressWarnings("deprecation")
-    default Configuration deprecatedResolvable(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.DEPRECATED_RESOLVABLE, lockRole);
-    }
-
-    /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#DEPRECATED_CONSUMABLE} that is <strong>NOT</strong> locked
-     * against further usage mutations.
-     */
-    default Configuration deprecatedConsumable(String name) {
-        return deprecatedConsumable(name, false);
-    }
-
-    /**
-     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
-     * using the role of {@link ConfigurationRoles#DEPRECATED_RESOLVABLE} that is <strong>NOT</strong> locked
-     * against further usage mutations.
-     */
-    default Configuration deprecatedResolvable(String name) {
-        return deprecatedResolvable(name, false);
     }
 
     /**
@@ -258,14 +223,12 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
 
         private static String describeDifferenceFromRole(DeprecatableConfiguration configuration, ConfigurationRole role) {
             if (!isUsageConsistentWithRole(configuration, role)) {
-                ConfigurationRole currentUsage = ConfigurationRole.forUsage(
-                        configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclaredAgainst(),
-                        configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst());
                 return "Usage for configuration: " + configuration.getName() + " is not consistent with the role: " + role.getName() + ".\n" +
                         "Expected that it is:\n" +
                         role.describeUsage() + "\n" +
                         "But is actually is:\n" +
-                        currentUsage.describeUsage();
+                        ConfigurationRole.RoleDescriber.describeUsage(configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclaredAgainst(),
+                                configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst());
             } else {
                 return "Usage for configuration: " + configuration.getName() + " is consistent with the role: " + role.getName() + ".";
             }

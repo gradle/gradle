@@ -25,6 +25,7 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.exceptions.ContextAwareException;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.ExceptionContextVisitor;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.exceptions.StyledException;
@@ -121,7 +122,27 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         writeFailureDetails(output, details);
 
-        writeGeneralTips(output);
+        if (!hasNonGradleSpecificCauseInAncestry(failure)) {
+            writeGeneralTips(output);
+        }
+    }
+
+    private static boolean hasNonGradleSpecificCauseInAncestry(Throwable failure) {
+        Throwable cause = failure.getCause();
+        while (cause != null) {
+            if (hasOnlyNonGradleSpecifiedCauses(cause)) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
+    }
+
+    private static boolean hasOnlyNonGradleSpecifiedCauses(Throwable cause) {
+        if (cause instanceof DefaultMultiCauseException) {
+            return ((DefaultMultiCauseException) cause).hasOnlyNonGradleSpecifiedCauses();
+        }
+        return false;
     }
 
     private ExceptionStyle getShowStackTraceOption() {
@@ -259,31 +280,17 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     private void writeFailureDetails(StyledTextOutput output, FailureDetails details) {
-        if (details.location.getHasContent()) {
-            output.println();
-            output.println("* Where:");
-            details.location.writeTo(output);
-            output.println();
-        }
+        writeSection(details.location,   output, "* Where:");
+        writeSection(details.details,    output, "* What went wrong:");
+        writeSection(details.resolution, output, "* Try:");
+        writeSection(details.stackTrace, output, "* Exception is:");
+    }
 
-        if (details.details.getHasContent()) {
+    private static void writeSection(BufferingStyledTextOutput textOutput, StyledTextOutput output, String sectionTitle) {
+        if (textOutput.getHasContent()) {
             output.println();
-            output.println("* What went wrong:");
-            details.details.writeTo(output);
-            output.println();
-        }
-
-        if (details.resolution.getHasContent()) {
-            output.println();
-            output.println("* Try:");
-            details.resolution.writeTo(output);
-            output.println();
-        }
-
-        if (details.stackTrace.getHasContent()) {
-            output.println();
-            output.println("* Exception is:");
-            details.stackTrace.writeTo(output);
+            output.println(sectionTitle);
+            textOutput.writeTo(output);
             output.println();
         }
     }
