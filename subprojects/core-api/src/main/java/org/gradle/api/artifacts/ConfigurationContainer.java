@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -130,7 +131,9 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * any such configurations subsequently added to this collection.
      *
      * @param action The action to be executed
+     * @since 8.2
      */
+    @Incubating
     void allConsumable(Action<? super Configuration> action);
 
     /**
@@ -138,6 +141,8 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * any such configurations subsequently added to this collection.
      *
      * @param action The action to be executed
+     * @since 8.2
      */
+    @Incubating
     void allResolvable(Action<? super Configuration> action);
 }

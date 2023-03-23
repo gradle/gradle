@@ -177,7 +177,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                     .nagUser();
         }
     }
-    
+
     @Override
     public void allConsumable(Action<? super Configuration> action) {
         matching(Configuration::isCanBeConsumed).all(action);
