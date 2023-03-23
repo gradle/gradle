@@ -121,7 +121,7 @@ This is a non-exhaustive list of API additions in 8.1 that may cause name collis
 
 ==== Using unsupported API to start external processes at configuration time is no longer allowed with the configuration cache enabled
 
-Since Gradle 7.5, using `Project.exec`, `Project.javaexec`, and standard Java and Groovy APIs to run external processes at the configuration time were considered an error only if the <<configuration_cache.adoc#config_cache:stable,feature preview `STABLE_CONFIGURATION_CACHE`>> was enabled.
+Since Gradle 7.5, using `Project.exec`, `Project.javaexec`, and standard Java and Groovy APIs to run external processes at configuration time has been considered an error only if the <<configuration_cache.adoc#config_cache:stable,feature preview `STABLE_CONFIGURATION_CACHE`>> was enabled.
 With the configuration cache promotion to a stable feature in Gradle 8.1, this error is detected regardless of the feature preview status.
 The <<configuration_cache#config_cache:requirements:external_processes,configuration cache chapter>> has more details to help with the migration to the new provider-based APIs to execute external processes at configuration time.
 
