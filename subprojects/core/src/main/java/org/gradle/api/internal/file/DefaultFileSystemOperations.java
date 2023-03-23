@@ -57,4 +57,11 @@ public class DefaultFileSystemOperations implements FileSystemOperations {
         configureAction.execute(permissions);
         return permissions;
     }
+
+    @Override
+    public FileAccessPermissions permissions(boolean directory, String unixPermissions) {
+        FileAccessPermissions permissions = objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, DefaultFileAccessPermissions.getDefaultUnixNumeric(directory));
+        permissions.unix(unixPermissions);
+        return permissions;
+    }
 }

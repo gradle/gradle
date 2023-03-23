@@ -91,10 +91,10 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
             getInputs().property(specPropertyName + ".includeEmptyDirs", (Callable<Boolean>) spec::getIncludeEmptyDirs);
             getInputs().property(specPropertyName + ".duplicatesStrategy", (Callable<DuplicatesStrategy>) spec::getDuplicatesStrategy);
-            getInputs().property(specPropertyName + ".dirMode", (Callable<Integer>) spec::getDirMode)
+            /*getInputs().property(specPropertyName + ".dirMode", (Callable<Integer>) spec::getDirMode)
                 .optional(true);
             getInputs().property(specPropertyName + ".fileMode", (Callable<Integer>) spec::getFileMode)
-                .optional(true);
+                .optional(true);*/ //TODO: wire in the new permissions instead and add test for up-to-date and from-cache
             getInputs().property(specPropertyName + ".filteringCharset", (Callable<String>) spec::getFilteringCharset);
         });
         this.getOutputs().doNotCacheIf(
@@ -537,6 +537,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Internal
     @Override
+    @Deprecated
     public Integer getDirMode() {
         return getMainSpec().getDirMode();
     }
@@ -546,6 +547,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Internal
     @Override
+    @Deprecated
     public Integer getFileMode() {
         return getMainSpec().getFileMode();
     }
@@ -554,6 +556,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
+    @Deprecated
     public AbstractCopyTask setDirMode(@Nullable Integer mode) {
         getMainSpec().setDirMode(mode);
         return this;
@@ -563,6 +566,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
+    @Deprecated
     public AbstractCopyTask setFileMode(@Nullable Integer mode) {
         getMainSpec().setFileMode(mode);
         return this;

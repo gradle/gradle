@@ -65,7 +65,10 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      * Sets the Unix permissions of this file.
      *
      * @param mode the Unix permissions, e.g. {@code 0644}.
+     *
+     * @deprecated Use {@link #permissions(Action)} instead. This method is scheduled for removal in Gradle 9.0.
      */
+    @Deprecated
     void setMode(int mode);
 
     /**

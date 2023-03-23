@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 
 public class SingleParentCopySpec extends DefaultCopySpec {
@@ -64,12 +66,24 @@ public class SingleParentCopySpec extends DefaultCopySpec {
     }
 
     @Override
+    @Deprecated
     public Integer getDirMode() {
+        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "getDirMode()")
+            .replaceWith("getDirPermissions()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         return buildResolverRelativeToParent(parentResolver).getDirMode();
     }
 
     @Override
+    @Deprecated
     public Integer getFileMode() {
+        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "getFileMode()")
+            .replaceWith("getFilePermissions()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         return buildResolverRelativeToParent(parentResolver).getFileMode();
     }
 

@@ -82,41 +82,41 @@ class AbstractFileTreeElementTest extends AbstractProjectBuilderSpec {
         private final TestFile file
         private final Integer mode
 
-        public TestFileTreeElement(TestFile file, Chmod chmod) {
+        TestFileTreeElement(TestFile file, Chmod chmod) {
             this(file, null, chmod)
         }
 
-        public TestFileTreeElement(TestFile file, Integer mode, Chmod chmod) {
+        TestFileTreeElement(TestFile file, Integer mode, Chmod chmod) {
             super(chmod)
             this.file = file
             this.mode = mode
         }
 
-        public String getDisplayName() {
+        String getDisplayName() {
             return "display name"
         }
 
-        public File getFile() {
+        File getFile() {
             return file
         }
 
-        public long getLastModified() {
+        long getLastModified() {
             return file.lastModified()
         }
 
-        public boolean isDirectory() {
+        boolean isDirectory() {
             return file.isDirectory()
         }
 
-        public long getSize() {
+        long getSize() {
             return file.length()
         }
 
-        public RelativePath getRelativePath() {
+        RelativePath getRelativePath() {
             throw new UnsupportedOperationException()
         }
 
-        public InputStream open() {
+        InputStream open() {
             return GFileUtils.openInputStream(file)
         }
 

@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
@@ -39,12 +40,14 @@ import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.internal.reflect.Instantiator
 
 
+@Suppress("DEPRECATION")
 internal
 class DefaultCopySpecCodec(
     private val patternSetFactory: Factory<PatternSet>,
     private val fileCollectionFactory: FileCollectionFactory,
     private val objectFactory: ObjectFactory,
-    private val instantiator: Instantiator
+    private val instantiator: Instantiator,
+    private val fileSystemOperations: FileSystemOperations
 ) : Codec<DefaultCopySpec> {
 
     override suspend fun WriteContext.encode(value: DefaultCopySpec) {
@@ -56,8 +59,8 @@ class DefaultCopySpecCodec(
             writeBoolean(value.includeEmptyDirs)
             writeBoolean(value.isCaseSensitive)
             writeString(value.filteringCharset)
-            writeNullableSmallInt(value.dirMode)
-            writeNullableSmallInt(value.fileMode)
+            writeNullableSmallInt(value.dirPermissions.orNull?.toUnixNumeric())
+            writeNullableSmallInt(value.filePermissions.orNull?.toUnixNumeric())
             writeCollection(value.copyActions)
             writeCollection(value.children)
         }
@@ -82,10 +85,10 @@ class DefaultCopySpecCodec(
             copySpec.isCaseSensitive = isCaseSensitive
             copySpec.filteringCharset = filteringCharset
             if (dirMode != null) {
-                copySpec.dirMode = dirMode
+                copySpec.dirPermissions.set(fileSystemOperations.permissions(true, Integer.toOctalString(dirMode)))
             }
             if (fileMode != null) {
-                copySpec.fileMode = fileMode
+                copySpec.filePermissions.set(fileSystemOperations.permissions(false, Integer.toOctalString(fileMode)))
             }
             isolate.identities.putInstance(id, copySpec)
             copySpec

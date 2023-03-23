@@ -224,7 +224,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
 
         binChildSpec.into((Callable<Object>) pluginExtension::getExecutableDir);
         binChildSpec.from(startScripts);
-        binChildSpec.setFileMode(0755);
+        binChildSpec.filePermissions(permissions -> permissions.unix("755"));
 
         CopySpec childSpec = project.copySpec();
         childSpec.from(project.file("src/dist"));

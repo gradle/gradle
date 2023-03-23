@@ -73,4 +73,12 @@ public interface FileSystemOperations {
      */
     @Incubating
     FileAccessPermissions permissions(boolean directory, Action<? super FileAccessPermissions> configureAction);
+
+    /**
+     * TODO javadoc
+     *
+     * @since 8.2
+     */
+    @Incubating
+    FileAccessPermissions permissions(boolean directory, String permissions);
 }

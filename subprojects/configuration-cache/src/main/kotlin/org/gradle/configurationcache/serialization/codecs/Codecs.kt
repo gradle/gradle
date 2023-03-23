@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.flow.FlowProviders
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
@@ -98,6 +99,7 @@ class Codecs(
     fileResolver: FileResolver,
     objectFactory: ObjectFactory,
     instantiator: Instantiator,
+    fileSystemOperations: FileSystemOperations,
     listenerManager: ListenerManager,
     val taskNodeFactory: TaskNodeFactory,
     val ordinalGroupFactory: OrdinalGroupFactory,
@@ -172,7 +174,7 @@ class Codecs(
             bind(WorkNodeActionCodec)
             bind(CapabilitySerializer())
 
-            bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, objectFactory, instantiator))
+            bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, objectFactory, instantiator, fileSystemOperations))
             bind(DestinationRootCopySpecCodec(fileResolver))
 
             bind(TaskReferenceCodec)

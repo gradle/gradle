@@ -162,6 +162,7 @@ abstract class AbstractUserTypeCodecTest {
         fileResolver = mock(),
         objectFactory = mock(),
         instantiator = mock(),
+        fileSystemOperations = mock(),
         listenerManager = mock(),
         taskNodeFactory = mock(),
         ordinalGroupFactory = mock(),

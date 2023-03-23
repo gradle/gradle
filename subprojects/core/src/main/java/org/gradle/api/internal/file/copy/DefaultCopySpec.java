@@ -50,6 +50,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -466,23 +467,47 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
+    @Deprecated
     public Integer getDirMode() {
+        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "getDirMode()")
+            .replaceWith("getDirPermissions()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         return buildRootResolver().getDirMode();
     }
 
     @Override
+    @Deprecated
     public Integer getFileMode() {
+        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "getFileMode()")
+            .replaceWith("getFilePermissions()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         return buildRootResolver().getFileMode();
     }
 
     @Override
+    @Deprecated
     public CopyProcessingSpec setDirMode(@Nullable Integer mode) {
+        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "setDirMode(Integer)")
+            .replaceWith("dirPermissions(Action)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         dirPermissions.set(mode == null ? null : objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, mode));
         return this;
     }
 
     @Override
+    @Deprecated
     public CopyProcessingSpec setFileMode(@Nullable Integer mode) {
+        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "setFileMode(Integer)")
+            .replaceWith("filePermissions(Action)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
+            .nagUser();
         filePermissions.set(mode == null ? null : objectFactory.newInstance(DefaultFileAccessPermissions.class, objectFactory, mode));
         return this;
     }

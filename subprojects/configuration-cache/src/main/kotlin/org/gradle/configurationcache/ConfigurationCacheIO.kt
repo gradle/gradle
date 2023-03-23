@@ -311,6 +311,7 @@ class ConfigurationCacheIO internal constructor(
             fileResolver = service(),
             objectFactory = service(),
             instantiator = service(),
+            fileSystemOperations = service(),
             listenerManager = service(),
             taskNodeFactory = service(),
             ordinalGroupFactory = service(),

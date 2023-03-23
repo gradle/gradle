@@ -97,10 +97,5 @@ public interface FileTreeElement {
      */
     RelativePath getRelativePath();
 
-    /**
-     * Returns the Unix permissions of this file, e.g. {@code 0644}.
-     *
-     * @return The Unix file permissions.
-     */
-    int getMode();
+    int getMode(); //TODO: not sure what to do with this one... I would replace it, but how can I make it read-only?
 }
