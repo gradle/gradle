@@ -34,6 +34,13 @@ class ConfigurationCacheableIdFactoryTest extends Specification {
         then:
         def e = thrown(IllegalStateException)
         e.message == "Cannot create a new id after one has been loaded"
+
+        // repeating creation still throws an exception
+        when:
+        factory.createId()
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == "Cannot create a new id after one has been loaded"
     }
 
     def "creating ids again after loading is not allowed"() {

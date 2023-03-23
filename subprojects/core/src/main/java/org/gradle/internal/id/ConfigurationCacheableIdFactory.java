@@ -46,8 +46,8 @@ public class ConfigurationCacheableIdFactory {
      * @throws IllegalStateException if an id has already been loaded.
      */
     public long createId() {
-        long newId = sequence.incrementAndGet();
-        if (newId == USED_ASSIGNED_ID_MARKER + 1) {
+        long newId = sequence.updateAndGet(it -> it == USED_ASSIGNED_ID_MARKER ? it : it + 1);
+        if (newId == USED_ASSIGNED_ID_MARKER) {
             throw new IllegalStateException("Cannot create a new id after one has been loaded");
         }
 
