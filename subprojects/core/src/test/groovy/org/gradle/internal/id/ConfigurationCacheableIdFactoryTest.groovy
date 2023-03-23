@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration.internal
+package org.gradle.internal.id
 
 import spock.lang.Specification
 
-class InConfigurationIdFactoryTest extends Specification {
+class ConfigurationCacheableIdFactoryTest extends Specification {
 
     def "creating ids after loading is not allowed"() {
-        def factory = new InConfigurationIdFactory()
+        def factory = new ConfigurationCacheableIdFactory()
 
         when:
-        factory.reportLoadedId()
-        factory.reportLoadedId()
+        factory.idRecreated()
+        factory.idRecreated()
         then:
         noExceptionThrown()
 
@@ -37,7 +37,7 @@ class InConfigurationIdFactoryTest extends Specification {
     }
 
     def "creating ids again after loading is not allowed"() {
-        def factory = new InConfigurationIdFactory()
+        def factory = new ConfigurationCacheableIdFactory()
 
         when:
         def id1 = factory.createId()
@@ -46,8 +46,8 @@ class InConfigurationIdFactoryTest extends Specification {
         id1 != id2
 
         when:
-        factory.reportLoadedId()
-        factory.reportLoadedId()
+        factory.idRecreated()
+        factory.idRecreated()
         then:
         noExceptionThrown()
 
