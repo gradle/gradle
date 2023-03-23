@@ -36,7 +36,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 149
+    protected static final THIRD_PARTY_LIB_COUNT = 151
 
     @Rule public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
 
