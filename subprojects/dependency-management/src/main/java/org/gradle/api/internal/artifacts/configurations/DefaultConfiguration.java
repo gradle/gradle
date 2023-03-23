@@ -1830,6 +1830,12 @@ since users cannot create non-legacy configurations and there is no current publ
      *     <li>Setting consumable usage to false on the {@code apiElements} and {@code runtimeElements} configurations should NOT warn (this is done by the Kotlin plugin).</li>
      *     <li>All other usage changes should warn.</li>
      * </ol>
+     * <p>
+     * Many sources of the behavior requiring this exception can be found with these searches:
+     * <ul>
+     *      <li><a href="https://github.com/search?q=repo%3AJetBrains%2Fkotlin+%22canBeResolved+%3D+true%22+OR+%22canBeConsumed+%3D+true%22+path%3A%2F%5Elibraries%5C%2Ftools%5C%2Fkotlin-gradle-plugin%5C%2Fsrc%5C%2Fcommon%5C%2Fkotlin%5C%2Forg%5C%2Fjetbrains%5C%2Fkotlin%5C%2Fgradle%5C%2Fplugin%5C%2F%2F&type=code">Kotlin plugin</a></li>
+     *      <li><a href="https://cs.android.com/search?q=%22canBeResolved%20%3D%20true%22%20%22canbeConsumed%20%3D%20true%22&sq=">Android plugin</a></li>
+     * </ul>
      *
      * @param usage the name usage that is being changed
      * @param current the current value of the usage after the change
@@ -1853,7 +1859,12 @@ since users cannot create non-legacy configurations and there is no current publ
      since users cannot create non-legacy configurations and there is no current public API for setting roles upon creation</li>
      *     <li>All other usage changes should warn.</li>
      * </ol>
-     *
+     * <p>
+     * Many sources of the behavior requiring this exception can be found with these searches:
+     * <ul>
+     *      <li><a href="https://github.com/search?q=repo%3AJetBrains%2Fkotlin+%22canBeResolved+%3D+true%22+OR+%22canBeConsumed+%3D+true%22+path%3A%2F%5Elibraries%5C%2Ftools%5C%2Fkotlin-gradle-plugin%5C%2Fsrc%5C%2Fcommon%5C%2Fkotlin%5C%2Forg%5C%2Fjetbrains%5C%2Fkotlin%5C%2Fgradle%5C%2Fplugin%5C%2F%2F&type=code">Kotlin plugin</a></li>
+     *      <li><a href="https://cs.android.com/search?q=%22canBeResolved%20%3D%20true%22%20%22canbeConsumed%20%3D%20true%22&sq=">Android plugin</a></li>
+     * </ul>
      * @return {@code true} if the usage change is a known special case; {@code false} otherwise
      */
     private boolean isSpecialCaseOfRedundantUsageActivation() {
