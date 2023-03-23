@@ -124,4 +124,20 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * @return The configuration.
      */
     Configuration detachedConfiguration(Dependency... dependencies);
+
+    /**
+     * Similar to {@link #all(Action)}, executes the given action against all <strong>consumable</strong> configurations in this collection, or
+     * any such configurations subsequently added to this collection.
+     *
+     * @param action The action to be executed
+     */
+    void allConsumable(Action<? super Configuration> action);
+
+    /**
+     * Similar to {@link #all(Action)}, executes the given action against all <strong>resolvable</strong> configurations in this collection, or
+     * any such configurations subsequently added to this collection.
+     *
+     * @param action The action to be executed
+     */
+    void allResolvable(Action<? super Configuration> action);
 }
