@@ -185,6 +185,32 @@ beforeSettings { settings ->
 =====
 ====
 
+[[configuration_caching_options_renamed]]
+=== Configuration cache options renamed
+
+In this release, the configuration cache feature was promoted from incubating to stable, and as such, all properties
+originally mentioned in the feature documentation (which had an `unsafe` part in their names, e.g. `org.gradle.unsafe.configuration-cache`)
+were renamed, in some cases, by just removing the `unsafe` bit.
+
+[cols="1,1", options="header"]
+|===
+
+| Incubating property
+| Finalized property
+
+|`org.gradle.unsafe.configuration-cache`
+|`org.gradle.configuration-cache`
+
+|`org.gradle.unsafe.configuration-cache-problems`
+|`org.gradle.configuration-cache.problems`*
+
+|`org.gradle.unsafe.configuration-cache.max-problems`
+|`org.gradle.configuration-cache.max-problems`
+|===
+
+Note that the original `org.gradle.unsafe.configuration-cache...` properties continue to be honored in this release,
+and no warnings will be produced if they are used, but they will be deprecated and removed in a future release.
+
 === Potential breaking changes
 
 ==== Kotlin DSL scripts emit compilation warnings
@@ -193,6 +219,17 @@ Compilation warnings from Kotlin DSL scripts are printed to the console output.
 For example, the use of deprecated APIs in Kotlin DSL will emit warnings each time the script is compiled.
 
 This is a potentially breaking change if you are consuming the console output of Gradle builds.
+
+==== New API introduced may clash with existing Gradle DSL code
+
+When a new property or method is added to an existing type in the Gradle DSL, it may clash with names already in use in user code.
+
+When a name clash occurs, one solution is to rename the element in user code.
+
+This is a non-exhaustive list of API additions in 8.1 that may cause name collisions with existing user code.
+
+* link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#getJvmArguments--[`JavaExec.getJvmArguments()`]
+* link:{javadocPath}/org/gradle/process/JavaExecSpec.html#getJvmArguments--[`JavaExecSpec.getJvmArguments()`]
 
 === Deprecations
 

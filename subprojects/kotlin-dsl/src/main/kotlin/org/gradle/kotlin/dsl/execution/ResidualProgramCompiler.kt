@@ -486,7 +486,8 @@ class ResidualProgramCompiler(
         LDC(programTarget.name + "/" + programKind.name + "/stage2")
         // Move HashCode value to a static field so it's cached across invocations
         loadHashCode(originalSourceHash)
-        if (requiresAccessors()) emitAccessorsClassPathForScriptHost() else GETSTATIC(ClassPath::EMPTY)
+        if (requiresAccessors(programTarget)) emitAccessorsClassPathForScriptHost()
+        else GETSTATIC(ClassPath::EMPTY)
         invokeHost(
             ExecutableProgram.Host::evaluateSecondStageOf.name,
             "(" +
@@ -524,10 +525,6 @@ class ResidualProgramCompiler(
         Type.getType(ProgramTarget::class.java),
         Type.getType(ClassPath::class.java)
     )
-
-    private
-    fun requiresAccessors() =
-        requiresAccessors(programTarget, programKind)
 
     private
     fun MethodVisitor.emitAccessorsClassPathForScriptHost() {
@@ -792,5 +789,5 @@ class ResidualProgramCompiler(
 
 
 internal
-fun requiresAccessors(programTarget: ProgramTarget, programKind: ProgramKind) =
-    programTarget == ProgramTarget.Project && programKind == ProgramKind.TopLevel
+fun requiresAccessors(programTarget: ProgramTarget) =
+    programTarget == ProgramTarget.Project
