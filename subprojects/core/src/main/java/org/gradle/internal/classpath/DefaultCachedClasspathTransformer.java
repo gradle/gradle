@@ -112,7 +112,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
                 if (!agentStatus.isAgentInstrumentationEnabled()) {
                     return instrumentingPipeline(InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader());
                 }
-                return agentInstrumentingPipeline(copyingPipeline(), instrumentingPipeline(InstrumentingClasspathFileTransformer.instrumentForLoadingWithAgent()));
+                return agentInstrumentingPipeline(normalizingPipeline(), instrumentingPipeline(InstrumentingClasspathFileTransformer.instrumentForLoadingWithAgent()));
             default:
                 throw new IllegalArgumentException();
         }
@@ -120,6 +120,10 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     private TransformPipeline copyingPipeline() {
         return cp -> transformFiles(cp, new CopyingClasspathFileTransformer(globalCacheLocations));
+    }
+
+    private TransformPipeline normalizingPipeline() {
+        return instrumentingPipeline(InstrumentingClasspathFileTransformer.normalizeWithoutInstrumenting(globalCacheLocations));
     }
 
     private TransformPipeline instrumentingPipeline(InstrumentingClasspathFileTransformer.Policy policy) {

@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.Pair;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileType;
@@ -101,6 +102,14 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
          * @return {@code true} if the entry should be included.
          */
         boolean includeEntry(ClasspathEntryVisitor.Entry entry);
+
+        /**
+         * Checks if the entry should be processed or included into the resulting JAR as is.
+         *
+         * @param entry the entry to check
+         * @return {@code true} if the entry should be processed
+         */
+        boolean applyProcessing(ClasspathEntryVisitor.Entry entry);
     }
 
     public InstrumentingClasspathFileTransformer(
@@ -203,17 +212,19 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                 if (!policy.includeEntry(entry)) {
                     return;
                 }
-                if (isClassFile(entry)) {
-                    ClassReader reader = new ClassReader(entry.getContent());
-                    ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-                    Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter, new ClassData(reader));
-                    reader.accept(chain.right, 0);
-                    byte[] bytes = classWriter.toByteArray();
-                    builder.put(chain.left.getPathString(), bytes, entry.getCompressionMethod());
-                } else if (isManifest(entry)) {
-                    byte[] processedManifest = policy.processManifest(source, entry);
-                    if (processedManifest != null) {
-                        builder.put(entry.getName(), processedManifest, entry.getCompressionMethod());
+                if (policy.applyProcessing(entry)) {
+                    if (isClassFile(entry)) {
+                        ClassReader reader = new ClassReader(entry.getContent());
+                        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+                        Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter, new ClassData(reader));
+                        reader.accept(chain.right, 0);
+                        byte[] bytes = classWriter.toByteArray();
+                        builder.put(chain.left.getPathString(), bytes, entry.getCompressionMethod());
+                    } else if (isManifest(entry)) {
+                        byte[] processedManifest = policy.processManifest(source, entry);
+                        if (processedManifest != null) {
+                            builder.put(entry.getName(), processedManifest, entry.getCompressionMethod());
+                        }
                     }
                 } else {
                     builder.put(entry.getName(), entry.getContent(), entry.getCompressionMethod());
@@ -265,6 +276,44 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             public boolean includeEntry(ClasspathEntryVisitor.Entry entry) {
                 // include everything
                 return true;
+            }
+
+            @Override
+            public boolean applyProcessing(ClasspathEntryVisitor.Entry entry) {
+                // Only process class files, everything else goes in as is.
+                return isClassFile(entry);
+            }
+        };
+    }
+
+    public static Policy normalizeWithoutInstrumenting(GlobalCacheLocations globalCacheLocations) {
+        return new Policy() {
+            @Override
+            public void applyConfigurationTo(Hasher hasher) {
+                hasher.putInt(0);
+            }
+
+            @Override
+            public boolean instrumentFile(File file) {
+                // Do not normalize signed JARs or JARs residing in the global cache
+                return file.isDirectory() || (!globalCacheLocations.isInsideGlobalCache(file.getAbsolutePath()) && !isSignedJar(file));
+            }
+
+            @Override
+            public byte[] processManifest(File source, ClasspathEntryVisitor.Entry entry) throws IOException {
+                return entry.getContent();
+            }
+
+            @Override
+            public boolean includeEntry(ClasspathEntryVisitor.Entry entry) {
+                // Include everything.
+                return true;
+            }
+
+            @Override
+            public boolean applyProcessing(ClasspathEntryVisitor.Entry entry) {
+                // Process nothing, just repack with normalization.
+                return false;
             }
         };
     }
@@ -330,6 +379,12 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             public boolean includeEntry(ClasspathEntryVisitor.Entry entry) {
                 // Only include classes in the result, resources will be loaded from the original JAR by the class loader.
                 return isClassFile(entry) || isManifest(entry);
+            }
+
+            @Override
+            public boolean applyProcessing(ClasspathEntryVisitor.Entry entry) {
+                // Only stuff that needs processing reaches this point.
+                return true;
             }
         };
     }
