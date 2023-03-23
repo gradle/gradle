@@ -35,8 +35,6 @@ import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResour
  */
 public abstract class WrapperPlugin implements Plugin<Project> {
 
-    private static final String SERVICES_GRADLE_ORG_VERSIONS_OVERRIDE_URL_PROPERTY = "org.gradle.internal.services.version.url.override";
-
     @Override
     public void apply(Project project) {
         if (project.getParent() == null) {
@@ -57,8 +55,7 @@ public abstract class WrapperPlugin implements Plugin<Project> {
     }
 
     private static String getVersionUrl() {
-        String baseUrl = System.getProperty(SERVICES_GRADLE_ORG_VERSIONS_OVERRIDE_URL_PROPERTY,
-            DistributionLocator.SERVICES_GRADLE_BASE_URL);
+        String baseUrl = DistributionLocator.getBaseUrl();
         return baseUrl + "/versions";
     }
 

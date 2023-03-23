@@ -112,8 +112,8 @@ public abstract class Wrapper extends DefaultTask {
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
     private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private final DistributionLocator locator = new DistributionLocator();
+    private final boolean isOffline;
     private boolean distributionUrlConfigured = false;
-    private boolean isOffline;
 
     public Wrapper() {
         scriptFile = "gradlew";
