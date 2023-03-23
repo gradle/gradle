@@ -53,7 +53,7 @@ class CacheLayoutTest extends Specification {
         CacheLayout cacheLayout = CacheLayout.META_DATA
 
         then:
-        def expectedVersion = 101_123_346
+        def expectedVersion = 105
         cacheLayout.name == 'metadata'
         cacheLayout.key == "metadata-2.${expectedVersion}"
         cacheLayout.version == CacheVersion.parse("2.${expectedVersion}")
