@@ -65,7 +65,7 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
 
             @Override
             public String toString() {
-                return "Task " + delegate.getTaskPath();
+                return "Task " + delegate.getIdentityPath();
             }
         };
     }
