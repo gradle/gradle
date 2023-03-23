@@ -119,6 +119,14 @@ This is a non-exhaustive list of API additions in 8.1 that may cause name collis
 * link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#getJvmArguments--[`JavaExec.getJvmArguments()`]
 * link:{javadocPath}/org/gradle/process/JavaExecSpec.html#getJvmArguments--[`JavaExecSpec.getJvmArguments()`]
 
+==== Using unsupported API to start external processes at configuration time is no longer allowed with the configuration cache enabled
+
+Since Gradle 7.5, using `Project.exec`, `Project.javaexec`, and standard Java and Groovy APIs to run external processes at configuration time has been considered an error only if the <<configuration_cache.adoc#config_cache:stable,feature preview `STABLE_CONFIGURATION_CACHE`>> was enabled.
+With the configuration cache promotion to a stable feature in Gradle 8.1, this error is detected regardless of the feature preview status.
+The <<configuration_cache#config_cache:requirements:external_processes,configuration cache chapter>> has more details to help with the migration to the new provider-based APIs to execute external processes at configuration time.
+
+Builds that do not use the configuration cache, or only start external processes at execution time are not affected by this change.
+
 === Deprecations
 
 [[configurations_allowed_usage]]
@@ -465,4 +473,3 @@ If you were using the link:https://plugins.jetbrains.com/plugin/18949-gradle-lib
 After upgrading Gradle to 8.1 you will need to clear the IDE caches and restart.
 
 Also see <<upgrading_version_8.adoc#kotlin_dsl_deprecated_catalogs_plugins_block, the deprecated usages of version catalogs in the Kotlin DSL `plugins {}` block>> above.
-
