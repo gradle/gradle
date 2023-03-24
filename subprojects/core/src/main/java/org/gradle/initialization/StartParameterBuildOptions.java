@@ -437,7 +437,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
     public static class ExportKeysOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
 
-        private static final String LONG_OPTION = "export-keys";
+        public static final String LONG_OPTION = "export-keys";
 
         public ExportKeysOption() {
             super(null,
