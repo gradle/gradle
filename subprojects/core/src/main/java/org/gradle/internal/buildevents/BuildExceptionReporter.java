@@ -24,10 +24,12 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
+import org.gradle.internal.exceptions.CompilationFailedIndicator;
 import org.gradle.internal.exceptions.ContextAwareException;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.ExceptionContextVisitor;
 import org.gradle.internal.exceptions.FailureResolutionAware;
+import org.gradle.internal.exceptions.NonGradleCause;
+import org.gradle.internal.exceptions.NonGradleCauseExceptionsHolder;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
@@ -38,6 +40,9 @@ import org.gradle.util.internal.GUtil;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static org.apache.commons.lang.StringUtils.repeat;
+import static org.gradle.api.logging.LogLevel.DEBUG;
+import static org.gradle.api.logging.LogLevel.INFO;
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption.LONG_OPTION;
 import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.LogLevelOption.DEBUG_LONG_OPTION;
 import static org.gradle.internal.logging.LoggingConfigurationBuildOptions.LogLevelOption.INFO_LONG_OPTION;
@@ -51,6 +56,9 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  * Reports the build exception, if any.
  */
 public class BuildExceptionReporter implements Action<Throwable> {
+
+    public static final String RESOLUTION_LINE_PREFIX = "> ";
+
     private enum ExceptionStyle {
         NONE, FULL
     }
@@ -125,10 +133,10 @@ public class BuildExceptionReporter implements Action<Throwable> {
         writeFailureDetails(output, details);
     }
 
-    private static boolean hasNonGradleSpecificCauseInAncestry(Throwable failure) {
+    private static boolean hasCauseAncestry(Throwable failure, Class<?> type) {
         Throwable cause = failure.getCause();
         while (cause != null) {
-            if (hasOnlyNonGradleSpecifiedCauses(cause)) {
+            if (hasCause(cause, type)) {
                 return true;
             }
             cause = cause.getCause();
@@ -136,9 +144,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
         return false;
     }
 
-    private static boolean hasOnlyNonGradleSpecifiedCauses(Throwable cause) {
-        if (cause instanceof DefaultMultiCauseException) {
-            return ((DefaultMultiCauseException) cause).hasOnlyNonGradleSpecifiedCauses();
+    private static boolean hasCause(Throwable cause, Class<?> type) {
+        if (cause instanceof NonGradleCauseExceptionsHolder) {
+            return ((NonGradleCauseExceptionsHolder) cause).hasCause(type);
         }
         return false;
     }
@@ -204,40 +212,47 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         private LinePrefixingStyledTextOutput getLinePrefixingStyledTextOutput(FailureDetails details) {
             details.details.format("%n");
-            StringBuilder prefix = new StringBuilder();
-            for (int i = 1; i < depth; i++) {
-                prefix.append("   ");
-            }
+            StringBuilder prefix = new StringBuilder(repeat("   ", depth - 1));
             details.details.text(prefix);
             prefix.append("  ");
-            details.details.style(Info).text("> ").style(Normal);
+            details.details.style(Info).text(RESOLUTION_LINE_PREFIX).style(Normal);
 
             return new LinePrefixingStyledTextOutput(details.details, prefix, false);
         }
     }
 
     private void fillInFailureResolution(FailureDetails details) {
-        BufferingStyledTextOutput resolution = details.resolution;
-        ContextImpl context = new ContextImpl(resolution);
+        ContextImpl context = new ContextImpl(details.resolution);
         if (details.failure instanceof FailureResolutionAware) {
             ((FailureResolutionAware) details.failure).appendResolutions(context);
         }
-        if (details.exceptionStyle == ExceptionStyle.NONE) {
+        boolean hasNonGradleSpecificCauseInAncestry = hasCauseAncestry(details.failure, NonGradleCause.class);
+        if (details.exceptionStyle == ExceptionStyle.NONE && !hasNonGradleSpecificCauseInAncestry) {
             context.appendResolution(output -> {
-                resolution.text("Run with ");
-                resolution.withStyle(UserInput).format("--%s", STACKTRACE_LONG_OPTION);
-                resolution.text(" option to get the stack trace.");
+                output.text("Run with ");
+                output.withStyle(UserInput).format("--%s", STACKTRACE_LONG_OPTION);
+                output.text(" option to get the stack trace.");
             });
         }
-        if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
+
+        boolean hasCompileError = hasNonGradleSpecificCauseInAncestry && hasCauseAncestry(details.failure, CompilationFailedIndicator.class);
+        LogLevel logLevel = loggingConfiguration.getLogLevel();
+        boolean isLessThanInfo = logLevel.ordinal() > INFO.ordinal();
+        if (hasCompileError && isLessThanInfo) {
             context.appendResolution(output -> {
-                resolution.text("Run with ");
-                if (loggingConfiguration.getLogLevel() != LogLevel.INFO) {
-                    resolution.withStyle(UserInput).format("--%s", INFO_LONG_OPTION);
-                    resolution.text(" or ");
+                output.text("Run with ");
+                output.withStyle(UserInput).format("--%s", INFO_LONG_OPTION);
+                output.text(" option to get more log output.");
+            });
+        } else if (logLevel != DEBUG && !hasNonGradleSpecificCauseInAncestry) {
+            context.appendResolution(output -> {
+                output.text("Run with ");
+                if (isLessThanInfo) {
+                    output.withStyle(UserInput).format("--%s", INFO_LONG_OPTION);
+                    output.text(" or ");
                 }
-                resolution.withStyle(UserInput).format("--%s", DEBUG_LONG_OPTION);
-                resolution.text(" option to get more log output.");
+                output.withStyle(UserInput).format("--%s", DEBUG_LONG_OPTION);
+                output.text(" option to get more log output.");
             });
         }
 
@@ -245,7 +260,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
             addBuildScanMessage(context);
         }
 
-        if (!hasNonGradleSpecificCauseInAncestry(details.failure)) {
+        if (!hasNonGradleSpecificCauseInAncestry) {
             context.appendResolution(output -> {
                 writeGeneralTips(output);
             });
@@ -282,8 +297,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     private void writeFailureDetails(StyledTextOutput output, FailureDetails details) {
-        writeSection(details.location,   output, "* Where:");
-        writeSection(details.details,    output, "* What went wrong:");
+        writeSection(details.location, output, "* Where:");
+        writeSection(details.details, output, "* What went wrong:");
         writeSection(details.resolution, output, "* Try:");
         writeSection(details.stackTrace, output, "* Exception is:");
     }
@@ -360,7 +375,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
             if (resolution.getHasContent()) {
                 resolution.println();
             }
-            resolution.style(Info).text("> ").style(Normal);
+            resolution.style(Info).text(RESOLUTION_LINE_PREFIX).style(Normal);
             resolutionProducer.accept(resolution);
         }
 

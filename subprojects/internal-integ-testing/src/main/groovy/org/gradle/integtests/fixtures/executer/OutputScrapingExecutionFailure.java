@@ -21,12 +21,15 @@ import org.gradle.util.internal.TextUtil;
 import org.hamcrest.Matcher;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang.StringUtils.repeat;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
@@ -154,11 +157,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     }
 
     private String toPrefixPattern(int prefix) {
-        StringBuilder builder = new StringBuilder("(?m)^");
-        for (int i = 0; i < prefix; i++) {
-            builder.append(' ');
-        }
-        return builder.toString();
+        return "(?m)^" + repeat(" ", prefix);
     }
 
     @Override
@@ -215,16 +214,10 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
 
     @Override
     public ExecutionFailure assertHasResolutions(String... resolutions) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < resolutions.length; i++) {
-            String expected = resolutions[i];
-            if (i > 0) {
-                builder.append("\n");
-            }
-            builder.append("> ");
-            builder.append(expected);
-        }
-        assertThat(this.resolution, equalTo(builder.toString()));
+        String expected = Arrays.stream(resolutions)
+            .map(resolution -> "> " + resolution)
+            .collect(joining("\n"));
+        assertThat(this.resolution, equalTo(expected));
         return this;
     }
 

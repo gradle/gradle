@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildevents
+package org.gradle.internal.exceptions;
 
-import org.gradle.internal.exceptions.NonGradleCause
-
-class TestNonGradleCauseException extends Exception implements NonGradleCause {
+public interface CompilationFailedIndicator extends NonGradleCause {
 }
