@@ -358,6 +358,7 @@ Caused by: org.gradle.api.GradleException: <failure>
 ''';
     }
 
+
     def reportsBuildFailureWhenShowStacktraceEnabled() {
         configuration.showStacktrace = ShowStacktrace.ALWAYS
 

@@ -23,7 +23,7 @@ import java.util.Optional;
 /**
  * Defines {@link ConfigurationRole}s representing common allowed usage patterns.
  *
- * These should be preferred over defining custom roles; whenever possible.  Use {@link #byUsage(boolean, boolean, boolean, boolean, boolean, boolean)}
+ * These should be preferred over defining custom roles; whenever possible.  Use {@link #byUsage(boolean, boolean, boolean)}
  * to attempt to locate a matching role by its usage characteristics.
  *
  * @since 8.1
@@ -36,17 +36,17 @@ public enum ConfigurationRoles implements ConfigurationRole {
      * the default role for configurations created when another more specific role is <strong>not</strong> specified.
      */
     @Deprecated
-    LEGACY(true, true, true, false, false, false),
+    LEGACY(true, true, true),
 
     /**
      * Meant to be used only for consumption by other projects.
      */
-    INTENDED_CONSUMABLE(true, false, false, false, false, false),
+    INTENDED_CONSUMABLE(true, false, false),
 
     /**
      * Meant to be used only for resolving dependencies.
      */
-    INTENDED_RESOLVABLE(false, true, false, false, false, false),
+    INTENDED_RESOLVABLE(false, true, false),
 
     /**
      * Meant as a temporary solution for situations where we need to declare dependencies against a resolvable configuration.
@@ -54,7 +54,7 @@ public enum ConfigurationRoles implements ConfigurationRole {
      * These situations should be updated to use a separate bucket configuration for declaring dependencies and extend it with a separate resolvable configuration.
      */
     @Deprecated
-    INTENDED_RESOLVABLE_BUCKET(false, true, true, false, false, false),
+    INTENDED_RESOLVABLE_BUCKET(false, true, true),
 
     /**
      * Meant as a temporary solution for situations where we need to declare dependencies against a consumable configuration.
@@ -62,33 +62,18 @@ public enum ConfigurationRoles implements ConfigurationRole {
      * This <strong>SHOULD NOT</strong> be necessary, and is a symptom of an over-permissive configuration.
      */
     @Deprecated
-    INTENDED_CONSUMABLE_BUCKET(true, false, true, false, false, false),
+    INTENDED_CONSUMABLE_BUCKET(true, false, true),
 
     /**
      * Meant to be used only for declaring dependencies.
      *
      * AKA {@code INTENDED_DECLARABLE}.
      */
-    INTENDED_BUCKET(false, false, true, false, false, false),
-
-    /**
-     * Meant to be used only for consumption, permits other usage but emits warnings if used otherwise.
-     */
-    @Deprecated
-    DEPRECATED_CONSUMABLE(true, true, true, false, true, true),
-
-    /**
-     * Meant to be used only for resolution, permits other usage but emits warnings if used otherwise.
-     */
-    @Deprecated
-    DEPRECATED_RESOLVABLE(true, true, true, true, false, true);
+    INTENDED_BUCKET(false, false, true);
 
     private final boolean consumable;
     private final boolean resolvable;
     private final boolean declarableAgainst;
-    private final boolean consumptionDeprecated;
-    private final boolean resolutionDeprecated;
-    private final boolean declarationAgainstDeprecated;
 
     /**
      * Locates a pre-defined role allowing the given usage.
@@ -96,28 +81,22 @@ public enum ConfigurationRoles implements ConfigurationRole {
      * @param consumable whether this role is consumable
      * @param resolvable whether this role is resolvable
      * @param declarableAgainst whether this role is declarable against
-     * @param consumptionDeprecated whether this role is deprecated for consumption
-     * @param resolutionDeprecated whether this role is deprecated for resolution
-     * @param declarationAgainstDeprecated whether this role is deprecated for declaration against
      *
      * @return the role enum token with matching usage characteristics, if one exists; otherwise {@link Optional#empty()}
      */
-    public static Optional<ConfigurationRoles> byUsage(boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
+    public static Optional<ConfigurationRoles> byUsage(boolean consumable, boolean resolvable, boolean declarableAgainst) {
         for (ConfigurationRoles role : values()) {
-            if (role.consumable == consumable && role.resolvable == resolvable && role.declarableAgainst == declarableAgainst && role.consumptionDeprecated == consumptionDeprecated && role.resolutionDeprecated == resolutionDeprecated && role.declarationAgainstDeprecated == declarationAgainstDeprecated) {
+            if (role.consumable == consumable && role.resolvable == resolvable && role.declarableAgainst == declarableAgainst) {
                 return Optional.of(role);
             }
         }
         return Optional.empty();
     }
 
-    ConfigurationRoles(boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
+    ConfigurationRoles(boolean consumable, boolean resolvable, boolean declarableAgainst) {
         this.consumable = consumable;
         this.resolvable = resolvable;
         this.declarableAgainst = declarableAgainst;
-        this.consumptionDeprecated = consumptionDeprecated;
-        this.resolutionDeprecated = resolutionDeprecated;
-        this.declarationAgainstDeprecated = declarationAgainstDeprecated;
     }
 
     @Override
@@ -142,17 +121,17 @@ public enum ConfigurationRoles implements ConfigurationRole {
 
     @Override
     public boolean isConsumptionDeprecated() {
-        return consumptionDeprecated;
+        return false;
     }
 
     @Override
     public boolean isResolutionDeprecated() {
-        return resolutionDeprecated;
+        return false;
     }
 
     @Override
     public boolean isDeclarationAgainstDeprecated() {
-        return declarationAgainstDeprecated;
+        return false;
     }
 
     private String upperSnakeToProperCase(String name) {
