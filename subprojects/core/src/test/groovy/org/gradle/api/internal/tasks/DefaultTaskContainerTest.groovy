@@ -34,8 +34,8 @@ import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
-import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
@@ -48,15 +48,7 @@ import static java.util.Collections.singletonMap
 
 class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerSpec<Task> {
 
-    private taskCount = 1
-    private taskIdentityFactory = Mock(TaskIdentityFactory) {
-        create(_, _, _) >> { String name, Class<? extends Task> type, ProjectInternal project ->
-            TaskIdentity.create(name, type, project, taskCount++)
-        }
-        create(_, _, _, _) >> { String name, Class<? extends Task> type, ProjectInternal project, long id ->
-            TaskIdentity.create(name, type, project, id)
-        }
-    }
+    private taskIdentityFactory = TestTaskIdentities.factory()
     private taskFactory = Mock(ITaskFactory)
     private project = Mock(ProjectInternal, name: "<project>") {
         identityPath(_) >> { String name ->
@@ -1632,11 +1624,11 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     }
 
     private <U extends TaskInternal> U task(final String name, Class<U> type) {
-        def taskId = (long) taskCount++
-        Mock(type, name: "[task" + taskId + "]") {
+        def taskId = taskIdentityFactory.create(name, type, project)
+        Mock(type, name: "[task" + taskId.id + "]") {
             getName() >> name
             getTaskDependency() >> Mock(TaskDependency)
-            getTaskIdentity() >> TaskIdentity.create(name, type, project as ProjectInternal, taskId)
+            getTaskIdentity() >> taskId
         } as U
     }
 
@@ -1659,6 +1651,4 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     interface CustomTask extends TaskInternal {}
 
     interface MyCustomTask extends CustomTask {}
-
-    interface AnotherCustomTask extends TaskInternal {}
 }

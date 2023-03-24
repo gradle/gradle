@@ -30,6 +30,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
@@ -96,7 +97,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     def manyWorkers = 10
     def cancellationToken = new DefaultBuildCancellationToken()
     def preparer = Stub(BuildTreeWorkGraphPreparer)
-    def taskIdCounter = new AtomicLong()
+    def taskIdentityFactory = TestTaskIdentities.factory()
 
     def "does nothing when nothing scheduled"() {
         when:
@@ -280,7 +281,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         _ * task.taskDependencies >> dependencies
         _ * task.project >> project
         _ * task.identityPath >> Path.path(":${services.identifier.name}:task")
-        _ * task.taskIdentity >> TaskIdentity.create("task", DefaultTask, project, taskIdCounter.incrementAndGet())
+        _ * task.taskIdentity >> taskIdentityFactory.create("task", DefaultTask, project)
         _ * task.destroyables >> Stub(TaskDestroyablesInternal)
         _ * task.localState >> Stub(TaskLocalStateInternal)
         _ * project.gradle >> services.gradle

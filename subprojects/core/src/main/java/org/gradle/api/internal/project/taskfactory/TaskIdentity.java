@@ -47,13 +47,8 @@ public final class TaskIdentity<T extends Task> {
         this.uniqueId = uniqueId;
     }
 
-    /**
-     * Creates a task identity with a specific unique id.
-     * <p>
-     * This method should not be called directly, use {@link TaskIdentityFactory} instead.
-     */
-    public static <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project, long uniqueId) {
-        return new TaskIdentity<>(
+    TaskIdentity(String name, Class<T> type, ProjectInternal project, long uniqueId) {
+        this(
             type,
             name,
             project.projectPath(name),

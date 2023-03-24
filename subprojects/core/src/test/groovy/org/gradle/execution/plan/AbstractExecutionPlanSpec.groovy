@@ -23,7 +23,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.api.internal.project.taskfactory.TaskIdentity
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskDependencyContainerInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -41,15 +41,13 @@ import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-import java.util.concurrent.atomic.AtomicLong
-
 abstract class AbstractExecutionPlanSpec extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
     private def backing = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private def locks = new ArrayList<MockLock>()
     private def acquired = new HashSet<MockLock>()
-    private taskIdCounter = new AtomicLong()
+    private taskIdentityFactory = TestTaskIdentities.factory()
     def thisBuild = backing.gradle
     def project = project()
     def nodeValidator = Mock(NodeValidator)
@@ -102,7 +100,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         task.localState >> emptyTaskLocalState()
         task.inputs >> emptyTaskInputs()
         task.requiredServices >> emptyTaskRequiredServices()
-        task.taskIdentity >> TaskIdentity.create(name, DefaultTask, project, taskIdCounter.incrementAndGet())
+        task.taskIdentity >> taskIdentityFactory.create(name, DefaultTask, project)
         return task
     }
 
