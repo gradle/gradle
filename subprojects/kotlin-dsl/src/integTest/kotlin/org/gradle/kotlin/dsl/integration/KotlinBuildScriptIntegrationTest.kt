@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.internal.jvm.Jvm
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.clickableUrlFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
@@ -354,6 +355,35 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         """)
         build("help").apply {
             assertOutputContains("w: ${clickableUrlFor(script)}:4:13: 'deprecatedFunction(): Unit' is deprecated. BECAUSE")
+        }
+    }
+
+    @Test
+    fun `can use project accessors from applied script body`() {
+        withBuildScript("""
+            plugins { java }
+            apply(from = "applied.gradle.kts")
+        """)
+        withFile("applied.gradle.kts", """
+            println(java.sourceCompatibility)
+        """)
+        build("help").apply {
+            assertOutputContains(Jvm.current().javaVersion!!.majorVersion)
+        }
+    }
+
+    @Test
+    fun `can use project accessors from applied script with buildscript block`() {
+        withBuildScript("""
+            plugins { java }
+            apply(from = "applied.gradle.kts")
+        """)
+        withFile("applied.gradle.kts", """
+            buildscript { print("") }
+            println(java.sourceCompatibility)
+        """)
+        build("help").apply {
+            assertOutputContains(Jvm.current().javaVersion!!.majorVersion)
         }
     }
 }
