@@ -1055,13 +1055,19 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         applyOptions(TestNGOptions.class, testFrameworkConfigure);
     }
 
+    /**
+     * Set the framework, only if it is being changed to a new value.
+     *
+     * If we are setting a framework to its existing value, no-op so as not to overwrite existing options here.
+     * We need to allow this especially for the default test task, so that existing builds that configure options and
+     * then call useJunit() don't clear out their options.
+     *
+     * @param testFramework
+     */
     void useTestFramework(TestFramework testFramework) {
         Class<?> currentFramework = this.testFramework.get().getClass();
         Class<?> newFramework = testFramework.getClass();
         if (currentFramework == newFramework) {
-            // We are setting a framework to its existing value, no-op so as not to overwrite existing options here.
-            // We need to allow this especially for the default test task, so that existing builds that configure options and
-            // then call useJunit() don't clear out their options.
             return;
         }
 
