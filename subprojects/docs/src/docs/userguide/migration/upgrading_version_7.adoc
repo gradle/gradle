@@ -724,6 +724,13 @@ The exact parameter and value depend on toolchain usage, or not, and Scala versi
 
 See the <<scala_plugin#sec:scala_target,Scala plugin documentation>> for details.
 
+==== `pluginBundle` dropped in Plugin Publish plugin
+
+Gradle versions 8.x and higher no longer support Plugin Publish plugin versions older than link:https://plugins.gradle.org/plugin/com.gradle.plugin-publish/1.0.0[1.0.0].
+These versions of the plugin no longer add the `pluginBundle` extension.
+Its functionality has been merged into the `gradlePlugin` block.
+Documentation on configuring plugin publication this way can be found both link:https://plugins.gradle.org/docs/publish-plugin[on the Portal] and the <<publishing_gradle_plugins#configure_the_plugin_publishing_pluginÏ,user manual>>.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
