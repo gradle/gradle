@@ -406,6 +406,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
             TestExecutableUtils.getExecutableToolchainSpec(test, objectFactory));
         test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
+        test.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
     }
 
     private <T> Provider<T> getToolchainTool(

@@ -69,8 +69,6 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply("org.gradle.test-suite-base");
-        project.getPluginManager().apply("org.gradle.java-base");
-        JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
         TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
         testSuites.registerBinding(JvmTestSuite.class, DefaultJvmTestSuite.class);
@@ -93,7 +91,6 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
                     .nagUser();
                 return JavaPluginHelper.getDefaultTestSuite(project).getSources().getRuntimeClasspath();
             });
-            test.getModularity().getInferModulePath().convention(java.getModularity().getInferModulePath());
         });
 
         testSuites.withType(JvmTestSuite.class).all(testSuite -> {
