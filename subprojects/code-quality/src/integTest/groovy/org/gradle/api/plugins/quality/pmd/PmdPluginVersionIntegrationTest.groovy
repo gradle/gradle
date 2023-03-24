@@ -67,6 +67,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
+        failure.assertHasResolutions("Run with --scan to get full insights.")
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }

@@ -36,9 +36,6 @@ import org.gradle.internal.logging.text.TestStyledTextOutput
 import spock.lang.Specification
 
 class BuildExceptionReporterTest extends Specification {
-    public static final String MESSAGE = "<message>"
-    public static final String FAILURE = '<failure>'
-    public static final String LOCATION = "<location>"
     final TestStyledTextOutput output = new TestStyledTextOutput()
     final StyledTextOutputFactory factory = Mock()
     final BuildClientMetaData clientMetaData = Mock()
@@ -46,8 +43,13 @@ class BuildExceptionReporterTest extends Specification {
     final LoggingConfiguration configuration = new DefaultLoggingConfiguration()
     final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, configuration, clientMetaData, gradleEnterprisePluginManager)
 
+
+    static final String MESSAGE = "<message>"
+    static final String FAILURE = '<failure>'
+    static final String LOCATION = "<location>"
     static final String STACKTRACE = "{info}> {normal}Run with {userinput}--stacktrace{normal} option to get the stack trace."
     static final String INFO_OR_DEBUG = "{info}> {normal}Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output."
+    static final String INFO = "{info}> {normal}Run with {userinput}--info{normal} option to get more log output."
     static final String SCAN = "{info}> {normal}Run with {userinput}--scan{normal} to get full insights."
     static final String GET_HELP = "{info}> {normal}Get more help at {userinput}https://help.gradle.org{normal}"
 
@@ -309,7 +311,7 @@ Caused by: org.gradle.api.GradleException: $FAILURE
 
     def "report multiple failures and skip help link for NonGradleCauseException"() {
         def failure1 = new LocationAwareException(new TaskExecutionException(null, new TestNonGradleCauseException()), LOCATION, 42)
-        def failure2 = new GradleException(FAILURE)
+        def failure2 = new LocationAwareException(new TaskExecutionException(null, new TestCompilationFailureException()), LOCATION, 42)
         def failure3 = new RuntimeException("<error>")
         Throwable exception = new MultipleBuildFailures([failure1, failure2, failure3])
 
@@ -328,21 +330,21 @@ Execution failed for null.
 {info}> {normal}org.gradle.internal.buildevents.TestNonGradleCauseException (no error message)
 
 * Try:
-$STACKTRACE
-$INFO_OR_DEBUG
 $SCAN
 ==============================================================================
 
 {failure}2: {normal}{failure}Task failed with an exception.{normal}
 -----------
+* Where:
+$LOCATION line: 42
+
 * What went wrong:
-$FAILURE
+Execution failed for null.
+{info}> {normal}org.gradle.internal.buildevents.TestCompilationFailureException (no error message)
 
 * Try:
-$STACKTRACE
-$INFO_OR_DEBUG
+$INFO
 $SCAN
-$GET_HELP
 ==============================================================================
 
 {failure}3: {normal}{failure}Task failed with an exception.{normal}

@@ -34,6 +34,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_VINTAGE_JUPITER
 import static org.gradle.testing.fixture.JUnitCoverage.getNEWEST
 import static org.hamcrest.CoreMatchers.equalTo
+
 /**
  * General tests for the JVM testing infrastructure that don't deserve their own test class.
  */
@@ -208,7 +209,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
 
         where:
         framework   | dependency                | superClass
-        "useJUnit"  | "$testJunitCoordinates"        | "org.junit.runner.Result"
+        "useJUnit"  | "$testJunitCoordinates"   | "org.junit.runner.Result"
         "useTestNG" | "org.testng:testng:6.3.1" | "org.testng.Converter"
     }
 

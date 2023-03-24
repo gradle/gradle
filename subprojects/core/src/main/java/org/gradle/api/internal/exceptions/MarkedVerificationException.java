@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks;
+package org.gradle.api.internal.exceptions;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
+import org.gradle.api.tasks.VerificationException;
+import org.gradle.internal.exceptions.NonGradleCause;
 
-/**
- * Signals that tests have failed. This is only thrown when tests are executed and some tests have failed execution.
- *
- * @since 7.4
- */
-public class VerificationException extends GradleException {
-    public VerificationException(String message) {
+public class MarkedVerificationException extends VerificationException implements NonGradleCause {
+    public MarkedVerificationException(String message) {
         super(message);
     }
 
-    /**
-     * Allows a cause to be specified.
-     *
-     * @since 8.2
-     */
-    @Incubating
-    public VerificationException(String message, Throwable cause) {
+    public MarkedVerificationException(String message, Throwable cause) {
         super(message, cause);
     }
 }

@@ -16,8 +16,8 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
@@ -356,7 +356,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             }
 
             dependencies {
-                customTestImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
+                customTestImplementation 'junit:junit:${NEWEST}'
             }
 
             tasks.create('customTest', Test) {
