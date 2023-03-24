@@ -142,7 +142,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     private static class CachingTestFrameworkTransformer implements Transformer<TestFramework, VersionedTestingFramework> {
         private final Transformer<TestFramework, TestingFramework> mapToTestFramework;
-        private Pair<TestingFramework, TestFramework> currentMapping;
+        // This is the current mapping from TestingFramework to TestFramework (i.e. right -> left)
+        private Pair<TestFramework, TestingFramework> currentMapping;
 
         public CachingTestFrameworkTransformer(Transformer<TestFramework, TestingFramework> mapToTestFramework) {
             this.mapToTestFramework = mapToTestFramework;
@@ -150,11 +151,11 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         @Override
         public TestFramework transform(VersionedTestingFramework vtf) {
-            if (currentMapping == null || currentMapping.getLeft() != vtf.getFramework()) {
-                currentMapping = Pair.of(vtf.getFramework(), mapToTestFramework.transform(vtf.getFramework()));
+            if (currentMapping == null || currentMapping.right() != vtf.getFramework()) {
+                currentMapping = Pair.of(mapToTestFramework.transform(vtf.getFramework()), vtf.getFramework());
             }
 
-            return currentMapping.getRight();
+            return currentMapping.left();
         }
     }
 
