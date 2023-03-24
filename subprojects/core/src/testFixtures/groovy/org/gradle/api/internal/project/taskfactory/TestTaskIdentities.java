@@ -16,11 +16,24 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * A test fixture to create {@link TaskIdentityFactory}'es or {@link TaskIdentity}'es directly.
+ * <p>
+ * It exists mainly because {@code TaskIdentity} is a final class and cannot be mocked.
+ */
 public class TestTaskIdentities {
+
+    private static final TaskIdentityFactory DEFAULT_FACTORY = factory();
+
+    public static <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project) {
+        return DEFAULT_FACTORY.create(name, type, project);
+    }
 
     public static TaskIdentityFactory factory() {
         AtomicLong idCounter = new AtomicLong(0);

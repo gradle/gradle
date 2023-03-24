@@ -47,7 +47,6 @@ abstract class AbstractExecutionPlanSpec extends Specification {
     private def backing = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private def locks = new ArrayList<MockLock>()
     private def acquired = new HashSet<MockLock>()
-    private taskIdentityFactory = TestTaskIdentities.factory()
     def thisBuild = backing.gradle
     def project = project()
     def nodeValidator = Mock(NodeValidator)
@@ -100,7 +99,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         task.localState >> emptyTaskLocalState()
         task.inputs >> emptyTaskInputs()
         task.requiredServices >> emptyTaskRequiredServices()
-        task.taskIdentity >> taskIdentityFactory.create(name, DefaultTask, project)
+        task.taskIdentity >> TestTaskIdentities.create(name, DefaultTask, project)
         return task
     }
 

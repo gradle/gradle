@@ -102,7 +102,6 @@ import static org.gradle.internal.service.scopes.ExecutionGlobalServices.PROPERT
 class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec implements ValidationMessageChecker {
     private AnnotationProcessingTaskFactory factory
     private ITaskFactory delegate
-    def taskIdentityFactory = TestTaskIdentities.factory()
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
     def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
@@ -929,7 +928,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
     private <T extends TaskInternal> T expectTaskCreated(final Class<T> type, final Object... params) {
         final String name = "task"
-        def taskIdentity = taskIdentityFactory.create(name, type, project)
+        def taskIdentity = TestTaskIdentities.create(name, type, project)
         T task = AbstractTask.injectIntoNewInstance(project, taskIdentity, new Callable<T>() {
             T call() throws Exception {
                 if (params.length > 0) {
