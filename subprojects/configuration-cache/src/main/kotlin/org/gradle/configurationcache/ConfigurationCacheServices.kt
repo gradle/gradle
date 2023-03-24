@@ -29,6 +29,7 @@ import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
 import org.gradle.internal.resource.transfer.ExternalResourceConnector
@@ -113,13 +114,14 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             modelParameters: BuildModelParameters,
             /** In non-CC builds, [ConfigurationCacheStartParameter] is not registered; accepting a list here is a way to ignore its absence. */
             configurationCacheStartParameter: List<ConfigurationCacheStartParameter>,
-            listenerManager: ListenerManager
+            listenerManager: ListenerManager,
+            workExecutionTracker: WorkExecutionTracker,
         ): TaskExecutionAccessChecker {
             val broadcast = listenerManager.getBroadcaster(TaskExecutionAccessListener::class.java)
             return when {
-                !modelParameters.isConfigurationCache -> TaskExecutionAccessCheckers.TaskStateBased(broadcast)
-                configurationCacheStartParameter.single().taskExecutionAccessPreStable -> TaskExecutionAccessCheckers.TaskStateBased(broadcast)
-                else -> TaskExecutionAccessCheckers.ConfigurationTimeBarrierBased(configurationTimeBarrier, broadcast)
+                !modelParameters.isConfigurationCache -> TaskExecutionAccessCheckers.TaskStateBased(broadcast, workExecutionTracker)
+                configurationCacheStartParameter.single().taskExecutionAccessPreStable -> TaskExecutionAccessCheckers.TaskStateBased(broadcast, workExecutionTracker)
+                else -> TaskExecutionAccessCheckers.ConfigurationTimeBarrierBased(configurationTimeBarrier, broadcast, workExecutionTracker)
             }
         }
     }
