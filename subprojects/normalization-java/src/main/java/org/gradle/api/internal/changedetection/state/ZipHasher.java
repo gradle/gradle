@@ -57,17 +57,20 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
     }
 
     private final ResourceHasher resourceHasher;
+    private final ZipHasher fallbackZipHasher;
     private final HashingExceptionReporter hashingExceptionReporter;
 
     public ZipHasher(ResourceHasher resourceHasher) {
         this(
             resourceHasher,
+            null,
             (s, e) -> LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e)
         );
     }
 
-    public ZipHasher(ResourceHasher resourceHasher, HashingExceptionReporter hashingExceptionReporter) {
+    public ZipHasher(ResourceHasher resourceHasher, @Nullable ZipHasher fallbackZipHasher, HashingExceptionReporter hashingExceptionReporter) {
         this.resourceHasher = resourceHasher;
+        this.fallbackZipHasher = fallbackZipHasher;
         this.hashingExceptionReporter = hashingExceptionReporter;
     }
 
@@ -95,6 +98,9 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
             return hasher.hash();
         } catch (Exception e) {
             hashingExceptionReporter.report(zipFileSnapshot, e);
+            if (fallbackZipHasher != null) {
+                return fallbackZipHasher.hashZipContents(zipFileSnapshot);
+            }
             return zipFileSnapshot.getHash();
         }
     }
