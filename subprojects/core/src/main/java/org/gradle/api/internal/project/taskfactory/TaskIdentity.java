@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.util.Path;
 
@@ -37,7 +35,6 @@ public final class TaskIdentity<T extends Task> {
      */
     public final long uniqueId;
 
-    @VisibleForTesting
     TaskIdentity(Class<T> type, String name, Path projectPath, Path identityPath, Path buildPath, long uniqueId) {
         this.name = name;
         this.projectPath = projectPath;
@@ -45,17 +42,6 @@ public final class TaskIdentity<T extends Task> {
         this.buildPath = buildPath;
         this.type = type;
         this.uniqueId = uniqueId;
-    }
-
-    TaskIdentity(String name, Class<T> type, ProjectInternal project, long uniqueId) {
-        this(
-            type,
-            name,
-            project.projectPath(name),
-            project.identityPath(name),
-            project.getGradle().getIdentityPath(),
-            uniqueId
-        );
     }
 
     public long getId() {
