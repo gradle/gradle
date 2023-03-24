@@ -141,10 +141,12 @@ class PartialEvaluator(
                         program.source
                     )
 
-                    ProgramKind.ScriptPlugin -> Static(
-                        CloseTargetScope,
-                        ApplyBasePlugins,
-                        Eval(program.source)
+                    ProgramKind.ScriptPlugin -> Dynamic(
+                        Static(
+                            CloseTargetScope,
+                            ApplyBasePlugins,
+                        ),
+                        program.source
                     )
                 }
             }
