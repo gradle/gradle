@@ -148,7 +148,6 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
             );
         }
 
-
         @Override
         protected void walkNestedMap(Object node, String qualifiedName, BiConsumer<String, Object> handler) {
             ((Map<?, ?>) node).forEach((key, value) -> {

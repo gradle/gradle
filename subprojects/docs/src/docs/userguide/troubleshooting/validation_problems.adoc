@@ -389,3 +389,10 @@ To fix this, look at the error message which indicates the list of possible solu
 Please find below the list of unsupported value type and links to respective sections of the user manual:
 
 `ResolvedArtifactResult`:: <<incremental_build#sec:task_input_using_dependency_resolution_results, Using dependency resolution results as task inputs>>
+
+[[unsupported_key_type_of_nested_map]]
+== Key of nested map must be of type String
+
+This error indicates that a nested map declares a key of an unsupported type.
+
+To fix this problem, change the type of the key to String.
