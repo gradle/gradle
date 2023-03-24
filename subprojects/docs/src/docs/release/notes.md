@@ -50,6 +50,12 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+### Wrapper task validates distribution url
+
+The wrapper task now validates the configured distribution url before writing it to the `gradle-wrapper.properties` file.
+This surfaces invalid urls early and can prevent IO exceptions at execution time.
+
+More details can be found in the dedicated section of the [Gradle Wrapper](gradle_wrapper.html#[adding_the_gradle_wrapper](sec:adding_wrapper)) user manual chapter.
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
