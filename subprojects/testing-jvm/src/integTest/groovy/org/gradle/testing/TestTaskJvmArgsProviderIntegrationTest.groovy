@@ -43,7 +43,7 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation "junit:junit:4.13"
+                testImplementation "$testJunitCoordinates"
             }
 
             class MyTestSystemProperties implements CommandLineArgumentProvider {

@@ -27,6 +27,7 @@ import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
+import static org.gradle.testing.fixture.JUnitCoverage.NEWEST
 
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
 class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
@@ -113,7 +114,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:4.13' }
+            dependencies { testImplementation '$testJunitCoordinates' }
             test {
                 maxParallelForks = $maxParallelForks
             }
@@ -141,7 +142,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 ${mavenCentralRepository()}
             }
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
                 testImplementation project(":dependency")
             }
         """
@@ -182,7 +183,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
             }
         """
         file("src/test/java/MyTest.java") << """
@@ -246,7 +247,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
+                testImplementation 'junit:junit:${NEWEST}'
             }
 
             test {
@@ -307,7 +308,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         where:
         frameworkName       | useMethod                 | frameworkDeps
-        "JUnit"             | "useJUnit()"              | "'junit:junit:${JUnitCoverage.NEWEST}'"
+        "JUnit"             | "useJUnit()"              | "'junit:junit:${NEWEST}'"
         "JUnit Platform"    | "useJUnitPlatform()"      | "'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'"
     }
 
@@ -323,7 +324,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
+                testImplementation 'junit:junit:${NEWEST}'
             }
 
             test {
@@ -477,14 +478,14 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         """.stripIndent()
     }
 
-    private static String java9Build() {
+    private String java9Build() {
         """
             apply plugin: 'java'
 
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
             }
 
             java {
