@@ -22,7 +22,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -54,7 +53,6 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     DefaultFinalizedExecutionPlan finalizedPlan
 
     def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
-    def taskIdentityFactory = TestTaskIdentities.factory()
     def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor(), accessHierarchies)
 
     def setup() {
@@ -75,7 +73,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         _ * task.shouldRunAfter >> taskDependencyResolvingTo(task, options.shouldRunAfter ?: [])
         _ * task.mustRunAfter >> taskDependencyResolvingTo(task, options.mustRunAfter ?: [])
         _ * task.sharedResources >> (options.resources ?: [])
-        _ * task.taskIdentity >> taskIdentityFactory.create(name, DefaultTask, project as ProjectInternal)
+        _ * task.taskIdentity >> TestTaskIdentities.create(name, DefaultTask, project as ProjectInternal)
         TaskStateInternal state = Mock()
         _ * task.state >> state
         if (options.failure != null) {
