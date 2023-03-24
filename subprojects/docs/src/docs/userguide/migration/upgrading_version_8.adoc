@@ -148,6 +148,9 @@ Copying `Configuration` using any of the following methods deprecated for remova
 - `copyRecursive(Spec)`
 
 Instead of copying configurations, create a new configuration and extend existing configurations using `extendsFrom` where necessary.
+For an example of this, see
+ <<organizing_gradle_projects#sec:replacements_for_copy,alternatives to the copy method>>.
+
 These methods will be removed in Gradle 9.0.
 
 [[deprecated_configuration_get_all]]

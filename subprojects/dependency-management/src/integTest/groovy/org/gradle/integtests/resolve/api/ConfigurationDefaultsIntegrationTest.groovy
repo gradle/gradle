@@ -383,4 +383,94 @@ task check {
         executer.expectDocumentedDeprecationWarning("Calling the Configuration.getAll() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use the configurations container to access the set of configurations instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_get_all")
         succeeds "help"
     }
+
+    def "can extend as an alternative to copying configurations"() {
+        buildFile.text = """
+            plugins {
+                id 'java-library'
+            }
+            
+            def implementationCopy = configurations.implementation.copy()
+
+            configurations {
+                implementationExtension {
+                    extendsFrom implementation
+                    
+                    // Deprecation on copy != deprecation on original, so match the copy
+                    if (implementationCopy.deprecatedForConsumption) deprecateForConsumption()
+                    if (implementationCopy.deprecatedForResolution) deprecateForResolution()
+                    if (implementationCopy.deprecatedForDeclarationAgainst) deprecateForDeprecationAgainst()
+                    
+                    visible = implementation.visible
+                    transitive = implementation.transitive
+                    description = implementation.description
+                    
+                    // No API
+                    //defaultDependencyActions = implementation.defaultDependencyActions
+                    //withDependencyActions = implementation.withDependencyActions
+                    //dependencyResolutionListeners = implementation.dependencyResolutionListeners
+                    
+                    // NO API
+                    //declarationAlternatives.addAll(implementation.declarationAlternatives)
+                    //resolutionAlternatives.addAll(implementation.resolutionAlternatives)
+                    //consumptionDeprecation.addAll(implementation.consumptionDeprecation)
+                    
+                    artifacts.addAll(implementation.getAllArtifacts())
+                    
+                    implementation.attributes.keySet().each { attr ->
+                        Object value = implementation.attributes.attribute(attribute)
+                        attributes.attribute(org.gradle.internal.Cast.uncheckedNonnullCast(attribute), value)
+                    }
+         
+                    implementation.excludeRules.forEach { rule -> excludeRules.add(rule) }
+                    implementation.extendsFrom.each { extended ->
+                        extended.excludeRules.forEach { rule -> excludeRules.add(rule) }
+                    }
+                    
+                    dependencies.addAll(implementation.dependencies)
+                    
+                    dependencyConstraints.addAll(implementation.dependencyConstraints)
+                }
+            }
+
+            task checkCopy {
+                doLast {
+                    assert configurations.implementationExtension.canBeConsumed == implementationCopy.canBeConsumed
+                    assert configurations.implementationExtension.canBeResolved == implementationCopy.canBeResolved
+                    assert configurations.implementationExtension.canBeDeclaredAgainst == implementationCopy.canBeDeclaredAgainst
+                    assert configurations.implementationExtension.deprecatedForConsumption == implementationCopy.deprecatedForConsumption
+                    assert configurations.implementationExtension.deprecatedForResolution == implementationCopy.deprecatedForResolution
+                    assert configurations.implementationExtension.deprecatedForDeclarationAgainst == implementationCopy.deprecatedForDeclarationAgainst
+                    
+                    assert configurations.implementationExtension.visible == implementationCopy.visible
+                    assert configurations.implementationExtension.transitive == implementationCopy.transitive
+                    assert configurations.implementationExtension.description == implementationCopy.description
+                    
+                    // No API
+                    //assert configurations.implementationExtension.defaultDependencyActions == implementationCopy.defaultDependencyActions
+                    //assert configurations.implementationExtension.withDependencyActions == implementationCopy.withDependencyActions
+                    //assert configurations.implementationExtension.dependencyResolutionListeners == implementationCopy.dependencyResolutionListeners
+                    
+                    // No API
+                    //assert configurations.implementationExtension.declarationAlternatives == implementationCopy.declarationAlternatives
+                    //assert configurations.implementationExtension.resolutionAlternatives == implementationCopy.resolutionAlternatives
+                    //assert configurations.implementationExtension.consumptionDeprecation == implementationCopy.consumptionDeprecation
+                    
+                    assert configurations.implementationExtension.getAllArtifacts() == implementationCopy.getAllArtifacts()
+                    
+                    assert configurations.implementationExtension.attributes == implementationCopy.attributes
+                    
+                    assert configurations.implementationExtension.excludeRules == implementationCopy.excludeRules
+                    
+                    assert configurations.implementationExtension.dependencies == implementationCopy.dependencies
+                   
+                    assert configurations.implementationExtension.dependencyConstraints == implementationCopy.dependencyConstraints
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Copying configurations has been deprecated. This is scheduled to be removed in Gradle 9.0. Consider creating a new configuration and extending configuration ':implementation' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configuration_copying_deprecated")
+        succeeds ":checkCopy"
+    }
 }

@@ -296,3 +296,72 @@ The following steps are typical for creating a custom Gradle distribution:
 ====
 include::sample[dir="snippets/organizingGradleProjects/customGradleDistribution/groovy",files="build.gradle[]"]
 ====
+
+[[sec:replacements_for_copy]]
+== Alternatives to copying `Configuration` objects
+
+Copying a `Configuration` object is not well defined.
+The `copy` methods create a new configuration that is identical to the original in some ways and differs in others.
+It is not clear which properties of the original are included in the copy and which are not.
+
+These `copy` methods have been deprecated due to this ambiguity.
+
+As an alternative, create a new `Configuration` and extend the existing one:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+val myImplementationCopy by Configurations.creating {
+    extendsFrom(configurations.named("implementation"))
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+configurations {
+    myImplementationCopy {
+        extendsFrom implementation
+    }
+}
+----
+=====
+====
+
+Whatever additional properties (beyond the dependencies <<declaring_dependencies.adoc#sub:config-inheritance-composition, already included by extending>>) are meaningful for your use case should be copied to the new configuration explicitly.
+
+For example, if you want to copy the existing artifacts and attributes:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+// Copy artifacts
+myImplementationCopy.artifacts.addAll(configurations.named("implementation").getAllArtifacts())
+
+// Copy attributes
+configurations.named("implementation").attributes.keySet().each { attr ->
+    val value = configurations.named("implementation").attributes.attribute(attribute)
+    myImplementationCopy.attributes.attribute(org.gradle.internal.Cast.uncheckedNonnullCast(attribute), value)
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+// Copy artifacts
+myImplementationCopy.artifacts.addAll(implementation.getAllArtifacts())
+
+// Copy attributes
+implementation.attributes.keySet().each { attr ->
+    def value = implementation.attributes.attribute(attribute)
+    myImplementationCopy.attributes.attribute(org.gradle.internal.Cast.uncheckedNonnullCast(attribute), value)
+}
+----
+=====
+====
