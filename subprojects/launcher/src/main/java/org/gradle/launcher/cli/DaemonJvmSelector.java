@@ -48,6 +48,7 @@ import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.process.internal.ExecFactory;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -56,7 +57,9 @@ import java.util.function.Predicate;
  * Daemon JVM auto-detection implementation for use in the launcher.
  */
 public class DaemonJvmSelector {
-    private final JavaInstallationRegistry registry;
+
+    private final ExecFactory execHandleFactory;
+    private final WindowsRegistry windowsRegistry;
     private final JvmMetadataDetector detector;
 
     public DaemonJvmSelector(
@@ -64,9 +67,8 @@ public class DaemonJvmSelector {
         TemporaryFileProvider temporaryFileProvider,
         WindowsRegistry windowsRegistry
     ) {
-        List<InstallationSupplier> installationSuppliers = defaultInstallationSuppliers(new BasicProviderFactory(), execHandleFactory, windowsRegistry);
-
-        this.registry = new JavaInstallationRegistry(installationSuppliers, null, OperatingSystem.current());
+        this.execHandleFactory = execHandleFactory;
+        this.windowsRegistry = windowsRegistry;
 
         // TODO: This cache probably doesn't do much in the launcher. We should be caching something to disk here so ideally we
         // can skip the entire detection process
@@ -74,16 +76,25 @@ public class DaemonJvmSelector {
             new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider));
     }
 
-    public JvmInstallationMetadata getDaemonJvmInstallation(int version) {
-        Optional<JvmInstallationMetadata> installation = getInstallation(it -> it.getLanguageVersion().isCompatibleWith(JavaVersion.toVersion(version)));
+    public JvmInstallationMetadata getDaemonJvmInstallation(int version, Parameters parameters) {
+        Optional<JvmInstallationMetadata> installation = getInstallation(
+            parameters,
+            it -> it.getLanguageVersion().isCompatibleWith(JavaVersion.toVersion(version))
+        );
         if (!installation.isPresent()) {
             throw new GradleException("No valid JVM installation found compatible with Java " + version + ".");
         }
         return installation.get();
     }
 
-    private Optional<JvmInstallationMetadata> getInstallation(Predicate<? super JvmInstallationMetadata> criteria) {
+    private Optional<JvmInstallationMetadata> getInstallation(Parameters parameters, Predicate<? super JvmInstallationMetadata> criteria) {
+
+        List<InstallationSupplier> installationSuppliers = getInstallationSuppliers(
+            new BasicProviderFactory(parameters), execHandleFactory, windowsRegistry);
+        JavaInstallationRegistry registry = new JavaInstallationRegistry(installationSuppliers, null, OperatingSystem.current());
+
         // TODO: What are the performance implications of doing this in the launcher?
+        // Probably not good.
         return registry.listInstallations().stream()
             .map(detector::getMetadata)
             .filter(JvmInstallationMetadata::isValidInstallation)
@@ -92,7 +103,7 @@ public class DaemonJvmSelector {
     }
 
     // TODO: We should standardize our installation suppliers across AvailableJavaHomes, this, and PlatformJvmServices.
-    private static List<InstallationSupplier> defaultInstallationSuppliers(ProviderFactory providerFactory, ExecFactory execFactory, WindowsRegistry windowsRegistry) {
+    private static List<InstallationSupplier> getInstallationSuppliers(ProviderFactory providerFactory, ExecFactory execFactory, WindowsRegistry windowsRegistry) {
 
         // TODO: Also leverage the AutoInstalledInstallationSupplier by moving it to a
         // subproject accessible from here. This will require moving a few other things around.
@@ -119,6 +130,13 @@ public class DaemonJvmSelector {
      * provider factory is not otherwise available at this service scope.
      */
     private static class BasicProviderFactory extends DefaultProviderFactory {
+
+        private final Parameters parameters;
+
+        public BasicProviderFactory(Parameters parameters) {
+            this.parameters = parameters;
+        }
+
         @Override
         public Provider<String> environmentVariable(Provider<String> variableName) {
             return variableName.map(System::getenv);
@@ -126,12 +144,25 @@ public class DaemonJvmSelector {
 
         @Override
         public Provider<String> systemProperty(Provider<String> propertyName) {
-            return propertyName.map(System::getProperty);
+            return propertyName.map(this::getProperty);
         }
 
         @Override
         public Provider<String> gradleProperty(Provider<String> propertyName) {
-            return systemProperty(propertyName);
+            return propertyName.map(this::getProperty);
+        }
+
+        @Nullable
+        private String getProperty(String key) {
+            String val = System.getProperty(key);
+            if (val != null) {
+                return val;
+            }
+            val = parameters.getStartParameter().getProjectProperties().get(key);
+            if (val != null) {
+                return val;
+            }
+            return parameters.getStartParameter().getSystemPropertiesArgs().get(key);
         }
     }
 

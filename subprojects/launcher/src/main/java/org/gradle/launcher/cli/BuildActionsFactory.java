@@ -106,7 +106,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
             parameters.getDaemonParameters().getJvmVersion() != null
         ) {
             Integer requestedVersion = parameters.getDaemonParameters().getJvmVersion();
-            JvmInstallationMetadata installation = daemonJvmSelector.getDaemonJvmInstallation(requestedVersion);
+            JvmInstallationMetadata installation = daemonJvmSelector.getDaemonJvmInstallation(requestedVersion, parameters);
             parameters.getDaemonParameters().setJvm(Jvm.forHome(installation.getJavaHome().toFile()));
             version = installation.getLanguageVersion();
         } else {
