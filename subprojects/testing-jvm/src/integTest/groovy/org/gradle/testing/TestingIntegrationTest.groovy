@@ -91,7 +91,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
                 }
             }
         """
-        file('build.gradle') << """
+        buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies { testImplementation '$testJunitCoordinates' }

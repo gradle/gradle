@@ -56,7 +56,6 @@ public class SomeTest {
     }
 }
 """
-        def buildFile = file('build.gradle')
         buildFile << """
 apply plugin: 'java'
 ${mavenCentralRepository()}
@@ -109,7 +108,6 @@ public class SomeTest {
     }
 }
 """
-        def buildFile = file('build.gradle')
         buildFile << """
 apply plugin: 'java'
 ${mavenCentralRepository()}
@@ -151,7 +149,6 @@ public class SomeTest {
     }
 }
 """
-        def buildFile = file('build.gradle')
         buildFile << """
 apply plugin: 'java'
 ${mavenCentralRepository()}
@@ -186,7 +183,6 @@ public class SomeTest {
 }
 """
 
-        def buildFile = file('build.gradle')
         buildFile << """
 apply plugin: 'java'
 ${mavenCentralRepository()}
