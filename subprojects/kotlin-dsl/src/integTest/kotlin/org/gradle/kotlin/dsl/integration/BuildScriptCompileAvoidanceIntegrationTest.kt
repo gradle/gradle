@@ -3,7 +3,7 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
-import org.gradle.kotlin.dsl.provider.BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED
+import org.gradle.kotlin.dsl.provider.KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY
 import org.gradle.util.Matchers.isEmpty
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.endsWith
@@ -11,7 +11,6 @@ import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasSize
 import org.junit.Assert.assertTrue
-import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 import java.io.File
@@ -27,8 +26,6 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     @Before
     fun init() {
-        assumeTrue(BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED)
-
         cacheBuster = UUID.randomUUID()
 
         withSettings(
@@ -36,6 +33,19 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             rootProject.name = "test-project"
             """
         )
+    }
+
+    @Test
+    fun `script compilation avoidance can be disabled via a system property`() {
+
+        withFile("gradle.properties", "systemProp.$KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY=false")
+
+        val className = givenJavaClassInBuildSrcContains("""public void foo() { System.out.println("foo"); }""")
+        withUniqueScript("$className().foo()")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+
+        givenJavaClassInBuildSrcContains("""public void foo() { System.out.println("bar"); }""")
+        configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
     }
 
     @Test
