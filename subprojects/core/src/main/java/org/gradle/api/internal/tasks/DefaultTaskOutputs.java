@@ -104,7 +104,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public void storeInCacheWhen(Spec<? super Task> spec) {
-        taskMutator.mutate("TaskOutputs.storeOutputsInCacheWhen(Spec)", () -> {
+        taskMutator.mutate("TaskOutputs.storeInCacheWhen(Spec)", () -> {
             storeInCache = storeInCache.and(spec);
         });
     }
