@@ -1395,11 +1395,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             : copyName + count;
     }
 
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Override
     public Configuration copy(Closure dependencySpec) {
         return copy(Specs.convertClosureToSpec(dependencySpec));
     }
 
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
     @Override
     public Configuration copyRecursive(Closure dependencySpec) {
         return copyRecursive(Specs.convertClosureToSpec(dependencySpec));

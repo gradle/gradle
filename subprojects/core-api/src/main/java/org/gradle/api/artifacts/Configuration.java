@@ -491,6 +491,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
      */
+    @Deprecated
     Configuration copy(Spec<? super Dependency> dependencySpec);
 
     /**
@@ -500,6 +501,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
      */
+    @Deprecated
     Configuration copyRecursive(Spec<? super Dependency> dependencySpec);
 
     /**
@@ -508,6 +510,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
      */
+    @Deprecated
     Configuration copy(Closure dependencySpec);
 
     /**
@@ -516,6 +519,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @param dependencySpec filtering requirements
      * @return copy of this configuration
      */
+    @Deprecated
     Configuration copyRecursive(Closure dependencySpec);
 
     /**
