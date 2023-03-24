@@ -383,6 +383,103 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("integTest")
     }
 
+    def "task configuration overrules test suite configuration"() {
+        file('src/integTest/java/FooTest.java') << """
+            import org.junit.Test;
+
+            public class FooTest {
+                @Test
+                public void test() {
+                    System.out.println("Hello from FooTest");
+                }
+            }
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    integTest(JvmTestSuite) {
+                        // uses junit jupiter by default, but we'll change it to junit4 on the task
+                        dependencies {
+                            implementation 'junit:junit:4.13.2'
+                        }
+                        targets {
+                            all {
+                                testTask.configure {
+                                    useJUnit()
+                                    doFirst {
+                                        assert testFramework instanceof ${JUnitTestFramework.canonicalName}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds("integTest")
+
+        and:
+        result.assertTaskExecuted(":integTest")
+    }
+
+    def "task configuration overrules test suite configuration with test suite set test framework"() {
+        file("src/integTest/java/FooTest.java") << """
+            import org.junit.jupiter.api.Test;
+
+            public class FooTest {
+                @Test
+                public void test() {
+                    System.out.println("Hello from FooTest");
+                }
+            }
+        """.stripIndent()
+
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    integTest(JvmTestSuite) {
+                        // set it to junit in the suite, but then we'll change it to junit platform on the task
+                        useJUnit()
+                        dependencies {
+                            implementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+                        }
+                        targets {
+                            all {
+                                testTask.configure {
+                                    useJUnitPlatform()
+                                    doFirst {
+                                        assert testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds("integTest")
+
+        and:
+        result.assertTaskExecuted(":integTest")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/18622")
     def "custom Test tasks eagerly realized prior to Java and Test Suite plugin application do not fail to be configured when combined with test suites"() {
         buildFile << """
