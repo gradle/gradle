@@ -109,10 +109,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         Interner<String> stringInterner,
         LineEndingSensitivity lineEndingSensitivity
     ) {
-        ResourceHasher resourceHasher = LineEndingNormalizingResourceHasher.wrap(runtimeClasspathResourceHasher, lineEndingSensitivity);
-        resourceHasher = propertiesFileHasher(resourceHasher, propertiesFileFilters);
-        resourceHasher = metaInfAwareClasspathResourceHasher(resourceHasher, manifestAttributeResourceEntryFilter);
-        resourceHasher = ignoringResourceHasher(resourceHasher, classpathResourceFilter);
+        ResourceHasher resourceHasher = runtimeClasspathResourceHasher(runtimeClasspathResourceHasher, lineEndingSensitivity, propertiesFileFilters, manifestAttributeResourceEntryFilter, classpathResourceFilter);
         ZipHasher zipHasher = new ZipHasher(resourceHasher);
         return new ClasspathFingerprintingStrategy(CLASSPATH_IDENTIFIER, USE_FILE_HASH, resourceHasher, zipHasher, cacheService, stringInterner);
     }
@@ -122,9 +119,29 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         return new ClasspathFingerprintingStrategy(COMPILE_CLASSPATH_IDENTIFIER, IGNORE, classpathResourceHasher, zipHasher, cacheService, stringInterner);
     }
 
-    public static ClasspathFingerprintingStrategy compileClasspath(ResourceHasher classpathResourceHasher, ResourceSnapshotterCacheService cacheService, Interner<String> stringInterner, ZipHasher.HashingExceptionReporter hashingExceptionReporter) {
-        ZipHasher zipHasher = new ZipHasher(classpathResourceHasher, hashingExceptionReporter);
+    public static ClasspathFingerprintingStrategy compileClasspathFallbackToRuntimeClasspath(
+        ResourceHasher classpathResourceHasher,
+        ResourceHasher runtimeClasspathResourceHasher,
+        ResourceSnapshotterCacheService cacheService,
+        Interner<String> stringInterner,
+        ZipHasher.HashingExceptionReporter hashingExceptionReporter
+    ) {
+        ZipHasher fallbackZipHasher = new ZipHasher(runtimeClasspathResourceHasher);
+        ZipHasher zipHasher = new ZipHasher(classpathResourceHasher, fallbackZipHasher, hashingExceptionReporter);
         return new ClasspathFingerprintingStrategy(COMPILE_CLASSPATH_IDENTIFIER, IGNORE, classpathResourceHasher, zipHasher, cacheService, stringInterner);
+    }
+
+    public static ResourceHasher runtimeClasspathResourceHasher(
+        RuntimeClasspathResourceHasher runtimeClasspathResourceHasher,
+        LineEndingSensitivity lineEndingSensitivity,
+        Map<String, ResourceEntryFilter> propertiesFileFilters,
+        ResourceEntryFilter manifestAttributeResourceEntryFilter,
+        ResourceFilter classpathResourceFilter
+    ) {
+        ResourceHasher resourceHasher = LineEndingNormalizingResourceHasher.wrap(runtimeClasspathResourceHasher, lineEndingSensitivity);
+        resourceHasher = propertiesFileHasher(resourceHasher, propertiesFileFilters);
+        resourceHasher = metaInfAwareClasspathResourceHasher(resourceHasher, manifestAttributeResourceEntryFilter);
+        return ignoringResourceHasher(resourceHasher, classpathResourceFilter);
     }
 
     private static ResourceHasher ignoringResourceHasher(ResourceHasher delegate, ResourceFilter resourceFilter) {

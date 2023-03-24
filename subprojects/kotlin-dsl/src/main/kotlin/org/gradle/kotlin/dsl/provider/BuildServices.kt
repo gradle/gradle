@@ -46,7 +46,8 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 
 internal
-const val BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED = false
+const val KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY =
+    "org.gradle.kotlin.dsl.scriptCompilationAvoidance"
 
 
 internal
@@ -138,7 +139,7 @@ object BuildServices {
         classpathFingerprinter: ClasspathFingerprinter
     ) =
         DefaultClasspathHasher(
-            if (BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED) {
+            if (isKotlinScriptCompilationAvoidanceEnabled) {
                 KotlinCompileClasspathFingerprinter(
                     cacheService,
                     fileCollectionSnapshotter,
@@ -157,4 +158,8 @@ object BuildServices {
     private
     fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =
         { id, creator -> jarCache[id, creator] }
+
+    private
+    val isKotlinScriptCompilationAvoidanceEnabled: Boolean
+        get() = System.getProperty(KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY, "true") == "true"
 }
