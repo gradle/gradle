@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.QueryableExecutionPlan
@@ -37,7 +38,7 @@ import java.util.function.Consumer
 class BuildOperationFiringBuildWorkPreparerTest extends Specification {
 
     def "build operation provides execution plan when queries with all node types"() {
-        def ti1 = TaskIdentity.create("t1", Task, Stub(ProjectInternal) {
+        def ti1 = TestTaskIdentities.factory().create("t1", Task, Stub(ProjectInternal) {
             projectPath(_) >> { args -> Path.path(":" + args[0]) }
         })
         def t = Stub(LocalTaskNode) {

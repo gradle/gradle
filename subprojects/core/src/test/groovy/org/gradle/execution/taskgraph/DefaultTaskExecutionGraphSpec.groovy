@@ -32,6 +32,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyInternal
@@ -87,7 +88,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def workerLeases = new DefaultWorkerLeaseService(coordinator, parallelismConfiguration)
     def executorFactory = Mock(ExecutorFactory)
     def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
-    def taskIdCounter = new AtomicLong()
+    def taskIdentityFactory = TestTaskIdentities.factory()
     def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor(), accessHierarchies)
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
     def projectStateRegistry = Stub(ProjectStateRegistry)
@@ -661,7 +662,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         _ * mock.destroyables >> Stub(TaskDestroyablesInternal)
         _ * mock.localState >> Stub(TaskLocalStateInternal)
         _ * mock.path >> ":${name}"
-        _ * mock.taskIdentity >> TaskIdentity.create(name, DefaultTask, project as ProjectInternal, taskIdCounter.incrementAndGet())
+        _ * mock.taskIdentity >> taskIdentityFactory.create(name, DefaultTask, project as ProjectInternal)
         return mock
     }
 }
