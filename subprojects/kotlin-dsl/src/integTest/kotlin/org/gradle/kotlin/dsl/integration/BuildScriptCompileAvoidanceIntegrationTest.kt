@@ -1,7 +1,7 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.provider.BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED
 import org.gradle.util.Matchers.isEmpty
@@ -10,7 +10,6 @@ import org.hamcrest.CoreMatchers.endsWith
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasSize
-import org.jetbrains.kotlin.library.metadata.KlibMetadataProtoBuf.className
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
@@ -40,6 +39,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     }
 
     @Test
+    @UnsupportedWithConfigurationCache(because = "test rely on configuration phase output")
     fun `avoids buildscript recompilation on included build JAR rebuild`() {
 
         withDefaultSettingsIn("build-logic")
@@ -148,8 +148,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
     }
 
-    @ToBeFixedForConfigurationCache(because = "test rely on configuration phase output")
     @Test
+    @UnsupportedWithConfigurationCache(because = "test rely on configuration phase output")
     fun `avoids buildscript recompilation on non ABI change in buildscript classpath`() {
         val (className, jarPath) = buildJarForBuildScriptClasspath(
             """
@@ -179,8 +179,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
     }
 
-    @ToBeFixedForConfigurationCache(because = "test rely on configuration phase output")
     @Test
+    @UnsupportedWithConfigurationCache(because = "test rely on configuration phase output")
     fun `recompiles buildscript on ABI change in buildscript classpath`() {
         val (className, jarPath) = buildJarForBuildScriptClasspath(
             """
@@ -211,8 +211,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
     }
 
-    @ToBeFixedForConfigurationCache(because = "test rely on configuration phase output")
     @Test
+    @UnsupportedWithConfigurationCache(because = "test rely on configuration phase output")
     fun `avoids buildscript recompilation when jar that can not be used for compile avoidance initially on buildsript classpath is touched`() {
         val (className, jarPath) = buildKotlinJarForBuildScriptClasspath(
             """
@@ -405,8 +405,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             .assertNumberOfCompileAvoidanceWarnings(1)
     }
 
-    @ToBeFixedForConfigurationCache(because = "test rely on configuration phase output")
     @Test
+    @UnsupportedWithConfigurationCache(because = "test rely on configuration phase output")
     fun `avoids buildscript recompilation when resource file metadata is changed`() {
         val className = givenKotlinClassInBuildSrcContains(
             """
