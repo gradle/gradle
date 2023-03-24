@@ -42,7 +42,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType;
 import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
 import org.gradle.operations.dependencies.variants.Capability;
@@ -192,62 +191,17 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             .map(TransformationNode::convertCapability)
             .collect(Collectors.toList());
 
-        return new PlannedTransformStepIdentity() {
-            @Override
-            public NodeType getNodeType() {
-                return NodeType.TRANSFORM_STEP;
-            }
-
-            @Override
-            public String getConsumerBuildPath() {
-                return consumerBuildPath;
-            }
-
-            @Override
-            public String getConsumerProjectPath() {
-                return consumerProjectPath;
-            }
-
-            @Override
-            public ComponentIdentifier getComponentId() {
-                return componentId;
-            }
-
-            @Override
-            public Map<String, String> getSourceAttributes() {
-                return sourceAttributes;
-            }
-
-            @Override
-            public Map<String, String> getTargetAttributes() {
-                return targetAttributes;
-            }
-
-            @Override
-            public List<? extends Capability> getCapabilities() {
-                return capabilities;
-            }
-
-            @Override
-            public String getArtifactName() {
-                return artifact.getArtifactName().toString();
-            }
-
-            @Override
-            public ConfigurationIdentity getDependenciesConfigurationIdentity() {
-                return upstreamDependencies.getConfigurationIdentity();
-            }
-
-            @Override
-            public long getTransformStepNodeId() {
-                return transformationNodeId;
-            }
-
-            @Override
-            public String toString() {
-                return "Transform '" + targetComponentVariant.getComponentId() + "' with " + transformationStep.getTransformer().getImplementationClass().getName();
-            }
-        };
+        return new DefaultPlannedTransformStepIdentity(
+            consumerBuildPath,
+            consumerProjectPath,
+            componentId,
+            sourceAttributes,
+            targetAttributes,
+            capabilities,
+            artifact.getArtifactName().toString(),
+            upstreamDependencies.getConfigurationIdentity(),
+            transformationNodeId
+        );
     }
 
     private static Capability convertCapability(org.gradle.api.capabilities.Capability capability) {
