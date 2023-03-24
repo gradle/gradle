@@ -10,6 +10,7 @@ import org.hamcrest.CoreMatchers.endsWith
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasSize
+import org.jetbrains.kotlin.library.metadata.KlibMetadataProtoBuf.className
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
@@ -36,6 +37,30 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             rootProject.name = "test-project"
             """
         )
+    }
+
+    @Test
+    fun `avoids buildscript recompilation on included build JAR rebuild`() {
+
+        withDefaultSettingsIn("build-logic")
+            .appendText("""rootProject.name = "build-logic"""")
+        withKotlinDslPluginIn("build-logic")
+        withFile("build-logic/src/main/kotlin/my-plugin.gradle.kts", "")
+        val className = kotlinClassSourceFile("build-logic", """
+            inline fun foo() { println("bar") }
+        """)
+        withSettings(""" pluginManagement { includeBuild("build-logic") } """)
+
+        withUniqueScript("""
+            plugins { id("my-plugin") }
+            $className().foo()
+        """)
+        configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
+
+        // Delete the JAR as this is not cacheable and by default JARs are not reproducible
+        require(existing("build-logic/build/libs/build-logic.jar").delete())
+
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
     }
 
     @Test
