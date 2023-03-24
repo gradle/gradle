@@ -60,7 +60,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 ${mavenCentralRepository()}
-dependencies { testImplementation "junit:junit:4.13" }
+dependencies { testImplementation "$testJunitCoordinates" }
 
 test.addTestOutputListener(new VerboseOutputListener(logger: project.logger))
 
