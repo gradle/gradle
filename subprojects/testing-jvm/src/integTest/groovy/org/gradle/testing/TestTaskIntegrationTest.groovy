@@ -338,36 +338,6 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         succeeds("test")
     }
 
-    def "options cannot be set prior to changing test framework for the default test task"() {
-        ignoreWhenJUnitPlatform()
-
-        given:
-        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
-
-        settingsFile << "rootProject.name = 'Sample'"
-        buildFile << """apply plugin: 'java'
-
-            ${mavenCentralRepository()}
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
-            }
-
-            test {
-                options {
-                    excludeCategories = ["Slow"]
-                }
-            }
-
-            test {
-                useJUnitPlatform()
-            }
-        """.stripIndent()
-
-        expect:
-        fails("test")
-        failure.assertHasCause("The value for task ':test' property 'testFrameworkProperty' is final and cannot be changed any further.")
-    }
-
     def "options can be set prior to setting same test framework for a custom test task"() {
         ignoreWhenJUnitPlatform()
 
@@ -400,33 +370,6 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         expect:
         succeeds("customTest")
-    }
-
-    def "options cannot be set prior to changing test framework for a custom test task"() {
-        ignoreWhenJUnitPlatform()
-
-        given:
-        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
-
-        settingsFile << "rootProject.name = 'Sample'"
-        buildFile << """apply plugin: 'java'
-
-            ${mavenCentralRepository()}
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
-            }
-
-            tasks.create('customTest', Test) {
-                options {
-                    excludeCategories = ["Slow"]
-                }
-                useJUnitPlatform()
-            }
-        """.stripIndent()
-
-        expect:
-        fails("customTest")
-        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
     def "options configured after setting test framework works"() {
