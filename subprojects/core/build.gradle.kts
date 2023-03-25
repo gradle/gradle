@@ -129,6 +129,7 @@ dependencies {
     testFixturesApi(testFixtures(project(":hashing"))) {
         because("test fixtures expose test hash codes")
     }
+    testFixturesImplementation(testFixtures(project(":logging")))
     testFixturesImplementation(project(":build-option"))
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":persistent-cache"))

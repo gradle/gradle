@@ -29,6 +29,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":testing-jvm")))
+    testImplementation(testFixtures(project(":base-services")))
     testImplementation(libs.groovyDatetime)
     testImplementation(libs.groovyDateUtil)
 
@@ -36,7 +37,7 @@ dependencies {
 
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":enterprise-workers"))
-    testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation(testFixtures(project(":base-services")))
     testFixturesImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))

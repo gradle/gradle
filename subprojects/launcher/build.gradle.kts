@@ -62,6 +62,7 @@ dependencies {
     testImplementation(project(":snapshots"))
     testImplementation(project(":base-services-groovy")) // for 'Specs'
 
+    testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":language-java")))
     testImplementation(testFixtures(project(":messaging")))
