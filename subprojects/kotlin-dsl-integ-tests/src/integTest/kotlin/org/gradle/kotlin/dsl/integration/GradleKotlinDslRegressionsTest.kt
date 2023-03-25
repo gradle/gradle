@@ -204,11 +204,21 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
     @Issue("https://github.com/gradle/gradle/issues/24481")
     fun `applied project scripts don't have project accessors`() {
         withFile("applied.gradle.kts", """
-           println(java.sourceCompatibility)
+            println(java.sourceCompatibility)
         """)
         withBuildScript("""
             plugins { java }
             apply(from = "applied.gradle.kts")
+        """)
+        buildAndFail("help").apply {
+            assertHasErrorOutput("Unresolved reference: sourceCompatibility")
+        }
+
+        withFile("applied.gradle.kts", """
+            buildscript {
+                dependencies {}
+            }
+            println(java.sourceCompatibility)
         """)
         buildAndFail("help").apply {
             assertHasErrorOutput("Unresolved reference: sourceCompatibility")
