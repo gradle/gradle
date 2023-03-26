@@ -57,6 +57,11 @@ This surfaces invalid urls early and can prevent IO exceptions at execution time
 
 More details can be found in the dedicated section of the [Gradle Wrapper](gradle_wrapper.html#[adding_the_gradle_wrapper](sec:adding_wrapper)) user manual chapter.
 
+### Java toolchains discovery progress display
+
+Progress is now displayed during [Java toolchains discovery](userguide/jvm/toochains.html#auto_detection).
+This can be useful during a cold-start of Gradle for users who have environments with a lot of JVM installations in them.
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -65,6 +70,7 @@ ADD RELEASE FEATURES ABOVE
 -->
 
 ## Promoted features
+
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 

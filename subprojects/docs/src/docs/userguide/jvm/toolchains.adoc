@@ -293,7 +293,7 @@ gradle -q javaToolchains
      | Vendor:             AdoptOpenJDK
      | Architecture:       x86_64
      | Is JDK:             false
-     | Detected by:        system property 'org.gradle.java.installations.paths'
+     | Detected by:        Gradle property 'org.gradle.java.installations.paths'
 
  + Microsoft JDK 16.0.2+7
      | Location:           /Users/username/.sdkman/candidates/java/16.0.2.7.1-ms
@@ -317,7 +317,7 @@ gradle -q javaToolchains
      | Vendor:             Oracle
      | Architecture:       x86_64
      | Is JDK:             false
-     | Detected by:        macOS java_home
+     | Detected by:        MacOS java_home
 ----
 
 This can help to debug which toolchains are available to the build, how they are detected and what kind of metadata Gradle knows about those toolchains.

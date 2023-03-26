@@ -26,6 +26,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadataComparator;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
@@ -143,13 +144,12 @@ public class JavaToolchainQueryService {
     private Optional<JavaToolchain> findInstalledToolchain(JavaToolchainSpec spec) {
         Predicate<JvmInstallationMetadata> matcher = new JvmInstallationMetadataMatcher(spec);
 
-        return registry.listInstallations().stream()
-            .map(location -> new DetectedInstallation(location, detector.getMetadata(location)))
+        return registry.toolchains().stream()
             .filter(result -> result.metadata.isValidInstallation())
             .filter(result -> matcher.test(result.metadata))
             .min(Comparator.comparing(result -> result.metadata, new JvmInstallationMetadataComparator(currentJavaHome)))
             .map(result -> {
-                warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(result.javaHome);
+                warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(result.location);
                 return new JavaToolchain(result.metadata, fileFactory, new JavaToolchainInput(spec), false);
             });
     }
@@ -190,16 +190,4 @@ public class JavaToolchainQueryService {
             throw new GradleException("Toolchain installation '" + javaHome.getLocation() + "' could not be probed: " + metadata.getErrorMessage(), metadata.getErrorCause());
         }
     }
-
-    private static class DetectedInstallation {
-
-        private final InstallationLocation javaHome;
-        private final JvmInstallationMetadata metadata;
-
-        public DetectedInstallation(InstallationLocation javaHome, JvmInstallationMetadata metadata) {
-            this.javaHome = javaHome;
-            this.metadata = metadata;
-        }
-    }
-
 }
