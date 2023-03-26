@@ -64,7 +64,7 @@ Matching Java Virtual Machines (1):
 
         then:
         directories*.location == [new File("/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home")]
-        directories*.source == ["macOS java_home"]
+        directories*.source == ["MacOS java_home"]
     }
 
     def "supplies multiple installations for multiple paths"() {
@@ -86,7 +86,7 @@ Matching Java Virtual Machines (3):
             new File("/Library/Java/JavaVirtualMachines/jdk1.7.0_17.jdk/Contents/Home"),
             new File("/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home")
         ])
-        directories*.source == ["macOS java_home", "macOS java_home", "macOS java_home"]
+        directories*.source == ["MacOS java_home", "MacOS java_home", "MacOS java_home"]
     }
 
     def 'supplies no installation for failed command'() {

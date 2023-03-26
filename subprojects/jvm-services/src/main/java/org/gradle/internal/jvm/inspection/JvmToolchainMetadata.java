@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal.task;
+package org.gradle.internal.jvm.inspection;
 
-import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 
-public class ReportableToolchain {
+public class JvmToolchainMetadata {
 
-    JvmInstallationMetadata metadata;
+    public JvmInstallationMetadata metadata;
 
-    InstallationLocation location;
+    public InstallationLocation location;
 
-    public ReportableToolchain(JvmInstallationMetadata metadata, InstallationLocation location) {
+    public JvmToolchainMetadata(JvmInstallationMetadata metadata, InstallationLocation location) {
         this.metadata = metadata;
         this.location = location;
     }
