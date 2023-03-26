@@ -19,8 +19,12 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.model.Description;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -39,16 +43,33 @@ public class JvmLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
     }
 
     @Override
+    public Set<ModularizationOption> getModularizationOptions() {
+        return new TreeSet<>(Arrays.asList(ModularizationOption.SINGLE_PROJECT, ModularizationOption.WITH_LIBRARY_PROJECTS));
+    }
+
+    @Override
     public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
 
-        applyLibraryPlugin(buildScriptBuilder);
-        buildScriptBuilder.dependency(
-            "api",
-            "This dependency is exported to consumers, that is to say found on their compile classpath.",
-            "org.apache.commons:commons-math3:" + libraryVersionProvider.getVersion("commons-math"));
-        buildScriptBuilder.implementationDependency("This dependency is used internally, and not exposed to consumers on their own compile classpath.",
-            "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
+        if (isSingleProject(settings)) {
+            applyLibraryPlugin(buildScriptBuilder);
+            buildScriptBuilder.dependency(
+                "api",
+                "This dependency is exported to consumers, that is to say found on their compile classpath.",
+                "org.apache.commons:commons-math3:" + libraryVersionProvider.getVersion("commons-math"));
+            buildScriptBuilder.implementationDependency("This dependency is used internally, and not exposed to consumers on their own compile classpath.",
+                "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
+        } else {
+            buildScriptBuilder.plugin(null, libraryConventionPlugin(settings));
+            if (projectName.equals("lib")) {
+                buildScriptBuilder.dependency(
+                    "api",
+                    "This dependency is exported to consumers, that is to say found on their compile classpath.",
+                    "org.apache.commons:commons-math3:" + libraryVersionProvider.getVersion("commons-math"));
+                buildScriptBuilder.implementationDependency("This dependency is used internally, and not exposed to consumers on their own compile classpath.",
+                    "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
+            }
+        }
     }
 
     @Override
