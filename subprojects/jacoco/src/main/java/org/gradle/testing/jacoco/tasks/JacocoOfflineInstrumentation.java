@@ -43,17 +43,28 @@ import java.io.File;
 @CacheableTask
 public abstract class JacocoOfflineInstrumentation extends JacocoBase {
 
+    /**
+     * The directories containing the classes that will be instrumented.
+     */
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public abstract ConfigurableFileCollection getInputClassDirs();
 
+    /**
+     * Adds a source set to the list to be instrumented. The output of this source set will be used as classes to be instrumented.
+     *
+     * @param sourceSets one or more source sets to instrument
+     */
     public void sourceSets(final SourceSet... sourceSets) {
         for (final SourceSet sourceSet : sourceSets) {
             getInputClassDirs().from(sourceSet.getOutput().getClassesDirs());
         }
     }
 
+    /**
+     * The directory where instrumented classes will be generated.
+     */
     @OutputDirectory
     public abstract DirectoryProperty getOutputDir();
 

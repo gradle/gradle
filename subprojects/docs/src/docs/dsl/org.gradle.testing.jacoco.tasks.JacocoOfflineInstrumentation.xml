@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2013 the original author or authors.
+  ~ Copyright 2023 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,43 +21,16 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>jacoco</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
-                <td>destinationFile</td>
+                <td>inputClassDirs</td>
+                <td/>
             </tr>
             <tr>
-                <td>includes</td>
-            </tr>
-            <tr>
-                <td>excludes</td>
-            </tr>
-            <tr>
-                <td>excludeClassLoaders</td>
-            </tr>
-            <tr>
-                <td>sessionId</td>
-            </tr>
-            <tr>
-                <td>dumpOnExit</td>
-            </tr>
-            <tr>
-                <td>output</td>
-            </tr>
-            <tr>
-                <td>address</td>
-            </tr>
-            <tr>
-                <td>port</td>
-            </tr>
-            <tr>
-                <td>classDumpDir</td>
-            </tr>
-            <tr>
-                <td>jmx</td>
-            </tr>
-            <tr>
-                <td>offline</td>
+                <td>outputDir</td>
+                <td/>
             </tr>
         </table>
     </section>
@@ -70,10 +43,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>getAsJvmArg</td>
-            </tr>
-            <tr>
-                <td>asJvmArgs</td>
+                <td>sourceSets</td>
             </tr>
         </table>
     </section>

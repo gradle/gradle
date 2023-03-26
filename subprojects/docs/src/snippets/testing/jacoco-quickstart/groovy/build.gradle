@@ -91,6 +91,15 @@ test {
         address = "localhost"
         port = 6300
         jmx = false
+        offline = false
     }
 }
 // end::testtask-configuration-defaults[]
+
+// tag::testtask-configuration-offline[]
+test {
+    jacoco {
+        offline = true
+    }
+}
+// end::testtask-configuration-offline[]

@@ -154,6 +154,21 @@ include::sample[dir="snippets/testing/jacoco-application/groovy",files="build.gr
 ----
 
 
+[[sec:jacoco_offline_instrumentation]]
+== JaCoCo offline instrumentation
+
+By default, JaCoCo instruments classes on-the-fly to measure code coverage. However, there can be situations where on-the-fly instrumentation is not suitable.
+For such scenarios class files can be pre-instrumented with JaCoCo. For more information, see link:https://www.eclemma.org/jacoco/trunk/doc/offline.html[JaCoCo documentation].
+
+JaCoCo offline instrumentation can be enabled on a per task basis. This will modify the test classpath to use pre-instrumented classes instead.
+
+.Enabling offline instrumentation for test task
+====
+include::sample[dir="snippets/testing/jacoco-quickstart/kotlin",files="build.gradle.kts[tags=testtask-configuration-offline]"]
+include::sample[dir="snippets/testing/jacoco-quickstart/groovy",files="build.gradle[tags=testtask-configuration-offline]"]
+====
+
+
 [[sec:jacoco_tasks]]
 == Tasks
 
@@ -166,6 +181,10 @@ Generates code coverage report for the test task.
 `jacocoTestCoverageVerification` — link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification]::
 +
 Verifies code coverage metrics based on specified rules for the test task.
+
+`jacocoTestOfflineInstrumentation` — link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoOfflineInstrumentation.html[JacocoOfflineInstrumentation]::
++
+Generates offline instrumented classes.
 
 
 [[sec:jacoco_dependency_management]]

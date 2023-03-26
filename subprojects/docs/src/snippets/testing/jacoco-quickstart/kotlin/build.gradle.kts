@@ -90,6 +90,15 @@ tasks.test {
         address = "localhost"
         port = 6300
         isJmx = false
+        offline.set(false)
     }
 }
 // end::testtask-configuration-defaults[]
+
+// tag::testtask-configuration-offline[]
+tasks.test {
+    extensions.configure(JacocoTaskExtension::class) {
+        offine.set(true)
+    }
+}
+// end::testtask-configuration-offline[]
