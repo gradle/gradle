@@ -68,7 +68,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
             String format = sourceAttributes.getAttribute(ARTIFACT_TYPE_ATTRIBUTE);
             if (format != null && seen.add(format)) {
                 // Some artifact type that has not already been visited
-                ImmutableAttributes attributes = sourceAttributes.asImmutable();
+                ImmutableAttributes attributes = attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, format);
                 action.accept(attributes);
             }
         }
