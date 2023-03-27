@@ -1858,7 +1858,7 @@ since users cannot create non-legacy configurations and there is no current publ
      * @return {@code true} if the usage change is a known special case; {@code false} otherwise
      */
     private boolean isSpecialCaseOfRedundantUsageActivation() {
-        return isDetachedConfiguration() || isInLegacyRole() || isPermittedConfigurationForRedundantActivation();
+        return isInLegacyRole() || isDetachedConfiguration() || isPermittedConfigurationForRedundantActivation();
     }
 
     private boolean isInitializing() {
@@ -1899,7 +1899,7 @@ since users cannot create non-legacy configurations and there is no current publ
      */
     @SuppressWarnings("JavadocReference")
     private boolean isPermittedConfigurationForRedundantActivation() {
-        return name.equals("runtimeClasspath") || name.toLowerCase().endsWith("testruntimeclasspath");
+        return name.equals("runtimeClasspath") || name.endsWith("testRuntimeClasspath") || name.endsWith("TestRuntimeClasspath");
     }
 
     @Override
