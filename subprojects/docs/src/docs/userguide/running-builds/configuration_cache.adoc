@@ -982,8 +982,8 @@ Gradle transparently generates a machine-specific secret key as required, caches
 
 To enhance security further, make sure to:
 
-* Either secure access to configuration cache entries that may contain secrets
-* Or leverage `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/gradle.properties` for storing secrets.
+* secure access to configuration cache entries;
+* leverage `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/gradle.properties` for storing secrets.
 The content of that file is not part of the configuration cache, only its fingerprint.
 If you store secrets in that file, care must be taken to protect access to the file content.
 
