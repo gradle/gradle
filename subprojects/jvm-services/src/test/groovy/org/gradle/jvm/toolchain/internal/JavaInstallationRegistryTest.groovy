@@ -26,6 +26,7 @@ import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
+import org.gradle.internal.progress.RecordingProgressLoggerFactory
 import spock.lang.Specification
 
 class JavaInstallationRegistryTest extends Specification {
@@ -201,6 +202,26 @@ class JavaInstallationRegistryTest extends Specification {
 
         then:
         installations*.location.contains(tempFolder)
+    }
+
+    def "displays progress"() {
+        given:
+        createExecutable(tempFolder)
+        def loggerFactory = new RecordingProgressLoggerFactory()
+
+        def registry = new JavaInstallationRegistry(
+            [forDirectory(tempFolder)],
+            metadataDetector(),
+            new TestBuildOperationExecutor(),
+            OperatingSystem.current(),
+            loggerFactory
+        )
+
+        when:
+        registry.toolchains()
+
+        then:
+        loggerFactory.recordedMessages.find { it.contains("Extracting toolchain metadata from '$tempFolder'") }
     }
 
     InstallationSupplier forDirectory(File directory) {
