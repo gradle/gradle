@@ -204,7 +204,7 @@ They are deleted if they haven't been used for 7 days.
 [[config_cache:stable]]
 == Stable configuration cache
 
-Working towards the stabilization of configuration caching we implement some strictness behind a feature flag when it is too disruptive for early adopters.
+Working towards the stabilization of configuration caching we implemented some strictness behind a feature flag when it was considered too disruptive for early adopters.
 
 You can enable that feature flag as follows:
 
@@ -217,6 +217,12 @@ The `STABLE_CONFIGURATION_CACHE` feature flag enables the following:
 
 Undeclared shared build service usage::
 When enabled, tasks using a <<build_services#build_services, shared build service>> without declaring the requirement via the `Task.usesService` method will emit a deprecation warning.
+
+In addition, when the configuration cache is not enabled but the feature flag is present, deprecations for the following <<config_cache:requirements, configuration cache requirements>> are also enabled:
+
+* <<config_cache:requirements:build_listeners, Registering build listeners>>
+* <<config_cache:requirements:use_project_during_execution, Using the `Project` object at execution time>>
+* <<config_cache:requirements:task_extensions, Using task extensions and conventions at execution time>>
 
 It is recommended to enable it as soon as possible in order to be ready for when we remove the flag and make the linked features the default.
 
@@ -830,6 +836,12 @@ Tasks should not directly access the state of another task instance.
 Instead, tasks should be connected using <<lazy_configuration#working_with_task_dependencies_in_lazy_properties, inputs and outputs relationships>>.
 
 Note that this requirement makes it unsupported to write tasks that configure other tasks at execution time.
+
+[[config_cache:requirements:task_extensions]]
+=== Accessing task extensions or conventions
+
+Tasks should not access conventions and extensions, including extra properties, at execution time.
+Instead, any value that's relevant for the execution of the task should be modeled as a task property.
 
 [[config_cache:requirements:build_listeners]]
 === Using build listeners
