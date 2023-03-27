@@ -54,13 +54,28 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
 
     def "storing in the cache can be disabled"() {
         buildFile << defineCacheableTask()
-        buildFile << "cacheable.outputs.storeInCacheWhen { false }"
+        buildFile << """
+            apply plugin: 'base'
+            cacheable.outputs.storeInCacheWhen { project.hasProperty('storeInCache') }
+        """
 
         when:
         withBuildCache().run("cacheable")
 
         then:
-        listCacheFiles().size() == 0
+        listCacheFiles().empty
+
+        when:
+        withBuildCache().run("clean", "cacheable", "-PstoreInCache")
+
+        then:
+        listCacheFiles().size() == 1
+
+        when:
+        withBuildCache().run("clean", "cacheable")
+
+        then:
+        skipped ":cacheable"
     }
 
     def "task is cacheable after previous failure"() {
