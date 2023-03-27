@@ -30,7 +30,8 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodeBean
 import org.gradle.configurationcache.serialization.encodeBean
-import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.configurationcache.serialization.readEnum
+import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.groovy.scripts.BasicScript
 import org.gradle.internal.metaobject.ConfigureDelegate
 
@@ -65,28 +66,28 @@ object ClosureCodec : Codec<Closure<*>> {
     }
 
     private
-    suspend fun WriteContext.writeReference(value: Any?) {
+    fun WriteContext.writeReference(value: Any?) {
         // Cannot warn about a script reference here, because we don't know whether the closure will attempt to use the script object when it executes,
         // and since almost every closure in a Groovy build script legitimately has the script as an owner, this will generate false problems.
         // So instead, warn when the script object is used by the closure when executing
-        when {
-            value is BasicScript && value.scriptTarget is Project -> write(ClosureReference.Project)
-            value is BasicScript && value.scriptTarget is Settings -> write(ClosureReference.Settings)
-            value is BasicScript && value.scriptTarget is Gradle -> write(ClosureReference.Init)
-            else -> write(ClosureReference.NotScript)
-        }
+        writeEnum(
+            when {
+                value is BasicScript && value.scriptTarget is Project -> ClosureReference.Project
+                value is BasicScript && value.scriptTarget is Settings -> ClosureReference.Settings
+                value is BasicScript && value.scriptTarget is Gradle -> ClosureReference.Init
+                else -> ClosureReference.NotScript
+            }
+        )
     }
 
     private
-    suspend fun ReadContext.readReference(): Any {
-        val reference = readNonNull<ClosureReference>()
-        return when (reference) {
+    fun ReadContext.readReference(): Any =
+        when (readEnum<ClosureReference>()) {
             ClosureReference.Project -> BrokenScript(Project::class.java)
             ClosureReference.Settings -> BrokenScript(Settings::class.java)
             ClosureReference.Init -> BrokenScript(Gradle::class.java)
             ClosureReference.NotScript -> BrokenObject
         }
-    }
 
     private
     enum class ClosureReference {
