@@ -109,6 +109,61 @@ Root project 'webinar-parent'
 """
     }
 
+    /**
+     * This test demonstrates that back-references from the child projects to the parent project are not necessary to convert
+     * a multi-module Maven build to Gradle.
+     */
+    def "multiModuleNoBackReferences"() {
+        def dsl = dslFixtureFor(scriptDsl)
+        def warSubprojectBuildFile = targetDir.file("webinar-war/" + dsl.buildFileName)
+        def implSubprojectBuildFile = targetDir.file("webinar-impl/" + dsl.buildFileName)
+        def conventionPluginScript = targetDir.file("buildSrc/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("com.example.webinar.java-conventions")}")
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        targetDir.file(dsl.settingsFileName).exists()
+        !targetDir.file(dsl.buildFileName).exists() // no root build file
+        warSubprojectBuildFile.exists()
+
+        warSubprojectBuildFile.text.contains("id 'com.example.webinar.java-conventions'") || warSubprojectBuildFile.text.contains('id("com.example.webinar.java-conventions")')
+        !warSubprojectBuildFile.text.contains("options.encoding")
+
+        assertContainsPublishingConfig(conventionPluginScript, scriptDsl)
+        assertContainsEncodingConfig(conventionPluginScript, scriptDsl, 'UTF-8')
+        conventionPluginScript.text.contains(TextUtil.toPlatformLineSeparators('''
+java {
+    withSourcesJar()
+}'''))
+
+        implSubprojectBuildFile.text.contains("publishing.publications.maven.artifact(testsJar)") || implSubprojectBuildFile.text.contains('(publishing.publications["maven"] as MavenPublication).artifact(testsJar)')
+        implSubprojectBuildFile.text.contains(TextUtil.toPlatformLineSeparators('''
+java {
+    withJavadocJar()
+}'''))
+        when:
+        run 'clean', 'build'
+
+        then: //smoke test the build artifacts
+        targetDir.file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
+        targetDir.file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
+        targetDir.file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
+
+        new DefaultTestExecutionResult(targetDir.file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
+
+        when:
+        run 'projects'
+
+        then:
+        output.contains """
+Root project 'webinar-parent'
++--- Project ':webinar-api' - Webinar APIs
++--- Project ':webinar-impl' - Webinar implementation
+\\--- Project ':webinar-war' - Webinar web application
+"""
+    }
+
     def "multiModuleWithNestedParent"() {
         def dsl = dslFixtureFor(scriptDsl)
 
