@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildevents
+package org.gradle.internal.exceptions;
 
-import org.gradle.internal.exceptions.NonGradleCause
-
-class TestNonGradleCauseException extends Exception implements NonGradleCause {
+/**
+ * An exception that is not caused by a Gradle specific problem. e.g. a problem caused by a compilation error.
+ * This serves as a marker interface.
+ */
+public interface NonGradleCause {
 }
