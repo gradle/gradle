@@ -19,21 +19,43 @@ package org.gradle.configurationcache
 import org.gradle.configurationcache.fixtures.ExternalProcessFixture
 
 class ConfigurationCacheStableConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    def "external processes at configuration time are reported as problems"() {
+
+    def setup() {
+        settingsFile '''
+            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+        '''
+    }
+
+    def 'external processes at configuration time are reported as problems'() {
         given:
         def snippets = ExternalProcessFixture.processBuilder().groovy.newSnippets(new ExternalProcessFixture(testDirectory))
 
-        buildFile("""
+        buildFile """
             ${snippets.imports}
             ${snippets.body}
-        """)
+        """
 
         when:
-        configurationCacheFails(":help")
+        configurationCacheFails ":help"
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': external process started")
+            withProblem "Build file 'build.gradle': external process started"
+        }
+    }
+
+    def 'problem is reported with no nagging'() {
+        given:
+        buildFile '''
+            tasks.register('problematic') { doLast { println project.name } }
+        '''
+
+        when:
+        configurationCacheFails ':problematic'
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem "Build file 'build.gradle': line 2: invocation of 'Task.project' at execution time is unsupported."
         }
     }
 }
