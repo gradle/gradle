@@ -44,7 +44,6 @@ import org.gradle.configurationcache.serialization.codecs.Codecs
 import org.gradle.configurationcache.serialization.logNotImplemented
 import org.gradle.configurationcache.serialization.readCollection
 import org.gradle.configurationcache.serialization.readEnum
-import org.gradle.configurationcache.serialization.readFile
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.readStrings
@@ -53,7 +52,6 @@ import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.withIsolate
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeEnum
-import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.configurationcache.serialization.writeStrings
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.execution.plan.Node
@@ -615,7 +613,7 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeBuildDefinition(buildDefinition: BuildDefinition) {
         buildDefinition.run {
             writeString(name!!)
-            writeFile(buildRootDir)
+            write(buildRootDir)
             write(fromBuild)
             writeBoolean(isPluginBuild)
         }
@@ -624,7 +622,7 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultReadContext.readIncludedBuildDefinition(parentBuild: ConfigurationCacheBuild): BuildDefinition {
         val includedBuildName = readString()
-        val includedBuildRootDir = readFile()
+        val includedBuildRootDir: File? = read()?.uncheckedCast()
         val fromBuild = readNonNull<PublicBuildPath>()
         val pluginBuild = readBoolean()
         return BuildDefinition.fromStartParameterForBuild(
