@@ -24,7 +24,7 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.FilePropertyContainer;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.TaskOutputsEnterpriseInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -50,7 +50,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 @NonNullApi
-public class DefaultTaskOutputs implements TaskOutputsInternal {
+public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
     private final FileCollection allOutputFiles;
     private final PropertyWalker propertyWalker;
     private final FileCollectionFactory fileCollectionFactory;
