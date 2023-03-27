@@ -51,6 +51,7 @@ import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.snapshot.ValueSnapshot
+import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.execution.CompiledScript
@@ -160,6 +161,15 @@ class StandardKotlinScriptEvaluator(
                 val stage1BlocksAccessorClassPathGenerator = it.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
                 stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(it).bin
             } ?: ClassPath.EMPTY
+
+        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath {
+            val project = scriptHost.target as Project
+            val projectAccessorsClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
+            return projectAccessorsClassPathGenerator.projectAccessorsClassPath(
+                project,
+                compilationClassPathOf(scriptHost.targetScope)
+            ).bin
+        }
 
         override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
 

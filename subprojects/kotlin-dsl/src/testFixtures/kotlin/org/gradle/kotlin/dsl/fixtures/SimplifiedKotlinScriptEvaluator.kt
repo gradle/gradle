@@ -167,6 +167,9 @@ class SimplifiedKotlinScriptEvaluator(
         override fun stage1BlocksAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             ClassPath.EMPTY
 
+        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath =
+            ClassPath.EMPTY
+
         override fun startCompilerOperation(description: String): AutoCloseable =
             mock()
 
