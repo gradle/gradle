@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
 import org.gradle.execution.ProjectExecutionServices
+import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
@@ -85,10 +86,11 @@ abstract class AbstractProjectBuilderSpec extends Specification {
     }
 
     void execute(Task task) {
+        def workValidationContext = new DefaultWorkValidationContext(documentationRegistry, WorkValidationContext.TypeOriginInspector.NO_OP)
         def taskExecutionContext = new DefaultTaskExecutionContext(
-            null,
+            new LocalTaskNode(task as TaskInternal, workValidationContext, { null }),
             DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal),
-            new DefaultWorkValidationContext(documentationRegistry, WorkValidationContext.TypeOriginInspector.NO_OP),
+            workValidationContext,
             { context -> }
         )
         project.gradle.services.get(BuildOutputCleanupRegistry).resolveOutputs()

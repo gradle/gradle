@@ -58,19 +58,19 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private val inputTrackingState: InputTrackingState,
 ) : ConfigurationCacheProblemsListener {
 
-    override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
-        onTaskExecutionAccessProblem(invocationDescription, task)
+    override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
+        onTaskExecutionAccessProblem(invocationDescription, task, runningTask)
     }
 
-    override fun onConventionAccess(invocationDescription: String, task: TaskInternal) {
+    override fun onConventionAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
         if (canAccessConventions(task.javaClass.name, invocationDescription)) {
             return
         }
-        onTaskExecutionAccessProblem(invocationDescription, task)
+        onTaskExecutionAccessProblem(invocationDescription, task, runningTask)
     }
 
-    override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal) {
-        onTaskExecutionAccessProblem(invocationDescription, task)
+    override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
+        onTaskExecutionAccessProblem(invocationDescription, task, runningTask)
     }
 
     override fun onExternalProcessStarted(command: String, consumer: String?) {
@@ -91,16 +91,37 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     }
 
     private
-    fun onTaskExecutionAccessProblem(invocationDescription: String, task: TaskInternal) {
-        problemsListenerFor(task).onProblem(
+    fun onTaskExecutionAccessProblem(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
+        // It is possible that another task is being executed now and causes `task` to be configured.
+        // In this case, we shouldn't attribute the error to the `task` alone, as it can be misleading,
+        // and that usage can be benign. This is especially important when the currently running task is
+        // marked as `notCompatibleWithConfigurationCache` - attributing the error to `task` will cause
+        // the build to fail when it really shouldn't.
+        val contextTask = runningTask ?: task
+        val isExecutingOtherTask = contextTask != task
+        problemsListenerFor(contextTask).onProblem(
             problemFactory.problem {
-                text("invocation of ")
-                reference(invocationDescription)
-                text(" at execution time is unsupported.")
+                if (isExecutingOtherTask) {
+                    text("execution of task ")
+                    reference(contextTask.path)
+                    text(" caused invocation of ")
+                    reference(invocationDescription)
+                    text(" in other task at execution time which is unsupported.")
+                } else {
+                    text("invocation of ")
+                    reference(invocationDescription)
+                    text(" at execution time is unsupported.")
+                }
             }
-                .exception("Invocation of '$invocationDescription' by $task at execution time is unsupported.")
+                .exception(
+                    if (isExecutingOtherTask) {
+                        "Execution of $runningTask caused invocation of '$invocationDescription' by $task at execution time which is unsupported."
+                    } else {
+                        "Invocation of '$invocationDescription' by $task at execution time is unsupported."
+                    }
+                )
                 .documentationSection(RequirementsUseProjectDuringExecution)
-                .mapLocation { locationForTask(it, task) }
+                .mapLocation { locationForTask(it, contextTask) }
                 .build()
         )
     }
