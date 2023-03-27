@@ -437,9 +437,6 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         def configurationCache = newConfigurationCacheFixture()
         ShellScript testScript = ShellScript.builder().printText("Hello, world").writeTo(testDirectory, "script")
 
-        settingsFile("""
-            enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
-        """)
         buildFile.text = """
             import ${ByteArrayOutputStream.name}
             import org.gradle.api.provider.*

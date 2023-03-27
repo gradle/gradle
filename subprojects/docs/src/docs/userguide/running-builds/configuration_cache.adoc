@@ -218,9 +218,6 @@ The `STABLE_CONFIGURATION_CACHE` feature flag enables the following:
 Undeclared shared build service usage::
 When enabled, tasks using a <<build_services#build_services, shared build service>> without declaring the requirement via the `Task.usesService` method will emit a deprecation warning.
 
-External processes used at configuration time::
-When enabled, external processes launched at configuration time are reported as problems unless done in accordance with the <<configuration_cache#config_cache:requirements:external_processes>> requirement.
-
 It is recommended to enable it as soon as possible in order to be ready for when we remove the flag and make the linked features the default.
 
 [[config_cache:ide]]
@@ -314,11 +311,11 @@ link:{gradle-issues}13488[[.red]#✖#]:: <<xctest_plugin.adoc#xctest_plugin,XCTe
 
 a|
 [horizontal]
-link:{gradle-issues}13463[[.yellow]#⚠#]:: <<application_plugin.adoc#application_plugin,Application>>
+link:{gradle-issues}13463[[.green]#✓#]:: <<application_plugin.adoc#application_plugin,Application>>
 link:{gradle-issues}13466[[.green]#✓#]:: <<war_plugin.adoc#war_plugin,WAR>>
 link:{gradle-issues}13467[[.red]#✖#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
-link:{gradle-issues}13468[[.yellow]#⚠#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
-link:{gradle-issues}13469[[.red]#✖#]:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
+link:{gradle-issues}24329[[.yellow]#⚠#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
+link:{gradle-issues}24328[[.yellow]#⚠#]:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
 link:{gradle-issues}13464[[.green]#✓#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
 link:{gradle-issues}13465[[.green]#✓#]:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
 
@@ -346,11 +343,11 @@ a|
 [horizontal]
 link:{gradle-issues}13455[[.green]#✓#]:: <<base_plugin.adoc#base_plugin,Base>>
 link:{gradle-issues}13456[[.green]#✓#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
-link:{gradle-issues}13470[[.red]#✖#]:: <<signing_plugin.adoc#signing_plugin,Signing>>
+link:{gradle-issues}13470[[.green]#✓#]:: <<signing_plugin.adoc#signing_plugin,Signing>>
 link:{gradle-issues}13471[[.green]#✓#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Java Plugin Development>>
 link:{gradle-issues}23029[[.green]#✓#]:: <<custom_plugins.adoc#sec:precompiled_plugins,Groovy DSL Plugin Development>>
 link:{gradle-issues}13472[[.green]#✓#]:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
-link:{gradle-issues}13473[[.red]#✖#]:: <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
+link:{gradle-issues}13473[[.green]#✓#]:: <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
 
 |===
 
@@ -842,6 +839,7 @@ That is listeners registered at configuration time that get notified at executio
 For example a `BuildListener` or a `TaskExecutionListener`.
 
 These should be replaced by <<build_services#build_services,build services>>, registered to receive information about <<build_services#operation_listener, task execution>> if needed.
+Use <<dataflow_actions.adoc#dataflow_action,dataflow actions>> to handle the build result instead of `buildFinished` listeners.
 
 [[config_cache:requirements:external_processes]]
 === Running external processes
@@ -1029,21 +1027,6 @@ The following _Java Object Serialization_ features are **not** supported:
 - the `readObjectNoData` method, if present, is never invoked;
 
 See link:{gradle-issues}13588[gradle/gradle#13588].
-
-[[config_cache:not_yet_implemented:storing_lambdas]]
-=== Objects Storing Lambdas
-
-Currently, Gradle cannot restore objects from the configuration cache that store user-provided lambdas.
-For example, if an object provides a method that accepts a Single Abstract Method (SAM) interface argument (e.g. a `Function` argument), it is natural to implement this argument as a lambda.
-If the lambda is then stored in the object for later invocation, the object will not be compatible with the configuration cache and will cause a failure when restored.
-Instead of a lambda, the argument should be provided as a typed object implementing the SAM interface.
-
-Alternatively, for Kotlin implementations, the Kotlin compiler can be configured to generate classes instead of lambdas during SAM conversion.
-
-====
-include::sample[dir="snippets/configurationCache/samConversion/kotlin",files="build.gradle.kts[tags=configure]"]
-include::sample[dir="snippets/configurationCache/samConversion/groovy",files="build.gradle[tags=configure]"]
-====
 
 [[config_cache:not_yet_implemented:accessing_top_level_at_execution]]
 === Accessing top-level methods and variables of a build script at execution time

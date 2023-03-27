@@ -19,6 +19,7 @@ package org.gradle.api.plugins.quality.internal
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.exceptions.MarkedVerificationException
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Cast
@@ -157,7 +158,7 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
             if (parameters.ignoreFailures.get() || ((failureCount as Integer) <= maxFailures)) {
                 LOGGER.warn(message)
             } else {
-                throw new GradleException(message)
+                throw new MarkedVerificationException(message)
             }
         }
     }

@@ -190,12 +190,38 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
         }
     }
 
+    @Test
     @Issue("https://youtrack.jetbrains.com/issue/KT-55880")
     @Issue("https://github.com/gradle/gradle/issues/23491")
     fun `compiling standalone scripts does not emit a warning at info level`() {
         withBuildScript("""println("test")""")
         build("help", "--info").apply {
             assertNotOutput("is not supposed to be used along with regular Kotlin sources, and will be ignored in the future versions by default. (Use -Xallow-any-scripts-in-source-roots command line option to opt-in for the old behavior.)")
+        }
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/24481")
+    fun `applied project scripts don't have project accessors`() {
+        withFile("applied.gradle.kts", """
+            println(java.sourceCompatibility)
+        """)
+        withBuildScript("""
+            plugins { java }
+            apply(from = "applied.gradle.kts")
+        """)
+        buildAndFail("help").apply {
+            assertHasErrorOutput("Unresolved reference: sourceCompatibility")
+        }
+
+        withFile("applied.gradle.kts", """
+            buildscript {
+                dependencies {}
+            }
+            println(java.sourceCompatibility)
+        """)
+        buildAndFail("help").apply {
+            assertHasErrorOutput("Unresolved reference: sourceCompatibility")
         }
     }
 }

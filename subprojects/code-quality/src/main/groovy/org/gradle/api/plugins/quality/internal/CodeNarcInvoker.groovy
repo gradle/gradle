@@ -20,6 +20,7 @@ package org.gradle.api.plugins.quality.internal
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.exceptions.MarkedVerificationException
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
 import org.gradle.internal.logging.ConsoleRenderer
@@ -82,7 +83,7 @@ class CodeNarcInvoker implements Action<AntBuilderDelegate> {
                     LOGGER.warn(message)
                     return
                 }
-                throw new GradleException(message, e)
+                throw new MarkedVerificationException(message, e)
             }
             if (e.message == /codenarc doesn't support the nested "classpath" element./) {
                 def message = "The compilationClasspath property of CodeNarc task can only be non-empty when using CodeNarc 0.27.0 or newer."

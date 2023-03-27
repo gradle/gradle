@@ -40,13 +40,17 @@ class WrapperChecksumVerificationTest extends AbstractWrapperIntegrationSpec {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
-    def setup() {
+    def configureServer(boolean expectHead) {
+        if (expectHead) {
+            server.expect(server.head("/gradle-bin.zip"))
+        }
         server.expect(server.get("/gradle-bin.zip").sendFile(distribution.binDistribution))
         server.start()
     }
 
     def "wrapper execution fails when using bad checksum"() {
         given:
+        configureServer(true)
         prepareWrapper(new URI(gradleBin))
 
         and:
@@ -83,6 +87,7 @@ Expected checksum: 'bad'
 
     def "wrapper successfully verifies good checksum"() {
         given:
+        configureServer(true)
         prepareWrapper(new URI(gradleBin))
 
         and:
@@ -96,6 +101,7 @@ Expected checksum: 'bad'
 
     def "wrapper requires checksum configuration if a checksum is present in gradle-wrapper.properties"() {
         given:
+        configureServer(true)
         prepareWrapper(new URI(gradleBin))
 
         and:
@@ -115,6 +121,7 @@ Expected checksum: 'bad'
 
     def "wrapper uses new checksum if it was provided as an option"() {
         given:
+        configureServer(true)
         prepareWrapper(new URI(gradleBin))
 
         and:
@@ -136,6 +143,7 @@ Expected checksum: 'bad'
 
     def "wrapper preserves new checksum if it was provided in properties"() {
         given:
+        configureServer(false)
         def releasedDistribution = IntegrationTestBuildContext.INSTANCE.distribution("7.5")
         prepareWrapper(releasedDistribution.binDistribution.toURI())
 

@@ -65,5 +65,7 @@ public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
     @Nullable
     BuildServiceRegistration<?, ?> findRegistration(Class<?> type, String name);
 
+    Set<BuildServiceRegistration<?, ?>> findRegistrations(Class<?> type, String name);
+
     List<ResourceLock> getSharedResources(Set<Provider<? extends BuildService<?>>> services);
 }

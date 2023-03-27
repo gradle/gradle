@@ -21,7 +21,6 @@ import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
-import org.gradle.util.internal.DistributionLocator
 import org.gradle.util.internal.GUtil
 import org.gradle.util.internal.WrapUtil
 import org.gradle.wrapper.GradleWrapperMain
@@ -107,7 +106,7 @@ class WrapperTest extends AbstractTaskTest {
         wrapper.setGradleVersion(version)
 
         then:
-        "$DistributionLocator.RELEASE_REPOSITORY$snapshot/gradle-$out-bin.zip" == wrapper.getDistributionUrl()
+        "https://services.gradle.org/distributions$snapshot/gradle-$out-bin.zip" == wrapper.getDistributionUrl()
 
         where:
         version                     | out                         | snapshot

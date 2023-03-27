@@ -24,8 +24,8 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Assume
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 @SuppressWarnings("IntegrationTestFixtures")
@@ -46,7 +46,9 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     }
 
     @IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
-    @Ignore('https://github.com/gradle/gradle-private/issues/3758')
+    @IgnoreIf(
+        value = { TestPrecondition.WINDOWS.fulfilled && !TestPrecondition.JDK11_OR_LATER.fulfilled },
+        reason = 'https://github.com/gradle/gradle-private/issues/3758')
     void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
         when:
         GradleExecuter executer = prepareWrapperExecuter(current, previous).withWarningMode(null)
@@ -148,4 +150,3 @@ task hello {
         new DaemonLogsAnalyzer(executer.daemonBaseDir, executionVersion.version.version).killAll()
     }
 }
-

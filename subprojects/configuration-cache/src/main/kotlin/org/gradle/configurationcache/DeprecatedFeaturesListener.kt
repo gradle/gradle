@@ -40,8 +40,8 @@ class DeprecatedFeaturesListener(
         }
     }
 
-    override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
-        if (isStableConfigurationCacheEnabled()) {
+    override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
+        if (isStableConfigurationCacheEnabled() && shouldReportInContext(task, runningTask)) {
             DeprecationLogger.deprecateAction("Invocation of $invocationDescription at execution time")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(7, "task_project")
@@ -49,20 +49,25 @@ class DeprecatedFeaturesListener(
         }
     }
 
-    override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal) {
-        if (isStableConfigurationCacheEnabled()) {
+    override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
+        if (isStableConfigurationCacheEnabled() && shouldReportInContext(task, runningTask)) {
             throwUnsupported("Invocation of $invocationDescription at execution time")
         }
     }
 
-    override fun onConventionAccess(invocationDescription: String, task: TaskInternal) {
-        if (isStableConfigurationCacheEnabled()) {
+    override fun onConventionAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
+        if (isStableConfigurationCacheEnabled() && shouldReportInContext(task, runningTask)) {
             DeprecationLogger.deprecateAction("Invocation of $invocationDescription at execution time")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "task_convention")
                 .nagUser()
         }
     }
+
+    // Only nag about tasks that are actually executing, but not tasks that are configured by the executing tasks.
+    // A task is unlikely to reach out to other tasks without violating other constraints.
+    private
+    fun shouldReportInContext(task: TaskInternal, runningTask: TaskInternal?) = runningTask == null || task == runningTask
 
     private
     fun isStableConfigurationCacheEnabled(): Boolean =
