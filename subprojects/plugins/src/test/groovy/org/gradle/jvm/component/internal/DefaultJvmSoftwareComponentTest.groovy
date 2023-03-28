@@ -67,7 +67,6 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         then:
         component.mainFeature instanceof DefaultJvmFeature
         component.mainFeature.sourceSet == ext.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
-        component.mainFeature.output == component.mainFeature.getSourceSet().getOutput()
         component.mainFeature.runtimeClasspathConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
         component.mainFeature.compileClasspathConfiguration == project.configurations.getByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME)
         component.mainFeature.runtimeElementsConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
@@ -112,7 +111,6 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         then:
         component.mainFeature instanceof DefaultJvmFeature
         component.mainFeature.sourceSet == ext.sourceSets.getByName('feature')
-        component.mainFeature.output == component.mainFeature.getSourceSet().getOutput()
         component.mainFeature.runtimeClasspathConfiguration == project.configurations.getByName('featureRuntimeClasspath')
         component.mainFeature.compileClasspathConfiguration == project.configurations.getByName('featureCompileClasspath')
         component.mainFeature.runtimeElementsConfiguration == project.configurations.getByName('featureRuntimeElements')

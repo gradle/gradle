@@ -35,7 +35,6 @@ import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
@@ -161,29 +160,28 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         JvmPluginsHelper.configureJavaDocTask("'" + name + "' feature", sourceSet, tasks, javaPluginExtension);
     }
 
-    /**
-     * This method is one of the primary reasons that we want to deprecate the "extending" behavior. It updates
-     * the main source set and test source set to "extend" this feature. That means any dependencies declared on
-     * this feature's dependency configurations will be available locally, during compilation and runtime, to the main
-     * production code and default test suite. However, when publishing the production code, these dependencies will
-     * not be included in its consumable variants. Therefore, the main code is compiled _and tested_ against
-     * dependencies which will not necessarily be available at runtime when it is consumed from other projects
-     * or in its published form.
-     *
-     * <p>This leads to a case where, in order for the production code to not throw NoClassDefFoundErrors during runtime,
-     * it must detect the presence of the dependencies added by this feature, and then conditionally enable and disable
-     * certain optional behavior. We do not want to promote this pattern.</p>
-     *
-     * <p>A much safer pattern would be to create normal features as opposed to an "extending" feature. Then, the normal
-     * feature would have a project dependency on the main feature. It would provide an extra jar with any additional code,
-     * and also bring along any extra dependencies that code requires. The main feature would then be able to detect the
-     * presence of the feature through some {@code ServiceLoader} mechanism, as opposed to detecting the existence of
-     * dependencies directly.</p>
-     *
-     * <p>This pattern is also more flexible than the "extending" pattern in that it allows features to extend arbitrary
-     * features as opposed to just the main feature.</p>
-     */
     void doExtendProductionCode() {
+        // This method is one of the primary reasons that we want to deprecate the "extending" behavior. It updates
+        // the main source set and test source set to "extend" this feature. That means any dependencies declared on
+        // this feature's dependency configurations will be available locally, during compilation and runtime, to the main
+        // production code and default test suite. However, when publishing the production code, these dependencies will
+        // not be included in its consumable variants. Therefore, the main code is compiled _and tested_ against
+        // dependencies which will not necessarily be available at runtime when it is consumed from other projects
+        // or in its published form.
+        //
+        // This leads to a case where, in order for the production code to not throw NoClassDefFoundErrors during runtime,
+        // it must detect the presence of the dependencies added by this feature, and then conditionally enable and disable
+        // certain optional behavior. We do not want to promote this pattern.
+        //
+        // A much safer pattern would be to create normal features as opposed to an "extending" feature. Then, the normal
+        // feature would have a project dependency on the main feature. It would provide an extra jar with any additional code,
+        // and also bring along any extra dependencies that code requires. The main feature would then be able to detect the
+        // presence of the feature through some {@code ServiceLoader} mechanism, as opposed to detecting the existence of
+        // dependencies directly.
+        //
+        // This pattern is also more flexible than the "extending" pattern in that it allows features to extend arbitrary
+        // features as opposed to just the main feature.
+
         ConfigurationContainer configurations = project.getConfigurations();
         SourceSet mainSourceSet = project.getExtensions().findByType(JavaPluginExtension.class)
             .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -346,11 +344,6 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     @Override
     public TaskProvider<JavaCompile> getCompileJavaTask() {
         return compileJava;
-    }
-
-    @Override
-    public SourceSetOutput getOutput() {
-        return sourceSet.getOutput();
     }
 
     @Override

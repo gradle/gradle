@@ -66,12 +66,12 @@ public abstract class ScalaPlugin implements Plugin<Project> {
         project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
             scalaDoc.getConventionMapping().map("classpath", (Callable<FileCollection>) () -> {
                 ConfigurableFileCollection files = project.files();
-                files.from(feature.getOutput());
+                files.from(feature.getSourceSet().getOutput());
                 files.from(feature.getSourceSet().getCompileClasspath());
                 return files;
             });
             scalaDoc.setSource(feature.getSourceSet().getExtensions().getByType(ScalaSourceDirectorySet.class));
-            scalaDoc.getCompilationOutputs().from(feature.getOutput());
+            scalaDoc.getCompilationOutputs().from(feature.getSourceSet().getOutput());
         });
         project.getTasks().register(SCALA_DOC_TASK_NAME, ScalaDoc.class, scalaDoc -> {
             scalaDoc.setDescription("Generates Scaladoc for the main source code.");
