@@ -38,8 +38,9 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         }
 
         task checkState {
+            def files = configurations.internal
             doLast {
-                configurations.internal.resolve()
+                files.files
             }
         }
 
@@ -139,7 +140,8 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task check {
-                doLast { configurations.compile.resolve() }
+                def files = configurations.compile
+                doLast { files.files }
             }
         }
         project(':b') {
@@ -178,7 +180,8 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task check {
-                doLast { configurations.compile.resolve() }
+                def files = configurations.compile
+                doLast { files.files }
             }
         }
         project(':b') {
