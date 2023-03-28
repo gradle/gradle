@@ -22,7 +22,7 @@ import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCode
 import org.gradle.internal.instrumentation.processor.codegen.InstrumentationCodeGenerator.GenerationResult.HasFailures;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +46,7 @@ public class CompositeInstrumentationCodeGenerator implements InstrumentationCod
         }
 
         List<CanGenerateClasses> generatingResults = results.stream().map(it -> (CanGenerateClasses) it).collect(Collectors.toList());
-        Map<String, CanGenerateClasses> generatorByClassName = new HashMap<>();
+        Map<String, CanGenerateClasses> generatorByClassName = new LinkedHashMap<>();
         generatingResults.forEach(result -> result.getClassNames().forEach(className -> {
             if (generatorByClassName.put(className, result) != null) {
                 throw new IllegalStateException("multiple code generators for class name " + className);
