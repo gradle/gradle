@@ -16,7 +16,7 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 
 class MultiProjectApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
@@ -30,6 +30,6 @@ class MultiProjectApplicationInitIntegrationTest extends AbstractInitIntegration
         succeeds('init', '--type', "java-application", '--dsl', dsl.id)
 
         where:
-        dsl << [BuildInitDsl.KOTLIN, BuildInitDsl.GROOVY]
+        dsl << ScriptDslFixture.SCRIPT_DSLS
     }
 }
