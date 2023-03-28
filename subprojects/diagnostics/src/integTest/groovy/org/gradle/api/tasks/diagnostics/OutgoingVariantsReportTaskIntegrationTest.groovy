@@ -231,7 +231,7 @@ Attributes
         result.groupedOutput.task(":outgoingVariants").assertOutputContains """--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -298,7 +298,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -389,7 +389,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -471,7 +471,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -576,7 +576,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -658,7 +658,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -756,7 +756,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -826,7 +826,7 @@ Secondary Variants (*)
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -893,7 +893,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -978,7 +978,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1045,7 +1045,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1127,7 +1127,7 @@ Artifacts
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org.test:extra:1.0
@@ -1159,7 +1159,7 @@ Capabilities
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1240,7 +1240,7 @@ Secondary Variants (*)
         result.groupedOutput.task(":outgoingVariants").assertOutputContains("""--------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-API elements for main.
+API elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
@@ -1307,7 +1307,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Capabilities
     - org:myLib:1.0 (default capability)
