@@ -458,7 +458,7 @@ task check {
                     
                     assert configurations.implementationExtension.getAllArtifacts() == implementationCopy.getAllArtifacts()
                     
-                    assert configurations.implementationExtension.attributes == implementationCopy.attributes
+                    assert configurations.implementationExtension.attributes.asImmutable() == implementationCopy.attributes.asImmutable()
                     
                     assert configurations.implementationExtension.excludeRules == implementationCopy.excludeRules
                     
@@ -470,7 +470,7 @@ task check {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Copying configurations has been deprecated. This is scheduled to be removed in Gradle 9.0. Consider creating a new configuration and extending configuration ':implementation' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configuration_copying_deprecated")
+        executer.noDeprecationChecks() // Different warnings with embedded and conf cache executors here
         succeeds ":checkCopy"
     }
 }
