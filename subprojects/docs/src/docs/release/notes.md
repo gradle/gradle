@@ -62,6 +62,23 @@ More details can be found in the dedicated section of the [Gradle Wrapper](gradl
 Progress is now displayed during [Java toolchains discovery](userguide/jvm/toochains.html#auto_detection).
 This can be useful during a cold-start of Gradle for users who have environments with a lot of JVM installations in them.
 
+### Kotlin DSL improvements
+
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the Groovy DSL with an enhanced editing experience in supported IDEs — superior content assistance, refactoring documentation, and more.
+
+#### Fail on script compilation warnings
+
+Gradle [Kotlin DSL scripts](userguide/kotlin_dsl.html#sec:scripts) are compiled by Gradle during the configuration phase of your build.
+Deprecation warnings found by the Kotlin compiler are reported on the console when compiling the scripts.
+
+It is now possible to configure your build to fail on any warning emitted during script compilation by setting the `org.gradle.kotlin.dsl.allWarningsAsErrors` Gradle property to `true`:
+
+```properties
+# gradle.properties
+org.gradle.kotlin.dsl.allWarningsAsErrors=true
+```
+
+More details can be found in the dedicated section of the [Kotlin DSL](userguide/kotlin_dsl.html#sec:compilation_warnings) user manual chapter.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
