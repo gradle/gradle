@@ -56,7 +56,13 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         buildFile << defineCacheableTask()
         buildFile << """
             apply plugin: 'base'
-            cacheable.outputs.storeInCacheWhen { project.hasProperty('storeInCache') }
+
+            def storeInCache = project.hasProperty('storeInCache')
+            cacheable.doLast {
+                if (!storeInCache) {
+                    outputs.doNotStoreInCache()
+                }
+            }
         """
 
         when:

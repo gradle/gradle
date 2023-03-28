@@ -17,18 +17,15 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Task;
-import org.gradle.api.specs.AndSpec;
-import org.gradle.api.specs.Spec;
 
 @NonNullApi
 public interface TaskOutputsEnterpriseInternal extends TaskOutputsInternal {
 
-    AndSpec<? super TaskInternal> getStoreInCacheSpec();
+    boolean getStoreInCache();
 
     /**
-     * Called after the task finishes executing. If the spec returns false, the outputs will not be stored in the cache.
+     * Avoid storing the task's outputs in the build cache.
      */
-    void storeInCacheWhen(Spec<? super Task> spec);
+    void doNotStoreInCache();
 
 }
