@@ -759,10 +759,6 @@ tasks.named("docsTest") { task ->
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_groovy_iterating-dependencies.sample",
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_kotlin_iterating-dependencies.sample",
 
-                // TODO(https://github.com/gradle/gradle/issues/13469) Ivy Publish plugin support
-                "snippet-plugins-publishing_groovy_publishToIvy.sample",
-                "snippet-plugins-publishing_kotlin_publishToIvy.sample",
-
                 // TODO(https://github.com/gradle/gradle/issues/22879) The snippet extracts build logic into a method and calls the method at execution time
                 "snippet-tutorial-ant-loadfile-with-method_groovy_antLoadfileWithMethod.sample",
                 "snippet-tutorial-ant-loadfile-with-method_kotlin_antLoadfileWithMethod.sample",
