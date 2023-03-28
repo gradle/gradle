@@ -174,7 +174,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         mainFeature.withJavadocJar();
 
         Configuration javadocElements = mainFeature.getJavadocElementsConfiguration();
-        if (!isPublished(javadocElements)) {
+        if (!isRegisteredAsLegacyVariant(javadocElements)) {
             addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
         }
     }
@@ -184,7 +184,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         mainFeature.withSourcesJar();
 
         Configuration sourcesElements = mainFeature.getSourcesElementsConfiguration();
-        if (!isPublished(sourcesElements)) {
+        if (!isRegisteredAsLegacyVariant(sourcesElements)) {
             addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
         }
     }

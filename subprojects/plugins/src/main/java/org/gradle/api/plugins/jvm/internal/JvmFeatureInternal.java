@@ -18,7 +18,6 @@ package org.gradle.api.plugins.jvm.internal;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -114,14 +113,6 @@ public interface JvmFeatureInternal {
      * @return A provider which supplies the feature's {@link JavaCompile} task.
      */
     TaskProvider<JavaCompile> getCompileJavaTask();
-
-    /**
-     * Get the resources and compilation outputs for this feature which are used as
-     * inputs for the {@link #getJarTask() jar} task.
-     *
-     * @return The source set outputs.
-     */
-    SourceSetOutput getOutput();
 
     /**
      * Get this feature's backing source set.

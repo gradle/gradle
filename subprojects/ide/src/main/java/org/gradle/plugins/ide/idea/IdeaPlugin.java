@@ -369,7 +369,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         project.getTasks().withType(GenerateIdeaModule.class).configureEach(ideaModule -> {
             // Dependencies
             ideaModule.dependsOn((Callable<FileCollection>) () ->
-                mainFeature.getOutput().getDirs().plus(defaultTestSuite.getSources().getOutput().getDirs())
+                mainFeature.getSourceSet().getOutput().getDirs().plus(defaultTestSuite.getSources().getOutput().getDirs())
             );
         });
 

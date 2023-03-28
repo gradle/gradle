@@ -101,7 +101,7 @@ public abstract class EarPlugin implements Plugin<Project> {
                     mainFeature.getSourceSet().getRuntimeClasspath()
                 );
                 task.from((Callable<FileCollection>) () ->
-                    mainFeature.getOutput()
+                    mainFeature.getSourceSet().getOutput()
                 );
             });
         });
