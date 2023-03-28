@@ -258,6 +258,24 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         0 * _
     }
 
+    def "executes and doesn't store when storing is disabled"() {
+        given:
+        def execution = Mock(Execution)
+
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        result == delegateResult
+
+        interaction { withValidCacheKey() }
+
+        1 * delegate.execute(work, context) >> delegateResult
+        1 * delegateResult.execution >> Try.successful(execution)
+        1 * execution.canStoreOutputsInCache() >> false
+        0 * _
+    }
+
     private void withValidCacheKey() {
         _ * context.cachingState >> CachingState.enabled(cacheKey, beforeExecutionState)
     }
