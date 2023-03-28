@@ -32,12 +32,10 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.loggerFor
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.serviceRegistryOf
 import org.gradle.plugin.management.internal.PluginRequests
 import java.io.File
@@ -107,6 +105,10 @@ class Interpreter(val host: Host) {
          * already be implied by [ProgramId.parentClassLoader].
          */
         fun stage1BlocksAccessorsFor(
+            scriptHost: KotlinScriptHost<*>
+        ): ClassPath
+
+        fun accessorsClassPathFor(
             scriptHost: KotlinScriptHost<*>
         ): ClassPath
 
@@ -252,8 +254,8 @@ class Interpreter(val host: Host) {
 
         // TODO: consider computing stage 1 accessors only when there's a buildscript or plugins block
         // TODO: consider splitting buildscript/plugins block accessors
-        val stage1BlocksAccessorsClassPath = when {
-            requiresAccessors(programTarget, programKind) -> host.stage1BlocksAccessorsFor(scriptHost)
+        val stage1BlocksAccessorsClassPath = when (programTarget) {
+            ProgramTarget.Project -> host.stage1BlocksAccessorsFor(scriptHost)
             else -> ClassPath.EMPTY
         }
 
@@ -439,14 +441,8 @@ class Interpreter(val host: Host) {
             eval(specializedProgram, scriptHost)
         }
 
-        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath {
-            val project = scriptHost.target as Project
-            val projectAccessorsClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
-            return projectAccessorsClassPathGenerator.projectAccessorsClassPath(
-                project,
-                host.compilationClassPathOf(scriptHost.targetScope)
-            ).bin
-        }
+        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath =
+            host.accessorsClassPathFor(scriptHost)
 
         override fun compileSecondStageOf(
             program: ExecutableProgram.StagedProgram,

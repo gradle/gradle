@@ -13,6 +13,7 @@ import configurations.BaseGradleBuildType
 import configurations.BuildDistributions
 import configurations.CheckLinks
 import configurations.CompileAll
+import configurations.CompileAllBuildCacheNG
 import configurations.DocsTestType
 import configurations.DocsTestType.CONFIG_CACHE_DISABLED
 import configurations.DocsTestType.CONFIG_CACHE_ENABLED
@@ -33,7 +34,8 @@ enum class StageName(val stageName: String, val description: String, val uuid: S
     READY_FOR_RELEASE("Ready for Release", "Once a day: Rerun tests in more environments", "ReadyforRelease"),
     HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions", "HistoricalPerformance"),
     EXPERIMENTAL_VFS_RETENTION("Experimental FS Watching", "On demand checks to run tests with file system watching enabled", "ExperimentalVfsRetention"),
-    EXPERIMENTAL_PERFORMANCE("Experimental Performance", "Try out new performance test running", "ExperimentalPerformance");
+    EXPERIMENTAL_PERFORMANCE("Experimental Performance", "Try out new performance test running", "ExperimentalPerformance"),
+    EXPERIMENTAL_BUILD_CACHE_NG("Experimental BuildCacheNG", "Try out new build cache", "ExperimentalBuildCacheNG");
 
     val id: String
         get() = stageName.replace(" ", "").replace("-", "")
@@ -180,6 +182,12 @@ data class CIBuildModel(
                 PerformanceTestCoverage(12, PerformanceTestType.per_commit, Os.MACOS, numberOfBuckets = 5, withoutDependencies = true),
                 PerformanceTestCoverage(13, PerformanceTestType.per_day, Os.LINUX, numberOfBuckets = 30, withoutDependencies = true)
             )
+        ),
+        Stage(
+            StageName.EXPERIMENTAL_BUILD_CACHE_NG,
+            trigger = Trigger.never,
+            runsIndependent = true,
+            specificBuilds = listOf(SpecificBuild.CompileAllBuildCacheNG),
         )
     ),
     val subprojects: GradleSubprojectProvider
@@ -347,6 +355,11 @@ enum class SpecificBuild {
     CompileAll {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return CompileAll(model, stage)
+        }
+    },
+    CompileAllBuildCacheNG {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return CompileAllBuildCacheNG(model, stage)
         }
     },
     SanityCheck {

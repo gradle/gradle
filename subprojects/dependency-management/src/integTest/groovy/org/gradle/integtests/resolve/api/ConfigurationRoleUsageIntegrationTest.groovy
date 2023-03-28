@@ -95,7 +95,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         buildFile << """
             configurations {
                 testConf {
-                    canBeConsumed = true
+                    assert canBeConsumed
                     canBeResolved = false
                     canBeDeclaredAgainst = false
                     preventUsageMutation()
@@ -646,7 +646,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         run "help"
     }
 
-    def "incorrect usage combinations properly log at #logLevel when configuration created with #elementsCreationCode"() {
+    def "incorrect usage combinations properly log at #logLevel when #desc"() {
         given:
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
@@ -677,6 +677,49 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         "using resolvable to make a configuration"                  | "resolvable('fooElements')"                                                                                   | "--info"      || null
         "using resolvable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"                                | "--info"      || null
         "using consumable_bucket to make a configuration"           | "createWithRole('fooElements', ConfigurationRoles.INTENDED_CONSUMABLE_BUCKET)"                                | "--info"      || 'The configuration :fooElements is both consumable and declarable. This combination is incorrect, only one of these flags should be set.'
+    }
+
+    def "redundantly calling #setMethod on a configuration that is already #isSetMethod warns when #desc"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
+
+            configurations.$confCreationCode
+    
+            configurations.test {
+                assert $isSetMethod
+                $setMethod
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The $usage usage is already allowed on configuration ':test'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Remove the call to $setMethod, it has no effect. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#redundant_configuration_usage_activation")
+        succeeds 'help'
+
+        where:
+        desc                                                | confCreationCode                                                          | usage                | isSetMethod                   | setMethod
+        "using consumable to make a configuration"          | "consumable('test')"                                                      | "consumable"         | "isCanBeConsumed()"           | "setCanBeConsumed(true)"
+        "using resolvable to make a configuration"          | "resolvable('test')"                                                      | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
+        "using resolvable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"   | "resolvable"         | "isCanBeResolved()"           | "setCanBeResolved(true)"
+        "using consumable_bucket to make a configuration"   | "createWithRole('test', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)"   | "declarable against" | "isCanBeDeclaredAgainst()"    | "setCanBeDeclaredAgainst(true)"
+    }
+
+    def "redundantly calling #setMethod on a configuration that is already #isSetMethod does not warn when #desc"() {
+        given:
+        buildFile << """
+            def test = configurations.$confCreationCode
+            assert test.$isSetMethod
+            test.$setMethod
+        """
+
+        expect:
+        succeeds 'help'
+
+        where:
+        desc                                                        | confCreationCode              | usage                | isSetMethod            | setMethod
+        "using create to make an implicitly LEGACY configuration"   | "create('test')"              | "consumable"         | "isCanBeConsumed()"    | "setCanBeConsumed(true)"
+        "creating a detachedConfiguration"                          | "detachedConfiguration()"     | "consumable"         | "isCanBeConsumed()"    | "setCanBeConsumed(true)"
     }
     // endregion Warnings
 

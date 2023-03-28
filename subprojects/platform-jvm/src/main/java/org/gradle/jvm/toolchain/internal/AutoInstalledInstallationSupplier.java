@@ -37,6 +37,11 @@ public class AutoInstalledInstallationSupplier extends AutoDetectingInstallation
     }
 
     @Override
+    public String getSourceName() {
+        return "Auto-provisioned by Gradle";
+    }
+
+    @Override
     protected Set<InstallationLocation> findCandidates() {
         return cacheDirProvider.listJavaHomes().stream()
             .map(this::asInstallation)
@@ -44,7 +49,7 @@ public class AutoInstalledInstallationSupplier extends AutoDetectingInstallation
     }
 
     private InstallationLocation asInstallation(File javaHome) {
-        return new InstallationLocation(javaHome, "Auto-provisioned by Gradle", true);
+        return new InstallationLocation(javaHome, getSourceName(), true);
     }
 
     @Override

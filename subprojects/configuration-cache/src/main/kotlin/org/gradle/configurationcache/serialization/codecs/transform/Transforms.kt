@@ -34,16 +34,16 @@ import org.gradle.operations.dependencies.configurations.ConfigurationIdentity
 
 
 sealed class TransformStepSpec(val transformation: TransformationStep) {
-    abstract fun recreate(): TransformUpstreamDependencies
+    abstract fun recreateDependencies(): TransformUpstreamDependencies
 
     class NoDependencies(transformation: TransformationStep) : TransformStepSpec(transformation) {
-        override fun recreate(): TransformUpstreamDependencies {
+        override fun recreateDependencies(): TransformUpstreamDependencies {
             return DefaultTransformUpstreamDependenciesResolver.NO_DEPENDENCIES
         }
     }
 
     class FileDependencies(transformation: TransformationStep, val files: FileCollection, val configurationIdentity: ConfigurationIdentity) : TransformStepSpec(transformation) {
-        override fun recreate(): TransformUpstreamDependencies {
+        override fun recreateDependencies(): TransformUpstreamDependencies {
             return FixedUpstreamDependencies(DefaultArtifactTransformDependencies(files), configurationIdentity)
         }
     }

@@ -608,6 +608,24 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         new MavenLocalRepo() | _
     }
 
+    def "disables configuration cache when --export-keys is used"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("help")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun("help", "--export-keys")
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        outputContains("Calculating task graph as configuration cache cannot be reused due to --export-keys")
+    }
+
     def "invalidates configuration cache when dependency lock file changes"() {
         server.start()
         def v3 = remoteRepo.module("thing", "lib", "1.3").publish()

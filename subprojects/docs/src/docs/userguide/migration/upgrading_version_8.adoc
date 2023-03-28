@@ -153,6 +153,13 @@ For an example of this, see
 
 These methods will be removed in Gradle 9.0.
 
+[[redundant_configuration_usage_activation]]
+==== Redundant configuration usage activation
+
+Calling `setCanBeConsumed(boolean)` or `setCanBeResolved(boolean)` on a configuration that already allows that usage is deprecated.
+
+This deprecation is intended to help users identify unnecessary configuration usage modifications.
+
 [[deprecated_configuration_get_all]]
 ==== `link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration]` method deprecations
 
@@ -201,6 +208,32 @@ beforeSettings { settings ->
 =====
 ====
 
+[[configuration_caching_options_renamed]]
+=== Configuration cache options renamed
+
+In this release, the configuration cache feature was promoted from incubating to stable, and as such, all properties
+originally mentioned in the feature documentation (which had an `unsafe` part in their names, e.g. `org.gradle.unsafe.configuration-cache`)
+were renamed, in some cases, by just removing the `unsafe` bit.
+
+[cols="1,1", options="header"]
+|===
+
+| Incubating property
+| Finalized property
+
+|`org.gradle.unsafe.configuration-cache`
+|`org.gradle.configuration-cache`
+
+|`org.gradle.unsafe.configuration-cache-problems`
+|`org.gradle.configuration-cache.problems`*
+
+|`org.gradle.unsafe.configuration-cache.max-problems`
+|`org.gradle.configuration-cache.max-problems`
+|===
+
+Note that the original `org.gradle.unsafe.configuration-cache...` properties continue to be honored in this release,
+and no warnings will be produced if they are used, but they will be deprecated and removed in a future release.
+
 === Potential breaking changes
 
 ==== Kotlin DSL scripts emit compilation warnings
@@ -209,6 +242,25 @@ Compilation warnings from Kotlin DSL scripts are printed to the console output.
 For example, the use of deprecated APIs in Kotlin DSL will emit warnings each time the script is compiled.
 
 This is a potentially breaking change if you are consuming the console output of Gradle builds.
+
+==== New API introduced may clash with existing Gradle DSL code
+
+When a new property or method is added to an existing type in the Gradle DSL, it may clash with names already in use in user code.
+
+When a name clash occurs, one solution is to rename the element in user code.
+
+This is a non-exhaustive list of API additions in 8.1 that may cause name collisions with existing user code.
+
+* link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#getJvmArguments--[`JavaExec.getJvmArguments()`]
+* link:{javadocPath}/org/gradle/process/JavaExecSpec.html#getJvmArguments--[`JavaExecSpec.getJvmArguments()`]
+
+==== Using unsupported API to start external processes at configuration time is no longer allowed with the configuration cache enabled
+
+Since Gradle 7.5, using `Project.exec`, `Project.javaexec`, and standard Java and Groovy APIs to run external processes at configuration time has been considered an error only if the <<configuration_cache.adoc#config_cache:stable,feature preview `STABLE_CONFIGURATION_CACHE`>> was enabled.
+With the configuration cache promotion to a stable feature in Gradle 8.1, this error is detected regardless of the feature preview status.
+The <<configuration_cache#config_cache:requirements:external_processes,configuration cache chapter>> has more details to help with the migration to the new provider-based APIs to execute external processes at configuration time.
+
+Builds that do not use the configuration cache, or only start external processes at execution time are not affected by this change.
 
 === Deprecations
 
@@ -448,7 +500,6 @@ so you can also apply it to your project and it will fix the warning.
 
 These members will be removed in Gradle 9.0.
 
-* `VersionNumber`
 * `WrapUtil.toDomainObjectSet(...)`
 * `GUtil.toCamelCase(...)`
 * `GUtil.toLowerCase(...)`
@@ -564,4 +615,3 @@ If you were using the link:https://plugins.jetbrains.com/plugin/18949-gradle-lib
 After upgrading Gradle to 8.1 you will need to clear the IDE caches and restart.
 
 Also see <<upgrading_version_8.adoc#kotlin_dsl_deprecated_catalogs_plugins_block, the deprecated usages of version catalogs in the Kotlin DSL `plugins {}` block>> above.
-

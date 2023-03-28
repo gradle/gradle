@@ -19,6 +19,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.BlockingHttpsServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
@@ -34,6 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 // wrapperExecuter requires a real distribution
 @IgnoreIf({ GradleContextualExecuter.embedded })
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3799")
 class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     private static final String DEFAULT_USER = "jdoe"
     private static final String DEFAULT_PASSWORD = "changeit"
@@ -71,11 +73,12 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     private prepareWrapper(String baseUrl) {
-        prepareWrapper(new URI("${baseUrl}/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(new URI("${baseUrl}/$TEST_DISTRIBUTION_URL"), keyStore.keyStore.path, keyStore.keyStorePassword)
     }
 
     def "does not warn about using basic authentication over secure connection"() {
         given:
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         prepareWrapper(getAuthenticatedBaseUrl())
         server.expect(server.get("/$TEST_DISTRIBUTION_URL")
             .expectUserAgent(matchesNameAndVersion("gradlew", Download.UNKNOWN_VERSION))
@@ -91,7 +94,6 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "downloads wrapper via proxy"() {
         given:
         proxyServer.start()
-        prepareWrapper(getAuthenticatedBaseUrl())
 
         // Note that the HTTPS protocol handler uses the same nonProxyHosts property as the HTTP protocol.
         file("gradle.properties") << """
@@ -99,6 +101,8 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     systemProp.https.proxyPort=${proxyServer.port}
     systemProp.http.nonProxyHosts=
 """
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getAuthenticatedBaseUrl())
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
         when:
@@ -108,7 +112,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         assertThat(result.output, containsString('hello'))
 
         and:
-        proxyServer.requestCount == 1
+        proxyServer.requestCount == 2
     }
 
     @Issue('https://github.com/gradle/gradle/issues/5052')
@@ -117,6 +121,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         proxyServer.start('my_user', 'my_password')
 
         and:
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         prepareWrapper(getAuthenticatedBaseUrl())
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
@@ -140,47 +145,55 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         proxyServer.requestCount == 1
     }
 
-    private String getAuthenticatedBaseUrl() {
-        "https://$DEFAULT_USER:$DEFAULT_PASSWORD@localhost:${server.port}"
-    }
-
     def "validate properties file content for latest"() {
         given:
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         def baseUrl = getAuthenticatedBaseUrl()
         prepareWrapper(baseUrl)
         server.expect(server.get("/$TEST_DISTRIBUTION_URL")
             .sendFile(distribution.binDistribution))
         server.expect(server.get("/versions/current").send("""{ "version" : "7.6" }"""))
+        server.expect(server.head("/distributions/gradle-7.6-bin.zip"))
 
         when:
         result = runWithVersion(baseUrl, "latest")
 
         then:
-        validateDistributionUrl("7.6")
+        validateDistributionUrl("7.6", getEscapedAuthenticatedBaseUrl())
     }
 
     def "validate properties file content for any version"() {
         given:
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         def baseUrl = getAuthenticatedBaseUrl()
         prepareWrapper(baseUrl)
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
-
         def version = "7.6"
+        server.expect(server.head("/distributions/gradle-$version-bin.zip"))
+
         when:
         runWithVersion(baseUrl, version)
 
         then:
-        validateDistributionUrl(version)
+        validateDistributionUrl(version, getEscapedAuthenticatedBaseUrl())
     }
 
-    private boolean validateDistributionUrl(String version) {
+    private String getAuthenticatedBaseUrl() {
+        "https://$DEFAULT_USER:$DEFAULT_PASSWORD@localhost:${server.port}"
+    }
+
+    private String getEscapedAuthenticatedBaseUrl() {
+        "https\\://$DEFAULT_USER\\:$DEFAULT_PASSWORD@localhost\\:${server.port}"
+    }
+
+    private boolean validateDistributionUrl(String version, String escapedBaseUrl) {
         file("gradle/wrapper/gradle-wrapper.properties")
-            .text.contains("distributionUrl=https\\://services.gradle.org/distributions/gradle-$version-bin.zip")
+            .text.contains("distributionUrl=$escapedBaseUrl/distributions/gradle-$version-bin.zip")
     }
 
     private ExecutionResult runWithVersion(String baseUrl, String version) {
-        result = wrapperExecuter.withCommandLineGradleOpts("-Dorg.gradle.internal.services.version.url.override=$baseUrl",
+        result = wrapperExecuter.withCommandLineGradleOpts("-Dorg.gradle.internal.services.base.url=$baseUrl",
             "-Djavax.net.ssl.trustStore=$keyStore.keyStore.path",
             "-Djavax.net.ssl.trustStorePassword=$keyStore.keyStorePassword")
             .withArguments("wrapper", "--gradle-version", version)

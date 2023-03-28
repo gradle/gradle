@@ -52,7 +52,7 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
                 }
                 configurations.create('runtime') {
                     extendsFrom(conf)
-                    canBeConsumed = true
+                    assert canBeConsumed
                     canBeResolved = false
                     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                 }
@@ -61,13 +61,13 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
                 configurations.create('localPath') {
                     extendsFrom(configurations.conf)
                     canBeConsumed = false
-                    canBeResolved = true
+                    assert canBeResolved
                     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                 }
                 configurations.create('publishedPath') {
                     extendsFrom(configurations.conf)
                     canBeConsumed = false
-                    canBeResolved = true
+                    assert canBeResolved
                     resolutionStrategy.useGlobalDependencySubstitutionRules.set(false)
                     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                 }
