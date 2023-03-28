@@ -52,8 +52,12 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         // apply base plugin for the extension to exist
         project.getPlugins().apply(DokkatooBasePlugin.class);
 
-        // wire in our artificial sourceset into the extension
-        NamedDomainObjectContainer<DokkaSourceSetSpec> sourceSets = getDokkatooExtension(project).getDokkatooSourceSets();
+        // rename module
+        DokkatooExtension dokkatooExtension = getDokkatooExtension(project);
+        dokkatooExtension.getModuleName().set("Gradle Kotlin DSL");
+
+        // wire in our artificial source-set into the extension
+        NamedDomainObjectContainer<DokkaSourceSetSpec> sourceSets = dokkatooExtension.getDokkatooSourceSets();
         sourceSets.register("kotlin_dsl", new Action<>() {
             @Override
             public void execute(DokkaSourceSetSpec spec) {
@@ -63,6 +67,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
                 spec.getClasspath().from(extension.getClasspath());
                 spec.getClasspath().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedClasses));
                 spec.getAnalysisPlatform().set(Platform.jvm);
+                spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md").get().getAsFile().getAbsolutePath());
             }
         });
 
@@ -80,7 +85,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
     private void configurePublication(Project project, GradleDocumentationExtension extension) {
         String cssFile = extension.getKotlinDslReference().getDokkaCss().get().getAsFile().getAbsolutePath();
-        String logoFile = extension.getSourceRoot().file("images/gradle-logo.png").get().getAsFile().getAbsolutePath();
+        String logoFile = extension.getSourceRoot().file("kotlin/gradle-logo.png").get().getAsFile().getAbsolutePath();
 
         getDokkatooExtension(project).getDokkatooPublications().configureEach(publication -> {
             publication.getPluginsConfiguration().create("org.jetbrains.dokka.base.DokkaBase", config -> {

@@ -48,6 +48,9 @@ import java.util.regex.Pattern;
  */
 @CacheableTask
 public abstract class FindBrokenInternalLinks extends DefaultTask {
+
+    //TODO: need something like this for the Kotlin DSL docs in Module markdown files too
+
     private final Pattern linkPattern = Pattern.compile("<<([^,>]+)[^>]*>>");
     private final Pattern linkWithHashPattern = Pattern.compile("([a-zA-Z_0-9-.]*)#(.*)");
     private final Pattern javadocLinkPattern = Pattern.compile("link:\\{javadocPath\\}/(.*?\\.html)");
