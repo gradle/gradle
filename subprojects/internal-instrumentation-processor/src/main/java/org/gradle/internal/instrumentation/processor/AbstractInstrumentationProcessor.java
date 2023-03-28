@@ -109,9 +109,9 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
             .filter(it -> it.getKind() == ElementKind.METHOD)
             .map(it -> (ExecutableElement) it)
             // Ensure that the elements have a stable order, as the annotation processing engine does not guarantee that for type elements.
-            // The order in which the executable elements are listed is the order in which they appear in the code.
-            // So we only need to ensure the ordering between the type elements.
-            .sorted(Comparator.comparing(it -> elementQualifiedNameIfPresent(it.getEnclosingElement())))
+            // The order in which the executable elements are listed should be the order in which they appear in the code but
+            // we take an extra measure of care here and ensure the ordering between all elements.
+            .sorted(Comparator.comparing(AbstractInstrumentationProcessor::elementQualifiedName))
             .collect(Collectors.toList());
     }
 
@@ -150,10 +150,8 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
         generatorHost.generateCodeForRequestedInterceptors(requests);
     }
 
-    private static String elementQualifiedNameIfPresent(Element element) {
-        if (element instanceof TypeElement) {
-            return ((TypeElement) element).getQualifiedName().toString();
-        }
-        return element.getSimpleName().toString();
+    private static String elementQualifiedName(ExecutableElement element) {
+        String enclosingTypeName = ((TypeElement) element.getEnclosingElement()).getQualifiedName().toString();
+        return enclosingTypeName + "." + element.getSimpleName();
     }
 }
