@@ -58,7 +58,10 @@ class IvyDynamicRevisionMultiRepoResolveIntegrationTest extends AbstractDependen
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.1").byReason("didn't match version 1.2")
+                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.1") {
+                    notRequested()
+                    byReason("didn't match version 1.2")
+                }
             }
         }
 

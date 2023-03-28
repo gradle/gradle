@@ -196,6 +196,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                     noArtifacts()
                 }
                 edge('org:foo:1.2', 'org:foo:1.1') {
+                    forced()
                     byConstraint()
                 }
             }
@@ -246,6 +247,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                     noArtifacts()
                 }
                 edge('org:foo:1.1', 'org:foo:1.0') {
+                    forced()
                     configuration = 'api'
                 }
             }
@@ -563,6 +565,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                     configuration = 'runtime'
                     module('org:foo:1.0') {
                         configuration = 'runtime'
+                        byConstraint()
                         module('org:foobar:1.0') {
                             configuration = 'runtime'
                         }
@@ -620,7 +623,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         then:
         resolve.expectGraph {
             root(":", "org.test:test:1.9") {
-                edge("org.test:depA", "org.test:depA:1.0")
+                edge("org.test:depA", "org.test:depA:1.0") {
+                    byConstraint()
+                }
                 module("org.test:depB:1.0") {
                     module("org.test:depC:1.0") {
                         module('org.test:platform:1.0') {
