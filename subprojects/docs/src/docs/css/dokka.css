@@ -5,7 +5,7 @@
 
 .library-name a::before {
     content: '';
-    background: url("../images/gradle-logo.png") center no-repeat;
+    background: url("../kotlin/gradle-logo.png") center no-repeat;
     background-size: contain;
     position: absolute;
     width: 75px;
