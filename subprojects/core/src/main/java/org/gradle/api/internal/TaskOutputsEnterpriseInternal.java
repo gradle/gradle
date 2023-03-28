@@ -16,15 +16,29 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.api.DefaultTask;
 import org.gradle.api.NonNullApi;
 
+/**
+ * Gradle Enterprise specific extensions of {@link TaskOutputsInternal}.
+ * <p>
+ * This class exists to hide these additional methods from the public API since {@link DefaultTask#getOutputs()}
+ * returns {@link TaskOutputsInternal} rather than {@link org.gradle.api.tasks.TaskOutputs}.
+ *
+ * @since 8.2
+ */
 @NonNullApi
 public interface TaskOutputsEnterpriseInternal extends TaskOutputsInternal {
 
+    /**
+     * Whether the task's outputs should be stored in the build cache.
+     */
     boolean getStoreInCache();
 
     /**
      * Avoid storing the task's outputs in the build cache.
+     * <p>
+     * This does not prevent the task from being up-to-date.
      */
     void doNotStoreInCache();
 

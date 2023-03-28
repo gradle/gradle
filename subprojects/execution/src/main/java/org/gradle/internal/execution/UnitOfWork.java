@@ -104,7 +104,7 @@ public interface UnitOfWork extends Describable {
         Object getOutput();
 
         /**
-         * Whether the outputs can be reused by other builds.
+         * Whether this output should be stored in the build cache.
          */
         default boolean canStoreInCache() {
             return true;
