@@ -105,11 +105,13 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
     @Nonnull
     private static List<ExecutableElement> getExecutableElementsFromAnnotatedElements(Collection<? extends Element> annotatedClassElements) {
         return annotatedClassElements.stream()
-            // Ensure that the type elements have a stable order, as the annotation processing engine does not guarantee it
-            .sorted(Comparator.comparing(AbstractInstrumentationProcessor::elementQualifiedNameIfPresent))
             .flatMap(element -> element.getKind() == ElementKind.METHOD ? Stream.of(element) : element.getEnclosedElements().stream())
             .filter(it -> it.getKind() == ElementKind.METHOD)
             .map(it -> (ExecutableElement) it)
+            // Ensure that the elements have a stable order, as the annotation processing engine does not guarantee that for type elements.
+            // The order in which the executable elements are listed is the order in which they appear in the code.
+            // So we only need to ensure the ordering between the type elements.
+            .sorted(Comparator.comparing(it -> elementQualifiedNameIfPresent(it.getEnclosingElement())))
             .collect(Collectors.toList());
     }
 
