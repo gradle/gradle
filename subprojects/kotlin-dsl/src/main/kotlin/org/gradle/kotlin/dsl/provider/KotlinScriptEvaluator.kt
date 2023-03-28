@@ -28,6 +28,7 @@ import org.gradle.cache.CacheOpenException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeOrigin
+import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
@@ -102,7 +103,8 @@ class StandardKotlinScriptEvaluator(
     private val executionEngine: ExecutionEngine,
     private val workspaceProvider: KotlinDslWorkspaceProvider,
     private val fileCollectionFactory: FileCollectionFactory,
-    private val inputFingerprinter: InputFingerprinter
+    private val inputFingerprinter: InputFingerprinter,
+    private val gradlePropertiesController: GradlePropertiesController,
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -150,11 +152,19 @@ class StandardKotlinScriptEvaluator(
         JavaVersion.current()
 
     private
-    val interpreter by lazy {
-        Interpreter(InterpreterHost(jvmTarget))
+    val allWarningsAsErrors: Boolean by lazy {
+        gradlePropertiesController.gradleProperties.find("org.gradle.kotlin.dsl.allWarningsAsErrors") == "true"
     }
 
-    inner class InterpreterHost(override val jvmTarget: JavaVersion) : Interpreter.Host {
+    private
+    val interpreter by lazy {
+        Interpreter(InterpreterHost(jvmTarget, allWarningsAsErrors))
+    }
+
+    inner class InterpreterHost(
+        override val jvmTarget: JavaVersion,
+        override val allWarningsAsErrors: Boolean,
+    ) : Interpreter.Host {
 
         override fun stage1BlocksAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             (scriptHost.target as? ProjectInternal)?.let {
