@@ -66,6 +66,21 @@ This can be useful during a cold-start of Gradle for users who have environments
 
 Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the Groovy DSL with an enhanced editing experience in supported IDEs — superior content assistance, refactoring documentation, and more.
 
+#### Gradle `init` defaults to the Kotlin DSL
+
+Starting with this release running `gradle init` now defaults to generating new builds using the Kotlin DSL.
+
+In interactive mode you can choose which DSL to use and the Kotlin one is now listed first:
+
+```text
+Select build script DSL:
+  1: Kotlin
+  2: Groovy
+Enter selection (default: Kotlin) [1..2]
+```
+
+See the [build init](userguide/build_init.html#sec:what_to_set_up) user manual chapter for more information.
+
 #### Fail on script compilation warnings
 
 Gradle [Kotlin DSL scripts](userguide/kotlin_dsl.html#sec:scripts) are compiled by Gradle during the configuration phase of your build.

@@ -72,7 +72,7 @@ public class BasicProjectGenerator implements ProjectGenerator {
 
     @Override
     public BuildInitDsl getDefaultDsl() {
-        return BuildInitDsl.GROOVY;
+        return BuildInitDsl.KOTLIN;
     }
 
     @Override
