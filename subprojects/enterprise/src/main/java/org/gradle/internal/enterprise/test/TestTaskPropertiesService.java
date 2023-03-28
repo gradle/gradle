@@ -17,11 +17,14 @@
 package org.gradle.internal.enterprise.test;
 
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Provides access to the configuration of {@link Test} tasks and allows
  * disabling storing their outputs in the build cache.
  */
+@ServiceScope(Scopes.Project.class)
 public interface TestTaskPropertiesService {
 
     /**

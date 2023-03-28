@@ -32,17 +32,12 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
     def "provides task configuration to plugin"() {
         given:
         new PluginBuilder(file("buildSrc")).with {
-            groovy("ServiceProvider.groovy") << """
-                abstract class ServiceProvider {
-                    @${Inject.name} abstract ${TestTaskPropertiesService.name} getService()
-                }
-            """
             addPlugin("""
                 def objects = project.objects
                 def outputFile = project.file("\${project.buildDir}/testTaskProperties.json")
+                def service = project.services.get(${TestTaskPropertiesService.name})
                 project.tasks.named('test').configure {
                     doFirst { task ->
-                        def service = objects.newInstance(ServiceProvider.class).service
                         def properties = service.collectProperties(task)
 
                         def generator = new ${JsonGenerator.Options.name}()
@@ -182,12 +177,15 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id 'java'
             }
-            def objects = project.objects
-            test.doLast { task ->
-                objects.newInstance(ServiceProvider.class).service.doNotStoreInCache(task)
-            }
-            abstract class ServiceProvider {
-                @${Inject.name} abstract ${TestTaskPropertiesService.name} getService()
+            test.doLast(objects.newInstance(Disabler))
+            abstract class Disabler implements Action<Task> {
+                private final ${TestTaskPropertiesService.name} service
+                @${Inject.name} Disabler(${TestTaskPropertiesService.name} service) {
+                    this.service = service
+                }
+                @Override void execute(Task task) {
+                    service.doNotStoreInCache(task)
+                }
             }
         """
         file('src/test/java/org/example/TestClass.java') << """
