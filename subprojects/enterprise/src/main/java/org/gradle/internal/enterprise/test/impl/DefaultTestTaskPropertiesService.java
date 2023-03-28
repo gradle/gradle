@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.internal.TaskOutputsEnterpriseInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
@@ -121,6 +122,11 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
             inputFileProperties.build(),
             outputFileProperties.build()
         );
+    }
+
+    @Override
+    public void doNotStoreInCache(Test task) {
+        ((TaskOutputsEnterpriseInternal) task.getOutputs()).doNotStoreInCache();
     }
 
     private ImmutableList<CandidateClassFile> collectCandidateClassFiles(Test task) {

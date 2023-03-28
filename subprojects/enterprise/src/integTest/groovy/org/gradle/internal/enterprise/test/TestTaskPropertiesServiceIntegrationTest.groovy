@@ -27,10 +27,10 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 
 import java.util.stream.Stream
 
+@UnsupportedWithConfigurationCache(because = "uses CC-incompatible APIs")
 class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
 
-    @UnsupportedWithConfigurationCache(because = "test-plugin does not use CC-compatible APIs")
-    def "can inject TestTaskPropertiesService into plugin"() {
+    def "provides task configuration to plugin"() {
         given:
         def pluginBuilder = new PluginBuilder(file("buildSrc"))
         pluginBuilder.addPlugin("""
@@ -151,5 +151,39 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         }
+    }
+
+    def "can be used to disable storing task in build cache"() {
+        given:
+        def cacheDir = createDir("cache-dir")
+        settingsFile << """
+            buildCache {
+                local {
+                    directory = file("${cacheDir.name}")
+                }
+            }
+        """
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            test { task ->
+                doLast {
+                    def service = project.services.get(${TestTaskPropertiesService.name})
+                    service.doNotStoreInCache(task)
+                }
+            }
+        """
+        file('src/test/java/org/example/TestClass.java') << """
+            package org.example;
+            public class TestClass {}
+        """
+
+        when:
+        succeeds('clean', 'test', '--build-cache')
+        succeeds('clean', 'test', '--build-cache')
+
+        then:
+        executedAndNotSkipped(':test')
     }
 }
