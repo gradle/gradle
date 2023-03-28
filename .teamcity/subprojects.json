@@ -401,7 +401,7 @@
   {
     "dirName": "internal-instrumentation-processor",
     "name": "internal-instrumentation-processor",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
