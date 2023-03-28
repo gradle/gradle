@@ -2,7 +2,7 @@
 --------------------------------------------------
 Variant apiElements
 --------------------------------------------------
-Description = API elements for main.
+API elements for the 'main' feature.
 
 Attributes
     - org.gradle.category            = library
@@ -41,7 +41,7 @@ Artifacts
 --------------------------------------------------
 Variant runtimeElements
 --------------------------------------------------
-Description = Elements of runtime for main.
+Runtime elements for the 'main' feature.
 
 Attributes
     - org.gradle.category            = library
