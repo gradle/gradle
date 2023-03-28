@@ -491,7 +491,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
             configurations {
                 ecj {
                     canBeConsumed = false
-                    canBeResolved = true
+                    assert canBeResolved
                 }
             }
 

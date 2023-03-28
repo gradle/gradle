@@ -1529,13 +1529,13 @@ The following variants were also considered but didn't match the requested attri
                         extendsFrom(compileFreeDebug)
                         attributes { $freeDebug }
                         canBeConsumed = false
-                        canBeResolved = true
+                        assert canBeResolved
                     }
                     compileFreeReleasePath {
                         extendsFrom(compileFreeRelease)
                         attributes { $freeRelease }
                         canBeConsumed = false
-                        canBeResolved = true
+                        assert canBeResolved
                     }
                 }
                 dependencies {

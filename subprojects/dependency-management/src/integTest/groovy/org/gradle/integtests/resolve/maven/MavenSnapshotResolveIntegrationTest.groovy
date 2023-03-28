@@ -1092,7 +1092,7 @@ dependencies {
 configurations {
     poms {
         extendsFrom(configurations.compile)
-        canBeResolved = true
+        assert canBeResolved
         canBeConsumed = false
         attributes {
             attribute(Category.CATEGORY_ATTRIBUTE, getObjects().named(Category, Category.DOCUMENTATION))
