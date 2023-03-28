@@ -17,6 +17,7 @@ package org.gradle.jvm.component;
 
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.component.ComponentFeature;
 import org.gradle.api.component.ConsumableVariant;

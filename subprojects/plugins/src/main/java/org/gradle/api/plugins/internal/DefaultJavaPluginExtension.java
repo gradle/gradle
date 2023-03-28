@@ -193,6 +193,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
 
     @Override
     public void registerFeature(String name, Action<? super FeatureSpec> configureAction) {
+        maybeEmitMissingJavaComponentDeprecation("registerFeature(String, Action)");
         DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(validateFeatureName(name), project);
         configureAction.execute(spec);
         spec.create();
@@ -263,7 +264,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         action.execute(project.getObjects().newInstance(DefaultJavaPluginExtension.DefaultJavaResolutionConsistency.class, project, sourceSets, configurations));
     }
 
-    private static String validateFeatureName(String name) {
+    public static String validateFeatureName(String name) {
         if (!VALID_FEATURE_NAME.matcher(name).matches()) {
             throw new InvalidUserDataException("Invalid feature name '" + name + "'. Must match " + VALID_FEATURE_NAME.pattern());
         }

@@ -28,8 +28,10 @@ import org.gradle.jvm.component.JvmFeature;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
+import org.gradle.jvm.component.JvmSoftwareComponent;
+import org.gradle.jvm.component.SingleTargetJvmFeature;
+import org.gradle.jvm.component.internal.DefaultSingleTargetJvmFeature;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,36 +97,40 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         );
         feature.withApi();
 
-        AdhocComponentWithVariants component = findJavaComponent();
-        if (withJavadocJar && component != null) {
+        if (withJavadocJar) {
             feature.withJavadocJar();
-            Configuration javadocElements = feature.getJavadocElementsConfiguration();
-            component.addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
         }
-        if (withSourcesJar && component != null) {
+        if (withSourcesJar) {
             feature.withSourcesJar();
-            Configuration sourcesElements = feature.getSourcesElementsConfiguration();
-            component.addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
         }
 
-        if (allowPublication && component != null) {
-            component.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true));
-            component.addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", true));
+        SoftwareComponent component = project.getComponents().findByName("java");
+        if (component instanceof JvmSoftwareComponent) {
+            if (!allowPublication) {
+                feature.getVariants().getByName(feature.getApiElementsConfiguration().getName()).getVisibility().isPublished().convention(false);
+                feature.getVariants().getByName(feature.getRuntimeElementsConfiguration().getName()).getVisibility().isPublished().convention(false);
+            }
+            ((JvmSoftwareComponent) component).getFeatures().add(feature);
+        } else if (component instanceof AdhocComponentWithVariants) {
+            addFeatureToAdhocComponent(feature, (AdhocComponentWithVariants) component);
         }
     }
 
-    // TODO: #23495 Investigate the implications of using this class without
-    //       the java plugin applied, and thus no java component present.
-    //       In the long run, all domain objects created by this feature should be
-    //       owned by a component. If we do not add them to the default java component,
-    //       we should be adding them to a user-provided or new component instead.
-    @Nullable
-    public AdhocComponentWithVariants findJavaComponent() {
-        SoftwareComponent component = project.getComponents().findByName("java");
-        if (component instanceof AdhocComponentWithVariants) {
-            return (AdhocComponentWithVariants) component;
+    private void addFeatureToAdhocComponent(SingleTargetJvmFeature feature, AdhocComponentWithVariants component) {
+        Configuration javadocElements = feature.getJavadocElementsConfiguration();
+        if (javadocElements != null) {
+            component.addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
         }
-        return null;
+
+        Configuration sourcesElements = feature.getSourcesElementsConfiguration();
+        if (sourcesElements != null) {
+            component.addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
+        }
+
+        if (allowPublication) {
+            component.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true));
+            component.addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", true));
+        }
     }
 
 }

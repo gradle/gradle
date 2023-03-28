@@ -31,6 +31,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent;
+import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -65,6 +66,10 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         // Map ConsumableVariant API to UsageContext API.
         variants.all(variant -> {
             if (variant instanceof ConfigurationBackedConsumableVariant) {
+                ConfigurationBackedConsumableVariant consumableVariant = (ConfigurationBackedConsumableVariant) variant;
+                if (!consumableVariant.getVisibility().isPublished().get()) {
+                    return;
+                }
 
                 Usage usage = variant.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
                 String scope = usage != null && usage.getName().equals(Usage.JAVA_API) ? "compile" : "runtime";
@@ -95,6 +100,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
             if (sourceSets.findByName(featureName) != null) {
                 throw new GradleException("Cannot create JvmFeature since source set '" + featureName +"' already exists.");
             }
+            DefaultJavaPluginExtension.validateFeatureName(featureName);
 
             List<Capability> capabilities = Collections.singletonList(new ProjectDerivedCapability(project, featureName));
             SourceSet sourceSet = sourceSets.create(featureName);

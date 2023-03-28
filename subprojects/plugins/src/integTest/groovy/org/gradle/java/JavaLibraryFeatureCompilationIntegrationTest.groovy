@@ -534,6 +534,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("registerFeature(String, Action) was called without the presence of the java component. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Apply a JVM component plugin such as: java-library, application, groovy, or scala Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_extension_without_java_component")
         succeeds ':compileMain211Java', ':compileMain212Java'
 
         then:
@@ -590,6 +591,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("registerFeature(String, Action) was called without the presence of the java component. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Apply a JVM component plugin such as: java-library, application, groovy, or scala Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_extension_without_java_component")
         run 'dependencies'
 
         then:

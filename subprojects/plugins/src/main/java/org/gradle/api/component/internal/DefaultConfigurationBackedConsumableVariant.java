@@ -41,6 +41,7 @@ public abstract class DefaultConfigurationBackedConsumableVariant implements Con
     @Inject
     public DefaultConfigurationBackedConsumableVariant(Configuration configuration) {
         this.configuration = configuration;
+        getVisibility().isPublished().convention(true);
     }
 
     @Override

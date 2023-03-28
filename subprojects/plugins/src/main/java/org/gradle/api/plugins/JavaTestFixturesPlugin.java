@@ -23,14 +23,14 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.jvm.component.JvmFeature;
 import org.gradle.jvm.component.internal.DefaultJvmFeature;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
-import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
+import org.gradle.jvm.component.SingleTargetJvmFeature;
+import org.gradle.jvm.component.internal.DefaultSingleTargetJvmFeature;
 
 import javax.inject.Inject;
 import java.util.Collections;
@@ -76,9 +76,7 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
 
             feature.withApi();
 
-            DefaultJvmSoftwareComponent component = (DefaultJvmSoftwareComponent) JavaPluginHelper.getJavaComponent(project);
-            component.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true));
-            component.addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", true));
+            JavaPluginHelper.getJavaComponent(project).getFeatures().add(feature);
 
             createImplicitTestFixturesDependencies(project);
         });

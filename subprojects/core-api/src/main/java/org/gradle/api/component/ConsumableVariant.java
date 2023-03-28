@@ -74,4 +74,9 @@ public interface ConsumableVariant extends Named, HasAttributes {
      */
     CapabilitiesMetadata getCapabilities();
 
+    /**
+     * Configures how this variant is exposed outside the project.
+     */
+    VariantVisibility getVisibility();
+
 }
