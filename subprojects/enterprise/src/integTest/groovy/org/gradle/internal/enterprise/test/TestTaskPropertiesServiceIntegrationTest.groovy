@@ -21,59 +21,72 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
+import javax.inject.Inject
 import java.util.stream.Stream
 
-@UnsupportedWithConfigurationCache(because = "uses CC-incompatible APIs")
 class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "provides task configuration to plugin"() {
         given:
-        def pluginBuilder = new PluginBuilder(file("buildSrc"))
-        pluginBuilder.addPlugin("""
-            project.task('testTaskProperties') { doLast {
-                def service = project.services.get(${TestTaskPropertiesService.name})
-                def properties = service.collectProperties(project.tasks['test'])
+        new PluginBuilder(file("buildSrc")).with {
+            groovy("ServiceProvider.groovy") << """
+                abstract class ServiceProvider {
+                    @${Inject.name} abstract ${TestTaskPropertiesService.name} getService()
+                }
+            """
+            addPlugin("""
+                def objects = project.objects
+                def outputFile = project.file("\${project.buildDir}/testTaskProperties.json")
+                project.tasks.named('test').configure {
+                    doFirst { task ->
+                        def service = objects.newInstance(ServiceProvider.class).service
+                        def properties = service.collectProperties(task)
 
-                def generator = new ${JsonGenerator.Options.name}()
-                    .addConverter(new groovy.json.JsonGenerator.Converter() {
-                        @Override
-                        boolean handles(Class<?> type) {
-                            ${Stream.name}.isAssignableFrom(type)
-                        }
-                        @Override
-                        Object convert(Object value, String key) {
-                            (value as ${Stream.name}).toArray()
-                        }
-                    })
-                    .addConverter(new ${JsonGenerator.Converter.name}() {
-                        @Override
-                        boolean handles(Class<?> type) {
-                            ${File.name}.isAssignableFrom(type)
-                        }
-                        @Override
-                        Object convert(Object value, String key) {
-                            (value as ${File.name}).absolutePath
-                        }
-                    })
-                    .build()
+                        def generator = new ${JsonGenerator.Options.name}()
+                            .addConverter(new groovy.json.JsonGenerator.Converter() {
+                                @Override
+                                boolean handles(Class<?> type) {
+                                    ${Stream.name}.isAssignableFrom(type)
+                                }
+                                @Override
+                                Object convert(Object value, String key) {
+                                    (value as ${Stream.name}).toArray()
+                                }
+                            })
+                            .addConverter(new ${JsonGenerator.Converter.name}() {
+                                @Override
+                                boolean handles(Class<?> type) {
+                                    ${File.name}.isAssignableFrom(type)
+                                }
+                                @Override
+                                Object convert(Object value, String key) {
+                                    (value as ${File.name}).absolutePath
+                                }
+                            })
+                            .build()
 
-                def json = ${JsonOutput.name}.prettyPrint(generator.toJson(properties))
+                        def json = ${JsonOutput.name}.prettyPrint(generator.toJson(properties))
 
-                def file = project.file("\${project.buildDir}/testTaskProperties.json")
-                file.parentFile.mkdirs()
-                file.text = json
-            }}
-        """)
-        pluginBuilder.generateForBuildSrc()
+                        outputFile.parentFile.mkdirs()
+                        outputFile.text = json
+                    }
+                }
+            """)
+            generateForBuildSrc()
+        }
 
+        and:
         buildFile << """
             plugins {
                 id 'java'
                 id 'test-plugin'
+            }
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation('org.junit.jupiter:junit-jupiter:5.9.2')
             }
             test {
                 forkEvery = 42
@@ -89,7 +102,6 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
                 }
                 jvmArgs('-Dkey=value')
                 environment('KEY', 'VALUE')
-                enabled = false
             }
         """
         file('src/test/java/org/example/TestClass.java') << """
@@ -98,9 +110,12 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds('test', '--tests', 'Test*', 'testTaskProperties')
+        fails('test', '--tests', 'Test*')
 
         then:
+        failureCauseContains("No tests found for given includes")
+
+        and:
         def expectedClasspath = [
             file('build/classes/java/test'),
             file('build/resources/test'),
@@ -125,7 +140,7 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
                 workingDir == this.testDirectory.absolutePath
                 executable == expectedExecutable
                 javaMajorVersion == expectedJavaVersion
-                classpath.collect { new File(it as String) } == expectedClasspath
+                classpath.collect { new File(it as String) }.containsAll(expectedClasspath)
                 modulePath == []
                 jvmArgs.contains('-Dkey=value')
                 environment.KEY == 'VALUE'
@@ -140,7 +155,7 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
             with(inputFileProperties, List) {
                 !empty
                 with(it.find { it instanceof Map && it['propertyName'] == 'stableClasspath' }, Map) {
-                    files.collect { new File(it as String) } == expectedClasspath
+                    files.collect { new File(it as String) }.containsAll(expectedClasspath)
                 }
             }
             with(outputFileProperties, List) {
@@ -167,11 +182,12 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id 'java'
             }
-            test { task ->
-                doLast {
-                    def service = project.services.get(${TestTaskPropertiesService.name})
-                    service.doNotStoreInCache(task)
-                }
+            def objects = project.objects
+            test.doLast { task ->
+                objects.newInstance(ServiceProvider.class).service.doNotStoreInCache(task)
+            }
+            abstract class ServiceProvider {
+                @${Inject.name} abstract ${TestTaskPropertiesService.name} getService()
             }
         """
         file('src/test/java/org/example/TestClass.java') << """
