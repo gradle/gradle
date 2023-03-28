@@ -22,4 +22,6 @@ public interface TestTaskPropertiesService {
 
     TestTaskProperties collectProperties(Test task);
 
+    void doNotStoreInCache(Test task);
+
 }
