@@ -19,6 +19,12 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.h2Database) {
+        because("Used in BuildCacheNG")
+    }
+    implementation(libs.hikariCP) {
+        because("Used in BuildCacheNG")
+    }
 
     testImplementation(project(":core-api"))
     testImplementation(project(":functional"))
