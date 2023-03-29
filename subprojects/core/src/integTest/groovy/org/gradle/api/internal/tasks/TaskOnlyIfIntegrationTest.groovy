@@ -16,11 +16,77 @@
 
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 
-class TaskOnlyIfReasonIntegrationTest extends AbstractIntegrationSpec {
+class TaskOnlyIfIntegrationTest extends AbstractIntegrationSpec {
+
+    def 'can use a Provider for onlyIf'() {
+        given:
+        buildFile << """
+            tasks.register("conditional") {
+                def foo = project.providers.gradleProperty('foo').map { it.toBoolean() }
+                it.onlyIf(foo.orElse(false))
+            }
+        """
+
+        when:
+        run "conditional"
+
+        then:
+        result.assertTaskSkipped(":conditional")
+    }
+
+    def 'respect dependencies of TaskProvider used for onlyIf'() {
+        given:
+        buildFile << """
+            def dependency = tasks.register("dependency") {
+                doFirst {
+                    println("Dependency action")
+                }
+            }
+
+            tasks.register("dependent") {
+                it.onlyIf(dependency.map { false })
+            }
+        """
+
+        when:
+        run "dependent"
+
+        then:
+        result.assertTaskSkipped(":dependent")
+        result.assertTaskExecuted(":dependency")
+    }
+
+    def 'setOnlyIf(#argumentType) resets onlyIf task dependencies'() {
+        given:
+        buildFile << """
+            def dependency = tasks.register("dependency") {
+                doFirst { println("Dependency action") }
+            }
+
+            tasks.register("dependent") {
+                onlyIf(dependency.map { false })
+                // resets onlyIf dependencies
+                setOnlyIf($argument)
+            }
+        """
+
+        when:
+        run "dependent"
+
+        then:
+        result.assertTaskNotExecuted(":dependency")
+        result.assertTaskExecuted(":dependent")
+
+        where:
+        argumentType | argument
+        "Closure"    | "{ true }"
+        "Spec"       | "{ true } as Spec"
+    }
+
     def 'task skipped by #condition reports "#reason"'() {
         buildFile("""
             tasks.register("task") {
@@ -40,8 +106,10 @@ class TaskOnlyIfReasonIntegrationTest extends AbstractIntegrationSpec {
         "onlyIf('condition1') { false }"                                                    | "condition1"
         "onlyIf('...') { true }\nonlyIf('condition2') { false }"                            | "condition2"
         "onlyIf('...') { false }\nsetOnlyIf('condition3') { false }"                        | "condition3"
+        "onlyIf('condition4', project.provider({ false }))"                                 | "condition4"
         "onlyIf { false }"                                                                  | "Task satisfies onlyIf closure"
         "onlyIf(new Spec<Task>() { boolean isSatisfiedBy(Task task) { return false } })"    | "Task satisfies onlyIf spec"
+        "onlyIf(project.provider({ false }))"                                               | "Task satisfies onlyIf provider"
         "setOnlyIf { false }"                                                               | "Task satisfies onlyIf closure"
         "setOnlyIf(new Spec<Task>() { boolean isSatisfiedBy(Task task) { return false } })" | "Task satisfies onlyIf spec"
     }

@@ -171,9 +171,11 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         publication.setModuleDescriptorGenerator(generatorTask);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static void disableGradleMetadataGenerationIfCustomLayout(NamedDomainObjectList<IvyArtifactRepository> repositories, GenerateModuleMetadata generateTask) {
         Provider<Boolean> standard = new DefaultProvider<>(() -> repositories.stream().allMatch(IvyPublishPlugin::hasStandardPattern));
-        generateTask.onlyIf("The Ivy repositories follow the standard layout", Cast.uncheckedCast(new CheckStandardLayoutSpec(standard)));
+        Spec spec = Cast.uncheckedCast(new CheckStandardLayoutSpec(standard));
+        generateTask.onlyIf("The Ivy repositories follow the standard layout", spec);
     }
 
     private static class CheckStandardLayoutSpec implements Spec<GenerateModuleMetadata> {

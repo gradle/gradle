@@ -33,6 +33,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectOrderingUtil;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
+import org.gradle.api.internal.specs.ProviderBackedSpec;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
@@ -322,6 +323,26 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
+    public void onlyIf(final Provider<Boolean> provider) {
+        taskMutator.mutate("Task.onlyIf(Provider)", new Runnable() {
+            @Override
+            public void run() {
+                onlyIfSpec = onlyIfSpec.and(specWithDependenciesFor(provider), "Task satisfies onlyIf provider");
+            }
+        });
+    }
+
+    @Override
+    public void onlyIf(final String onlyIfReason, final Provider<Boolean> provider) {
+        taskMutator.mutate("Task.onlyIf(String, Provider)", new Runnable() {
+            @Override
+            public void run() {
+                onlyIfSpec = onlyIfSpec.and(specWithDependenciesFor(provider), onlyIfReason);
+            }
+        });
+    }
+
+    @Override
     public void onlyIf(final Closure onlyIfClosure) {
         taskMutator.mutate("Task.onlyIf(Closure)", new Runnable() {
             @Override
@@ -356,7 +377,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.setOnlyIf(Spec)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = createNewOnlyIfSpec().and(spec, "Task satisfies onlyIf spec");
+                onlyIfSpec = resetOnlyIfSpec().and(spec, "Task satisfies onlyIf spec");
             }
         });
     }
@@ -366,7 +387,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.setOnlyIf(String, Spec)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = createNewOnlyIfSpec().and(spec, onlyIfReason);
+                onlyIfSpec = resetOnlyIfSpec().and(spec, onlyIfReason);
             }
         });
     }
@@ -376,9 +397,24 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.setOnlyIf(Closure)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure, "Task satisfies onlyIf closure");
+                onlyIfSpec = resetOnlyIfSpec().and(onlyIfClosure, "Task satisfies onlyIf closure");
             }
         });
+    }
+
+    private ProviderBackedSpec<Task> specWithDependenciesFor(Provider<Boolean> provider) {
+        ProviderBackedSpec<Task> spec = new ProviderBackedSpec<>(provider);
+        dependencies.add(spec);
+        return spec;
+    }
+
+    private DescribingAndSpec<Task> resetOnlyIfSpec() {
+        removeOnlyIfProviderDependencies();
+        return createNewOnlyIfSpec();
+    }
+
+    private boolean removeOnlyIfProviderDependencies() {
+        return dependencies.getMutableValues().removeIf(it -> it instanceof ProviderBackedSpec);
     }
 
     private DescribingAndSpec<Task> createNewOnlyIfSpec() {

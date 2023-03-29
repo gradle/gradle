@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFacto
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
+import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.Actions
@@ -174,6 +175,22 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
 
         then:
         spec.isSatisfiedBy(task) >> false
+        assertFalse(task.getOnlyIf().isSatisfiedBy(task))
+    }
+
+    def canSpecifyOnlyIfPredicateUsingProvider() {
+        final Provider<Boolean> provider = Mock() {
+            get() >> false
+        }
+        final DefaultTask task = getTask()
+
+        expect:
+        task.getOnlyIf().isSatisfiedBy(task)
+
+        when:
+        task.onlyIf(provider)
+
+        then:
         assertFalse(task.getOnlyIf().isSatisfiedBy(task))
     }
 

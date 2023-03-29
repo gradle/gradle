@@ -22,6 +22,7 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
     def "fails when task is configured using #config during execution time"() {
         buildFile.text = """
             def anAction = {} as Action
+            def fooProvider = project.providers.gradleProperty('foo').map { true }
 
             task broken1 {
                 doLast {
@@ -65,6 +66,7 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         "actions = []"                                              | "Task.setActions(List<Action>)"
         "onlyIf { }"                                                | "Task.onlyIf(Closure)"
         "onlyIf({ } as Spec)"                                       | "Task.onlyIf(Spec)"
+        "onlyIf(fooProvider.orElse(false))"                         | "Task.onlyIf(Provider)"
         "setOnlyIf({ })"                                            | "Task.setOnlyIf(Closure)"
         "onlyIf = ({ } as Spec)"                                    | "Task.setOnlyIf(Spec)"
         "enabled = false"                                           | "Task.setEnabled(boolean)"
