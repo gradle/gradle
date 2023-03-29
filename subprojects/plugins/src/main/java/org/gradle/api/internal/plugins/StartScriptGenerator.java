@@ -46,6 +46,7 @@ public class StartScriptGenerator {
     private Iterable<String> modulePath = Collections.emptyList();
     private String scriptRelPath;
     private String appNameSystemProperty;
+    private String currentYear;
 
     private final ScriptGenerator unixStartScriptGenerator;
     private final ScriptGenerator windowsStartScriptGenerator;
@@ -87,6 +88,10 @@ public class StartScriptGenerator {
         this.appNameSystemProperty = appNameSystemProperty;
     }
 
+    public void setCurrentYear(String currentYear) {
+        this.currentYear = currentYear;
+    }
+
     public StartScriptGenerator() {
         this(new UnixStartScriptGenerator(), new WindowsStartScriptGenerator());
     }
@@ -102,7 +107,7 @@ public class StartScriptGenerator {
     }
 
     private JavaAppStartScriptGenerationDetails createStartScriptGenerationDetails() {
-        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, optsEnvironmentVar, exitEnvironmentVar, mainClassName, CollectionUtils.toStringList(defaultJvmOpts), CollectionUtils.toStringList(classpath), CollectionUtils.toStringList(modulePath), scriptRelPath, appNameSystemProperty);
+        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, optsEnvironmentVar, exitEnvironmentVar, mainClassName, CollectionUtils.toStringList(defaultJvmOpts), CollectionUtils.toStringList(classpath), CollectionUtils.toStringList(modulePath), scriptRelPath, appNameSystemProperty, currentYear);
     }
 
     public void generateUnixScript(final File unixScript) {

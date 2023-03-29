@@ -33,9 +33,11 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
     private final List<String> modulePath;
     private final String scriptRelPath;
     private final String appNameSystemProperty;
+    private final String currentYear;
 
     public DefaultJavaAppStartScriptGenerationDetails(String applicationName, String optsEnvironmentVar, String exitEnvironmentVar, String mainClassName,
-                                                      List<String> defaultJvmOpts, List<String> classpath, List<String> modulePath, String scriptRelPath, @Nullable String appNameSystemProperty) {
+                                                      List<String> defaultJvmOpts, List<String> classpath, List<String> modulePath, String scriptRelPath,
+                                                      @Nullable String appNameSystemProperty, String currentYear) {
         this.applicationName = applicationName;
         this.optsEnvironmentVar = optsEnvironmentVar;
         this.exitEnvironmentVar = exitEnvironmentVar;
@@ -45,6 +47,7 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
         this.modulePath = modulePath;
         this.scriptRelPath = scriptRelPath;
         this.appNameSystemProperty = appNameSystemProperty;
+        this.currentYear = currentYear;
     }
 
     @Override
@@ -91,6 +94,11 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
     @Nullable
     public String getAppNameSystemProperty() {
         return appNameSystemProperty;
+    }
+
+    @Override
+    public String getCurrentYear() {
+        return currentYear;
     }
 
     @SuppressWarnings("RedundantIfStatement")

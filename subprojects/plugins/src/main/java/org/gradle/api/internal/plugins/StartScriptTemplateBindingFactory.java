@@ -59,8 +59,8 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
         binding.put(ScriptBindingParameter.APP_HOME_REL_PATH.getKey(), createJoinedAppHomeRelativePath(details.getScriptRelPath()));
         binding.put(ScriptBindingParameter.CLASSPATH.getKey(), createJoinedPath(details.getClasspath()));
         binding.put(ScriptBindingParameter.MODULE_PATH.getKey(), createJoinedPath(details.getModulePath()));
+        binding.put(ScriptBindingParameter.CURRENT_YEAR.getKey(), details.getCurrentYear());
         return binding;
-
     }
 
     private String createJoinedPath(Iterable<String> path) {
@@ -164,7 +164,8 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
         APP_NAME_SYS_PROP("appNameSystemProperty"),
         APP_HOME_REL_PATH("appHomeRelativePath"),
         CLASSPATH("classpath"),
-        MODULE_PATH("modulePath");
+        MODULE_PATH("modulePath"),
+        CURRENT_YEAR("currentYear");
 
         private final String key;
 

@@ -43,6 +43,7 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
@@ -380,6 +381,7 @@ public abstract class CreateStartScripts extends ConventionTask {
         }
         generator.generateUnixScript(getUnixScript());
         generator.generateWindowsScript(getWindowsScript());
+        generator.setCurrentYear(String.valueOf(LocalDateTime.now().getYear()));
     }
 
     private String fullMainArgument() {

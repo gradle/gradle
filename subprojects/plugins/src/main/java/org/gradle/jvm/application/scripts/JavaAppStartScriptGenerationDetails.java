@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.application.scripts;
 
+import org.gradle.api.Incubating;
+
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -65,5 +67,13 @@ public interface JavaAppStartScriptGenerationDetails {
      */
     @Nullable
     String getAppNameSystemProperty();
+
+    /**
+     * Returns the current year, as a string.
+     *
+     * @since 8.2
+     */
+    @Incubating
+    String getCurrentYear();
 }
 
