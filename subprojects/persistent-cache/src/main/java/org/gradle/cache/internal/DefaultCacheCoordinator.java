@@ -33,6 +33,7 @@ import org.gradle.cache.LockOptions;
 import org.gradle.cache.LockTimeoutException;
 import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
+import org.gradle.cache.internal.btree.PersistentMap;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
@@ -321,8 +322,8 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
             if (entry == null) {
                 File cacheFile = findCacheFile(parameters);
                 LOG.debug("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
-                Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = () -> {
-                    BTreePersistentIndexedCache<K, V> cache = doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
+                Factory<PersistentMap<K,V>> indexedCacheFactory = () -> {
+                    PersistentMap<K,V> cache = doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
                     if (parameters.isHasCleanup()) {
                         indexedCachesForCleanup.add(() -> System.out.println("We are cleaning: " + parameters.getCacheName()));
                     }
@@ -360,7 +361,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
         return findCacheFile(parameters).exists();
     }
 
-    <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+    <K, V> PersistentMap<K,V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         return new BTreePersistentIndexedCache<>(cacheFile, keySerializer, valueSerializer);
     }
 
