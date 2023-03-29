@@ -598,21 +598,25 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Set<File> files(Dependency... dependencies) {
+        maybeWarnOnDeprecatedUsage("files(Dependency...)", ProperMethodUsage.RESOLVABLE);
         return fileCollection(dependencies).getFiles();
     }
 
     @Override
     public Set<File> files(Closure dependencySpecClosure) {
+        maybeWarnOnDeprecatedUsage("files(Closure)", ProperMethodUsage.RESOLVABLE);
         return fileCollection(dependencySpecClosure).getFiles();
     }
 
     @Override
     public Set<File> files(Spec<? super Dependency> dependencySpec) {
+        maybeWarnOnDeprecatedUsage("files(Spec)", ProperMethodUsage.RESOLVABLE);
         return fileCollection(dependencySpec).getFiles();
     }
 
     @Override
     public FileCollection fileCollection(Spec<? super Dependency> dependencySpec) {
+        maybeWarnOnDeprecatedUsage("fileCollection(Spec)", ProperMethodUsage.RESOLVABLE);
         assertIsResolvable();
         return fileCollectionFromSpec(dependencySpec);
     }
@@ -628,11 +632,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public FileCollection fileCollection(Closure dependencySpecClosure) {
+        maybeWarnOnDeprecatedUsage("fileCollection(Closure)", ProperMethodUsage.RESOLVABLE);
         return fileCollection(Specs.convertClosureToSpec(dependencySpecClosure));
     }
 
     @Override
     public FileCollection fileCollection(Dependency... dependencies) {
+        maybeWarnOnDeprecatedUsage("fileCollection(Dependency...)", ProperMethodUsage.RESOLVABLE);
         Set<Dependency> deps = WrapUtil.toLinkedSet(dependencies);
         return fileCollection(deps::contains);
     }
