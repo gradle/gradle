@@ -56,7 +56,7 @@ Currently, the following methods should only be called with these listed allowed
 - `resolve()` - RESOLVABLE configurations only
 - `files(Closure)`, `files(Spec)`, `files(Dependency…)`, `fileCollection(Spec)`, `fileCollection(Closure)`, `fileCollection(Dependency…)` - RESOLVABLE configurations only
 - `getResolvedConfigurations()` - RESOLVABLE configurations only
-- `defaultDependencies(Action)` - RESOLVABLE OR DECLARABLE configurations only
+- `defaultDependencies(Action)` - DECLARABLE configurations only
 - `shouldResolveConsistentlyWith(Configuration)` - RESOLVABLE configurations only
 - `disableConsistentResolution()` - RESOLVABLE configurations only
 

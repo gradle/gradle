@@ -521,7 +521,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Configuration defaultDependencies(final Action<? super DependencySet> action) {
-        maybeWarnOnDeprecatedUsage("defaultDependencies(Action)", ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE);
+        maybeWarnOnDeprecatedUsage("defaultDependencies(Action)", ProperMethodUsage.DECLARABLE_AGAINST);
         validateMutation(MutationType.DEPENDENCIES);
         defaultDependencyActions = defaultDependencyActions.add(dependencies -> {
             if (dependencies.isEmpty()) {
