@@ -95,7 +95,7 @@ rootProject.name = 'testproject'
         expect:
         fails "help"
         failureHasCause("Conflict found for the following module:")
-        failure.assertHasResolutions("Run with: --scan or :dependencyInsight --configuration classpath " +
+        failure.assertHasResolutions("Run with :dependencyInsight --configuration classpath " +
             "--dependency org.gradle:test to get more insight on how to solve the conflict.",
             STACKTRACE_MESSAGE,
             INFO_DEBUG,

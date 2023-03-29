@@ -78,7 +78,7 @@ public class VersionConflictException extends GraphValidationException implement
             projectPath = "";
         }
 
-        return ImmutableList.of("Run with: --scan or " + projectPath + ":dependencyInsight --configuration " +
+        return ImmutableList.of("Run with " + projectPath + ":dependencyInsight --configuration " +
             configurationName + " --dependency " + dependencyNotation + " to get more insight on how to solve the conflict.");
     }
 
