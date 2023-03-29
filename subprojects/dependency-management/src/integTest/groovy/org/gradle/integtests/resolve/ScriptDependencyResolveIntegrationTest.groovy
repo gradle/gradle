@@ -20,7 +20,14 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+
 class ScriptDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
+
+
     @LeaksFileHandles("Puts gradle user home in integration test dir")
     def "root component identifier has the correct type when resolving a script classpath"() {
         given:
@@ -90,10 +97,10 @@ rootProject.name = 'testproject'
         failureHasCause("Conflict found for the following module:")
         failure.assertHasResolutions("Run with: --scan or :dependencyInsight --configuration classpath " +
             "--dependency org.gradle:test to get more insight on how to solve the conflict.",
-            "Run with --stacktrace option to get the stack trace.",
-            "Run with --info or --debug option to get more log output.",
-            "Run with --scan to get full insights.",
-            "Get more help at https://help.gradle.org")
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
     }
 
     @Issue("gradle/gradle#19300")
