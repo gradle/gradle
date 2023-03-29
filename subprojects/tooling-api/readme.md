@@ -11,6 +11,12 @@ This will result in e.g.
 
 You can fix it by adding `-PtestJavaVersion=8` to the build.
 
+This is due to the fact that Gradle 4.6 and older don't support Java 11 and newer, which is checked before the test filter is applied.
+`org.gradle.integtests.fixtures.executer.DefaultGradleDistribution.worksWith(org.gradle.internal.jvm.Jvm)` is the method that checks this.
+This is used by `AbstractCompatibilityTestInterceptor` to filter out incompatible Gradle Versions.
+Also all TestPrecondition annotations are checked in an interceptor (e.g. TestPrecondition.NOT_MAC_OS_X). 
+The preconditions will also end up in the same message if it filters all tests.
+
 ### Executing with Kotlin scripts on Gradle Version prior 5.0.
     
 This will result in an invocation as if no script is present and you'll be puzzled why nothing you wrote in the script is happening.
