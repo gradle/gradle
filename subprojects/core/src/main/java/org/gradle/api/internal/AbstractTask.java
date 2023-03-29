@@ -33,6 +33,8 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectOrderingUtil;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.specs.ProviderBackedSpec;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
@@ -322,6 +324,19 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
+    public void onlyIf(final Provider<Boolean> provider) {
+        taskMutator.mutate("Task.onlyIf(Provider)", new Runnable() {
+            @Override
+            public void run() {
+                if (provider instanceof ProviderInternal) {
+                    dependencies.add(provider);
+                }
+                onlyIfSpec = onlyIfSpec.and(new ProviderBackedSpec<>(provider), "Task satisfies onlyIf provider");
+            }
+        });
+    }
+
+    @Override
     public void onlyIf(final Closure onlyIfClosure) {
         taskMutator.mutate("Task.onlyIf(Closure)", new Runnable() {
             @Override
@@ -377,6 +392,20 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             @Override
             public void run() {
                 onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure, "Task satisfies onlyIf closure");
+            }
+        });
+    }
+
+    @Override
+    public void setOnlyIf(final Provider<Boolean> provider) {
+        taskMutator.mutate("Task.setOnlyIf(Provider)", new Runnable() {
+
+            @Override
+            public void run() {
+                if (provider instanceof ProviderInternal) {
+                    dependencies.add(provider);
+                }
+                onlyIfSpec = createNewOnlyIfSpec().and(new ProviderBackedSpec<>(provider), "Task satisfies onlyIf provider");
             }
         });
     }

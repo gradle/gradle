@@ -345,6 +345,24 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     void onlyIf(String onlyIfReason, Spec<? super Task> onlyIfSpec);
 
     /**
+     * <p>Execute the task only if the given provider returns true. The provider will be evaluated at task execution time, not
+     * during configuration. If the provider returns false, the task will be skipped.</p>
+     *
+     * <p>If given provider represents dependency to task like <code>TaskProvider.map { false }</code>, then such dependency
+     * will be added to this task accordingly.</p>
+     *
+     * <p>You may add multiple such predicates. The task is skipped if any of the predicates return false.</p>
+     *
+     * <p>Typical usage:<code>myTask.onlyIf(project.provider({ isProductionEnvironment() }))</code></p>
+     *
+     * @param onlyIfProvider provider to execute to determine if task should be run
+     *
+     * @since 8.2
+     */
+    @Incubating
+    void onlyIf(Provider<Boolean> onlyIfProvider);
+
+    /**
      * <p>Execute the task only if the given closure returns true.  The closure will be evaluated at task execution
      * time, not during configuration.  The closure will be passed a single parameter, this task. If the closure returns
      * false, the task will be skipped.</p>
@@ -378,6 +396,22 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      */
     @Incubating
     void setOnlyIf(String onlyIfReason, Spec<? super Task> onlyIfSpec);
+
+    /**
+     * <p>Execute the task only if the given provider returns true. The provider will be evaluated at task execution time, not
+     * during configuration. If the provider returns false, the task will be skipped.</p>
+     *
+     * <p>If given provider represents dependency to task like <code>TaskProvider.map { false }</code>, then such dependency
+     * will be added to this task accordingly.</p>
+     *
+     * <p>The given predicate replaces all such predicates for this task.</p>
+     *
+     * @param onlyIfProvider provider to execute to determine if task should be run
+     *
+     * @since 8.2
+     */
+    @Incubating
+    void setOnlyIf(Provider<Boolean> onlyIfProvider);
 
     /**
      * Returns the execution state of this task. This provides information about the execution of this task, such as
