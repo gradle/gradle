@@ -20,7 +20,33 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 
-class TaskOnlyIfReasonIntegrationTest extends AbstractIntegrationSpec {
+class TaskOnlyIfIntegrationTest extends AbstractIntegrationSpec {
+
+    def 'can use a Provider for #taskSkippingApi'() {
+        given:
+        buildFile << """
+            def dependencyTask = tasks.register("dependency") {
+                doFirst {
+                    println("Dependency action")
+                }
+            }
+
+            tasks.register("dependent") {
+                it.${taskSkippingApi}(dependencyTask.map { false })
+            }
+        """
+
+        when:
+        run "dependent"
+
+        then:
+        result.assertTaskSkipped(":dependent")
+        result.assertTaskExecuted(":dependency")
+
+        where:
+        taskSkippingApi << ["onlyIf", "setOnlyIf"]
+    }
+
     def 'task skipped by #condition reports "#reason"'() {
         buildFile("""
             tasks.register("task") {
@@ -42,8 +68,10 @@ class TaskOnlyIfReasonIntegrationTest extends AbstractIntegrationSpec {
         "onlyIf('...') { false }\nsetOnlyIf('condition3') { false }"                        | "condition3"
         "onlyIf { false }"                                                                  | "Task satisfies onlyIf closure"
         "onlyIf(new Spec<Task>() { boolean isSatisfiedBy(Task task) { return false } })"    | "Task satisfies onlyIf spec"
+        "onlyIf(project.provider({ false }))"                                               | "Task satisfies onlyIf provider"
         "setOnlyIf { false }"                                                               | "Task satisfies onlyIf closure"
         "setOnlyIf(new Spec<Task>() { boolean isSatisfiedBy(Task task) { return false } })" | "Task satisfies onlyIf spec"
+        "setOnlyIf(project.provider({ false }))"                                            | "Task satisfies onlyIf provider"
     }
 
     private void assertTaskSkippedWithMessage(

@@ -123,7 +123,7 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
 
         when:
         getTask().getActions().add(Actions.doNothing())
-        getTask().getActions().set(0, { task -> throw new RuntimeException()} as Action)
+        getTask().getActions().set(0, { task -> throw new RuntimeException() } as Action)
 
         then:
         getTask().getActions().size() == 1
@@ -167,6 +167,21 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
         then:
         !task.getOnlyIf().isSatisfiedBy(task)
     }
+
+    def "can specify onlyIf predicate using provider"() {
+        given:
+        def task = getTask()
+
+        expect:
+        task.getOnlyIf().isSatisfiedBy(task)
+
+        when:
+        task.onlyIf(task.project.provider({ false }))
+
+        then:
+        !task.getOnlyIf().isSatisfiedBy(task)
+    }
+
 
     def "can specify onlyIf predicate using spec"() {
         given:
