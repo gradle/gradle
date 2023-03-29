@@ -34,6 +34,7 @@ class StartScriptGeneratorTest extends Specification {
     private static final Iterable<String> MODULE_PATH = []
     private static final String SCRIPT_REL_PATH = 'bin/gradle'
     private static final String APP_NAME_SYS_PROP = 'org.gradle.appname'
+    private static final String CURRENT_YEAR = '2023'
 
     ScriptGenerator unixStartScriptGenerator = Mock()
     ScriptGenerator windowsStartScriptGenerator = Mock()
@@ -84,6 +85,6 @@ class StartScriptGeneratorTest extends Specification {
     }
 
     private JavaAppStartScriptGenerationDetails createJavaAppStartScriptGenerationDetails() {
-        return new DefaultJavaAppStartScriptGenerationDetails(APP_NAME, OPTS_ENV_VAR, EXIT_ENV_VAR, MAIN_CLASSNAME, DEFAULT_JVM_OPTS, CLASSPATH, MODULE_PATH, SCRIPT_REL_PATH, APP_NAME_SYS_PROP)
+        return new DefaultJavaAppStartScriptGenerationDetails(APP_NAME, OPTS_ENV_VAR, EXIT_ENV_VAR, MAIN_CLASSNAME, DEFAULT_JVM_OPTS, CLASSPATH, MODULE_PATH, SCRIPT_REL_PATH, APP_NAME_SYS_PROP, CURRENT_YEAR)
     }
 }
