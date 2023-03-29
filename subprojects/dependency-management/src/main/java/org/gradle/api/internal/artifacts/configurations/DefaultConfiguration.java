@@ -1156,12 +1156,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public OutgoingVariant convertToOutgoingVariant() {
-        maybeWarnOnDeprecatedUsage("convertToOutgoingVariant()", ProperMethodUsage.CONSUMABLE);
-        return outgoing.convertToOutgoingVariant();
-    }
-
-    @Override
     public void collectVariants(VariantVisitor visitor) {
         outgoing.collectVariants(visitor);
     }
