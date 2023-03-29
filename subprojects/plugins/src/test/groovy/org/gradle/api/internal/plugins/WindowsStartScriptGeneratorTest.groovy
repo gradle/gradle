@@ -122,7 +122,7 @@ class WindowsStartScriptGeneratorTest extends Specification {
     private JavaAppStartScriptGenerationDetails createScriptGenerationDetails(List<String> defaultJvmOpts, String scriptRelPath) {
         final String applicationName = 'TestApp'
         final List<String> classpath = WrapUtil.toList('path/to/Jar.jar')
-        final String CURRENT_YEAR = '2023'
-        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, null, null, "", defaultJvmOpts, classpath, [], scriptRelPath, null, CURRENT_YEAR)
+        final String currentYear = '2023'
+        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, null, null, "", defaultJvmOpts, classpath, [], scriptRelPath, null, currentYear)
     }
 }
