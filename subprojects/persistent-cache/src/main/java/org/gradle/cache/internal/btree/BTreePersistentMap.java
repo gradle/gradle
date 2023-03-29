@@ -47,8 +47,8 @@ import java.util.List;
 // todo - merge adjacent free blocks
 // todo - use more efficient lookup for free block with nearest size
 @SuppressWarnings("unchecked")
-public class BTreePersistentIndexedCache<K, V> implements PersistentMap<K, V> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BTreePersistentIndexedCache.class);
+public class BTreePersistentMap<K, V> implements PersistentMap<K, V> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BTreePersistentMap.class);
     private final File cacheFile;
     private final KeyHasher<K> keyHasher;
     private final Serializer<V> serializer;
@@ -57,12 +57,12 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentMap<K, V> {
     private final StateCheckBlockStore store;
     private HeaderBlock header;
 
-    public BTreePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+    public BTreePersistentMap(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         this(cacheFile, keySerializer, valueSerializer, (short) 512, 512);
     }
 
-    public BTreePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer,
-                                       short maxChildIndexEntries, int maxFreeListEntries) {
+    public BTreePersistentMap(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer,
+                              short maxChildIndexEntries, int maxFreeListEntries) {
         this.cacheFile = cacheFile;
         this.keyHasher = new KeyHasher<K>(keySerializer);
         this.serializer = valueSerializer;

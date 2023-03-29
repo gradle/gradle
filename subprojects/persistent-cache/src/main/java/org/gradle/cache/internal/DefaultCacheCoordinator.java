@@ -32,7 +32,7 @@ import org.gradle.cache.InsufficientLockModeException;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.LockTimeoutException;
 import org.gradle.cache.MultiProcessSafeIndexedCache;
-import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
+import org.gradle.cache.internal.btree.BTreePersistentMap;
 import org.gradle.cache.internal.btree.PersistentMap;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.internal.Cast;
@@ -362,7 +362,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     }
 
     <K, V> PersistentMap<K,V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        return new BTreePersistentIndexedCache<>(cacheFile, keySerializer, valueSerializer);
+        return new BTreePersistentMap<>(cacheFile, keySerializer, valueSerializer);
     }
 
     /**

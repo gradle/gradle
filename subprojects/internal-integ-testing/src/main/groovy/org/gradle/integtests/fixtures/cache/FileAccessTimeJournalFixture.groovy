@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures.cache
 
-import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
+import org.gradle.cache.internal.btree.BTreePersistentMap
 import org.gradle.test.fixtures.file.TestFile
 
 import static java.util.concurrent.TimeUnit.DAYS
@@ -37,7 +37,7 @@ trait FileAccessTimeJournalFixture extends CachingIntegrationFixture {
     }
 
     void writeLastFileAccessTimeToJournal(File file, long millis) {
-        def cache = new BTreePersistentIndexedCache<File, Long>(journal, FILE_SERIALIZER, LONG_SERIALIZER)
+        def cache = new BTreePersistentMap<File, Long>(journal, FILE_SERIALIZER, LONG_SERIALIZER)
         try {
             cache.put(file, millis)
         } finally {

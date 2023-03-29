@@ -16,12 +16,15 @@
 
 package org.gradle.cache.internal.btree;
 
-public interface PersistentMap<K, V> {
+import java.io.Closeable;
+
+public interface PersistentMap<K, V> extends Closeable {
     V get(K key);
 
     void put(K key, V value);
 
     void remove(K key);
 
+    @Override
     void close();
 }
