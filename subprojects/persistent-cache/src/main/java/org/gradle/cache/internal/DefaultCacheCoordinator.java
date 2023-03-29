@@ -26,6 +26,7 @@ import org.gradle.cache.FileAccess;
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.HasCleanupAction;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.InsufficientLockModeException;
 import org.gradle.cache.LockOptions;
@@ -72,6 +73,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     private final ExecutorFactory executorFactory;
     private final FileAccess fileAccess;
     private final Map<String, IndexedCacheEntry<?, ?>> caches = new HashMap<String, IndexedCacheEntry<?, ?>>();
+    private final List<HasCleanupAction> indexedCachesForCleanup = new ArrayList<>();
     private final AbstractCrossProcessCacheAccess crossProcessCacheAccess;
     private final CacheAccessOperationsStack operations;
 
@@ -154,12 +156,21 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
             withOwnershipNow(this::doCleanup);
         }
+        doCleanupIndexedCaches();
+        alreadyCleaned = true;
+    }
+
+    private void doCleanupIndexedCaches() {
+        try {
+            indexedCachesForCleanup.forEach(HasCleanupAction::cleanup);
+        } catch (Exception e) {
+            LOG.debug("Cache {} could not run cleanup indexed caches", cacheDisplayName);
+        }
     }
 
     private void doCleanup() {
         try {
             cleanupAction.cleanup();
-            alreadyCleaned = true;
         } catch (Exception e) {
             LOG.debug("Cache {} could not run cleanup action {}", cacheDisplayName, cleanupAction);
         }
@@ -310,7 +321,13 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
             if (entry == null) {
                 File cacheFile = findCacheFile(parameters);
                 LOG.debug("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
-                Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = () -> doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
+                Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = () -> {
+                    BTreePersistentIndexedCache<K, V> cache = doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
+                    if (parameters.isHasCleanup()) {
+                        indexedCachesForCleanup.add(() -> System.out.println("We are cleaning: " + cacheFile.getAbsolutePath()));
+                    }
+                    return cache;
+                };
 
                 MultiProcessSafeIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafeIndexedCache<K, V>(indexedCacheFactory, fileAccess);
                 CacheDecorator decorator = parameters.getCacheDecorator();

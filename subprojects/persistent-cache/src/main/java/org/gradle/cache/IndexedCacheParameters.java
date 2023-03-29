@@ -27,24 +27,26 @@ public class IndexedCacheParameters<K, V> {
     private final Serializer<K> keySerializer;
     private final Serializer<V> valueSerializer;
     private final CacheDecorator cacheDecorator;
+    private final boolean hasCleanup;
 
     public static <K, V> IndexedCacheParameters<K, V> of(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        return new IndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer, null);
+        return new IndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer, null, false);
     }
 
     public static <K, V> IndexedCacheParameters<K, V> of(String cacheName, Class<K> keyType, Serializer<V> valueSerializer) {
-        return new IndexedCacheParameters<K, V>(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), valueSerializer, null);
+        return new IndexedCacheParameters<K, V>(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), valueSerializer, null, false);
     }
 
     public static <K, V> IndexedCacheParameters<K, V> of(String cacheName, Class<K> keyType, Class<V> valueType) {
-        return new IndexedCacheParameters<K, V>(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), SERIALIZER_FACTORY.getSerializerFor(valueType), null);
+        return new IndexedCacheParameters<K, V>(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), SERIALIZER_FACTORY.getSerializerFor(valueType), null, false);
     }
 
-    private IndexedCacheParameters(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, @Nullable CacheDecorator cacheDecorator) {
+    private IndexedCacheParameters(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, @Nullable CacheDecorator cacheDecorator, boolean hasCleanup) {
         this.cacheName = cacheName;
         this.keySerializer = keySerializer;
         this.valueSerializer = valueSerializer;
         this.cacheDecorator = cacheDecorator;
+        this.hasCleanup = hasCleanup;
     }
 
     public String getCacheName() {
@@ -64,7 +66,15 @@ public class IndexedCacheParameters<K, V> {
         return cacheDecorator;
     }
 
+    public boolean isHasCleanup() {
+        return hasCleanup;
+    }
+
     public IndexedCacheParameters<K, V> withCacheDecorator(CacheDecorator cacheDecorator) {
-        return new IndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer, cacheDecorator);
+        return new IndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer, cacheDecorator, hasCleanup);
+    }
+
+    public IndexedCacheParameters<K, V> withCleanup() {
+        return new IndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer, cacheDecorator, true);
     }
 }
