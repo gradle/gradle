@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
 
 class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -29,12 +29,12 @@ class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'plugin' }
 
-    def "defaults to Groovy build scripts"() {
+    def "defaults to Kotlin build scripts"() {
         when:
         run ('init', '--type', 'java-gradle-plugin')
 
         then:
-        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+        dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution

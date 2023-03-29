@@ -55,10 +55,10 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         // Select 'kotlin'
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
-            assert handle.standardOutput.contains("1: Groovy")
-            assert handle.standardOutput.contains("2: Kotlin")
+            assert handle.standardOutput.contains("1: Kotlin")
+            assert handle.standardOutput.contains("2: Groovy")
         }
-        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
         // Select default project name
         ConcurrentTestUtil.poll(60) {
@@ -142,7 +142,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
         }
-        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'junit'
         ConcurrentTestUtil.poll(60) {
@@ -205,7 +205,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
         }
-        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'no' for incubating APIs
         ConcurrentTestUtil.poll(60) {
@@ -255,7 +255,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)
         }
-        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
         // Select default project name
         ConcurrentTestUtil.poll(60) {
