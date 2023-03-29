@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.configurations
 
 import spock.lang.Specification
 
-class RoleDescriberSpec extends Specification {
+class UsageDescriberSpec extends Specification {
     def "can describe usage for role"() {
         given:
         def role = ConfigurationRolesForMigration.INTENDED_RESOLVABLE_BUCKET_TO_INTENDED_RESOLVABLE
