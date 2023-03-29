@@ -175,13 +175,16 @@ This is so that the IDE knows what type of object "backs" the script, be it link
 All Kotlin DSL build scripts have implicit imports consisting of:
 
 * The <<writing_build_scripts#script-default-imports,default Gradle API imports>>
-* The Kotlin DSL API, which is all types within the `org.gradle.kotlin.dsl` and `org.gradle.kotlin.dsl.plugins.dsl` packages currently
+* The Kotlin DSL API, which is all types within the following packages:
+** `org.gradle.kotlin.dsl`
+** `org.gradle.kotlin.dsl.plugins.dsl`
+** `org.gradle.kotlin.dsl.precompile`
 
 [CAUTION]
 .Avoid using internal Kotlin DSL APIs
 ====
 Use of internal Kotlin DSL APIs in plugins and build scripts has the potential to break builds when either Gradle or plugins change.
-The link:{kotlinDslPath}/[Kotlin DSL API] extends the <<authoring_maintainable_build_scripts#sec:avoiding_gradle_internal_apis,Gradle public API>> with the types listed in the https://gradle.github.io/kotlin-dsl-docs/api/[corresponding API docs] that are in the `org.gradle.kotlin.dsl` or `org.gradle.kotlin.dsl.plugins.dsl` packages (but not subpackages of those).
+The link:{kotlinDslPath}/[Kotlin DSL API] extends the <<authoring_maintainable_build_scripts#sec:avoiding_gradle_internal_apis,Gradle public API>> with the types listed in the https://gradle.github.io/kotlin-dsl-docs/api/[corresponding API docs] that are in the packages listed above (but not subpackages of those).
 ====
 
 
