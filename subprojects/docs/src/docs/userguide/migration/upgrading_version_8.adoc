@@ -47,13 +47,22 @@ The previous step will help you identify potential problems by issuing deprecati
 [[deprecated_configuration_usage]]
 ==== Using configurations incorrectly
 
-Gradle will now warn at runtime when methods are called on Configurations that are not consistent with their intended usage.
+Gradle will now warn at runtime when methods of link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuration] are called inconsistently with the configuration's intended usage.
 
-This change is part of a larger ongoing effort to make the intended behavior of configurations more consistent and predictable, and to unlock further speed and memory improvements in this area of Gradle.
+This change is part of a larger ongoing effort to make the intended behavior of configurations more consistent and predictable, and to unlock further speed and memory improvements.
+
+Currently, the following methods should only be called with these listed allowed usages:
+
+- `resolve()` - RESOLVABLE configurations only
+- `files(Closure)`, `files(Spec)`, `files(Dependency…)`, `fileCollection(Spec)`, `fileCollection(Closure)`, `fileCollection(Dependency…)` - RESOLVABLE configurations only
+- `getResolvedConfigurations()` - RESOLVABLE configurations only
+- `defaultDependencies(Action)` - RESOLVABLE OR DECLARABLE configurations only
+- `shouldResolveConsistentlyWith(Configuration)` - RESOLVABLE configurations only
+- `disableConsistentResolution()` - RESOLVABLE configurations only
+
+This list is likely to grow in future releases.
 
 Starting in Gradle 9.0, using a configuration inconsistently with its intended usage will be prohibited.
-
-TODO: MORE GENERAL ADVICE ON CREATING NEW EXTENDING CONFIGURATIONS, ETC.???
 
 [[deprecated_access_to_conventions]]
 ==== Deprecated access to plugin conventions
