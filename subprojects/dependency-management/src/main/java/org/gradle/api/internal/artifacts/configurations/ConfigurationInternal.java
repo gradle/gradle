@@ -72,11 +72,6 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     void removeMutationValidator(MutationValidator validator);
 
     /**
-     * Converts this configuration to an {@link OutgoingVariant} view. The view may not necessarily be immutable.
-     */
-    OutgoingVariant convertToOutgoingVariant();
-
-    /**
      * Visits the variants of this configuration.
      */
     void collectVariants(VariantVisitor visitor);
