@@ -29,6 +29,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.locking.LockOutOfDateException;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput.Style;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -79,17 +80,17 @@ class ResolutionErrorRenderer implements Action<Throwable> {
 
     private void handleConflict(final VersionConflictException conflict) {
         registerError(output -> {
-            output.text("Dependency resolution failed because of conflict(s) on the following module(s):");
+            List<Pair<List<? extends ModuleVersionIdentifier>, String>> conflicts = conflict.getConflicts();
+            String plural = conflicts.size() > 1 ? "s" : "";
+            output.text("Dependency resolution failed because of conflict" + plural + " on the following module"+ plural + ":");
             output.println();
-            for (Pair<List<? extends ModuleVersionIdentifier>, String> identifierStringPair : conflict.getConflicts()) {
-                boolean matchesSpec = hasVersionConflictOnRequestedDependency(identifierStringPair.getLeft());
-                if (!matchesSpec) {
-                    continue;
-                }
-                output.text("   - ");
-                output.withStyle(StyledTextOutput.Style.Error).text(identifierStringPair.getRight());
-                output.println();
-            }
+            conflicts.stream()
+                .filter(idendifierStringPair -> hasVersionConflictOnRequestedDependency(idendifierStringPair.getLeft()))
+                .forEach(identifierStringPair -> {
+                    output.text("   - ");
+                    output.withStyle(Style.Error).text(identifierStringPair.getRight());
+                    output.println();
+                });
             output.println();
         });
 

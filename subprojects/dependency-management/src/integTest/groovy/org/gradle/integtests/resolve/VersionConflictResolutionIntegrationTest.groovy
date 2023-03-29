@@ -22,6 +22,7 @@ import spock.lang.Issue
 import static org.hamcrest.CoreMatchers.containsString
 
 class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
+    public static final String CONFLICT_FOUND_HEADER_MESSAGE = 'Conflict found for the following module:'
     private ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
 
     def setup() {
@@ -70,7 +71,7 @@ project(':tool') {
 
         expect:
         runAndFail("tool:dependencies")
-        failure.assertThatCause(containsString('Conflict(s) found for the following module(s):'))
+        failure.assertThatCause(containsString(CONFLICT_FOUND_HEADER_MESSAGE))
     }
 
     void "strict conflict resolution should pass when no conflicts"() {
@@ -1243,7 +1244,7 @@ dependencies {
         fails 'checkDeps'
 
         then:
-        failure.assertThatCause(containsString('Conflict(s) found for the following module(s):'))
+        failure.assertThatCause(containsString(CONFLICT_FOUND_HEADER_MESSAGE))
     }
 
     def "upgrades version when one of the ranges is disjoint"() {
@@ -1329,7 +1330,7 @@ dependencies {
         fails 'checkDeps'
 
         then:
-        failure.assertThatCause(containsString('Conflict(s) found for the following module(s):'))
+        failure.assertThatCause(containsString(CONFLICT_FOUND_HEADER_MESSAGE))
     }
 
     def "chooses highest version of all versions fully included within range"() {

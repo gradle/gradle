@@ -406,7 +406,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
 
         then:
         if (failOnVersionConflict) {
-            failure.assertHasCause("Conflict(s) found for the following module(s):\n  - org.ow2.asm:asm latest version of capability asm:asm")
+            failure.assertHasCause("Conflict found for the following module:\n  - org.ow2.asm:asm latest version of capability asm:asm")
         } else {
             resolve.expectGraph {
                 root(":", ":test:") {
