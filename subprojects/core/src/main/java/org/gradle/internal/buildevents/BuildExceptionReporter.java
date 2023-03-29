@@ -40,10 +40,10 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.GUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static com.google.common.collect.ImmutableList.builder;
 import static org.apache.commons.lang.StringUtils.repeat;
 import static org.gradle.api.logging.LogLevel.DEBUG;
 import static org.gradle.api.logging.LogLevel.INFO;
@@ -277,18 +277,18 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private static List<String> getResolutions(Throwable cause) {
-        List<String> resolutions = new ArrayList<>();
+    private static List<String> getResolutions(Throwable throwable) {
+        ImmutableList.Builder<String> resolutions = builder();
 
-        if (cause instanceof ResolutionProvider) {
-            resolutions.addAll(((ResolutionProvider) cause).getResolutions());
+        if (throwable instanceof ResolutionProvider) {
+            resolutions.addAll(((ResolutionProvider) throwable).getResolutions());
         }
 
-        for (Throwable t : getCauses(cause)) {
-            resolutions.addAll(getResolutions(t));
+        for (Throwable cause : getCauses(throwable)) {
+            resolutions.addAll(getResolutions(cause));
         }
 
-        return resolutions;
+        return resolutions.build();
     }
 
     private static List<? extends Throwable> getCauses(Throwable cause) {
