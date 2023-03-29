@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 public class BaseProblem<ID extends Enum<ID>, SEVERITY extends Enum<SEVERITY>, CONTEXT> implements Problem<ID, SEVERITY, CONTEXT> {
     private final ID id;
@@ -86,6 +87,6 @@ public class BaseProblem<ID extends Enum<ID>, SEVERITY extends Enum<SEVERITY>, C
 
     @Override
     public List<Solution> getPossibleSolutions() {
-        return solutions.stream().map(Supplier::get).collect(Collectors.toList());
+        return solutions.stream().map(Supplier::get).collect(toList());
     }
 }

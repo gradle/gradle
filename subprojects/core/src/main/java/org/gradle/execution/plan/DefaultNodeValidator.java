@@ -16,7 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -24,12 +23,15 @@ import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
-import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.reflect.validation.UserManualReference;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine;
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.maybeAppendDot;
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
 
 /**
@@ -46,7 +48,7 @@ public class DefaultNodeValidator implements NodeValidator {
         return !problems.isEmpty();
     }
 
-    private WorkValidationContext validateNode(LocalTaskNode node) {
+    private static WorkValidationContext validateNode(LocalTaskNode node) {
         WorkValidationContext validationContext = node.getValidationContext();
         Class<?> taskType = GeneratedSubclasses.unpackType(node.getTask());
         // We don't know whether the task is cacheable or not, so we ignore cacheability problems for scheduling
@@ -55,7 +57,7 @@ public class DefaultNodeValidator implements NodeValidator {
         return validationContext;
     }
 
-    private void logWarnings(List<TypeValidationProblem> problems) {
+    private static void logWarnings(List<TypeValidationProblem> problems) {
         problems.stream()
             .filter(problem -> problem.getSeverity().isWarning())
             .forEach(problem -> {
@@ -72,19 +74,28 @@ public class DefaultNodeValidator implements NodeValidator {
             });
     }
 
-    private void reportErrors(List<TypeValidationProblem> problems, TaskInternal task, WorkValidationContext validationContext) {
-        ImmutableSet<String> uniqueErrors = getUniqueErrors(problems);
+    private static void reportErrors(List<TypeValidationProblem> problems, TaskInternal task, WorkValidationContext validationContext) {
+        List<TypeValidationProblem> errors = getUniqueErrors(problems).collect(toImmutableList());
+
+        Collection<String> uniqueErrors = errors.stream()
+            .map(problem -> renderMinimalInformationAbout(problem, true, false))
+            .collect(toImmutableList());
+
         if (!uniqueErrors.isEmpty()) {
+            List<String> solutions = errors.stream()
+                .flatMap(problem -> problem.getPossibleSolutions().stream()
+                    .map(solution -> maybeAppendDot(solution.getShortDescription())))
+                .collect(toImmutableList());
             throw WorkValidationException.forProblems(uniqueErrors)
                 .withSummaryForContext(task.toString(), validationContext)
+                .withSolutions(solutions)
                 .get();
         }
     }
 
-    private static ImmutableSet<String> getUniqueErrors(List<TypeValidationProblem> problems) {
+    private static Stream<TypeValidationProblem> getUniqueErrors(List<TypeValidationProblem> problems) {
         return problems.stream()
             .filter(problem -> !problem.getSeverity().isWarning())
-            .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-            .collect(ImmutableSet.toImmutableSet());
+            .distinct();
     }
 }

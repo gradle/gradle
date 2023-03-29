@@ -20,27 +20,32 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.util.stream.Collectors.joining;
 
 /**
  * A {@code WorkValidationException} is thrown when there is some validation problem with a work item.
  */
 @Contextual
-public class WorkValidationException extends GradleException {
+public class WorkValidationException extends GradleException implements ResolutionProvider {
     private static final String MAX_ERR_COUNT_PROPERTY = "org.gradle.internal.max.validation.errors";
     private static final int DEFAULT_MAX_ERR_COUNT = 5;
 
     private final List<String> problems;
+    private final List<String> solutions;
 
-    private WorkValidationException(String message, Collection<String> problems) {
+    private WorkValidationException(String message, Collection<String> problems, Collection<String> solutions) {
         super(message);
         this.problems = ImmutableList.copyOf(problems);
+        this.solutions = ImmutableList.copyOf(solutions);
     }
 
     public List<String> getProblems() {
@@ -49,6 +54,11 @@ public class WorkValidationException extends GradleException {
 
     public static Builder forProblems(Collection<String> problems) {
         return new Builder(problems);
+    }
+
+    @Override
+    public List<String> getResolutions() {
+        return solutions;
     }
 
     /**
@@ -62,11 +72,7 @@ public class WorkValidationException extends GradleException {
         public Builder(Collection<String> problems) {
             this.problems = problems.stream()
                     .limit(Integer.getInteger(MAX_ERR_COUNT_PROPERTY, DEFAULT_MAX_ERR_COUNT)) // Only retrieve the property upon building an error report
-                    .collect(ImmutableList.toImmutableList());
-        }
-
-        public Builder limitTo(int maxProblems) {
-            return new Builder(problems.stream().limit(maxProblems).collect(Collectors.toList()));
+                    .collect(toImmutableList());
         }
 
         public BuilderWithSummary withSummaryForContext(String validatedObjectName, WorkValidationContext validationContext) {
@@ -75,7 +81,8 @@ public class WorkValidationException extends GradleException {
         }
 
         public BuilderWithSummary withSummaryForPlugin() {
-            String summary = "Plugin validation failed with " + problems.size() + " problem" + (problems.size() == 1 ? "" : "s");
+            int size = problems.size();
+            String summary = "Plugin validation failed with " + size + " problem" + (size == 1 ? "" : "s");
             return new BuilderWithSummary(problems, summary);
         }
 
@@ -89,7 +96,7 @@ public class WorkValidationException extends GradleException {
         private String describeTypesChecked(ImmutableCollection<Class<?>> types) {
             return types.size() == 1
                     ? "type '" + getTypeDisplayName(types.iterator().next()) + "'"
-                    : "types '" + types.stream().map(this::getTypeDisplayName).collect(Collectors.joining("', '")) + "'";
+                    : "types '" + types.stream().map(this::getTypeDisplayName).collect(joining("', '")) + "'";
         }
 
         private String getTypeDisplayName(Class<?> type) {
@@ -105,6 +112,7 @@ public class WorkValidationException extends GradleException {
     public final static class BuilderWithSummary {
         private final List<String> problems;
         private final String summary;
+        private Collection<String> solutions = ImmutableList.of();
 
         public BuilderWithSummary(List<String> problems, String summary) {
             this.problems = problems;
@@ -123,14 +131,19 @@ public class WorkValidationException extends GradleException {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node(summary);
             formatter.startChildren();
-            for (String problem : problems) {
-                formatter.node(problem);
-            }
+
+            problems.forEach(formatter::node);
+
             formatter.endChildren();
             if (explanation != null) {
                 formatter.node(explanation);
             }
-            return new WorkValidationException(formatter.toString(), ImmutableList.copyOf(problems));
+            return new WorkValidationException(formatter.toString(), problems, solutions);
+        }
+
+        public BuilderWithSummary withSolutions(Collection<String> solutions) {
+            this.solutions = solutions;
+            return this;
         }
     }
 }

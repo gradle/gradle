@@ -126,7 +126,7 @@ public class TypeValidationProblemRenderer {
         return !("org.gradle.api.DefaultTask".equals(clazz.getName()));
     }
 
-    private static String maybeAppendDot(String txt) {
+    public static String maybeAppendDot(String txt) {
         if (txt.endsWith(".") || txt.endsWith("\n")) {
             return txt;
         }
