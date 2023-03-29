@@ -184,6 +184,25 @@ Use of internal Kotlin DSL APIs in plugins and build scripts has the potential t
 The link:{kotlinDslPath}/[Kotlin DSL API] extends the <<authoring_maintainable_build_scripts#sec:avoiding_gradle_internal_apis,Gradle public API>> with the types listed in the https://gradle.github.io/kotlin-dsl-docs/api/[corresponding API docs] that are in the `org.gradle.kotlin.dsl` or `org.gradle.kotlin.dsl.plugins.dsl` packages (but not subpackages of those).
 ====
 
+[[sec:compilation_warnings]]
+=== Compilation warnings
+
+Gradle Kotlin DSL scripts are compiled by Gradle during the configuration phase of your build.
+Deprecation warnings found by the Kotlin compiler are reported on the console when compiling the scripts.
+
+[source,text]
+----
+> Configure project :
+w: build.gradle.kts:4:5: 'getter for uploadTaskName: String!' is deprecated. Deprecated in Java
+----
+
+It is possible to configure your build to fail on any warning emitted during script compilation by <<build_environment#sec:gradle_configuration_properties,setting>> the `org.gradle.kotlin.dsl.allWarningsAsErrors` Gradle property to `true`:
+
+[source,properties]
+----
+# gradle.properties
+org.gradle.kotlin.dsl.allWarningsAsErrors=true
+----
 
 [[sec:configuring_plugins]]
 [[type-safe-accessors]]
