@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.buildevents;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -28,8 +29,10 @@ import org.gradle.internal.exceptions.CompilationFailedIndicator;
 import org.gradle.internal.exceptions.ContextAwareException;
 import org.gradle.internal.exceptions.ExceptionContextVisitor;
 import org.gradle.internal.exceptions.FailureResolutionAware;
+import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.exceptions.NonGradleCause;
 import org.gradle.internal.exceptions.NonGradleCauseExceptionsHolder;
+import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
@@ -37,6 +40,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.GUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -226,6 +230,11 @@ public class BuildExceptionReporter implements Action<Throwable> {
         if (details.failure instanceof FailureResolutionAware) {
             ((FailureResolutionAware) details.failure).appendResolutions(context);
         }
+        getResolutions(details.failure).forEach(resolution -> {
+            context.appendResolution(output -> {
+                output.text(resolution);
+            });
+        });
         boolean hasNonGradleSpecificCauseInAncestry = hasCauseAncestry(details.failure, NonGradleCause.class);
         if (details.exceptionStyle == ExceptionStyle.NONE && !hasNonGradleSpecificCauseInAncestry) {
             context.appendResolution(output -> {
@@ -235,7 +244,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
             });
         }
 
-        boolean hasCompileError = hasNonGradleSpecificCauseInAncestry && hasCauseAncestry(details.failure, CompilationFailedIndicator.class);
+        boolean hasCompileError = hasNonGradleSpecificCauseInAncestry &&
+            hasCauseAncestry(details.failure, CompilationFailedIndicator.class);
         LogLevel logLevel = loggingConfiguration.getLogLevel();
         boolean isLessThanInfo = logLevel.ordinal() > INFO.ordinal();
         if (hasCompileError && isLessThanInfo) {
@@ -265,6 +275,28 @@ public class BuildExceptionReporter implements Action<Throwable> {
                 writeGeneralTips(output);
             });
         }
+    }
+
+    private static List<String> getResolutions(Throwable cause) {
+        List<String> resolutions = new ArrayList<>();
+
+        if (cause instanceof ResolutionProvider) {
+            resolutions.addAll(((ResolutionProvider) cause).getResolutions());
+        }
+
+        for (Throwable t : getCauses(cause)) {
+            resolutions.addAll(getResolutions(t));
+        }
+
+        return resolutions;
+    }
+
+    private static List<? extends Throwable> getCauses(Throwable cause) {
+        if (cause instanceof MultiCauseException) {
+            return ((MultiCauseException) cause).getCauses();
+        }
+        Throwable nextCause = cause.getCause();
+        return nextCause == null ? ImmutableList.of() : ImmutableList.of(nextCause);
     }
 
     private void addBuildScanMessage(ContextImpl context) {

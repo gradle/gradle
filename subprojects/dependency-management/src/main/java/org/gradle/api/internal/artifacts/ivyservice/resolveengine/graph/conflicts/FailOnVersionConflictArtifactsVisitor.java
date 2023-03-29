@@ -96,7 +96,7 @@ public class FailOnVersionConflictArtifactsVisitor implements ValidatingArtifact
     @Override
     public void complete() {
         if (!allConflicts.isEmpty()) {
-            throw new VersionConflictException(projectPath, configurationName, allConflicts);
+            throw VersionConflictException.create(projectPath, configurationName, allConflicts);
         }
     }
 }

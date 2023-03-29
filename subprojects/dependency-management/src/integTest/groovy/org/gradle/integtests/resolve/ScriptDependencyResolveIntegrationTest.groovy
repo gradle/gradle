@@ -87,7 +87,13 @@ rootProject.name = 'testproject'
 """
         expect:
         fails "help"
-        failureHasCause("Conflict(s) found for the following module(s):")
+        failureHasCause("Conflict found for the following module:")
+        failure.assertHasResolutions("Run with: --scan or :dependencyInsight --configuration classpath " +
+            "--dependency org.gradle:test to get more insight on how to solve the conflict.",
+            "Run with --stacktrace option to get the stack trace.",
+            "Run with --info or --debug option to get more log output.",
+            "Run with --scan to get full insights.",
+            "Get more help at https://help.gradle.org")
     }
 
     @Issue("gradle/gradle#19300")
