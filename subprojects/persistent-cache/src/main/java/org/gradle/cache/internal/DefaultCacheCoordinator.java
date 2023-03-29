@@ -324,7 +324,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
                 Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = () -> {
                     BTreePersistentIndexedCache<K, V> cache = doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
                     if (parameters.isHasCleanup()) {
-                        indexedCachesForCleanup.add(() -> System.out.println("We are cleaning: " + cacheFile.getAbsolutePath()));
+                        indexedCachesForCleanup.add(() -> System.out.println("We are cleaning: " + parameters.getCacheName()));
                     }
                     return cache;
                 };
