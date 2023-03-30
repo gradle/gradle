@@ -24,6 +24,8 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
+
 class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def jvmVersion = JavaVersion.current().majorVersion
 
@@ -1360,7 +1362,7 @@ org:middle:1.0 FAILED
       - Could not find org:middle:2.0.
         Searched in the following locations:
           - ${mavenRepoURL}/org/middle/2.0/middle-2.0.pom
-        If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
+        ${repositoryHint("Maven POM")}
 
 org:middle:1.0 -> 2.0 FAILED
 \\--- org:top:1.0
@@ -1484,7 +1486,7 @@ org:leaf:1.0 FAILED
       - Could not find org:leaf:1.0.
         Searched in the following locations:
           - ${ivyRepoURL}/org/leaf/1.0/ivy-1.0.xml
-        If the artifact you are trying to retrieve can be found in the repository but without metadata in 'ivy.xml' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
+        ${repositoryHint("ivy.xml")}
 
 org:leaf:1.0 FAILED
 \\--- org:top:1.0
