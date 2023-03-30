@@ -87,6 +87,9 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getDependencyConstraints()' is deprecated for configuration 'compile', which has permitted usage(s):
+\tThis configuration does not allow any usage
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Declarable Against'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
         fails 'help'
 
         then:
