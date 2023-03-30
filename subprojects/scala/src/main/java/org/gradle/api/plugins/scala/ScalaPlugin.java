@@ -25,7 +25,7 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
-import org.gradle.jvm.component.SingleTargetJvmFeature;
+import org.gradle.jvm.component.JvmFeature;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.ScalaSourceDirectorySet;
 import org.gradle.api.tasks.TaskProvider;
@@ -49,7 +49,7 @@ public abstract class ScalaPlugin implements Plugin<Project> {
         project.getPluginManager().apply(ScalaBasePlugin.class);
         project.getPluginManager().apply(JavaPlugin.class);
 
-        SingleTargetJvmFeature mainFeature = JavaPluginHelper.getMainFeature(project);
+        JvmFeature mainFeature = JavaPluginHelper.getMainFeature(project);
 
         configureScaladoc(project, mainFeature);
 
@@ -62,7 +62,7 @@ public abstract class ScalaPlugin implements Plugin<Project> {
             compileScalaMapping, configurablePublishArtifact -> configurablePublishArtifact.builtBy(compileScala));
     }
 
-    private static void configureScaladoc(final Project project, final SingleTargetJvmFeature feature) {
+    private static void configureScaladoc(final Project project, final JvmFeature feature) {
         project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
             scalaDoc.getConventionMapping().map("classpath", (Callable<FileCollection>) () -> {
                 ConfigurableFileCollection files = project.files();

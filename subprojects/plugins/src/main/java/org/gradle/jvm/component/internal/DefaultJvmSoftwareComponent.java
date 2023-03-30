@@ -37,7 +37,7 @@ import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.component.JvmSoftwareComponent;
-import org.gradle.jvm.component.SingleTargetJvmFeature;
+import org.gradle.jvm.component.JvmFeature;
 
 import javax.inject.Inject;
 import java.util.Collections;
@@ -91,15 +91,15 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         ObjectFactory objectFactory = project.getObjects();
         SourceSetContainer sourceSets = getJavaPluginExtension(project.getExtensions()).getSourceSets();
 
-        features.registerFactory(SingleTargetJvmFeature.class, featureName -> {
+        features.registerFactory(JvmFeature.class, featureName -> {
             if (sourceSets.findByName(featureName) != null) {
-                throw new GradleException("Cannot create SingleTargetJvmFeature since source set '" + featureName +"' already exists.");
+                throw new GradleException("Cannot create JvmFeature since source set '" + featureName +"' already exists.");
             }
 
             List<Capability> capabilities = Collections.singletonList(new ProjectDerivedCapability(project, featureName));
             SourceSet sourceSet = sourceSets.create(featureName);
 
-            return objectFactory.newInstance(DefaultSingleTargetJvmFeature.class,
+            return objectFactory.newInstance(DefaultJvmFeature.class,
                 featureName, sourceSet, capabilities, "The '" + featureName + "' feature",
                 project, ConfigurationRoles.INTENDED_CONSUMABLE, false
             );

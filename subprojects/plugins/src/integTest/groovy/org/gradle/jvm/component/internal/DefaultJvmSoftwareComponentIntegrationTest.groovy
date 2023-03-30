@@ -50,12 +50,12 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             components {
                 comp(JvmSoftwareComponent) {
                     features {
-                        feat(SingleTargetJvmFeature)
+                        feat(JvmFeature)
                     }
                 }
                 comp2(JvmSoftwareComponent) {
                     features {
-                        feat2(SingleTargetJvmFeature)
+                        feat2(JvmFeature)
                     }
                 }
             }
@@ -85,12 +85,12 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             components {
                 create<JvmSoftwareComponent>("comp") {
                     features {
-                        create<SingleTargetJvmFeature>("feat")
+                        create<JvmFeature>("feat")
                     }
                 }
                 create<JvmSoftwareComponent>("comp2") {
                     features {
-                        create<SingleTargetJvmFeature>("feat2")
+                        create<JvmFeature>("feat2")
                     }
                 }
             }
@@ -120,7 +120,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             components {
                 comp(JvmSoftwareComponent) {
                     features {
-                        feat(SingleTargetJvmFeature)
+                        feat(JvmFeature)
                     }
                 }
             }
@@ -150,7 +150,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             components {
                 create<JvmSoftwareComponent>("comp") {
                     features {
-                        create<SingleTargetJvmFeature>("feat")
+                        create<JvmFeature>("feat")
                     }
                 }
             }
@@ -209,7 +209,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
 
             components {
                 named<JvmSoftwareComponent>("java") {
-                    features.named<SingleTargetJvmFeature>("main") {
+                    features.named<JvmFeature>("main") {
                         withJavadocJar()
                     }
                 }
@@ -262,7 +262,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             components {
                 comp(JvmSoftwareComponent) {
                     features {
-                        feat(SingleTargetJvmFeature)
+                        feat(JvmFeature)
                     }
                 }
             }
@@ -290,7 +290,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             components {
                 comp(JvmSoftwareComponent) {
                     features {
-                        feat(SingleTargetJvmFeature) {
+                        feat(JvmFeature) {
                             variants {
                                 featApiElements {
                                     assert attributes.getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_API
@@ -321,7 +321,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             components {
                 comp(JvmSoftwareComponent) {
                     features {
-                        feat(SingleTargetJvmFeature) {
+                        feat(JvmFeature) {
                             withJavadocJar()
                             withSourcesJar()
                         }
@@ -353,11 +353,11 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             components {
                 comp(JvmSoftwareComponent) {
                     features {
-                        feat1(SingleTargetJvmFeature) {
+                        feat1(JvmFeature) {
                             withJavadocJar()
                             withSourcesJar()
                         }
-                        feat2(SingleTargetJvmFeature)
+                        feat2(JvmFeature)
                     }
                 }
             }
@@ -398,7 +398,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             components {
                 comp(JvmSoftwareComponent) {
                     features {
-                        feat(SingleTargetJvmFeature) {
+                        feat(JvmFeature) {
                             variants {
                                 customRuntimeElements(ConfigurationBackedConsumableVariant) {
                                     configuration {
@@ -439,7 +439,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             components {
                 comp(JvmSoftwareComponent) {
                     features {
-                        feat(SingleTargetJvmFeature) {
+                        feat(JvmFeature) {
                             variants {
                                 customRuntimeElements(ConfigurationBackedConsumableVariant) {
                                     configuration {
@@ -497,7 +497,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             components {
                 comp(JvmSoftwareComponent) {
                     features {
-                        feat(SingleTargetJvmFeature) {
+                        feat(JvmFeature) {
                             variants {
                                 customRuntimeElements(ConfigurationBackedConsumableVariant) {
                                     configuration {

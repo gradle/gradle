@@ -25,8 +25,8 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.jvm.component.JvmFeature;
 import org.gradle.jvm.component.JvmSoftwareComponent;
-import org.gradle.jvm.component.SingleTargetJvmFeature;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 
@@ -61,16 +61,16 @@ public final class JavaPluginHelper {
      *
      * @throws GradleException If the {@code main} feature of the {@code java} component does not exist.
      */
-    public static SingleTargetJvmFeature getMainFeature(Project project) {
+    public static JvmFeature getMainFeature(Project project) {
         JvmSoftwareComponent component = getJavaComponent(project);
         ComponentFeature main = component.getFeatures().findByName(SourceSet.MAIN_SOURCE_SET_NAME);
         if (main == null) {
             throw new GradleException("The main feature must be registered before it can be retrieved.");
         }
-        if (!(main instanceof SingleTargetJvmFeature)) {
-            throw new GradleException("The main feature must be a SingleTargetJvmFeature.");
+        if (!(main instanceof JvmFeature)) {
+            throw new GradleException("The main feature must be a JvmFeature.");
         }
-        return (SingleTargetJvmFeature) main;
+        return (JvmFeature) main;
     }
 
     /**

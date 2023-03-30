@@ -34,7 +34,7 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.jvm.component.SingleTargetJvmFeature
+import org.gradle.jvm.component.JvmFeature
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
@@ -162,30 +162,30 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         comp2.features.feat2 == feat2
     }
 
-    def "can instantiate SingleTargetJvmFeature features"() {
+    def "can instantiate JvmFeature features"() {
         given:
         project.group = "org"
         def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
 
         when:
-        component.features.create("test", SingleTargetJvmFeature)
+        component.features.create("test", JvmFeature)
 
         then:
-        component.features.test instanceof SingleTargetJvmFeature
+        component.features.test instanceof JvmFeature
         component.features.test.sourceSet == sourceSets.getByName('test')
         component.features.test.capabilities.capabilities.collect { it.group + ":" + it.name } == ["org:test-project-test"]
     }
 
-    def "cannot create multiple SingleTargetJvmFeature instances with the same name"() {
+    def "cannot create multiple JvmFeature instances with the same name"() {
         when:
         def comp1 = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
-        comp1.features.create("feature", SingleTargetJvmFeature)
+        comp1.features.create("feature", JvmFeature)
         def comp2 = project.objects.newInstance(DefaultJvmSoftwareComponent, "name2")
-        comp2.features.create("feature", SingleTargetJvmFeature)
+        comp2.features.create("feature", JvmFeature)
 
         then:
         def e = thrown(GradleException)
-        e.message == "Cannot create SingleTargetJvmFeature since source set 'feature' already exists."
+        e.message == "Cannot create JvmFeature since source set 'feature' already exists."
     }
 
     def "variants are mapped to usage contexts"() {

@@ -42,7 +42,7 @@ import javax.annotation.Nullable;
  * @since 8.2
  */
 @Incubating
-public interface SingleTargetJvmFeature extends ComponentFeature {
+public interface JvmFeature extends ComponentFeature {
 
     // TODO: Should Javadoc even live on a generic JVM target? May be can call it withDocumentationJar?
     // Scala and groovy have Groovydoc and Scaladoc. Kotlin has KDoc.

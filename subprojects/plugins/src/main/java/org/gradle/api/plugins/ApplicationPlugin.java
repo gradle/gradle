@@ -31,7 +31,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultApplicationPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
-import org.gradle.jvm.component.SingleTargetJvmFeature;
+import org.gradle.jvm.component.JvmFeature;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.JavaExec;
@@ -74,7 +74,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaPlugin.class);
         project.getPluginManager().apply(DistributionPlugin.class);
 
-        SingleTargetJvmFeature mainFeature = JavaPluginHelper.getMainFeature(project);
+        JvmFeature mainFeature = JavaPluginHelper.getMainFeature(project);
 
         JavaApplication extension = addExtension(project);
         addRunTask(project, mainFeature, extension);
@@ -141,7 +141,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         return project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class, pluginConvention);
     }
 
-    private void addRunTask(Project project, SingleTargetJvmFeature mainFeature, JavaApplication pluginExtension) {
+    private void addRunTask(Project project, JvmFeature mainFeature, JavaApplication pluginExtension) {
         project.getTasks().register(TASK_RUN_NAME, JavaExec.class, run -> {
             run.setDescription("Runs this project as a JVM application");
             run.setGroup(APPLICATION_GROUP);
@@ -179,7 +179,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     }
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
-    private void addCreateScriptsTask(Project project, SingleTargetJvmFeature mainFeature, JavaApplication pluginExtension) {
+    private void addCreateScriptsTask(Project project, JvmFeature mainFeature, JavaApplication pluginExtension) {
         project.getTasks().register(TASK_START_SCRIPTS_NAME, CreateStartScripts.class, startScripts -> {
             startScripts.setDescription("Creates OS specific scripts to run the project as a JVM application.");
             startScripts.setClasspath(jarsOnlyRuntimeClasspath(mainFeature));
@@ -200,15 +200,15 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         });
     }
 
-    private FileCollection runtimeClasspath(SingleTargetJvmFeature mainFeature) {
+    private FileCollection runtimeClasspath(JvmFeature mainFeature) {
         return mainFeature.getSourceSet().getRuntimeClasspath();
     }
 
-    private FileCollection jarsOnlyRuntimeClasspath(SingleTargetJvmFeature mainFeature) {
+    private FileCollection jarsOnlyRuntimeClasspath(JvmFeature mainFeature) {
         return mainFeature.getJarTask().get().getOutputs().getFiles().plus(mainFeature.getRuntimeClasspathConfiguration());
     }
 
-    private CopySpec configureDistribution(Project project, SingleTargetJvmFeature mainFeature, Distribution mainDistribution, JavaApplication pluginExtension) {
+    private CopySpec configureDistribution(Project project, JvmFeature mainFeature, Distribution mainDistribution, JavaApplication pluginExtension) {
         mainDistribution.getDistributionBaseName().convention(project.provider(pluginExtension::getApplicationName));
         CopySpec distSpec = mainDistribution.getContents();
 
