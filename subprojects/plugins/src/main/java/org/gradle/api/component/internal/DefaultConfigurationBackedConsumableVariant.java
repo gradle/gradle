@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * Default implementation of {@link ConfigurationBackedConsumableVariant}.
  */
-public class DefaultConfigurationBackedConsumableVariant implements ConfigurationBackedConsumableVariant {
+public abstract class DefaultConfigurationBackedConsumableVariant implements ConfigurationBackedConsumableVariant {
 
     private final Configuration configuration;
 

@@ -278,7 +278,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
         succeeds "verify"
     }
 
-    def "features can configure own variants"() {
+    def "features can access variants which are added by default"() {
         given:
         buildFile << """
             plugins {

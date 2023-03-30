@@ -17,137 +17,166 @@
 package org.gradle.jvm.component.internal
 
 import org.gradle.api.GradleException
-import org.gradle.api.attributes.Bundling
-import org.gradle.api.attributes.Category
-import org.gradle.api.attributes.DocsType
+import org.gradle.api.NamedDomainObjectSet
+import org.gradle.api.artifacts.ConfigurationPublications
+import org.gradle.api.artifacts.ConfigurationVariant
+import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.attributes.Usage
-import org.gradle.api.internal.tasks.JvmConstants
+import org.gradle.api.capabilities.CapabilitiesMetadata
+import org.gradle.api.capabilities.Capability
+import org.gradle.api.component.ComponentFeature
+import org.gradle.api.component.ConfigurationBackedConsumableVariant
+import org.gradle.api.component.ConsumableVariant
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.component.MavenPublishingAwareVariant
+import org.gradle.api.internal.java.usagecontext.FeatureConfigurationVariant
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.api.tasks.SourceSet
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.jvm.component.SingleTargetJvmFeature
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.AttributeTestUtil
+import org.gradle.util.TestUtil
+
+import javax.inject.Inject
 
 /**
  * Tests {@link DefaultJvmSoftwareComponent}.
- *
- * TODO: This tests a lot of the functionality of the {@link DefaultSingleTargetJvmFeature}. We should probably
- *       move some of the testing to another feature-specific test class. However, given that the
- *       DefaultJvmFeature itself is probably going to change heavily when adding multi-target support,
- *       we should wait to avoid rework.
  */
 class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
 
-    def "configures the project when using the main source set"() {
-        when:
+    def sourceSets
+
+    def setup() {
         project.plugins.apply(JavaBasePlugin)
-        def ext = project.getExtensions().getByType(JavaPluginExtension.class)
-
-        // Verify the JavaBasePlugin does not create the below tested objects so we can
-        // ensure the DefaultJvmSoftwareComponent is actually creating these domain objects.
-        then:
-        ext.sourceSets.findByName(SourceSet.MAIN_SOURCE_SET_NAME) == null
-        project.configurations.findByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME) == null
-        project.configurations.findByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME) == null
-        project.configurations.findByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME) == null
-        project.configurations.findByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME) == null
-        project.configurations.findByName('mainSourceElements') == null
-        project.configurations.findByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME) == null
-        project.configurations.findByName(JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME) == null
-        project.configurations.findByName(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME) == null
-        project.configurations.findByName(JvmConstants.ANNOTATION_PROCESSOR_CONFIGURATION_NAME) == null
-        project.tasks.findByName(JvmConstants.COMPILE_JAVA_TASK_NAME) == null
-        project.tasks.findByName(JvmConstants.JAR_TASK_NAME) == null
-        project.tasks.findByName(JvmConstants.JAVADOC_TASK_NAME) == null
-        project.tasks.findByName(JvmConstants.PROCESS_RESOURCES_TASK_NAME) == null
-
-        when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
-        component.features.create("main", SingleTargetJvmFeature)
-
-        then:
-        def mainFeature = component.features.main as SingleTargetJvmFeature
-        mainFeature instanceof DefaultSingleTargetJvmFeature
-        mainFeature.sourceSet == ext.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
-        mainFeature.runtimeClasspathConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
-        mainFeature.compileClasspathConfiguration == project.configurations.getByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME)
-        mainFeature.runtimeElementsConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
-        mainFeature.apiElementsConfiguration == project.configurations.getByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME)
-        mainFeature.implementationConfiguration == project.configurations.getByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME)
-        mainFeature.runtimeOnlyConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME)
-        mainFeature.compileOnlyConfiguration == project.configurations.getByName(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME)
-        project.configurations.getByName(JvmConstants.ANNOTATION_PROCESSOR_CONFIGURATION_NAME)
-        mainFeature.compileJavaTask.get() == project.tasks.getByName(JvmConstants.COMPILE_JAVA_TASK_NAME)
-        mainFeature.jarTask.get() == project.tasks.getByName(JvmConstants.JAR_TASK_NAME)
-        project.tasks.getByName(JvmConstants.JAVADOC_TASK_NAME)
-        project.tasks.getByName(JvmConstants.PROCESS_RESOURCES_TASK_NAME)
+        sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets()
     }
 
-    def "configures the project when using the non-main source set"() {
-        when:
-        project.plugins.apply(JavaBasePlugin)
-        def ext = project.getExtensions().getByType(JavaPluginExtension.class)
-
-        // Verify the JavaBasePlugin does not create the below tested objects so we can
-        // ensure the DefaultJvmSoftwareComponent is actually creating these domain objects.
-        then:
-        ext.sourceSets.findByName("feature") == null
-        project.configurations.findByName('featureRuntimeClasspath') == null
-        project.configurations.findByName('featureCompileClasspath') == null
-        project.configurations.findByName('featureRuntimeElements') == null
-        project.configurations.findByName('featureApiElements') == null
-        project.configurations.findByName('featureSourceElements') == null
-        project.configurations.findByName('featureImplementation') == null
-        project.configurations.findByName('featureRuntimeOnly') == null
-        project.configurations.findByName('featureCompileOnly') == null
-        project.configurations.findByName('featureAnnotationProcessor') == null
-        project.tasks.findByName('compileFeatureJava') == null
-        project.tasks.findByName('featureJar') == null
-        project.tasks.findByName('featureJavadoc') == null
-        project.tasks.findByName('processFeatureResources') == null
-
-        when:
+    def "has no variants by default"() {
+        given:
         def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
-        component.features.create("feature", SingleTargetJvmFeature)
 
-        then:
-        def feature = component.features.feature as SingleTargetJvmFeature
-        feature instanceof DefaultSingleTargetJvmFeature
-        feature.sourceSet == ext.sourceSets.getByName('feature')
-        feature.runtimeClasspathConfiguration == project.configurations.getByName('featureRuntimeClasspath')
-        feature.compileClasspathConfiguration == project.configurations.getByName('featureCompileClasspath')
-        feature.runtimeElementsConfiguration == project.configurations.getByName('featureRuntimeElements')
-        feature.apiElementsConfiguration == project.configurations.getByName('featureApiElements')
-        feature.implementationConfiguration == project.configurations.getByName('featureImplementation')
-        feature.runtimeOnlyConfiguration == project.configurations.getByName('featureRuntimeOnly')
-        feature.compileOnlyConfiguration == project.configurations.getByName('featureCompileOnly')
-        project.configurations.getByName('featureAnnotationProcessor')
-        feature.compileJavaTask.get() == project.tasks.getByName('compileFeatureJava')
-        feature.jarTask.get() == project.tasks.getByName('featureJar')
-        project.tasks.getByName('featureJavadoc')
-        project.tasks.getByName('processFeatureResources')
+        expect:
+        component.variants.isEmpty()
     }
 
     def "can create multiple component instances"() {
-        given:
-        project.plugins.apply(JavaBasePlugin)
-        def ext = project.getExtensions().getByType(JavaPluginExtension.class)
-
-        when:
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name1").getFeatures().create("feat1", SingleTargetJvmFeature)
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name2").getFeatures().create("feat2", SingleTargetJvmFeature)
-        project.objects.newInstance(DefaultJvmSoftwareComponent, "name3").getFeatures().create("feat3", SingleTargetJvmFeature)
-
-        then:
-        ext.sourceSets.getByName('feat1')
-        ext.sourceSets.getByName('feat2')
-        ext.sourceSets.getByName('feat3')
+        expect:
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name1")
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name2")
+        project.objects.newInstance(DefaultJvmSoftwareComponent, "name3")
     }
 
-    def "cannot create multiple component instances with the same source set name"() {
+    def "can add features"() {
         given:
-        project.plugins.apply(JavaBasePlugin)
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
 
+        when:
+        def feature = new DefaultTestFeature("test")
+        component.features.add(feature)
+
+        then:
+        component.features == [feature] as Set
+
+        when:
+        def feature2 = new DefaultTestFeature("test2")
+        component.features.add(feature2)
+
+        then:
+        component.features == [feature, feature2] as Set
+    }
+
+    def "aggregates variants from features"() {
+        given:
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
+
+        when:
+        def feature = new DefaultTestFeature("test")
+        component.features.add(feature)
+
+        then:
+        component.variants == [] as Set
+
+        when:
+        def variant1 = newVariant("variant1")
+        feature.variants.add(variant1)
+
+        then:
+        component.variants == [variant1] as Set
+
+        when:
+        def feature2 = new DefaultTestFeature("test2")
+        component.features.add(feature2)
+
+        then:
+        component.variants == [variant1] as Set
+
+        when:
+        def variant2 = newVariant("variant2")
+        feature2.variants.add(variant2)
+
+        then:
+        component.variants == [variant1, variant2] as Set
+
+        when:
+        def variant3 = newVariant("variant3")
+        feature.variants.add(variant3)
+
+        then:
+        component.variants == [variant1, variant2, variant3] as Set
+    }
+
+    def "can register feature implementations and create instances"() {
+        given:
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
+        component.features.registerBinding(TestFeature, DefaultTestFeature)
+
+        when:
+        def feature = component.features.create("test", TestFeature)
+
+        then:
+        feature instanceof DefaultTestFeature
+        component.features.test == feature
+
+        when:
+        feature.variants.add(newVariant("variant1"))
+
+        then:
+        component.variants == [feature.variants.variant1] as Set
+    }
+
+    def "can create multiple component instances with different features"() {
+        when:
+        def comp1 = project.objects.newInstance(DefaultJvmSoftwareComponent, "name1")
+        comp1.features.registerBinding(TestFeature, DefaultTestFeature)
+        def feat1 = comp1.getFeatures().create("feat1", TestFeature)
+
+        def comp2 = project.objects.newInstance(DefaultJvmSoftwareComponent, "name2")
+        comp2.features.registerBinding(TestFeature, DefaultTestFeature)
+        def feat2 = comp2.getFeatures().create("feat2", TestFeature)
+
+        then:
+        feat1 != feat2
+        comp1.features.feat1 == feat1
+        comp2.features.feat2 == feat2
+    }
+
+    def "can instantiate SingleTargetJvmFeature features"() {
+        given:
+        project.group = "org"
+        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
+
+        when:
+        component.features.create("test", SingleTargetJvmFeature)
+
+        then:
+        component.features.test instanceof SingleTargetJvmFeature
+        component.features.test.sourceSet == sourceSets.getByName('test')
+        component.features.test.capabilities.capabilities.collect { it.group + ":" + it.name } == ["org:test-project-test"]
+    }
+
+    def "cannot create multiple SingleTargetJvmFeature instances with the same name"() {
         when:
         def comp1 = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
         comp1.features.create("feature", SingleTargetJvmFeature)
@@ -159,71 +188,96 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         e.message == "Cannot create SingleTargetJvmFeature since source set 'feature' already exists."
     }
 
-    def "can configure javadoc jar variant"() {
-        when:
-        project.plugins.apply(JavaBasePlugin)
-
-        // Verify the JavaBasePlugin does not create the below tested objects so we can
-        // ensure the DefaultJvmSoftwareComponent is actually creating these domain objects.
-        then:
-        project.configurations.findByName(JvmConstants.JAVADOC_ELEMENTS_CONFIGURATION_NAME) == null
-        project.tasks.findByName("javadoc") == null
+    def "variants are mapped to usage contexts"() {
+        given:
+        def capability = new DefaultImmutableCapability("org", "foo", null)
 
         when:
         def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
-        def mainFeature = component.features.create("main", SingleTargetJvmFeature)
-        mainFeature.withJavadocJar()
+        component.features.registerBinding(TestFeature, DefaultTestFeature)
+
+        def feature = component.features.create("main", TestFeature)
+        feature.variants.add(configurationVariant("variant1", [], false))
+        feature.variants.add(configurationVariant("variant2", [], true))
+        feature.variants.add(configurationVariant("variant3", [capability], false))
+        feature.variants.add(configurationVariant("variant4", [capability], true))
 
         then:
-        def configuration = project.configurations.getByName(JvmConstants.JAVADOC_ELEMENTS_CONFIGURATION_NAME)
-        configuration != null
-        !configuration.visible
-        !configuration.canBeResolved
-        configuration.canBeConsumed
-        (configuration.attributes.getAttribute(Usage.USAGE_ATTRIBUTE) as Usage).name == Usage.JAVA_RUNTIME
-        (configuration.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE) as Category).name == Category.DOCUMENTATION
-        (configuration.attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE) as Bundling).name == Bundling.EXTERNAL
-        (configuration.attributes.getAttribute(DocsType.DOCS_TYPE_ATTRIBUTE) as DocsType).name == DocsType.JAVADOC
-        project.tasks.getByName(mainFeature.sourceSet.javadocJarTaskName)
-        component.usages.find { it.name == JvmConstants.JAVADOC_ELEMENTS_CONFIGURATION_NAME}
+        component.usages.size() == 4
+
+        def usage1 = component.usages.find { it.name == "variant1" } as FeatureConfigurationVariant
+        def usage2 = component.usages.find { it.name == "variant2" } as FeatureConfigurationVariant
+        def usage3 = component.usages.find { it.name == "variant3" } as FeatureConfigurationVariant
+        def usage4 = component.usages.find { it.name == "variant4" } as FeatureConfigurationVariant
+
+        [usage1, usage2, usage3, usage4].collect { it.optional } == [false, false, true, true]
+        [usage1, usage2, usage3, usage4].collect { it.scopeMapping } == [
+            MavenPublishingAwareVariant.ScopeMapping.runtime,
+            MavenPublishingAwareVariant.ScopeMapping.compile,
+            MavenPublishingAwareVariant.ScopeMapping.runtime_optional,
+            MavenPublishingAwareVariant.ScopeMapping.compile_optional,
+        ]
     }
 
-    def "can configure sources jar variant"() {
-        when:
-        project.plugins.apply(JavaBasePlugin)
-
-        // Verify the JavaBasePlugin does not create the below tested objects so we can
-        // ensure the DefaultJvmSoftwareComponent is actually creating these domain objects.
-        then:
-        project.configurations.findByName(JvmConstants.SOURCES_ELEMENTS_CONFIGURATION_NAME) == null
-        project.tasks.findByName("sources") == null
-
-        when:
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
-        def mainFeature = component.features.create("main", SingleTargetJvmFeature)
-        mainFeature.withSourcesJar()
-
-        then:
-        def configuration = project.configurations.getByName(JvmConstants.SOURCES_ELEMENTS_CONFIGURATION_NAME)
-        configuration != null
-        !configuration.visible
-        !configuration.canBeResolved
-        configuration.canBeConsumed
-        (configuration.attributes.getAttribute(Usage.USAGE_ATTRIBUTE) as Usage).name == Usage.JAVA_RUNTIME
-        (configuration.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE) as Category).name == Category.DOCUMENTATION
-        (configuration.attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE) as Bundling).name == Bundling.EXTERNAL
-        (configuration.attributes.getAttribute(DocsType.DOCS_TYPE_ATTRIBUTE) as DocsType).name == DocsType.SOURCES
-        project.tasks.getByName(mainFeature.sourceSet.sourcesJarTaskName)
-        component.usages.find { it.name == JvmConstants.SOURCES_ELEMENTS_CONFIGURATION_NAME}
+    ConsumableVariant newVariant(String name) {
+        return Mock(ConsumableVariant) {
+            getName() >> name
+        }
     }
 
-    def "has expected variants"() {
-        when:
-        project.plugins.apply(JavaBasePlugin)
-        def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
-        component.features.create("main", SingleTargetJvmFeature)
+    ConfigurationBackedConsumableVariant configurationVariant(String name, Collection<Capability> capabilities, boolean api) {
 
-        then:
-        component.usages*.name == ["apiElements", "runtimeElements"]
+        def usage = api ? Usage.JAVA_API : Usage.JAVA_RUNTIME
+        def attributes = AttributeTestUtil.attributesFactory().of(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, usage))
+
+        return Mock(ConfigurationBackedConsumableVariant) {
+            getName() >> name
+            getCapabilities() >> ImmutableCapabilities.of(capabilities)
+            getAttributes() >> attributes
+            getConfiguration() >> Mock(ConfigurationInternal) {
+                getName() >> name
+                getArtifacts() >> Mock(PublishArtifactSet) {
+                    iterator() >> Collections.emptyIterator()
+                }
+                getAttributes() >> attributes
+                getOutgoing() >> Mock(ConfigurationPublications) {
+                    getVariants() >> TestUtil.domainObjectCollectionFactory().newNamedDomainObjectContainer(ConfigurationVariant)
+                }
+            }
+        }
+    }
+
+    interface TestFeature extends ComponentFeature { }
+
+    static class DefaultTestFeature implements TestFeature {
+
+        private final String name
+        private final NamedDomainObjectSet<ConsumableVariant> variants =
+            TestUtil.domainObjectCollectionFactory().newNamedDomainObjectContainer(ConsumableVariant)
+
+        @Inject
+        DefaultTestFeature(String name) {
+            this.name = name
+        }
+
+        @Override
+        String getDescription() {
+            return null
+        }
+
+        @Override
+        String getName() {
+            return name
+        }
+
+        @Override
+        CapabilitiesMetadata getCapabilities() {
+            return ImmutableCapabilities.of(new DefaultImmutableCapability("org", name, null))
+        }
+
+        @Override
+        NamedDomainObjectSet<? extends ConsumableVariant> getVariants() {
+            return variants
+        }
     }
 }

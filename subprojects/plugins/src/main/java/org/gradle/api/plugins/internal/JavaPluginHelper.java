@@ -50,7 +50,7 @@ public final class JavaPluginHelper {
         SoftwareComponent component = project.getComponents().findByName(JvmConstants.JAVA_COMPONENT_NAME);
 
         if (!(component instanceof JvmSoftwareComponent)) {
-            throw new GradleException("The Java plugin must be applied to access the java component.");
+            throw new GradleException("The java component must be a JvmSoftwareComponent.");
         }
 
         return (JvmSoftwareComponent) component;
@@ -79,16 +79,14 @@ public final class JavaPluginHelper {
      * @throws GradleException If the default test suite does not exist.
      */
     public static JvmTestSuite getDefaultTestSuite(Project project) {
-        String message = "The Java plugin must be applied to access the default test suite.";
-
         TestingExtension testing = project.getExtensions().findByType(TestingExtension.class);
         if (testing == null) {
-            throw new GradleException(message);
+            throw new GradleException("The TestingExtension must be present to access the default test suite.");
         }
 
         TestSuite defaultTestSuite = testing.getSuites().findByName(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME);
         if (!(defaultTestSuite instanceof JvmTestSuite)) {
-            throw new GradleException(message);
+            throw new GradleException("The default test suite must be an instance of JvmTestSuite.");
         }
 
         return (JvmTestSuite) defaultTestSuite;

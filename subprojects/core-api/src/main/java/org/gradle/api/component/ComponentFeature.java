@@ -16,17 +16,18 @@
 
 package org.gradle.api.component;
 
-import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
+
+import javax.annotation.Nullable;
 
 /**
  * A feature of a component, which encapsulates the logic and domain objects required to
  * implement a single software product exposed by a component. Features are used to model
  * constructs like production libraries, test suites, test fixtures, applications, etc. by
- * exposing variants. While features are not individually consumable themselves for publication
- * or through dependency resolution, their variants can be exposed to consumers via an owning component.
+ * exposing variants.
  *
  * <p>Features are classified by their capabilities. Each variant of a feature provides at least
  * the same set of capabilities as the feature itself. Some variants may expose additional
@@ -38,6 +39,12 @@ import org.gradle.api.capabilities.CapabilitiesMetadata;
 public interface ComponentFeature extends Named {
 
     /**
+     * Returns the description for this feature.
+     */
+    @Nullable
+    String getDescription();
+
+    /**
      * Get the capabilities of this feature. All variants exposed by this feature must provide at least
      * the same capabilities as this feature.
      */
@@ -47,13 +54,10 @@ public interface ComponentFeature extends Named {
     // We may want some kind of name mapping going on here, where apiElements of the `test` feature
     // becomes testApiElements (or testApiElements) of the component.
 
-    // TODO: We should expose these variants as a standard Set, not a DomainObjectCollection.
-    // The DefaultJvmSoftwareComponent needs these to be domain object collections for proper aggregation,
-    // however we should relax this requirement.
-
     /**
      * Get the variants exposed by this feature. These variants can be subsequently exposed by
      * a component so that they can be consumed by publication or dependency resolution.
      */
-    DomainObjectCollection<? extends ConsumableVariant> getVariants();
+    NamedDomainObjectSet<? extends ConsumableVariant> getVariants();
+
 }
