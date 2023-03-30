@@ -64,11 +64,6 @@ public class TransformationStep implements Transformation, TaskDependencyContain
     }
 
     @Override
-    public boolean endsWith(Transformation otherTransform) {
-        return this == otherTransform;
-    }
-
-    @Override
     public int stepsCount() {
         return 1;
     }

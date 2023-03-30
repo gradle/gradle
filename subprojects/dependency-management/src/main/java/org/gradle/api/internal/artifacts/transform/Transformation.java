@@ -26,8 +26,6 @@ import org.gradle.api.Describable;
  */
 public interface Transformation extends Describable {
 
-    boolean endsWith(Transformation otherTransform);
-
     int stepsCount();
 
     /**
