@@ -57,7 +57,9 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
             """
         )
 
-        val result = build("buildEnvironment")
+        val executer = gradleExecuterFor(arrayOf("buildEnvironment"))
+        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
+        val result = executer.run()
         listOf("stdlib", "reflect").forEach { module ->
             assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.7.22 -> $embeddedKotlinVersion"))
         }

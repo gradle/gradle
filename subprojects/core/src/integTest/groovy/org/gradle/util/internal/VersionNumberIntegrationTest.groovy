@@ -62,6 +62,7 @@ class VersionNumberIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         succeeds 'classes'
     }
 }

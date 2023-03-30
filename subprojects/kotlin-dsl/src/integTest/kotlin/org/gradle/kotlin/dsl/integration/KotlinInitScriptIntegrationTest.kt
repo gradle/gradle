@@ -172,7 +172,10 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         withFile("plugin/gradle.properties", """
             kotlin.options.suppressFreeCompilerArgsModificationWarning=true
         """)
-        build(rootDir = existing("plugin"), "jar")
+
+        val executer = gradleExecuterFor(arrayOf("jar"), rootDir = existing("plugin"))
+        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
+        executer.run()
 
         val pluginJar = existing("plugin/build/libs/plugin.jar")
 
