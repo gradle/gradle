@@ -179,7 +179,9 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     }
 
     def canSpecifyOnlyIfPredicateUsingProvider() {
-        final Provider<Boolean> provider = Mock()
+        final Provider<Boolean> provider = Mock() {
+            get() >> false
+        }
         final DefaultTask task = getTask()
 
         expect:
@@ -189,7 +191,6 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         task.onlyIf(provider)
 
         then:
-        provider.get() >> false
         assertFalse(task.getOnlyIf().isSatisfiedBy(task))
     }
 
