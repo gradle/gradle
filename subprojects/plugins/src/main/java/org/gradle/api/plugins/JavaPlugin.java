@@ -319,13 +319,14 @@ public abstract class JavaPlugin implements Plugin<Project> {
         // should have empty capabilities, representing the "implicit capability" as opposed to the default, which
         // derives the capabilities from the feature name.
         SingleTargetJvmFeature mainFeature = project.getObjects().newInstance(DefaultSingleTargetJvmFeature.class,
-            SourceSet.MAIN_SOURCE_SET_NAME, mainSourceSet, Collections.emptyList(),
+            SourceSet.MAIN_SOURCE_SET_NAME, mainSourceSet, Collections.emptyList(), "The main production code",
             project, ConfigurationRoles.CONSUMABLE, false
         );
         component.getFeatures().add(mainFeature);
 
-        // TODO: Should all features also have this variant? Why just the main feature?
-        // TODO: If we add this as a variant, how do we make sure its not published?
+        // TODO: This variant is very similar to the sourcesElements variant. We should see if we can
+        // merge them in some manner. They both provide the same sources, except one provides the
+        // jar and one provides the directories.
         RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
         createSourceElements(configurations, project.getProviders(), project.getObjects(), mainFeature);
 

@@ -65,14 +65,13 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         // Map ConsumableVariant API to UsageContext API.
         variants.all(variant -> {
             if (variant instanceof ConfigurationBackedConsumableVariant) {
+
+                Usage usage = variant.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
+                String scope = usage != null && usage.getName().equals(Usage.JAVA_API) ? "compile" : "runtime";
+
+                boolean optional = !variant.getCapabilities().getCapabilities().isEmpty();
+
                 Configuration configuration = ((ConfigurationBackedConsumableVariant) variant).getConfiguration();
-                Usage usage = configuration.getAttributes().getAttribute(Usage.USAGE_ATTRIBUTE);
-
-                String scope = usage != null && usage.getName().equals(Usage.JAVA_API)
-                    ? "compile" : "runtime";
-                boolean optional = !configuration.getName().equals("apiElements") &&
-                    !configuration.getName().equals("runtimeElements");
-
                 addVariantsFromConfiguration(configuration, new JavaConfigurationVariantMapping(scope, optional));
             }
         });
@@ -101,7 +100,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
             SourceSet sourceSet = sourceSets.create(featureName);
 
             return objectFactory.newInstance(DefaultSingleTargetJvmFeature.class,
-                featureName, sourceSet, capabilities,
+                featureName, sourceSet, capabilities, "The '" + featureName + "' feature",
                 project, ConfigurationRoles.INTENDED_CONSUMABLE, false
             );
         });

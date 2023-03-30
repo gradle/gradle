@@ -68,6 +68,7 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
                 TEST_FIXTURES_FEATURE_NAME,
                 testFixturesSourceSet,
                 Collections.singletonList(new ProjectDerivedCapability(project, TEST_FIXTURES_FEATURE_NAME)),
+                "The test fixtures for the main production code",
                 (ProjectInternal) project,
                 role,
                 false

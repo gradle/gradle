@@ -18,7 +18,6 @@ package org.gradle.jvm.component.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.GradleException;
-import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -36,6 +35,7 @@ import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.internal.tasks.JvmConstants;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
@@ -49,6 +49,7 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.jvm.component.SingleTargetJvmFeature;
 import org.gradle.util.internal.TextUtil;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.List;
 
@@ -82,11 +83,13 @@ public class DefaultSingleTargetJvmFeature implements SingleTargetJvmFeature {
     private final String name;
     private final SourceSet sourceSet;
     private final List<Capability> capabilities;
+    private final String description;
     private final boolean extendProductionCode;
     private final ExtensiblePolymorphicDomainObjectContainer<ConsumableVariant> variants;
 
     // Services
     private final ProjectInternal project;
+    private final ObjectFactory objectFactory;
     private final JvmPluginServices jvmPluginServices;
 
     // Tasks
@@ -119,6 +122,7 @@ public class DefaultSingleTargetJvmFeature implements SingleTargetJvmFeature {
         String name,
         SourceSet sourceSet,
         List<Capability> capabilities,
+        String description,
         ProjectInternal project,
         // The elements configurations' roles should always be consumable only, but
         // some users of this class are still migrating towards that. In 9.0, we can remove this
@@ -129,16 +133,20 @@ public class DefaultSingleTargetJvmFeature implements SingleTargetJvmFeature {
         this.name = name;
         this.sourceSet = sourceSet;
         this.capabilities = capabilities;
+        this.description = description;
         this.project = project;
         this.extendProductionCode = extendProductionCode;
 
-        this.variants = project.getObjects().polymorphicDomainObjectContainer(ConsumableVariant.class);
+        this.objectFactory = project.getObjects();
+        this.jvmPluginServices = project.getServices().get(JvmPluginServices.class);
+
+        this.variants = objectFactory.polymorphicDomainObjectContainer(ConsumableVariant.class);
         this.variants.registerFactory(ConfigurationBackedConsumableVariant.class, configName -> {
             // TODO: Should we create the configuration with a different name?
             // If the user creates an apiElements and the feature name is test should we use testApiElements for the configuration name?
             Configuration config = project.getConfigurations().createWithRole(configName, elementsConfigurationRole);
             capabilities.forEach(config.getOutgoing()::capability);
-            return project.getObjects().newInstance(DefaultConfigurationBackedConsumableVariant.class, config);
+            return objectFactory.newInstance(DefaultConfigurationBackedConsumableVariant.class, config);
         });
 
         // TODO: Deprecate allowing user to extend main feature.
@@ -146,7 +154,6 @@ public class DefaultSingleTargetJvmFeature implements SingleTargetJvmFeature {
             throw new GradleException("Cannot extend main feature if source set is not also main.");
         }
 
-        this.jvmPluginServices = project.getServices().get(JvmPluginServices.class);
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
         TaskContainer tasks = project.getTasks();
 
@@ -166,8 +173,8 @@ public class DefaultSingleTargetJvmFeature implements SingleTargetJvmFeature {
         PublishArtifact jarArtifact = new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory());
         this.apiElements = createApiElements(configurations, jarArtifact, compileJava, elementsConfigurationRole);
         this.runtimeElements = createRuntimeElements(configurations, jarArtifact, compileJava, elementsConfigurationRole);
-        variants.add(new DefaultConfigurationBackedConsumableVariant(apiElements));
-        variants.add(new DefaultConfigurationBackedConsumableVariant(runtimeElements));
+        variants.add(objectFactory.newInstance(DefaultConfigurationBackedConsumableVariant.class, apiElements));
+        variants.add(objectFactory.newInstance(DefaultConfigurationBackedConsumableVariant.class, runtimeElements));
 
         if (extendProductionCode) {
             doExtendProductionCode();
@@ -276,6 +283,12 @@ public class DefaultSingleTargetJvmFeature implements SingleTargetJvmFeature {
         return runtimeElements;
     }
 
+    @Nullable
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
     @Override
     public void withApi() {
         this.api = bucket("API", JvmConstants.API_CONFIGURATION_NAME);
@@ -308,7 +321,7 @@ public class DefaultSingleTargetJvmFeature implements SingleTargetJvmFeature {
             project
         );
 
-        variants.add(new DefaultConfigurationBackedConsumableVariant(javadocElements));
+        variants.add(objectFactory.newInstance(DefaultConfigurationBackedConsumableVariant.class, javadocElements));
     }
 
     @Override
@@ -326,7 +339,7 @@ public class DefaultSingleTargetJvmFeature implements SingleTargetJvmFeature {
             project
         );
 
-        variants.add(new DefaultConfigurationBackedConsumableVariant(sourcesElements));
+        variants.add(objectFactory.newInstance(DefaultConfigurationBackedConsumableVariant.class, sourcesElements));
     }
 
     private Configuration bucket(String kind, String suffix) {
@@ -358,7 +371,7 @@ public class DefaultSingleTargetJvmFeature implements SingleTargetJvmFeature {
     }
 
     @Override
-    public PolymorphicDomainObjectContainer<? extends ConsumableVariant> getVariants() {
+    public ExtensiblePolymorphicDomainObjectContainer<ConsumableVariant> getVariants() {
         return variants;
     }
 

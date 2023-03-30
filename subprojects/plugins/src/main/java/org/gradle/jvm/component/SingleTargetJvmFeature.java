@@ -15,9 +15,11 @@
  */
 package org.gradle.jvm.component;
 
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.component.ComponentFeature;
+import org.gradle.api.component.ConsumableVariant;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
@@ -194,4 +196,9 @@ public interface SingleTargetJvmFeature extends ComponentFeature {
      */
     Configuration getRuntimeElementsConfiguration();
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    ExtensiblePolymorphicDomainObjectContainer<ConsumableVariant> getVariants();
 }

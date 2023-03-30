@@ -89,7 +89,10 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
 
         @SuppressWarnings("deprecation")
         ConfigurationRole role = ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE;
-        SingleTargetJvmFeature feature = new DefaultSingleTargetJvmFeature(name, sourceSet, capabilities, project, role, SourceSet.isMain(sourceSet));
+        SingleTargetJvmFeature feature = new DefaultSingleTargetJvmFeature(
+            name, sourceSet, capabilities, "The '" + name + "' feature",
+            project, role, SourceSet.isMain(sourceSet)
+        );
         feature.withApi();
 
         AdhocComponentWithVariants component = findJavaComponent();
