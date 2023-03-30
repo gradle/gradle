@@ -998,7 +998,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DependencySet getDependencies() {
-        maybeWarnOnDeprecatedUsage("getDependencies()", ProperMethodUsage.DECLARABLE_AGAINST);
+        maybeWarnOnDeprecatedUsage("getDependencies()", true, ProperMethodUsage.DECLARABLE_AGAINST);
         return dependencies;
     }
 
@@ -2093,6 +2093,16 @@ since users cannot create non-legacy configurations and there is no current publ
     @Override
     public ConfigurationRole getRoleAtCreation() {
         return roleAtCreation;
+    }
+
+    @Override
+    public void assertHasNoDeclarations() {
+        if (!dependencies.isEmpty()) {
+            throw new GradleException("Dependency declarations are present on a configuration that does not allow them: " + getName() + ".");
+        }
+        if (!dependencyConstraints.isEmpty()) {
+            throw new GradleException("Dependency constraint declarations are present on a configuration that does not allow them: " + getName() + ".");
+        }
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {

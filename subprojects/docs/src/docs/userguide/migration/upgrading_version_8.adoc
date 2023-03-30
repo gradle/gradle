@@ -59,8 +59,8 @@ Currently, the following methods should only be called with these listed allowed
 - `defaultDependencies(Action)` - DECLARABLE configurations only
 - `shouldResolveConsistentlyWith(Configuration)` - RESOLVABLE configurations only
 - `disableConsistentResolution()` - RESOLVABLE configurations only
-- `getDependencies() - DECLARABLE
-- `getDependencyConstraints() - DECLARABLE (also permitted when declaration is allowed by deprecated)
+- `getDependencies() - DECLARABLE (also permitted when declaration is allowed but deprecated)
+- `getDependencyConstraints() - DECLARABLE (also permitted when declaration is allowed but deprecated)
 
 This list is likely to grow in future releases.
 
