@@ -197,6 +197,7 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
      * Calculate the defined dependencies and excludes for {@code configuration}, while converting the
      * DSL representation to the internal representation.
      */
+    @SuppressWarnings("deprecation")
     private DependencyState doGetDefinedState(ConfigurationInternal configuration, ComponentIdentifier componentId) {
 
         AttributeContainer attributes = configuration.getAttributes();
