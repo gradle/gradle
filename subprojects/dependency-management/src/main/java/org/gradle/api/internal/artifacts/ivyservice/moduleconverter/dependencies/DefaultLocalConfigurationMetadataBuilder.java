@@ -219,10 +219,12 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
             }
         }
 
-        for (DependencyConstraint dependencyConstraint : configuration.getDependencyConstraints()) {
-            dependencyBuilder.add(dependencyMetadataFactory.createDependencyConstraintMetadata(
-                componentId, configuration.getName(), attributes, dependencyConstraint)
-            );
+        if (configuration.isCanBeDeclaredAgainst()) {
+            for (DependencyConstraint dependencyConstraint : configuration.getDependencyConstraints()) {
+                dependencyBuilder.add(dependencyMetadataFactory.createDependencyConstraintMetadata(
+                        componentId, configuration.getName(), attributes, dependencyConstraint)
+                );
+            }
         }
 
         for (ExcludeRule excludeRule : configuration.getExcludeRules()) {
