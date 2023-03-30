@@ -21,6 +21,8 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorDescription;
@@ -39,6 +41,9 @@ import javax.inject.Inject;
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
 abstract class IvyPluginPublishingPlugin implements Plugin<Project> {
+
+    @Inject
+    protected abstract ProviderFactory getProviderFactory();
 
     @Inject
     public IvyPluginPublishingPlugin() {
@@ -89,6 +94,11 @@ abstract class IvyPluginPublishingPlugin implements Plugin<Project> {
         publication.setAlias(true);
         publication.setOrganisation(pluginId);
         publication.setModule(pluginId + PLUGIN_MARKER_SUFFIX);
+
+        Provider<String> organisation = getProviderFactory().provider(mainPublication::getOrganisation);
+        Provider<String> module = getProviderFactory().provider(mainPublication::getModule);
+        Provider<String> revision = getProviderFactory().provider(mainPublication::getRevision);
+
         publication.descriptor(new Action<IvyModuleDescriptorSpec>() {
             @Override
             public void execute(IvyModuleDescriptorSpec descriptor) {
@@ -106,13 +116,13 @@ abstract class IvyPluginPublishingPlugin implements Plugin<Project> {
                         Node dependencies = root.getElementsByTagName("dependencies").item(0);
                         Node dependency = dependencies.appendChild(document.createElement("dependency"));
                         Attr org = document.createAttribute("org");
-                        org.setValue(mainPublication.getOrganisation());
+                        org.setValue(organisation.get());
                         dependency.getAttributes().setNamedItem(org);
                         Attr name = document.createAttribute("name");
-                        name.setValue(mainPublication.getModule());
+                        name.setValue(module.get());
                         dependency.getAttributes().setNamedItem(name);
                         Attr rev = document.createAttribute("rev");
-                        rev.setValue(mainPublication.getRevision());
+                        rev.setValue(revision.get());
                         dependency.getAttributes().setNamedItem(rev);
                     }
                 });
