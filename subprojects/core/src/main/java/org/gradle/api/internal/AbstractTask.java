@@ -34,6 +34,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectOrderingUtil;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.internal.specs.ProviderBackedSpec;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
@@ -328,9 +329,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.onlyIf(Provider)", new Runnable() {
             @Override
             public void run() {
-                if (provider instanceof ProviderInternal) {
-                    dependencies.add(provider);
-                }
+                addProviderTaskDependency(provider);
                 onlyIfSpec = onlyIfSpec.and(new ProviderBackedSpec<>(provider), "Task satisfies onlyIf provider");
             }
         });
@@ -399,12 +398,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void setOnlyIf(final Provider<Boolean> provider) {
         taskMutator.mutate("Task.setOnlyIf(Provider)", new Runnable() {
-
             @Override
             public void run() {
-                if (provider instanceof ProviderInternal) {
-                    dependencies.add(provider);
-                }
+                addProviderTaskDependency(provider);
                 onlyIfSpec = createNewOnlyIfSpec().and(new ProviderBackedSpec<>(provider), "Task satisfies onlyIf provider");
             }
         });
@@ -1096,6 +1092,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public List<ResourceLock> getSharedResources() {
         return getBuildServiceRegistry().getSharedResources(taskRequiredServices.getElements());
+    }
+
+    private void addProviderTaskDependency(Provider<?> provider) {
+        // See DefaultTaskDependency.visitDependencies
+        if (provider instanceof ProviderInternal) {
+            ProviderInternal<?> providerInternal = (ProviderInternal<?>) provider;
+            ValueSupplier.ValueProducer producer = providerInternal.getProducer();
+            if (producer.isKnown()) {
+                dependencies.add(provider);
+            }
+        }
     }
 
     private void notifyConventionAccess(String invocationDescription) {
