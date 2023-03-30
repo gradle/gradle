@@ -114,9 +114,6 @@ class DefaultConfigurationCache internal constructor(
         get() = cacheAction == ConfigurationCacheAction.LOAD
 
     override fun initializeCacheEntry() {
-        if (encryptionService.isEncrypting) {
-            log("Encryption of the configuration cache is enabled.")
-        }
         cacheAction = determineCacheAction()
         problems.action(cacheAction)
     }
