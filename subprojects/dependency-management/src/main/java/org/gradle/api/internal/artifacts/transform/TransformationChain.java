@@ -42,23 +42,6 @@ public class TransformationChain implements Transformation {
     }
 
     @Override
-    public boolean endsWith(Transformation otherTransform) {
-        int otherStepsCount = otherTransform.stepsCount();
-        if (otherStepsCount > this.stepsCount) {
-            return false;
-        } else if (otherStepsCount == 1) {
-            return second == otherTransform;
-        }
-
-        TransformationChain otherChain = (TransformationChain) otherTransform;
-        if (otherChain.second != second) {
-            return false;
-        } else {
-            return first.endsWith(otherChain.first);
-        }
-    }
-
-    @Override
     public int stepsCount() {
         return stepsCount;
     }
