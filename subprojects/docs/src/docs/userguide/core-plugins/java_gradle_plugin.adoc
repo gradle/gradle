@@ -80,8 +80,6 @@ This automatic configuration happens in a link:{groovyDslPath}/org.gradle.api.Pr
 
 === Ivy Publish Plugin
 
-WARNING: Publishing plugins with the Ivy Publish Plugin is not yet compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 When the Java Gradle Plugin(`java-gradle-plugin`) detects that the Ivy Publish Plugin (`ivy-publish`) is also applied by the build, it will automatically configure the following link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublications]:
 
 * a single "main" publication, named `pluginIvy`, based on the <<java_plugin.adoc#sec:java_plugin_publishing,main Java component>>
