@@ -134,6 +134,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         lib.artifact.expectGet()
 
         then:
+        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         succeeds ':checkDeps'
     }
 

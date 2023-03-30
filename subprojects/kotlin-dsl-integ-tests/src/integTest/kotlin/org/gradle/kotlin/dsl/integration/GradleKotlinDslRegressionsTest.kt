@@ -84,7 +84,9 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        val result = buildAndFail("classes")
+        val executer = gradleExecuterFor(arrayOf("classes"))
+        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
+        val result = executer.runWithFailure()
 
         result.assertHasFailure("Execution failed for task ':compileKotlin'.") {
             it.assertHasCause("Compilation error. See log for more details")
@@ -102,7 +104,9 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
         """)
         withBuildScript("""plugins { id("my-plugin") }""")
 
-        build("help")
+        val executer = gradleExecuterFor(arrayOf("help"))
+        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
+        executer.run()
     }
 
     @Test
@@ -117,7 +121,9 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
         """)
         withBuildScript("""plugins { id("my-plugin") }""")
 
-        build("help")
+        val executer = gradleExecuterFor(arrayOf("help"))
+        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
+        executer.run()
     }
 
     /**
@@ -150,7 +156,9 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        val result = buildAndFail("classes")
+        val executer = gradleExecuterFor(arrayOf("classes"))
+        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
+        val result = executer.runWithFailure()
 
         result.assertHasFailure("Execution failed for task ':compileKotlin'.") {
             it.assertHasCause("Compilation error. See log for more details")

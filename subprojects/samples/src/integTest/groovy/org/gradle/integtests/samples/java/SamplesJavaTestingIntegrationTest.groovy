@@ -108,6 +108,9 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         executer.inDirectory(dslDir)
 
         when:
+        if (dsl == 'kotlin') {
+            executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
+        }
         def result = succeeds("test", "testReport")
 
         then: "the test task is executed"

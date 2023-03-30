@@ -58,6 +58,8 @@ class JacocoIntegrationTest : AbstractPluginIntegrationTest() {
             """.trimIndent()
         )
 
-        build("test", "jacocoTestCoverageVerification")
+        val executer = gradleExecuterFor(arrayOf("test", "jacocoTestCoverageVerification"))
+        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
+        executer.run()
     }
 }
