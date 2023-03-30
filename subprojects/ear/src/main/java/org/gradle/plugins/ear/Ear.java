@@ -87,6 +87,8 @@ public abstract class Ear extends Jar {
         // this allows us to generate the deployment descriptor after recording all modules it contains
         CopySpecInternal metaInf = (CopySpecInternal) getMainSpec().addChild().into("META-INF");
         CopySpecInternal descriptorChild = metaInf.addChild();
+        // the generated descriptor should only be used if one does not already exist
+        descriptorChild.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
         descriptorChild.from(callable(() -> {
             final DeploymentDescriptor descriptor = getDeploymentDescriptor();
             if (descriptor != null && generateDeploymentDescriptor.get()) {
@@ -103,7 +105,6 @@ public abstract class Ear extends Jar {
                 //  so any captured manifest attribute providers are re-evaluated
                 //  on each run.
                 //  See https://github.com/gradle/configuration-cache/issues/168
-                Cached<byte[]> cachedDescriptor = cachedContentsOf(descriptor);
                 final OutputChangeListener outputChangeListener = outputChangeListener();
                 return fileCollectionFactory().generated(
                     getTemporaryDirFactory(),
@@ -111,7 +112,10 @@ public abstract class Ear extends Jar {
                     action(file -> outputChangeListener.invalidateCachesFor(singleton(file.getAbsolutePath()))),
                     action(outputStream -> {
                         try {
-                            outputStream.write(cachedDescriptor.get());
+                            // delay obtaining contents to account for descriptor changes
+                            // (for instance, due to modules discovered)
+                            byte[] descriptorContents = cachedContentsOf(descriptor).get();
+                            outputStream.write(descriptorContents);
                         } catch (IOException e) {
                             throw UncheckedException.throwAsUncheckedException(e);
                         }

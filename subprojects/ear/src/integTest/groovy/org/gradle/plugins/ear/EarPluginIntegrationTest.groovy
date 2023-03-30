@@ -19,7 +19,6 @@ package org.gradle.plugins.ear
 import groovy.xml.XmlSlurper
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.hamcrest.CoreMatchers
@@ -84,7 +83,6 @@ ear {
         ear.assertFileContent("META-INF/application.xml", CoreMatchers.containsString("cool ear"))
     }
 
-    @ToBeFixedForConfigurationCache(because = "jar is missing from deployment descriptor")
     void "includes modules in deployment descriptor"() {
         file('moduleA.jar').createFile()
         file('moduleB.war').createFile()
@@ -162,7 +160,6 @@ ear {
         ear.assertNotContainsFile("META-INF/application.xml")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Entry META-INF/application.xml is a duplicate")
     void "uses content found in #location app folder, ignoring descriptor modification"() {
         def applicationXml = """<?xml version="1.0"?>
 <application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
@@ -199,7 +196,6 @@ ear {
         "default"   | ""                                                                                 | "src/main/application"
     }
 
-    @ToBeFixedForConfigurationCache(because = "Entry META-INF/application.xml is a duplicate")
     void "works with existing descriptor containing a doctype declaration"() {
         // We serve the DTD locally because the parser actually pulls on this URL,
         // and we don't want it reaching out to the Internet in our tests
@@ -319,7 +315,6 @@ ear {
         module."context-root" == "anywhere"
     }
 
-    @ToBeFixedForConfigurationCache(because = "Entry META-INF/application.xml is a duplicate")
     @Issue("GRADLE-3486")
     def "does not fail when provided with an existing descriptor without a version attribute"() {
         given:
@@ -361,7 +356,6 @@ ear {
         ear.assertContainsFile("META-INF/application.xml")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Entry META-INF/application.xml is a duplicate")
     @Issue("GRADLE-3497")
     def "does not fail when provided with an existing descriptor with security roles without description"() {
         given:
@@ -389,7 +383,6 @@ ear {
         ear.assertContainsFile("META-INF/application.xml")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Entry META-INF/application.xml is a duplicate")
     @Issue("GRADLE-3497")
     def "does not fail when provided with an existing descriptor with a web module without #missing"() {
         given:
@@ -441,6 +434,26 @@ ear {
         def ear = new JarTestFixture(file('build/tmp/ear/test.ear'))
         // default location should be 'lib'
         ear.assertContainsFile("lib/rootLib.jar")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19725")
+    def "can apply ear plugin to empty project"() {
+        given:
+        settingsFile << """
+        rootProject.name = 'empty-project'
+        """
+        buildFile << """
+            apply plugin: 'ear'
+        """
+
+        when:
+        succeeds 'assemble'
+        succeeds 'assemble'
+
+        then:
+        def ear = new JarTestFixture(file('build/libs/empty-project.ear'))
+        ear.assertContainsFile("META-INF/MANIFEST.MF")
+        ear.assertContainsFile("META-INF/application.xml")
     }
 
     def "ear contains runtime classpath of upstream java project"() {
