@@ -38,7 +38,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin: 'java'
 
             configurations.all { 
-                if (it.canBeResolved || it.canBeConsumed) {
+                if (it.canBeResolved) {
                     incoming.beforeResolve { throw new RuntimeException() } 
                 }
             }
