@@ -449,3 +449,14 @@ If an <<#sec:configuring_toolchain_specifications, unconfigured>> toolchain spec
 This can be achieved by passing an empty lambda when requesting a tool: `javaToolchainService.launcherFor({})`.
 
 You can find more details on defining custom tasks in the <<more_about_tasks.adoc#more_about_tasks, Authoring tasks>> documentation.
+
+[[sec:limitations]]
+== Toolchains limitations
+
+Gradle may detect toolchains incorrectly when it's running in a JVM compiled against `musl`, an https://musl.libc.org/[alternative implementation] of the C standard library.
+JVMs compiled against `musl` can sometimes override the `LD_LIBRARY_PATH` environment variable to control dynamic library resolution.
+This can influence forked java processes launched by Gradle, resulting in unexpected behavior.
+
+As a consequence, using multiple java toolchains is discouraged in environments with the `musl` library.
+This is the case in most Alpine distributions — consider using another distribution, like Ubuntu, instead.
+If you are using a single toolchain, the JVM running Gradle, to build and run your application, you can safely ignore this limitation.
