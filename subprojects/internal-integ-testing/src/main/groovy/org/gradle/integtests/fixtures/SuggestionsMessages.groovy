@@ -19,7 +19,13 @@ package org.gradle.integtests.fixtures
 class SuggestionsMessages {
 
     public static final String INFO_DEBUG = "Run with --info or --debug option to get more log output."
+    public static final String DEBUG = "Run with --debug option to get more log output."
     public static final String SCAN = "Run with --scan to get full insights."
     public static final String GET_HELP = "Get more help at https://help.gradle.org"
     public static final String STACKTRACE_MESSAGE = "Run with --stacktrace option to get the stack trace."
+
+    static String repositoryHint(String type){
+        "If the artifact you are trying to retrieve can be found in the repository but without metadata in '$type' format, you need to adjust the 'metadataSources { ... }' of the repository declaration."
+    }
+
 }

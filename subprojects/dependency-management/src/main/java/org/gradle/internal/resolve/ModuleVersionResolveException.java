@@ -37,7 +37,7 @@ import java.util.List;
 @Contextual
 public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoStackTrace {
     private final List<List<? extends ComponentIdentifier>> paths = new ArrayList<>();
-    private final ComponentSelector selector;
+    protected final ComponentSelector selector;
 
     public ModuleVersionResolveException(ComponentSelector selector, Factory<String> message, Throwable cause) {
         super(message, cause);

@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static com.google.common.collect.ImmutableList.builder;
+import static com.google.common.collect.ImmutableList.of;
 import static org.apache.commons.lang.StringUtils.repeat;
 import static org.gradle.api.logging.LogLevel.DEBUG;
 import static org.gradle.api.logging.LogLevel.INFO;
@@ -230,7 +231,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
         if (details.failure instanceof FailureResolutionAware) {
             ((FailureResolutionAware) details.failure).appendResolutions(context);
         }
-        getResolutions(details.failure).forEach(resolution -> {
+        getResolutions(details.failure).stream()
+            .distinct()
+            .forEach(resolution -> {
             context.appendResolution(output -> {
                 output.text(resolution);
             });
@@ -296,7 +299,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
             return ((MultiCauseException) cause).getCauses();
         }
         Throwable nextCause = cause.getCause();
-        return nextCause == null ? ImmutableList.of() : ImmutableList.of(nextCause);
+        return nextCause == null ? of() : of(nextCause);
     }
 
     private void addBuildScanMessage(ContextImpl context) {
