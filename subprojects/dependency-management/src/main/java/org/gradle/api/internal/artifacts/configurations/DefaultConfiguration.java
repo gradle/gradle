@@ -1022,13 +1022,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DependencyConstraintSet getDependencyConstraints() {
-        maybeWarnOnDeprecatedUsage("getDependencyConstraints()", ProperMethodUsage.DECLARABLE_AGAINST);
+        maybeWarnOnDeprecatedUsage("getDependencyConstraints()", true, ProperMethodUsage.DECLARABLE_AGAINST);
         return dependencyConstraints;
     }
 
     @Override
     public DependencyConstraintSet getAllDependencyConstraints() {
-        maybeWarnOnDeprecatedUsage("getDependencyConstraints()", ProperMethodUsage.RESOLVABLE, ProperMethodUsage.DECLARABLE_AGAINST);
+        maybeWarnOnDeprecatedUsage("getDependencyConstraints()", true, ProperMethodUsage.RESOLVABLE, ProperMethodUsage.DECLARABLE_AGAINST);
         if (allDependencyConstraints == null) {
             initAllDependencyConstraints();
         }
@@ -1604,8 +1604,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void maybeWarnOnDeprecatedUsage(String methodName, ProperMethodUsage... properUsages) {
+        maybeWarnOnDeprecatedUsage(methodName, false, properUsages);
+    }
+
+    private void maybeWarnOnDeprecatedUsage(String methodName, boolean allowDeprecated, ProperMethodUsage... properUsages) {
         for (ProperMethodUsage properUsage : properUsages) {
-            if (properUsage.isProperUsage(this)) {
+            if (properUsage.isProperUsage(this, allowDeprecated)) {
                 return;
             }
         }
@@ -2469,8 +2473,8 @@ since users cannot create non-legacy configurations and there is no current publ
 
         abstract boolean isDeprecated(ConfigurationInternal configuration);
 
-        boolean isProperUsage(ConfigurationInternal configuration) {
-            return isAllowed(configuration) && !isDeprecated(configuration);
+        boolean isProperUsage(ConfigurationInternal configuration, boolean allowDeprecated) {
+            return isAllowed(configuration) && (allowDeprecated || !isDeprecated(configuration));
         }
 
         public static String summarizeProperUsage(ProperMethodUsage... properUsages) {
