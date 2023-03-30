@@ -2095,6 +2095,7 @@ since users cannot create non-legacy configurations and there is no current publ
         return roleAtCreation;
     }
 
+    @Deprecated
     @Override
     public void assertHasNoDeclarations() {
         if (!dependencies.isEmpty()) {
