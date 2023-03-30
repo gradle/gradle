@@ -36,7 +36,7 @@ import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.jvm.component.SingleTargetJvmFeature;
+import org.gradle.jvm.component.JvmFeature;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 import javax.inject.Inject;
@@ -96,7 +96,7 @@ public abstract class EarPlugin implements Plugin<Project> {
 
     private void wireEarTaskConventionsWithJavaPluginApplied(final Project project, PluginContainer plugins) {
         plugins.withType(JavaPlugin.class, javaPlugin -> {
-            final SingleTargetJvmFeature mainFeature = JavaPluginHelper.getMainFeature(project);
+            final JvmFeature mainFeature = JavaPluginHelper.getMainFeature(project);
             project.getTasks().withType(Ear.class).configureEach(task -> {
                 task.dependsOn((Callable<FileCollection>) () ->
                     mainFeature.getSourceSet().getRuntimeClasspath()

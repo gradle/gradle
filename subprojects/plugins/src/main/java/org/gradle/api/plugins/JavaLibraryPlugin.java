@@ -19,7 +19,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.jvm.component.SingleTargetJvmFeature;
+import org.gradle.jvm.component.JvmFeature;
 
 import javax.inject.Inject;
 
@@ -39,7 +39,7 @@ public abstract class JavaLibraryPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
 
-        SingleTargetJvmFeature mainFeature = JavaPluginHelper.getMainFeature(project);
+        JvmFeature mainFeature = JavaPluginHelper.getMainFeature(project);
         mainFeature.withApi();
 
         // Make compileOnlyApi visible to tests.

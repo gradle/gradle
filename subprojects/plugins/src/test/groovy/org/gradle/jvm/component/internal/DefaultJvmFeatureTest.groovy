@@ -26,13 +26,13 @@ import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.SourceSet
-import org.gradle.jvm.component.SingleTargetJvmFeature
+import org.gradle.jvm.component.JvmFeature
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 /**
- * Tests {@link SingleTargetJvmFeature}.
+ * Tests {@link JvmFeature}.
  */
-class DefaultSingleTargetJvmFeatureTest extends AbstractProjectBuilderSpec {
+class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
 
     def sourceSets
 
@@ -46,7 +46,7 @@ class DefaultSingleTargetJvmFeatureTest extends AbstractProjectBuilderSpec {
         def mainFeature = newFeature("main")
 
         then:
-        mainFeature instanceof DefaultSingleTargetJvmFeature
+        mainFeature instanceof DefaultJvmFeature
         mainFeature.sourceSet == sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
         mainFeature.runtimeClasspathConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
         mainFeature.compileClasspathConfiguration == project.configurations.getByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME)
@@ -67,7 +67,7 @@ class DefaultSingleTargetJvmFeatureTest extends AbstractProjectBuilderSpec {
         def feature = newFeature("feature")
 
         then:
-        feature instanceof DefaultSingleTargetJvmFeature
+        feature instanceof DefaultJvmFeature
         feature.sourceSet == sourceSets.getByName('feature')
         feature.runtimeClasspathConfiguration == project.configurations.getByName('featureRuntimeClasspath')
         feature.compileClasspathConfiguration == project.configurations.getByName('featureCompileClasspath')
@@ -106,7 +106,7 @@ class DefaultSingleTargetJvmFeatureTest extends AbstractProjectBuilderSpec {
     def "can configure javadoc jar variant"() {
         when:
         def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
-        def mainFeature = component.features.create("main", SingleTargetJvmFeature)
+        def mainFeature = component.features.create("main", JvmFeature)
         mainFeature.withJavadocJar()
 
         then:
@@ -126,7 +126,7 @@ class DefaultSingleTargetJvmFeatureTest extends AbstractProjectBuilderSpec {
     def "can configure sources jar variant"() {
         when:
         def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name")
-        def mainFeature = component.features.create("main", SingleTargetJvmFeature)
+        def mainFeature = component.features.create("main", JvmFeature)
         mainFeature.withSourcesJar()
 
         then:
@@ -153,8 +153,8 @@ class DefaultSingleTargetJvmFeatureTest extends AbstractProjectBuilderSpec {
         variant.configuration == project.configurations.variant
     }
 
-    SingleTargetJvmFeature newFeature(String featureName) {
-        return project.objects.newInstance(DefaultSingleTargetJvmFeature.class,
+    JvmFeature newFeature(String featureName) {
+        return project.objects.newInstance(DefaultJvmFeature.class,
             featureName, sourceSets.create(featureName), [], "description",
             project, ConfigurationRoles.INTENDED_CONSUMABLE, false
         )

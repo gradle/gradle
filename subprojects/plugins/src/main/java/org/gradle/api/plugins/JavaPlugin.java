@@ -54,9 +54,9 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
-import org.gradle.jvm.component.SingleTargetJvmFeature;
+import org.gradle.jvm.component.JvmFeature;
+import org.gradle.jvm.component.internal.DefaultJvmFeature;
 import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
-import org.gradle.jvm.component.internal.DefaultSingleTargetJvmFeature;
 import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
@@ -271,7 +271,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         // Create the 'java' component.
         DefaultJvmSoftwareComponent component = objectFactory.newInstance(
             DefaultJvmSoftwareComponent.class, JvmConstants.JAVA_COMPONENT_NAME);
-        SingleTargetJvmFeature mainFeature = configureMainFeature(project, component);
+        JvmFeature mainFeature = configureMainFeature(project, component);
         configureBuiltInTest(project, mainFeature);
         project.getComponents().add(component);
 
@@ -308,7 +308,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
     // TODO: We should be configuring the main feature in the the sub-plugins, like application and java-library.
     // Since the feature itself represents the software product being built, the sub-plugins, which decide which
     // products are built, should be responsible for configuring the feature.
-    private static SingleTargetJvmFeature configureMainFeature(Project project, DefaultJvmSoftwareComponent component) {
+    private static JvmFeature configureMainFeature(Project project, DefaultJvmSoftwareComponent component) {
 
         ExtensionContainer extensions = project.getExtensions();
         JavaPluginExtension javaExtension = extensions.findByType(JavaPluginExtension.class);
@@ -318,7 +318,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         // We construct the feature manually instead of with component.getFeatures().create() since this feature
         // should have empty capabilities, representing the "implicit capability" as opposed to the default, which
         // derives the capabilities from the feature name.
-        SingleTargetJvmFeature mainFeature = project.getObjects().newInstance(DefaultSingleTargetJvmFeature.class,
+        JvmFeature mainFeature = project.getObjects().newInstance(DefaultJvmFeature.class,
             SourceSet.MAIN_SOURCE_SET_NAME, mainSourceSet, Collections.emptyList(), "The main production code",
             project, ConfigurationRoles.CONSUMABLE, false
         );
@@ -340,7 +340,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         return mainFeature;
     }
 
-    private static Configuration createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, SingleTargetJvmFeature feature) {
+    private static Configuration createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, JvmFeature feature) {
 
         // TODO: Why are we using this non-standard name? For the `java` component, this
         // equates to `mainSourceElements` instead of `sourceElements` as one would expect.
@@ -369,7 +369,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
     // TODO: This approach is not necessarily correct for non-main features. All publications will attempt to use the main feature's
     // compile and runtime classpaths for version mapping, even if a non-main feature is being published.
-    private static void configurePublishing(PluginContainer plugins, ExtensionContainer extensions, SingleTargetJvmFeature mainFeature) {
+    private static void configurePublishing(PluginContainer plugins, ExtensionContainer extensions, JvmFeature mainFeature) {
         plugins.withType(PublishingPlugin.class, plugin -> {
             PublishingExtension publishing = extensions.getByType(PublishingExtension.class);
 
@@ -389,7 +389,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         });
     }
 
-    private static void configureBuiltInTest(Project project, SingleTargetJvmFeature mainFeature) {
+    private static void configureBuiltInTest(Project project, JvmFeature mainFeature) {
         TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
             final SourceSet testSourceSet = suite.getSources();
@@ -420,7 +420,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite));
     }
 
-    private static void configureDiagnostics(Project project, SingleTargetJvmFeature mainFeature) {
+    private static void configureDiagnostics(Project project, JvmFeature mainFeature) {
         project.getTasks().withType(DependencyInsightReportTask.class).configureEach(task -> {
             new DslObject(task).getConventionMapping().map("configuration", mainFeature::getCompileClasspathConfiguration);
         });

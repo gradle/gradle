@@ -25,8 +25,8 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMig
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
-import org.gradle.jvm.component.internal.DefaultSingleTargetJvmFeature;
-import org.gradle.jvm.component.SingleTargetJvmFeature;
+import org.gradle.jvm.component.JvmFeature;
+import org.gradle.jvm.component.internal.DefaultJvmFeature;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
@@ -64,7 +64,7 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
             @SuppressWarnings("deprecation")
             ConfigurationRole role = ConfigurationRolesForMigration.CONSUMABLE_BUCKET_TO_CONSUMABLE;
 
-            SingleTargetJvmFeature feature = new DefaultSingleTargetJvmFeature(
+            JvmFeature feature = new DefaultJvmFeature(
                 TEST_FIXTURES_FEATURE_NAME,
                 testFixturesSourceSet,
                 Collections.singletonList(new ProjectDerivedCapability(project, TEST_FIXTURES_FEATURE_NAME)),

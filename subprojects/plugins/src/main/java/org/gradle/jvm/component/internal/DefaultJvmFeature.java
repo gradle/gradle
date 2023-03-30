@@ -46,7 +46,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.jvm.component.SingleTargetJvmFeature;
+import org.gradle.jvm.component.JvmFeature;
 import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
@@ -57,7 +57,7 @@ import static org.gradle.api.attributes.DocsType.JAVADOC;
 import static org.gradle.api.attributes.DocsType.SOURCES;
 
 /**
- * The default implementation of a {@link SingleTargetJvmFeature}, which is provided its backing
+ * The default implementation of a {@link JvmFeature}, which is provided its backing
  * {@link SourceSet} upon initialization.
  *
  * <p>This feature can conditionally be configured to instead "extend" the production code. In that case, this
@@ -78,7 +78,7 @@ import static org.gradle.api.attributes.DocsType.SOURCES;
  * source set would normally create. Additionally, this extension feature is able to create the
  * sources and javadoc variants that the main feature would also conditionally create.</p>
  */
-public class DefaultSingleTargetJvmFeature implements SingleTargetJvmFeature {
+public class DefaultJvmFeature implements JvmFeature {
 
     private final String name;
     private final SourceSet sourceSet;
@@ -118,7 +118,7 @@ public class DefaultSingleTargetJvmFeature implements SingleTargetJvmFeature {
     private Configuration sourcesElements;
 
     @Inject
-    public DefaultSingleTargetJvmFeature(
+    public DefaultJvmFeature(
         String name,
         SourceSet sourceSet,
         List<Capability> capabilities,
