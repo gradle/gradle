@@ -205,26 +205,29 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ImmutableSet.Builder<LocalFileDependencyMetadata> fileBuilder = ImmutableSet.builder();
         ImmutableList.Builder<ExcludeMetadata> excludeBuilder = ImmutableList.builder();
 
-        for (Dependency dependency : configuration.getDependencies()) {
-            if (dependency instanceof ModuleDependency) {
-                ModuleDependency moduleDependency = (ModuleDependency) dependency;
-                dependencyBuilder.add(dependencyMetadataFactory.createDependencyMetadata(
-                    componentId, configuration.getName(), attributes, moduleDependency
-                ));
-            } else if (dependency instanceof FileCollectionDependency) {
-                final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
-                fileBuilder.add(new DefaultLocalFileDependencyMetadata(fileDependency));
-            } else {
-                throw new IllegalArgumentException("Cannot convert dependency " + dependency + " to local component dependency metadata.");
-            }
-        }
-
+        // Configurations that are not declarable should not have dependencies or constraints present
         if (configuration.isCanBeDeclaredAgainst()) {
+            for (Dependency dependency : configuration.getDependencies()) {
+                if (dependency instanceof ModuleDependency) {
+                    ModuleDependency moduleDependency = (ModuleDependency) dependency;
+                    dependencyBuilder.add(dependencyMetadataFactory.createDependencyMetadata(
+                            componentId, configuration.getName(), attributes, moduleDependency
+                    ));
+                } else if (dependency instanceof FileCollectionDependency) {
+                    final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
+                    fileBuilder.add(new DefaultLocalFileDependencyMetadata(fileDependency));
+                } else {
+                    throw new IllegalArgumentException("Cannot convert dependency " + dependency + " to local component dependency metadata.");
+                }
+            }
+
             for (DependencyConstraint dependencyConstraint : configuration.getDependencyConstraints()) {
                 dependencyBuilder.add(dependencyMetadataFactory.createDependencyConstraintMetadata(
                         componentId, configuration.getName(), attributes, dependencyConstraint)
                 );
             }
+        } else {
+            configuration.assertHasNoDeclarations();
         }
 
         for (ExcludeRule excludeRule : configuration.getExcludeRules()) {
