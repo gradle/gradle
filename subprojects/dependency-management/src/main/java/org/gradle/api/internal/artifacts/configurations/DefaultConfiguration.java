@@ -980,7 +980,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        maybeWarnOnDeprecatedUsage("visitDependencies(TaskDependencyResolveContext)", ProperMethodUsage.RESOLVABLE);
         assertIsResolvable();
         context.add(intrinsicFiles);
     }
