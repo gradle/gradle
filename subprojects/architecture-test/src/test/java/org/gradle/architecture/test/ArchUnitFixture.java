@@ -75,9 +75,11 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 import static java.util.stream.Collectors.toSet;
 
 public interface ArchUnitFixture {
-    DescribedPredicate<JavaMember> not_written_in_kotlin = declaredIn(
-            resideOutsideOfPackages("org.gradle.configurationcache..", "org.gradle.kotlin.."))
-            .as("API written in Java");
+    DescribedPredicate<JavaClass> classes_not_written_in_kotlin = resideOutsideOfPackages("org.gradle.configurationcache..", "org.gradle.kotlin..")
+        .as("classes written in Java");
+
+    DescribedPredicate<JavaMember> not_written_in_kotlin = declaredIn(classes_not_written_in_kotlin)
+        .as("API written in Java");
 
     DescribedPredicate<JavaMember> kotlin_internal_methods = declaredIn(gradlePublicApi())
         .and(not(not_written_in_kotlin))
