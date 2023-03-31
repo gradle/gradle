@@ -117,9 +117,24 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
 
         expect:
         assertValidationFailsWith([
-                error(missingAnnotationMessage { type('MyTask').property('tree.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-                error(missingAnnotationMessage { type('MyTask').property('tree.left.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-                error(missingAnnotationMessage { type('MyTask').property('tree.right.nonAnnotated').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage {
+                    type('MyTask')
+                    property('tree.nonAnnotated')
+                    missingInputOrOutput()
+                    forceSolutionSkip()
+                }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage {
+                    type('MyTask')
+                    property('tree.left.nonAnnotated')
+                    missingInputOrOutput()
+                    forceSolutionSkip()
+                }, 'validation_problems', 'missing_annotation'),
+                error(missingAnnotationMessage {
+                    type('MyTask')
+                    property('tree.right.nonAnnotated')
+                    missingInputOrOutput()
+                    forceSolutionSkip()
+                }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -189,10 +204,30 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=10")
         assertValidationFailsWith([
-                error(incorrectUseOfInputAnnotation { type('MyTask').property('file').propertyType('File') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
-                error(incorrectUseOfInputAnnotation { type('MyTask').property('fileCollection').propertyType('FileCollection') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
-                error(incorrectUseOfInputAnnotation { type('MyTask').property('filePath').propertyType('Path') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
-                error(incorrectUseOfInputAnnotation { type('MyTask').property('fileTree').propertyType('FileTree') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+                error(incorrectUseOfInputAnnotation {
+                    type('MyTask')
+                    property('file')
+                    propertyType('File')
+                    forceSolutionSkip()
+                }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+                error(incorrectUseOfInputAnnotation {
+                    type('MyTask')
+                    property('fileCollection')
+                    propertyType('FileCollection')
+                    forceSolutionSkip()
+                }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+                error(incorrectUseOfInputAnnotation {
+                    type('MyTask')
+                    property('filePath')
+                    propertyType('Path')
+                    forceSolutionSkip()
+                }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+                error(incorrectUseOfInputAnnotation {
+                    type('MyTask')
+                    property('fileTree')
+                    propertyType('FileTree')
+                    forceSolutionSkip()
+                }, 'validation_problems', 'incorrect_use_of_input_annotation'),
                 // Pre-Validate errors halt execution before further problems are detected
         ])
     }
@@ -310,14 +345,14 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         expect:
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=10")
         assertValidationFailsWith([
-                error(missingAnnotationMessage { type('MyTask').property("doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-                error(missingAnnotationMessage { type('MyTask').property("iterableMappedOptions${iterableSymbol}${getKeySymbolFor("alma")}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-                error(missingAnnotationMessage { type('MyTask').property("iterableOptions${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-                error(missingAnnotationMessage { type('MyTask').property("mappedOptions${getKeySymbolFor("alma")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-                error(missingAnnotationMessage { type('MyTask').property("namedIterable${getNameSymbolFor("tibor")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-                error(missingAnnotationMessage { type('MyTask').property("options.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-                error(missingAnnotationMessage { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-                error(missingAnnotationMessage { type('MyTask').property("providedOptions.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { forceSolutionSkip().type('MyTask').property("doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { forceSolutionSkip().type('MyTask').property("iterableOptions${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { forceSolutionSkip().type('MyTask').property("mappedOptions${getKeySymbolFor("alma")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { forceSolutionSkip().type('MyTask').property("namedIterable${getNameSymbolFor("tibor")}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { forceSolutionSkip().type('MyTask').property("options.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { forceSolutionSkip().type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { forceSolutionSkip().type('MyTask').property("providedOptions.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage { forceSolutionSkip().type('MyTask').property("iterableMappedOptions${iterableSymbol}${getKeySymbolFor("alma")}${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
     }
 }

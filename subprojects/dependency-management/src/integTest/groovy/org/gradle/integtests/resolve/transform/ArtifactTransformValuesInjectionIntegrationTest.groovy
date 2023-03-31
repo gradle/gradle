@@ -1005,7 +1005,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails('broken')
         failure.assertHasDescription("A problem was found with the configuration of task ':broken' (type 'MyTask').")
         failure.assertThatDescription(containsString(invalidUseOfCacheableAnnotation {
-            type('MyTask').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction').includeLink()
+            type('MyTask')
+            invalidAnnotation('CacheableTransform')
+            onlyMakesSenseOn('TransformAction')
+            includeLink()
+            forceSolutionSkip()
         }))
     }
 
@@ -1035,7 +1039,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails('broken')
         failure.assertHasDescription("Some problems were found with the configuration of task ':broken' (type 'MyTask').")
         failure.assertThatDescription(containsString(invalidUseOfCacheableAnnotation {
-            type('Options').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task').includeLink()
+            type('Options')
+            invalidAnnotation('CacheableTask')
+            onlyMakesSenseOn('Task')
+            includeLink()
+            forceSolutionSkip()
         }))
         failure.assertThatDescription(containsString(invalidUseOfCacheableAnnotation {
             invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction').includeLink()

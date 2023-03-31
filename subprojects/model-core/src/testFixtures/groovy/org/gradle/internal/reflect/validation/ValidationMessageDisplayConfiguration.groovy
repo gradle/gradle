@@ -23,6 +23,7 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
     private String description
     private String reason
     private List<String> solutions = []
+    boolean skipSolutions = false;
 
     ValidationMessageDisplayConfiguration(ValidationMessageChecker checker) {
         this.checker = checker
@@ -52,6 +53,11 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
 
     T solution(String solution) {
         this.solutions << solution
+        this
+    }
+
+    T forceSolutionSkip(boolean skipSolutions = true) {
+        this.skipSolutions = skipSolutions
         this
     }
 
@@ -129,7 +135,7 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
         if (reason) {
             sb.append("Reason: ${formatEntry(reason)}${newLine}${newLine}")
         }
-        if (renderSolutions && !solutions.empty) {
+        if (!skipSolutions && renderSolutions && !solutions.empty) {
             if (solutions.size() > 1) {
                 sb.append("Possible solutions:$newLine")
                 solutions.eachWithIndex { String solution, int i ->

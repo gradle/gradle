@@ -21,6 +21,10 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
 
 class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -52,8 +56,15 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
                 annotatedWith('IgnoreEmptyDirectories')
                 incompatibleWith(nonDirectoryInput.annotation - '@')
                 includeLink()
+                forceSolutionSkip()
             }
         )
+        failure.assertHasResolutions(
+            "Remove the '@IgnoreEmptyDirectories' annotation.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
 
         where:
         nonDirectoryInput << NonDirectoryInput.values()
@@ -83,9 +94,16 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
                 annotatedWith('IgnoreEmptyDirectories')
                 incompatibleWith(output.annotation - '@')
                 includeLink()
+                forceSolutionSkip()
             }
         )
 
+        failure.assertHasResolutions(
+            "Remove the '@IgnoreEmptyDirectories' annotation.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
         where:
         output << Output.values()
     }

@@ -133,10 +133,30 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('oldThing').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('ter').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage {
+                type('MyTask')
+                property('badTime')
+                missingInputOrOutput()
+                forceSolutionSkip()
+            }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage {
+                type('MyTask')
+                property('oldThing')
+                missingInputOrOutput()
+                forceSolutionSkip()
+            }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage {
+                type('MyTask')
+                property('options.badNested')
+                missingInputOrOutput()
+                forceSolutionSkip()
+            }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage {
+                type('MyTask')
+                property('ter')
+                missingInputOrOutput()
+                forceSolutionSkip()
+            }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -210,8 +230,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         expect:
         assertValidationFailsWith([
             error(optionalOnPrimitive {
-                type('MyTask').property('primitive')
-                .primitive(primitiveType)
+                type('MyTask')
+                property('primitive')
+                primitive(primitiveType)
+                forceSolutionSkip()
             }, "validation_problems", "cannot_use_optional_on_primitive_types"),
         ])
 
@@ -260,10 +282,30 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(invalidUseOfCacheableAnnotation { type('MyTask').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
-            error(invalidUseOfCacheableAnnotation { type('MyTask.Options').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
-            error(invalidUseOfCacheableAnnotation { type('MyTask.Options').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
-            error(invalidUseOfCacheableAnnotation { type('MyTask.Options').invalidAnnotation('DisableCachingByDefault').onlyMakesSenseOn('Task', 'TransformAction') }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            error(invalidUseOfCacheableAnnotation {
+                type('MyTask')
+                invalidAnnotation('CacheableTransform')
+                onlyMakesSenseOn('TransformAction')
+                forceSolutionSkip()
+            }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            error(invalidUseOfCacheableAnnotation {
+                type('MyTask.Options')
+                invalidAnnotation('CacheableTask')
+                onlyMakesSenseOn('Task')
+                forceSolutionSkip()
+            }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            error(invalidUseOfCacheableAnnotation {
+                type('MyTask.Options')
+                invalidAnnotation('CacheableTransform')
+                onlyMakesSenseOn('TransformAction')
+                forceSolutionSkip()
+            }, "validation_problems", "invalid_use_of_cacheable_annotation"),
+            error(invalidUseOfCacheableAnnotation {
+                type('MyTask.Options')
+                invalidAnnotation('DisableCachingByDefault')
+                onlyMakesSenseOn('Task', 'TransformAction')
+                forceSolutionSkip()
+            }, "validation_problems", "invalid_use_of_cacheable_annotation"),
         ])
     }
 
@@ -305,8 +347,18 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property('badTime').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(missingAnnotationMessage { type('MyTask').property('options.badNested').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage {
+                type('MyTask')
+                property('badTime')
+                missingInputOrOutput()
+                forceSolutionSkip()
+            }, 'validation_problems', 'missing_annotation'),
+            error(missingAnnotationMessage {
+                type('MyTask')
+                property('options.badNested')
+                missingInputOrOutput()
+                forceSolutionSkip()
+            }, 'validation_problems', 'missing_annotation'),
         ])
     }
 
@@ -432,7 +484,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         expect:
         assertValidationFailsWith([
             error(mutableSetter {
-                type('MyTask').property('mutablePropertyWithSetter')
+                type('MyTask')
+                property('mutablePropertyWithSetter')
+                forceSolutionSkip()
                 propertyType(testedType.replaceAll("<.+>", ""))
             }, 'validation_problems', 'mutable_type_with_setter')
         ])
@@ -485,9 +539,24 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(privateGetterAnnotatedMessage { type('MyTask').property('badTime').annotation('Input') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
-            error(privateGetterAnnotatedMessage { type('MyTask').property('options.badNested').annotation('Input') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
-            error(privateGetterAnnotatedMessage { type('MyTask').property('outputDir').annotation('OutputDirectory') }, 'validation_problems', 'private_getter_must_not_be_annotated'),
+            error(privateGetterAnnotatedMessage {
+                type('MyTask')
+                property('badTime')
+                annotation('Input')
+                forceSolutionSkip()
+            }, 'validation_problems', 'private_getter_must_not_be_annotated'),
+            error(privateGetterAnnotatedMessage {
+                type('MyTask')
+                property('options.badNested')
+                annotation('Input')
+                forceSolutionSkip()
+            }, 'validation_problems', 'private_getter_must_not_be_annotated'),
+            error(privateGetterAnnotatedMessage {
+                type('MyTask')
+                property('outputDir')
+                annotation('OutputDirectory')
+                forceSolutionSkip()
+            }, 'validation_problems', 'private_getter_must_not_be_annotated'),
         ])
     }
 
@@ -527,8 +596,20 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('method').method('notAGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedMessage { type('MyTask.Options').kind('method').method('notANestedGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage {
+                type('MyTask')
+                kind('method')
+                method('notAGetter')
+                annotation('Input')
+                forceSolutionSkip()
+            }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage {
+                type('MyTask.Options')
+                kind('method')
+                method('notANestedGetter')
+                annotation('Input')
+                forceSolutionSkip()
+            }, 'validation_problems', 'ignored_annotations_on_method'),
         ])
     }
 
@@ -584,11 +665,40 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationMessage { type('MyTask').property('readWrite').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedMessage { type('MyTask').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedMessage { type('MyTask.Options').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedMessage { type('MyTask.Options').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(missingAnnotationMessage {
+                type('MyTask')
+                property('readWrite')
+                missingInputOrOutput()
+                forceSolutionSkip()
+            }, 'validation_problems', 'missing_annotation'),
+            error(methodShouldNotBeAnnotatedMessage {
+                type('MyTask')
+                kind('setter')
+                method('setReadWrite')
+                annotation('Input')
+                forceSolutionSkip()
+            }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage {
+                type('MyTask')
+                kind('setter')
+                method('setWriteOnly')
+                annotation('Input')
+                forceSolutionSkip()
+            }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage {
+                type('MyTask.Options')
+                kind('setter')
+                method('setReadWrite')
+                annotation('Input')
+                forceSolutionSkip()
+            }, 'validation_problems', 'ignored_annotations_on_method'),
+            error(methodShouldNotBeAnnotatedMessage {
+                type('MyTask.Options')
+                kind('setter')
+                method('setWriteOnly')
+                annotation('Input')
+                forceSolutionSkip()
+            }, 'validation_problems', 'ignored_annotations_on_method'),
         ])
     }
 
@@ -628,7 +738,13 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(ignoredAnnotatedPropertyMessage { type('MyTask').property('oldProperty').ignoring('ReplacedBy').alsoAnnotatedWith('Input') }, 'validation_problems', 'ignored_property_must_not_be_annotated')
+            error(ignoredAnnotatedPropertyMessage {
+                type('MyTask')
+                property('oldProperty')
+                ignoring('ReplacedBy')
+                alsoAnnotatedWith('Input')
+                forceSolutionSkip()
+            }, 'validation_problems', 'ignored_property_must_not_be_annotated')
         ])
     }
 
@@ -659,7 +775,12 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(conflictingAnnotationsMessage { type('MyTask').property('file').inConflict('InputFile', 'OutputFile') }, 'validation_problems', 'conflicting_annotations'),
+            error(conflictingAnnotationsMessage {
+                type('MyTask')
+                property('file')
+                inConflict('InputFile', 'OutputFile')
+                forceSolutionSkip()
+            }, 'validation_problems', 'conflicting_annotations'),
         ])
     }
 
