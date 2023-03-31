@@ -18,14 +18,19 @@ package org.gradle.internal.extensibility;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,7 +65,36 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
                 "You can't map a property that does not exist: propertyName=" + propertyName);
         }
 
-        if (_ineligiblePropertyNames.contains(propertyName)) {
+        // When there's a Property, use its `.convention()` method instead
+        Class<? extends IConventionAware> sourceType = _source.getClass();
+        Method getter;
+        try {
+            getter = sourceType.getMethod("get" + StringUtils.capitalize(propertyName));
+        } catch (NoSuchMethodException e) {
+            getter = null;
+        }
+        if (getter != null
+            && Property.class.isAssignableFrom(getter.getReturnType())) {
+            // TODO Only enable this behavior when code is compiled against "old" versions of Gradle
+            // if (GradleApiVersionDetector.getApiVersion(sourceType) >= 9.0) {
+            //     throw RuntimeException("New code is not allowed to use convention mapping to set conventions for Property types");
+            // }
+            Property<Object> property;
+            try {
+                property = Cast.uncheckedNonnullCast(getter.invoke(_source));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            property.convention(new DefaultProvider<>(() -> {
+                Object conventionValue = mapping.getValue(_convention, _source);
+                if (conventionValue instanceof Provider) {
+                    return ((Provider<?>) conventionValue).get();
+                } else {
+                    return conventionValue;
+                }
+            }));
+            // TODO Should this fall throuhg here, and register the mapping in _mapping, or not?
+        } else if (_ineligiblePropertyNames.contains(propertyName)) {
             throw DocumentedFailure.builder()
                 .withSummary("Using internal convention mapping with a Provider backed property.")
                 .withUpgradeGuideSection(7, "convention_mapping")

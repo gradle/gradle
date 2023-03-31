@@ -51,26 +51,26 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         expectDocumentedFailure()
     }
 
-    def "emits deprecation warning when convention mapping is used with Property"() {
+    def "convention mapping can be used with Property"() {
         buildFile << """
             abstract class MyTask extends DefaultTask {
                 @Internal abstract Property<String> getFoo()
+                @Internal abstract Property<String> getBar()
 
                 @TaskAction
                 void useIt() {
-                    // convention mapping for Property is already ignored
-                    assert foo.get() == "other"
+                    assert foo.get() == "foobar"
+                    assert bar.get() == "foobar"
                 }
             }
             tasks.register("mytask", MyTask) {
-                conventionMapping.map("foo", { project.objects.property(String).convention("foobar") })
-                foo.convention("other")
+                conventionMapping.map("foo") { "foobar" }
+                conventionMapping.map("bar") { providers.provider { "foobar" } }
             }
         """
 
         expect:
-        runAndFail 'mytask'
-        expectDocumentedFailure()
+        succeeds 'mytask'
     }
 
     def "emits deprecation warning when convention mapping is used with MapProperty"() {
@@ -117,7 +117,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         expectDocumentedFailure()
     }
 
-    def "emits deprecation warning when convention mapping is used with Provider in a ConventionTask"() {
+    def "convention mapping works with Property in a ConventionTask"() {
         buildFile << """
             abstract class MyTask extends org.gradle.api.internal.ConventionTask {
                 @Internal abstract Property<String> getFoo()
@@ -135,8 +135,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        runAndFail 'mytask'
-        expectDocumentedFailure()
+        succeeds 'mytask'
     }
 
     def "emits deprecation warning when convention mapping is used with Provider in domain object other than task"() {
