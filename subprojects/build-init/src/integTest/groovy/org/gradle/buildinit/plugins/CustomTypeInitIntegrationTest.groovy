@@ -27,11 +27,11 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.util.GradleVersion
 import org.junit.Ignore
 import spock.lang.IgnoreIf
 
 import javax.inject.Inject
-
 
 @IgnoreIf({ GradleContextualExecuter.embedded })
 class CustomTypeInitIntegrationTest extends AbstractIntegrationSpec {
@@ -64,6 +64,32 @@ class CustomTypeInitIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("Hello, null")
+    }
+
+    def "can run a community plugin task without a project"() {
+        given:
+        executer.withBuildJvmOpts('-DpluginId=com.github.h0tk3y.gradle.eval', '-DpluginVersion=0.0.4')
+
+        when:
+        run 'eval', """--command="Gradle version is \${gradle.gradleVersion}" """
+
+        then:
+        outputContains("Gradle version is ${GradleVersion.current().version}")
+    }
+
+    def "can run a community plugin task against a project"() {
+        given:
+        settingsFile """
+        rootProject.name = "hello-world"
+        """
+
+        executer.withBuildJvmOpts('-DpluginId=com.github.h0tk3y.gradle.eval', '-DpluginVersion=0.0.4')
+
+        when:
+        run 'eval', """--command="Gradle project name is '\${gradle.rootProject.name}'" """
+
+        then:
+        outputContains("Gradle project name is 'hello-world'")
     }
 
     private void withCustomPlugin() {
