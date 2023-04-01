@@ -25,6 +25,9 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 
 import java.util.Map;
 
+/**
+ * Runs Jacoco offline instrumentation task using Ant.
+ */
 public class AntJacocoInstrument {
     private final IsolatedAntBuilder ant;
 

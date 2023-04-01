@@ -61,7 +61,7 @@ class JacocoOfflineInstrumentationIntegrationTest extends JacocoMultiVersionInte
         then:
         executedAndNotSkipped(':jacocoTestOfflineInstrumentation')
         file("build/jacoco/test.exec").assertIsFile()
-        file("build/jacoco/test/instrumented-classes").assertContainsDescendants("org/gradle/Class1.class")
+        file("build/jacoco/instrumented-classes/test").assertContainsDescendants("org/gradle/Class1.class")
     }
 
     def "offline instrumentation with multiple sourceSets"() {
@@ -83,7 +83,7 @@ class JacocoOfflineInstrumentationIntegrationTest extends JacocoMultiVersionInte
         succeeds('jacocoTestOfflineInstrumentation')
 
         then:
-        file("build/jacoco/test/instrumented-classes").assertContainsDescendants("org/gradle/Class1.class", "org/gradle/Class1Extra.class")
+        file("build/jacoco/instrumented-classes/test").assertContainsDescendants("org/gradle/Class1.class", "org/gradle/Class1Extra.class")
     }
 
     def "offline instrumentation with a different output dir"() {

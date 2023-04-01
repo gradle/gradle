@@ -154,6 +154,13 @@ The following method on `Configuration` is deprecated for removal:
 
 Obtain the set of all configurations from the project's `configurations` container instead.
 
+[[get_as_jvm_arg_deprecated]]
+==== Method `link:{javadocPath}/org/gradle/testing/jacoco/plugins/JacocoTaskExtension.html#getAsJvmArg--[JacocoTaskExtension.getAsJvmArg()]` is deprecated
+
+When the Jacoco offline instrumentation feature is enabled, multiple JVM arguments are required to configure Jacoco at runtime.
+The `JacocoTaskExtension.getAsJvmArg()` method can only return one argument and thus is now deprecated for removal.
+The new `JacocoTaskExtension#asJvmArgs()` method should be used instead.
+
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
 

@@ -37,7 +37,7 @@ import java.io.File;
 /**
  * Task for applying Jacoco offline instrumentation to a collection of classes.
  *
- * @since 8.1
+ * @since 8.2
  */
 @Incubating
 @CacheableTask

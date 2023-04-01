@@ -130,6 +130,11 @@ public abstract class JacocoPluginExtension {
         );
     }
 
+    /**
+     * Prepares a task before it is about to be executed.
+     * The coverage file from the last execution is deleted.
+     * When offline instrumentation is enabled, the classpath is modified to use the instrumented classes.
+     */
     private static class JacocoPrepareTestTaskAction implements Action<Task> {
         private final JacocoTaskExtension extension;
         private final JacocoAgentJar agent;

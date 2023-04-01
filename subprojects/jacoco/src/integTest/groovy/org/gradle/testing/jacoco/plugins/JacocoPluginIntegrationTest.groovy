@@ -67,7 +67,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
         buildFile << '''
             assert project.jacocoTestOfflineInstrumentation instanceof JacocoOfflineInstrumentation
             assert project.jacocoTestOfflineInstrumentation.inputClassDirs*.absolutePath == project.sourceSets.main.output.classesDirs*.absolutePath
-            assert project.jacocoTestOfflineInstrumentation.outputDir.get() == project.layout.buildDirectory.dir("jacoco/test/instrumented-classes").get()
+            assert project.jacocoTestOfflineInstrumentation.outputDir.get() == project.layout.buildDirectory.dir("jacoco/instrumented-classes/test").get()
         '''.stripIndent()
 
         expect:

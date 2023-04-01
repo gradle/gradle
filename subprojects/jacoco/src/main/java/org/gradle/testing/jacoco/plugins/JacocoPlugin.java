@@ -17,6 +17,7 @@ package org.gradle.testing.jacoco.plugins;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -72,6 +73,15 @@ public abstract class JacocoPlugin implements Plugin<Project> {
      * @since 3.4
      */
     public static final String DEFAULT_JACOCO_VERSION = "0.8.8";
+
+    /**
+     * The default directory where offline instrumented classes are generated.
+     *
+     * @since 8.2
+     */
+    @Incubating
+    public static final String DEFAULT_OFFLINE_INSTRUMENTED_CLASSES_DIR = "jacoco/instrumented-classes/";
+
     public static final String AGENT_CONFIGURATION_NAME = "jacocoAgent";
     public static final String ANT_CONFIGURATION_NAME = "jacocoAnt";
     public static final String PLUGIN_EXTENSION_NAME = "jacoco";
@@ -228,7 +238,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
                 instrumentationTask.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
                 instrumentationTask.setDescription(String.format("Generates offline instrumented classes for the %s task.", testTaskProvider.getName()));
                 instrumentationTask.sourceSets(project.getExtensions().getByType(SourceSetContainer.class).getByName("main"));
-                instrumentationTask.getOutputDir().set(project.getLayout().getBuildDirectory().dir("jacoco/" + testTaskProvider.getName() + "/instrumented-classes"));
+                instrumentationTask.getOutputDir().convention(project.getLayout().getBuildDirectory().dir(DEFAULT_OFFLINE_INSTRUMENTED_CLASSES_DIR + testTaskProvider.getName()));
                 instrumentationTask.onlyIf(t -> testTaskProvider.get().getExtensions().getByType(JacocoTaskExtension.class).getOffline().get());
             });
 
