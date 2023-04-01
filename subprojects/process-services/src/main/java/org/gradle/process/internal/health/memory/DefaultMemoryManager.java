@@ -148,8 +148,10 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
                 }
                 JvmMemoryStatus jvm = jvmMemoryInfo.getJvmSnapshot();
                 jvmBroadcast.onJvmMemoryStatus(jvm);
-            } catch (Exception ex) {
-                LOGGER.debug("Failed to collect memory status: {}", ex.getMessage(), ex);
+            } catch (Throwable t) {
+                // this class is used as task in a scheduled executor service, so it must not throw any throwable,
+                // otherwise the further invocations of this task get automatically and silently cancelled
+                LOGGER.debug("Failed to collect memory status: {}", t.getMessage(), t);
             }
         }
     }
