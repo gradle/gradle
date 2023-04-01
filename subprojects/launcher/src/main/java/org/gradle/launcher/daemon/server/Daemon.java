@@ -268,11 +268,9 @@ public class Daemon implements Stoppable {
                     listenerBroadcast.onExpirationEvent(result);
                 }
             } catch (Throwable t) {
+                // this class is used as task in a scheduled executor service, so it must not throw any throwable,
+                // otherwise the further invocations of this task get automatically and silently cancelled
                 LOGGER.error("Problem in daemon expiration check", t);
-                if (t instanceof Error) {
-                    // never swallow java.lang.Error
-                    throw (Error) t;
-                }
             }
         }
     }
