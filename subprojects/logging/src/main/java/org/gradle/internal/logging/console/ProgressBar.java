@@ -21,10 +21,16 @@ import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ProgressBar {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProgressBar.class);
+
     private final TersePrettyDurationFormatter elapsedTimeFormatter = new TersePrettyDurationFormatter();
 
     private final ConsoleMetaData consoleMetaData;
@@ -37,6 +43,7 @@ public class ProgressBar {
 
     private int current;
     private int total;
+    private ExecutorService deadlockPreventer;
     private boolean failing;
     private String lastElapsedTimeStr;
     private List<StyledTextOutputEvent.Span> formatted;
@@ -60,6 +67,19 @@ public class ProgressBar {
 
     public void update(boolean failing) {
         this.current++;
+        if (current > total) {
+            if (deadlockPreventer == null) {
+                deadlockPreventer = Executors.newSingleThreadExecutor();
+            }
+            deadlockPreventer.submit(new Runnable() {
+                @Override
+                public void run() {
+                    // do not do this directly or a deadlock happens
+                    // to prevent that deadlock, execute it separately in another thread
+                    LOGGER.warn("More progress was logged than there should be ({} > {})", current, total);
+                }
+            });
+        }
         this.failing = this.failing || failing;
         formatted = null;
     }
@@ -68,7 +88,15 @@ public class ProgressBar {
         String elapsedTimeStr = elapsedTimeFormatter.format(elapsedTime);
         if (formatted == null || !elapsedTimeStr.equals(lastElapsedTimeStr)) {
             int consoleCols = consoleMetaData.getCols();
-            int completedWidth = (int) ((current * 1.0) / total * progressBarWidth);
+            int completedWidth;
+            if (current > total) {
+                // progress was reported excessively,
+                // we do not know how much work really is left,
+                // so we at least show one progress bar tick as unfinished
+                completedWidth = progressBarWidth - 1;
+            } else {
+                completedWidth = (int) ((double) current / total * progressBarWidth);
+            }
             int remainingWidth = progressBarWidth - completedWidth;
 
             String statusPrefix = trimToConsole(consoleCols, 0, progressBarPrefix);
