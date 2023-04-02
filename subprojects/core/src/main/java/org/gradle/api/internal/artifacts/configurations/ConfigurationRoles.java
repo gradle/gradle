@@ -69,7 +69,14 @@ public enum ConfigurationRoles implements ConfigurationRole {
      *
      * AKA {@code INTENDED_DECLARABLE}.
      */
-    BUCKET(false, false, true);
+    BUCKET(false, false, true),
+
+    /**
+     * Meant for configurations which cannot do anything.
+     *
+     * Used for configurations which will be removed in future versions.
+     */
+    NONE(false, false, false);
 
     private final boolean consumable;
     private final boolean resolvable;

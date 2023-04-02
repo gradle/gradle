@@ -30,42 +30,7 @@ class UsageDescriberSpec extends Specification {
 
     def "can describe usage for role which allows nothing"() {
         given:
-        def role = new ConfigurationRole() {
-            @Override
-            String getName() {
-                return "test"
-            }
-
-            @Override
-            boolean isConsumable() {
-                return false
-            }
-
-            @Override
-            boolean isResolvable() {
-                return false
-            }
-
-            @Override
-            boolean isDeclarableAgainst() {
-                return false
-            }
-
-            @Override
-            boolean isConsumptionDeprecated() {
-                return false
-            }
-
-            @Override
-            boolean isResolutionDeprecated() {
-                return false
-            }
-
-            @Override
-            boolean isDeclarationAgainstDeprecated() {
-                return false
-            }
-        }
+        def role = new TestConfigurationRole("test", false, false, false, false, false, false)
 
         expect:
         UsageDescriber.describeRole(role) == "\tThis configuration does not allow any usage"

@@ -1037,7 +1037,7 @@ compileClasspath - Compile classpath for source set 'main'.
         buildFile << """
             subprojects {
                 configurations {
-                    compile.deprecateForDeclarationAgainst('implementation')
+                    createWithRole('compile', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.BUCKET_TO_NONE)
                     'default' { extendsFrom compile }
                 }
                 group = "group"
@@ -1048,7 +1048,7 @@ compileClasspath - Compile classpath for source set 'main'.
             }
         """
 
-        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use the implementation configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
 
         expect:
         succeeds ':a:dependencies'
@@ -1086,10 +1086,7 @@ compileClasspath - Compile classpath for source set 'main'.
                maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                compileOnly.deprecateForResolution("compileClasspath")
-                compileOnly.deprecateForConsumption { builder ->
-                    builder.willBecomeAnErrorInGradle9().withUpgradeGuideSection(8, "foo")
-                }
+                createWithRole('compileOnly', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_BUCKET_TO_BUCKET)
                 implementation.extendsFrom compileOnly
             }
             dependencies {

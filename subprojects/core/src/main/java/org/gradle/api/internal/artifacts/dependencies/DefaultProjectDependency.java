@@ -26,11 +26,10 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.internal.deprecation.DeprecationMessageBuilder;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
 import org.gradle.util.internal.GUtil;
 
@@ -91,10 +90,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     private void warnIfConfigurationIsDeprecated(DeprecatableConfiguration selectedConfiguration) {
-        DeprecationMessageBuilder.WithDocumentation consumptionDeprecation = selectedConfiguration.getConsumptionDeprecation();
-        if (consumptionDeprecation != null) {
-            consumptionDeprecation.nagUser();
-        }
+        selectedConfiguration.maybeEmitConsumptionDeprecation();
     }
 
     @Override

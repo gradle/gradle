@@ -113,6 +113,53 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         assertUsageLockedFailure('testConf')
     }
 
+    def "can add declaration alternatives to configuration deprecated for declaration"() {
+        given:
+        buildFile << """
+            configurations {
+                createWithRole("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.BUCKET_TO_NONE) {
+                    addDeclarationAlternatives("anotherConf")
+                }
+            }
+
+            dependencies {
+                testConf "org:foo:1.0"
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use the anotherConf configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        succeeds 'help'
+    }
+
+    def "can add resolution alternatives to configuration deprecated for resolution"() {
+        given:
+        mavenRepo.module("org", "foo", "1.0").publish()
+        buildFile << """
+            configurations {
+                deps
+                createWithRole("testConf", org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.RESOLVABLE_TO_NONE) {
+                    addResolutionAlternatives("anotherConf")
+                    extendsFrom(deps)
+                }
+            }
+
+            repositories { maven { url "${mavenRepo.uri}" } }
+
+            dependencies {
+                deps "org:foo:1.0"
+            }
+
+            task resolve {
+                configurations.testConf.files
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve the anotherConf configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        succeeds 'resolve'
+    }
+
     def "can prevent usage mutation of roleless configuration #configuration added by java plugin meant for resolution"() {
         given:
         buildFile << """
