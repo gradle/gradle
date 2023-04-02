@@ -228,7 +228,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private String description;
     private final Set<Object> excludeRules = new LinkedHashSet<>();
     private Set<ExcludeRule> parsedExcludeRules;
-    private boolean returnAllVariants = false;
 
     private final Object observationLock = new Object();
     private volatile InternalState observedState = UNRESOLVED;
@@ -310,6 +309,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.identityPath = domainObjectContext.identityPath(name);
+        this.path = domainObjectContext.projectPath(name);
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.resolver = resolver;
@@ -347,7 +347,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(ResolveState.NOT_RESOLVED);
-        this.path = domainObjectContext.projectPath(name);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
 
         this.canBeConsumed = roleAtCreation.isConsumable();
@@ -993,6 +992,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return allDependencies;
     }
 
+    @Override
+    public boolean hasDependencies() {
+        return !getAllDependencies().isEmpty();
+    }
+
+    /**
+     * This method is a heuristic that gives an idea of the "size" of the graph. The larger
+     * the graph is, the higher the risk of internal resizes exists, so we try to estimate
+     * the size of the graph to avoid maps resizing.
+     */
+    @Override
+    public int getEstimatedGraphSize() {
+        return (int) (512 * Math.log(getAllDependencies().size()));
+    }
+
     private synchronized void initAllDependencies() {
         if (allDependencies != null) {
             return;
@@ -1459,19 +1473,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public Path getIdentityPath() {
         return identityPath;
-    }
-
-    @Override
-    public void setReturnAllVariants(boolean returnAllVariants) {
-        if (!canBeMutated) {
-            throw new IllegalStateException("Configuration is unmodifiable");
-        }
-        this.returnAllVariants = returnAllVariants;
-    }
-
-    @Override
-    public boolean getReturnAllVariants() {
-        return this.returnAllVariants;
     }
 
     @Override

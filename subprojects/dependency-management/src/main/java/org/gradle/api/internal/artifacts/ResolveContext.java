@@ -15,27 +15,38 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.util.Path;
 
 import java.util.List;
 
 /**
  * Represents something that can be resolved.
  */
-public interface ResolveContext {
+public interface ResolveContext extends DependencyMetaDataProvider {
 
     String getName();
 
     String getDisplayName();
 
+    String getPath();
+
+    Path getIdentityPath();
+
     ResolutionStrategyInternal getResolutionStrategy();
+
+    boolean hasDependencies();
 
     LocalComponentMetadata toRootComponentMetaData();
 
-    AttributeContainer getAttributes();
+    AttributeContainerInternal getAttributes();
+
+    ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver();
 
     /**
      * Returns the synthetic dependencies for this context. These dependencies are generated
@@ -44,4 +55,6 @@ public interface ResolveContext {
      * (task dependencies, execution, ...)
      */
     List<? extends DependencyMetadata> getSyntheticDependencies();
+
+    int getEstimatedGraphSize();
 }
