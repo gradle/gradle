@@ -765,18 +765,14 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
     }
 
     void "deprecations are passed to copies when corresponding role is #state"() {
-        def configuration = prepareConfigurationForCopyTest()
+        ConfigurationRole role = new TestConfigurationRole("test", enabled, enabled, enabled, true, true, true)
+        def configuration = prepareConfigurationForCopyTest(role)
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
         1 * resolutionStrategy.copy() >> resolutionStrategyCopy
+        configuration.addDeclarationAlternatives("declaration")
+        configuration.addResolutionAlternatives("resolution")
 
         when:
-        configuration.deprecateForConsumption(x -> x.willBecomeAnErrorInGradle9().undocumented())
-        configuration.deprecateForDeclarationAgainst("declaration")
-        configuration.deprecateForResolution("resolution")
-        configuration.canBeConsumed = enabled
-        configuration.canBeResolved = enabled
-        configuration.canBeDeclaredAgainst = enabled
-
         def copy = configuration.copy()
 
         then:
@@ -784,12 +780,11 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         copy.canBeDeclaredAgainst
         copy.canBeResolved
         copy.canBeConsumed
-        copy.consumptionDeprecation != null
         copy.declarationAlternatives == ["declaration"]
         copy.resolutionAlternatives == ["resolution"]
-        copy.roleAtCreation.consumptionDeprecated
-        copy.roleAtCreation.resolutionDeprecated
-        copy.roleAtCreation.declarationAgainstDeprecated
+        copy.deprecatedForConsumption
+        copy.deprecatedForResolution
+        copy.deprecatedForDeclarationAgainst
 
         where:
         state | enabled
@@ -815,7 +810,6 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         copy.canBeDeclaredAgainst
         copy.canBeResolved
         copy.canBeConsumed
-        copy.consumptionDeprecation != null
         copy.declarationAlternatives == []
         copy.resolutionAlternatives == []
         copy.roleAtCreation.consumptionDeprecated
@@ -905,8 +899,8 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         copy.dependencyResolutionListeners.size() == 1
     }
 
-    private prepareConfigurationForCopyTest() {
-        def configuration = conf()
+    private prepareConfigurationForCopyTest(ConfigurationRole role = ConfigurationRoles.LEGACY) {
+        def configuration = conf("conf", ":", ":", role)
         configuration.visible = false
         configuration.transitive = false
         configuration.description = "descript"
@@ -914,8 +908,12 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         configuration.exclude([group: "value2"])
         configuration.artifacts.add(artifact("name1", "ext1", "type1", "classifier1"))
         configuration.artifacts.add(artifact("name2", "ext2", "type2", "classifier2"))
-        configuration.dependencies.add(dependency("group1", "name1", "version1"))
-        configuration.dependencies.add(dependency("group2", "name2", "version2"))
+
+        if (role.declarableAgainst) {
+            configuration.dependencies.add(dependency("group1", "name1", "version1"))
+            configuration.dependencies.add(dependency("group2", "name2", "version2"))
+        }
+
         configuration.getAttributes().attribute(Attribute.of('key', String.class), 'value')
         configuration.resolutionStrategy
 
@@ -1892,7 +1890,7 @@ All Artifacts:
         new DefaultExternalModuleDependency(group, name, version)
     }
 
-    private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":") {
+    private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":", ConfigurationRole role = ConfigurationRoles.LEGACY) {
         def domainObjectContext = Stub(DomainObjectContext)
         def build = Path.path(buildPath)
         _ * domainObjectContext.identityPath(_) >> { String p -> build.append(Path.path(projectPath)).child(p) }
@@ -1926,7 +1924,7 @@ All Artifacts:
             calculatedValueContainerFactory,
             TestFiles.taskDependencyFactory()
         )
-        defaultConfigurationFactory.create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, ConfigurationRoles.LEGACY, false)
+        defaultConfigurationFactory.create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, role, false)
     }
 
     private DefaultPublishArtifact artifact(String name) {
