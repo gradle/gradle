@@ -43,12 +43,15 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallationSupplier {
 
     private static final String PROPERTY_NAME = "org.gradle.java.installations.maven-toolchains-file";
     private static final String PARSE_EXPRESSION = "/toolchains/toolchain[type='jdk']/configuration/jdkHome//text()";
+    private static final Pattern ENV_VAR_PATTERN = Pattern.compile("\\$\\{env\\.([^}]+)\\}");
     private static final Logger LOGGER = Logging.getLogger(MavenToolchainsInstallationSupplier.class);
 
     private final Provider<String> toolchainLocation;
@@ -85,7 +88,18 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
                 for (int i = 0; i < nodes.getLength(); i++) {
                     Node item = nodes.item(i);
                     if (item != null && item.getNodeType() == Node.TEXT_NODE) {
-                        locations.add(item.getNodeValue().trim());
+                        String location = item.getNodeValue().trim();
+                        Matcher envMatches = ENV_VAR_PATTERN.matcher(location);
+                        if (envMatches.matches()) {
+                            String match = envMatches.group(1);
+                            Provider<String> environmentProperty = getEnvironmentProperty(match);
+                            location = environmentProperty == null ? null : environmentProperty.getOrNull(); // environmentProperty.getOrNull() occasionally fails in tests?!
+                            if (location == null || location.isEmpty()) {
+                                LOGGER.info("Java Toolchain auto-detection failed to fully parse Maven Toolchains located at '{}'. Environment variable '{}' is not set or empty.", toolchainFile, match);
+                                continue;
+                            }
+                        }
+                        locations.add(location);
                     }
                 }
                 return locations.stream()

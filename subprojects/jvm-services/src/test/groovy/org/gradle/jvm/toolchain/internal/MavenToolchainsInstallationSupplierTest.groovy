@@ -66,7 +66,7 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
         useProperty << [true, false]
     }
 
-    def "supplies no installations empty toolchains file"(boolean useProperty) {
+    def "supplies no installations for empty toolchains file"(boolean useProperty) {
         given:
         def toolchains = mavenHome.createFile(new File("toolchains.xml"))
         def supplier = useProperty ? createSupplier(toolchains.getCanonicalPath(), null) : createSupplier(null, userHome)
@@ -81,7 +81,7 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
         useProperty << [true, false]
     }
 
-    def "supplies no installations non-xml toolchains file"(boolean useProperty) {
+    def "supplies no installations for non-xml toolchains file"(boolean useProperty) {
         given:
         def toolchains = mavenHome.createFile(new File("toolchains.xml"))
         toolchains.write("this is not xml")
@@ -97,7 +97,7 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
         useProperty << [true, false]
     }
 
-    def "supplies no installations toolchains file with non-matching contents"(boolean useProperty) {
+    def "supplies no installations for toolchains file with non-matching contents"(boolean useProperty) {
         given:
         def toolchains = mavenHome.createFile(new File("toolchains.xml"))
         toolchains.write('''<toolchains>
@@ -108,6 +108,29 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
                                 </configuration>
                                 </toolchain>
                                 </toolchains>''')
+        def supplier = useProperty ? createSupplier(toolchains.getCanonicalPath(), null) : createSupplier(null, userHome)
+
+        when:
+        def directories = supplier.get()
+
+        then:
+        directories.isEmpty()
+
+        where:
+        useProperty << [true, false]
+    }
+
+    def "supplies no installations for toolchains file with non-resolvable environment variable"(boolean useProperty) {
+        given:
+        def toolchains = mavenHome.createFile(new File("toolchains.xml"))
+        toolchains.write('''<toolchains>
+            <toolchain>
+            <type>jdk</type>
+            <configuration>
+            <jdkHome>${env.JAVA_UNKNOWN}</jdkHome>
+            </configuration>
+            </toolchain>
+            </toolchains>''')
         def supplier = useProperty ? createSupplier(toolchains.getCanonicalPath(), null) : createSupplier(null, userHome)
 
         when:
@@ -196,6 +219,7 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
         def providerFactory = Mock(ProviderFactory)
         providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable(null)
         providerFactory.gradleProperty("org.gradle.java.installations.maven-toolchains-file") >> Providers.ofNullable(propertyValue)
+        providerFactory.environmentVariable("JDK16") >> Providers.of("/usr/lib/jvm/adoptopenjdk-16.jdk")
         providerFactory
     }
 
@@ -247,6 +271,15 @@ class MavenToolchainsInstallationSupplierTest extends Specification {
             <type>jdk</type>
             <configuration>
             <jdkHome>/usr/lib/jvm/adoptopenjdk-16.jdk</jdkHome>
+            </configuration>
+            </toolchain>
+            </toolchains>''',
+         '''<toolchains xmlns="http://maven.apache.org/TOOLCHAINS/1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/TOOLCHAINS/1.1.0 http://maven.apache.org/xsd/toolchains-1.1.0.xsd">
+            <toolchain>
+            <type>jdk</type>
+            <configuration>
+            <jdkHome>${env.JDK16}</jdkHome>
             </configuration>
             </toolchain>
             </toolchains>''',
