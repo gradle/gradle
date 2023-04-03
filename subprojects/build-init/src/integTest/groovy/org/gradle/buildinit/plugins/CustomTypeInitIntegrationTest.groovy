@@ -26,6 +26,7 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
 import org.junit.Ignore
@@ -33,13 +34,24 @@ import spock.lang.IgnoreIf
 
 import javax.inject.Inject
 
-@IgnoreIf({ GradleContextualExecuter.embedded })
+
+@IgnoreIf({ GradleContextualExecuter.configCache })
 class CustomTypeInitIntegrationTest extends AbstractIntegrationSpec {
+    private List<String> localArgs = []
+
+    private void setCustomInitOptions(String... args) {
+        this.localArgs = args.toList()
+    }
+
+    protected ExecutionResult runWithOptions(String... tasks) {
+        return super.run(*(tasks.toList() + localArgs + ["-s", "--no-daemon"]))
+    }
 
     def "can run a plug-in from the Gradle Plug-in Portal"() {
         when:
-        executer.withBuildJvmOpts('-DpluginId=org.gradle.hello-world', '-DpluginVersion=0.2')
-        run 'helloWorld'
+        setCustomInitOptions('-Dorg.gradle.custom-init.plugin=org.gradle.hello-world', '-Dorg.gradle.custom-init.version=0.2')
+
+        runWithOptions 'helloWorld'
 
         then:
         outputContains("Hello World!")
@@ -48,8 +60,9 @@ class CustomTypeInitIntegrationTest extends AbstractIntegrationSpec {
     def "can run a custom plugin that takes options"() {
         when:
         withCustomPlugin()
-        executer.withBuildJvmOpts("-DpluginRepoUrl=${mavenRepo.uri}", '-DpluginId=custom-hello-plugin', '-DpluginVersion=1.0')
-        run 'custom-hello', '--person', 'John Doe'
+        setCustomInitOptions("-Dorg.gradle.custom-init.repository=${mavenRepo.uri}", '-Dorg.gradle.custom-init.plugin=custom-hello-plugin', '-Dorg.gradle.custom-init.version=1.0')
+
+        runWithOptions 'custom-hello', '--person', 'John Doe'
 
         then:
         outputContains("Hello, John Doe")
@@ -58,9 +71,10 @@ class CustomTypeInitIntegrationTest extends AbstractIntegrationSpec {
     def "can run a custom plugin task as default task"() {
         when:
         withCustomPlugin()
-        executer.withBuildJvmOpts("-DpluginRepoUrl=${mavenRepo.uri}", '-DpluginId=custom-hello-plugin', '-DpluginVersion=1.0', '-DpluginTask=custom-hello')
+        setCustomInitOptions("-Dorg.gradle.custom-init.repository=${mavenRepo.uri}", '-Dorg.gradle.custom-init.plugin=custom-hello-plugin', '-Dorg.gradle.custom-init.version=1.0', '-Dorg.gradle.custom-init.task=custom-hello')
+
         // no way to pass custom options though
-        run()
+        runWithOptions()
 
         then:
         outputContains("Hello, null")
@@ -68,10 +82,10 @@ class CustomTypeInitIntegrationTest extends AbstractIntegrationSpec {
 
     def "can run a community plugin task without a project"() {
         given:
-        executer.withBuildJvmOpts('-DpluginId=com.github.h0tk3y.gradle.eval', '-DpluginVersion=0.0.4')
+        setCustomInitOptions('-Dorg.gradle.custom-init.plugin=com.github.h0tk3y.gradle.eval', '-Dorg.gradle.custom-init.version=0.0.4')
 
         when:
-        run 'eval', """--command="Gradle version is \${gradle.gradleVersion}" """
+        runWithOptions 'eval', """--command="Gradle version is \${gradle.gradleVersion}" """
 
         then:
         outputContains("Gradle version is ${GradleVersion.current().version}")
@@ -83,10 +97,10 @@ class CustomTypeInitIntegrationTest extends AbstractIntegrationSpec {
         rootProject.name = "hello-world"
         """
 
-        executer.withBuildJvmOpts('-DpluginId=com.github.h0tk3y.gradle.eval', '-DpluginVersion=0.0.4')
+        setCustomInitOptions('-Dorg.gradle.custom-init.plugin=com.github.h0tk3y.gradle.eval', '-Dorg.gradle.custom-init.version=0.0.4')
 
         when:
-        run 'eval', """--command="Gradle project name is '\${gradle.rootProject.name}'" """
+        runWithOptions 'eval', """--command="Gradle project name is '\${gradle.rootProject.name}'" """
 
         then:
         outputContains("Gradle project name is 'hello-world'")

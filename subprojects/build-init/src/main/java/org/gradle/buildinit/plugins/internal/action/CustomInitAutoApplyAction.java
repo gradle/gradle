@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal.action;
 
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.project.ProjectConfigureAction;
 
@@ -25,9 +26,11 @@ public class CustomInitAutoApplyAction implements ProjectConfigureAction {
     public void execute(final ProjectInternal project) {
         System.out.println("Running custom init auto apply action");
         project.addDeferredConfiguration(() -> {
-            String customPluginId = System.getProperty("pluginId");
+            StartParameterInternal startParameter = project.getGradle().getStartParameter();
+            System.out.println("In auto-apply action: " + startParameter);
+            String customPluginId = startParameter.getCustomInitPluginId();
             if (customPluginId != null) {
-                project.getPlugins().apply(customPluginId);
+                //project.getPlugins().apply(customPluginId);
             }
         });
         project.getPluginManager().apply("org.gradle.custom-init");

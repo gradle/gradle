@@ -80,6 +80,10 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new ConfigurationCacheRecreateOption());
         options.add(new ConfigurationCacheQuietOption());
         options.add(new IsolatedProjectsOption());
+        options.add(new CustomInitPluginId());
+        options.add(new CustomInitPluginVersion());
+        options.add(new CustomInitPluginTask());
+        options.add(new CustomInitPluginRepository());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -574,6 +578,63 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheQuiet(value);
+        }
+    }
+
+    public static class CustomInitPluginId extends StringBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.custom-init.plugin";
+
+        public CustomInitPluginId() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+            settings.setCustomInitPluginId(value);
+        }
+    }
+
+    public static class CustomInitPluginVersion extends StringBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.custom-init.version";
+
+        public CustomInitPluginVersion() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+
+            settings.setCustomInitPluginVersion(value);
+        }
+    }
+    public static class CustomInitPluginTask extends StringBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.custom-init.task";
+
+        public CustomInitPluginTask() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+
+            settings.setCustomInitPluginTask(value);
+        }
+    }
+    public static class CustomInitPluginRepository extends StringBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.custom-init.repository";
+
+        public CustomInitPluginRepository() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+
+            settings.setCustomInitPluginRepository(value);
         }
     }
 }

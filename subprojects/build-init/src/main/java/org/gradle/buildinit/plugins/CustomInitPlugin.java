@@ -18,8 +18,11 @@ package org.gradle.buildinit.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.custominit.CustomInit;
+
+import java.util.Optional;
 
 public abstract class CustomInitPlugin implements Plugin<Project> {
 
@@ -32,12 +35,12 @@ public abstract class CustomInitPlugin implements Plugin<Project> {
             System.out.println("Registering custom-init task");
 
             TaskProvider<CustomInit> taskProvider = project.getTasks().register("custom-init", CustomInit.class);
+            String defaultTask = Optional.ofNullable(((ProjectInternal) project).getGradle().getStartParameter().getCustomInitPluginTask()).orElse("help");
             taskProvider.configure(init -> {
-                String dependency = ":" + System.getProperty("pluginTask", "help");
+                String dependency = ":" + defaultTask;
                 System.out.println("Adding dependency to " + dependency + " from " + init);
                 //init.dependsOn(dependency);
             });
-            String defaultTask = System.getProperty("pluginTask", "help");
             project.defaultTasks(defaultTask);
         } else {
             System.out.println("Skipping as project has parent: " + project.getParent());

@@ -50,7 +50,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
     public ArtifactRepositoriesPluginResolver(DependencyResolutionServices resolutionServices) {
         this.resolutionServices = resolutionServices;
 
-        String pluginRepoUrl = System.getProperty("pluginRepoUrl");
+        String pluginRepoUrl = System.getProperty("org.gradle.custom-init.repository");
         System.out.println("Additional plugin repository URL: " + pluginRepoUrl);
         if (pluginRepoUrl != null) {
             System.out.println("Added " + pluginRepoUrl);

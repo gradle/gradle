@@ -41,6 +41,10 @@ public class StartParameterInternal extends StartParameter {
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
+    private String customInitPluginId;
+    private String customInitPluginVersion;
+    private String customInitPluginTask;
+    private String customInitPluginRepository;
 
     public StartParameterInternal() {
     }
@@ -74,6 +78,10 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheQuiet = configurationCacheQuiet;
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
+        p.customInitPluginId = customInitPluginId;
+        p.customInitPluginVersion = customInitPluginVersion;
+        p.customInitPluginRepository = customInitPluginRepository;
+        p.customInitPluginTask = customInitPluginTask;
         return p;
     }
 
@@ -205,5 +213,61 @@ public class StartParameterInternal extends StartParameter {
 
     public Duration getContinuousBuildQuietPeriod() {
         return continuousBuildQuietPeriod;
+    }
+
+    public void setCustomInitPluginId(String value) {
+        this.customInitPluginId = value;
+    }
+
+    public void setCustomInitPluginVersion(String value) {
+        this.customInitPluginVersion = value;
+    }
+
+    public void setCustomInitPluginRepository(String customInitPluginRepository) {
+        this.customInitPluginRepository = customInitPluginRepository;
+    }
+
+    public void setCustomInitPluginTask(String customInitPluginTask) {
+        this.customInitPluginTask = customInitPluginTask;
+    }
+
+    public String getCustomInitPluginId() {
+        return customInitPluginId;
+    }
+
+    public String getCustomInitPluginVersion() {
+        return customInitPluginVersion;
+    }
+
+    public String getCustomInitPluginTask() {
+        return customInitPluginTask;
+    }
+
+    public String getCustomInitPluginRepository() {
+        return customInitPluginRepository;
+    }
+
+    @Override
+    public String toString() {
+        return "StartParameterInternal{" +
+            "watchFileSystemMode=" + watchFileSystemMode +
+            ", watchFileSystemDebugLogging=" + watchFileSystemDebugLogging +
+            ", vfsVerboseLogging=" + vfsVerboseLogging +
+            ", configurationCache=" + configurationCache +
+            ", isolatedProjects=" + isolatedProjects +
+            ", configurationCacheProblems=" + configurationCacheProblems +
+            ", configurationCacheDebug=" + configurationCacheDebug +
+            ", configurationCacheMaxProblems=" + configurationCacheMaxProblems +
+            ", configurationCacheRecreateCache=" + configurationCacheRecreateCache +
+            ", configurationCacheQuiet=" + configurationCacheQuiet +
+            ", searchUpwards=" + searchUpwards +
+            ", useEmptySettings=" + useEmptySettings +
+            ", continuousBuildQuietPeriod=" + continuousBuildQuietPeriod +
+            ", customInitPluginId=" + customInitPluginId +
+            ", customInitPluginVersion=" + customInitPluginVersion  +
+            ", customInitPluginTask=" + customInitPluginTask +
+            ", customInitPluginRepository=" + customInitPluginRepository +
+            ", gradleHomeDir=" + gradleHomeDir +
+            '}';
     }
 }

@@ -162,6 +162,10 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isRefreshKeys());
             encoder.writeBoolean(startParameter.isExportKeys());
             encoder.writeString(startParameter.getWelcomeMessageConfiguration().getWelcomeMessageDisplayMode().name());
+            encoder.writeNullableString(startParameter.getCustomInitPluginId());
+            encoder.writeNullableString(startParameter.getCustomInitPluginVersion());
+            encoder.writeNullableString(startParameter.getCustomInitPluginTask());
+            encoder.writeNullableString(startParameter.getCustomInitPluginRepository());
         }
 
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
@@ -255,6 +259,10 @@ public class BuildActionSerializer {
             startParameter.setExportKeys(decoder.readBoolean());
             startParameter.setWelcomeMessageConfiguration(new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.valueOf(decoder.readString())));
 
+            startParameter.setCustomInitPluginId(decoder.readNullableString());
+            startParameter.setCustomInitPluginVersion(decoder.readNullableString());
+            startParameter.setCustomInitPluginTask(decoder.readNullableString());
+            startParameter.setCustomInitPluginRepository(decoder.readNullableString());
             return startParameter;
         }
 

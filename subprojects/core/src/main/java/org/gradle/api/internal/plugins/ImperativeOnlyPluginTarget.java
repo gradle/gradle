@@ -41,11 +41,11 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
         // TODO validate that the plugin accepts this kind of argument
         try {
       //      plugin.getClass().getDeclaredMethod("apply", target.getClass());
-            System.out.println("Applying " + pluginId + " to " + target);
+            System.out.println(String.format("Applying %s (%s) to %s", pluginId, plugin.getClass().getName(), target));
             Plugin<T> cast = uncheckedCast(plugin);
             cast.apply(target);
         } catch (ClassCastException e) {
-            System.out.println("Skipping " + pluginId + " for " + target);
+            System.out.println(String.format("Skipping %s (%s) to %s", pluginId, plugin.getClass().getName(), target));
         }
     }
 
