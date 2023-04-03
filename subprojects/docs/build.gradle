@@ -595,8 +595,6 @@ tasks.named("docsTest") { task ->
     testClassesDirs = sourceSets.docsTest.output.classesDirs
     // 'integTest.samplesdir' is set to an absolute path by the 'org.gradle.samples' plugin
     systemProperties.clear()
-    // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 
     filter {
         // workaround for https://github.com/gradle/dotcom/issues/5958
