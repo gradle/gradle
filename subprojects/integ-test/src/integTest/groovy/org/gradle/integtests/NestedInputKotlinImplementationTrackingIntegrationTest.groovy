@@ -42,13 +42,11 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         buildFile.makeOlder()
 
         when:
-        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         run 'myTask'
         then:
         executedAndNotSkipped(':myTask')
 
         when:
-        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         run 'myTask'
         then:
         skipped(':myTask')
@@ -59,7 +57,6 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
                 action = Action { writeText("changed") }
             }
         """
-        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         run 'myTask', '--info'
         then:
         executedAndNotSkipped(':myTask')
@@ -78,13 +75,11 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         buildFile.makeOlder()
 
         when:
-        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         run 'myTask'
         then:
         executedAndNotSkipped(':myTask')
 
         when:
-        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         run 'myTask'
         then:
         skipped(':myTask')
@@ -95,7 +90,6 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
                 action = { it.writeText("changed") }
             }
         """
-        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         run 'myTask', '--info'
         then:
         executedAndNotSkipped(':myTask')
@@ -123,7 +117,6 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         }
 
         when:
-        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         executer.inDirectory(project1)
         withBuildCache().run 'myTask'
 
@@ -133,7 +126,6 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
 
         when:
         executer.inDirectory(project2)
-        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         withBuildCache().run 'myTask'
 
         then:
@@ -195,15 +187,6 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         when:
         if (kotlinVersion == "1.4") {
             executer.expectDeprecationWarning("w: Language version 1.4 is deprecated and its support will be removed in a future version of Kotlin")
-        }
-        def badUsages = [
-                apiElements : 'Consumable', archives: 'Consumable', compileClasspath: 'Resolvable',
-                default: 'Consumable', runtimeClasspath: 'Resolvable', runtimeElements: 'Consumable',
-                testCompileClasspath: 'Resolvable', testResultsElementsForTest: 'Consumable', testRuntimeClasspath: 'Resolvable']
-        badUsages.forEach { conf, usage ->
-            executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getDependencies()' is deprecated for configuration '$conf', which has permitted usage(s):
-\t${ usage == 'Consumable' ? 'Consumable - this configuration can be selected by another project as a dependency' : 'Resolvable - this configuration can be resolved by this project to a set of files'}
-This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Declarable Against'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
         }
         run "myTask"
 

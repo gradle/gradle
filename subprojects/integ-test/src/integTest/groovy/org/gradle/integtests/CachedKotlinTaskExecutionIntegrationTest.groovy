@@ -57,7 +57,6 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         withBuildCache().run "customTask"
         then:
         result.assertTaskNotSkipped(":customTask")
@@ -67,7 +66,6 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("buildSrc/.gradle").deleteDir()
         cleanBuildDir()
 
-        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         withBuildCache().run "customTask"
         then:
         result.groupedOutput.task(":customTask").outcome == "FROM-CACHE"
@@ -87,7 +85,6 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             }
         """
         when:
-        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         withBuildCache().run "customTask"
         then:
         result.assertTaskNotSkipped(":customTask")
@@ -97,7 +94,6 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         taskSourceFile.text = customKotlinTask(" modified")
 
         cleanBuildDir()
-        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         withBuildCache().run "customTask"
         then:
         result.assertTaskNotSkipped(":customTask")
