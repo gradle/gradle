@@ -340,9 +340,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * This method does not resolve the configuration. Therefore, the return value does not include
      * transitive dependencies.
      * <p>
-     * Usage: This method should only be called on declarable configurations and will emit a deprecation warning if
-     * called on a configuration that does not permit this usage.  Calling this method on configurations that have
-     * declaration marked as deprecated will not warn.
+     * Usage: This method should only be called on declarable configurations, but will not warn if used otherwise.
      *
      * @return the set of dependencies
      * @see #extendsFrom(Configuration...)

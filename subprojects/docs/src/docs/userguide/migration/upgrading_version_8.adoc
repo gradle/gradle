@@ -59,12 +59,15 @@ Currently, the following methods should only be called with these listed allowed
 - `defaultDependencies(Action)` - DECLARABLE configurations only
 - `shouldResolveConsistentlyWith(Configuration)` - RESOLVABLE configurations only
 - `disableConsistentResolution()` - RESOLVABLE configurations only
-- `getDependencies() - DECLARABLE (also permitted when declaration is allowed but deprecated)
-- `getDependencyConstraints() - DECLARABLE (also permitted when declaration is allowed but deprecated)
+- `getDependencyConstraints()` - DECLARABLE (also permitted when declaration is allowed but deprecated)
 
+Intended usage is noted in the `Configuration` interface's Javadoc.
 This list is likely to grow in future releases.
 
 Starting in Gradle 9.0, using a configuration inconsistently with its intended usage will be prohibited.
+
+Also note that although it is not currently restricted, the `getDependencies()` method is really only intended for use with DECLARABLE configurations.
+The `getAllDependencies()` method, which retrieves all declared dependencies on a configuration and any superconfigurations, will not be restricted to any particular usage.
 
 [[deprecated_access_to_conventions]]
 ==== Deprecated access to plugin conventions
