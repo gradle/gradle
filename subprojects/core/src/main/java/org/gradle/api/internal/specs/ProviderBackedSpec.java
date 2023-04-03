@@ -16,10 +16,19 @@
 
 package org.gradle.api.internal.specs;
 
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 
-public class ProviderBackedSpec<T> implements Spec<T> {
+/**
+ * Exposes a {@code boolean} {@link Provider} as a {@link Spec} while
+ * making its task dependencies available via {@link TaskDependencyContainer} so
+ * instances can be directly added as
+ * {@link org.gradle.api.internal.tasks.DefaultTaskDependency task dependencies}.
+ */
+public class ProviderBackedSpec<T> implements Spec<T>, TaskDependencyContainer {
 
     private final Provider<Boolean> provider;
 
@@ -30,5 +39,12 @@ public class ProviderBackedSpec<T> implements Spec<T> {
     @Override
     public boolean isSatisfiedBy(T element) {
         return provider.get();
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        if (provider instanceof ProviderInternal<?>) {
+            ((ProviderInternal<?>) provider).visitDependencies(context);
+        }
     }
 }

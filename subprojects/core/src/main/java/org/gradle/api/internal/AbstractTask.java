@@ -33,8 +33,6 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectOrderingUtil;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.internal.specs.ProviderBackedSpec;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
@@ -329,8 +327,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.onlyIf(Provider)", new Runnable() {
             @Override
             public void run() {
-                addProviderTaskDependency(provider);
-                onlyIfSpec = onlyIfSpec.and(new ProviderBackedSpec<>(provider), "Task satisfies onlyIf provider");
+                onlyIfSpec = onlyIfSpec.and(specWithDependenciesFor(provider), "Task satisfies onlyIf provider");
             }
         });
     }
@@ -370,7 +367,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.setOnlyIf(Spec)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = createNewOnlyIfSpec().and(spec, "Task satisfies onlyIf spec");
+                onlyIfSpec = resetOnlyIfSpec().and(spec, "Task satisfies onlyIf spec");
             }
         });
     }
@@ -380,7 +377,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.setOnlyIf(String, Spec)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = createNewOnlyIfSpec().and(spec, onlyIfReason);
+                onlyIfSpec = resetOnlyIfSpec().and(spec, onlyIfReason);
             }
         });
     }
@@ -390,7 +387,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.setOnlyIf(Closure)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure, "Task satisfies onlyIf closure");
+                onlyIfSpec = resetOnlyIfSpec().and(onlyIfClosure, "Task satisfies onlyIf closure");
             }
         });
     }
@@ -400,10 +397,24 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.setOnlyIf(Provider)", new Runnable() {
             @Override
             public void run() {
-                addProviderTaskDependency(provider);
-                onlyIfSpec = createNewOnlyIfSpec().and(new ProviderBackedSpec<>(provider), "Task satisfies onlyIf provider");
+                onlyIfSpec = resetOnlyIfSpec().and(specWithDependenciesFor(provider), "Task satisfies onlyIf provider");
             }
         });
+    }
+
+    private ProviderBackedSpec<Task> specWithDependenciesFor(Provider<Boolean> provider) {
+        ProviderBackedSpec<Task> spec = new ProviderBackedSpec<>(provider);
+        dependencies.add(spec);
+        return spec;
+    }
+
+    private DescribingAndSpec<Task> resetOnlyIfSpec() {
+        removeOnlyIfProviderDependencies();
+        return createNewOnlyIfSpec();
+    }
+
+    private boolean removeOnlyIfProviderDependencies() {
+        return dependencies.getMutableValues().removeIf(it -> it instanceof ProviderBackedSpec);
     }
 
     private DescribingAndSpec<Task> createNewOnlyIfSpec() {
@@ -1092,17 +1103,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public List<ResourceLock> getSharedResources() {
         return getBuildServiceRegistry().getSharedResources(taskRequiredServices.getElements());
-    }
-
-    private void addProviderTaskDependency(Provider<?> provider) {
-        // See DefaultTaskDependency.visitDependencies
-        if (provider instanceof ProviderInternal) {
-            ProviderInternal<?> providerInternal = (ProviderInternal<?>) provider;
-            ValueSupplier.ValueProducer producer = providerInternal.getProducer();
-            if (producer.isKnown()) {
-                dependencies.add(provider);
-            }
-        }
     }
 
     private void notifyConventionAccess(String invocationDescription) {
