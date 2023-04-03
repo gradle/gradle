@@ -342,10 +342,8 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
     private static Configuration createSourceElements(RoleBasedConfigurationContainerInternal configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, JvmFeature feature) {
 
-        // TODO: Why are we using this non-standard name? For the `java` component, this
-        // equates to `mainSourceElements` instead of `sourceElements` as one would expect.
-        // Can we change this name without breaking compatibility? Is the variant name part
-        // of the component's API?
+        // TODO: We should update this name to use the standard convention of excluding the "main"
+        // prefix when using the main source set.
         String variantName = feature.getSourceSet().getName() + SOURCE_ELEMENTS_VARIANT_NAME_SUFFIX;
 
         @SuppressWarnings("deprecation") Configuration variant = configurations.createWithRole(variantName, ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE);
