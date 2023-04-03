@@ -16,6 +16,11 @@
 
 package org.gradle.integtests.fixtures
 
+/**
+ * A collection of suggestions to be displayed to the user when a build fails.
+ * These where repeated all over the test code, so they are now centralized here.
+ */
+
 class SuggestionsMessages {
 
     public static final String INFO_DEBUG = "Run with --info or --debug option to get more log output."

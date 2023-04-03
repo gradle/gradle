@@ -44,17 +44,17 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
 
     public ModuleVersionNotFoundException(ModuleComponentSelector selector, Collection<String> attemptedLocations, Collection<String> unmatchedVersions, Collection<RejectedVersion> rejectedVersions) {
         super(selector, format(selector, attemptedLocations, unmatchedVersions, rejectedVersions));
-        addPossibleResolution(attemptedLocations);
+        recordPossibleResolution(attemptedLocations);
     }
 
     public ModuleVersionNotFoundException(ModuleVersionIdentifier id, Collection<String> attemptedLocations) {
         super(id, format(id, attemptedLocations));
-        addPossibleResolution(attemptedLocations);
+        recordPossibleResolution(attemptedLocations);
     }
 
     public ModuleVersionNotFoundException(ModuleComponentSelector selector, Collection<String> attemptedLocations) {
         super(selector, format(selector, attemptedLocations));
-        addPossibleResolution(attemptedLocations);
+        recordPossibleResolution(attemptedLocations);
     }
 
     private static Factory<String> format(ModuleComponentSelector selector, Collection<String> locations, Collection<String> unmatchedVersions, Collection<RejectedVersion> rejectedVersions) {
@@ -145,11 +145,13 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
         builder.endChildren();
     }
 
-    // This method should ideally use more data to figure out if the message should be displayed
-    // or not. In particular, the ivy patterns can make it difficult to find out if an Ivy artifact
-    // source should be configured. At this stage, this information is lost, so we do a best effort
-    // based on the file locations.
-    private void addPossibleResolution(Collection<String> locations) {
+    /**
+     * This method should ideally use more data to figure out if the message should be displayed
+     * or not. In particular, the ivy patterns can make it difficult to find out if an Ivy artifact
+     * source should be configured. At this stage, this information is lost, so we do a best effort
+     * based on the file locations.
+     */
+    private void recordPossibleResolution(Collection<String> locations) {
         if (locations.size() == 1) {
             String singleLocation = locations.iterator().next();
             String format = getFormatName(singleLocation);
@@ -174,7 +176,7 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
     protected ModuleVersionResolveException createCopy() {
         try {
             String message = getMessage();
-            return getClass().getConstructor(ComponentSelector.class, Factory.class, Collection.class).newInstance(selector, (Factory<String>) () -> message, resolutions);
+            return getClass().getConstructor(ComponentSelector.class, Factory.class, Collection.class).newInstance(getSelector(), (Factory<String>) () -> message, resolutions);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

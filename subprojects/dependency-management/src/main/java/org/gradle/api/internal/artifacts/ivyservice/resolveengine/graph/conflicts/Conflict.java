@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.exceptions;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.util.List;
 
-/**
- * A provider of resolutions for an exception.
- * Exceptions can be derived from this interface to provide a list of resolutions that are then displayed in the suggestion section of the error message.
- */
+public class Conflict {
+    private final List<? extends ModuleVersionIdentifier> versions;
+    private final String message;
 
-@NonNullApi
-public interface ResolutionProvider {
-    List<String> getResolutions();
+    public <E> Conflict(List<? extends ModuleVersionIdentifier> versions, String message) {
+        this.versions = versions;
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public List<? extends ModuleVersionIdentifier> getVersions() {
+        return versions;
+    }
 }
