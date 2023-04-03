@@ -371,7 +371,7 @@ Options
 ${builtInOptions}
 
 Description
-     Assembles a jar archive containing the main classes.
+     Assembles a jar archive containing the classes of the 'main' feature.
 
 Group
      build
@@ -394,7 +394,7 @@ Options
 ${builtInOptions}
 
 Description
-     Assembles a jar archive containing the main classes.
+     Assembles a jar archive containing the classes of the 'main' feature.
 
 Group
      build

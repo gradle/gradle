@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
 class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
@@ -33,12 +33,12 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
     @Override
     String subprojectName() { 'app' }
 
-    def "defaults to Groovy build scripts"() {
+    def "defaults to Kotlin build scripts"() {
         when:
         run ('init', '--type', 'java-application')
 
         then:
-        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+        dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {

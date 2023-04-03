@@ -97,6 +97,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             // "-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true",
             "-DagpVersion=$agpVersion",
             "-DkotlinVersion=$kotlinVersion",
+            "-DjavaVersion=${AGP_VERSIONS.getMinimumJavaVersionFor(agpVersion).majorVersion}",
             "--stacktrace"],
         tasks].flatten()
         def runner = runner(*runnerArgs)

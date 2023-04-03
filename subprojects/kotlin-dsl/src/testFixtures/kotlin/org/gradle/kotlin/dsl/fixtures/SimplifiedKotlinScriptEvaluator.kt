@@ -208,6 +208,9 @@ class SimplifiedKotlinScriptEvaluator(
 
         override val jvmTarget: JavaVersion
             get() = JavaVersion.current()
+
+        override val allWarningsAsErrors: Boolean
+            get() = false
     }
 }
 
