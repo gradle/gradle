@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
@@ -34,9 +35,11 @@ public interface ResolveContext extends DependencyMetaDataProvider {
 
     String getDisplayName();
 
-    String getPath();
-
     Path getIdentityPath();
+
+    Path getProjectPath();
+
+    DomainObjectContext getDomainObjectContext();
 
     ResolutionStrategyInternal getResolutionStrategy();
 

@@ -216,7 +216,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ConfigurationsProvider configurationsProvider;
 
     private final Path identityPath;
-    private final Path path;
+    private final Path projectPath;
 
     // These fields are not covered by mutation lock
     private final String name;
@@ -309,7 +309,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.identityPath = domainObjectContext.identityPath(name);
-        this.path = domainObjectContext.projectPath(name);
+        this.projectPath = domainObjectContext.projectPath(name);
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.resolver = resolver;
@@ -576,7 +576,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     protected void appendContents(TreeFormatter formatter) {
-        formatter.node("configuration: " + getIdentityPath());
+        formatter.node("configuration: " + identityPath);
     }
 
     @Override
@@ -1004,7 +1004,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      */
     @Override
     public int getEstimatedGraphSize() {
-        return (int) (512 * Math.log(getAllDependencies().size()));
+        int estimate = (int) (512 * Math.log(getAllDependencies().size()));
+        return Math.max(10, estimate);
     }
 
     private synchronized void initAllDependencies() {
@@ -1466,13 +1467,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public String getPath() {
-        return path.getPath();
+    public Path getProjectPath() {
+        return projectPath;
     }
 
     @Override
     public Path getIdentityPath() {
         return identityPath;
+    }
+
+    @Override
+    public DomainObjectContext getDomainObjectContext() {
+        return domainObjectContext;
     }
 
     @Override
@@ -2132,12 +2138,13 @@ since users cannot create non-legacy configurations and there is no current publ
 
         @Override
         public String getPath() {
-            return path.getPath();
+            // TODO: Can we update this to identityPath?
+            return projectPath.getPath();
         }
 
         @Override
         public String toString() {
-            return "dependencies '" + getIdentityPath() + "'";
+            return "dependencies '" + identityPath + "'";
         }
 
         @Override

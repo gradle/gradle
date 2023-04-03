@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
@@ -71,6 +70,7 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.locking.DependencyLockingArtifactVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.util.Path;
 
 import java.util.Collections;
 import java.util.List;
@@ -174,12 +174,10 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         visitors.add(fileDependencyVisitor);
         visitors.add(artifactsBuilder);
         if (resolutionStrategy.getConflictResolution() == ConflictResolution.strict) {
-            ProjectComponentIdentifier projectId = resolveContext.getModule().getProjectId();
-            // projectId is null for DefaultModule used in settings
-            String projectPath = projectId != null
-                ? projectId.getProjectPath()
-                : "";
-            visitors.add(new FailOnVersionConflictArtifactsVisitor(projectPath, resolveContext.getName()));
+            Path projectPath = resolveContext.getDomainObjectContext().getProjectPath();
+            // projectPath is null for settings execution
+            String path = projectPath != null ? projectPath.getPath() : "";
+            visitors.add(new FailOnVersionConflictArtifactsVisitor(path, resolveContext.getName()));
         }
         DependencyLockingArtifactVisitor lockingVisitor = null;
         if (resolutionStrategy.isDependencyLockingEnabled()) {
