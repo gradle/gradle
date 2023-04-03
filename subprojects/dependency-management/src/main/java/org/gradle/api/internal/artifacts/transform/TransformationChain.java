@@ -25,8 +25,8 @@ import javax.annotation.Nullable;
  */
 public class TransformationChain implements Transformation {
 
-    private final Transformation first;
-    private final TransformationStep second;
+    private final Transformation init;
+    private final TransformationStep last;
     private final int stepsCount;
 
     private static final Transformation EMPTY = new Transformation() {
@@ -50,19 +50,19 @@ public class TransformationChain implements Transformation {
         }
     };
 
-    public TransformationChain(@Nullable Transformation first, TransformationStep second) {
-        this.first = first == null ? EMPTY : first;
-        this.second = second;
-        this.stepsCount = this.first.stepsCount() + 1;
+    public TransformationChain(@Nullable Transformation init, TransformationStep last) {
+        this.init = init == null ? EMPTY : init;
+        this.last = last;
+        this.stepsCount = this.init.stepsCount() + 1;
     }
 
     @Nullable
-    public Transformation getFirst() {
-        return first == EMPTY ? null : first;
+    public Transformation getInit() {
+        return init == EMPTY ? null : init;
     }
 
-    public TransformationStep getSecond() {
-        return second;
+    public TransformationStep getLast() {
+        return last;
     }
 
     @Override
@@ -72,20 +72,20 @@ public class TransformationChain implements Transformation {
 
     @Override
     public boolean requiresDependencies() {
-        return first.requiresDependencies() || second.getTransformer().requiresDependencies();
+        return init.requiresDependencies() || last.getTransformer().requiresDependencies();
     }
 
     @Override
     public String getDisplayName() {
-        String secondTransformerDisplayName = second.getTransformer().getDisplayName();
-        return first == EMPTY
+        String secondTransformerDisplayName = last.getTransformer().getDisplayName();
+        return init == EMPTY
             ? secondTransformerDisplayName
-            : first.getDisplayName() + " -> " + secondTransformerDisplayName;
+            : init.getDisplayName() + " -> " + secondTransformerDisplayName;
     }
 
     @Override
     public void visitTransformationSteps(Action<? super TransformationStep> action) {
-        first.visitTransformationSteps(action);
-        action.execute(second);
+        init.visitTransformationSteps(action);
+        action.execute(last);
     }
 }

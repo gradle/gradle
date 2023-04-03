@@ -27,8 +27,8 @@ import org.gradle.configurationcache.serialization.readNonNull
 
 class TransformationChainCodec : Codec<TransformationChain> {
     override suspend fun WriteContext.encode(value: TransformationChain) {
-        write(value.first)
-        write(value.second)
+        write(value.init)
+        write(value.last)
     }
 
     override suspend fun ReadContext.decode(): TransformationChain {
