@@ -44,8 +44,8 @@ import javax.annotation.Nullable;
 @Incubating
 public interface JvmFeature extends ComponentFeature {
 
-    // TODO: Should Javadoc even live on a generic JVM target? May be can call it withDocumentationJar?
-    // Scala and groovy have Groovydoc and Scaladoc. Kotlin has KDoc.
+    // TODO: Perhaps we should call this withDocumentationJar, or move it to a sub-interface which
+    // is java-specific.
 
     /**
      * Configures this feature to publish a javadoc jar alongside the primary artifacts. As a result,
@@ -61,9 +61,8 @@ public interface JvmFeature extends ComponentFeature {
      */
     void withSourcesJar();
 
-    // TODO: Should this live on the "base" JVM feature? Should all JVM features know how to add
-    // an API? Or should we have subclasses which have APIs and others, which support
-    // application features and test suites, which do not have APIs?
+    // TODO: Future work will need to separate this single JvmFeature into a JvmLibraryFeature
+    // and a JvmApplicationFeature, as the latter will not have an API.
 
     /**
      * Adds the {@code api} and {@code compileOnlyApi} dependency configurations to this feature.

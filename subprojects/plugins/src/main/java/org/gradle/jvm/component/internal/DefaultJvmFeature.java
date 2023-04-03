@@ -376,7 +376,7 @@ public class DefaultJvmFeature implements JvmFeature {
     }
 
     @Override
-    public CapabilitiesMetadata getCapabilities() {
+    public CapabilitiesMetadata getCommonCapabilities() {
         return ImmutableCapabilities.of(capabilities);
     }
 

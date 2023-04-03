@@ -78,8 +78,10 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
 
         registerFeatureImplementations(project);
 
-        // The current CompositeDomainObjectSet implementation is not lazy and eagerly realizes all
+        // TODO: The current CompositeDomainObjectSet implementation is not lazy and eagerly realizes all
         // elements of child collections. We should fix this to allow component variants to be lazy.
+        // TODO: We should add name-mapping here, so that features can use "local" names for their own variants
+        // and they get mapped to their "global" names by the component by prefixing the local name with the feature name.
         features.whenObjectAdded(feature -> this.variants.addCollection(feature.getVariants()));
         features.whenObjectRemoved(feature -> this.variants.removeCollection(feature.getVariants()));
     }
@@ -101,7 +103,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
 
             return objectFactory.newInstance(DefaultJvmFeature.class,
                 featureName, sourceSet, capabilities, "The '" + featureName + "' feature",
-                project, ConfigurationRoles.INTENDED_CONSUMABLE, false
+                project, ConfigurationRoles.CONSUMABLE, false
             );
         });
     }

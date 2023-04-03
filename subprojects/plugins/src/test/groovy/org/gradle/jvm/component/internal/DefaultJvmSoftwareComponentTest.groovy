@@ -173,7 +173,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         then:
         component.features.test instanceof JvmFeature
         component.features.test.sourceSet == sourceSets.getByName('test')
-        component.features.test.capabilities.capabilities.collect { it.group + ":" + it.name } == ["org:test-project-test"]
+        component.features.test.commonCapabilities.capabilities.collect { it.group + ":" + it.name } == ["org:test-project-test"]
     }
 
     def "cannot create multiple JvmFeature instances with the same name"() {
@@ -271,7 +271,7 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
-        CapabilitiesMetadata getCapabilities() {
+        CapabilitiesMetadata getCommonCapabilities() {
             return ImmutableCapabilities.of(new DefaultImmutableCapability("org", name, null))
         }
 

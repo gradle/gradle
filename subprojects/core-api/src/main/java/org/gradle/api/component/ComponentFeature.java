@@ -48,11 +48,7 @@ public interface ComponentFeature extends Named {
      * Get the capabilities of this feature. All variants exposed by this feature must provide at least
      * the same capabilities as this feature.
      */
-    CapabilitiesMetadata getCapabilities();
-
-    // TODO: Should these variants be the same type as the variants of a component?
-    // We may want some kind of name mapping going on here, where apiElements of the `test` feature
-    // becomes testApiElements (or testApiElements) of the component.
+    CapabilitiesMetadata getCommonCapabilities();
 
     /**
      * Get the variants exposed by this feature. These variants can be subsequently exposed by
