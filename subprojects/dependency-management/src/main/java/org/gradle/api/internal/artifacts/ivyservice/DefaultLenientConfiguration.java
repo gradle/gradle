@@ -271,7 +271,8 @@ public class DefaultLenientConfiguration implements LenientConfiguration, Visite
                 return BuildOperationDescriptor
                     .displayName(displayName)
                     .progressDisplayName(displayName)
-                    .details(new ResolveArtifactsDetails(resolveContext.getPath()));
+                    // TODO: Can we update this to use the identity path?
+                    .details(new ResolveArtifactsDetails(resolveContext.getProjectPath().toString()));
             }
         });
     }
