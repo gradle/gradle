@@ -37,7 +37,7 @@ import java.util.List;
 @Contextual
 public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoStackTrace {
     private final List<List<? extends ComponentIdentifier>> paths = new ArrayList<>();
-    protected final ComponentSelector selector;
+    private final ComponentSelector selector;
 
     public ModuleVersionResolveException(ComponentSelector selector, Factory<String> message, Throwable cause) {
         super(message, cause);
@@ -132,7 +132,7 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
     protected ModuleVersionResolveException createCopy() {
         try {
             String message = getMessage();
-            return getClass().getConstructor(ComponentSelector.class, Factory.class).newInstance(selector, (Factory<String>) () -> message);
+            return getClass().getConstructor(ComponentSelector.class, Factory.class).newInstance(getSelector(), (Factory<String>) () -> message);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
