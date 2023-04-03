@@ -998,7 +998,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DependencySet getDependencies() {
-        maybeWarnOnDeprecatedUsage("getDependencies()", true, ProperMethodUsage.DECLARABLE_AGAINST);
         return dependencies;
     }
 
