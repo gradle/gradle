@@ -84,7 +84,7 @@ fun unpackTransformationStep(node: TransformationNode): TransformStepSpec {
 
 
 fun unpackTransformationStep(transformation: TransformationStep, upstreamDependencies: TransformUpstreamDependencies): TransformStepSpec {
-    return if (transformation.requiresDependencies()) {
+    return if (transformation.transformer.requiresDependencies()) {
         TransformStepSpec.FileDependencies(transformation, upstreamDependencies.selectedArtifacts(), upstreamDependencies.configurationIdentity!!)
     } else {
         TransformStepSpec.NoDependencies(transformation)

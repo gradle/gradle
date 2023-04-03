@@ -233,7 +233,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
     @Override
     public String toString() {
-        return transformationStep.getDisplayName();
+        return transformationStep.getTransformer().getDisplayName();
     }
 
     public TransformationStep getTransformationStep() {
@@ -320,7 +320,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
                         } catch (ResolveException e) {
                             throw e;
                         } catch (RuntimeException e) {
-                            throw new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformationStep.getDisplayName(), "artifact transform", Collections.singleton(e));
+                            throw new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformationStep.getTransformer().getDisplayName(), "artifact transform", Collections.singleton(e));
                         }
 
                         return transformationStep
@@ -417,7 +417,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
         @Override
         public final BuildOperationDescriptor.Builder description() {
-            String transformerName = transformationStep.getDisplayName();
+            String transformerName = transformationStep.getTransformer().getDisplayName();
             String subjectName = describeSubject();
             String basicName = subjectName + " with " + transformerName;
             return BuildOperationDescriptor.displayName("Transform " + basicName)

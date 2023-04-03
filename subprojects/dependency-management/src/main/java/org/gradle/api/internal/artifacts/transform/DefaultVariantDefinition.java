@@ -32,7 +32,7 @@ public class DefaultVariantDefinition implements VariantDefinition {
     public DefaultVariantDefinition(@Nullable DefaultVariantDefinition previous, ImmutableAttributes attributes, TransformationStep transformationStep) {
         this.previous = previous;
         this.attributes = attributes;
-        this.transformation = previous != null ? new TransformationChain(previous.getTransformation(), transformationStep) : transformationStep;
+        this.transformation = new TransformationChain(previous == null ? null : previous.getTransformation(), transformationStep);
         this.transformationStep = transformationStep;
     }
 

@@ -224,11 +224,14 @@ Found the following transforms:
 
     TransformedVariant transformedVariant(ResolvedVariant root, AttributeContainerInternal attributes) {
         ImmutableAttributes attrs = attributes.asImmutable()
-        TransformationStep step = Mock(TransformationStep) {
+        Transformer transformer = Mock(Transformer) {
             getDisplayName() >> ""
         }
+        TransformationStep step = Mock(TransformationStep) {
+            getTransformer() >> transformer
+        }
         VariantDefinition definition = Mock(VariantDefinition) {
-            getTransformation() >> step
+            getTransformation() >> new TransformationChain(null, step)
             getTargetAttributes() >> attrs
         }
         return new TransformedVariant(root, definition)
