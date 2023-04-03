@@ -106,6 +106,22 @@ public interface ArchUnitFixture {
             .as("Gradle Internal API");
     }
 
+    static DescribedPredicate<JavaClass> inGradlePublicApiPackages() {
+        return new InGradlePublicApiPackages();
+    }
+
+    static DescribedPredicate<JavaClass> inTestFixturePackages() {
+        return resideInAnyPackage("org.gradle.test.fixtures..", "org.gradle.integtests.fixtures..", "org.gradle.architecture.test..")
+            .as("in test fixture packages");
+    }
+
+    static DescribedPredicate<JavaClass> inGradleInternalApiPackages() {
+        return resideInAnyPackage("org.gradle..")
+            .and(not(inGradlePublicApiPackages()))
+            .and(not(inTestFixturePackages()))
+            .as("in Gradle internal API packages");
+    }
+
     DescribedPredicate<JavaClass> primitive = new DescribedPredicate<JavaClass>("primitive") {
         @Override
         public boolean test(JavaClass input) {
@@ -264,10 +280,30 @@ public interface ArchUnitFixture {
         }
     }
 
-    class GradlePublicApi extends DescribedPredicate<JavaClass> {
+    class InGradlePublicApiPackages extends DescribedPredicate<JavaClass> {
         private static final PackageMatchers INCLUDES = PackageMatchers.of(parsePackageMatcher(System.getProperty("org.gradle.public.api.includes")));
         private static final PackageMatchers EXCLUDES = PackageMatchers.of(parsePackageMatcher(System.getProperty("org.gradle.public.api.excludes")));
+
+        public InGradlePublicApiPackages() {
+            super("In Gradle public API packages");
+        }
+
+        @Override
+        public boolean test(JavaClass input) {
+            return INCLUDES.test(input.getPackageName()) && !EXCLUDES.test(input.getPackageName());
+        }
+
+        private static Set<String> parsePackageMatcher(String packageList) {
+            return Arrays.stream(packageList.split(":"))
+                .map(include -> include.replace("**/", "..").replace("/**", "..").replace("/*", "").replace("/", "."))
+                .collect(toSet());
+        }
+    }
+
+    class GradlePublicApi extends DescribedPredicate<JavaClass> {
         private static final DescribedPredicate<JavaClass> TEST_FIXTURES = JavaClass.Predicates.belongToAnyOf(EmptyStatement.class, Matchers.class, PreconditionVerifier.class, Requires.class, SetSystemProperties.class, TestClassLoader.class, TestPrecondition.class, TestPreconditionExtension.class, UsesNativeServices.class, UsesNativeServicesExtension.class);
+
+        private final InGradlePublicApiPackages packages = new InGradlePublicApiPackages();
 
         public GradlePublicApi() {
             super("Gradle public API");
@@ -275,13 +311,7 @@ public interface ArchUnitFixture {
 
         @Override
         public boolean test(JavaClass input) {
-            return INCLUDES.test(input.getPackageName()) && !EXCLUDES.test(input.getPackageName()) && !TEST_FIXTURES.test(input) && input.getModifiers().contains(JavaModifier.PUBLIC);
-        }
-
-        private static Set<String> parsePackageMatcher(String packageList) {
-            return Arrays.stream(packageList.split(":"))
-                .map(include -> include.replace("**/", "..").replace("/**", "..").replace("/*", "").replace("/", "."))
-                .collect(toSet());
+            return packages.test(input) && !TEST_FIXTURES.test(input) && input.getModifiers().contains(JavaModifier.PUBLIC);
         }
     }
 
