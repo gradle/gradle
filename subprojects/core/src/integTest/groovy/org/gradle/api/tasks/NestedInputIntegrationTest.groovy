@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -991,6 +992,43 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         then:
         skipped(':myTask')
         project2.file('build/tmp/myTask/output.txt').text == "hello"
+    }
+
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/24405")
+    def "nested bean as input with null string is serialized correctly"() {
+        buildFile << """
+            interface SiteExtension {
+                @Nested
+                CustomData getCustomData();
+            }
+            interface CustomData {
+                Property<String> getWebsiteUrl();
+                Property<String> getVcsUrl();
+            }
+
+            def extension = project.getExtensions().create("site", SiteExtension.class);
+            abstract class CrashTask extends DefaultTask {
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDir();
+
+                @Input
+                abstract Property<CustomData> getCustomData();
+
+                @TaskAction
+                void run() {
+                }
+            }
+
+            extension.customData.vcsUrl = "goose"
+            tasks.register("crashTask", CrashTask) {
+                customData = extension.customData
+                outputDir = file("build/crashTask")
+            }
+        """
+
+        expect:
+        succeeds "crashTask"
     }
 
     private TestFile nestedBeanWithAction(TestFile projectDir = temporaryFolder.testDirectory) {
