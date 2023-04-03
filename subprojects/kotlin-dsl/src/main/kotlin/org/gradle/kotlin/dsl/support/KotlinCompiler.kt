@@ -112,6 +112,7 @@ fun compileKotlinScriptModuleTo(
     scriptDef: ScriptDefinition,
     classPath: Iterable<File>,
     logger: Logger,
+    allWarningsAsErrors: Boolean,
     pathTranslation: (String) -> String
 ) = compileKotlinScriptModuleTo(
     outputDirectory,
@@ -120,7 +121,7 @@ fun compileKotlinScriptModuleTo(
     scriptFiles,
     scriptDef,
     classPath,
-    LoggingMessageCollector(logger, pathTranslation)
+    LoggingMessageCollector(logger, onCompilerWarningsFor(allWarningsAsErrors), pathTranslation)
 )
 
 
@@ -241,11 +242,12 @@ fun compileToDirectory(
     moduleName: String,
     sourceFiles: Iterable<File>,
     logger: Logger,
-    classPath: Iterable<File>
+    classPath: Iterable<File>,
+    onCompilerWarning: EmbeddedKotlinCompilerWarning = EmbeddedKotlinCompilerWarning.WARN,
 ): Boolean {
 
     withRootDisposable {
-        withMessageCollectorFor(logger) { messageCollector ->
+        withMessageCollectorFor(logger, onCompilerWarning) { messageCollector ->
             val configuration = compilerConfigurationFor(messageCollector, jvmTarget).apply {
                 addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
                 put(OUTPUT_DIRECTORY, outputDirectory)
@@ -277,8 +279,8 @@ inline fun <T> withRootDisposable(action: Disposable.() -> T): T {
 
 
 private
-inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T {
-    val messageCollector = messageCollectorFor(log)
+inline fun <T> withMessageCollectorFor(log: Logger, onCompilerWarning: EmbeddedKotlinCompilerWarning, action: (MessageCollector) -> T): T {
+    val messageCollector = messageCollectorFor(log, onCompilerWarning)
     withCompilationExceptionHandler(messageCollector) {
         return action(messageCollector)
     }
@@ -386,7 +388,7 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, jvmTarget: Java
 
 internal
 fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
-    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 18
+    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 19
     return JvmTarget.fromString(majorVersion)
         ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
         else JVM_19
@@ -454,8 +456,21 @@ fun disposeKotlinCompilerContext() =
 
 
 internal
-fun messageCollectorFor(log: Logger, pathTranslation: (String) -> String = { it }): LoggingMessageCollector =
-    LoggingMessageCollector(log, pathTranslation)
+fun messageCollectorFor(
+    log: Logger,
+    allWarningsAsErrors: Boolean,
+    pathTranslation: (String) -> String,
+): LoggingMessageCollector =
+    messageCollectorFor(log, onCompilerWarningsFor(allWarningsAsErrors), pathTranslation)
+
+
+internal
+fun messageCollectorFor(
+    log: Logger,
+    onCompilerWarning: EmbeddedKotlinCompilerWarning = EmbeddedKotlinCompilerWarning.WARN,
+    pathTranslation: (String) -> String = { it }
+): LoggingMessageCollector =
+    LoggingMessageCollector(log, onCompilerWarning, pathTranslation)
 
 
 internal
@@ -529,9 +544,22 @@ const val indent = "  "
 
 
 internal
+enum class EmbeddedKotlinCompilerWarning {
+    FAIL, WARN, DEBUG
+}
+
+
+private
+fun onCompilerWarningsFor(allWarningsAsErrors: Boolean) =
+    if (allWarningsAsErrors) EmbeddedKotlinCompilerWarning.FAIL
+    else EmbeddedKotlinCompilerWarning.WARN
+
+
+internal
 class LoggingMessageCollector(
     internal val log: Logger,
-    private val pathTranslation: (String) -> String
+    private val onCompilerWarning: EmbeddedKotlinCompilerWarning,
+    private val pathTranslation: (String) -> String,
 ) : MessageCollector {
 
     val errors = arrayListOf<ScriptCompilationError>()
@@ -555,15 +583,24 @@ class LoggingMessageCollector(
         fun taggedMsg() =
             "${severity.presentableName[0]}: ${msg()}"
 
-        when (severity) {
-            CompilerMessageSeverity.ERROR, CompilerMessageSeverity.EXCEPTION -> {
-                errors += ScriptCompilationError(message, location)
-                log.error { taggedMsg() }
-            }
+        fun onError() {
+            errors += ScriptCompilationError(message, location)
+            log.error { taggedMsg() }
+        }
 
+        fun onWarning() {
+            when (onCompilerWarning) {
+                EmbeddedKotlinCompilerWarning.FAIL -> onError()
+                EmbeddedKotlinCompilerWarning.WARN -> log.warn { taggedMsg() }
+                EmbeddedKotlinCompilerWarning.DEBUG -> log.debug { taggedMsg() }
+            }
+        }
+
+        when (severity) {
+            CompilerMessageSeverity.ERROR, CompilerMessageSeverity.EXCEPTION -> onError()
             in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
-            CompilerMessageSeverity.STRONG_WARNING -> log.warn { taggedMsg() }
-            CompilerMessageSeverity.WARNING -> log.warn { taggedMsg() }
+            CompilerMessageSeverity.STRONG_WARNING -> onWarning()
+            CompilerMessageSeverity.WARNING -> onWarning()
             CompilerMessageSeverity.INFO -> log.info { msg() }
             else -> log.debug { taggedMsg() }
         }

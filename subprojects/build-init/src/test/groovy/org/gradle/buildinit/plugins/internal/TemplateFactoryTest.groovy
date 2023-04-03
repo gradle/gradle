@@ -119,7 +119,7 @@ class TemplateFactoryTest extends Specification {
     }
 
     private createInitSettings(String packageName) {
-        new InitSettings("project", false, ["app"], ModularizationOption.SINGLE_PROJECT, BuildInitDsl.GROOVY, packageName,
+        new InitSettings("project", false, ["app"], ModularizationOption.SINGLE_PROJECT, BuildInitDsl.KOTLIN, packageName,
             BuildInitTestFramework.NONE, InsecureProtocolOption.WARN, targetDir, empty())
     }
 

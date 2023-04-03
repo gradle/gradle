@@ -74,8 +74,8 @@ class InitBuildSpec extends Specification {
         projectLayoutRegistry.get(ComponentType.BASIC, Language.NONE) >> projectSetupDescriptor
         projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
         projectSetupDescriptor.componentType >> ComponentType.BASIC
-        projectSetupDescriptor.dsls >> [GROOVY]
-        projectSetupDescriptor.defaultDsl >> GROOVY
+        projectSetupDescriptor.dsls >> [KOTLIN]
+        projectSetupDescriptor.defaultDsl >> KOTLIN
         projectSetupDescriptor.testFrameworks >> [NONE]
         projectSetupDescriptor.defaultTestFramework >> NONE
         projectSetupDescriptor.getFurtherReading(_ as InitSettings) >> empty()
@@ -84,7 +84,7 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
 
         then:
-        1 * projectSetupDescriptor.generate({it.dsl == GROOVY && it.testFramework == NONE})
+        1 * projectSetupDescriptor.generate({it.dsl == KOTLIN && it.testFramework == NONE})
     }
 
     def "creates project with specified type and dsl and test framework"() {
@@ -111,7 +111,7 @@ class InitBuildSpec extends Specification {
         projectLayoutRegistry.get("some-type") >> projectSetupDescriptor
         projectSetupDescriptor.id >> "some-type"
         projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
-        projectSetupDescriptor.dsls >> [GROOVY]
+        projectSetupDescriptor.dsls >> [KOTLIN]
         projectSetupDescriptor.testFrameworks >> [NONE, JUNIT]
         init.type = "some-type"
         init.testFramework = "spock"

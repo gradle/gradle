@@ -17,13 +17,8 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
-import org.gradle.api.tasks.SourceSet;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 
 import javax.inject.Inject;
@@ -37,39 +32,20 @@ import javax.inject.Inject;
  */
 public abstract class JavaLibraryPlugin implements Plugin<Project> {
 
-    private final JvmEcosystemUtilities jvmEcosystemUtilities;
-
     @Inject
-    public JavaLibraryPlugin(JvmEcosystemUtilities jvmEcosystemUtilities) {
-        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
-    }
+    public JavaLibraryPlugin() { }
 
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
 
         JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
-        SourceSet sourceSet = component.getSourceSet();
-
-        // TODO: Why do we not do this in createApiElements?
-        jvmEcosystemUtilities.configureClassesDirectoryVariant(component.getApiElementsConfiguration(), sourceSet);
-
-        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
-
-        Configuration api = configurations.maybeCreateWithRole(sourceSet.getApiConfigurationName(), ConfigurationRoles.INTENDED_BUCKET, false, false);
-        api.setDescription("API dependencies for " + sourceSet + ".");
-        api.setVisible(false);
-
-        Configuration compileOnlyApi = configurations.maybeCreateWithRole(sourceSet.getCompileOnlyApiConfigurationName(), ConfigurationRoles.INTENDED_BUCKET, false, false);
-        compileOnlyApi.setDescription("Compile only API dependencies for " + sourceSet + ".");
-        compileOnlyApi.setVisible(false);
-
-        component.getApiElementsConfiguration().extendsFrom(api, compileOnlyApi);
-        component.getImplementationConfiguration().extendsFrom(api);
-        component.getCompileOnlyConfiguration().extendsFrom(compileOnlyApi);
+        component.getMainFeature().withApi();
 
         // Make compileOnlyApi visible to tests.
         JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
-        configurations.getByName(defaultTestSuite.getSources().getCompileOnlyConfigurationName()).extendsFrom(compileOnlyApi);
+        project.getConfigurations()
+            .getByName(defaultTestSuite.getSources().getCompileOnlyConfigurationName())
+            .extendsFrom(component.getMainFeature().getCompileOnlyApiConfiguration());
     }
 }

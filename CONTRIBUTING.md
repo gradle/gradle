@@ -144,6 +144,7 @@ Then force push your branch:
 The Gradle build uses [Java Toolchain](https://docs.gradle.org/current/userguide/toolchains.html) support to compile and execute tests across multiple versions of Java.
 
 Available JDKs on your machine are automatically detected and wired for the various compile and test tasks.
+Some tests require multiple JDKs to be installed on your computer, be aware of this if you make changes related to anything toolchains related.
 
 If you want to explicitly run tests with a different Java version, you need to specify `-PtestJavaVersion=#` with the major version of the JDK you want the tests to run with (e.g. `-PtestJavaVersion=14`).
 
