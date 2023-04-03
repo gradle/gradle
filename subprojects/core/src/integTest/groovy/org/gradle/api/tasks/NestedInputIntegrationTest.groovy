@@ -782,6 +782,23 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         output.contains("Input property 'nested.key1' has been removed for task ':myTask'")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/24594")
+    def "nested map with non-string key works"() {
+        buildFile << """
+            abstract class CustomTask extends DefaultTask {
+                @Nested
+                abstract MapProperty<Integer, Object> getMap()
+            }
+
+            tasks.register("customTask", CustomTask) {
+                map.put(100, "example")
+            }
+        """
+
+        expect:
+        succeeds("customTask")
+    }
+
 
     private static String namedBeanClass() {
         """
