@@ -15,20 +15,21 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A provider of dependency resolution metadata for components produced by another build in the build tree.
+ * A provider of dependency resolution metadata for components produced anywhere in the build tree.
  *
  * <p>In general, you should be using {@link LocalComponentRegistry} instead of this type.</p>
  */
 @ThreadSafe
-public interface LocalComponentInAnotherBuildProvider {
+public interface LocalComponentInBuildTreeProvider {
     /**
      * @return The component metadata for the supplied identifier.
      */
-    LocalComponentGraphResolveState getComponent(ProjectState project);
+    LocalComponentGraphResolveState getComponent(BuildIdentifier currentBuild, ProjectComponentIdentifier projectIdentifier);
 }

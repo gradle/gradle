@@ -21,6 +21,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContributor;
 import org.gradle.internal.buildtree.GlobalDependencySubstitutionRegistry;
@@ -76,8 +77,8 @@ public class CompositeBuildServices extends AbstractPluginServiceRegistry {
             return new DefaultBuildableCompositeBuildContext();
         }
 
-        public DefaultLocalComponentInAnotherBuildProvider createLocalComponentProvider(CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            return new DefaultLocalComponentInAnotherBuildProvider(new IncludedBuildDependencyMetadataBuilder(), calculatedValueContainerFactory);
+        public DefaultLocalComponentInBuildTreeProvider createLocalComponentProvider(CalculatedValueContainerFactory calculatedValueContainerFactory, ProjectStateRegistry projectStateRegistry) {
+            return new DefaultLocalComponentInBuildTreeProvider(calculatedValueContainerFactory, projectStateRegistry);
         }
     }
 }

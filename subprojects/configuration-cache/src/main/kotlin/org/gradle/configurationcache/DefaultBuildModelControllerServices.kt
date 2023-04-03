@@ -18,8 +18,11 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentInAnotherBuildProvider
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentInBuildTreeProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.project.CrossProjectModelAccess
@@ -28,7 +31,6 @@ import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
 import org.gradle.api.internal.project.DynamicLookupRoutine
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.internal.DynamicCallContextTracker
@@ -195,16 +197,21 @@ class DefaultBuildModelControllerServices(
             return ConfigurationCacheAwareProjectEvaluator(evaluator, fingerprintController)
         }
 
+        fun createLocalComponentProvider(
+            metadataBuilder: LocalConfigurationMetadataBuilder,
+            moduleIdentifierFactory: ImmutableModuleIdentifierFactory,
+            calculatedValueContainerFactory: CalculatedValueContainerFactory,
+            cache: BuildTreeConfigurationCache
+        ): LocalComponentProvider {
+            val provider = VintageModelProvider().createLocalComponentProvider(metadataBuilder, moduleIdentifierFactory, calculatedValueContainerFactory)
+            return ConfigurationCacheAwareLocalComponentProvider(provider, cache)
+        }
+
         fun createLocalComponentRegistry(
             currentBuild: BuildState,
-            projectStateRegistry: ProjectStateRegistry,
-            calculatedValueContainerFactory: CalculatedValueContainerFactory,
-            cache: BuildTreeConfigurationCache,
-            provider: LocalComponentProvider,
-            otherBuildProvider: LocalComponentInAnotherBuildProvider
+            otherBuildProvider: LocalComponentInBuildTreeProvider
         ): LocalComponentRegistry {
-            val effectiveProvider = ConfigurationCacheAwareLocalComponentProvider(provider, cache)
-            return VintageModelProvider().createLocalComponentRegistry(currentBuild, projectStateRegistry, calculatedValueContainerFactory, effectiveProvider, otherBuildProvider)
+            return VintageModelProvider().createLocalComponentRegistry(currentBuild, otherBuildProvider)
         }
     }
 
@@ -224,14 +231,19 @@ class DefaultBuildModelControllerServices(
             return LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator, cancellationToken)
         }
 
+        fun createLocalComponentProvider(
+            metadataBuilder: LocalConfigurationMetadataBuilder,
+            moduleIdentifierFactory: ImmutableModuleIdentifierFactory,
+            calculatedValueContainerFactory: CalculatedValueContainerFactory
+        ): LocalComponentProvider {
+            return DefaultProjectLocalComponentProvider(metadataBuilder, moduleIdentifierFactory, calculatedValueContainerFactory)
+        }
+
         fun createLocalComponentRegistry(
             currentBuild: BuildState,
-            projectStateRegistry: ProjectStateRegistry,
-            calculatedValueContainerFactory: CalculatedValueContainerFactory,
-            provider: LocalComponentProvider,
-            otherBuildProvider: LocalComponentInAnotherBuildProvider
+            otherBuildProvider: LocalComponentInBuildTreeProvider
         ): DefaultLocalComponentRegistry {
-            return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, projectStateRegistry, calculatedValueContainerFactory, provider, otherBuildProvider)
+            return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, otherBuildProvider)
         }
     }
 }
