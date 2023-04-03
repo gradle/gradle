@@ -46,7 +46,6 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
 
         when:
         def tasks = ['init', '--type', "${language}-application".toString(), '--split-project', '--dsl', dsl.id] + (incubating ? ['--incubating'] : [])
-        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         run(tasks)
 
         then:
@@ -87,7 +86,6 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         targetDir.file("utilities").assertHasDescendants(utilFiles)
 
         when:
-        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         succeeds "build"
 
         then:
@@ -98,7 +96,6 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         assertTestPassed("list", "some.thing.list.LinkedListTest", "testRemoveMissing")
 
         when:
-        executer.noDeprecationChecks() // Lots of getDependencies() calls on non-declarable configurations here
         succeeds "run"
 
         then:

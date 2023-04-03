@@ -401,7 +401,6 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def conf = Mock(ConfigurationInternal) {
             getName() >> name
             getAttributes() >> ImmutableAttributes.EMPTY
-            isCanBeDeclaredAgainst() >> true
             getDependencies() >> dependencies
             getDependencyConstraints() >> dependencyConstraints
             getExcludeRules() >> new LinkedHashSet<ExcludeRule>()
