@@ -18,26 +18,50 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 
+import javax.annotation.Nullable;
+
 /**
  * A series of {@link TransformationStep}s.
  */
 public class TransformationChain implements Transformation {
 
     private final Transformation first;
-    private final Transformation second;
+    private final TransformationStep second;
     private final int stepsCount;
 
-    public TransformationChain(Transformation first, Transformation second) {
-        this.first = first;
+    private static final Transformation EMPTY = new Transformation() {
+        @Override
+        public int stepsCount() {
+            return 0;
+        }
+
+        @Override
+        public boolean requiresDependencies() {
+            return false;
+        }
+
+        @Override
+        public void visitTransformationSteps(Action<? super TransformationStep> action) {
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "EMPTY";
+        }
+    };
+
+    public TransformationChain(@Nullable Transformation first, TransformationStep second) {
+        this.first = first == null ? EMPTY : first;
         this.second = second;
-        this.stepsCount = first.stepsCount() + second.stepsCount();
+        this.stepsCount = this.first.stepsCount() + 1;
     }
 
+    @Nullable
     public Transformation getFirst() {
-        return first;
+        return first == EMPTY ? null : first;
     }
 
-    public Transformation getSecond() {
+    public TransformationStep getSecond() {
         return second;
     }
 
@@ -48,17 +72,20 @@ public class TransformationChain implements Transformation {
 
     @Override
     public boolean requiresDependencies() {
-        return first.requiresDependencies() || second.requiresDependencies();
+        return first.requiresDependencies() || second.getTransformer().requiresDependencies();
     }
 
     @Override
     public String getDisplayName() {
-        return first.getDisplayName() + " -> " + second.getDisplayName();
+        String secondTransformerDisplayName = second.getTransformer().getDisplayName();
+        return first == EMPTY
+            ? secondTransformerDisplayName
+            : first.getDisplayName() + " -> " + secondTransformerDisplayName;
     }
 
     @Override
     public void visitTransformationSteps(Action<? super TransformationStep> action) {
         first.visitTransformationSteps(action);
-        second.visitTransformationSteps(action);
+        action.execute(second);
     }
 }
