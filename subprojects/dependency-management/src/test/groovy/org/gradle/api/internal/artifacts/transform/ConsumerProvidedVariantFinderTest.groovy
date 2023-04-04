@@ -491,7 +491,6 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     private void assertTransformChain(TransformedVariant chain, ResolvedVariant source, AttributeContainer finalAttributes, ArtifactTransformRegistration... steps) {
         assert chain.root == source
         assert chain.attributes == finalAttributes
-        assert chain.transformationChain.stepsCount() == steps.length
         def actualSteps = []
         chain.transformationChain.visitTransformationSteps {
             actualSteps << it
