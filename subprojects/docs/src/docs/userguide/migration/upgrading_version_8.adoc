@@ -154,6 +154,14 @@ The following method on `Configuration` is deprecated for removal:
 
 Obtain the set of all configurations from the project's `configurations` container instead.
 
+=== Potential breaking changes
+
+[[kotlin_1_8.20]]
+==== Upgrade to Kotlin 1.8.20
+
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.20[Kotlin 1.8.20].
+For more information, see https://kotlinlang.org/docs/whatsnew1820.html[What's new in Kotlin 1.8.20].
+
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
 
