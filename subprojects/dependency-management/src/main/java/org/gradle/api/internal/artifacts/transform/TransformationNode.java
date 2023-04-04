@@ -417,13 +417,13 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
         @Override
         public final BuildOperationDescriptor.Builder description() {
-            String transformerName = transformationStep.getDisplayName();
+            String transformationStepName = transformationStep.getDisplayName();
             String subjectName = describeSubject();
-            String basicName = subjectName + " with " + transformerName;
+            String basicName = subjectName + " with " + transformationStepName;
             return BuildOperationDescriptor.displayName("Transform " + basicName)
                 .progressDisplayName(TRANSFORMING_PROGRESS_PREFIX + basicName)
                 .metadata(BuildOperationCategory.TRANSFORM)
-                .details(new ExecutePlannedTransformStepBuildOperationDetails(TransformationNode.this, transformerName, subjectName));
+                .details(new ExecutePlannedTransformStepBuildOperationDetails(TransformationNode.this, transformationStepName, subjectName));
         }
 
         protected abstract String describeSubject();
