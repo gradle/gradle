@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.hamcrest.CoreMatchers
 import org.junit.Assume
+import spock.lang.Ignore
 
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
 
@@ -286,6 +287,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
     }
 
     @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
+    @Ignore('https://github.com/gradle/gradle-private/issues/3811')
     def "can deduplicate test filters when #scenario"() {
         given:
         createPassingFailingTest()
