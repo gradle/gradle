@@ -58,6 +58,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.internal.ConfigureUtil;
@@ -229,6 +230,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         };
     }
 
+    @Deprecated
     @Override
     public Dependency module(Object notation) {
         return module(notation, null);
@@ -239,9 +241,17 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         return dependencyFactory.createProjectDependencyFromMap(projectFinder, notation);
     }
 
+    @Deprecated
     @Override
     @SuppressWarnings("rawtypes")
     public Dependency module(Object notation, @Nullable Closure configureClosure) {
+
+        DeprecationLogger.deprecate("Declaring client module dependencies")
+            .withAdvice("Use component metadata rules instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "declaring_client_module_dependencies")
+            .nagUser();
+
         return dependencyFactory.createModule(notation, configureClosure);
     }
 

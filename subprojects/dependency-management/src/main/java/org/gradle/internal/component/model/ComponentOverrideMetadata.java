@@ -16,8 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.ClientModule;
-
 import javax.annotation.Nullable;
 
 /**
@@ -37,7 +35,8 @@ public interface ComponentOverrideMetadata {
      * If the request originated from a ClientModule, return it. Null otherwise.
      */
     @Nullable
-    ClientModule getClientModule();
+    @Deprecated
+    org.gradle.api.artifacts.ClientModule getClientModule();
 
     /**
      * Return true if the dependency declaration defines this component as changing.

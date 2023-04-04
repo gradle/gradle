@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Incubating
-import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
@@ -27,7 +26,6 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 
 import org.gradle.kotlin.dsl.accessors.runtime.externalModuleDependencyFor
 
-import org.gradle.kotlin.dsl.support.delegates.ClientModuleDelegate
 import org.gradle.kotlin.dsl.support.excludeMapFor
 import org.gradle.kotlin.dsl.support.mapOfNonNullValuesOf
 import org.gradle.kotlin.dsl.support.uncheckedCast
@@ -95,6 +93,8 @@ inline fun DependencyHandler.create(dependencyNotation: String, dependencyConfig
  *
  * @see [DependencyHandler.create]
  */
+@Suppress("DEPRECATION")
+@Deprecated("Will be removed in Gradle 9.0")
 fun DependencyHandler.module(
     group: String,
     name: String,
@@ -102,7 +102,7 @@ fun DependencyHandler.module(
     configuration: String? = null,
     classifier: String? = null,
     ext: String? = null
-): ClientModule =
+): org.gradle.api.artifacts.ClientModule =
 
     module(
         mapOfNonNullValuesOf(
@@ -113,7 +113,7 @@ fun DependencyHandler.module(
             "classifier" to classifier,
             "ext" to ext
         )
-    ) as ClientModule
+    ) as org.gradle.api.artifacts.ClientModule
 
 
 /**
@@ -130,6 +130,8 @@ fun DependencyHandler.module(
  *
  * @see [DependencyHandler.create]
  */
+@Suppress("DEPRECATION")
+@Deprecated("Will be removed in Gradle 9.0")
 fun DependencyHandler.module(
     group: String,
     name: String,
@@ -138,7 +140,7 @@ fun DependencyHandler.module(
     classifier: String? = null,
     ext: String? = null,
     clientModuleConfiguration: ClientModuleScope.() -> Unit
-): ClientModule =
+): org.gradle.api.artifacts.ClientModule =
 
     configureClientModule(
         module(
@@ -150,7 +152,7 @@ fun DependencyHandler.module(
                 "classifier" to classifier,
                 "ext" to ext
             )
-        ) as ClientModule,
+        ) as org.gradle.api.artifacts.ClientModule,
         clientModuleConfiguration
     )
 
@@ -162,19 +164,22 @@ fun DependencyHandler.module(
  * @param clientModuleConfiguration The expression to use to configure the dependency.
  * @return The dependency.
  */
+@Suppress("DEPRECATION")
+@Deprecated("Will be removed in Gradle 9.0")
 fun DependencyHandler.module(
     notation: Any,
     clientModuleConfiguration: ClientModuleScope.() -> Unit
-): ClientModule =
+): org.gradle.api.artifacts.ClientModule =
 
-    configureClientModule(module(notation) as ClientModule, clientModuleConfiguration)
+    configureClientModule(module(notation) as org.gradle.api.artifacts.ClientModule, clientModuleConfiguration)
 
 
+@Suppress("DEPRECATION")
 private
 inline fun DependencyHandler.configureClientModule(
-    module: ClientModule,
+    module: org.gradle.api.artifacts.ClientModule,
     clientModuleConfiguration: ClientModuleScope.() -> Unit
-): ClientModule =
+): org.gradle.api.artifacts.ClientModule =
     module.apply {
         ClientModuleScope(this@configureClientModule, this@apply).clientModuleConfiguration()
     }
@@ -183,12 +188,14 @@ inline fun DependencyHandler.configureClientModule(
 /**
  * Receiver for [ClientModule] configuration blocks.
  */
+@Suppress("DEPRECATION")
+@Deprecated("Will be removed in Gradle 9.0")
 class ClientModuleScope(
     private val dependencyHandler: DependencyHandler,
-    val clientModule: ClientModule
-) : ClientModuleDelegate() {
+    val clientModule: org.gradle.api.artifacts.ClientModule
+) : org.gradle.kotlin.dsl.support.delegates.ClientModuleDelegate() {
 
-    override val delegate: ClientModule
+    override val delegate: org.gradle.api.artifacts.ClientModule
         get() = clientModule
 
     fun module(

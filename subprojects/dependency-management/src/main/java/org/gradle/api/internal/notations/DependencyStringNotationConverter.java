@@ -18,7 +18,6 @@ package org.gradle.api.internal.notations;
 
 import com.google.common.collect.Interner;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
@@ -85,9 +84,10 @@ public class DependencyStringNotationConverter<T> implements NotationConverter<S
         }
     }
 
+    @SuppressWarnings("deprecation")
     private ParsedModuleStringNotation splitModuleFromExtension(String notation) {
         int idx = notation.lastIndexOf('@');
-        if (idx == -1 || ClientModule.class.isAssignableFrom(wantedType)) {
+        if (idx == -1 || org.gradle.api.artifacts.ClientModule.class.isAssignableFrom(wantedType)) {
             return new ParsedModuleStringNotation(notation, null);
         }
         int versionIndx = notation.lastIndexOf(':');

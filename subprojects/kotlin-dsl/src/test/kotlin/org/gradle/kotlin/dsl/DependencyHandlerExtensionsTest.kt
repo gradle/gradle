@@ -11,7 +11,6 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 import org.gradle.api.Action
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
@@ -199,15 +198,16 @@ class DependencyHandlerExtensionsTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun `client module configuration`() {
 
-        val clientModule = mock<ClientModule> {
+        val clientModule = mock<org.gradle.api.artifacts.ClientModule> {
             on { setTransitive(any()) }.thenAnswer { it.mock }
         }
 
         val commonsCliDependency = mock<ExternalModuleDependency>(name = "commonsCliDependency")
 
-        val antModule = mock<ClientModule>(name = "antModule")
+        val antModule = mock<org.gradle.api.artifacts.ClientModule>(name = "antModule")
         val antLauncherDependency = mock<ExternalModuleDependency>(name = "antLauncherDependency")
         val antJUnitDependency = mock<ExternalModuleDependency>(name = "antJUnitDependency")
 
