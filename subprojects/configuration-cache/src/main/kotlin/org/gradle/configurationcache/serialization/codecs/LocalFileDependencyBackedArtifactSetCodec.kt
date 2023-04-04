@@ -39,7 +39,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDepen
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver
-import org.gradle.api.internal.artifacts.transform.Transformation
+import org.gradle.api.internal.artifacts.transform.TransformationChain
 import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory
 import org.gradle.api.internal.artifacts.transform.VariantDefinition
@@ -114,7 +114,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
                 if (selected == ResolvedArtifactSet.EMPTY) {
                     // Don't need to record the mapping
                 } else if (recordingSet.targetAttributes != null) {
-                    mappings[sourceAttributes] = TransformMapping(recordingSet.targetAttributes!!, recordingSet.transformation!!)
+                    mappings[sourceAttributes] = TransformMapping(recordingSet.targetAttributes!!, recordingSet.transformationChain!!)
                 } else {
                     mappings[sourceAttributes] = IdentityMapping
                 }
@@ -167,7 +167,7 @@ class RecordingVariantSet(
     private val attributes: ImmutableAttributes
 ) : ResolvedVariantSet, ResolvedVariant, VariantSelector.Factory, ResolvedArtifactSet {
     var targetAttributes: ImmutableAttributes? = null
-    var transformation: Transformation? = null
+    var transformationChain: TransformationChain? = null
 
     override fun asDescribable(): DisplayName {
         return Describables.of(source)
@@ -227,7 +227,7 @@ class RecordingVariantSet(
         dependenciesResolver: ExtraExecutionGraphDependenciesResolverFactory,
         transformedVariantFactory: TransformedVariantFactory
     ): ResolvedArtifactSet {
-        this.transformation = variantDefinition.transformation
+        this.transformationChain = variantDefinition.transformationChain
         this.targetAttributes = variantDefinition.targetAttributes
         return sourceVariant.artifacts
     }
@@ -239,13 +239,13 @@ sealed class MappingSpec
 
 
 private
-class TransformMapping(private val targetAttributes: ImmutableAttributes, private val transformation: Transformation) : MappingSpec(), VariantDefinition {
+class TransformMapping(private val targetAttributes: ImmutableAttributes, private val transformationChain: TransformationChain) : MappingSpec(), VariantDefinition {
     override fun getTargetAttributes(): ImmutableAttributes {
         return targetAttributes
     }
 
-    override fun getTransformation(): Transformation {
-        return transformation
+    override fun getTransformationChain(): TransformationChain {
+        return transformationChain
     }
 
     override fun getTransformationStep(): TransformationStep {
@@ -327,7 +327,7 @@ class EmptyDependenciesResolverFactory : ExtraExecutionGraphDependenciesResolver
         return null
     }
 
-    override fun create(componentIdentifier: ComponentIdentifier, transformation: Transformation): TransformUpstreamDependenciesResolver {
+    override fun create(componentIdentifier: ComponentIdentifier, transformationChain: TransformationChain): TransformUpstreamDependenciesResolver {
         return this
     }
 

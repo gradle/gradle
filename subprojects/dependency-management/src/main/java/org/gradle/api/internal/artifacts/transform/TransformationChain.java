@@ -23,69 +23,48 @@ import javax.annotation.Nullable;
 /**
  * A series of {@link TransformationStep}s.
  */
-public class TransformationChain implements Transformation {
+public class TransformationChain {
 
-    private final Transformation init;
+    private final TransformationChain init;
     private final TransformationStep last;
     private final int stepsCount;
 
-    private static final Transformation EMPTY = new Transformation() {
-        @Override
-        public int stepsCount() {
-            return 0;
-        }
-
-        @Override
-        public boolean requiresDependencies() {
-            return false;
-        }
-
-        @Override
-        public void visitTransformationSteps(Action<? super TransformationStep> action) {
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "EMPTY";
-        }
-    };
-
-    public TransformationChain(@Nullable Transformation init, TransformationStep last) {
-        this.init = init == null ? EMPTY : init;
+    public TransformationChain(@Nullable TransformationChain init, TransformationStep last) {
+        this.init = init;
         this.last = last;
-        this.stepsCount = this.init.stepsCount() + 1;
+        this.stepsCount = init == null
+            ? 1
+            : (init.stepsCount() + 1);
     }
 
     @Nullable
-    public Transformation getInit() {
-        return init == EMPTY ? null : init;
+    public TransformationChain getInit() {
+        return init;
     }
 
     public TransformationStep getLast() {
         return last;
     }
 
-    @Override
     public int stepsCount() {
         return stepsCount;
     }
 
-    @Override
     public boolean requiresDependencies() {
-        return init.requiresDependencies() || last.requiresDependencies();
+        return (init != null && init.requiresDependencies()) || last.requiresDependencies();
     }
 
-    @Override
     public String getDisplayName() {
         String lastDisplayName = last.getDisplayName();
-        return init == EMPTY
+        return init == null
             ? lastDisplayName
             : init.getDisplayName() + " -> " + lastDisplayName;
     }
 
-    @Override
     public void visitTransformationSteps(Action<? super TransformationStep> action) {
-        init.visitTransformationSteps(action);
+        if (init != null) {
+            init.visitTransformationSteps(action);
+        }
         action.execute(last);
     }
 }
