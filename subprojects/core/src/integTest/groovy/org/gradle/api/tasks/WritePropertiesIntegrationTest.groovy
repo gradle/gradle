@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.internal.deprecation.DeprecationLogger
 
 import static org.gradle.util.internal.GUtil.loadProperties
 
@@ -51,6 +52,7 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         file("output.properties").text == normalize("""
             #Line comment
             """)
+        outputContains(DeprecationLogger.HAS_BEEN_DEPRECATED_MESSAGE)
     }
 
     private runProps() {

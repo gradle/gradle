@@ -16,9 +16,11 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.r71
 
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.test.fixtures.Flaky
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 
 @TargetGradleVersion(">=7.1")
@@ -35,7 +37,9 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
         file("src/main/kotlin/myplugin.gradle.kts") << ''
 
         when:
-        def model = kotlinDslScriptsModelFor(false, false, [])
+        KotlinDslScriptsModel model
+        OutputScrapingExecutionResult scrapeResult
+        (model, scrapeResult) = kotlinDslScriptsModelFor(false, false, [])
 
         then:
         !model.scriptModels.isEmpty()

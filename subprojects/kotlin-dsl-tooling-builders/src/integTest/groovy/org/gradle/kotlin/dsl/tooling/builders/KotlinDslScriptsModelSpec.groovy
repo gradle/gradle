@@ -20,10 +20,12 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.build.TestProjectInitiation
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.junit.Rule
 import org.junit.rules.RuleChain
 
@@ -51,13 +53,19 @@ class KotlinDslScriptsModelSpec extends AbstractIntegrationSpec implements Kotli
         spec.scripts["a"] << "throw RuntimeException(\"ex1\")"
         spec.scripts["b"] << "throw RuntimeException(\"ex2\")"
 
-        Map<File, KotlinDslScriptModel> singleRequestModels = kotlinDslScriptsModelFor(true).scriptModels
+
+        KotlinDslScriptsModel model
+        OutputScrapingExecutionResult scrapeResult
+        (model, scrapeResult) = kotlinDslScriptsModelFor(true)
+        Map<File, KotlinDslScriptModel> singleRequestModels = model.scriptModels
 
         then:
 
         singleRequestModels[spec.scripts["a"]].exceptions.size() == 1
         singleRequestModels[spec.scripts["b"]].exceptions.size() == 1
         singleRequestModels[spec.scripts["settings"]].exceptions.isEmpty()
+//        executor.getResultAssertion(scrapeResult).assertConsoleOutput(scrapeResult)
+//        assertConsoleOutput(scrapeResult)
     }
 
 }

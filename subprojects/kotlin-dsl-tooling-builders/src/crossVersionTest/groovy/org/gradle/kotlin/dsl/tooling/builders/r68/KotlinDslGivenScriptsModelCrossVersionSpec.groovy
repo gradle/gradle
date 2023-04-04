@@ -16,8 +16,10 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.r68
 
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 @TargetGradleVersion(">=6.8")
 @LeaksFileHandles("Kotlin Compiler Daemon taking time to shut down")
@@ -30,13 +32,17 @@ class KotlinDslGivenScriptsModelCrossVersionSpec extends AbstractKotlinDslScript
         def requestedScripts = spec.scripts.values()
 
         when:
-        def model = kotlinDslScriptsModelFor(requestedScripts)
+        KotlinDslScriptsModel model
+        OutputScrapingExecutionResult scrapeResult
+        (model, scrapeResult) = kotlinDslScriptsModelFor(requestedScripts)
 
         then:
         model.scriptModels.keySet() == requestedScripts as Set
 
         and:
         assertModelMatchesBuildSpec(model, spec)
+        and:
+        assertConsoleOutput(scrapeResult)
     }
 
     def "can fetch model for a given set of init scripts of a build in lenient mode"() {
@@ -51,19 +57,17 @@ class KotlinDslGivenScriptsModelCrossVersionSpec extends AbstractKotlinDslScript
         """
 
         when:
-        def model = kotlinDslScriptsModelFor(true, requestedScripts)
+        KotlinDslScriptsModel model
+        OutputScrapingExecutionResult scrapeResult
+        (model, scrapeResult) = kotlinDslScriptsModelFor(true, requestedScripts)
 
         then:
         model.scriptModels.keySet() == requestedScripts as Set
-
-        and:
         assertModelMatchesBuildSpec(model, spec)
-
-        and:
         assertHasExceptionMessage(
             model,
             spec.scripts.init,
-            "Unresolved reference: script_body_compilation_error"
-        )
+            "Unresolved reference: script_body_compilation_error")
+        assertConsoleOutput(scrapeResult)
     }
 }

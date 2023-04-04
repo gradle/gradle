@@ -273,7 +273,10 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
             }
             seen.add(problem.description);
         }
-        failureOnUnexpectedOutput(String.format("No matching failure description found\nExpected: A failure description which is %s\n     but: failure descriptions were %s", matcher, seen));
+        failureOnUnexpectedOutput(String.format(
+            "No matching failure description found\n" +
+            "Expected: A failure description which is %s\n" +
+            "     but: failure descriptions were %s", matcher, seen));
     }
 
     @Override

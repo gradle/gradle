@@ -28,6 +28,7 @@ dependencies {
     crossVersionTestImplementation(libs.slf4jApi)
     crossVersionTestImplementation(libs.guava)
     crossVersionTestImplementation(libs.ant)
+    crossVersionTestImplementation(project(":internal-integ-testing"))
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))

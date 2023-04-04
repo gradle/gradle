@@ -19,6 +19,8 @@ package org.gradle.kotlin.dsl.tooling.builders
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.build.ProjectSourceRoots
 import org.gradle.integtests.fixtures.build.TestProjectInitiation
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
+import org.gradle.integtests.fixtures.executer.ResultAssertion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiAdditionalClasspath
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -48,6 +50,13 @@ import static org.hamcrest.MatcherAssert.assertThat
 @ToolingApiAdditionalClasspath(KotlinDslToolingModelsClasspathProvider)
 @CompileStatic
 abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification  implements TestProjectInitiation, KotlinScriptsModelFetcher {
+
+    boolean assertConsoleOutput(OutputScrapingExecutionResult scrapeResult) {
+        def assertion = new ResultAssertion(0, [], false, true, true)
+        assertion.validate(scrapeResult.output, "std out")
+        assertion.validate(scrapeResult.error, "std err")
+        true
+    }
 
     def setup() {
         // Required for the lenient classpath mode

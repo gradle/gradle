@@ -18,29 +18,34 @@ package org.gradle.kotlin.dsl.tooling.builders
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 trait KotlinScriptsModelFetcher {
 
-    KotlinDslScriptsModel kotlinDslScriptsModelFor(boolean lenient = false, File... scripts) {
+    def kotlinDslScriptsModelFor(boolean lenient = false, File... scripts) {
         return kotlinDslScriptsModelFor(lenient, true, scripts.toList())
     }
 
     abstract <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl)
 
 
-    KotlinDslScriptsModel kotlinDslScriptsModelFor(boolean lenient = false, boolean explicitlyRequestPreparationTasks = true, Iterable<File> scripts) {
-        return withConnection { connection ->
-            new KotlinDslScriptsModelClient().fetchKotlinDslScriptsModel(
+    def kotlinDslScriptsModelFor(boolean lenient = false, boolean explicitlyRequestPreparationTasks = true, Iterable<File> scripts) {
+        String output = ""
+        String error = ""
+        def model = withConnection { connection ->
+            def client = new KotlinDslScriptsModelClient()
+            def m = client.fetchKotlinDslScriptsModel(
                 connection,
                 new KotlinDslScriptsModelRequest(
                     scripts.toList(),
                     null, null, [], [], lenient, explicitlyRequestPreparationTasks
                 )
             )
+            output = client.output.toString()
+            error = client.error.toString()
+            return m
         }
+        return [model, OutputScrapingExecutionResult.from(output, error)]
     }
-
-
 }

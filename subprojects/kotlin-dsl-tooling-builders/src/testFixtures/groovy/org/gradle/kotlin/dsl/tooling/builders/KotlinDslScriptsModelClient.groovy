@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.tooling.builders
 
+//import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
@@ -25,8 +26,10 @@ import javax.annotation.Nullable
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.newCorrelationId
 
-
 class KotlinDslScriptsModelClient {
+
+    def output = new ByteArrayOutputStream()
+    def error = new ByteArrayOutputStream()
 
     /**
      * Fetches Kotlin DSL model for a set of scripts.
@@ -37,7 +40,6 @@ class KotlinDslScriptsModelClient {
      */
     KotlinDslScriptsModel fetchKotlinDslScriptsModel(ProjectConnection connection, KotlinDslScriptsModelRequest request) {
         return connection.model(KotlinDslScriptsModel).tap {
-
             if (request.environmentVariables != null && !request.environmentVariables.isEmpty()) {
                 setEnvironmentVariables(request.environmentVariables)
             }
@@ -62,8 +64,8 @@ class KotlinDslScriptsModelClient {
             if (!request.scripts.isEmpty()) {
                 arguments += "-P${KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME}=${request.scripts.collect { it.canonicalPath }.join("|")}".toString()
             }
-            withArguments(arguments)
-
+            setStandardOutput(output)
+            setStandardError(error)
         }.get()
     }
 }

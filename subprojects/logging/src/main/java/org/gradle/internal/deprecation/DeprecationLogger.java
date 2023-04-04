@@ -65,6 +65,7 @@ public class DeprecationLogger {
     };
 
     private static final LoggingDeprecatedFeatureHandler DEPRECATED_FEATURE_HANDLER = new LoggingDeprecatedFeatureHandler();
+    public static final String HAS_BEEN_DEPRECATED_MESSAGE = " has been deprecated.";
 
     public synchronized static void init(UsageLocationReporter reporter, WarningMode warningMode, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
         DEPRECATED_FEATURE_HANDLER.init(reporter, warningMode, buildOperationProgressEventEmitter);
@@ -94,7 +95,7 @@ public class DeprecationLogger {
         return new DeprecationMessageBuilder() {
             @Override
             DeprecationMessage build() {
-                setSummary(feature + " has been deprecated.");
+                setSummary(feature + HAS_BEEN_DEPRECATED_MESSAGE);
                 return super.build();
             }
         };
