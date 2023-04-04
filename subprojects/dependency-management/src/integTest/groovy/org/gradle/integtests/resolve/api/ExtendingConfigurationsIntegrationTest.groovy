@@ -86,16 +86,20 @@ dependencies {
 }
 
 task checkResolveChild {
+    def files = configurations.child
     doFirst {
-        assert configurations.child.files*.name == ['foo-1.0.jar', 'bar-1.0.jar', 'baz-1.0.jar']
+        assert files*.name == ['foo-1.0.jar', 'bar-1.0.jar', 'baz-1.0.jar']
     }
 }
 
 task checkResolveParentThenChild {
+    def two = configurations.two
+    def one = configurations.one
+    def child = configurations.child
     doFirst {
-        assert configurations.two.files*.name == ['bar-1.0.jar']
-        assert configurations.one.files*.name == ['foo-1.0.jar', 'baz-1.0.jar']
-        assert configurations.child.files*.name == ['foo-1.0.jar', 'bar-1.0.jar', 'baz-1.0.jar']
+        assert two*.name == ['bar-1.0.jar']
+        assert one*.name == ['foo-1.0.jar', 'baz-1.0.jar']
+        assert child*.name == ['foo-1.0.jar', 'bar-1.0.jar', 'baz-1.0.jar']
     }
 }
 """

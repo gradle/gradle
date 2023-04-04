@@ -194,9 +194,11 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             }
 
             task resolveConf {
+                def files = configurations.conf
+                def modules = provider { fired }
                 doLast {
-                    configurations.conf.files
-                    assert fired.sort() == [ 'child', 'child_dep', 'parent_dep' ]
+                    files.files
+                    assert modules.get().sort() == [ 'child', 'child_dep', 'parent_dep' ]
                 }
             }
         """
@@ -398,10 +400,13 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
             configurations.add(configurations.conf.copy())
 
             task('assertDeps') {
+                def conf = configurations.conf
+                def confCopy = configurations.confCopy
+                def notCopy = configurations.notCopy
                 doLast {
-                    assert configurations.conf.files*.name == ['api-1.1.jar']
-                    assert configurations.confCopy.files*.name == ['api-1.1.jar']
-                    assert configurations.notCopy.files*.name == ['api-1.2.jar']
+                    assert conf*.name == ['api-1.1.jar']
+                    assert confCopy*.name == ['api-1.1.jar']
+                    assert notCopy*.name == ['api-1.2.jar']
                 }
             }
         """
