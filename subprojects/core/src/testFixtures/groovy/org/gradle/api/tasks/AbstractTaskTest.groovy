@@ -182,7 +182,6 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
         !task.getOnlyIf().isSatisfiedBy(task)
     }
 
-
     def "can specify onlyIf predicate using spec"() {
         given:
         final task = getTask()

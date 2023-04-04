@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.specs;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -28,6 +29,7 @@ import org.gradle.api.specs.Spec;
  * instances can be directly added as
  * {@link org.gradle.api.internal.tasks.DefaultTaskDependency task dependencies}.
  */
+@NonNullApi
 public class ProviderBackedSpec<T> implements Spec<T>, TaskDependencyContainer {
 
     private final Provider<Boolean> provider;
