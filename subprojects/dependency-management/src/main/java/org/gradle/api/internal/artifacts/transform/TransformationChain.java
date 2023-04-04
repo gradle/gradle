@@ -72,15 +72,15 @@ public class TransformationChain implements Transformation {
 
     @Override
     public boolean requiresDependencies() {
-        return init.requiresDependencies() || last.getTransformer().requiresDependencies();
+        return init.requiresDependencies() || last.requiresDependencies();
     }
 
     @Override
     public String getDisplayName() {
-        String secondTransformerDisplayName = last.getTransformer().getDisplayName();
+        String lastDisplayName = last.getDisplayName();
         return init == EMPTY
-            ? secondTransformerDisplayName
-            : init.getDisplayName() + " -> " + secondTransformerDisplayName;
+            ? lastDisplayName
+            : init.getDisplayName() + " -> " + lastDisplayName;
     }
 
     @Override

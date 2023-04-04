@@ -32,8 +32,8 @@ class TransformationChainCodec : Codec<TransformationChain> {
     }
 
     override suspend fun ReadContext.decode(): TransformationChain {
-        val first = read() as Transformation?
-        val second = readNonNull<TransformationStep>()
-        return TransformationChain(first, second)
+        val init = read() as Transformation?
+        val last = readNonNull<TransformationStep>()
+        return TransformationChain(init, last)
     }
 }

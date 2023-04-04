@@ -119,7 +119,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
     @Override
     public TransformUpstreamDependencies dependenciesFor(TransformationStep transformationStep) {
-        if (!transformationStep.getTransformer().requiresDependencies()) {
+        if (!transformationStep.requiresDependencies()) {
             return NO_DEPENDENCIES;
         }
         return new TransformUpstreamDependenciesImpl(configurationIdentity, transformationStep, calculatedValueContainerFactory);
