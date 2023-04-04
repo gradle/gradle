@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This static util class can be used to build a human-readable description of the usage a role allows.
+ * This static util class can be used to build a human-readable description of the usage a role or configuration allows.
  */
 public abstract class UsageDescriber {
     public static final String DEFAULT_CUSTOM_ROLE_NAME = "Custom Role";
@@ -58,6 +58,17 @@ public abstract class UsageDescriber {
             configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst());
     }
 
+    /**
+     * Builds a human-readable description of the usage allowed by the given set of flags.
+     *
+     * @param isConsumable whether the configuration is consumable
+     * @param isResolvable whether the configuration is resolvable
+     * @param isDeclarableAgainst whether the configuration is declarable against
+     * @param isConsumptionDeprecated whether the configuration's consumable behavior is deprecated
+     * @param isResolutionDeprecated whether the configuration's resolvable behavior is deprecated
+     * @param isDeclarationAgainstDeprecated whether the configuration's declarable against behavior is deprecated
+     * @return description of the given usage
+     */
     public static String describeUsage(boolean isConsumable, boolean isResolvable, boolean isDeclarableAgainst,
                                        boolean isConsumptionDeprecated, boolean isResolutionDeprecated, boolean isDeclarationAgainstDeprecated) {
         List<String> descriptions = new ArrayList<>();
