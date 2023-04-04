@@ -206,30 +206,34 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ImmutableSet.Builder<LocalFileDependencyMetadata> fileBuilder = ImmutableSet.builder();
         ImmutableList.Builder<ExcludeMetadata> excludeBuilder = ImmutableList.builder();
 
-        // Configurations that are not declarable should not have dependencies or constraints present
-        if (configuration.isCanBeDeclaredAgainst()) {
-            for (Dependency dependency : configuration.getDependencies()) {
-                if (dependency instanceof ModuleDependency) {
-                    ModuleDependency moduleDependency = (ModuleDependency) dependency;
-                    dependencyBuilder.add(dependencyMetadataFactory.createDependencyMetadata(
-                            componentId, configuration.getName(), attributes, moduleDependency
-                    ));
-                } else if (dependency instanceof FileCollectionDependency) {
-                    final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
-                    fileBuilder.add(new DefaultLocalFileDependencyMetadata(fileDependency));
-                } else {
-                    throw new IllegalArgumentException("Cannot convert dependency " + dependency + " to local component dependency metadata.");
-                }
+        // Configurations that are not declarable should not have dependencies or constraints present,
+        // but we need to allow dependencies to be checked to avoid emitting many warnings when the
+        // Kotlin plugin is applied.
+        for (Dependency dependency : configuration.getDependencies()) {
+            if (dependency instanceof ModuleDependency) {
+                ModuleDependency moduleDependency = (ModuleDependency) dependency;
+                dependencyBuilder.add(dependencyMetadataFactory.createDependencyMetadata(
+                        componentId, configuration.getName(), attributes, moduleDependency
+                ));
+            } else if (dependency instanceof FileCollectionDependency) {
+                final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
+                fileBuilder.add(new DefaultLocalFileDependencyMetadata(fileDependency));
+            } else {
+                throw new IllegalArgumentException("Cannot convert dependency " + dependency + " to local component dependency metadata.");
             }
+        }
 
+        // Configurations that are not declarable should not have dependencies or constraints present,
+        // no smoke-tested plugins add constraints, so we should be able to safely throw an exception here
+        // if we find any.
+        if (configuration.isCanBeDeclaredAgainst()) {
             for (DependencyConstraint dependencyConstraint : configuration.getDependencyConstraints()) {
                 dependencyBuilder.add(dependencyMetadataFactory.createDependencyConstraintMetadata(
                         componentId, configuration.getName(), attributes, dependencyConstraint)
                 );
             }
         } else {
-            // TODO: The GroovyDslMultiProjectKotlinApplicationInitIntegrationTest fails if we uncomment this line.
-            // configuration.assertHasNoDeclarations();
+            configuration.assertHasNoConstraintDeclarations();
         }
 
         for (ExcludeRule excludeRule : configuration.getExcludeRules()) {

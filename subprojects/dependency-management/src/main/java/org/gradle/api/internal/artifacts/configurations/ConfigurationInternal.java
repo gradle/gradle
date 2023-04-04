@@ -128,15 +128,26 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     ConfigurationRole getRoleAtCreation();
 
     /**
-     * Check if a configuration has any dependencies or constraints declared against it, without triggering
-     * the improper usage checks on {@link #getDependencies()} and {@link #getDependencyConstraints()}.
+     * Check if a configuration has any dependencies declared against it, without triggering
+     * the improper usage checks on {@link #getDependencies()}.
      *
-     * This method is meant to double check that calling these methods would return empty collections,
-     * and thus skipping those calls is safe.  It will be unnecessary once configuration usage is locked
+     * This method is meant to double check that calling this method would return an empty collection,
+     * and thus skipping that call is safe.  It will be unnecessary once configuration usage is locked
      * upon creation, as the {@link #isCanBeDeclaredAgainst()} check will be sufficient then.
      */
     @Deprecated
     void assertHasNoDeclarations();
+
+    /**
+     * Check if a configuration has any dependencies or constraints declared against it, without triggering
+     * the improper usage checks on {@link #getDependencyConstraints()}.
+     *
+     * This method is meant to double check that calling this method would return an empty collection,
+     * and thus skipping that call is safe.  It will be unnecessary once configuration usage is locked
+     * upon creation, as the {@link #isCanBeDeclaredAgainst()} check will be sufficient then.
+     */
+    @Deprecated
+    void assertHasNoConstraintDeclarations();
 
     /**
      * Test if the given configuration can either be declared against or extends another

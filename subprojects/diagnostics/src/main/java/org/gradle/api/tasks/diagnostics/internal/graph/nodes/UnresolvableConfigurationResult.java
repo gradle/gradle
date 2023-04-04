@@ -50,7 +50,7 @@ public class UnresolvableConfigurationResult extends AbstractRenderableDependenc
                 return Collections.emptySet();
             }
         } else {
-            configurationInternal.assertHasNoDeclarations();
+            configurationInternal.assertHasNoConstraintDeclarations();
             return Collections.emptySet();
         }
 
