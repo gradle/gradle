@@ -93,7 +93,9 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org.test:moduleB', 'org.test:moduleB:1.0')
+                edge('org.test:moduleB', 'org.test:moduleB:1.0') {
+                    maybeByConstraint()
+                }
                 module("org.test:moduleA:1.0:$expectedVariant") {
                     if (thing == "dependencies") {
                         edge('org.test:moduleB:1.0', 'org.test:moduleB:1.0')
@@ -155,7 +157,9 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org.test:moduleB', 'org.test:moduleB:1.0')
+                edge('org.test:moduleB', 'org.test:moduleB:1.0') {
+                    maybeByConstraint()
+                }
                 module("org.test:moduleA:1.0:$expectedVariant")
                 module("org.test:moduleA:1.0:new") {
                     if (thing == "dependencies") {
@@ -211,7 +215,9 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org.test:moduleB', 'org.test:moduleB:1.0')
+                edge('org.test:moduleB', 'org.test:moduleB:1.0') {
+                    maybeByConstraint()
+                }
                 module("org.test:moduleA:1.0:$expectedVariant") {
                     if (thing == "dependencies") {
                         edge('org.test:moduleB:{strictly 1.0}', 'org.test:moduleB:1.0')
@@ -494,7 +500,9 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org.test:moduleB', 'org.test:moduleB:1.0')
+                edge('org.test:moduleB', 'org.test:moduleB:1.0') {
+                    byConstraint(null)
+                }
                 module("org.test:moduleA:1.0:$expectedVariant") {
                     constraint('org.test:moduleB:1.0', 'org.test:moduleB:1.0')
                 }
@@ -634,7 +642,9 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org.test:moduleC', 'org.test:moduleC:1.0')
+                edge('org.test:moduleC', 'org.test:moduleC:1.0') {
+                    maybeByConstraint()
+                }
                 module("org.test:moduleA:1.0:$expectedVariant") {
                     module("org.test:moduleB:1.0") {
                         if (thing == "dependencies") {
@@ -971,7 +981,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org.test:moduleA:1.0:$expectedVariant") {
-                    module("org.test:moduleB:1.0").byReason('can set a custom reason in a rule')
+                    module("org.test:moduleB:1.0") {
+                        notRequested()
+                        byReason('can set a custom reason in a rule')
+                    }
                 }
             }
         }
@@ -1052,10 +1065,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 root(':', ':test:') {
                     module("org.test:moduleA:1.0:$expectedVariant") {
                         module("org.test:moduleB:1.0") {
-                            module("org.test:moduleC:1.0")
+                            notRequested()
                             byReason('can set a custom reason in a rule')
+                            module("org.test:moduleC:1.0")
                         }
-
                     }
                 }
             }
@@ -1064,10 +1077,15 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 root(':', ':test:') {
                     module("org.test:moduleA:1.0:$expectedVariant") {
                         module("org.test:moduleB:1.0") {
-                            edge("org.test:moduleC:1.0", "org.test:moduleC:1.1")
+                            notRequested()
                             byReason('can set a custom reason in a rule')
+                            edge("org.test:moduleC:1.0", "org.test:moduleC:1.1") {
+                                notRequested()
+                                byAncestor()
+                                byConstraint("1.0 is buggy")
+                            }
                         }
-                        constraint("org.test:moduleC:{strictly 1.1}", "org.test:moduleC:1.1").byAncestor()
+                        constraint("org.test:moduleC:{strictly 1.1}", "org.test:moduleC:1.1")
                     }
                 }
             }
