@@ -359,7 +359,10 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @param notation The module notation, in one of the notations described above.
      * @return The dependency.
+     *
+     * @deprecated Use component metadata rules instead. This method will be removed in Gradle 9.0.
      */
+    @Deprecated
     Dependency module(Object notation);
 
     /**
@@ -369,7 +372,10 @@ public interface DependencyHandler extends ExtensionAware {
      * @param notation The module notation, in one of the notations described above.
      * @param configureClosure The closure to use to configure the dependency.
      * @return The dependency.
+     *
+     * @deprecated Use component metadata rules instead. This method will be removed in Gradle 9.0.
      */
+    @Deprecated
     Dependency module(Object notation, Closure configureClosure);
 
     /**

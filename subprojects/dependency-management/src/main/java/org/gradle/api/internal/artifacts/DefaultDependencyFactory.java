@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts;
 
 import groovy.lang.Closure;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -51,7 +50,9 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     private final Instantiator instantiator;
     private final DependencyNotationParser dependencyNotationParser;
     private final NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser;
-    private final NotationParser<Object, ClientModule> clientModuleNotationParser;
+
+    @SuppressWarnings("deprecation")
+    private final NotationParser<Object, org.gradle.api.artifacts.ClientModule> clientModuleNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ProjectDependencyFactory projectDependencyFactory;
     private final ImmutableAttributesFactory attributesFactory;
@@ -60,7 +61,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         Instantiator instantiator,
         DependencyNotationParser dependencyNotationParser,
         NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser,
-        NotationParser<Object, ClientModule> clientModuleNotationParser,
+        @SuppressWarnings("deprecation") NotationParser<Object, org.gradle.api.artifacts.ClientModule> clientModuleNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         ProjectDependencyFactory projectDependencyFactory,
         ImmutableAttributesFactory attributesFactory
@@ -109,9 +110,9 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
 
 
     @Override
-    @SuppressWarnings("rawtypes")
-    public ClientModule createModule(Object dependencyNotation, Closure configureClosure) {
-        ClientModule clientModule = clientModuleNotationParser.parseNotation(dependencyNotation);
+    @SuppressWarnings({"rawtypes", "deprecation"})
+    public org.gradle.api.artifacts.ClientModule createModule(Object dependencyNotation, Closure configureClosure) {
+        org.gradle.api.artifacts.ClientModule clientModule = clientModuleNotationParser.parseNotation(dependencyNotation);
         if (configureClosure != null) {
             configureModule(clientModule, configureClosure);
         }
@@ -123,8 +124,8 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         return projectDependencyFactory.createFromMap(projectFinder, map);
     }
 
-    @SuppressWarnings("rawtypes")
-    private void configureModule(ClientModule clientModule, Closure configureClosure) {
+    @SuppressWarnings({"rawtypes", "deprecation"})
+    private void configureModule(org.gradle.api.artifacts.ClientModule clientModule, Closure configureClosure) {
         ModuleFactoryDelegate moduleFactoryDelegate = new ModuleFactoryDelegate(clientModule, this);
         moduleFactoryDelegate.prepareDelegation(configureClosure);
         configureClosure.call();

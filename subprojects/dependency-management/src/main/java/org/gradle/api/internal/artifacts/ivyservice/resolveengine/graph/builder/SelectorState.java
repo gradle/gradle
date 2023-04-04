@@ -20,7 +20,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -83,7 +82,8 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private boolean reusable;
     private boolean markedReusableAlready;
 
-    private ClientModule clientModule;
+    @SuppressWarnings("deprecation")
+    private org.gradle.api.artifacts.ClientModule clientModule;
     private boolean changing;
 
     // An internal counter used to track the number of outgoing edges
@@ -333,7 +333,8 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     @Override
-    public ClientModule getClientModule() {
+    @Deprecated
+    public org.gradle.api.artifacts.ClientModule getClientModule() {
         return clientModule;
     }
 
@@ -390,8 +391,9 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void trackDetailsForOverrideMetadata(DependencyState dependencyState) {
-        ClientModule nextClientModule = DefaultComponentOverrideMetadata.extractClientModule(dependencyState.getDependency());
+        org.gradle.api.artifacts.ClientModule nextClientModule = DefaultComponentOverrideMetadata.extractClientModule(dependencyState.getDependency());
         if (nextClientModule != null && !nextClientModule.equals(clientModule)) {
             if (clientModule == null) {
                 clientModule = nextClientModule;
