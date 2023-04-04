@@ -29,6 +29,10 @@ public class TransformationChain {
     private final TransformationStep last;
     private final int stepsCount;
 
+    /**
+     * @param init The initial steps of this chain, or null if this chain only contains one step.
+     * @param last The last step of this chain.
+     */
     public TransformationChain(@Nullable TransformationChain init, TransformationStep last) {
         this.init = init;
         this.last = last;
@@ -37,11 +41,17 @@ public class TransformationChain {
             : (init.stepsCount() + 1);
     }
 
+    /**
+     * @return The initial steps of this chain, or null if this chain only contains one step.
+     */
     @Nullable
     public TransformationChain getInit() {
         return init;
     }
 
+    /**
+     * @return The last step of this chain.
+     */
     public TransformationStep getLast() {
         return last;
     }
