@@ -1011,6 +1011,5 @@ The main reason for this is the slower script compilation for Kotlin DSL.
 * Kotlin DSL script compilation avoidance has known issues.
   If you encounter problems, it can be disabled by <<build_environment#sec:gradle_system_properties, setting>> the `org.gradle.kotlin.dsl.scriptCompilationAvoidance` system property to `false`.
 * The Kotlin DSL will not support the `model {}` block, which is part of the link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[discontinued Gradle Software Model].
-* We recommend against enabling the incubating <<multi_project_configuration_and_execution#sec:configuration_on_demand,configuration on demand>> feature as it can lead to very hard-to-diagnose problems.
 
 If you run into trouble or discover a suspected bug, please report the issue in the link:{gradle-issues}[Gradle issue tracker].
