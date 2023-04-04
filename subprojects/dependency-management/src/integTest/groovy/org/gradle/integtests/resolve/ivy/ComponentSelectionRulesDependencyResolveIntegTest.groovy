@@ -57,7 +57,10 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         checkDependencies {
             resolve.expectGraph {
                 root(":", ":test:") {
-                    edge("org.utils:api:${selector}", "org.utils:${chosenModule}:${chosenVersion}").byReasons(reasons)
+                    edge("org.utils:api:${selector}", "org.utils:${chosenModule}:${chosenVersion}") {
+                        byReasons(reasons)
+                        maybeRequested()
+                    }
                 }
             }
         }

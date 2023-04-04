@@ -395,6 +395,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkGraph {
             module("org.external:external-dep:1.0") {
                 edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
+                    forced()
                     compositeSubstitute()
                 }
             }
@@ -431,9 +432,11 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkGraph {
             module("org.external:external-dep:1.0") {
                 edge("org.test:something:1.0", ":buildB", "org.test:buildB:2.0") {
+                    selectedByRule()
                     compositeSubstitute()
                 }
                 edge("org.other:something-else:1.0", ":buildB:b1", "org.test:b1:2.0") {
+                    selectedByRule()
                     compositeSubstitute()
                 }
             }

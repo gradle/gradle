@@ -305,7 +305,6 @@ task resolveReleaseClasses {
     }
 }
 
-
 task resolveTestClasses {
     def artifacts = configurations.compile.incoming.artifactView {
         attributes {

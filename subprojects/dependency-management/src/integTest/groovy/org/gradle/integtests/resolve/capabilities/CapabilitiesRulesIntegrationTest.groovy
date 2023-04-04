@@ -514,7 +514,11 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('jakarta:xml', 'jakarta:xml:1.0') {
-                    module('jakarta:activation:1.0')
+                    byConflictResolution()
+                    selectedByRule()
+                    module('jakarta:activation:1.0') {
+                        byConflictResolution()
+                    }
                 }
                 module('hadoop:yarn:1.0') {
                     edge('javax:jaxb:1.0', 'jakarta:xml:1.0')
