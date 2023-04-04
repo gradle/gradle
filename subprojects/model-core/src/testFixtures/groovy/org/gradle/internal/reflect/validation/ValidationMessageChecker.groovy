@@ -432,7 +432,7 @@ trait ValidationMessageChecker {
         config.description("where key of nested map is of type '${config.keyType}'.")
             .reason("Key of nested map must be of type 'String'.")
             .solution("Change type of key to 'String'")
-        config.render()
+            .render()
     }
 
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
