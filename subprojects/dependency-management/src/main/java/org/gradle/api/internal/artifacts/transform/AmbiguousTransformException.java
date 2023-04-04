@@ -42,7 +42,7 @@ public class AmbiguousTransformException extends VariantSelectionException {
         formatter.node("Found the following transforms");
 
         Comparator<TransformedVariant> variantComparator =
-            Comparator.<TransformedVariant, String>comparing(x -> x.getTransformation().getDisplayName())
+            Comparator.<TransformedVariant, String>comparing(x -> x.getTransformationChain().getDisplayName())
                 .thenComparing(x -> x.getAttributes().toString());
         Map<ResolvedVariant, List<TransformedVariant>> variantToTransforms = candidates.stream().collect(Collectors.groupingBy(
             TransformedVariant::getRoot,
@@ -58,7 +58,7 @@ public class AmbiguousTransformException extends VariantSelectionException {
             formatter.node("Candidate transform(s)");
             formatter.startChildren();
             for (TransformedVariant variant : entry.getValue()) {
-                formatter.node("Transform '" + variant.getTransformation().getDisplayName() + "' producing attributes:");
+                formatter.node("Transform '" + variant.getTransformationChain().getDisplayName() + "' producing attributes:");
                 formatAttributes(formatter, variant.getAttributes());
             }
             formatter.endChildren();

@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.serialization.codecs.transform
 
-import org.gradle.api.internal.artifacts.transform.Transformation
 import org.gradle.api.internal.artifacts.transform.TransformationChain
 import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.configurationcache.serialization.Codec
@@ -32,7 +31,7 @@ class TransformationChainCodec : Codec<TransformationChain> {
     }
 
     override suspend fun ReadContext.decode(): TransformationChain {
-        val init = read() as Transformation?
+        val init = read() as TransformationChain?
         val last = readNonNull<TransformationStep>()
         return TransformationChain(init, last)
     }
