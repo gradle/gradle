@@ -67,7 +67,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
             module("org.hamcrest:hamcrest-core:1.3").byReason(reason3)
         }
         def springCoreDeps = {
-            module("org.springframework:spring-jcl:${springVersion}")
+            module("org.springframework:spring-jcl:${springVersion}").byReason(reason3)
         }
         def springExpressionDeps = {
             module("org.springframework:spring-core:${springVersion}")
@@ -130,6 +130,13 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
                 edge("org.springframework.boot:spring-boot", "org.springframework.boot:spring-boot:$bomVersion", springBootDeps).byReason(reason2)
                 edge("org.springframework:spring-test", "org.springframework:spring-test:${springVersion}", springTestDeps).byReason(reason2)
                 edge("junit:junit", "junit:junit:4.12", junitDeps).byReason(reason2)
+            }
+            nodes.each {
+                if (directBomDependency) {
+                    it.maybeByConstraint()
+                } else if (reason1 == "requested") {
+                    it.maybeSelectedByRule()
+                }
             }
         }
 

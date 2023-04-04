@@ -220,7 +220,10 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
                 }
                 module("org:first-level2:1.0") {
                     if (available) {
-                        edge("org:foo:1.0","org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
+                        edge("org:foo:1.0","org:foo:1.1") {
+                            byConstraint()
+                            byConflictResolution("between versions 1.1 and 1.0")
+                        }
                     } else {
                         module("org:foo:1.0")
                     }
@@ -285,7 +288,9 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
             root(":", ":test:") {
                 module("org:bar:1.0") {
                     if (available) {
-                        edge("org:foo:[1.1,1.2]", "org:foo:1.1")
+                        edge("org:foo:[1.1,1.2]", "org:foo:1.1") {
+                            byConstraint("didn't match version 1.2")
+                        }
                     } else {
                         edge("org:foo:[1.1,1.2]", "org:foo:1.2")
                     }
@@ -393,8 +398,12 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
             root(":", ":test:") {
                 module("org:first-level:1.0") {
                     if (available) {
-                        constraint("org:bar:1.1", "org:foo:1.1").selectedByRule()
-                        edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
+                        constraint("org:bar:1.1", "org:foo:1.1")
+                        edge("org:foo:1.0", "org:foo:1.1") {
+                            selectedByRule()
+                            byConstraint()
+                            byConflictResolution("between versions 1.1 and 1.0")
+                        }
                     } else {
                         module("org:foo:1.0")
                     }
@@ -453,7 +462,9 @@ dependencies {
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org:weird:1.0', 'org:weird:1.1')
+                edge('org:weird:1.0', 'org:weird:1.1') {
+                    byConflictResolution("between versions 1.1 and 1.0")
+                }
                 module('org:other:1.0') {
                     module('org:bar:1.0')
                     module('org:weird:1.1')
@@ -532,7 +543,9 @@ dependencies {
                     noArtifacts()
                     configuration(platformConfiguration)
                 }
-                edge('org:first:1.0', 'org:first:2.0')
+                edge('org:first:1.0', 'org:first:2.0') {
+                    byConflictResolution("between versions 2.0 and 1.0")
+                }
                 module('org:second:1.0') {
                     module('org:intermediate:1.0') {
                         module('org:first:2.0')
