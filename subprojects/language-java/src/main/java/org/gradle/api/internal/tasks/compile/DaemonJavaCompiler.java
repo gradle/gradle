@@ -75,7 +75,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         try {
             keepAliveMode = KeepAliveMode.valueOf(keepAliveModeStr);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid value for system property " + KEEP_DAEMON_ALIVE_PROPERTY + ": " + keepAliveModeStr);
+            throw new IllegalStateException("Invalid value for system property " + KEEP_DAEMON_ALIVE_PROPERTY + ": " + keepAliveModeStr, e);
         }
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
