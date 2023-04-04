@@ -16,18 +16,15 @@
 
 package gradlebuild.docs;
 
-import dev.adamko.dokkatoo.DokkatooBasePlugin;
 import dev.adamko.dokkatoo.DokkatooExtension;
 import dev.adamko.dokkatoo.dokka.parameters.DokkaSourceSetSpec;
+import dev.adamko.dokkatoo.dokka.plugins.DokkaHtmlPluginParameters;
 import dev.adamko.dokkatoo.formats.DokkatooHtmlPlugin;
-import org.gradle.api.Action;
+import dev.adamko.dokkatoo.tasks.DokkatooGenerateTask;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.TaskProvider;
-import org.jetbrains.dokka.DokkaConfiguration;
 import org.jetbrains.dokka.Platform;
 
 public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
@@ -37,77 +34,68 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         GradleDocumentationExtension documentationExtension = project.getExtensions().getByType(GradleDocumentationExtension.class);
-        applyAndConfigurePlugin(project, documentationExtension);
-        updateExtension(project, documentationExtension);
-        configurePublication(project, documentationExtension);
+        applyPlugin(project);
+        updateDocumentationExtension(project, documentationExtension);
+        configurePlugin(project, documentationExtension);
     }
 
-    private void applyAndConfigurePlugin(Project project, GradleDocumentationExtension extension) {
+    private void applyPlugin(Project project) {
+        project.getPlugins().apply(DokkatooHtmlPlugin.class);
+    }
+
+    private void updateDocumentationExtension(Project project, GradleDocumentationExtension extension) {
+        DokkatooGenerateTask generateTask = (DokkatooGenerateTask) project.getTasks().getByName(TASK_NAME);
+        extension.getKotlinDslReference().getRenderedDocumentation().from(generateTask.getOutputDirectory());
+
+        extension.getKotlinDslReference().getDokkaCss().convention(extension.getSourceRoot().file("css/dokka.css"));
+    }
+
+    private void configurePlugin(Project project, GradleDocumentationExtension extension) {
+        renameModule(project);
+        wireInArtificialSourceSet(project, extension);
+        setStyling(project, extension);
+    }
+
+    private static DokkatooExtension renameModule(Project project) {
+        DokkatooExtension dokkatooExtension = getDokkatooExtension(project);
+        dokkatooExtension.getModuleName().set("Gradle Kotlin DSL");
+        return dokkatooExtension;
+    }
+
+    private static void wireInArtificialSourceSet(Project project, GradleDocumentationExtension extension) {
         TaskProvider<GradleKotlinDslRuntimeGeneratedSources> runtimeExtensions = project.getTasks()
             .register("gradleKotlinDslRuntimeGeneratedSources", GradleKotlinDslRuntimeGeneratedSources.class, task -> {
                 task.getGeneratedSources().set(project.getLayout().getBuildDirectory().dir("gradle-kotlin-dsl-extensions/sources"));
                 task.getGeneratedClasses().set(project.getLayout().getBuildDirectory().dir("gradle-kotlin-dsl-extensions/classes"));
             });
 
-        // apply base plugin for the extension to exist
-        project.getPlugins().apply(DokkatooBasePlugin.class);
-
-        // rename module
-        DokkatooExtension dokkatooExtension = getDokkatooExtension(project);
-        dokkatooExtension.getModuleName().set("Gradle Kotlin DSL");
-
-        // wire in our artificial source-set into the extension
-        NamedDomainObjectContainer<DokkaSourceSetSpec> sourceSets = dokkatooExtension.getDokkatooSourceSets();
-        sourceSets.register("kotlin_dsl", new Action<>() {
-            @Override
-            public void execute(DokkaSourceSetSpec spec) {
-                spec.getDisplayName().set("Gradle Kotlin DSL");
-                spec.getSourceRoots().from(extension.getKotlinDslSource());
-                spec.getSourceRoots().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedSources));
-                spec.getClasspath().from(extension.getClasspath());
-                spec.getClasspath().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedClasses));
-                spec.getAnalysisPlatform().set(Platform.jvm);
-                spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md").get().getAsFile().getAbsolutePath());
-            }
+        NamedDomainObjectContainer<DokkaSourceSetSpec> sourceSets = getDokkatooExtension(project).getDokkatooSourceSets();
+        sourceSets.register("kotlin_dsl", spec -> {
+            spec.getDisplayName().set("Gradle Kotlin DSL");
+            spec.getSourceRoots().from(extension.getKotlinDslSource());
+            spec.getSourceRoots().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedSources));
+            spec.getClasspath().from(extension.getClasspath());
+            spec.getClasspath().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedClasses));
+            spec.getAnalysisPlatform().set(Platform.jvm);
+            spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md").get().getAsFile().getAbsolutePath());
         });
-
-        // apply formatting plugin
-        project.getPlugins().apply(DokkatooHtmlPlugin.class);
     }
 
-    private void updateExtension(Project project, GradleDocumentationExtension extension) {
-        DirectoryProperty publicationDirectory = getDokkatooExtension(project).getDokkatooPublicationDirectory();
-        extension.getKotlinDslReference().getRenderedDocumentation().from(publicationDirectory);
-        //TODO: publication directory should come from task output instead, but we have DokkaTasks that depend on DokkatooGenerateTasks and haven't found a way to obtain the output
-
-        extension.getKotlinDslReference().getDokkaCss().convention(extension.getSourceRoot().file("css/dokka.css"));
-    }
-
-    private void configurePublication(Project project, GradleDocumentationExtension extension) {
+    private static void setStyling(Project project, GradleDocumentationExtension extension) { //TODO: doesn't work ...
         String cssFile = extension.getKotlinDslReference().getDokkaCss().get().getAsFile().getAbsolutePath();
         String logoFile = extension.getSourceRoot().file("kotlin/gradle-logo.png").get().getAsFile().getAbsolutePath();
 
         getDokkatooExtension(project).getDokkatooPublications().configureEach(publication -> {
-            publication.getPluginsConfiguration().create("org.jetbrains.dokka.base.DokkaBase", config -> {
-                config.getSerializationFormat().set(DokkaConfiguration.SerializationFormat.JSON);
-                config.getValues().set("" +
-                    "{\n" +
-                    "   \"customStyleSheets\": [\n" +
-                    "       \"" + cssFile + "\"\n" +
-                    "   ],\n" +
-                    "   \"customAssets\": [\n" +
-                    "       \"" + logoFile + "\"\n" +
-                    "   ]\n" +
-                    "}"
-                );
+            publication.getPluginsConfiguration().named("html", DokkaHtmlPluginParameters.class, config -> {
+                config.getCustomStyleSheets().from(cssFile);
+                config.getCustomAssets().from(logoFile);
             });
+        }); //TODO: just an experiment, not how it's suggested in the docs
+
+        getDokkatooExtension(project).getPluginsConfiguration().named("html", DokkaHtmlPluginParameters.class, config -> {
+            config.getCustomStyleSheets().from(cssFile);
+            config.getCustomAssets().from(logoFile);
         });
-
-        Task task = project.getTasks().getByName(TASK_NAME);
-        task.getInputs().file(cssFile);
-        task.getInputs().file(logoFile);
-
-        //TODO: is there a better way to set resource files as inputs of the task?
     }
 
     private static DokkatooExtension getDokkatooExtension(Project project) {
