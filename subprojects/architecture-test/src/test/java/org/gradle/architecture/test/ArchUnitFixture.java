@@ -76,10 +76,10 @@ import static java.util.stream.Collectors.toSet;
 
 public interface ArchUnitFixture {
     DescribedPredicate<JavaClass> classes_not_written_in_kotlin = resideOutsideOfPackages("org.gradle.configurationcache..", "org.gradle.kotlin..")
-        .as("classes written in Java");
+        .as("classes written in Java or Groovy");
 
     DescribedPredicate<JavaMember> not_written_in_kotlin = declaredIn(classes_not_written_in_kotlin)
-        .as("API written in Java");
+        .as("written in Java or Groovy");
 
     DescribedPredicate<JavaMember> kotlin_internal_methods = declaredIn(gradlePublicApi())
         .and(not(not_written_in_kotlin))
@@ -285,7 +285,7 @@ public interface ArchUnitFixture {
         private static final PackageMatchers EXCLUDES = PackageMatchers.of(parsePackageMatcher(System.getProperty("org.gradle.public.api.excludes")));
 
         public InGradlePublicApiPackages() {
-            super("In Gradle public API packages");
+            super("in Gradle public API packages");
         }
 
         @Override
