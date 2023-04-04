@@ -47,16 +47,22 @@ import org.gradle.api.Incubating;
  * @since 8.2
  */
 @Incubating
-public interface FileAccessPermissions {
+public interface FileAccessPermissions extends ImmutableFileAccessPermissions {
 
+    @Override
+    //@Nested //TODO: needed? when?
     FileAccessPermission getUser();
 
     void user(Action<? super FileAccessPermission> configureAction);
 
+    @Override
+    //@Nested //TODO: needed? when?
     FileAccessPermission getGroup();
 
     void group(Action<? super FileAccessPermission> configureAction);
 
+    @Override
+    //@Nested //TODO: needed? when?
     FileAccessPermission getOther();
 
     void other(Action<? super FileAccessPermission> configureAction);

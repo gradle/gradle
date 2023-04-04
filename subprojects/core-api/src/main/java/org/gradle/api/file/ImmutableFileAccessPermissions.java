@@ -14,11 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
+package org.gradle.api.file;
 
-import org.gradle.api.file.FileAccessPermissions;
 
-public interface FileAccessPermissionsInternal extends FileAccessPermissions {
+import org.gradle.api.Incubating;
+
+/**
+ * Describes file and directory access permissions. Immutable version of
+ * {@link FileAccessPermissions}.
+ *
+ * @since 8.2
+ */
+@Incubating
+public interface ImmutableFileAccessPermissions {
+
+    ImmutableFileAccessPermission getUser();
+
+    ImmutableFileAccessPermission getGroup();
+
+    ImmutableFileAccessPermission getOther();
 
     /**
      * Converts the permissions for the various user groups to a numeric Unix permission.
@@ -26,15 +40,4 @@ public interface FileAccessPermissionsInternal extends FileAccessPermissions {
      */
     int toUnixNumeric();
 
-    /**
-     * Sets permissions for the various user groups from a numeric Unix permission.
-     * See {@link FileAccessPermissions#unix(String)} for details.
-     */
-    void fromUnixNumeric(int unixNumeric);
-
-    /**
-     * Sets permissions for the various user groups from a symbolic Unix permission.
-     * See {@link FileAccessPermissions#unix(String)} for details.
-     */
-    void fromUnixSymbolic(String unixSymbolic);
 }

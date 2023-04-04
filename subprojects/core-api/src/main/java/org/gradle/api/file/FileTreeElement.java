@@ -15,6 +15,9 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -97,5 +100,14 @@ public interface FileTreeElement {
      */
     RelativePath getRelativePath();
 
-    int getMode(); //TODO: not sure what to do with this one... I would replace it, but how can I make it read-only?
+    int getMode(); //TODO: deprecate it
+
+    /**
+     * Provides a read-only view of access permissions of this file.
+     * For details see {@link ImmutableFileAccessPermissions}.
+     *
+     * @since 8.2
+     */
+    @Incubating
+    Provider<ImmutableFileAccessPermissions> getImmutablePermissions();
 }

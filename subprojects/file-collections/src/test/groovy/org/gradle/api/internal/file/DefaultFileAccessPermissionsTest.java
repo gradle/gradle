@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file.copy;
+package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileAccessPermission;
-import org.gradle.api.internal.file.DefaultFileAccessPermissions;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
 

@@ -34,6 +34,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ImmutableFileAccessPermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileAccessPermissions;
 import org.gradle.api.internal.file.FileAccessPermissionsInternal;
@@ -784,33 +785,33 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Override
         public Integer getFileMode() {
-            return getMode(getFilePermissions());
+            return getMode(getImmutableFilePermissions());
         }
 
         @Override
         public Integer getDirMode() {
-            return getMode(getDirPermissions());
+            return getMode(getImmutableDirPermissions());
         }
 
         @Nullable
-        private Integer getMode(Provider<FileAccessPermissions> permissions) {
+        private Integer getMode(Provider<ImmutableFileAccessPermissions> permissions) {
             return permissions.isPresent() ? ((FileAccessPermissionsInternal) permissions.get()).toUnixNumeric() : null;
         }
 
         @Override
-        public Provider<FileAccessPermissions> getFilePermissions() {
-            return getPermissions(filePermissions, CopySpecResolver::getFilePermissions);
+        public Provider<ImmutableFileAccessPermissions> getImmutableFilePermissions() {
+            return getPermissions(filePermissions, CopySpecResolver::getImmutableFilePermissions);
         }
 
         @Override
-        public Provider<FileAccessPermissions> getDirPermissions() {
-            return getPermissions(dirPermissions, CopySpecResolver::getDirPermissions);
+        public Provider<ImmutableFileAccessPermissions> getImmutableDirPermissions() {
+            return getPermissions(dirPermissions, CopySpecResolver::getImmutableDirPermissions);
         }
 
-        private Provider<FileAccessPermissions> getPermissions(Property<FileAccessPermissions> property, Function<CopySpecResolver, Provider<FileAccessPermissions>> parentMapper) {
+        private Provider<ImmutableFileAccessPermissions> getPermissions(Property<FileAccessPermissions> property, Function<CopySpecResolver, Provider<ImmutableFileAccessPermissions>> parentMapper) {
             if (property.isPresent() || parentResolver == null) {
                 property.finalizeValueOnRead();
-                return property;
+                return Cast.uncheckedCast(property);
             }
             return parentMapper.apply(parentResolver);
         }

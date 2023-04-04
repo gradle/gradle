@@ -25,12 +25,16 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileAccessPermissions;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.ImmutableFileAccessPermissions;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.DefaultFileAccessPermissions;
+import org.gradle.api.internal.file.DefaultImmutableFileAccessPermissions;
 import org.gradle.api.internal.file.FileAccessPermissionsInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -157,18 +161,18 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     @Override
-    public int getMode() {
+    public Provider<ImmutableFileAccessPermissions> getImmutablePermissions() {
         if (permissions != null) {
             permissions.finalizeValue();
-            return permissions.get().toUnixNumeric();
+            return Providers.of(new DefaultImmutableFileAccessPermissions(permissions.get().toUnixNumeric()));
         }
 
         Integer specMode = getSpecMode();
         if (specMode != null) {
-            return specMode;
+            return Providers.of(new DefaultImmutableFileAccessPermissions(specMode));
         }
 
-        return fileDetails.getMode();
+        return Providers.of(new DefaultImmutableFileAccessPermissions(fileDetails.getMode()));
     }
 
     @Nullable

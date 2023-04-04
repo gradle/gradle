@@ -41,6 +41,7 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.CopySpecResolver;
 import org.gradle.api.internal.file.copy.CopySpecSource;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
@@ -91,10 +92,10 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
             getInputs().property(specPropertyName + ".includeEmptyDirs", (Callable<Boolean>) spec::getIncludeEmptyDirs);
             getInputs().property(specPropertyName + ".duplicatesStrategy", (Callable<DuplicatesStrategy>) spec::getDuplicatesStrategy);
-            /*getInputs().property(specPropertyName + ".dirMode", (Callable<Integer>) spec::getDirMode)
+            getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().flatMap(it -> Providers.of(it.toUnixNumeric())))
                 .optional(true);
-            getInputs().property(specPropertyName + ".fileMode", (Callable<Integer>) spec::getFileMode)
-                .optional(true);*/ //TODO: wire in the new permissions instead and add test for up-to-date and from-cache
+            getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().flatMap(it -> Providers.of(it.toUnixNumeric())))
+                .optional(true);
             getInputs().property(specPropertyName + ".filteringCharset", (Callable<String>) spec::getFilteringCharset);
         });
         this.getOutputs().doNotCacheIf(

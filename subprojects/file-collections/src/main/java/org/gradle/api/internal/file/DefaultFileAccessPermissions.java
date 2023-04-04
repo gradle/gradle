@@ -20,14 +20,16 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileAccessPermission;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import javax.inject.Inject;
 
-public class DefaultFileAccessPermissions implements FileAccessPermissionsInternal {
+import static org.gradle.internal.nativeintegration.filesystem.FileSystem.DEFAULT_DIR_MODE;
+import static org.gradle.internal.nativeintegration.filesystem.FileSystem.DEFAULT_FILE_MODE;
+
+public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPermissions implements FileAccessPermissionsInternal {
 
     public static int getDefaultUnixNumeric(boolean isDirectory) {
-        return isDirectory ? FileSystem.DEFAULT_DIR_MODE : FileSystem.DEFAULT_FILE_MODE;
+        return isDirectory ? DEFAULT_DIR_MODE : DEFAULT_FILE_MODE;
     }
 
     private final FileAccessPermissionInternal user;
@@ -94,11 +96,6 @@ public class DefaultFileAccessPermissions implements FileAccessPermissionsIntern
     }
 
     @Override
-    public int toUnixNumeric() {
-        return toUnixNumericPermissions(user.toUnixNumeric(), group.toUnixNumeric(), other.toUnixNumeric());
-    }
-
-    @Override
     public void fromUnixNumeric(int unixNumeric) {
         user.fromUnixNumeric(getUserMask(unixNumeric));
         group.fromUnixNumeric(getGroupMask(unixNumeric));
@@ -126,24 +123,5 @@ public class DefaultFileAccessPermissions implements FileAccessPermissionsIntern
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Can't be parsed as octal number.");
         }
-    }
-
-    private static int toNumericPermission(String unixSymbolic) {
-        int numeric = 0;
-        char r = unixSymbolic.charAt(0);
-
-        return numeric;
-    }
-
-    private static int getUserMask(int unixNumeric) {
-        return (unixNumeric & 0_700) >> 6;
-    }
-
-    private static int getGroupMask(int unixNumeric) {
-        return (unixNumeric & 0_070) >> 3;
-    }
-
-    private static int getOtherMask(int unixNumeric) {
-        return unixNumeric & 0_007;
     }
 }

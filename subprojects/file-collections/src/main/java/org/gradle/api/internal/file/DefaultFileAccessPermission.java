@@ -20,7 +20,7 @@ import org.gradle.api.provider.Property;
 
 import javax.inject.Inject;
 
-public abstract class DefaultFileAccessPermission implements FileAccessPermissionInternal {
+public abstract class DefaultFileAccessPermission extends AbstractImmutableFileAccessPermission implements FileAccessPermissionInternal {
 
     @Inject
     public DefaultFileAccessPermission(int unixNumeric) {
@@ -38,18 +38,10 @@ public abstract class DefaultFileAccessPermission implements FileAccessPermissio
 
     @Override
     public int toUnixNumeric() {
-        int unixNumeric = 0;
-
         getRead().finalizeValue();
-        unixNumeric += getRead().get() ? 4 : 0;
-
         getWrite().finalizeValue();
-        unixNumeric += getWrite().get() ? 2 : 0;
-
         getExecute().finalizeValue();
-        unixNumeric += getExecute().get() ? 1 : 0;
-
-        return unixNumeric;
+        return super.toUnixNumeric();
     }
 
     @Override
@@ -66,10 +58,6 @@ public abstract class DefaultFileAccessPermission implements FileAccessPermissio
         getExecute().value(isExecute(unixSymbolic.charAt(2)));
     }
 
-    private static boolean isRead(int unixNumeric) {
-        return (unixNumeric & 4) >> 2 == 1;
-    }
-
     private static boolean isRead(char symbol) {
         if (symbol == 'r') {
             return true;
@@ -80,10 +68,6 @@ public abstract class DefaultFileAccessPermission implements FileAccessPermissio
         }
     }
 
-    private static boolean isWrite(int unixNumeric) {
-        return (unixNumeric & 2) >> 1 == 1;
-    }
-
     private static boolean isWrite(char symbol) {
         if (symbol == 'w') {
             return true;
@@ -92,10 +76,6 @@ public abstract class DefaultFileAccessPermission implements FileAccessPermissio
         } else {
             throw new IllegalArgumentException("'" + symbol + "' is not a valid Unix permission WRITE flag, must be 'w' or '-'.");
         }
-    }
-
-    private static boolean isExecute(int unixNumeric) {
-        return (unixNumeric & 1) == 1;
     }
 
     private static boolean isExecute(char symbol) {

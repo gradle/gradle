@@ -14,25 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
+package org.gradle.api.file;
 
-import org.gradle.api.file.FileAccessPermission;
-import org.gradle.api.file.FileAccessPermissions;
+import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
 
-public interface FileAccessPermissionInternal extends FileAccessPermission {
+/**
+ * Describes file and directory access permissions for a certain user group.
+ * Immutable version of {@link FileAccessPermission}.
+ *
+ * @since 8.2
+ */
+@Incubating
+public interface ImmutableFileAccessPermission {
+
+    Provider<Boolean> getRead();
+
+    Provider<Boolean> getWrite();
+
+    Provider<Boolean> getExecute();
 
     /**
-     * Sets the user permission from a numeric Unix permission.
+     * Converts the user permission to a numeric Unix permission.
      * See {@link FileAccessPermissions#unix(String)} for details,
-     * input value is equivalent to one of the three octal digits.
+     * returned value is equivalent to one of the three octal digits.
      */
-    void fromUnixNumeric(int unixNumeric);
-
-    /**
-     * Sets the user permission from a symbolic Unix permission.
-     * See {@link FileAccessPermissions#unix(String)} for details,
-     * input value is equivalent to one of the three sets of symbol triplets.
-     */
-    void fromUnixSymbolic(String unixSymbolic);
+    int toUnixNumeric();
 
 }
