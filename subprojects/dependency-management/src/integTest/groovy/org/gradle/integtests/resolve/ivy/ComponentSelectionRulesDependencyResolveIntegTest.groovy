@@ -430,7 +430,6 @@ Required by:
     }
 
     @Issue("GRADLE-3236")
-    @ToBeFixedForConfigurationCache
     def "can select a different component for the same selector in different configurations"() {
         def descriptorArg = GradleMetadataResolveRunner.useIvy() ? 'selection.getDescriptor(IvyModuleDescriptor)' : 'selection.metadata'
         buildFile << """
@@ -469,9 +468,11 @@ Required by:
             }
 
             task verify {
+                def filesA = configurations.modulesA
+                def filesB = configurations.modulesB
                 doLast {
-                    assert configurations.modulesA.files.collect { it.name } == [ 'api-1.1.jar']
-                    assert configurations.modulesB.files.collect { it.name } == [ 'api-1.0.jar']
+                    assert filesA.collect { it.name } == [ 'api-1.1.jar']
+                    assert filesB.collect { it.name } == [ 'api-1.0.jar']
                 }
             }
         """

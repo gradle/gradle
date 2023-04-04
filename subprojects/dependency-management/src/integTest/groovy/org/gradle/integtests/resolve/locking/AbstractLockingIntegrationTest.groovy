@@ -211,6 +211,44 @@ task copyDeps(type: Copy) {
         lockfileFixture.expectLockStateMissing('conf')
     }
 
+    def 'does not write lock file when dependency resolution fails'() {
+        mavenRepo.module('org', 'bar', '1.1').publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    conf {
+        beforeResolve {
+            throw new RuntimeException("Build failed")
+        }
+    }
+}
+
+dependencies {
+    conf 'org:bar:1.+'
+}
+
+task copyDeps(type: Copy) {
+    from configurations.conf
+    into "\$buildDir/output"
+}
+"""
+
+        when:
+        fails 'copyDeps', '--write-locks'
+
+        then:
+        lockfileFixture.expectLockStateMissing('conf')
+    }
+
     def "writes dependency lock file for resolved version #version"() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()

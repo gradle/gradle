@@ -23,7 +23,6 @@ import spock.lang.IgnoreIf
 
 class CachedMissingModulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    @ToBeFixedForConfigurationCache
     def "caches missing module when module found in another repository"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -40,7 +39,10 @@ configurations { missing }
 dependencies {
     missing 'group:projectA:1.2'
 }
-task showMissing { doLast { println configurations.missing.files } }
+task showMissing {
+    def missing = configurations.missing
+    doLast { println missing.files }
+}
 """
 
         when:
@@ -58,7 +60,6 @@ task showMissing { doLast { println configurations.missing.files } }
         succeeds('showMissing')
     }
 
-    @ToBeFixedForConfigurationCache
     def "caches missing changing module when module found in another repository"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -80,7 +81,10 @@ configurations {
 dependencies {
     missing group: 'group', name: 'projectA', version: '1.2', changing: true
 }
-task showMissing { doLast { println configurations.missing.files } }
+task showMissing {
+    def missing = configurations.missing
+    doLast { println missing.files }
+}
 """
 
         when:
@@ -100,7 +104,6 @@ task showMissing { doLast { println configurations.missing.files } }
         succeeds('showMissing')
     }
 
-    @ToBeFixedForConfigurationCache
     def "checks for missing modules in each repository when run with --refresh-dependencies"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -117,7 +120,10 @@ configurations { missing }
 dependencies {
     missing 'group:projectA:1.2'
 }
-task showMissing { doLast { println configurations.missing.files } }
+task showMissing {
+    def missing = configurations.missing
+    doLast { println missing.files }
+}
 """
 
         when:

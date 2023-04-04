@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
@@ -29,7 +28,6 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 class MavenBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     public static final REPOSITORY_HINT = repositoryHint("Maven POM")
 
-    @ToBeFixedForConfigurationCache
     void "reports and recovers from missing module"() {
         given:
         def repo = mavenHttpRepo("repo1")
@@ -43,7 +41,10 @@ configurations { missing }
 dependencies {
     missing 'group:projectA:1.2'
 }
-task showMissing { doLast { println configurations.missing.files } }
+task showMissing {
+    def files = configurations.missing
+    doLast { println files.files }
+}
 """
 
         when:
@@ -51,8 +52,7 @@ task showMissing { doLast { println configurations.missing.files } }
 
         then:
         fails("showMissing")
-        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
-            .assertResolutionFailure(':missing')
+        failure.assertResolutionFailure(':missing')
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.pom.uri}
@@ -64,8 +64,7 @@ Required by:
 
         then:
         fails("showMissing")
-        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
-            .assertResolutionFailure(':missing')
+        failure.assertResolutionFailure(':missing')
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.pom.uri}
@@ -92,7 +91,6 @@ Required by:
         succeeds('showMissing')
     }
 
-    @ToBeFixedForConfigurationCache
     void "reports and recovers from multiple missing modules"() {
         given:
         def repo = mavenHttpRepo("repo1")
@@ -108,7 +106,10 @@ dependencies {
     missing 'group:projectA:1.2'
     missing 'group:projectB:1.0-milestone-9'
 }
-task showMissing { doLast { println configurations.missing.files } }
+task showMissing {
+    def files = configurations.missing
+    doLast { println files.files }
+}
 """
 
         when:
@@ -117,8 +118,7 @@ task showMissing { doLast { println configurations.missing.files } }
 
         then:
         fails("showMissing")
-        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
-            .assertResolutionFailure(':missing')
+        failure.assertResolutionFailure(':missing')
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${moduleA.pom.uri}
@@ -153,7 +153,6 @@ Required by:
         succeeds('showMissing')
     }
 
-    @ToBeFixedForConfigurationCache
     void "reports and recovers from multiple missing transitive modules"() {
         settingsFile << "include 'child1'"
 
@@ -190,7 +189,10 @@ project(':child1') {
         compile 'group:projectD:1.0GA'
     }
 }
-task showMissing { doLast { println configurations.compile.files } }
+task showMissing {
+    def files = configurations.compile
+    doLast { println files.files }
+}
 """
 
         when:
@@ -201,8 +203,7 @@ task showMissing { doLast { println configurations.compile.files } }
 
         then:
         fails("showMissing")
-        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
-            .assertResolutionFailure(':compile')
+        failure.assertResolutionFailure(':compile')
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${moduleA.pom.uri}
@@ -239,7 +240,6 @@ Required by:
         succeeds('showMissing')
     }
 
-    @ToBeFixedForConfigurationCache
     void "reports and recovers from failed POM download"() {
         given:
         def module = mavenHttpRepo.module('group', 'projectA', '1.3').publish()
@@ -254,7 +254,10 @@ configurations { broken }
 dependencies {
     broken 'group:projectA:1.3'
 }
-task showBroken { doLast { println configurations.broken.files } }
+task showBroken {
+    def files = configurations.broken
+    doLast { println files.files }
+}
 """
 
         when:
@@ -262,9 +265,7 @@ task showBroken { doLast { println configurations.broken.files } }
         fails("showBroken")
 
         then:
-        failure
-            .assertHasDescription('Execution failed for task \':showBroken\'.')
-            .assertResolutionFailure(':broken')
+        failure.assertResolutionFailure(':broken')
             .assertHasCause('Could not resolve group:projectA:1.3.')
             .assertHasCause("Could not GET '${module.pom.uri}'. Received status code 500 from server: broken")
 
@@ -300,7 +301,10 @@ configurations { broken }
 dependencies {
     broken 'group:projectA:1.3'
 }
-task showBroken { doLast { println configurations.broken.files } }
+task showBroken {
+    def files = configurations.broken
+    doLast { println files.files }
+}
 """
 
         when:
@@ -334,7 +338,10 @@ configurations { broken }
 dependencies {
     broken 'group:projectA:1.3'
 }
-task showBroken { doLast { println configurations.broken.files } }
+task showBroken {
+    def files = configurations.broken
+    doLast { println files.files }
+}
 """
 
         when:
@@ -368,7 +375,10 @@ configurations { broken }
 dependencies {
     broken 'group:projectA:1.3'
 }
-task showBroken { doLast { println configurations.broken.files } }
+task showBroken {
+    def files = configurations.broken
+    doLast { println files.files }
+}
 """
 
         when:
@@ -378,9 +388,7 @@ task showBroken { doLast { println configurations.broken.files } }
         fails("showBroken")
 
         and:
-        failure
-            .assertHasDescription('Execution failed for task \':showBroken\'.')
-            .assertResolutionFailure(':broken')
+        failure.assertResolutionFailure(':broken')
             .assertHasCause('Could not find group:projectA:1.3.')
 
         where:
@@ -404,7 +412,10 @@ configurations { broken }
 dependencies {
     broken 'group:projectA:1.3'
 }
-task showBroken { doLast { println configurations.broken.files } }
+task showBroken {
+    def files = configurations.broken
+    doLast { println files.files }
+}
 """
 
         when:
@@ -415,9 +426,7 @@ task showBroken { doLast { println configurations.broken.files } }
         fails("showBroken")
 
         and:
-        failure
-            .assertHasDescription('Execution failed for task \':showBroken\'.')
-            .assertResolutionFailure(':broken')
+        failure.assertResolutionFailure(':broken')
             .assertHasCause("Could not resolve all files for configuration ':broken'.")
             .assertHasCause('Could not find projectA-1.3.jar (group:projectA:1.3).')
 
