@@ -19,6 +19,9 @@ package org.gradle.api.plugins.quality.internal;
 import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
 
-@VisitForInstrumentation(value = {Checkstyle.class})
+/**
+ * Add classes to visit to this registry to enable property upgrade instrumentation.
+ */
+@VisitForInstrumentation(value = {})
 public interface PropertyUpgradeInstrumentationRegistry {
 }
