@@ -83,11 +83,11 @@ fun unpackTransformationStep(node: TransformationNode): TransformStepSpec {
 }
 
 
-fun unpackTransformationStep(transformation: TransformationStep, upstreamDependencies: TransformUpstreamDependencies): TransformStepSpec {
-    return if (transformation.transformer.requiresDependencies()) {
-        TransformStepSpec.FileDependencies(transformation, upstreamDependencies.selectedArtifacts(), upstreamDependencies.configurationIdentity!!)
+fun unpackTransformationStep(transformationStep: TransformationStep, upstreamDependencies: TransformUpstreamDependencies): TransformStepSpec {
+    return if (transformationStep.requiresDependencies()) {
+        TransformStepSpec.FileDependencies(transformationStep, upstreamDependencies.selectedArtifacts(), upstreamDependencies.configurationIdentity!!)
     } else {
-        TransformStepSpec.NoDependencies(transformation)
+        TransformStepSpec.NoDependencies(transformationStep)
     }
 }
 

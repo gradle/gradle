@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Describable;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -38,7 +39,7 @@ import java.io.File;
  *
  * Transforms a subject by invoking a transformer on each of the subjects files.
  */
-public class TransformationStep implements TaskDependencyContainer {
+public class TransformationStep implements TaskDependencyContainer, Describable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformationStep.class);
 
     private final Transformer transformer;
@@ -105,6 +106,15 @@ public class TransformationStep implements TaskDependencyContainer {
 
     public void isolateParametersIfNotAlready() {
         transformer.isolateParametersIfNotAlready();
+    }
+
+    public boolean requiresDependencies() {
+        return transformer.requiresDependencies();
+    }
+
+    @Override
+    public String getDisplayName() {
+        return transformer.getDisplayName();
     }
 
     public ImmutableAttributes getFromAttributes() {

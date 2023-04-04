@@ -233,7 +233,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
     @Override
     public String toString() {
-        return transformationStep.getTransformer().getDisplayName();
+        return transformationStep.getDisplayName();
     }
 
     public TransformationStep getTransformationStep() {
@@ -320,7 +320,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
                         } catch (ResolveException e) {
                             throw e;
                         } catch (RuntimeException e) {
-                            throw new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformationStep.getTransformer().getDisplayName(), "artifact transform", Collections.singleton(e));
+                            throw new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformationStep.getDisplayName(), "artifact transform", Collections.singleton(e));
                         }
 
                         return transformationStep
@@ -417,13 +417,13 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
         @Override
         public final BuildOperationDescriptor.Builder description() {
-            String transformerName = transformationStep.getTransformer().getDisplayName();
+            String transformationStepName = transformationStep.getDisplayName();
             String subjectName = describeSubject();
-            String basicName = subjectName + " with " + transformerName;
+            String basicName = subjectName + " with " + transformationStepName;
             return BuildOperationDescriptor.displayName("Transform " + basicName)
                 .progressDisplayName(TRANSFORMING_PROGRESS_PREFIX + basicName)
                 .metadata(BuildOperationCategory.TRANSFORM)
-                .details(new ExecutePlannedTransformStepBuildOperationDetails(TransformationNode.this, transformerName, subjectName));
+                .details(new ExecutePlannedTransformStepBuildOperationDetails(TransformationNode.this, transformationStepName, subjectName));
         }
 
         protected abstract String describeSubject();
