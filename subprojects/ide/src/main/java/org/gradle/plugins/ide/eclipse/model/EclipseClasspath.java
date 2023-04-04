@@ -362,20 +362,21 @@ public abstract class EclipseClasspath {
     public List<ClasspathEntry> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        boolean inferModulePath = false;
-        Task javaCompileTask = project.getTasks().findByName(JvmConstants.COMPILE_JAVA_TASK_NAME);
-        if (javaCompileTask instanceof JavaCompile) {
-            JavaCompile javaCompile = (JavaCompile) javaCompileTask;
-            inferModulePath = javaCompile.getModularity().getInferModulePath().get();
-            if (inferModulePath) {
-                List<File> sourceRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) javaCompile.getSource());
-                inferModulePath = JavaModuleDetector.isModuleSource(true, sourceRoots);
-            }
-        }
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()), inferModulePath);
+        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()), isInferModulePath(this.project));
         return classpathFactory.createEntries();
     }
 
+    public boolean isInferModulePath(org.gradle.api.Project project) {
+        Task javaCompileTask = project.getTasks().findByName(JvmConstants.COMPILE_JAVA_TASK_NAME);
+        if (javaCompileTask instanceof JavaCompile) {
+            JavaCompile javaCompile = (JavaCompile) javaCompileTask;
+            if (javaCompile.getModularity().getInferModulePath().get()) {
+                List<File> sourceRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) javaCompile.getSource());
+                return JavaModuleDetector.isModuleSource(true, sourceRoots);
+            }
+        }
+        return false;
+    }
 
     @SuppressWarnings("unchecked")
     public void mergeXmlClasspath(Classpath xmlClasspath) {
