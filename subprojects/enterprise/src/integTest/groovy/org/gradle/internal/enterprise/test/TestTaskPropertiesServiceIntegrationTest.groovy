@@ -99,9 +99,9 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
                 environment('KEY', 'VALUE')
             }
         """
-        file('src/test/java/org/example/TestClass.java') << """
+        file('src/test/java/org/example/SomeClass.java') << """
             package org.example;
-            public class TestClass {}
+            public class SomeClass {}
         """
 
         when:
@@ -143,8 +143,8 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
             with(candidateClassFiles, List) {
                 size() == 1
                 with(first(), Map) {
-                    file == file("build/classes/java/test/org/example/TestClass.class").absolutePath
-                    relativePath == "org/example/TestClass.class"
+                    file == file("build/classes/java/test/org/example/SomeClass.class").absolutePath
+                    relativePath == "org/example/SomeClass.class"
                 }
             }
             with(inputFileProperties, List) {
