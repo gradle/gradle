@@ -107,6 +107,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-foo', fileName: 'c-foo.jar')
                     }
                 }
@@ -124,6 +125,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-bar', fileName: 'c-bar.jar')
                     }
                 }
@@ -216,6 +218,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                     artifact(name: 'b-transitive')
                     module('com.acme.external:external:1.2') {
                         edge('com.acme.external:c:0.1', ':includedBuild', 'com.acme.external:c:2.0-SNAPSHOT') {
+                            compositeSubstitute()
                             artifact(name: 'c-foo', fileName: 'c-foo.jar')
                         }
                     }
@@ -235,6 +238,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                     artifact(name: 'b-transitive')
                     module('com.acme.external:external:1.2') {
                         edge('com.acme.external:c:0.1', ':includedBuild', 'com.acme.external:c:2.0-SNAPSHOT') {
+                            compositeSubstitute()
                             artifact(name: 'c-bar', fileName: 'c-bar.jar')
                         }
                     }
@@ -324,6 +328,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                     artifact(name: 'b-transitive')
                     module('com.acme.external:external:1.2') {
                         edge('com.acme.external:c:0.1', ':includedBuild', 'com.acme.external:c:2.0-SNAPSHOT') {
+                            compositeSubstitute()
                             artifact(name: 'c-foo', fileName: 'c-foo.jar')
                         }
                     }
@@ -347,6 +352,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                     artifact(name: 'b-transitive')
                     module('com.acme.external:external:1.2') {
                         edge('com.acme.external:c:0.1', ':includedBuild', 'com.acme.external:c:2.0-SNAPSHOT') {
+                            compositeSubstitute()
                             artifact(name: 'c-bar', fileName: 'c-bar.jar')
                         }
                     }
@@ -438,6 +444,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-foo', fileName: 'c-foo.jar')
                     }
                 }
@@ -455,6 +462,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-bar', fileName: 'c-bar.jar')
                     }
                 }
@@ -567,6 +575,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-foo', fileName: 'c-foo.jar')
                     }
                 }
@@ -584,6 +593,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-bar', fileName: 'c-bar.jar')
                     }
                 }
@@ -802,6 +812,7 @@ All of them match the consumer attributes:
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-foo', fileName: 'c-foo.jar')
                     }
                 }
@@ -819,6 +830,7 @@ All of them match the consumer attributes:
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
                     edge('com.acme.external:external:1.0', ':includedBuild', 'com.acme.external:external:2.0-SNAPSHOT') {
+                        compositeSubstitute()
                         artifact(name: 'c-bar', fileName: 'c-bar.jar')
                     }
                 }

@@ -19,9 +19,19 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+
+import java.util.concurrent.CopyOnWriteArrayList
 
 @FluidDependenciesResolveTest
 class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
+    ResolveTestFixture resolve = new ResolveTestFixture(buildFile)
+
+    def setup() {
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+    }
 
     /**
      * Test demonstrating current (not necessarily desired) behaviour
@@ -51,22 +61,20 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                         assert it.target.toString() == 'org.gradle.test:a:1.3'
                     }
                 }
-                task check {
-                    doLast {
-                        def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                        assert deps.size() == 1
-                        assert deps[0].selected.id instanceof ModuleComponentIdentifier
-                        assert deps[0].selected.id.version == '1.3'
-                    }
-                }
             }
 """
-        expect:
-        // Force resolve to catch failures
-        succeeds("resolveConf")
-        succeeds("check")
-    }
+        resolve.prepare("conf")
 
+        expect:
+        succeeds(":b:checkDeps")
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                edge("project :a", "org.gradle.test:a:1.3") {
+                    selectedByRule()
+                }
+            }
+        }
+    }
 
     void "forces multiple modules by rule"()
     {
@@ -98,12 +106,24 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 failOnVersionConflict()
             }
 """
+        resolve.prepare("conf")
 
-        when:
-        run("resolveConf")
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                 module("org.stuff:foo:2.0") {
+                    module("org.utils:api:1.5") {
+                        selectedByRule()
+                    }
+                }
+                edge("org.utils:impl:1.3", "org.utils:impl:1.5") {
+                    selectedByRule()
+                    module("org.utils:api:1.5")
+                }
+                module("org.utils:optional-lib:5.0")
+            }
+        }
     }
 
     void "module forced by rule has correct selection reason"()
@@ -130,23 +150,23 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
+"""
+        resolve.prepare("conf")
 
-            task check {
-                doLast {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies
-                    assert deps*.selected.id.module == ['foo', 'impl', 'api']
-                    assert deps*.selected.id.version == ['2.0', '1.5', '1.5']
-                    assert deps*.selected.selectionReason.forced         == [false, false, false]
-                    assert deps*.selected.selectionReason.selectedByRule == [false, true, true]
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.stuff:foo:2.0") {
+                    edge("org.utils:impl:1.3", "org.utils:impl:1.5") {
+                        selectedByRule()
+                        module("org.utils:api:1.5") {
+                            selectedByRule()
+                        }
+                    }
                 }
             }
-"""
-
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        }
     }
 
     void "all rules are executed orderly and last one wins"()
@@ -180,26 +200,21 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     //don't change the version
                 }
             }
+"""
+        resolve.prepare("conf")
 
-            task check {
-                doLast {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies
-                    assert deps.size() == 2
-                    deps.each {
-                        assert it.selected.id.version == '1.5'
-                        assert it.selected.selectionReason.selectedByRule
-                        assert it.selected.selectionReason.toString() == 'selected by rule'
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.utils:impl:1.3", "org.utils:impl:1.5") {
+                    selectedByRule()
+                    module("org.utils:api:1.5") {
+                        selectedByRule()
                     }
                 }
             }
-"""
-
-        when:
-        succeeds("resolveConf")
-        run("check")
-
-        then:
-        noExceptionThrown()
+        }
     }
 
     void "can override forced version with rule"()
@@ -224,26 +239,23 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     it.useVersion it.requested.version
                 }
             }
+"""
+        resolve.prepare("conf")
 
-            task check {
-                doLast {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies
-                    assert deps.size() == 2
-                    deps.each {
-                        assert it.selected.id.version == '1.3'
-                        def reason = it.selected.selectionReason
-                        assert reason.forced
-                        assert reason.selectedByRule
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.utils:impl:1.3") {
+                    selectedByRule()
+                    forced()
+                    module("org.utils:api:1.3") {
+                        selectedByRule()
+                        forced()
                     }
                 }
             }
-"""
-
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        }
     }
 
     void "rule are applied after forced modules"()
@@ -269,26 +281,23 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     it.useVersion '1.3'
                 }
             }
+"""
+        resolve.prepare("conf")
 
-            task check {
-                doLast {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies
-                    assert deps.size() == 2
-                    deps.each {
-                        assert it.selected.id.version == '1.3'
-                        def reason = it.selected.selectionReason
-                        assert reason.forced
-                        assert reason.selectedByRule
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.utils:impl:1.3") {
+                    selectedByRule()
+                    forced()
+                    module("org.utils:api:1.3") {
+                        selectedByRule()
+                        forced()
                     }
                 }
             }
-"""
-
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        }
     }
 
     void "forced modules and rules coexist"()
@@ -316,32 +325,21 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
+"""
+        resolve.prepare("conf")
 
-            task check {
-                doLast {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies
-                    assert deps.find {
-                        it.selected.id.module == 'impl' &&
-                        it.selected.id.version == '1.5' &&
-                        it.selected.selectionReason.forced &&
-                        !it.selected.selectionReason.selectedByRule
-                    }
-
-                    assert deps.find {
-                        it.selected.id.module == 'api' &&
-                        it.selected.id.version == '1.5' &&
-                        !it.selected.selectionReason.forced &&
-                        it.selected.selectionReason.selectedByRule
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.utils:impl:1.3", "org.utils:impl:1.5") {
+                    forced()
+                    module("org.utils:api:1.5") {
+                        selectedByRule()
                     }
                 }
             }
-"""
-
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        }
     }
 
     void "rule selects a dynamic version"()
@@ -360,26 +358,19 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             configurations.conf.resolutionStrategy.eachDependency {
                 it.useVersion '1.+'
             }
+"""
+        resolve.prepare("conf")
 
-            task check {
-                doLast {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 1
-                    assert deps[0].requested.version == '1.3'
-                    assert deps[0].selected.id.version == '1.5'
-                    assert !deps[0].selected.selectionReason.forced
-                    assert deps[0].selected.selectionReason.selectedByRule
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.utils:api:1.3", "org.utils:api:1.5") {
+                    selectedByRule()
                 }
             }
-"""
-
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        }
     }
-
 
     void "can deny a version"()
     {
@@ -401,25 +392,22 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     it.useVersion '1.4'
                 }
             }
+"""
+        resolve.prepare("conf")
 
-            task check {
-                doLast {
-                    def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
-                    def a = modules.find { it.id.module == 'a' }
-                    assert a.id.version == '1.4'
-                    assert a.selectionReason.conflictResolution
-                    assert a.selectionReason.selectedByRule
-                    assert !a.selectionReason.forced
-                    assert a.selectionReason.descriptions*.description.containsAll(['selected by rule', 'between versions 1.4 and 1.3'])
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.utils:a:1.2", "org.utils:a:1.4") {
+                    selectedByRule()
+                    byConflictResolution("between versions 1.4 and 1.3")
+                }
+                module("org.utils:b:1.3") {
+                    edge("org.utils:a:1.3", "org.utils:a:1.4")
                 }
             }
-"""
-
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        }
     }
 
     void "can deny a version that is not used"()
@@ -441,24 +429,22 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     it.useVersion '1.2.1'
                 }
             }
+"""
+        resolve.prepare("conf")
 
-            task check {
-                doLast {
-                    def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
-                    def a = modules.find { it.id.module == 'a' }
-                    assert a.id.version == '1.3'
-                    assert a.selectionReason.conflictResolution
-                    assert a.selectionReason.selectedByRule
-                    assert !a.selectionReason.forced
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.utils:a:1.2", "org.utils:a:1.3") {
+                    selectedByRule()
+                    byConflictResolution("between versions 1.3 and 1.2.1")
+                }
+                module("org.utils:b:1.3") {
+                    module("org.utils:a:1.3")
                 }
             }
-"""
-
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        }
     }
 
     def "can use custom versioning scheme"()
@@ -477,23 +463,18 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     it.useVersion '1.3'
                 }
             }
+"""
+        resolve.prepare("conf")
 
-            task check {
-                doLast {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 1
-                    deps[0].requested.version == 'default'
-                    deps[0].selected.id.version == '1.3'
-                    deps[0].selected.selectionReason.selectedByRule
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.utils:api:default", "org.utils:api:1.3") {
+                    selectedByRule()
                 }
             }
-"""
-
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        }
     }
 
     def "can use custom versioning scheme for transitive dependencies"()
@@ -513,24 +494,20 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     it.useVersion '1.3'
                 }
             }
+"""
+        resolve.prepare("conf")
 
-            task check {
-                doLast {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    assert deps.size() == 2
-                    def api = deps.find { it.requested.module == 'api' }
-                    api.requested.version == 'default'
-                    api.selected.id.version == '1.3'
-                    api.selected.selectionReason.selectedByRule
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.utils:impl:1.3") {
+                    edge("org.utils:api:default", "org.utils:api:1.3") {
+                        selectedByRule()
+                    }
                 }
             }
-"""
-
-        when:
-        run("check")
-
-        then:
-        noExceptionThrown()
+        }
     }
 
     void "rule selects unavailable version"()
@@ -598,7 +575,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 conf 'org.utils:impl:1.3', 'org.stuff:foo:2.0', 'org.stuff:bar:2.0'
             }
 
-            List requested = [].asSynchronized()
+            List requested = new ${CopyOnWriteArrayList.name}()
 
             configurations.conf.resolutionStrategy {
                 eachDependency {
@@ -607,8 +584,9 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task check {
+                def files = configurations.conf
                 doLast {
-                    configurations.conf.resolve()
+                    files.files
                     requested = requested.sort()
                     assert requested == ['api:1.3', 'api:1.5', 'bar:2.0', 'foo:2.0', 'impl:1.3']
                 }
@@ -676,28 +654,20 @@ Required by:
                     it.useTarget(it.requested.group + ':b:2.1')
                 }
             }
-
-            task check {
-                doLast {
-                    def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
-                    assert !modules.find { it.id.module == 'a' }
-                    def b = modules.find { it.id.module == 'b' }
-                    assert b.id.version == '2.1'
-                    assert b.selectionReason.conflictResolution
-                    assert b.selectionReason.selectedByRule
-                    assert !b.selectionReason.forced
-                    assert b.selectionReason.descriptions*.description.containsAll(['selected by rule', 'between versions 2.1 and 2.0'])
-                }
-            }
 """
+        resolve.prepare("conf")
 
-        when:
-        run("check", "dependencies")
-
-        then:
-        output.contains """conf
-+--- org.utils:a:1.2 -> org.utils:b:2.1
-\\--- org.utils:b:2.0 -> 2.1"""
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org.utils:a:1.2", "org.utils:b:2.1") {
+                    selectedByRule()
+                    byConflictResolution("between versions 2.1 and 2.0")
+                }
+                edge("org.utils:b:2.0", "org.utils:b:2.1")
+            }
+        }
     }
 
     def "can substitute module group"()
@@ -722,16 +692,22 @@ Required by:
                 }
             }
 """
+        resolve.prepare("conf")
 
-        when:
-        run("dependencies")
-
-        then:
-        output.contains """
-+--- org:a:1.0 -> 2.0
-|    \\--- org:c:1.0
-\\--- foo:b:1.0 -> org:b:1.0
-     \\--- org:a:2.0 (*)"""
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:1.0", "org:a:2.0") {
+                    byConflictResolution("between versions 2.0 and 1.0")
+                    module("org:c:1.0")
+                }
+                edge("foo:b:1.0", "org:b:1.0") {
+                    selectedByRule()
+                    module("org:a:2.0")
+                }
+            }
+        }
     }
 
     def "can substitute module group, name and version"()
@@ -756,16 +732,22 @@ Required by:
                 }
             }
 """
+        resolve.prepare("conf")
 
-        when:
-        run("dependencies")
-
-        then:
-        output.contains """
-+--- org:a:1.0 -> 2.0
-|    \\--- org:c:1.0
-\\--- foo:bar:baz -> org:b:1.0
-     \\--- org:a:2.0 (*)"""
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:1.0", "org:a:2.0") {
+                    byConflictResolution("between versions 2.0 and 1.0")
+                    module("org:c:1.0")
+                }
+                edge("foo:bar:baz", "org:b:1.0") {
+                    selectedByRule()
+                    module("org:a:2.0")
+                }
+            }
+        }
     }
 
     def "provides decent feedback when target module incorrectly specified"()
@@ -783,7 +765,7 @@ Required by:
 """
 
         when:
-        runAndFail("dependencies")
+        runAndFail("dependencies", "resolveConf")
 
         then:
         failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
@@ -810,18 +792,23 @@ Required by:
                 }
             }
 """
+        resolve.prepare("conf")
 
-        when:
-        run("dependencies")
-
-        then:
-        output.contains """
-conf
-+--- org:a:1.0 -> org:c:2.0
-\\--- org:a:2.0
-     \\--- org:b:2.0
-          \\--- org:c:2.0
-"""
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:1.0", "org:c:2.0") {
+                    selectedByRule()
+                    byConflictResolution("between versions 2.0 and 1.1")
+                }
+                module("org:a:2.0") {
+                    module("org:b:2.0") {
+                        module("org:c:2.0")
+                    }
+                }
+            }
+        }
     }
 
     def "module selected by conflict resolution can be selected again in a another pass of conflict resolution"()
@@ -849,17 +836,24 @@ conf
             dependencies {
                 conf 'org:b:3.0', 'org:b:4.0', 'org:a:1.0', 'org:a:2.0'
             }
-
-            task check {
-                doLast {
-                    def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
-                    assert modules.find { it.id.module == 'b' && it.id.version == '4.0' && it.selectionReason.conflictResolution }
-                }
-            }
 """
+        resolve.prepare("conf")
 
         expect:
-        run("check")
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:b:3.0", "org:b:4.0")
+                module("org:b:4.0") {
+                    byConflictResolution("between versions 4.0, 3.0 and 2.5")
+                }
+                edge("org:a:1.0", "org:a:2.0")
+                module("org:a:2.0") {
+                    byConflictResolution("between versions 2.0 and 1.0")
+                    edge("org:b:2.5", "org:b:4.0")
+                }
+            }
+        }
     }
 
     def "custom selection reasons are available in resolution result"() {
@@ -895,15 +889,24 @@ conf
                 conf 'org:bar:1.0'
                 conf 'org:baz:1.0'
             }
-            task check {
-                doLast {
-                    def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
-                    assert modules.find { it.id.module == 'foo' }.selectionReason.toString() == 'because I am in control'
-                    assert modules.find { it.id.module == 'bar' }.selectionReason.toString() == 'why not?'
-                    assert modules.find { it.id.module == 'baz' }.selectionReason.toString() == 'selected by rule'
+        """
+        resolve.prepare("conf")
+
+        expect:
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:1.0", "org:foo:2.0") {
+                    selectedByRule("because I am in control")
+                }
+                edge("org:bar:1.0", "org.test:bar:2.0") {
+                    selectedByRule("why not?")
+                }
+                module("org:baz:1.0") {
+                    selectedByRule()
                 }
             }
-        """
+        }
 
         when:
         run "check"
@@ -917,10 +920,10 @@ conf
         repositories {
             maven { url "${mavenRepo.uri}" }
         }
-        task resolveConf { doLast { configurations.conf.files } }
-
-        //resolving the configuration at the end:
-        gradle.startParameter.taskNames += 'resolveConf'
+        task resolveConf {
+            def files = configurations.conf
+            doLast { files.files }
+        }
         """
     }
 }

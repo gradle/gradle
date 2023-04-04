@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
@@ -67,7 +67,6 @@ import org.gradle.api.specs.Specs;
 import org.gradle.cache.internal.BinaryStore;
 import org.gradle.cache.internal.Store;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.locking.DependencyLockingArtifactVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -78,7 +77,7 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultConfigurationResolver implements ConfigurationResolver {
-    private static final Spec<DependencyMetadata> IS_LOCAL_EDGE = element -> element instanceof DslOriginDependencyMetadata && ((DslOriginDependencyMetadata) element).getSource() instanceof ProjectDependency;
+    private static final Spec<DependencyMetadata> IS_LOCAL_EDGE = element -> element.getSelector() instanceof ProjectComponentSelector;
     private final ArtifactDependencyResolver resolver;
     private final RepositoriesSupplier repositoriesSupplier;
     private final GlobalDependencyResolutionRules metadataHandler;
