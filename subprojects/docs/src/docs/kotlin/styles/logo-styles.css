@@ -21,11 +21,11 @@
 
 .library-name a::before {
     content: '';
-    background: url("../images/gradle-logo.png") center no-repeat;
+    background: url("../images/gradle-logo.svg") center no-repeat;
     background-size: contain;
     position: absolute;
-    width: 75px;
-    height: 75px;
-    top: -30px;
-    left: -70px;
+    width: 65px;
+    height: 65px;
+    top: -27px;
+    left: -66px;
 }
