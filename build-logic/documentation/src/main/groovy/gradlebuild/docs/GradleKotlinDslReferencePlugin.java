@@ -32,8 +32,8 @@ import org.jetbrains.dokka.Platform;
 
 public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
-    public static final String TASK_NAME = "dokkatooGeneratePublicationHtml";
-    public static final String MODULE_NAME = "Kotlin DSL Reference";
+    private static final String TASK_NAME = "dokkatooGeneratePublicationHtml";
+    private static final String MODULE_NAME = "Kotlin DSL Reference";
 
     @Override
     public void apply(Project project) {
@@ -43,26 +43,25 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         configurePlugin(project, documentationExtension);
     }
 
-    private void applyPlugin(Project project) {
+    private static void applyPlugin(Project project) {
         project.getPlugins().apply(DokkatooHtmlPlugin.class);
     }
 
-    private void updateDocumentationExtension(Project project, GradleDocumentationExtension extension) {
+    private static void updateDocumentationExtension(Project project, GradleDocumentationExtension extension) {
         TaskProvider<Task> generateTask = project.getTasks().named(TASK_NAME);
         Provider<? extends Directory> outputDirectory = generateTask.flatMap(t -> ((DokkatooGenerateTask) t).getOutputDirectory());
         extension.getKotlinDslReference().getRenderedDocumentation().set(outputDirectory);
     }
 
-    private void configurePlugin(Project project, GradleDocumentationExtension extension) {
+    private static void configurePlugin(Project project, GradleDocumentationExtension extension) {
         renameModule(project);
         wireInArtificialSourceSet(project, extension);
         setStyling(project, extension);
     }
 
-    private static DokkatooExtension renameModule(Project project) {
+    private static void renameModule(Project project) {
         DokkatooExtension dokkatooExtension = getDokkatooExtension(project);
         dokkatooExtension.getModuleName().set(MODULE_NAME);
-        return dokkatooExtension;
     }
 
     private static void wireInArtificialSourceSet(Project project, GradleDocumentationExtension extension) {
@@ -80,17 +79,14 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
             spec.getClasspath().from(extension.getClasspath());
             spec.getClasspath().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedClasses));
             spec.getAnalysisPlatform().set(Platform.jvm);
-            spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md").get().getAsFile().getAbsolutePath());
+            spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md"));
         });
     }
 
     private static void setStyling(Project project, GradleDocumentationExtension extension) {
-        String cssFile = extension.getSourceRoot().file("kotlin/styles/logo-styles.css").get().getAsFile().getAbsolutePath();
-        String logoFile = extension.getSourceRoot().file("kotlin/images/gradle-logo.png").get().getAsFile().getAbsolutePath();
-
         getDokkatooExtension(project).getPluginsConfiguration().named("html", DokkaHtmlPluginParameters.class, config -> {
-            config.getCustomStyleSheets().from(cssFile);
-            config.getCustomAssets().from(logoFile);
+            config.getCustomStyleSheets().from(extension.getSourceRoot().file("kotlin/styles/logo-styles.css"));
+            config.getCustomAssets().from(extension.getSourceRoot().file("kotlin/images/gradle-logo.png"));
         });
     }
 
