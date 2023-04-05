@@ -7,6 +7,11 @@ The Kotlin DSL is implemented on top of Gradle’s Java API.
 Many of the objects, functions and properties you use in your build scripts come from the Gradle API and the APIs of the applied plugins.
 This reference covers both the Kotlin DSL and the Java API, but it doesn't include functionality provided by external plugins.
 
-The main package of the Kotlin DSL is <a href="./-kotlin%20-d-s-l%20-reference/org.gradle.kotlin.dsl/index.html">org.gradle.kotlin.dsl</a>, which is also an implicit import in all Kotlin build scripts.
-The other important package the Kotlin DSL is <a href="./-kotlin%20-d-s-l%20-reference/org.gradle.kotlin.dsl.precompile/index.html">org.gradle.kotlin.precompile</a>.
-The rest of the packages belong to the Java API.
+The main package of the Kotlin DSL is <a href="./-kotlin%20-d-s-l%20-reference/org.gradle.kotlin.dsl/index.html">org.gradle.kotlin.dsl</a>.
+All members of this package are implicitly imported and readily available in `.gradle.kts` scripts in addition to the Java API <a href="../userguide/writing_build_scripts.html#script-default-imports">default imports</a>.
+
+# Package org.gradle.kotlin.dsl
+
+The `org.gradle.kotlin.dsl` package contains the Gradle Kotlin DSL public API.
+
+All members of this package are implicitly imported and readily available in `.gradle.kts` scripts in addition to the Gradle Java API <a href="../../../userguide/writing_build_scripts.html#script-default-imports">default imports</a>.
