@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
+/* Adjust top left logo */
+
 .library-name a {
     position: relative;
-    margin-left: 55px;
+    margin-left: 65px;
 }
 
 .library-name a::before {
@@ -27,5 +29,19 @@
     width: 65px;
     height: 65px;
     top: -27px;
-    left: -66px;
+    left: -72px;
+}
+
+/* Hide the module name title on the front page */
+
+div.main-content:not([data-page-type]) h1.cover {
+    display: none;
+}
+
+/* Capitalize the module name */
+
+div.library-name,
+div.sideMenuPart div.overview:first-child a[href="index.html"],
+div.breadcrumbs a:first-child {
+    text-transform: capitalize;
 }
