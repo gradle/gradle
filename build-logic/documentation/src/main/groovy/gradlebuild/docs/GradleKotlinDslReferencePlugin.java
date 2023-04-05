@@ -24,6 +24,9 @@ import dev.adamko.dokkatoo.tasks.DokkatooGenerateTask;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.file.Directory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
 import org.jetbrains.dokka.Platform;
 
@@ -45,10 +48,9 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
     }
 
     private void updateDocumentationExtension(Project project, GradleDocumentationExtension extension) {
-        DokkatooGenerateTask generateTask = (DokkatooGenerateTask) project.getTasks().getByName(TASK_NAME);
-        extension.getKotlinDslReference().getRenderedDocumentation().from(generateTask.getOutputDirectory());
-
-        extension.getKotlinDslReference().getDokkaCss().convention(extension.getSourceRoot().file("css/dokka.css"));
+        TaskProvider<Task> generateTask = project.getTasks().named(TASK_NAME);
+        Provider<? extends Directory> outputDirectory = generateTask.flatMap(t -> ((DokkatooGenerateTask) t).getOutputDirectory());
+        extension.getKotlinDslReference().getRenderedDocumentation().set(outputDirectory);
     }
 
     private void configurePlugin(Project project, GradleDocumentationExtension extension) {

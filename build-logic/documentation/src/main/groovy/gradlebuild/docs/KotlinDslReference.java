@@ -16,8 +16,7 @@
 
 package gradlebuild.docs;
 
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.file.DirectoryProperty;
 
 /**
  * Configuration for generating Dokka based Kotlin DSL docs.
@@ -27,6 +26,6 @@ public abstract class KotlinDslReference {
     /**
      * The location of the final rendered Dokka content.
      */
-    public abstract ConfigurableFileCollection getRenderedDocumentation();
+    public abstract DirectoryProperty getRenderedDocumentation();
 
 }
