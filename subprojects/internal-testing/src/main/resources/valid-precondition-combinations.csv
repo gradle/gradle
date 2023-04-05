@@ -1,6 +1,5 @@
 PluginTestPreconditions$ShellcheckAvailable
 SigningTestPreconditions$GpgAvailable
-
 UnitTestPreconditions$CanInstallExecutable
 UnitTestPreconditions$CanInstallExecutable,UnitTestPreconditions$NotMacOs
 UnitTestPreconditions$CanInstallExecutable,UnitTestPreconditions$NotWindows
@@ -59,7 +58,6 @@ UnitTestPreconditions$UnixDerivative,PluginTestPreconditions$StaticShAvailable
 UnitTestPreconditions$Windows
 UnitTestPreconditions$Windows,UnitTestPreconditions$Jdk7OrLater,UnitTestPreconditions$Jdk8OrEarlier
 UnitTestPreconditions$WorkingDir
-
 IntegTestPreconditions$IsConfigCached
 IntegTestPreconditions$IsDaemonExecutor
 IntegTestPreconditions$IsEmbeddedExecutor
