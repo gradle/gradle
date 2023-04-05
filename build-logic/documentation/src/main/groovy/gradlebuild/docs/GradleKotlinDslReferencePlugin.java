@@ -33,7 +33,6 @@ import org.jetbrains.dokka.Platform;
 public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
     private static final String TASK_NAME = "dokkatooGeneratePublicationHtml";
-    private static final String MODULE_NAME = "Kotlin DSL Reference";
 
     @Override
     public void apply(Project project) {
@@ -59,9 +58,12 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         setStyling(project, extension);
     }
 
+    /**
+     * The name of the module is part of the URI for deep links, changing it will break existing links.
+     * The name of the module must match the first header of {@code kotlin/Module.md} file.
+     */
     private static void renameModule(Project project) {
-        DokkatooExtension dokkatooExtension = getDokkatooExtension(project);
-        dokkatooExtension.getModuleName().set(MODULE_NAME);
+        getDokkatooExtension(project).getModuleName().set("gradle");
     }
 
     private static void wireInArtificialSourceSet(Project project, GradleDocumentationExtension extension) {
@@ -73,7 +75,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
         NamedDomainObjectContainer<DokkaSourceSetSpec> sourceSets = getDokkatooExtension(project).getDokkatooSourceSets();
         sourceSets.register("kotlin_dsl", spec -> {
-            spec.getDisplayName().set(MODULE_NAME);
+            spec.getDisplayName().set("Kotlin DSL");
             spec.getSourceRoots().from(extension.getKotlinDslSource());
             spec.getSourceRoots().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedSources));
             spec.getClasspath().from(extension.getClasspath());
