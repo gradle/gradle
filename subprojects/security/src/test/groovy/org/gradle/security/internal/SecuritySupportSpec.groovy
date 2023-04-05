@@ -28,14 +28,19 @@ class SecuritySupportSpec extends Specification {
         def keyrings = SecuritySupport.loadKeyRingFile(keyringFile)
 
         then:
-        keyrings.size() == 3
+        keyrings.size() == 5
         keyrings.forEach { keyRing ->
             keyRing.publicKeys.forEachRemaining { publicKey ->
                 assert publicKey.getUserAttributes().size() == 0
                 assert publicKey.signatures.size() == publicKey.keySignatures.size()
-                assert publicKey.userIDs.size() == 0
             }
+            assert keyRing.publicKey.userIDs.size() <= 1
         }
+        keyrings[0].publicKey.userIDs[0] == "Gradle Inc. <info@gradle.com>"
+        keyrings[1].publicKey.userIDs[0] == "Stian Soiland <stain@s11.no>"
+        keyrings[2].publicKey.userIDs[0] == "Gradle <marc@gradle.com>"
+        keyrings[3].publicKey.userIDs[0] == "�amonn McManus <eamonn@mcmanus.net>"
+        keyrings[4].publicKey.userIDs.size() == 0
     }
 
 
