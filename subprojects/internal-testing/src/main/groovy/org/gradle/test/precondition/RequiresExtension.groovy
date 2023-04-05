@@ -26,7 +26,9 @@ import org.spockframework.runtime.model.SpecElementInfo
 import org.spockframework.runtime.model.SpecInfo
 
 /**
- * Test extension enforcing the {@link Requires} annotation in Spock.
+ * Test extension enforcing the {@link Requires} annotation in Spock (note, that this is a separate class from Spock's own {@link spock.lang.Requires}).
+ *
+ *
  *
  * <p>
  * <b>Defining new combinations</b><br/>
@@ -45,6 +47,7 @@ import org.spockframework.runtime.model.SpecInfo
  * Otherwise, situations can happen where tests with particular combinations are never going to be executed.
  *
  * @see <a href="https://github.com/gradle/gradle-private/issues/3616">#3616</a>
+ * @see Requires
  */
 @CompileStatic
 class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
@@ -104,7 +107,8 @@ class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
     }
 
     /**
-     * Checks if a precondition is accepted by any of the accepted combinations.
+     * Checks if a precondition is present in the allowed precondition list stored
+     * in {@code subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv}
      *
      * @param testPreconditions
      */
@@ -113,7 +117,9 @@ class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
 
         if (!found) {
             def message = String.format(
-                "Requested requirements [%s] were not in the list of accepted combinations. Add it to 'subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv' to be accepted.",
+                "Requested requirements [%s] were not in the list of accepted combinations. " +
+                    "Add it to 'subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv' to be accepted. " +
+                    "See the documentation of this class to learn more about this feature.",
                 predicateClassNames.join(", ")
             )
             throw new ExtensionException(message)

@@ -73,13 +73,6 @@ class IntegTestPreconditions {
         }
     }
 
-    static final class GradleBuildJvmSpecAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return GradleBuildJvmSpec.available
-        }
-    }
-
     static class Java5HomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {

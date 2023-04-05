@@ -30,9 +30,8 @@ import org.gradle.testkit.runner.BuildResult
 import java.text.SimpleDateFormat
 
 @Requires([
-    UnitTestPreconditions.Jdk9OrLater,
     IntegTestPreconditions.NotConfigCached,
-    IntegTestPreconditions.GradleBuildJvmSpecAvailable
+    IntegTestPreconditions.Java11HomeAvailable
 ])
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
