@@ -154,6 +154,26 @@ The following method on `Configuration` is deprecated for removal:
 
 Obtain the set of all configurations from the project's `configurations` container instead.
 
+=== Potential breaking changes
+
+[[kotlin_1_8.20]]
+==== Upgrade to Kotlin 1.8.20
+
+The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.8.20[Kotlin 1.8.20].
+For more information, see https://kotlinlang.org/docs/whatsnew1820.html[What's new in Kotlin 1.8.20].
+
+Note that there is a known issue with Kotlin compilation avoidance that can cause `OutOfMemory` exceptions in `compileKotlin` tasks if the compilation classpath contains very large JAR files.
+This applies to builds applying the Kotlin plugin v1.8.20 or the `kotlin-dsl` plugin.
+
+You can work around it by disabling Kotlin compilation avoidance in your `gradle.properties` file:
+
+[source,properties]
+----
+kotlin.incremental.useClasspathSnapshot=false
+----
+
+See link:https://youtrack.jetbrains.com/issue/KT-57757/[KT-57757] for more information.
+
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
 
