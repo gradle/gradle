@@ -28,26 +28,12 @@ import org.spockframework.runtime.model.SpecInfo
 /**
  * Test extension enforcing the {@link Requires} annotation in Spock (note, that this is a separate class from Spock's own {@link spock.lang.Requires}).
  *
- *
- *
  * <p>
  * <b>Defining new combinations</b><br/>
- * If you a new combination of {@link TestPrecondition} class, go to
- * {@code subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv}
- * and simply add it.
+ * If you need a new combination of {@link TestPrecondition} classes, go to {@code subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv} and simply add it.
  *
- * The combination <i>might</i> fail, if the CI infrastructure lacks that particular combination.
- * In that case, contact
- * <a href="https://github.com/orgs/gradle/teams/bt-developer-productivity">@bt-developer-productivity</a>
- * for help.
- *
- * <p>
- * <b>Reason d'être</b><br/>
- * Defining the combinations allows us to test if we have all the required conditions set-up on the CI infrastructure.
- * Otherwise, situations can happen where tests with particular combinations are never going to be executed.
- *
- * @see <a href="https://github.com/gradle/gradle-private/issues/3616">#3616</a>
  * @see Requires
+ * @see <a href="https://github.com/gradle/gradle/tree/master/subprojects/predicate-tester">predicate-tester</a> project
  */
 @CompileStatic
 class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
@@ -56,7 +42,6 @@ class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
 
     /**
      * Default constructor.
-     *
      * <p>
      * This will automatically load {@code subprojects/internal-testing/src/main/resources/valid-precondition-combinations.csv}.
      */
