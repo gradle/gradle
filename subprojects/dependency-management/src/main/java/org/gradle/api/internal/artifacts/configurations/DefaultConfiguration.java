@@ -822,9 +822,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 boolean hasModuleNotFound = causes.stream().anyMatch(ModuleVersionNotFoundException.class::isInstance);
                 if (hasModuleNotFound) {
                     return Optional.of(new ResolveExceptionWithHints(getDisplayName(), causes,
-                        "The project declares repositories, effectively ignoring the repositories you have declared in the settings.",
+                        String.join("\n", "The project declares repositories, effectively ignoring the repositories you have declared in the settings.",
                         "You can figure out how project repositories are declared by configuring your build to fail on project repositories.",
-                        "See " + documentationRegistry.getDocumentationFor("declaring_repositories", "sub:fail_build_on_project_repositories") + " for details."));
+                        "See " + documentationRegistry.getDocumentationFor("declaring_repositories", "sub:fail_build_on_project_repositories") + " for details.")));
                 }
             }
         } catch (Throwable e) {
@@ -1796,7 +1796,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (!isSpecialCaseOfChangingUsage(usage, current)) {
             String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
             String changingUsage = usage + " was " + !current + " and is now " + current;
-            
+
             DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), changingUsage))
                     .withAdvice("Usage should be fixed upon creation.")
                     .willBeRemovedInGradle9()
@@ -1826,7 +1826,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      * <ol>
      *     <li>While {#roleAtCreation} is {@code null}, we are still initializing, so we should NOT warn.</li>
      *     <li>Changes to the usage of the detached configurations should NOT warn (this done by the Kotlin plugin).</li>
-     *     <li>Configurations with a legacy role should NOT warn when changing usage, 
+     *     <li>Configurations with a legacy role should NOT warn when changing usage,
 since users cannot create non-legacy configurations and there is no current public API for setting roles upon creation</li>
      *     <li>Setting consumable usage to false on the {@code apiElements} and {@code runtimeElements} configurations should NOT warn (this is done by the Kotlin plugin).</li>
      *     <li>All other usage changes should warn.</li>

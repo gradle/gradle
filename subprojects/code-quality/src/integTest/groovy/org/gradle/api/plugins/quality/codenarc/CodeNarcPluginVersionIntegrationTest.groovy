@@ -28,6 +28,7 @@ import org.gradle.util.internal.ToBeImplemented
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ CodeNarcCoverage.supportedVersionsByCurrentJdk })
@@ -116,7 +117,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         fails("check")
         failure.assertHasDescription("Execution failed for task ':codenarcTest'.")
         failure.assertThatCause(startsWith("CodeNarc rule violations were found. See the report at:"))
-        failure.assertHasResolutions("Run with --scan to get full insights.")
+        failure.assertHasResolutions(SCAN)
         !report("main").text.contains("Class2")
         report("test").text.contains("testclass2")
     }

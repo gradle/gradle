@@ -403,7 +403,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         op.details.configurationName == "compile"
         op.failure == "org.gradle.api.artifacts.ResolveException: Could not resolve all dependencies for configuration ':compile'."
-        failure.assertHasCause("""Conflict(s) found for the following module(s):
+        failure.assertHasCause("""Conflict found for the following module:
   - org:leaf between versions 2.0 and 1.0""")
         op.result != null
         op.result.resolvedDependenciesCount == 2
