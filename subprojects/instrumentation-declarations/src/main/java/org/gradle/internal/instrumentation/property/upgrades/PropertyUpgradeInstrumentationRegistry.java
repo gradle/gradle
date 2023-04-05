@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality.internal;
+package org.gradle.internal.instrumentation.property.upgrades;
 
-import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.internal.instrumentation.api.annotations.VisitForInstrumentation;
 
 /**

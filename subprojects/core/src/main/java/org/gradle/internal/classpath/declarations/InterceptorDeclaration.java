@@ -16,40 +16,23 @@
 
 package org.gradle.internal.classpath.declarations;
 
-import org.gradle.internal.instrumentation.api.annotations.CallableDefinition;
-import org.gradle.internal.instrumentation.api.annotations.CallableKind;
-import org.gradle.internal.instrumentation.api.annotations.InterceptCalls;
-import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
-import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 import com.google.common.collect.ImmutableList;
+
 import java.util.List;
 
-@SpecificJvmCallInterceptors(generatedClassName = InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
-@SpecificGroovyCallInterceptors(generatedClassName = InterceptorDeclaration.GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME)
 public class InterceptorDeclaration {
     public static final String JVM_BYTECODE_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.InterceptorDeclaration_JvmBytecodeImpl";
-    public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CODE_QUALITY = JVM_BYTECODE_GENERATED_CLASS_NAME + "PropertyUpgrades";
+    public static final String JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES = JVM_BYTECODE_GENERATED_CLASS_NAME + "PropertyUpgrades";
     public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME = "org.gradle.internal.classpath.InterceptorDeclaration_GroovyInterceptorsImpl";
-    public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CODE_QUALITY = GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME + "PropertyUpgrades";
+    public static final String GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES = GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME + "PropertyUpgrades";
 
     public static final List<String> JVM_BYTECODE_GENERATED_CLASS_NAMES = ImmutableList.of(
         JVM_BYTECODE_GENERATED_CLASS_NAME,
-        JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_CODE_QUALITY
+        JVM_BYTECODE_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES
     );
 
     public static final List<String> GROOVY_INTERCEPTORS_GENERATED_CLASS_NAMES = ImmutableList.of(
         GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME,
-        GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_CODE_QUALITY
+        GROOVY_INTERCEPTORS_GENERATED_CLASS_NAME_FOR_PROPERTY_UPGRADES
     );
-
-    /**
-     * Make sure that there is at least one interceptor declaration so the classes are generated and the integration works.
-     * TODO this interceptor may be removed once others are added
-     */
-    @InterceptCalls
-    @CallableKind.StaticMethod(ofClass = InterceptorDeclaration.class)
-    @CallableDefinition.Name("emptyStubToEnsureClassGeneration")
-    public static void stub() {
-    }
 }
-

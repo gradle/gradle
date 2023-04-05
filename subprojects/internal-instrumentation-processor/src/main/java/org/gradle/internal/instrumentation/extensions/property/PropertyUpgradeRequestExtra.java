@@ -27,8 +27,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
     enum UpgradedPropertyType {
         PROPERTY,
         FILE_SYSTEM_LOCATION_PROPERTY,
-        CONFIGURABLE_FILE_COLLECTION
-        ;
+        CONFIGURABLE_FILE_COLLECTION;
 
         public static UpgradedPropertyType from(Type type) {
             if (type.getClassName().equals(DirectoryProperty.class.getName()) || type.getClassName().equals(RegularFileProperty.class.getName())) {
