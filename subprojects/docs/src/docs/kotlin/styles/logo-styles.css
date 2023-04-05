@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package gradlebuild.docs;
+.library-name a {
+    position: relative;
+    margin-left: 55px;
+}
 
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.RegularFileProperty;
-
-/**
- * Configuration for generating Dokka based Kotlin DSL docs.
- */
-public abstract class KotlinDslReference {
-
-    /**
-     * The location of the final rendered Dokka content.
-     */
-    public abstract ConfigurableFileCollection getRenderedDocumentation();
-
+.library-name a::before {
+    content: '';
+    background: url("../images/gradle-logo.png") center no-repeat;
+    background-size: contain;
+    position: absolute;
+    width: 75px;
+    height: 75px;
+    top: -30px;
+    left: -70px;
 }

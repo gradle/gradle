@@ -82,16 +82,9 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         });
     }
 
-    private static void setStyling(Project project, GradleDocumentationExtension extension) { //TODO: doesn't work ...
-        String cssFile = extension.getKotlinDslReference().getDokkaCss().get().getAsFile().getAbsolutePath();
-        String logoFile = extension.getSourceRoot().file("kotlin/gradle-logo.png").get().getAsFile().getAbsolutePath();
-
-        getDokkatooExtension(project).getDokkatooPublications().configureEach(publication -> {
-            publication.getPluginsConfiguration().named("html", DokkaHtmlPluginParameters.class, config -> {
-                config.getCustomStyleSheets().from(cssFile);
-                config.getCustomAssets().from(logoFile);
-            });
-        }); //TODO: just an experiment, not how it's suggested in the docs
+    private static void setStyling(Project project, GradleDocumentationExtension extension) {
+        String cssFile = extension.getSourceRoot().file("kotlin/styles/logo-styles.css").get().getAsFile().getAbsolutePath();
+        String logoFile = extension.getSourceRoot().file("kotlin/images/gradle-logo.png").get().getAsFile().getAbsolutePath();
 
         getDokkatooExtension(project).getPluginsConfiguration().named("html", DokkaHtmlPluginParameters.class, config -> {
             config.getCustomStyleSheets().from(cssFile);
