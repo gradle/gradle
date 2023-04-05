@@ -17,7 +17,6 @@
 package org.gradle.buildinit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 class JavaApplicationInitSoakTest extends AbstractIntegrationSpec {
 
