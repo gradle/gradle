@@ -1,6 +1,3 @@
-# See RequiresExtension.groovy and the "predicate-tester" project to learn more about where is this file used.
-# Note: Every class name here is implicitly prefixed with the "org.gradle.test.preconditions" package.
-
 PluginTestPreconditions$ShellcheckAvailable
 SigningTestPreconditions$GpgAvailable
 
