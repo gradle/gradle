@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -27,10 +26,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Valid
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -39,7 +36,7 @@ import java.util.Set;
  */
 public class FailOnVersionConflictArtifactsVisitor implements ValidatingArtifactsVisitor {
 
-    private final Set<Pair<List<? extends ModuleVersionIdentifier>, String>> allConflicts = Sets.newLinkedHashSet();
+    private final Set<Conflict> allConflicts = Sets.newLinkedHashSet();
     private final String projectPath;
     private final String configurationName;
 
@@ -62,9 +59,10 @@ public class FailOnVersionConflictArtifactsVisitor implements ValidatingArtifact
         }
     }
 
-    private Pair<List<? extends ModuleVersionIdentifier>, String> buildConflict(DependencyGraphComponent owner, ComponentSelectionReason selectionReason) {
+//    private Pair<List<? extends ModuleVersionIdentifier>, String> buildConflict(DependencyGraphComponent owner, ComponentSelectionReason selectionReason) {
+    private Conflict buildConflict(DependencyGraphComponent owner, ComponentSelectionReason selectionReason) {
         ModuleIdentifier module = owner.getModuleVersion().getModule();
-        return Pair.of(ImmutableList.copyOf(owner.getAllVersions()), buildConflictMessage(module, selectionReason));
+        return new Conflict(ImmutableList.copyOf(owner.getAllVersions()), buildConflictMessage(module, selectionReason));
     }
 
     private String buildConflictMessage(ModuleIdentifier owner, ComponentSelectionReason selectionReason) {
@@ -96,7 +94,7 @@ public class FailOnVersionConflictArtifactsVisitor implements ValidatingArtifact
     @Override
     public void complete() {
         if (!allConflicts.isEmpty()) {
-            throw new VersionConflictException(projectPath, configurationName, allConflicts);
+            throw VersionConflictException.create(projectPath, configurationName, allConflicts);
         }
     }
 }
