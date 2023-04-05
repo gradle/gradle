@@ -900,6 +900,98 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         ])
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/23049")
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_TYPE_UNSUPPORTED
+    )
+    def "nested #type#parameterType is validated with deprecation warning"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import java.io.*;
+            import java.util.*;
+
+            enum SomeEnum { A, B, C }
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends DefaultTask {
+                @Nested
+                public $typeName$parameterType getMy$typeName() {
+                    return $producer;
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        expect:
+        assertValidationFailsWith([
+            warning(nestedTypeUnsupported { type("MyTask").property("my$typeName").annotatedType(className) },
+                'validation_problems', 'unsupported_nested_type'),
+        ])
+
+        where:
+        typeName   | parameterType      | producer                                                            | className
+        'File'     | ''                 | 'new File("some/path")'                                             | 'java.io.File'
+        'Integer'  | ''                 | 'Integer.valueOf(1)'                                                | 'java.lang.Integer'
+        'SomeEnum' | ''                 | 'SomeEnum.A'                                                        | 'SomeEnum'
+        'String'   | ''                 | 'new String()'                                                      | 'java.lang.String'
+        'Iterable' | '<Integer>'        | 'Arrays.asList(Integer.valueOf(1), Integer.valueOf(2))'             | 'java.lang.Integer'
+        'List'     | '<String>'         | 'Arrays.asList("value1", "value2")'                                 | 'java.lang.String'
+        'Map'      | '<String,Integer>' | 'Collections.singletonMap("a", Integer.valueOf(1))'                 | 'java.lang.Integer'
+        'Provider' | '<Boolean>'        | 'getProject().getProviders().provider(() -> Boolean.valueOf(true))' | 'java.lang.Boolean'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23049")
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_TYPE_UNSUPPORTED
+    )
+    def "nested #typeName#parameterType is validated without deprecation warning"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import java.util.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends DefaultTask {
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                @Nested
+                public $typeName$parameterType getMy$typeName() {
+                    return $producer;
+                }
+
+                public static class Options {
+                    @Input
+                    public String getGood() {
+                        return "good";
+                    }
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        expect:
+        assertValidationSucceeds()
+
+        where:
+        typeName   | parameterType      | producer
+        'Options'  | ''                 | 'new Options()'
+        'Iterable' | '<Options>'        | 'Arrays.asList(new Options(), new Options())'
+        'Map'      | '<String,Options>' | 'Collections.singletonMap("a", new Options())'
+        'Provider' | '<Options>'        | 'getProject().getProviders().provider(() -> new Options())'
+    }
+
     def "honors configured Java Toolchain to avoid compiled by a more recent version failure"() {
         def currentJdk = Jvm.current()
         def newerJdk = AvailableJavaHomes.getDifferentVersion { it.languageVersion > currentJdk.javaVersion }
