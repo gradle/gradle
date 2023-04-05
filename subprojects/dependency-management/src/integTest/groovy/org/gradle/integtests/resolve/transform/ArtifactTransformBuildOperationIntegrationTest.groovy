@@ -833,22 +833,17 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         )
 
         List<BuildOperationRecord> executeTransformationOps = getExecuteTransformOperations(2)
-
-        with(executeTransformationOps[0].details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
-            transformActionClass == "MakeGreen"
-
-            transformerName == "MakeGreen"
-            subjectName == "producer.jar (project :producer)"
-        }
-
-        with(executeTransformationOps[0].details) {
-            verifyTransformationIdentity(plannedTransformStepIdentity, expectedTransformId1)
-            transformActionClass == "MakeGreen"
-
-            transformerName == "MakeGreen"
-            subjectName == "producer.jar (project :producer)"
-        }
+        // Order of scheduling/execution is not guaranteed between the consumer projects
+        checkExecuteTransformOperation(executeTransformationOps, expectedTransformId1, [
+            transformActionClass: "MakeGreen",
+            transformerName: "MakeGreen",
+            subjectName: "producer.jar (project :producer)",
+        ])
+        checkExecuteTransformOperation(executeTransformationOps, expectedTransformId2, [
+            transformActionClass: "MakeGreen",
+            transformerName: "MakeGreen",
+            subjectName: "producer.jar (project :producer)",
+        ])
     }
 
     def "failing transform"() {
