@@ -137,6 +137,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
                 assert gradle.gradleVersion == '${otherVersion.version.version}'
             }
         }"""
+        otherVersion.binDistribution.makeReadable()
         executer.withTasks('wrapper').run()
 
         when:
@@ -158,6 +159,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         }
         """
         projectDir.file('child').createDir()
+        otherVersion.binDistribution.makeReadable()
         executer.withTasks('wrapper').run()
 
         when:

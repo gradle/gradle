@@ -21,6 +21,7 @@ package org.gradle.internal.taskgraph;
  * <p>
  * Needs to be unique across all the execution graphs of the current build.
  *
+ * @implNote The implementations must provide value-based equality.
  * @since 8.1
  */
 public interface NodeIdentity {

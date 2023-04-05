@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
@@ -69,7 +70,7 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
 
     @Override
     public void resolve(DependencyMetadata dependency, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result) {
-        result.failed(new ModuleVersionNotFoundException(dependency.getSelector(), () -> String.format("Cannot resolve external dependency %s because no repositories are defined.", dependency.getSelector())));
+        result.failed(new ModuleVersionNotFoundException(dependency.getSelector(), () -> String.format("Cannot resolve external dependency %s because no repositories are defined.", dependency.getSelector()), ImmutableList.of()));
     }
 
     @Override

@@ -47,7 +47,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
             configurations {
                 testFixtures {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api'))
                         attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, 'jar'))
@@ -104,7 +104,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
             configurations {
                 testFixtures {
                     canBeResolved = false
-                    canBeConsumed = true
+                    assert canBeConsumed
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api'))
                         attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, 'jar'))

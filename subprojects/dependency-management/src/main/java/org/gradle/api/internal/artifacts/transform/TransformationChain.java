@@ -18,64 +18,55 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 
+import javax.annotation.Nullable;
+
 /**
  * A series of {@link TransformationStep}s.
  */
-public class TransformationChain implements Transformation {
+public class TransformationChain {
 
-    private final Transformation first;
-    private final Transformation second;
-    private final int stepsCount;
+    private final TransformationChain init;
+    private final TransformationStep last;
 
-    public TransformationChain(Transformation first, Transformation second) {
-        this.first = first;
-        this.second = second;
-        this.stepsCount = first.stepsCount() + second.stepsCount();
+    /**
+     * @param init The initial steps of this chain, or null if this chain only contains one step.
+     * @param last The last step of this chain.
+     */
+    public TransformationChain(@Nullable TransformationChain init, TransformationStep last) {
+        this.init = init;
+        this.last = last;
     }
 
-    public Transformation getFirst() {
-        return first;
+    /**
+     * @return The initial steps of this chain, or null if this chain only contains one step.
+     */
+    @Nullable
+    public TransformationChain getInit() {
+        return init;
     }
 
-    public Transformation getSecond() {
-        return second;
+    /**
+     * @return The last step of this chain.
+     */
+    public TransformationStep getLast() {
+        return last;
     }
 
-    @Override
-    public boolean endsWith(Transformation otherTransform) {
-        int otherStepsCount = otherTransform.stepsCount();
-        if (otherStepsCount > this.stepsCount) {
-            return false;
-        } else if (otherStepsCount == 1) {
-            return second == otherTransform;
-        }
-
-        TransformationChain otherChain = (TransformationChain) otherTransform;
-        if (otherChain.second != second) {
-            return false;
-        } else {
-            return first.endsWith(otherChain.first);
-        }
-    }
-
-    @Override
-    public int stepsCount() {
-        return stepsCount;
-    }
-
-    @Override
     public boolean requiresDependencies() {
-        return first.requiresDependencies() || second.requiresDependencies();
+        return (init != null && init.requiresDependencies()) || last.requiresDependencies();
     }
 
-    @Override
     public String getDisplayName() {
-        return first.getDisplayName() + " -> " + second.getDisplayName();
+        String lastDisplayName = last.getDisplayName();
+        return init == null
+            ? lastDisplayName
+            : init.getDisplayName() + " -> " + lastDisplayName;
     }
 
-    @Override
     public void visitTransformationSteps(Action<? super TransformationStep> action) {
-        first.visitTransformationSteps(action);
-        second.visitTransformationSteps(action);
+        if (init != null) {
+            init.visitTransformationSteps(action);
+        }
+        action.execute(last);
     }
 }

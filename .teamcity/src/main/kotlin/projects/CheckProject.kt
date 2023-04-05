@@ -1,5 +1,6 @@
 package projects
 
+import common.cleanupRule
 import common.hiddenArtifactDestination
 import configurations.PerformanceTestsPass
 import configurations.StagePasses
@@ -65,18 +66,12 @@ class CheckProject(
     buildTypesOrder = buildTypes
     subProjectsOrder = subProjects
 
-    cleanup {
-        baseRule {
-            history(days = 14)
-        }
-        baseRule {
-            artifacts(
-                days = 14,
-                artifactPatterns = """
+    cleanupRule(
+        historyDays = 14,
+        artifactsDays = 7,
+        artifactsPatterns = """
                 +:**/*
                 +:$hiddenArtifactDestination/**/*"
-                """.trimIndent()
-            )
-        }
-    }
+        """.trimIndent()
+    )
 })

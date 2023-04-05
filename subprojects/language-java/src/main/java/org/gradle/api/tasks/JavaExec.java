@@ -53,6 +53,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
+
 /**
  * Executes a Java application in a child process.
  * <p>
@@ -128,8 +130,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         execResult = objectFactory.property(ExecResult.class);
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
-        Provider<Iterable<String>> jvmArgumentsConvention = getProviderFactory()
-            .provider(() -> getConventionMapping().getConventionValue(null, "jvmArgs", false));
+
+        Provider<Iterable<String>> jvmArgumentsConvention = getProviderFactory().provider(this::jvmArgsConventionValue);
+
         jvmArguments = objectFactory.listProperty(String.class).convention(jvmArgumentsConvention);
 
         javaExecSpec.getMainClass().convention(mainClass);
@@ -794,5 +797,10 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Inject
     protected ProviderFactory getProviderFactory() {
         throw new UnsupportedOperationException();
+    }
+
+    private Iterable<String> jvmArgsConventionValue() {
+        Iterable<String> jvmArgs = getConventionMapping().getConventionValue(null, "jvmArgs", false);
+        return jvmArgs != null ? jvmArgs : emptyList();
     }
 }

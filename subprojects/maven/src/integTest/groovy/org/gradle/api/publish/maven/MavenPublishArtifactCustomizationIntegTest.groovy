@@ -557,7 +557,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
 
             configurations.create("srcLicense") {
                 canBeResolved = false
-                canBeConsumed = true
+                assert canBeConsumed
             }
 
             def srcLicenseDir = tasks.register("srcLicenseDir", Sync) {

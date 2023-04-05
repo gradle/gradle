@@ -191,7 +191,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     private void writeBuildFile() {
-        file("build.gradle") << """
+        buildFile << """
             apply plugin: "groovy"
             apply plugin: "codenarc"
 

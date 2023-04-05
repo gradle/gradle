@@ -21,11 +21,13 @@ import org.gradle.api.internal.cache.DefaultDecompressionCacheFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.FileCollectionObservationListener;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
+import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
+import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.execution.DefaultTaskSelector;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.TaskNameResolver;
@@ -83,6 +85,8 @@ public class BuildTreeScopeServices {
         registration.add(DefaultProblemLocationAnalyzer.class);
         registration.add(DefaultExceptionAnalyser.class);
         registration.add(ScriptUsageLocationReporter.class);
+        registration.add(ConfigurationCacheableIdFactory.class);
+        registration.add(TaskIdentityFactory.class);
         modelServices.applyServicesTo(registration);
     }
 

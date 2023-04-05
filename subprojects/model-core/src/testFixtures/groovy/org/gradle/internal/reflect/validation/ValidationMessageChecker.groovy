@@ -424,6 +424,17 @@ trait ValidationMessageChecker {
         config.render()
     }
 
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE
+    )
+    String nestedMapUnsupportedKeyType(@DelegatesTo(value = NestedMapUnsupportedKeyType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(NestedMapUnsupportedKeyType, "unsupported_key_type_of_nested_map", spec)
+        config.description("where key of nested map is of type '${config.keyType}'.")
+            .reason("Key of nested map must be of type 'String'.")
+            .solution("Change type of key to 'String'")
+            .render()
+    }
+
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
                                                                    String message,
                                                                    String docId = "incremental_build",
@@ -948,6 +959,20 @@ trait ValidationMessageChecker {
 
         UnsupportedValueType unsupportedValueType(String unsupportedValueType) {
             this.unsupportedValueType = unsupportedValueType
+            this
+        }
+    }
+
+    static class NestedMapUnsupportedKeyType extends ValidationMessageDisplayConfiguration<NestedMapUnsupportedKeyType> {
+
+        String keyType
+
+        NestedMapUnsupportedKeyType(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        NestedMapUnsupportedKeyType keyType(String keyType) {
+            this.keyType = keyType
             this
         }
     }

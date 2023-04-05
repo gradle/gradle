@@ -37,6 +37,14 @@ class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
         executer.withArguments("wrapper", "--gradle-distribution-url", distributionUri.toString()).run()
     }
 
+    void prepareWrapper(URI distributionUri = distribution.binDistribution.toURI(), String trustStore, String trustStorePassword) {
+        def executer = new InProcessGradleExecuter(distribution, temporaryFolder)
+        executer.withArguments("wrapper", "--gradle-distribution-url", distributionUri.toString(),
+            "-Djavax.net.ssl.trustStore=$trustStore",
+            "-Djavax.net.ssl.trustStorePassword=$trustStorePassword")
+            .run()
+    }
+
     GradleExecuter getWrapperExecuter() {
         executer.requireOwnGradleUserHomeDir()
         executer.requireIsolatedDaemons()

@@ -48,7 +48,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         javaClassFile("compile/test/Person.class").exists()
     }
 
-    def compileBadCodeBreaksTheBuild() {
+    def "compile bad code breaks the build and compilation error doesn't show link to help.gradle.org"() {
         given:
         badCode()
 
@@ -56,6 +56,7 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         fails("compileJava")
         output.contains(logStatement())
         failure.assertHasErrorOutput("';' expected")
+        failure.assertNotOutput("https://help.gradle.org")
         javaClassFile("").assertHasDescendants()
     }
 

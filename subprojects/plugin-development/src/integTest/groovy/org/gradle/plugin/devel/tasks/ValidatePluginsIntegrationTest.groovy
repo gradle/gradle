@@ -23,6 +23,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assume.assumeNotNull
@@ -795,6 +796,63 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 error(missingAnnotationMessage { type('MyTask').property("options.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
                 error(missingAnnotationMessage { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
                 error(missingAnnotationMessage { type('MyTask').property("providedOptions.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+        ])
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23045")
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE
+    )
+    def "key of nested map must be of type String"() {
+        def key = "key1"
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import java.util.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends DefaultTask {
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                @Nested
+                public Map<String, Options> getMapWithGStringKey() {
+                    return Collections.singletonMap("$key", new Options());
+                }
+
+                @Nested
+                public Map<String, Options> getMapWithStringKey() {
+                    return Collections.singletonMap("key2", new Options());
+                }
+
+                @Nested
+                public Map<String, Options> getMapEmpty() {
+                    return Collections.emptyMap();
+                }
+
+                @Nested
+                public Map<Integer, Options> getMapWithNonStringKey() {
+                    return Collections.singletonMap(Integer.valueOf(0), new Options());
+                }
+
+                public static class Options {
+                    @Input
+                    public String getGood() {
+                        return "good";
+                    }
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        expect:
+        assertValidationFailsWith([
+            warning(nestedMapUnsupportedKeyType { type('MyTask').property("mapWithNonStringKey").keyType("java.lang.Integer") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
         ])
     }
 

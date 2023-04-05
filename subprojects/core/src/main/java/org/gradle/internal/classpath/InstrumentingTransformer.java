@@ -69,7 +69,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 28;
+    private static final int DECORATION_FORMAT = 29;
 
     private static final Type SYSTEM_TYPE = getType(System.class);
     private static final Type STRING_TYPE = getType(String.class);
@@ -230,7 +230,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
             Lazy<MethodNode> asMethodNode = Lazy.unsafe().of(() -> {
                 Optional<MethodNode> methodNode = classAsNode.get().methods.stream().filter(method ->
-                        Objects.equals(method.name, name) && Objects.equals(method.desc, descriptor) && Objects.equals(method.signature, signature)
+                    Objects.equals(method.name, name) && Objects.equals(method.desc, descriptor) && Objects.equals(method.signature, signature)
                 ).findFirst();
                 return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
             });
@@ -328,8 +328,8 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
             try {
                 generatedInterceptor = (JvmBytecodeCallInterceptor) Class.forName(InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
-                        .getConstructor(MethodVisitor.class)
-                        .newInstance(methodVisitor);
+                    .getConstructor(MethodVisitor.class)
+                    .newInstance(methodVisitor);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
