@@ -99,7 +99,6 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
                         resultsOfLastListener << (event as TestProgressEvent)
                     }
                 }, EnumSet.of(OperationType.TEST))
-                collectOutputs(build)
                 build.run()
         }
 
