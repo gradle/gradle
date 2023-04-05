@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -93,8 +94,12 @@ public class JdkTools {
         return classLoaderFactory.createFilteringClassLoader(getSystemClassLoader(), filterSpec);
     }
 
-    public JavaCompiler getSystemJavaCompiler() {
-        return new DefaultIncrementalAwareCompiler(buildJavaCompiler());
+    public JavaCompiler getSystemJavaCompiler(List<File> compilerPluginsClasspath) {
+        if (compilerPluginsClasspath.stream().anyMatch(f -> f.getName().startsWith("java-compiler-plugin"))) {
+            return new DefaultIncrementalAwareCompiler(buildJavaCompiler());
+        } else {
+            return buildJavaCompiler();
+        }
     }
 
     private JavaCompiler buildJavaCompiler() {
@@ -103,7 +108,18 @@ public class JdkTools {
             if (isJava9Compatible) {
                 clazz = isolatedToolsLoader.loadClass("javax.tools.ToolProvider");
                 try {
-                    JavaCompiler compiler = (JavaCompiler) clazz.getDeclaredMethod("getSystemJavaCompiler").invoke(null);
+                    JavaCompiler compiler = null;
+                    for (JavaCompiler compilerCandidate : ServiceLoader.load(JavaCompiler.class, isolatedToolsLoader)) {
+                        if (!compilerCandidate.getClass().getName().equals(DEFAULT_COMPILER_IMPL_NAME)) {
+                            // take the first compiler found on the custom compiler classpath that is not the JavacTool system compiler (if any)
+                            compiler = compilerCandidate;
+                            break;
+                        }
+                    }
+                    if (compiler == null) {
+                        compiler = (JavaCompiler) clazz.getDeclaredMethod("getSystemJavaCompiler").invoke(null);
+                    }
+
                     if (compiler == null) {
                         // We were trying to load a compiler in our process so Jvm.current() is the correct one to blame.
                         throw new IllegalStateException("Java compiler is not available. Please check that "

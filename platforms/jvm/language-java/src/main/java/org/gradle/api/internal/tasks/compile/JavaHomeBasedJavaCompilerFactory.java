@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, Serializable {
-    private final List<File> compilerPluginsClasspath;
+    final List<File> compilerPluginsClasspath;
     // We use a static cache here because we want to reuse classloaders in compiler workers as
     // it has a huge impact on performance. Previously there was a single, JdkTools.current()
     // instance, but we can have different "compiler plugins" classpath. For this reason we use
@@ -41,7 +41,7 @@ public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, 
     @Override
     public JavaCompiler create() {
         JdkTools jdkTools = JavaHomeBasedJavaCompilerFactory.JDK_TOOLS.computeIfAbsent(compilerPluginsClasspath, JavaHomeBasedJavaCompilerFactory::createJdkTools);
-        return jdkTools.getSystemJavaCompiler();
+        return jdkTools.getSystemJavaCompiler(compilerPluginsClasspath);
     }
 
     private static JdkTools createJdkTools(List<File> compilerPluginsClasspath) {

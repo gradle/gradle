@@ -30,11 +30,11 @@ class JdkToolsTest extends Specification {
     JdkTools current = new JdkTools(Jvm.current(), [])
 
     def "can get java compiler"() {
-        def compiler = current.systemJavaCompiler
+        def compiler = current.getSystemJavaCompiler([])
 
         expect:
         compiler instanceof JavaCompiler
-        compiler.class == current.systemJavaCompiler.class
+        compiler.class == current.getSystemJavaCompiler([]).class
     }
 
     def "throws when no tools"() {

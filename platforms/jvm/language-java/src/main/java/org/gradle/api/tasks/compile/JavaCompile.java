@@ -18,7 +18,9 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
@@ -199,7 +201,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     private <T extends CompileSpec> Compiler<T> createToolchainCompiler() {
         return spec -> {
             DefaultToolchainJavaCompiler compiler = (DefaultToolchainJavaCompiler) getJavaCompiler().get();
-            return compiler.execute(spec);
+            return compiler.execute(spec, getCustomCompilerClasspath().getFiles());
         };
     }
 
@@ -344,6 +346,15 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     public FileCollection getClasspath() {
         return super.getClasspath();
     }
+
+    /**
+     * Register alternative Java compiler Jars, like the Eclipse Java Compiler.
+     *
+     * @since 8.3
+     */
+    @Incubating
+    @CompileClasspath
+    public abstract ConfigurableFileCollection getCustomCompilerClasspath();
 
     /**
      * The sources for incremental change detection.

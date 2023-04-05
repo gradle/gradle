@@ -26,6 +26,9 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.util.Collection;
+
 public class DefaultToolchainJavaCompiler implements JavaCompiler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultToolchainJavaCompiler.class);
@@ -51,9 +54,9 @@ public class DefaultToolchainJavaCompiler implements JavaCompiler {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends CompileSpec> WorkResult execute(T spec) {
+    public <T extends CompileSpec> WorkResult execute(T spec, Collection<File> customCompilerClasspath) {
         LOGGER.info("Compiling with toolchain '{}'.", javaToolchain.getDisplayName());
         final Class<T> specType = (Class<T>) spec.getClass();
-        return compilerFactory.create(specType).execute(spec);
+        return compilerFactory.create(specType, customCompilerClasspath).execute(spec);
     }
 }

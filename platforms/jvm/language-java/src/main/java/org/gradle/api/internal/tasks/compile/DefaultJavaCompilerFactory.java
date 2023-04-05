@@ -29,6 +29,10 @@ import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import javax.tools.JavaCompiler;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final WorkerDirectoryProvider workingDirProvider;
@@ -38,7 +42,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final AnnotationProcessorDetector processorDetector;
     private final ClassPathRegistry classPathRegistry;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
-    private Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
+    private JavaHomeBasedJavaCompilerFactory javaHomeBasedJavaCompilerFactory;
 
     public DefaultJavaCompilerFactory(WorkerDirectoryProvider workingDirProvider, WorkerDaemonFactory workerDaemonFactory, JavaForkOptionsFactory forkOptionsFactory, ExecHandleFactory execHandleFactory, AnnotationProcessorDetector processorDetector, ClassPathRegistry classPathRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.workingDirProvider = workingDirProvider;
@@ -50,22 +54,30 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
 
-    private Factory<JavaCompiler> getJavaHomeBasedJavaCompilerFactory() {
-        if (javaHomeBasedJavaCompilerFactory == null) {
-            javaHomeBasedJavaCompilerFactory = new JavaHomeBasedJavaCompilerFactory(classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles());
+    private Factory<JavaCompiler> getJavaHomeBasedJavaCompilerFactory(Collection<File> customCompilerClasspath) {
+        List<File> compilerPluginsClasspath;
+        if (customCompilerClasspath.isEmpty()) {
+            // The 'IncrementalCompileTask' on the 'JAVA-COMPILER-PLUGIN' classpath is only compatible with the standard Java compiler (no custom compiler classpath).
+            // It is an optimization - the incremental compilation also works without it.
+            compilerPluginsClasspath = classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles();
+        } else {
+            compilerPluginsClasspath = new ArrayList<>(customCompilerClasspath);
+        }
+        if (javaHomeBasedJavaCompilerFactory == null || !javaHomeBasedJavaCompilerFactory.compilerPluginsClasspath.equals(compilerPluginsClasspath)) {
+            javaHomeBasedJavaCompilerFactory = new JavaHomeBasedJavaCompilerFactory(compilerPluginsClasspath);
         }
         return javaHomeBasedJavaCompilerFactory;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends CompileSpec> Compiler<T> create(Class<T> type) {
-        Compiler<T> result = createTargetCompiler(type);
+    public <T extends CompileSpec> Compiler<T> create(Class<T> type, Collection<File> customCompilerClasspath) {
+        Compiler<T> result = createTargetCompiler(type, customCompilerClasspath);
         return (Compiler<T>) new ModuleApplicationNameWritingCompiler<>(new AnnotationProcessorDiscoveringCompiler<>(new NormalizingJavaCompiler((Compiler<JavaCompileSpec>) result), processorDetector));
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends CompileSpec> Compiler<T> createTargetCompiler(Class<T> type) {
+    private <T extends CompileSpec> Compiler<T> createTargetCompiler(Class<T> type, Collection<File> customCompilerClasspath) {
         if (!JavaCompileSpec.class.isAssignableFrom(type)) {
             throw new IllegalArgumentException(String.format("Cannot create a compiler for a spec with type %s", type.getSimpleName()));
         }
@@ -75,9 +87,9 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         }
 
         if (ForkingJavaCompileSpec.class.isAssignableFrom(type)) {
-            return (Compiler<T>) new DaemonJavaCompiler(workingDirProvider.getWorkingDirectory(), JdkJavaCompiler.class, new Object[]{getJavaHomeBasedJavaCompilerFactory()}, new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory), forkOptionsFactory, classPathRegistry);
+            return (Compiler<T>) new DaemonJavaCompiler(workingDirProvider.getWorkingDirectory(), JdkJavaCompiler.class, new Object[]{getJavaHomeBasedJavaCompilerFactory(customCompilerClasspath)}, new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory), forkOptionsFactory, classPathRegistry);
         } else {
-            return (Compiler<T>) new JdkJavaCompiler(getJavaHomeBasedJavaCompilerFactory());
+            return (Compiler<T>) new JdkJavaCompiler(getJavaHomeBasedJavaCompilerFactory(customCompilerClasspath));
         }
     }
 }
