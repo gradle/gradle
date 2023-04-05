@@ -783,7 +783,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Issue("https://github.com/gradle/gradle/issues/24594")
-    def "nested map with non-string key works"() {
+    @ValidationTestFor(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
+    def "nested map with non-string key works with deprecation warning"() {
         buildFile << """
             abstract class CustomTask extends DefaultTask {
                 @Nested
@@ -809,11 +810,18 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             }
         """
 
-        expect:
-        succeeds("customTask")
+        when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'CustomTask' property 'eagerMap' where key of nested map is of type 'java.lang.Integer'. " +
+                "Reason: Key of nested map must be of type 'String'.",
+            'validation_problems',
+            'unsupported_key_type_of_nested_map')
+        run("customTask")
+
+        then:
+        executedAndNotSkipped(":customTask")
         file("output.txt").text == "[100:example][100:example]"
     }
-
 
     private static String namedBeanClass() {
         """
