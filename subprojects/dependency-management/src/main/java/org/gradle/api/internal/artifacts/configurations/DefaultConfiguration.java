@@ -997,13 +997,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return !getAllDependencies().isEmpty();
     }
 
-    /**
-     * This method is a heuristic that gives an idea of the "size" of the graph. The larger
-     * the graph is, the higher the risk of internal resizes exists, so we try to estimate
-     * the size of the graph to avoid maps resizing.
-     */
     @Override
     public int getEstimatedGraphSize() {
+        // TODO #24641: Why are the numbers and operations here the way they are?
+        //  Are they up-to-date? We should be able to test if these values are still optimal.
         int estimate = (int) (512 * Math.log(getAllDependencies().size()));
         return Math.max(10, estimate);
     }
