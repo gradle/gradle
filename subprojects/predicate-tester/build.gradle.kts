@@ -11,7 +11,6 @@ dependencies {
     testImplementation(platform(project(":distributions-dependencies")))
     testImplementation(project(":internal-testing"))
     testImplementation(project(":internal-integ-testing"))
-
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
