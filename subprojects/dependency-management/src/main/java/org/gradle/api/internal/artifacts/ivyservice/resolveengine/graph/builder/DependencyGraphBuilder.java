@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -134,7 +133,7 @@ public class DependencyGraphBuilder {
         IdGenerator<Long> idGenerator = new LongIdGenerator();
         LocalComponentMetadata metadata = resolveContext.toRootComponentMetaData();
 
-        int graphSize = estimateSize(resolveContext);
+        int graphSize = resolveContext.getEstimatedGraphSize();
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
 
         List<? extends DependencyMetadata> syntheticDependencies = includeSyntheticDependencies ?
@@ -148,19 +147,6 @@ public class DependencyGraphBuilder {
         validateGraph(resolveState, resolutionStrategy.isFailingOnDynamicVersions(), resolutionStrategy.isFailingOnChangingVersions());
 
         assembleResult(resolveState, modelVisitor);
-    }
-
-    /**
-     * This method is a heuristic that gives an idea of the "size" of the graph. The larger
-     * the graph is, the higher the risk of internal resizes exists, so we try to estimate
-     * the size of the graph to avoid maps resizing.
-     */
-    private static int estimateSize(ResolveContext resolveContext) {
-        int estimate = 0;
-        if (resolveContext instanceof Configuration) {
-            estimate = (int) (512 * Math.log(((Configuration) resolveContext).getAllDependencies().size()));
-        }
-        return Math.max(10, estimate);
     }
 
     /**
