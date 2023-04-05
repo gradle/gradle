@@ -603,6 +603,10 @@ public abstract class Node {
 
     /**
      * Returns the resources which should be locked before starting this node.
+     *
+     * This operation should complete quickly,
+     * must not run user code, and
+     * should not need to acquire additional locks.
      */
     public List<? extends ResourceLock> getResourcesToLock() {
         return Collections.emptyList();

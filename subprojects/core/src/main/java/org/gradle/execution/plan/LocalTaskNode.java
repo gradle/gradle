@@ -235,6 +235,8 @@ public class LocalTaskNode extends TaskNode {
             addDestroyablesToMutations(taskProperties.getDestroyableFiles());
 
             mutations.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
+            // piggyback on mutation resolution to declare service references as used services
+            task.acceptServiceReferences(taskProperties.getServiceReferences());
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
         }

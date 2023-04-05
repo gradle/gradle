@@ -183,4 +183,67 @@ Required by:
         ""                           | "buildB"  | "buildB"       | "default root project name"
         "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
+
+    def "project component identifiers know if projects belong to the current build or not"() {
+        def buildC = singleProjectBuild('buildC') {
+            buildFile << "apply plugin: 'java'"
+        }
+        includeBuild(buildC)
+
+        buildA.buildFile << """
+            dependencies {
+                testImplementation 'org.test:buildC'
+                testImplementation 'org.test:buildA' // self dependency
+            }
+        """
+        buildB.buildFile << """
+            dependencies {
+                testImplementation 'org.test:buildC'
+                testImplementation 'org.test:buildB' // self dependency
+            }
+        """
+        buildC.buildFile << """
+            dependencies {
+                testImplementation 'org.test:buildC' // self dependency
+            }
+        """
+
+        buildA.buildFile << """
+            def rootProvider = configurations.testRuntimeClasspath.incoming.resolutionResult.rootComponent
+            classes.doLast {
+                def rootComponent = rootProvider.get()
+                def projectInOtherBuild = rootComponent.dependencies[0].selected
+                def self = rootComponent.dependencies[1].selected
+                assert rootComponent.id.build.currentBuild
+                assert self.id.build.currentBuild
+                assert self == rootComponent
+                assert !projectInOtherBuild.id.build.currentBuild
+            }
+        """
+        buildB.buildFile << """
+            def rootProvider = configurations.testRuntimeClasspath.incoming.resolutionResult.rootComponent
+            classes.doLast {
+                def rootComponent = rootProvider.get()
+                def projectInOtherBuild = rootComponent.dependencies[0].selected
+                def self = rootComponent.dependencies[1].selected
+                assert rootComponent.id.build.currentBuild
+                assert self.id.build.currentBuild
+                assert self == rootComponent
+                assert !projectInOtherBuild.id.build.currentBuild
+            }
+        """
+        buildC.buildFile << """
+            def rootProvider = configurations.testRuntimeClasspath.incoming.resolutionResult.rootComponent
+            classes.doLast {
+                def rootComponent = rootProvider.get()
+                def self = rootComponent.dependencies[0].selected
+                assert rootComponent.id.build.currentBuild
+                assert self.id.build.currentBuild
+                assert self == rootComponent
+            }
+        """
+
+        expect:
+        execute(buildA, ":buildC:assemble", ":buildB:assemble", ":assemble")
+    }
 }

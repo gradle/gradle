@@ -204,7 +204,7 @@ They are deleted if they haven't been used for 7 days.
 [[config_cache:stable]]
 == Stable configuration cache
 
-Working towards the stabilization of configuration caching we implement some strictness behind a feature flag when it is too disruptive for early adopters.
+Working towards the stabilization of configuration caching we implemented some strictness behind a feature flag when it was considered too disruptive for early adopters.
 
 You can enable that feature flag as follows:
 
@@ -217,6 +217,12 @@ The `STABLE_CONFIGURATION_CACHE` feature flag enables the following:
 
 Undeclared shared build service usage::
 When enabled, tasks using a <<build_services#build_services, shared build service>> without declaring the requirement via the `Task.usesService` method will emit a deprecation warning.
+
+In addition, when the configuration cache is not enabled but the feature flag is present, deprecations for the following <<config_cache:requirements, configuration cache requirements>> are also enabled:
+
+* <<config_cache:requirements:build_listeners, Registering build listeners>>
+* <<config_cache:requirements:use_project_during_execution, Using the `Project` object at execution time>>
+* <<config_cache:requirements:task_extensions, Using task extensions and conventions at execution time>>
 
 It is recommended to enable it as soon as possible in order to be ready for when we remove the flag and make the linked features the default.
 
@@ -344,7 +350,7 @@ a|
 link:{gradle-issues}13455[[.green]#✓#]:: <<base_plugin.adoc#base_plugin,Base>>
 link:{gradle-issues}13456[[.green]#✓#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
 link:{gradle-issues}13470[[.green]#✓#]:: <<signing_plugin.adoc#signing_plugin,Signing>>
-link:{gradle-issues}13471[[.green]#✓#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Java Plugin Development>>
+link:{gradle-issues}24537[[.green]#✓#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Java Plugin Development>>
 link:{gradle-issues}23029[[.green]#✓#]:: <<custom_plugins.adoc#sec:precompiled_plugins,Groovy DSL Plugin Development>>
 link:{gradle-issues}13472[[.green]#✓#]:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
 link:{gradle-issues}13473[[.green]#✓#]:: <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
@@ -831,6 +837,12 @@ Instead, tasks should be connected using <<lazy_configuration#working_with_task_
 
 Note that this requirement makes it unsupported to write tasks that configure other tasks at execution time.
 
+[[config_cache:requirements:task_extensions]]
+=== Accessing task extensions or conventions
+
+Tasks should not access conventions and extensions, including extra properties, at execution time.
+Instead, any value that's relevant for the execution of the task should be modeled as a task property.
+
 [[config_cache:requirements:build_listeners]]
 === Using build listeners
 
@@ -839,6 +851,7 @@ That is listeners registered at configuration time that get notified at executio
 For example a `BuildListener` or a `TaskExecutionListener`.
 
 These should be replaced by <<build_services#build_services,build services>>, registered to receive information about <<build_services#operation_listener, task execution>> if needed.
+Use <<dataflow_actions.adoc#dataflow_action,dataflow actions>> to handle the build result instead of `buildFinished` listeners.
 
 [[config_cache:requirements:external_processes]]
 === Running external processes
@@ -960,13 +973,17 @@ Support for these features will be added in later Gradle releases.
 [[config_cache:not_yet_implemented:secrets]]
 === Handling of credentials and secrets
 
-The configuration cache has currently no option to hide secrets that are used as inputs.
-It means that they end up in the serialized configuration cache entry.
+The configuration cache has currently no option to prevent storing secrets that are used as inputs, and so they might end up in the serialized configuration cache entry which, by default, is stored under `.gradle/configuration-cache` in your project directory.
 
-This means that you should:
+To mitigate the risk of accidental exposure, Gradle encrypts the configuration cache.
+Gradle transparently generates a machine-specific secret key as required, caches it under the
+`<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory and uses it to encrypt the data in the project specific caches.
 
-* Either secure access to configuration cache entries that may contain secrets
-* Or leverage `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/gradle.properties` for storing secrets.
+
+To enhance security further, make sure to:
+
+* secure access to configuration cache entries;
+* leverage `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/gradle.properties` for storing secrets.
 The content of that file is not part of the configuration cache, only its fingerprint.
 If you store secrets in that file, care must be taken to protect access to the file content.
 

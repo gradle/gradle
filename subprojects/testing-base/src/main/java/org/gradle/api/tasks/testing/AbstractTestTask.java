@@ -26,6 +26,7 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -59,7 +60,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.VerificationException;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.logging.TestLogging;
@@ -551,7 +551,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * For more information on supported patterns see {@link TestFilter}
      */
-    @Option(option = "tests", description = "Sets test class or method name to be included, '*' is supported.")
+    @Option(option = "tests", description = "Sets test class or method name to be included (in addition to the test task filters), '*' is supported.")
     public AbstractTestTask setTestNameIncludePatterns(List<String> testNamePattern) {
         filter.setCommandLineIncludePatterns(testNamePattern);
         return this;
@@ -618,7 +618,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         if (getIgnoreFailures()) {
             getLogger().warn(message);
         } else {
-            throw new VerificationException(message);
+            throw new MarkedVerificationException(message);
         }
     }
 

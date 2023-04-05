@@ -32,12 +32,10 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.loggerFor
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.serviceRegistryOf
 import org.gradle.plugin.management.internal.PluginRequests
 import java.io.File
@@ -110,6 +108,10 @@ class Interpreter(val host: Host) {
             scriptHost: KotlinScriptHost<*>
         ): ClassPath
 
+        fun accessorsClassPathFor(
+            scriptHost: KotlinScriptHost<*>
+        ): ClassPath
+
         fun loadClassInChildScopeOf(
             classLoaderScope: ClassLoaderScope,
             childScopeId: String,
@@ -139,6 +141,8 @@ class Interpreter(val host: Host) {
         val implicitImports: List<String>
 
         val jvmTarget: JavaVersion
+
+        val allWarningsAsErrors: Boolean
 
         fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry = when (programTarget) {
             ProgramTarget.Project -> serviceRegistryOf(target as Project)
@@ -252,8 +256,8 @@ class Interpreter(val host: Host) {
 
         // TODO: consider computing stage 1 accessors only when there's a buildscript or plugins block
         // TODO: consider splitting buildscript/plugins block accessors
-        val stage1BlocksAccessorsClassPath = when {
-            requiresAccessors(programTarget, programKind) -> host.stage1BlocksAccessorsFor(scriptHost)
+        val stage1BlocksAccessorsClassPath = when (programTarget) {
+            ProgramTarget.Project -> host.stage1BlocksAccessorsFor(scriptHost)
             else -> ClassPath.EMPTY
         }
 
@@ -317,6 +321,7 @@ class Interpreter(val host: Host) {
                 ResidualProgramCompiler(
                     outputDir = cachedDir,
                     jvmTarget = host.jvmTarget,
+                    allWarningsAsErrors = host.allWarningsAsErrors,
                     classPath = compilationClassPath,
                     originalSourceHash = programId.sourceHash,
                     programKind = programKind,
@@ -439,14 +444,8 @@ class Interpreter(val host: Host) {
             eval(specializedProgram, scriptHost)
         }
 
-        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath {
-            val project = scriptHost.target as Project
-            val projectAccessorsClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
-            return projectAccessorsClassPathGenerator.projectAccessorsClassPath(
-                project,
-                host.compilationClassPathOf(scriptHost.targetScope)
-            ).bin
-        }
+        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath =
+            host.accessorsClassPathFor(scriptHost)
 
         override fun compileSecondStageOf(
             program: ExecutableProgram.StagedProgram,
@@ -482,6 +481,7 @@ class Interpreter(val host: Host) {
                                 ResidualProgramCompiler(
                                     outputDir,
                                     host.jvmTarget,
+                                    host.allWarningsAsErrors,
                                     compilationClassPath,
                                     sourceHash,
                                     programKind,

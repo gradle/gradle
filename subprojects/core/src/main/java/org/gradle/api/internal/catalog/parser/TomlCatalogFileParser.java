@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.buildProblem;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
+import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
 public class TomlCatalogFileParser {
     public static final String CURRENT_VERSION = "1.1";
@@ -111,7 +112,7 @@ public class TomlCatalogFileParser {
         if (result.hasErrors()) {
             List<TomlParseError> errors = result.errors();
             throwVersionCatalogProblem(builder, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec ->
-                spec.withShortDescription(() -> "Parsing failed with " + errors.size() + " error" + (errors.size() > 1 ? "s" : ""))
+                spec.withShortDescription(() -> "Parsing failed with " + errors.size() + " error" + getPluralEnding(errors))
                     .happensBecause(() -> {
                         StringBuilder reason = new StringBuilder();
                         for (TomlParseError error : errors) {

@@ -19,6 +19,7 @@ package org.gradle.configurationcache.serialization.codecs.transform
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.transform.ComponentVariantIdentifier
 import org.gradle.api.internal.artifacts.transform.TransformationNode
+import org.gradle.api.internal.artifacts.transform.TransformationNodeFactory
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
@@ -28,6 +29,7 @@ import org.gradle.internal.operations.BuildOperationExecutor
 
 internal
 class ChainedTransformationNodeCodec(
+    private val transformationNodeFactory: TransformationNodeFactory,
     private val buildOperationExecutor: BuildOperationExecutor,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory
 ) : AbstractTransformationNodeCodec<TransformationNode.ChainedTransformationNode>() {
@@ -46,6 +48,6 @@ class ChainedTransformationNodeCodec(
         val sourceAttributes = readNonNull<AttributeContainer>()
         val transformationStep = readNonNull<TransformStepSpec>()
         val previousStep = readNonNull<TransformationNode>()
-        return TransformationNode.chained(transformationNodeId, targetComponentVariant, sourceAttributes, transformationStep.transformation, previousStep, transformationStep.recreate(), buildOperationExecutor, calculatedValueContainerFactory)
+        return transformationNodeFactory.recreateChained(transformationNodeId, targetComponentVariant, sourceAttributes, transformationStep.transformation, previousStep, transformationStep.recreateDependencies(), buildOperationExecutor, calculatedValueContainerFactory)
     }
 }

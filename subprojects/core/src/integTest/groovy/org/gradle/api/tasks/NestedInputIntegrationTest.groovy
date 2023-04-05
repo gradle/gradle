@@ -782,6 +782,46 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         output.contains("Input property 'nested.key1' has been removed for task ':myTask'")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/24594")
+    @ValidationTestFor(ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE)
+    def "nested map with non-string key works with deprecation warning"() {
+        buildFile << """
+            abstract class CustomTask extends DefaultTask {
+                @Nested
+                abstract MapProperty<Integer, Object> getLazyMap()
+
+                @Nested
+                Map<Integer, Object> eagerMap = [:]
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void execute() {
+                    outputFile.getAsFile().get() << lazyMap.get()
+                    outputFile.getAsFile().get() << eagerMap
+                }
+            }
+
+            tasks.register("customTask", CustomTask) {
+                lazyMap.put(100, "example")
+                eagerMap.put(100, "example")
+                outputFile = file("output.txt")
+            }
+        """
+
+        when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
+            "Type 'CustomTask' property 'eagerMap' where key of nested map is of type 'java.lang.Integer'. " +
+                "Reason: Key of nested map must be of type 'String'.",
+            'validation_problems',
+            'unsupported_key_type_of_nested_map')
+        run("customTask")
+
+        then:
+        executedAndNotSkipped(":customTask")
+        file("output.txt").text == "[100:example][100:example]"
+    }
 
     private static String namedBeanClass() {
         """

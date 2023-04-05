@@ -37,7 +37,6 @@ class ResolveTestFixture {
     String config
     private String defaultConfig = "default"
     private boolean buildArtifacts = true
-    private boolean strictReasonsCheck
 
     private boolean configurationCacheEnabled = GradleContextualExecuter.configCache
 
@@ -48,11 +47,6 @@ class ResolveTestFixture {
 
     ResolveTestFixture withoutBuildingArtifacts() {
         buildArtifacts = false
-        return this
-    }
-
-    ResolveTestFixture withStrictReasonsCheck() {
-        strictReasonsCheck = true
         return this
     }
 
@@ -158,16 +152,16 @@ $END_MARKER
 
         def actualComponents = findLines(configDetails, 'component')
         def expectedComponents = graph.nodes.collect { baseNode ->
-            def variantDetails = ''
-            def variants = baseNode.variants.collect { variant ->
-                "variant:name:${variant.name} attributes:${variant.attributes}"
-            }
-            if (variants) {
-                variantDetails = "[${variants.join('@@')}]"
-            }
-            "[$baseNode.type][id:${baseNode.id}][mv:${baseNode.moduleVersionId}][reason:${baseNode.reason}]$variantDetails"
+            def variants = baseNode.variants
+            new ParsedNode(type: baseNode.type,
+                id: baseNode.id,
+                module: baseNode.moduleVersionId,
+                reasons: baseNode.allReasons,
+                variants: variants,
+                ignoreReasons: baseNode.ignoreReasons,
+                ignoreReasonPrefixes: baseNode.ignoreReasonPrefixes)
         }
-        compareNodes("components in graph", parseNodes(actualComponents), parseNodes(expectedComponents))
+        compareNodes("components in graph", parseNodes(actualComponents), expectedComponents)
 
         def actualEdges = findLines(configDetails, 'dependency')
         def expectedEdges = graph.edges.collect { "${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
@@ -320,16 +314,18 @@ $END_MARKER
             start = idx + 15 // '@@'
             variants << new Variant(name: variant, attributes: attributes)
         }
-        new ParsedNode(type: type, id: id, module: module, reasons: reasons, variants: variants, strictReasonsCheck: strictReasonsCheck)
+        new ParsedNode(type: type, id: id, module: module, reasons: reasons, variants: variants)
     }
 
     static class ParsedNode {
         String type
         String id
         String module
-        List<String> reasons
+        Set<String> reasons
+        boolean ignoreRequested
+        Set<String> ignoreReasons
+        Set<String> ignoreReasonPrefixes
         Set<Variant> variants = []
-        boolean strictReasonsCheck
 
         boolean diff(ParsedNode actual, StringBuilder sb) {
             List<String> errors = []
@@ -342,17 +338,21 @@ $END_MARKER
             if (this.module != actual.module) {
                 errors << "Expected module '${this.module}' but was: $actual.module"
             }
-            if (!actual.reasons.containsAll(reasons)) {
-                reasons.each { reason ->
-                    if (!actual.reasons.contains(reason)) {
-                        errors << "Expected reason '$reason' but wasn't found. Actual reasons: ${actual.reasons}"
-                    }
+            def actualReasons = actual.reasons.findAll {
+                if (it == "requested" && ignoreRequested) {
+                    false
+                } else if (ignoreReasons.contains(it)) {
+                    false
+                } else if (ignoreReasonPrefixes.any { prefix -> it.startsWith(prefix) }) {
+                    false
+                } else {
+                    true
                 }
+            }.toSet()
+            if (actualReasons != reasons) {
+                errors << "Expected reasons ${reasons} but was: ${actual.reasons}"
             }
-            if (strictReasonsCheck && actual.reasons.size() != reasons.size()) {
-                errors << "Unexpected reason. Expected: $reasons Actual: ${actual.reasons}"
-            }
-            variants.each { variant ->
+            this.variants.each { variant ->
                 def actualVariant = actual.variants.find { it.name == variant.name }
                 if (!actualVariant) {
                     errors << "Expected variant name $variant, but wasn't found in: $actual.variants.name"
@@ -374,7 +374,7 @@ $END_MARKER
         }
 
         String toString() {
-            "id: $id, module: ${this.module}, reasons: ${reasons}${variants}"
+            "id: $id, module: ${this.module}, reasons: ${reasons}${this.variants}"
         }
     }
 
@@ -686,7 +686,7 @@ $END_MARKER
     @Canonical
     static class Variant {
         String name
-        String attributes
+        Map<String, String> attributes
 
         String toString() {
             "variant $name, variant attributes $attributes"
@@ -708,6 +708,9 @@ $END_MARKER
         final List<String> files = []
         private final Set<ExpectedArtifact> artifacts = new LinkedHashSet<>()
         private final Set<String> reasons = new TreeSet<String>()
+        private boolean ignoreRequested
+        private final Set<String> ignoreReasons = new HashSet<>()
+        private final Set<String> ignoreReasonPrefixes = new HashSet<>()
         Set<Variant> variants = []
 
         boolean checkVariant
@@ -723,6 +726,7 @@ $END_MARKER
             if (attrs.variantName) {
                 variant(attrs.variantName, attrs.variantAttributes)
             }
+            reasons.add('requested')
         }
 
         Set<ExpectedArtifact> getArtifacts() {
@@ -730,7 +734,18 @@ $END_MARKER
         }
 
         String getReason() {
-            reasons.empty ? (this == graph.root ? 'root' : 'requested') : reasons.join('!!')
+            allReasons.join('!!')
+        }
+
+        Set<String> getAllReasons() {
+            if (this == graph.root) {
+                reasons.remove('requested')
+                reasons.add('root')
+            }
+            if (ignoreRequested) {
+                reasons.remove('requested')
+            }
+            return reasons
         }
 
         private NodeBuilder addNode(NodeBuilder node) {
@@ -890,7 +905,6 @@ $END_MARKER
             this
         }
 
-
         /**
          * Marks that this node was selected by a rule.
          */
@@ -923,8 +937,34 @@ $END_MARKER
             this
         }
 
-        NodeBuilder byRequest() {
-            reasons << 'requested'
+        NodeBuilder notRequested() {
+            reasons.remove('requested')
+            this
+        }
+
+        NodeBuilder maybeRequested() {
+            ignoreRequested = true
+            ignoreReasons.add('requested')
+            this
+        }
+
+        NodeBuilder maybeByConflictResolution() {
+            ignoreReasonPrefixes.add("conflict resolution")
+            this
+        }
+
+        NodeBuilder maybeByConstraint() {
+            ignoreReasonPrefixes.add("constraint")
+            this
+        }
+
+        NodeBuilder maybeSelectedByRule() {
+            ignoreReasonPrefixes.add("selected by rule")
+            this
+        }
+
+        NodeBuilder maybeByReason(String reason) {
+            ignoreReasons.add(reason)
             this
         }
 
@@ -957,8 +997,10 @@ $END_MARKER
             configuration(name)
             checkVariant = true
             String variantName = name
-            String variantAttributes = attributes.collect { "$it.key=$it.value" }.sort().join(',')
-            variants << new Variant(name: variantName, attributes: variantAttributes)
+            Map<String, String> stringAttributes = attributes.collectEntries { entry ->
+                [entry.key, entry.value instanceof Closure ? entry.value.call() : entry.value.toString()]
+            }
+            this.variants << new Variant(name: variantName, attributes: stringAttributes)
             this
         }
 

@@ -328,6 +328,7 @@ include 'consumer', 'producer'
         resolve.expectGraph {
             root(":", "org.test:root:1.1") {
                 edge("org.test:producer:1.0", ":producer", "org.test:producer:1.0") {
+                    compositeSubstitute()
                     module("org:explicit-dependency:3.4")
                     module("org:added-dependency:3.4")
                 }

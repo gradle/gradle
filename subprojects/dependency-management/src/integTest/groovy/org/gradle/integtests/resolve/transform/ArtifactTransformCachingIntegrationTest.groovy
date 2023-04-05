@@ -396,7 +396,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 configurations {
                     green {
                         extendsFrom(compile)
-                        canBeResolved = true
+                        assert canBeResolved
                         canBeConsumed = false
                         attributes {
                             attribute(artifactType, 'green')
