@@ -16,30 +16,30 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 
 import java.util.List;
 
 public interface ConfigurationResolver {
-    /**
-     * Traverses enough of the graph to calculate the build dependencies of the given configuration. All failures are packaged in the result.
-     */
-    void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults result);
 
     /**
-     * Traverses the full dependency graph of the given configuration. All failures are packaged in the result.
+     * Traverses enough of the graph to calculate the build dependencies of the given resolve context. All failures are packaged in the result.
      */
-    void resolveGraph(ConfigurationInternal configuration, ResolverResults results) throws ResolveException;
+    void resolveBuildDependencies(ResolveContext configuration, ResolverResults result);
 
     /**
-     * Calculates the artifacts to include in the result for the given configuration. All failures are packaged in the result.
-     * Must be called using the same result instance as was passed to {@link #resolveGraph(ConfigurationInternal, ResolverResults)}.
+     * Traverses the full dependency graph of the given resolve context. All failures are packaged in the result.
      */
-    void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException;
+    void resolveGraph(ResolveContext resolveContext, ResolverResults results) throws ResolveException;
 
     /**
-     * Returns the list of repositories available to resolve a given configuration. This is used for reporting only.
+     * Calculates the artifacts to include in the result for the given resolve context. All failures are packaged in the result.
+     * Must be called using the same result instance as was passed to {@link #resolveGraph(ResolveContext, ResolverResults)}.
+     */
+    void resolveArtifacts(ResolveContext resolveContext, ResolverResults results) throws ResolveException;
+
+    /**
+     * Returns the list of repositories available to resolve a given resolve context. This is used for reporting only.
      */
     List<ResolutionAwareRepository> getRepositories();
 
