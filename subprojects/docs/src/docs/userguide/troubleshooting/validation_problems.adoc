@@ -398,3 +398,12 @@ Gradle uses the key to generate a name for the (sub)property.
 Only allowing keys of type `Enum`, `Integer`, and `String` guarantees that these names are unique and well-formed, and is preferable to relying on `toString()` for producing such names.
 
 To fix this problem, change the type of the key to `Enum`, `Integer`, or `String`.
+
+[[unsupported_nested_type]]
+== Unsupported nested type
+
+This error indicates that an unsupported type is annotated as nested.
+Nested types must declare annotated properties, which themselves are checked for annotations.
+Types that do not have any annotated properties, e.g. primitive wrapper types, `String`, or `File`, are unsupported.
+
+To fix this problem, declare annotated properties on the nested type, e.g. `Provider<T>`, `Iterable<T>`, or `<MapProperty<K, V>>`, where `T` and `V` must have one or more annotated properties.
