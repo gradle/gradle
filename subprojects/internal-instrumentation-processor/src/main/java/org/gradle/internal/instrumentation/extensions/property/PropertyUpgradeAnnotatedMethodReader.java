@@ -38,9 +38,9 @@ import org.gradle.internal.instrumentation.processor.extensibility.AnnotatedMeth
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader.Result.InvalidRequest;
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader.Result.Success;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
-import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Type;
 
+import javax.annotation.Nonnull;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
@@ -147,7 +147,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         );
     }
 
-    @NotNull
+    @Nonnull
     private static List<RequestExtra> getJvmRequestExtras(ExecutableElement method) {
         List<RequestExtra> extras = new ArrayList<>();
         extras.add(new RequestExtra.OriginatingElement(method));
