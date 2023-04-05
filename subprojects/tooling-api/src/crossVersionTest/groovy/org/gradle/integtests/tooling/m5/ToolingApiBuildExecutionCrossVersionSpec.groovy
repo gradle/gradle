@@ -54,7 +54,6 @@ apply plugin: 'java'
         withConnection { connection ->
             def build = connection.newBuild()
             build.forTasks('jar')
-            collectOutputs(build)
             build.run()
         }
 
@@ -68,9 +67,9 @@ apply plugin: 'java'
         withConnection { connection ->
             GradleProject project = connection.getModel(GradleProject.class)
             Task clean = project.tasks.find { it.name == 'clean' }
-            def build = connection.newBuild()
-            build.forTasks(clean)
-            build.run()
+            connection.newBuild()
+                .forTasks(clean)
+                .run()
         }
 
         then:
@@ -95,10 +94,8 @@ System.err.println 'this is stderr'
         file('build.gradle') << 'broken'
 
         when:
-        withConnection { connection ->
-            def build = connection.newBuild()
-            collectOutputs(build)
-            return build.forTasks('jar').run()
+        withConnection {
+            it.newBuild().forTasks('jar').run()
         }
 
         then:
