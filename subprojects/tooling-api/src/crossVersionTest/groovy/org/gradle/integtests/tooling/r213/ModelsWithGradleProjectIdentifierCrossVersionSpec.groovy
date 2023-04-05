@@ -20,11 +20,11 @@ package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiConnector
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.ProjectIdentifier
 import org.gradle.tooling.model.gradle.BuildInvocations
@@ -84,7 +84,7 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecif
     private getModelWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
         GradleConnector connector = connector()
         connector.forProjectDirectory(rootDir)
-        ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
+        ((ToolingApiConnector) connector).searchUpwards(searchUpwards)
         return withConnection(connector) { it.getModel(modelType) }
     }
 
@@ -92,7 +92,7 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecif
         FetchProjectModelsBuildAction buildAction = new FetchProjectModelsBuildAction(modelType)
         GradleConnector connector = connector()
         connector.forProjectDirectory(rootDir)
-        ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
+        ((ToolingApiConnector) connector).searchUpwards(searchUpwards)
         withConnection(connector) { connection ->
             connection.action(buildAction).run()
         }

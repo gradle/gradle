@@ -47,7 +47,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 @ToolingApiVersion(">=4.1")
 @ToolingApiAdditionalClasspath(KotlinDslToolingModelsClasspathProvider)
 @CompileStatic
-abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification  implements TestProjectInitiation, KotlinScriptsModelFetcher {
+abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification  implements TestProjectInitiation {
 
     def setup() {
         // Required for the lenient classpath mode

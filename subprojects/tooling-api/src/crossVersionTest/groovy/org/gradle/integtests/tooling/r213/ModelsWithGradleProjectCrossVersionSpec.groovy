@@ -19,11 +19,11 @@ package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiConnector
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.HasGradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -182,7 +182,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
     private GradleProject getGradleProjectWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
         GradleConnector connector = connector()
         connector.forProjectDirectory(rootDir.absoluteFile)
-        ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
+        ((ToolingApiConnector) connector).searchUpwards(searchUpwards)
         def model = withConnection(connector) { it.getModel(modelType) }
         return toGradleProject(model)
     }
@@ -206,7 +206,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends ToolingApiSpecification {
     private getGradleProjectsWithProjectConnectionUsingBuildModel(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
         GradleConnector connector = connector()
         connector.forProjectDirectory(rootDir.absoluteFile)
-        ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
+        ((ToolingApiConnector) connector).searchUpwards(searchUpwards)
         def buildModel = withConnection(connector) { it.getModel(modelType) }
         return toGradleProjects(buildModel)
     }
