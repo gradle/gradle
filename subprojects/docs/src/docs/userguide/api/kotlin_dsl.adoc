@@ -149,14 +149,15 @@ Just like the Groovy-based equivalent, the Kotlin DSL is implemented on top of G
 Everything you can read in a Kotlin DSL script is Kotlin code compiled and executed by Gradle.
 Many of the objects, functions and properties you use in your build scripts come from the Gradle API and the APIs of the applied plugins.
 
+[TIP]
+====
+You can use the link:{kotlinDslPath}/[Kotlin DSL reference] search functionality to drill through the available members.
+====
+
 === Script file names
 
-[NOTE]
-====
-Groovy DSL script files use the `.gradle` file name extension.
-
-Kotlin DSL script files use the `.gradle.kts` file name extension.
-====
+* Groovy DSL script files use the `.gradle` file name extension.
+* Kotlin DSL script files use the `.gradle.kts` file name extension.
 
 To activate the Kotlin DSL, simply use the `.gradle.kts` extension for your build scripts in place of `.gradle`. That also applies to the <<organizing_gradle_projects#sec:settings_file,settings file>> — for example `settings.gradle.kts` — and <<init_scripts#init_scripts,initialization scripts>>.
 
