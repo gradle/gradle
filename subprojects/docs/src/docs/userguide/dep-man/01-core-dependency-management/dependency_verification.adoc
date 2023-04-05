@@ -520,7 +520,7 @@ However, if the signature cannot be verified with at least one other key, Gradle
 
 Gradle automatically downloads the required keys but this operation can be quite slow and requires everyone to download the keys.
 To avoid this, Gradle offers the ability to use a local keyring file containing the required public keys.
-Note that only public key packet is stored and used.
+Note that only public key packets and a single userId per key are stored and used.
 All other information (user attributes, signatures, etc.) is stripped from downloaded or exported keys.
 
 Gradle supports 2 different file formats for keyrings: a binary format (`.gpg` file) and a plain text format (`.keys`).

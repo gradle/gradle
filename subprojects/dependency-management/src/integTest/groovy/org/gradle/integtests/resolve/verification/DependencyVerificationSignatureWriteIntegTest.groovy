@@ -489,8 +489,8 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
             keyRing.publicKeys.forEachRemaining { publicKey ->
                 assert publicKey.getUserAttributes().size() == 0
                 assert publicKey.signatures.size() == publicKey.keySignatures.size()
-                assert publicKey.userIDs.size() == 0
             }
+            assert keyRing.publicKey.userIDs.size() == 1
         }
     }
 }
