@@ -23,24 +23,19 @@ class JavaApplicationInitSoakTest extends AbstractIntegrationSpec {
     def "toolchain auto-provisioning works"() {
         given:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
-        def initDir = createDir('initDir')
+        executer.beforeExecute {
+            requireOwnGradleUserHomeDir()
+        }
 
         when:
-        executer
-            .inDirectory(initDir)
-            .withTasks('init', '--type', 'java-application', '--dsl', 'kotlin')
-            .run()
+        succeeds('init', '--type', 'java-application', '--dsl', 'groovy')
 
         and:
-        def result = executer
-            .inDirectory(initDir)
-            .requireOwnGradleUserHomeDir()
-            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
-            .withArgument("-Porg.gradle.java.installations.auto-download=true")
-            .withTasks('run')
-            .run()
+        executer.withArgument("-Porg.gradle.java.installations.auto-detect=false")
+        executer.withArgument("-Porg.gradle.java.installations.auto-download=true")
+        succeeds('run')
 
         then:
-        result.assertOutputContains("Hello World!")
+        outputContains("Hello World!")
     }
 }
