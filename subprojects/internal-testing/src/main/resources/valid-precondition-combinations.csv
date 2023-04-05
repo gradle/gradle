@@ -1,5 +1,9 @@
+# See RequiresExtension.groovy and the "predicate-tester" project to learn more about where is this file used.
+# Note: Every class name here is implicitly prefixed with the "org.gradle.test.preconditions" package.
+
 PluginTestPreconditions$ShellcheckAvailable
 SigningTestPreconditions$GpgAvailable
+
 UnitTestPreconditions$CanInstallExecutable
 UnitTestPreconditions$CanInstallExecutable,UnitTestPreconditions$NotMacOs
 UnitTestPreconditions$CanInstallExecutable,UnitTestPreconditions$NotWindows
@@ -58,6 +62,7 @@ UnitTestPreconditions$UnixDerivative,PluginTestPreconditions$StaticShAvailable
 UnitTestPreconditions$Windows
 UnitTestPreconditions$Windows,UnitTestPreconditions$Jdk7OrLater,UnitTestPreconditions$Jdk8OrEarlier
 UnitTestPreconditions$WorkingDir
+
 IntegTestPreconditions$IsConfigCached
 IntegTestPreconditions$IsDaemonExecutor
 IntegTestPreconditions$IsEmbeddedExecutor
