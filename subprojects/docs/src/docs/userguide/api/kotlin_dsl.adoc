@@ -323,7 +323,7 @@ The IDE won't be able to help you discover the available configurations in this 
 ==== Project extensions and conventions
 
 Project extensions and <<#sec:kotlin_dsl_about_conventions,conventions>> have both a name and a unique type, but the Kotlin DSL only needs to know the type in order to configure them.
-As the following sample shows for the `sourceSets {}` and `java {}` blocks from the original example build script, you can use the link:{kotlinDslPath}/org.gradle.kotlin.dsl/org.gradle.api.-project/configure.html[`configure<T>()`] function with the corresponding type to do that:
+As the following sample shows for the `sourceSets {}` and `java {}` blocks from the original example build script, you can use the link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/configure.html[`configure<T>()`] function with the corresponding type to do that:
 
 .Project extensions and conventions
 ====
@@ -336,7 +336,7 @@ You can discover what extensions and conventions are available either by looking
 The report provides both names and types.
 As a last resort, you can also check a plugin's source code, but that shouldn't be necessary in the majority of cases.
 
-Note that you can also use the link:{kotlinDslPath}/org.gradle.kotlin.dsl/org.gradle.api.-project/the.html[`the<T>()`] function if you only need a reference to the extension or convention without configuring it, or if you want to perform a one-line configuration, like so:
+Note that you can also use the link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/the.html[`the<T>()`] function if you only need a reference to the extension or convention without configuring it, or if you want to perform a one-line configuration, like so:
 
 [source,kotlin]
 ----
@@ -585,7 +585,7 @@ include::sample[dir="snippets/kotlinDsl/containers-delegated-properties/kotlin",
 
 [NOTE]
 ====
-The above rely on configuration avoidance APIs. If you need to eagerly configure or register container elements simply replace link:{kotlinDslPath}/org.gradle.kotlin.dsl/org.gradle.api.-named-domain-object-container/existing.html[`existing()`] with link:{kotlinDslPath}/org.gradle.kotlin.dsl/org.gradle.api.-named-domain-object-container/getting.html[`getting()`] and link:{kotlinDslPath}/org.gradle.kotlin.dsl/org.gradle.api.-named-domain-object-container/registering.html[`registering()`] with link:{kotlinDslPath}/org.gradle.kotlin.dsl/org.gradle.api.-named-domain-object-container/creating.html[`creating()`].
+The above rely on configuration avoidance APIs. If you need to eagerly configure or register container elements simply replace link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/existing.html[`existing()`] with link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/getting.html[`getting()`] and link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/registering.html[`registering()`] with link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/creating.html[`creating()`].
 ====
 
 === Configuring multiple container elements together
