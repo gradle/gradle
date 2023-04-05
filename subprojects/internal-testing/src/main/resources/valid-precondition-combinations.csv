@@ -1,8 +1,5 @@
-# You want to add a new combination?
-# Read predicate-tester/README.md to learn more
-#
-# You want to understand what's happening here?
-# See RequiresExtension.groovy to learn more about what this file is doing.
+# See RequiresExtension.groovy and the "predicate-tester" project to learn more about where is this file used.
+# Note: Every class name here is implicitly prefixed with the "org.gradle.test.preconditions" package.
 
 PluginTestPreconditions$ShellcheckAvailable
 SigningTestPreconditions$GpgAvailable
@@ -34,7 +31,6 @@ UnitTestPreconditions$Jdk9OrEarlier,UnitTestPreconditions$NotWindows
 UnitTestPreconditions$Jdk9OrLater
 UnitTestPreconditions$Jdk9OrLater,PluginTestPreconditions$BashAvailable
 UnitTestPreconditions$Jdk9OrLater,PluginTestPreconditions$DashAvailable
-UnitTestPreconditions$Jdk9OrLater,IntegTestPreconditions$NotConfigCached,IntegTestPreconditions$GradleBuildJvmSpecAvailable
 UnitTestPreconditions$Jdk9OrLater,IntegTestPreconditions$NotEmbeddedExecutor
 UnitTestPreconditions$Jdk9OrLater,PluginTestPreconditions$StaticShAvailable
 UnitTestPreconditions$Linux

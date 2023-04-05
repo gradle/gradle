@@ -29,7 +29,27 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+/**
+ * This class executes a test, checking all the allowed precondition combinations.
+ *
+ * <p>
+ * Each combination can have three outcomes:
+ * <ul>
+ *     <li><b>Successful:</b> the precondition combination could be satisfied.</li>
+ *     <li>
+ *         <b>Skipped:</b> the precondition combination could <i>not</i> be satisfied.
+ *         This is normal, and simply signifies that the predicate is not satisfied on the current system
+ *     </li>
+ *     <li>
+ *         <b>Failed:</b> there was an error meanwhile checking the combination.
+ *         This shouldn't be normal, and needs fixing.
+ *     </li>
+ * </ul>
+ */
 class PredicateProbingTests {
+
+    public static final String VALID_PRECONDITION_COMBINATIONS_CSV = "/valid-precondition-combinations.csv";
+
     private static List<Class<?>> loadClasses(String[] classNames) {
         return Arrays.stream(classNames).map(
             className -> {
@@ -43,7 +63,7 @@ class PredicateProbingTests {
     }
 
     private static Stream<Arguments> validPreconditionCombinationClassSource() {
-        return PredicatesFile.streamCombinationsFile("/valid-precondition-combinations.csv")
+        return PredicatesFile.streamCombinationsFile(VALID_PRECONDITION_COMBINATIONS_CSV)
             .map(PredicateProbingTests::loadClasses)
             .map(Arguments::of);
     }
@@ -51,13 +71,13 @@ class PredicateProbingTests {
     @ParameterizedTest
     @MethodSource("validPreconditionCombinationClassSource")
     void test(List<Class<? extends TestPrecondition>> testClasses) throws Exception {
-        final String classPath = System.getProperty("java.class.path");
-        System.out.println(String.join("\n", classPath.split(":")));
-
         boolean satisfied = true;
 
         for (Class<?> clazz : testClasses) {
             final TestPrecondition precondition = (TestPrecondition) clazz.getDeclaredConstructor().newInstance();
+            System.out.println(
+                String.format("Testing '%s'", clazz.getName())
+            );
             satisfied &= precondition.isSatisfied();
         }
 
