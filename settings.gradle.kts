@@ -1,7 +1,6 @@
 import org.gradle.api.internal.FeaturePreviews
 
 pluginManagement {
-    includeBuild("build-logic-settings")
     repositories {
         maven {
             url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
@@ -26,7 +25,6 @@ pluginManagement {
 plugins {
     id("com.gradle.enterprise").version("3.12.6") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
-    id("gradlebuild.internal.cc-experiment")
     id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
 }
 
