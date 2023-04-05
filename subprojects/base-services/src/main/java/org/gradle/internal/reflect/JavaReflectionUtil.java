@@ -62,12 +62,12 @@ public class JavaReflectionUtil {
      * Returns the {@link TypeToken} of a parameter specified by index.
      *
      * @param beanType the TypeToken of the bean
-     * @param parameterizedSuperClass the superclass
+     * @param parameterizedClass the parameterized class
      * @param typeParameterIndex the index of the parameter
      * @return a TypeToken
      */
-    public static <T> TypeToken<?> extractNestedType(TypeToken<T> beanType, Class<? super T> parameterizedSuperClass, int typeParameterIndex) {
-        ParameterizedType type = (ParameterizedType) beanType.getSupertype(parameterizedSuperClass).getType();
+    public static <T> TypeToken<?> extractNestedType(TypeToken<T> beanType, Class<? super T> parameterizedClass, int typeParameterIndex) {
+        ParameterizedType type = (ParameterizedType) beanType.getSupertype(parameterizedClass).getType();
         return TypeToken.of(type.getActualTypeArguments()[typeParameterIndex]);
     }
 }
