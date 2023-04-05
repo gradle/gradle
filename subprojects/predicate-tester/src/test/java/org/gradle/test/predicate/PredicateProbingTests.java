@@ -39,7 +39,7 @@ class PredicateProbingTests {
                     throw new RuntimeException(e);
                 }
             }
-        ).collect(Collectors.toUnmodifiableList());
+        ).collect(Collectors.toList());
     }
 
     private static Stream<Arguments> validPreconditionCombinationClassSource() {
@@ -51,6 +51,9 @@ class PredicateProbingTests {
     @ParameterizedTest
     @MethodSource("validPreconditionCombinationClassSource")
     void test(List<Class<? extends TestPrecondition>> testClasses) throws Exception {
+        final String classPath = System.getProperty("java.class.path");
+        System.out.println(String.join("\n", classPath.split(":")));
+
         boolean satisfied = true;
 
         for (Class<?> clazz : testClasses) {

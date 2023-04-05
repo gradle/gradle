@@ -1,5 +1,8 @@
-# See RequiresExtension.groovy to learn more about what this file is doing
-# Every package needs to be in the "org.gradle.test.preconditions" package
+# You want to add a new combination?
+# Read predicate-tester/README.md to learn more
+#
+# You want to understand what's happening here?
+# See RequiresExtension.groovy to learn more about what this file is doing.
 
 PluginTestPreconditions$ShellcheckAvailable
 SigningTestPreconditions$GpgAvailable
