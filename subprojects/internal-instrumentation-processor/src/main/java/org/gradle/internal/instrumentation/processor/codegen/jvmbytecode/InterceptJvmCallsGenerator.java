@@ -20,6 +20,7 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.api.annotations.CallableKind;
 import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
@@ -39,6 +40,7 @@ import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.MethodNode;
 
 import javax.lang.model.element.Modifier;
 import java.util.Arrays;
@@ -51,6 +53,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -87,6 +90,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addMethod(BINARY_CLASS_NAME_OF)
                 .addMethod(LOAD_BINARY_CLASS_NAME)
                 .addField(METHOD_VISITOR_FIELD)
+                .addField(METADATA_FIELD)
                 .superclass(MethodVisitorScope.class)
                 // actual content:
                 .addMethod(visitMethodInsnBuilder.build())
@@ -126,8 +130,10 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
 
     MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC)
         .addParameter(MethodVisitor.class, "methodVisitor")
+        .addParameter(InstrumentationMetadata.class, "metadata")
         .addStatement("super(methodVisitor)")
         .addStatement("this.$N = methodVisitor", METHOD_VISITOR_FIELD)
+        .addStatement("this.$N = metadata", METADATA_FIELD)
         .build();
 
     private static MethodSpec.Builder getVisitMethodInsnBuilder() {
@@ -141,7 +147,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .addParameter(String.class, "name")
             .addParameter(String.class, "descriptor")
             .addParameter(boolean.class, "isInterface")
-            .addParameter(InstrumentationMetadata.class, "metadata");
+            .addParameter(ParameterizedTypeName.get(Supplier.class, MethodNode.class), "readMethodNode");
     }
 
     private static final MethodSpec BINARY_CLASS_NAME_OF = MethodSpec.methodBuilder("binaryClassNameOf")
@@ -161,6 +167,9 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     private static final FieldSpec METHOD_VISITOR_FIELD =
         FieldSpec.builder(MethodVisitor.class, "methodVisitor", Modifier.PRIVATE, Modifier.FINAL).build();
 
+    private static final FieldSpec METADATA_FIELD =
+        FieldSpec.builder(InstrumentationMetadata.class, "metadata", Modifier.PRIVATE, Modifier.FINAL).build();
+
     private static void generateCodeForOwner(
         CallableOwnerInfo owner,
         Map<Type, FieldSpec> implTypeFields,
@@ -170,7 +179,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         Consumer<? super FailureInfo> onFailure
     ) {
         if (owner.isInterceptSubtypes()) {
-            code.beginControlFlow("if (metadata.isInstanceOf(owner, $S))", owner.getType().getInternalName());
+            code.beginControlFlow("if ($N.isInstanceOf(owner, $S))", METADATA_FIELD, owner.getType().getInternalName());
         } else {
             code.beginControlFlow("if (owner.equals($S))", owner.getType().getInternalName());
         }
@@ -276,7 +285,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         }
 
         CodeBlock maxLocalsVar = CodeBlock.of("maxLocals");
-        code.addStatement("int $L = metadata.getMethodNode().maxLocals", maxLocalsVar);
+        code.addStatement("int $L = readMethodNode.get().maxLocals", maxLocalsVar);
 
         // Store the constructor arguments in local variables, so that we can duplicate them for both the constructor and the interceptor:
         Type[] params = Type.getArgumentTypes(standardCallableDescriptor(callable));

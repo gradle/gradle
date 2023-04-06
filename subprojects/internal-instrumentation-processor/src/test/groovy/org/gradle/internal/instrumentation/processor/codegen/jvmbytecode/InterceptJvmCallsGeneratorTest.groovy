@@ -51,14 +51,20 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
         def expectedJvmInterceptors = source """
             package org.gradle.internal.classpath;
             class InterceptorDeclaration_JvmBytecodeImpl extends MethodVisitorScope implements JvmBytecodeCallInterceptor {
+
+                private final MethodVisitor methodVisitor;
+                private final InstrumentationMetadata metadata;
+
+                public InterceptorDeclaration_JvmBytecodeImpl(MethodVisitor methodVisitor, InstrumentationMetadata metadata) {
+                    super(methodVisitor);
+                    this.methodVisitor = methodVisitor;
+                    this.metadata = metadata;
+                }
+
                 @Override
                 public boolean visitMethodInsn(String className, int opcode, String owner, String name,
-                        String descriptor, boolean isInterface, InstrumentationMetadata metadata) {
+                        String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
                     if (metadata.isInstanceOf(owner, "java/io/File")) {
-                        /**
-                         * Intercepting instance method: {@link java.io.File#listFiles()}
-                         * Intercepted by {@link FileInterceptorsDeclaration#intercept_listFiles(File)}
-                        */
                         if (name.equals("listFiles") && descriptor.equals("()[Ljava/io/File;") && opcode == Opcodes.INVOKEVIRTUAL) {
                             _INVOKESTATIC(FILE_INTERCEPTORS_DECLARATION_TYPE, "intercept_listFiles", "(Ljava/io/File;)[Ljava/io/File;");
                             return true;
