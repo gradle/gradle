@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Default
  * Dependency graph visitor that will build a {@link ResolutionResult} eagerly.
  * It is designed to be used during resolution for build dependencies.
  *
- * @see DefaultConfigurationResolver#resolveBuildDependencies(ResolveContext, org.gradle.api.internal.artifacts.ResolverResults)
+ * @see DefaultConfigurationResolver#resolveBuildDependencies(ResolveContext)
  */
 public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
 
