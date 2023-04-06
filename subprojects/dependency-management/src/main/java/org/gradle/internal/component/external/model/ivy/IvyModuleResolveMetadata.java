@@ -35,7 +35,7 @@ public interface IvyModuleResolveMetadata extends ModuleComponentResolveMetadata
     @Override
     MutableIvyModuleResolveMetadata asMutable();
 
-    /***
+    /**
      * Returns the branch attribute for the module.
      *
      * @return the branch attribute for the module

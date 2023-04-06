@@ -89,13 +89,20 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 edge("org:core:2.9.4", "org:core:2.7.9") {
                     forced()
+                    byConstraint("belongs to platform org:platform:2.7.9")
                 }
                 module("org:databind:2.7.9") {
-                    module('org:annotations:2.7.9')
+                    forced()
+                    byConstraint("belongs to platform org:platform:2.7.9")
+                    module('org:annotations:2.7.9') {
+                        forced()
+                        byConstraint("belongs to platform org:platform:2.7.9")
+                    }
                     module('org:core:2.7.9')
                 }
                 edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
                     forced()
+                    byConstraint("belongs to platform org:platform:2.7.9")
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
@@ -145,13 +152,21 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 edge("org:core:2.9.4", "org:core:2.7.9") {
                     forced()
+                    byConstraint("belongs to platform org:platform:2.7.9")
                 }
                 module("org:databind:2.7.9") {
-                    module('org:annotations:2.7.9')
+                    selectedByRule()
+                    forced()
+                    byConstraint("belongs to platform org:platform:2.7.9")
+                    module('org:annotations:2.7.9') {
+                        forced()
+                        byConstraint("belongs to platform org:platform:2.7.9")
+                    }
                     module('org:core:2.7.9')
                 }
                 edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
                     forced()
+                    byConstraint("belongs to platform org:platform:2.7.9")
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
@@ -398,21 +413,26 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 module("bom:bom:1.0") {
                     configuration = 'platform-runtime'
-                    constraint("org:xml:2.0", "org:xml:1.0")
+                    constraint("org:xml:2.0", "org:xml:1.0") {
+                        forced()
+                        byConstraint()
+                        byConstraint("belongs to platform org:platform:1.0")
+                    }
                     noArtifacts()
                 }
                 module("root:root:1.0") {
                     module('org:webapp:1.0') {
+                        forced()
+                        byConstraint("belongs to platform org:platform:1.0")
                         module('org:xml:1.0')
                     }
                     module('org:other:1.0') {
                         forced()
+                        byConstraint("belongs to platform org:platform:1.0")
                     }
                 }
             }
         }
-
-
     }
 
     def "can force a virtual platform version by forcing the platform itself via a dependency"() {
@@ -444,13 +464,20 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 edge("org:core:2.9.4", "org:core:2.7.9") {
                     forced()
+                    byConstraint("belongs to platform org:platform:2.7.9")
                 }
                 edge("org:databind:2.9.4", "org:databind:2.7.9") {
-                    module('org:annotations:2.7.9')
+                    forced()
+                    byConstraint("belongs to platform org:platform:2.7.9")
+                    module('org:annotations:2.7.9') {
+                        forced()
+                        byConstraint("belongs to platform org:platform:2.7.9")
+                    }
                     module('org:core:2.7.9')
                 }
                 edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
                     forced()
+                    byConstraint("belongs to platform org:platform:2.7.9")
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
@@ -495,13 +522,20 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 edge("org:core:2.9.4", "org:core:2.7.9") {
                     forced()
+                    byConstraint("belongs to platform org:platform:2.7.9")
                 }
                 module("org:databind:2.7.9") {
-                    module('org:annotations:2.7.9')
+                    forced()
+                    byConstraint("belongs to platform org:platform:2.7.9")
+                    module('org:annotations:2.7.9') {
+                        forced()
+                        byConstraint("belongs to platform org:platform:2.7.9")
+                    }
                     module('org:core:2.7.9')
                 }
                 edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
                     forced()
+                    byConstraint("belongs to platform org:platform:2.7.9")
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
@@ -547,13 +581,20 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 edge("org:core:2.9.4", "org:core:2.7.9") {
                     forced()
+                    byConstraint("belongs to platform org:platform:2.7.9")
                 }
                 module("org:databind:2.7.9") {
-                    module('org:annotations:2.7.9')
+                    forced()
+                    byConstraint("belongs to platform org:platform:2.7.9")
+                    module('org:annotations:2.7.9') {
+                        forced()
+                        byConstraint("belongs to platform org:platform:2.7.9")
+                    }
                     module('org:core:2.7.9')
                 }
                 edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
                     forced()
+                    byConstraint("belongs to platform org:platform:2.7.9")
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
@@ -594,12 +635,22 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:core:2.7.9", "org:core:2.9.4.1")
+                edge("org:core:2.7.9", "org:core:2.9.4.1") {
+                    byConstraint("belongs to platform org:platform:2.9.4.1")
+                    maybeByConflictResolution()
+                }
                 edge("org:databind:2.7.9", "org:databind:2.9.4.1") {
-                    module('org:annotations:2.9.4.1')
+                    byConstraint("belongs to platform org:platform:2.9.4.1")
+                    byConflictResolution("between versions 2.9.4.1 and 2.7.9")
+                    module('org:annotations:2.9.4.1') {
+                        byConstraint("belongs to platform org:platform:2.9.4.1")
+                        maybeByConflictResolution()
+                    }
                     module('org:core:2.9.4.1')
                 }
                 edge("org:kotlin:2.9.4", "org:kotlin:2.9.4.1") {
+                    byConstraint("belongs to platform org:platform:2.9.4.1")
+                    byConflictResolution("between versions 2.9.4.1 and 2.9.4")
                     module('org:core:2.9.4.1')
                     module('org:annotations:2.9.4.1')
                 }
@@ -651,10 +702,15 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:core:2.9.4", "org:core:2.7.9") {
+                    byConstraint()
                     forced()
                 }
                 module("org:databind:2.7.9") {
+                    byConstraint()
+                    forced()
                     module('org:annotations:2.7.9') {
+                        byConstraint()
+                        forced()
                         module("org:platform:2.7.9")
                     }
                     module('org:core:2.7.9') {
@@ -663,6 +719,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                     module("org:platform:2.7.9")
                 }
                 edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
+                    byConstraint()
                     forced()
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
@@ -670,6 +727,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 }
                 String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataPublished() ? 'enforcedRuntimeElements' : 'enforced-platform-runtime'
                 edge("org:platform:{strictly 2.7.9}", "org:platform:2.7.9") {
+                    byAncestor()
                     configuration(expectedVariant)
                     constraint('org:core:2.7.9')
                     constraint('org:databind:2.7.9')
@@ -765,10 +823,24 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 module("com.amazonaws:aws-java-sdk-core:1.11.438") {
                     edge("org:cbor:2.6.7", "org:cbor:2.8.10") {
-                        module("org:core:2.8.10")
+                        byConstraint("belongs to platform org:platform:2.8.11.1")
+                        maybeByConflictResolution()
+                        forced()
+                        module("org:core:2.8.10") {
+                            byConstraint("belongs to platform org:platform:2.8.11.1")
+                            maybeByConflictResolution()
+                            forced()
+                        }
                     }
                     edge("org:databind:2.6.7.1", "org:databind:2.8.11.1") {
-                        edge("org:annotations:2.8.0", "org:annotations:2.8.10")
+                        byConstraint("belongs to platform org:platform:2.8.11.1")
+                        maybeByConflictResolution()
+                        forced()
+                        edge("org:annotations:2.8.0", "org:annotations:2.8.10") {
+                            byConstraint("belongs to platform org:platform:2.8.11.1")
+                            byConflictResolution("between versions 2.8.10 and 2.8.0")
+                            forced()
+                        }
                         module("org:core:2.8.10")
                     }
                 }
@@ -820,10 +892,21 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             root(":", ":test:") {
                 module("com.amazonaws:aws-java-sdk-core:1.11.438") {
                     module("org:cbor:2.6.7") {
-                        module("org:core:2.6.7")
+                        byConstraint("belongs to platform org:platform:2.6.7.1")
+                        forced()
+                        module("org:core:2.6.7") {
+                            byConstraint("belongs to platform org:platform:2.6.7.1")
+                            forced()
+                        }
                     }
                     edge("org:databind:2.8.0", "org:databind:2.6.7.1") {
-                        edge("org:annotations:2.6.0", "org:annotations:2.6.7")
+                        byConstraint("belongs to platform org:platform:2.6.7.1")
+                        forced()
+                        edge("org:annotations:2.6.0", "org:annotations:2.6.7") {
+                            byConstraint("belongs to platform org:platform:2.6.7.1")
+                            byConflictResolution("between versions 2.6.7 and 2.6.0")
+                            forced()
+                        }
                         module("org:core:2.6.7")
                     }
                 }

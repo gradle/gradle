@@ -396,7 +396,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 configurations {
                     green {
                         extendsFrom(compile)
-                        canBeResolved = true
+                        assert canBeResolved
                         canBeConsumed = false
                         attributes {
                             attribute(artifactType, 'green')
@@ -430,16 +430,41 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         run(":app:toBeFinalized", "withDependency")
 
+        def lib1Message = "Transforming lib1.jar with MakeGreen"
+        def lib2Message = "Transforming lib2.jar with MakeGreen"
+
         then:
-        output.count("Transforming lib1.jar with MakeGreen") == 1
-        output.count("Transforming lib2.jar with MakeGreen") == 1
+        if (!GradleContextualExecuter.configCache) {
+            // Only runs once, as the transform execution in-memory cache is not discarded prior to execution time
+            output.count(lib1Message) == 1
+            output.count(lib2Message) == 1
+        } else {
+            // Transform is also executed at execution time, as the artifact has changed and the execution cache is discarded on load from cache
+            output.count(lib1Message) == 2
+            output.count(lib2Message) == 2
+        }
 
         when:
         run(":app:toBeFinalized", "withDependency")
 
         then:
-        output.count("Transforming lib1.jar with MakeGreen") == 1
-        output.count("Transforming lib2.jar with MakeGreen") == 1
+        if (!GradleContextualExecuter.configCache) {
+            // Runs again, as the artifact has changed
+            output.count(lib1Message) == 1
+            output.count(lib2Message) == 1
+        } else {
+            // Not executed at configuration time, and the transform has already executed for the artifact
+            output.count(lib1Message) == 0
+            output.count(lib2Message) == 0
+        }
+
+        when:
+        run(":app:toBeFinalized", "withDependency")
+
+        then:
+        // Not executed as the transform has already executed for the artifact
+        output.count(lib1Message) == 0
+        output.count(lib2Message) == 0
     }
 
     def "each file is transformed once per set of configuration parameters"() {

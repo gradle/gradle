@@ -216,7 +216,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ConfigurationsProvider configurationsProvider;
 
     private final Path identityPath;
-    private final Path path;
+    private final Path projectPath;
 
     // These fields are not covered by mutation lock
     private final String name;
@@ -228,7 +228,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private String description;
     private final Set<Object> excludeRules = new LinkedHashSet<>();
     private Set<ExcludeRule> parsedExcludeRules;
-    private boolean returnAllVariants = false;
 
     private final Object observationLock = new Object();
     private volatile InternalState observedState = UNRESOLVED;
@@ -310,6 +309,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.identityPath = domainObjectContext.identityPath(name);
+        this.projectPath = domainObjectContext.projectPath(name);
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.resolver = resolver;
@@ -347,7 +347,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(ResolveState.NOT_RESOLVED);
-        this.path = domainObjectContext.projectPath(name);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
 
         this.canBeConsumed = roleAtCreation.isConsumable();
@@ -577,7 +576,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     protected void appendContents(TreeFormatter formatter) {
-        formatter.node("configuration: " + getIdentityPath());
+        formatter.node("configuration: " + identityPath);
     }
 
     @Override
@@ -822,9 +821,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 boolean hasModuleNotFound = causes.stream().anyMatch(ModuleVersionNotFoundException.class::isInstance);
                 if (hasModuleNotFound) {
                     return Optional.of(new ResolveExceptionWithHints(getDisplayName(), causes,
-                        "The project declares repositories, effectively ignoring the repositories you have declared in the settings.",
+                        String.join("\n", "The project declares repositories, effectively ignoring the repositories you have declared in the settings.",
                         "You can figure out how project repositories are declared by configuring your build to fail on project repositories.",
-                        "See " + documentationRegistry.getDocumentationFor("declaring_repositories", "sub:fail_build_on_project_repositories") + " for details."));
+                        "See " + documentationRegistry.getDocumentationFor("declaring_repositories", "sub:fail_build_on_project_repositories") + " for details.")));
                 }
             }
         } catch (Throwable e) {
@@ -991,6 +990,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             initAllDependencies();
         }
         return allDependencies;
+    }
+
+    @Override
+    public boolean hasDependencies() {
+        return !getAllDependencies().isEmpty();
+    }
+
+    @Override
+    public int getEstimatedGraphSize() {
+        // TODO #24641: Why are the numbers and operations here the way they are?
+        //  Are they up-to-date? We should be able to test if these values are still optimal.
+        int estimate = (int) (512 * Math.log(getAllDependencies().size()));
+        return Math.max(10, estimate);
     }
 
     private synchronized void initAllDependencies() {
@@ -1452,8 +1464,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public String getPath() {
-        return path.getPath();
+    public Path getProjectPath() {
+        return projectPath;
     }
 
     @Override
@@ -1462,16 +1474,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void setReturnAllVariants(boolean returnAllVariants) {
-        if (!canBeMutated) {
-            throw new IllegalStateException("Configuration is unmodifiable");
-        }
-        this.returnAllVariants = returnAllVariants;
-    }
-
-    @Override
-    public boolean getReturnAllVariants() {
-        return this.returnAllVariants;
+    public DomainObjectContext getDomainObjectContext() {
+        return domainObjectContext;
     }
 
     @Override
@@ -1796,11 +1800,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (!isSpecialCaseOfChangingUsage(usage, current)) {
             String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
             String changingUsage = usage + " was " + !current + " and is now " + current;
-            
+
             DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), changingUsage))
                     .withAdvice("Usage should be fixed upon creation.")
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "configurations_allowed_usage")
+                    .nagUser();
+        }
+    }
+
+    private void maybeWarnOnRedundantUsageActivation(String usage, String method) {
+        if (!isSpecialCaseOfRedundantUsageActivation()) {
+            String msgTemplate = "The %s usage is already allowed on %s.";
+            DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, usage, getDisplayName()))
+                    .withAdvice(String.format("Remove the call to %s, it has no effect.", method))
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "redundant_configuration_usage_activation")
                     .nagUser();
         }
     }
@@ -1815,26 +1830,80 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
      * <ol>
      *     <li>While {#roleAtCreation} is {@code null}, we are still initializing, so we should NOT warn.</li>
      *     <li>Changes to the usage of the detached configurations should NOT warn (this done by the Kotlin plugin).</li>
-     *     <li>Configurations with a legacy role should NOT warn when changing usage, 
+     *     <li>Configurations with a legacy role should NOT warn when changing usage,
 since users cannot create non-legacy configurations and there is no current public API for setting roles upon creation</li>
      *     <li>Setting consumable usage to false on the {@code apiElements} and {@code runtimeElements} configurations should NOT warn (this is done by the Kotlin plugin).</li>
      *     <li>All other usage changes should warn.</li>
      * </ol>
+     *
+     * @param usage the name usage that is being changed
+     * @param current the current value of the usage after the change
+     *
+     * @return {@code true} if the usage change is a known special case; {@code false} otherwise
+     */
+    private boolean isSpecialCaseOfChangingUsage(String usage, boolean current) {
+        return isInitializing() || isDetachedConfiguration() || isInLegacyRole() || isPermittedConfigurationForUsageChange(usage, current);
+    }
+
+    /**
+     * This is a temporary method that decides if a redundant usage activation is a known/supported special case,
+     * where a deprecation warning message should not be emitted.
+     * <p>
+     * These exceptions are needed to avoid spamming deprecations warnings whenever some important 3rd party plugins like
+     * Kotlin or Android are used.
+     * <p>
+     * <ol>
+     *     <li>Redundant activation of a usage of a detached configurations should NOT warn (this done by the Kotlin plugin).</li>
+     *     <li>Configurations with a legacy role should NOT warn during redundant usage activation,
+     since users cannot create non-legacy configurations and there is no current public API for setting roles upon creation</li>
+     *     <li>All other usage changes should warn.</li>
+     * </ol>
+     *
+     * @return {@code true} if the usage change is a known special case; {@code false} otherwise
+     */
+    private boolean isSpecialCaseOfRedundantUsageActivation() {
+        return isInLegacyRole() || isDetachedConfiguration() || isPermittedConfigurationForRedundantActivation();
+    }
+
+    private boolean isInitializing() {
+        return roleAtCreation == null;
+    }
+
+    private boolean isDetachedConfiguration() {
+        return this.configurationsProvider instanceof DetachedConfigurationsProvider;
+    }
+
+    @SuppressWarnings("deprecation")
+    private boolean isInLegacyRole() {
+        return roleAtCreation == ConfigurationRoles.LEGACY;
+    }
+
+    /**
+     * Determine if this is a configuration that is permitted to change its usage, to support important 3rd party
+     * plugins such as Kotlin that do this.
      * <p>
      * This method is temporary, so the duplication of the configuration names defined in
      * {@link JvmConstants}, which are not available to be referenced directly from here, is unfortunate, but not a showstopper.
      *
-     * @param usage the name usage that is being changed
-     * @param current the current value of the usage after the change
+     * @return {@code true} if this is a configuration that is permitted to change its usage; {@code false} otherwise
      */
-    @SuppressWarnings({"JavadocReference", "deprecation"})
-    private boolean isSpecialCaseOfChangingUsage(String usage, boolean current) {
-        boolean isInitializing = roleAtCreation == null;
-        boolean isDetachedConfiguration = this.configurationsProvider instanceof DetachedConfigurationsProvider;
-        boolean isLegacyRole = roleAtCreation == ConfigurationRoles.LEGACY;
-        boolean isPermittedConfigurationChangeForKotlin = name.equals("apiElements") || name.equals("runtimeElements") && usage.equals("consumable") && !current;
+    @SuppressWarnings("JavadocReference")
+    private boolean isPermittedConfigurationForUsageChange(String usage, boolean current) {
+        return name.equals("apiElements") || name.equals("runtimeElements") && usage.equals("consumable") && !current;
+    }
 
-        return isInitializing || isDetachedConfiguration || isLegacyRole || isPermittedConfigurationChangeForKotlin;
+    /**
+     * Determine if this is a configuration that is permitted to redundantly activate usage, to support important 3rd party
+     * plugins such as Kotlin that do this.
+     * <p>
+     * This method is temporary, so the duplication of the configuration names defined in
+     * {@link JvmConstants}, which are not available to be referenced directly from here, is unfortunate, but not a showstopper.
+     *
+     * @return {@code true} if this is a configuration that is permitted to redundantly activate usage; {@code false} otherwise
+     */
+    @SuppressWarnings("JavadocReference")
+    private boolean isPermittedConfigurationForRedundantActivation() {
+        return name.equals("runtimeClasspath") || name.endsWith("testRuntimeClasspath") || name.endsWith("TestRuntimeClasspath");
     }
 
     @Override
@@ -1863,6 +1932,8 @@ since users cannot create non-legacy configurations and there is no current publ
             validateMutation(MutationType.USAGE);
             canBeConsumed = allowed;
             maybeWarnOnChangingUsage("consumable", allowed);
+        } else if (canBeConsumed && allowed) {
+            maybeWarnOnRedundantUsageActivation("consumable", "setCanBeConsumed(true)");
         }
     }
 
@@ -1877,6 +1948,8 @@ since users cannot create non-legacy configurations and there is no current publ
             validateMutation(MutationType.USAGE);
             canBeResolved = allowed;
             maybeWarnOnChangingUsage("resolvable", allowed);
+        } else if (canBeResolved && allowed) {
+            maybeWarnOnRedundantUsageActivation("resolvable", "setCanBeResolved(true)");
         }
     }
 
@@ -1891,6 +1964,8 @@ since users cannot create non-legacy configurations and there is no current publ
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
             maybeWarnOnChangingUsage("declarable against", allowed);
+        } else if (canBeDeclaredAgainst && allowed) {
+            maybeWarnOnRedundantUsageActivation("declarable against", "setCanBeDeclaredAgainst(true)");
         }
     }
 
@@ -2060,12 +2135,13 @@ since users cannot create non-legacy configurations and there is no current publ
 
         @Override
         public String getPath() {
-            return path.getPath();
+            // TODO: Can we update this to identityPath?
+            return projectPath.getPath();
         }
 
         @Override
         public String toString() {
-            return "dependencies '" + getIdentityPath() + "'";
+            return "dependencies '" + identityPath + "'";
         }
 
         @Override

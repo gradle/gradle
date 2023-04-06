@@ -293,7 +293,7 @@ gradle -q javaToolchains
      | Vendor:             AdoptOpenJDK
      | Architecture:       x86_64
      | Is JDK:             false
-     | Detected by:        system property 'org.gradle.java.installations.paths'
+     | Detected by:        Gradle property 'org.gradle.java.installations.paths'
 
  + Microsoft JDK 16.0.2+7
      | Location:           /Users/username/.sdkman/candidates/java/16.0.2.7.1-ms
@@ -317,7 +317,7 @@ gradle -q javaToolchains
      | Vendor:             Oracle
      | Architecture:       x86_64
      | Is JDK:             false
-     | Detected by:        macOS java_home
+     | Detected by:        MacOS java_home
 ----
 
 This can help to debug which toolchains are available to the build, how they are detected and what kind of metadata Gradle knows about those toolchains.
@@ -449,3 +449,14 @@ If an <<#sec:configuring_toolchain_specifications, unconfigured>> toolchain spec
 This can be achieved by passing an empty lambda when requesting a tool: `javaToolchainService.launcherFor({})`.
 
 You can find more details on defining custom tasks in the <<more_about_tasks.adoc#more_about_tasks, Authoring tasks>> documentation.
+
+[[sec:limitations]]
+== Toolchains limitations
+
+Gradle may detect toolchains incorrectly when it's running in a JVM compiled against `musl`, an https://musl.libc.org/[alternative implementation] of the C standard library.
+JVMs compiled against `musl` can sometimes override the `LD_LIBRARY_PATH` environment variable to control dynamic library resolution.
+This can influence forked java processes launched by Gradle, resulting in unexpected behavior.
+
+As a consequence, using multiple java toolchains is discouraged in environments with the `musl` library.
+This is the case in most Alpine distributions — consider using another distribution, like Ubuntu, instead.
+If you are using a single toolchain, the JVM running Gradle, to build and run your application, you can safely ignore this limitation.

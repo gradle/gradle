@@ -77,7 +77,7 @@ We have the projects `shared`, `api` and `person-service`.
 The `person-service` project has a dependency on the other two projects.
 The `api` project has a dependency on the `shared` project.
 It has no build script and gets nothing injected by another build script.
-We use the `:` separator to define a project path.
+We use the `:` separator to define a <<intro_multi_project_builds#sec:project_path,project path>>.
 Consult the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])] for more information about defining project paths.
 
 [[javadependencies_2]]

@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
 
@@ -23,6 +24,7 @@ import spock.lang.Issue
 class ExtendingConfigurationsIntegrationTest extends AbstractDependencyResolutionTest {
 
     @Issue("GRADLE-2873")
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "may replace configuration extension targets"() {
         mavenRepo.module("org", "foo").publish()
         mavenRepo.module("org", "bar").publish()
@@ -86,16 +88,20 @@ dependencies {
 }
 
 task checkResolveChild {
+    def files = configurations.child
     doFirst {
-        assert configurations.child.files*.name == ['foo-1.0.jar', 'bar-1.0.jar', 'baz-1.0.jar']
+        assert files*.name == ['foo-1.0.jar', 'bar-1.0.jar', 'baz-1.0.jar']
     }
 }
 
 task checkResolveParentThenChild {
+    def two = configurations.two
+    def one = configurations.one
+    def child = configurations.child
     doFirst {
-        assert configurations.two.files*.name == ['bar-1.0.jar']
-        assert configurations.one.files*.name == ['foo-1.0.jar', 'baz-1.0.jar']
-        assert configurations.child.files*.name == ['foo-1.0.jar', 'bar-1.0.jar', 'baz-1.0.jar']
+        assert two*.name == ['bar-1.0.jar']
+        assert one*.name == ['foo-1.0.jar', 'baz-1.0.jar']
+        assert child*.name == ['foo-1.0.jar', 'bar-1.0.jar', 'baz-1.0.jar']
     }
 }
 """

@@ -25,7 +25,7 @@ import java.nio.file.Files
 
 class CacheResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements CachingIntegrationFixture {
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "CC does not check for deleted or modified artifacts in local cache")
     void "cache handles manual deletion of cached artifacts"() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
@@ -40,8 +40,9 @@ repositories {
 configurations { compile }
 dependencies { compile 'group:projectA:1.2' }
 task listJars {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+        assert files.collect { it.name } == ['projectA-1.2.jar']
     }
 }
 task deleteCacheFiles(type: Delete) {
@@ -131,8 +132,9 @@ repositories {
 configurations { compile }
 dependencies { compile 'group:projectA:1.2' }
 task listJars {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+        assert files.collect { it.name } == ['projectA-1.2.jar']
     }
 }
 """

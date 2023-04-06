@@ -89,7 +89,9 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo", "org:foo:1.1")
+                edge("org:foo", "org:foo:1.1") {
+                    byConstraint()
+                }
                 constraint("org:foo:1.1", "org:foo:1.1")
             }
         }
@@ -148,7 +150,10 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         resolve.expectGraph {
             root(":", ":test:") {
                 module("org:bar:1.0") {
-                    edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
+                    edge("org:foo:1.0", "org:foo:1.1") {
+                        byConstraint()
+                        byConflictResolution("between versions 1.1 and 1.0")
+                    }
                 }
                 constraint("org:foo:1.1", "org:foo:1.1")
             }
@@ -332,7 +337,10 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         resolve.expectGraph {
             root(":", ":test:") {
                 constraint("org:bar:1.1", "org:foo:1.1").selectedByRule()
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
+                edge("org:foo:1.0", "org:foo:1.1") {
+                    byConstraint()
+                    byConflictResolution("between versions 1.1 and 1.0")
+                }
             }
         }
     }
@@ -366,7 +374,10 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0")
+                edge("org:foo:1.0", "org:foo:1.1") {
+                    byConstraint()
+                    byConflictResolution("between versions 1.1 and 1.0")
+                }
                 constraint("org:foo:1.1", "org:foo:1.1")
             }
         }
@@ -459,6 +470,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
             root(":", ":test:") {
                 edge("org:foo:1.0", "org:foo:1.1") {
                     configuration("runtime")
+                    byConstraint()
                     byConflictResolution("between versions 1.1 and 1.0")
                 }
                 edge("org:included:1.0", ":includeBuild", "org:included:1.0") {
@@ -498,7 +510,9 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo", "org:foo:1.0")
+                edge("org:foo", "org:foo:1.0") {
+                    byConstraint()
+                }
                 constraint("org:foo:1.0")
             }
         }
@@ -525,10 +539,12 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0", "org:foo:1.1")
-                constraint("org:foo:1.1", "org:foo:1.1") {
+                edge("org:foo:1.0", "org:foo:1.1") {
+                    byConstraint()
+                    byConflictResolution("between versions 1.1 and 1.0")
                     artifact(classifier: 'shaded')
                 }
+                constraint("org:foo:1.1", "org:foo:1.1")
             }
         }
     }
@@ -556,11 +572,13 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                constraint("org:foo:1.1", "org:foo:1.1") {
-                    artifact(classifier: 'shaded')
-                }
+                constraint("org:foo:1.1", "org:foo:1.1")
                 module("org:bar:1.0") {
-                    edge("org:foo:1.0", "org:foo:1.1")
+                    edge("org:foo:1.0", "org:foo:1.1") {
+                        byConstraint()
+                        byConflictResolution("between versions 1.1 and 1.0")
+                        artifact(classifier: 'shaded')
+                    }
                 }
             }
         }
@@ -588,10 +606,12 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                constraint("org:bar:1.1", "org:bar:1.1") {
+                constraint("org:bar:1.1", "org:bar:1.1")
+                edge('org:bar:1.0', 'org:bar:1.1') {
+                    byConstraint()
+                    byConflictResolution("between versions 1.1 and 1.0")
                     edge('org:foo:1.0', 'org:foo:1.0')
                 }
-                edge('org:bar:1.0', 'org:bar:1.1')
             }
         }
     }
@@ -618,10 +638,11 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                constraint("org:bar:1.1", "org:bar:1.1") {
+                constraint("org:bar:1.1", "org:bar:1.1")
+                edge('org:bar', 'org:bar:1.1') {
+                    byConstraint()
                     edge('org:foo:1.0', 'org:foo:1.0')
                 }
-                edge('org:bar', 'org:bar:1.1')
             }
         }
     }
@@ -716,7 +737,11 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
                 }
                 module("org:indirect:1.0") {
                     edge("org:user:1.0", "org:user:1.1") {
-                        edge("org:constrained:1.0", "org:constrained:1.1")
+                        byConflictResolution("between versions 1.1 and 1.0")
+                        edge("org:constrained:1.0", "org:constrained:1.1") {
+                            byConstraint()
+                            byConflictResolution("between versions 1.1 and 1.0")
+                        }
                     }
                     module("org:otherUser:1.0") {
                         module("org:user:1.1")
@@ -835,6 +860,8 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
             root(':', ':test:') {
                 edge("org:foo:1.0", ":foo", "org:foo:1.1") {
                     configuration = 'default'
+                    byConstraint()
+                    byConflictResolution("between versions 1.1 and 1.0")
                     noArtifacts()
                     project(":bar", "org:bar:1.1") {
                         configuration = 'default'
