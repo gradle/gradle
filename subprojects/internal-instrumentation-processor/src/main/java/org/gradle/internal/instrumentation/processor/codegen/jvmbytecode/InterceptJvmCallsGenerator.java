@@ -379,7 +379,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         Type[] parameterTypes = callableInfo.getParameters().stream()
             .filter(it -> it.getKind().isSourceParameter())
             .map(ParameterInfo::getParameterType).toArray(Type[]::new);
-        Type returnType = callableInfo.getReturnType();
+        Type returnType = callableInfo.getReturnType().getType();
         return Type.getMethodDescriptor(returnType, parameterTypes);
     }
 

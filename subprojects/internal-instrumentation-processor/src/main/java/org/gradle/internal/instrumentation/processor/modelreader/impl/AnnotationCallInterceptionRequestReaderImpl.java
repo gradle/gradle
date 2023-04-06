@@ -26,6 +26,7 @@ import org.gradle.internal.instrumentation.model.CallableInfo;
 import org.gradle.internal.instrumentation.model.CallableInfoImpl;
 import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.internal.instrumentation.model.CallableOwnerInfo;
+import org.gradle.internal.instrumentation.model.CallableReturnTypeInfo;
 import org.gradle.internal.instrumentation.model.ImplementationInfoImpl;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfoImpl;
@@ -91,7 +92,7 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         boolean interceptInherited = isInterceptInherited(methodElement);
         CallableOwnerInfo owner = new CallableOwnerInfo(ownerType, interceptInherited);
         String callableName = getCallableName(methodElement, kindInfo);
-        Type returnType = extractReturnType(methodElement);
+        CallableReturnTypeInfo returnType = new CallableReturnTypeInfo(extractReturnType(methodElement));
         List<ParameterInfo> parameterInfos = extractParameters(methodElement);
         return new CallableInfoImpl(kindInfo, owner, callableName, returnType, parameterInfos);
     }
