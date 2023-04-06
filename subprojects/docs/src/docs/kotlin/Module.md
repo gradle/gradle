@@ -2,7 +2,7 @@
 
 # Gradle Kotlin DSL Reference
 
-Gradle’s Kotlin DSL provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assist, refactoring, documentation, and more.
+Gradle’s Kotlin DSL provides an enhanced editing experience in supported IDEs, with superior content assist, refactoring, documentation, and more.
 For an introduction see the <a href="../userguide/kotlin_dsl.html">Kotlin DSL Primer</a>.
 
 The Kotlin DSL is implemented on top of Gradle’s Java API.
