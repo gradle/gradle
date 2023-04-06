@@ -93,7 +93,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause """Conflict(s) found for the following module(s):
+        failure.assertHasCause """Conflict found for the following module:
   - org:foo between versions 1.1 and 1.0"""
     }
 

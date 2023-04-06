@@ -19,10 +19,10 @@ package org.gradle.internal.properties.annotations;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -115,11 +115,6 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
             : parentPropertyName + "." + childPropertyName;
     }
 
-    private static <T> TypeToken<?> extractNestedType(TypeToken<T> beanType, Class<? super T> parameterizedSuperClass, int typeParameterIndex) {
-        ParameterizedType type = (ParameterizedType) beanType.getSupertype(parameterizedSuperClass).getType();
-        return TypeToken.of(type.getActualTypeArguments()[typeParameterIndex]);
-    }
-
     static class InstanceTypeMetadataWalker extends AbstractTypeMetadataWalker<Object, InstanceMetadataVisitor> implements InstanceMetadataWalker {
 
         public InstanceTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
@@ -147,7 +142,6 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
                 handler
             );
         }
-
 
         @Override
         protected void walkNestedMap(Object node, String qualifiedName, BiConsumer<String, Object> handler) {
@@ -211,7 +205,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         @SuppressWarnings("unchecked")
         private static TypeToken<?> unpackType(TypeToken<?> type) {
             while (Provider.class.isAssignableFrom(type.getRawType())) {
-                type = extractNestedType((TypeToken<Provider<?>>) type, Provider.class, 0);
+                type = JavaReflectionUtil.extractNestedType((TypeToken<Provider<?>>) type, Provider.class, 0);
             }
             return type;
         }
@@ -250,7 +244,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         @SuppressWarnings("unchecked")
         @Override
         protected void walkNestedProvider(TypeToken<?> node, String qualifiedName, PropertyMetadata propertyMetadata, StaticMetadataVisitor visitor, boolean isElementOfCollection, Consumer<TypeToken<?>> handler) {
-            handler.accept(extractNestedType((TypeToken<Provider<?>>) node, Provider.class, 0));
+            handler.accept(JavaReflectionUtil.extractNestedType((TypeToken<Provider<?>>) node, Provider.class, 0));
         }
 
         @SuppressWarnings("unchecked")
@@ -258,13 +252,13 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         protected void walkNestedMap(TypeToken<?> node, String qualifiedName, BiConsumer<String, TypeToken<?>> handler) {
             handler.accept(
                 "<key>",
-                extractNestedType((TypeToken<Map<?, ?>>) node, Map.class, 1));
+                JavaReflectionUtil.extractNestedType((TypeToken<Map<?, ?>>) node, Map.class, 1));
         }
 
         @SuppressWarnings("unchecked")
         @Override
         protected void walkNestedIterable(TypeToken<?> node, String qualifiedName, BiConsumer<String, TypeToken<?>> handler) {
-            TypeToken<?> nestedType = extractNestedType((TypeToken<? extends Iterable<?>>) node, Iterable.class, 0);
+            TypeToken<?> nestedType = JavaReflectionUtil.extractNestedType((TypeToken<? extends Iterable<?>>) node, Iterable.class, 0);
             handler.accept(determinePropertyName(nestedType), nestedType);
         }
 
