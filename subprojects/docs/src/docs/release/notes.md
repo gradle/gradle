@@ -66,6 +66,13 @@ This can be useful during a cold-start of Gradle for users who have environments
 
 Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the Groovy DSL with an enhanced editing experience in supported IDEs — superior content assistance, refactoring documentation, and more.
 
+#### Kotlin DSL reference
+
+A versioned reference documentation for the Gradle Kotlin DSL is now published alongside the user manual.
+This reference covers both the Kotlin DSL and the Gradle Java API.
+
+You can use the [Kotlin DSL reference](kotlin-dsl/) search functionality to drill through the available members.
+
 #### Gradle `init` defaults to the Kotlin DSL
 
 Starting with this release running `gradle init` now defaults to generating new builds using the Kotlin DSL.
