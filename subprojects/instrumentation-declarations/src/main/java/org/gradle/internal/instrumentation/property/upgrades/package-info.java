@@ -14,17 +14,9 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.internal.java")
-}
+/**
+ * Contains registry for classes with property upgrades.
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.internal.instrumentation.property.upgrades;
 
-dependencies {
-    implementation(project(":model-core"))
-    implementation(project(":base-annotations"))
-    implementation(project(":base-services"))
-
-    implementation(libs.groovy)
-    implementation(libs.asm)
-    implementation(libs.asmTree)
-    implementation(libs.asmCommons)
-}
