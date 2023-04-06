@@ -47,7 +47,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * </ul>
  */
 class PredicateProbingTests {
-
     public static final String VALID_PRECONDITION_COMBINATIONS_CSV = "/valid-precondition-combinations.csv";
 
     private static List<Class<?>> loadClasses(String[] classNames) {
@@ -55,8 +54,9 @@ class PredicateProbingTests {
             className -> {
                 try {
                     return Class.forName("org.gradle.test.preconditions." + className);
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
+                } catch (ClassNotFoundException ex) {
+                    final String message = String.format("Class '%s' cannot be found. You might have a missing the dependency in 'subprojects/predicate-tester/builds.gradle.kts'?", className);
+                    throw new RuntimeException(message, ex);
                 }
             }
         ).collect(Collectors.toList());

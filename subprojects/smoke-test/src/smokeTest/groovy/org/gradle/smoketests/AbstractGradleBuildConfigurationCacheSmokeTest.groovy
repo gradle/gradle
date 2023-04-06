@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.SmokeTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 /**
@@ -33,7 +34,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 @Requires([
     UnitTestPreconditions.Jdk9OrLater,
     IntegTestPreconditions.NotConfigCached,
-    IntegTestPreconditions.GradleBuildJvmSpecAvailable
+    SmokeTestPreconditions.GradleBuildJvmSpecAvailable
 ])
 abstract class AbstractGradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeTest {
     def setup() {
