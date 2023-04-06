@@ -166,10 +166,12 @@ Required by:
             classes.doLast {
                 def components = configurations.compileClasspath.incoming.resolutionResult.allComponents.id
                 assert components.size() == 2
+                assert components[0].build.buildPath == ':buildSrc'
                 assert components[0].build.name == 'buildSrc'
                 assert components[0].build.currentBuild
                 assert components[0].projectPath == ':'
                 assert components[0].projectName == 'buildSrc'
+                assert components[1].build.buildPath == ':buildSrc'
                 assert components[1].build.name == 'buildSrc'
                 assert components[1].build.currentBuild
                 assert components[1].projectPath == ':a'

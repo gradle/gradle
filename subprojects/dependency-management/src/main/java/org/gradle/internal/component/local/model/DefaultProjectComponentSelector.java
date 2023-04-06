@@ -67,6 +67,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return buildIdentifier;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public String getBuildName() {
         return buildIdentifier.getName();

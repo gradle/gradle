@@ -140,6 +140,7 @@ Required by:
             def rootProvider = runtimeClasspath.incoming.resolutionResult.rootComponent
             classes.doLast {
                 def rootComponent = rootProvider.get()
+                assert rootComponent.id.build.buildPath == ':'
                 assert rootComponent.id.build.name == ':'
                 assert rootComponent.id.build.currentBuild
                 assert rootComponent.id.projectPath == ':'
@@ -149,6 +150,7 @@ Required by:
                 assert components.size() == 1
                 def buildRootProject = components[0]
                 def componentId = components[0].id
+                assert componentId.build.buildPath == ':${buildName}'
                 assert componentId.build.name == '${buildName}'
                 assert !componentId.build.currentBuild
                 assert componentId.projectPath == ':'
@@ -157,6 +159,7 @@ Required by:
                 components = buildRootProject.dependencies.selected
                 assert components.size() == 1
                 componentId = components[0].id
+                assert componentId.build.buildPath == ':${buildName}'
                 assert componentId.build.name == '${buildName}'
                 assert !componentId.build.currentBuild
                 assert componentId.projectPath == ':b1'
@@ -169,7 +172,6 @@ Required by:
                 selectors = buildRootProject.dependencies.requested
                 assert selectors.size() == 1
                 assert selectors[0].displayName == 'project :${buildName}:b1'
-                // TODO - should be build name
                 assert selectors[0].buildName == 'buildB'
                 assert selectors[0].projectPath == ':b1'
             }

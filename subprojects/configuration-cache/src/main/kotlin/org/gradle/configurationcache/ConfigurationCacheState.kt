@@ -823,7 +823,7 @@ class ConfigurationCacheState(
 
     private
     fun isRelevantBuildEventListener(provider: RegisteredBuildServiceProvider<*, *>) =
-        provider.buildIdentifier.name != BUILD_SRC
+        Path.path(provider.buildIdentifier.buildPath).name != BUILD_SRC
 
     private
     val BuildState.projectsAvailable

@@ -44,7 +44,6 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     public DefaultIncludedBuild(
         BuildIdentifier buildIdentifier,
-        Path identityPath,
         BuildDefinition buildDefinition,
         boolean isImplicit,
         BuildState owner,
@@ -54,7 +53,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         // Use a defensive copy of the build definition, as it may be mutated during build execution
         super(buildTree, buildDefinition.newInstance(), owner);
         this.buildIdentifier = buildIdentifier;
-        this.identityPath = identityPath;
+        this.identityPath = Path.path(buildIdentifier.getBuildPath());
         this.buildDefinition = buildDefinition;
         this.isImplicit = isImplicit;
         this.model = instantiator.newInstance(IncludedBuildImpl.class, this);

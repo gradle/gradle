@@ -130,14 +130,17 @@ Required by:
             classes.doLast {
                 def components = configurations.runtimeClasspath.incoming.resolutionResult.allComponents.id
                 assert components.size() == 3
+                assert components[0].build.buildPath == ':'
                 assert components[0].build.name == ':'
                 assert components[0].build.currentBuild
                 assert components[0].projectPath == ':'
                 assert components[0].projectName == 'buildA'
+                assert components[1].build.buildPath == ':${buildName}'
                 assert components[1].build.name == '${buildName}'
                 assert !components[1].build.currentBuild
                 assert components[1].projectPath == ':'
                 assert components[1].projectName == '${buildName}'
+                assert components[2].build.buildPath == ':${buildName}'
                 assert components[2].build.name == '${buildName}'
                 assert !components[2].build.currentBuild
                 assert components[2].projectPath == ':a'
@@ -147,8 +150,7 @@ Required by:
                 assert selectors.size() == 2
                 assert selectors[0].displayName == 'org.test:${dependencyName}:1.2'
                 assert selectors[1].displayName == 'project :${buildName}:a'
-                // TODO - should be buildB
-                assert selectors[1].buildName == 'buildB'
+                assert selectors[1].buildName == '${buildName}'
                 assert selectors[1].projectPath == ':a'
             }
         """

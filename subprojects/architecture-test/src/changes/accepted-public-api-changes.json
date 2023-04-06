@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.artifacts.component.BuildIdentifier",
+            "member": "Method org.gradle.api.artifacts.component.BuildIdentifier.getBuildPath()",
+            "acceptation": "Added new API",
+            "changes": [
+                "Method added to interface"
+            ]
+        }
+    ]
 }
