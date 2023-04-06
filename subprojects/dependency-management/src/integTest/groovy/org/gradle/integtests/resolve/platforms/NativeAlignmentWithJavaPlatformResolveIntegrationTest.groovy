@@ -196,6 +196,7 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
             root(":", ":consumer:") {
                 edge('com.acme.foo:core:1.0', 'com.acme.foo:core:1.1') {
                     byConstraint("platform alignment")
+                    byConflictResolution("between versions 1.1 and 1.0")
                     variant "apiElements", [
                         'org.gradle.category':'library',
                         'org.gradle.dependency.bundling':'external',
@@ -211,6 +212,7 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                             'org.gradle.usage': 'java-api']
                         constraint('com.acme.foo:core:1.1')
                         constraint('com.acme.foo:lib:1.1')
+                        byConflictResolution("between versions 1.1 and 1.0")
                         noArtifacts()
                     }
                     module('com.acme.foo:lib:1.1') {
@@ -222,6 +224,7 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                             'org.gradle.usage': 'java-api',
                             'org.gradle.libraryelements': 'jar',
                         ]
+                        byConflictResolution("between versions 1.1 and 1.0")
                         byConstraint("platform alignment")
                     }
                 }

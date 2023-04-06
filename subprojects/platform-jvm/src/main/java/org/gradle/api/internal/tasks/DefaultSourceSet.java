@@ -141,7 +141,13 @@ public abstract class DefaultSourceSet implements SourceSet {
         return baseName;
     }
 
-    private String configurationNameOf(String baseName) {
+    /**
+     * Determines the name of a configuration owned by this source set, with the given {@code baseName}.
+     *
+     * <p>If this is the main source set, returns the uncapitalized {@code baseName}, otherwise, returns the
+     * base name prefixed with this source set's name.</p>
+     */
+    public String configurationNameOf(String baseName) {
         return StringUtils.uncapitalize(getTaskBaseName() + StringUtils.capitalize(baseName));
     }
 

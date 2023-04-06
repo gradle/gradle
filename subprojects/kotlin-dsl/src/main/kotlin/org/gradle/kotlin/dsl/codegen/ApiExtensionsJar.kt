@@ -21,6 +21,7 @@ import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.zipTo
 
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.kotlin.dsl.support.EmbeddedKotlinCompilerWarning
 import org.gradle.kotlin.dsl.support.bytecode.GradleJvmVersion
 
 import java.io.File
@@ -120,7 +121,8 @@ fun compileKotlinApiExtensionsTo(
         "gradle-api-extensions",
         sourceFiles,
         logger,
-        classPath = classPath
+        classPath = classPath,
+        onCompilerWarning = EmbeddedKotlinCompilerWarning.DEBUG
     )
 
     if (!success) {

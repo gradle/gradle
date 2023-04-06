@@ -148,13 +148,14 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
             );
         }
 
-        @SuppressWarnings("unchecked")
+
         @Override
         protected void walkNestedMap(Object node, String qualifiedName, BiConsumer<String, Object> handler) {
-            ((Map<String, Object>) node).forEach((key, value) -> {
+            ((Map<?, ?>) node).forEach((key, value) -> {
                 checkNotNull(key, "Null keys in nested map '%s' are not allowed.", qualifiedName);
-                checkNotNullNestedCollectionValue(qualifiedName, key, value);
-                handler.accept(key, value);
+                String stringKey = key.toString();
+                checkNotNullNestedCollectionValue(qualifiedName, stringKey, value);
+                handler.accept(stringKey, value);
             });
         }
 

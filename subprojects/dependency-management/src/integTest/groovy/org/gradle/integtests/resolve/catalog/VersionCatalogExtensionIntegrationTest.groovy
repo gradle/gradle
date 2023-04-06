@@ -314,9 +314,12 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                 constraint("org.gradle.test:lib-core:{strictly [1.0,1.1)}", "org.gradle.test:lib-core:1.0")
                 constraint("org.gradle.test:lib-ext:{strictly [1.0,1.1)}", "org.gradle.test:lib-ext:1.0")
                 edge("org.gradle.test:lib-core:1.+", "org.gradle.test:lib-core:1.0") {
+                    notRequested()
                     byReasons(["rejected version 1.1", "constraint"])
                 }
-                edge("org.gradle.test:lib-ext", "org.gradle.test:lib-ext:1.0")
+                edge("org.gradle.test:lib-ext", "org.gradle.test:lib-ext:1.0") {
+                    byConstraint()
+                }
             }
         }
     }
@@ -377,9 +380,12 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                 constraint("org.gradle.test:lib-core:{strictly [1.0,1.1)}", "org.gradle.test:lib-core:1.0")
                 constraint("org.gradle.test:lib-ext:{strictly [1.0,1.1)}", "org.gradle.test:lib-ext:1.0")
                 edge("org.gradle.test:lib-core:1.+", "org.gradle.test:lib-core:1.0") {
+                    notRequested()
                     byReasons(["rejected version 1.1", "constraint"])
                 }
-                edge("org.gradle.test:lib-ext", "org.gradle.test:lib-ext:1.0")
+                edge("org.gradle.test:lib-ext", "org.gradle.test:lib-ext:1.0") {
+                    byConstraint()
+                }
             }
         }
     }
@@ -463,7 +469,9 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         resolve.expectGraph {
             root(":", ":test:") {
                 constraint('org.gradle.test:lib:1.1')
-                edge('org.gradle.test:lib', 'org.gradle.test:lib:1.1')
+                edge('org.gradle.test:lib', 'org.gradle.test:lib:1.1') {
+                    byConstraint()
+                }
             }
         }
     }
@@ -2219,8 +2227,12 @@ Second: 1.1"""
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org.gradle.test:lib:3.0.6", "org.gradle.test:lib:3.0.5")
-                edge("org.gradle.test:lib2:3.0.6", "org.gradle.test:lib2:3.0.5")
+                edge("org.gradle.test:lib:3.0.6", "org.gradle.test:lib:3.0.5") {
+                    forced()
+                }
+                edge("org.gradle.test:lib2:3.0.6", "org.gradle.test:lib2:3.0.5") {
+                    forced()
+                }
             }
         }
     }

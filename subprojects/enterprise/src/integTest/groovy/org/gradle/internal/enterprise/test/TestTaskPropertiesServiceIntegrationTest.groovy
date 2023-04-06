@@ -21,59 +21,67 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
+import javax.inject.Inject
 import java.util.stream.Stream
 
 class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
 
-    @UnsupportedWithConfigurationCache(because = "test-plugin does not use CC-compatible APIs")
-    def "can inject TestTaskPropertiesService into plugin"() {
+    def "provides task configuration to plugin"() {
         given:
-        def pluginBuilder = new PluginBuilder(file("buildSrc"))
-        pluginBuilder.addPlugin("""
-            project.task('testTaskProperties') { doLast {
+        new PluginBuilder(file("buildSrc")).with {
+            addPlugin("""
+                def objects = project.objects
+                def outputFile = project.file("\${project.buildDir}/testTaskProperties.json")
                 def service = project.services.get(${TestTaskPropertiesService.name})
-                def properties = service.collectProperties(project.tasks['test'])
+                project.tasks.named('test').configure {
+                    doFirst { task ->
+                        def properties = service.collectProperties(task)
 
-                def generator = new ${JsonGenerator.Options.name}()
-                    .addConverter(new groovy.json.JsonGenerator.Converter() {
-                        @Override
-                        boolean handles(Class<?> type) {
-                            ${Stream.name}.isAssignableFrom(type)
-                        }
-                        @Override
-                        Object convert(Object value, String key) {
-                            (value as ${Stream.name}).toArray()
-                        }
-                    })
-                    .addConverter(new ${JsonGenerator.Converter.name}() {
-                        @Override
-                        boolean handles(Class<?> type) {
-                            ${File.name}.isAssignableFrom(type)
-                        }
-                        @Override
-                        Object convert(Object value, String key) {
-                            (value as ${File.name}).absolutePath
-                        }
-                    })
-                    .build()
+                        def generator = new ${JsonGenerator.Options.name}()
+                            .addConverter(new groovy.json.JsonGenerator.Converter() {
+                                @Override
+                                boolean handles(Class<?> type) {
+                                    ${Stream.name}.isAssignableFrom(type)
+                                }
+                                @Override
+                                Object convert(Object value, String key) {
+                                    (value as ${Stream.name}).toArray()
+                                }
+                            })
+                            .addConverter(new ${JsonGenerator.Converter.name}() {
+                                @Override
+                                boolean handles(Class<?> type) {
+                                    ${File.name}.isAssignableFrom(type)
+                                }
+                                @Override
+                                Object convert(Object value, String key) {
+                                    (value as ${File.name}).absolutePath
+                                }
+                            })
+                            .build()
 
-                def json = ${JsonOutput.name}.prettyPrint(generator.toJson(properties))
+                        def json = ${JsonOutput.name}.prettyPrint(generator.toJson(properties))
 
-                def file = project.file("\${project.buildDir}/testTaskProperties.json")
-                file.parentFile.mkdirs()
-                file.text = json
-            }}
-        """)
-        pluginBuilder.generateForBuildSrc()
+                        outputFile.parentFile.mkdirs()
+                        outputFile.text = json
+                    }
+                }
+            """)
+            generateForBuildSrc()
+        }
 
+        and:
         buildFile << """
             plugins {
                 id 'java'
                 id 'test-plugin'
+            }
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation('org.junit.jupiter:junit-jupiter:5.9.2')
             }
             test {
                 forkEvery = 42
@@ -89,18 +97,20 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
                 }
                 jvmArgs('-Dkey=value')
                 environment('KEY', 'VALUE')
-                enabled = false
             }
         """
-        file('src/test/java/org/example/TestClass.java') << """
+        file('src/test/java/org/example/SomeClass.java') << """
             package org.example;
-            public class TestClass {}
+            public class SomeClass {}
         """
 
         when:
-        succeeds('test', '--tests', 'Test*', 'testTaskProperties')
+        fails('test', '--tests', 'Test*')
 
         then:
+        failureCauseContains("No tests found for given includes")
+
+        and:
         def expectedClasspath = [
             file('build/classes/java/test'),
             file('build/resources/test'),
@@ -125,7 +135,7 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
                 workingDir == this.testDirectory.absolutePath
                 executable == expectedExecutable
                 javaMajorVersion == expectedJavaVersion
-                classpath.collect { new File(it as String) } == expectedClasspath
+                classpath.collect { new File(it as String) }.containsAll(expectedClasspath)
                 modulePath == []
                 jvmArgs.contains('-Dkey=value')
                 environment.KEY == 'VALUE'
@@ -133,14 +143,14 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
             with(candidateClassFiles, List) {
                 size() == 1
                 with(first(), Map) {
-                    file == file("build/classes/java/test/org/example/TestClass.class").absolutePath
-                    relativePath == "org/example/TestClass.class"
+                    file == file("build/classes/java/test/org/example/SomeClass.class").absolutePath
+                    relativePath == "org/example/SomeClass.class"
                 }
             }
             with(inputFileProperties, List) {
                 !empty
                 with(it.find { it instanceof Map && it['propertyName'] == 'stableClasspath' }, Map) {
-                    files.collect { new File(it as String) } == expectedClasspath
+                    files.collect { new File(it as String) }.containsAll(expectedClasspath)
                 }
             }
             with(outputFileProperties, List) {
@@ -151,5 +161,43 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         }
+    }
+
+    def "can be used to disable storing task in build cache"() {
+        given:
+        def cacheDir = createDir("cache-dir")
+        settingsFile << """
+            buildCache {
+                local {
+                    directory = file("${cacheDir.name}")
+                }
+            }
+        """
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            test.doLast(objects.newInstance(Disabler))
+            abstract class Disabler implements Action<Task> {
+                private final ${TestTaskPropertiesService.name} service
+                @${Inject.name} Disabler(${TestTaskPropertiesService.name} service) {
+                    this.service = service
+                }
+                @Override void execute(Task task) {
+                    service.doNotStoreInCache(task)
+                }
+            }
+        """
+        file('src/test/java/org/example/TestClass.java') << """
+            package org.example;
+            public class TestClass {}
+        """
+
+        when:
+        succeeds('clean', 'test', '--build-cache')
+        succeeds('clean', 'test', '--build-cache')
+
+        then:
+        executedAndNotSkipped(':test')
     }
 }

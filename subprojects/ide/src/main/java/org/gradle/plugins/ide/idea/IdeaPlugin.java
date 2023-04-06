@@ -42,12 +42,12 @@ import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
@@ -363,18 +363,18 @@ public abstract class IdeaPlugin extends IdePlugin {
     }
 
     private void configureIdeaModuleForJava(final Project project) {
-        JvmSoftwareComponentInternal javaComponent = JavaPluginHelper.getJavaComponent(project);
+        JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
         JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
 
         project.getTasks().withType(GenerateIdeaModule.class).configureEach(ideaModule -> {
             // Dependencies
             ideaModule.dependsOn((Callable<FileCollection>) () ->
-                javaComponent.getMainOutput().getDirs().plus(defaultTestSuite.getSources().getOutput().getDirs())
+                mainFeature.getSourceSet().getOutput().getDirs().plus(defaultTestSuite.getSources().getOutput().getDirs())
             );
         });
 
         // Defaults
-        setupScopes(javaComponent, defaultTestSuite);
+        setupScopes(mainFeature, defaultTestSuite);
 
         // Convention
         ConventionMapping convention = ((IConventionAware) ideaModel.getModule()).getConventionMapping();
@@ -426,7 +426,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         });
     }
 
-    private void setupScopes(JvmSoftwareComponentInternal javaComponent, JvmTestSuite defaultTestSuite) {
+    private void setupScopes(JvmFeatureInternal mainFeature, JvmTestSuite defaultTestSuite) {
         Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
             Map<String, Collection<Configuration>> plusMinus = Maps.newLinkedHashMap();
@@ -436,10 +436,10 @@ public abstract class IdeaPlugin extends IdePlugin {
         }
 
         Collection<Configuration> provided = scopes.get(GeneratedIdeaScope.PROVIDED.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
-        provided.add(javaComponent.getCompileClasspathConfiguration());
+        provided.add(mainFeature.getCompileClasspathConfiguration());
 
         Collection<Configuration> runtime = scopes.get(GeneratedIdeaScope.RUNTIME.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
-        runtime.add(javaComponent.getRuntimeClasspathConfiguration());
+        runtime.add(mainFeature.getRuntimeClasspathConfiguration());
 
         ConfigurationContainer configurations = project.getConfigurations();
         Collection<Configuration> test = scopes.get(GeneratedIdeaScope.TEST.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
