@@ -87,6 +87,11 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
         return realizedRepositories;
     }
 
+    @Override
+    public void preventFromFurtherMutation() {
+        repositoryHandler.preventFromFurtherMutation();
+    }
+
     private void realizeRepositories() {
         realizedRepositories.clear();
 
