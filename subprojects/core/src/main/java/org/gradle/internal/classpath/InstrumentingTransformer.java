@@ -317,30 +317,22 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static class InstrumentingMethodVisitor extends MethodVisitorScope {
         private final InstrumentingVisitor owner;
         private final String className;
+        private final Lazy<MethodNode> asNode;
+
         private final JvmBytecodeCallInterceptor generatedInterceptor;
-        private final InstrumentationMetadata metadata;
 
         public InstrumentingMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor, Lazy<MethodNode> asNode) {
             super(methodVisitor);
             this.owner = owner;
             this.className = owner.className;
-            this.metadata = new InstrumentationMetadata() {
-                @Override
-                public boolean isInstanceOf(String type, String superType) {
-                    // TODO implement properly
-                    return type.equals(superType);
-                }
-
-                @Override
-                public MethodNode getMethodNode() {
-                    return asNode.get();
-                }
-            };
+            this.asNode = asNode;
 
             try {
+                //noinspection Convert2MethodRef
+                InstrumentationMetadata metadata = (type, superType) -> type.equals(superType); // TODO implement properly
                 generatedInterceptor = (JvmBytecodeCallInterceptor) Class.forName(InterceptorDeclaration.JVM_BYTECODE_GENERATED_CLASS_NAME)
-                        .getConstructor(MethodVisitor.class)
-                        .newInstance(methodVisitor);
+                        .getConstructor(MethodVisitor.class, InstrumentationMetadata.class)
+                        .newInstance(methodVisitor, metadata);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
@@ -358,7 +350,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 return;
             }
 
-            if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface, metadata)) {
+            if (generatedInterceptor.visitMethodInsn(className, opcode, owner, name, descriptor, isInterface, asNode)) {
                 return;
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);

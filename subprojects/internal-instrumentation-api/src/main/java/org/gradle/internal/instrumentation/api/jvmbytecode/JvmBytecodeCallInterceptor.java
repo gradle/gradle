@@ -16,7 +16,9 @@
 
 package org.gradle.internal.instrumentation.api.jvmbytecode;
 
-import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
+import org.objectweb.asm.tree.MethodNode;
+
+import java.util.function.Supplier;
 
 public interface JvmBytecodeCallInterceptor {
     boolean visitMethodInsn(
@@ -26,6 +28,6 @@ public interface JvmBytecodeCallInterceptor {
             String name,
             String descriptor,
             boolean isInterface,
-            InstrumentationMetadata metadata
+            Supplier<MethodNode> readMethodNode
     );
 }

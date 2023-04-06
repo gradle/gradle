@@ -16,9 +16,6 @@
 
 package org.gradle.internal.instrumentation.api.metadata;
 
-import org.objectweb.asm.tree.MethodNode;
-
 public interface InstrumentationMetadata {
     boolean isInstanceOf(String type, String superType);
-    MethodNode getMethodNode();
 }
