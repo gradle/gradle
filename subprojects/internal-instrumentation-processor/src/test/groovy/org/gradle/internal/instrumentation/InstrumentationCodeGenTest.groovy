@@ -18,7 +18,9 @@ package org.gradle.internal.instrumentation
 
 import com.google.testing.compile.Compilation
 import com.google.testing.compile.JavaFileObjects
+import org.gradle.api.JavaVersion
 import org.gradle.internal.instrumentation.processor.ConfigurationCacheInstrumentationProcessor
+import org.gradle.internal.jvm.Jvm
 import spock.lang.Specification
 
 import javax.tools.JavaFileObject
@@ -41,9 +43,15 @@ abstract class InstrumentationCodeGenTest extends Specification {
     }
 
     protected static Compilation compile(JavaFileObject... fileObjects) {
-        return javac()
-            .withOptions("--release=8")
+        return getCompiler()
             .withProcessors(new ConfigurationCacheInstrumentationProcessor())
             .compile(fileObjects)
+    }
+
+    private static com.google.testing.compile.Compiler getCompiler() {
+        if (Jvm.current().javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)) {
+            return javac().withOptions("--release=8")
+        }
+        return javac()
     }
 }
