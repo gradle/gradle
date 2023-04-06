@@ -450,4 +450,47 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         keyringsAscii.size() == 1
         keyringsAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/23607")
+    def "verification-keyring.keys contains only necessary data"() {
+        def keyring = newKeyRing()
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        //TODO: remove this once dependency verification stops triggering dependency resolution at execution time
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+
+        serveValidKey()
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        writeVerificationMetadata()
+        succeeds ":help", "--export-keys"
+
+        then:
+        def exportedKeyRingAscii = file("gradle/verification-keyring.keys")
+        exportedKeyRingAscii.exists()
+        def keyringsAscii = SecuritySupport.loadKeyRingFile(exportedKeyRingAscii)
+        keyringsAscii.size() == 2
+        keyringsAscii.forEach { keyRing ->
+            keyRing.publicKeys.forEachRemaining { publicKey ->
+                assert publicKey.getUserAttributes().size() == 0
+                assert publicKey.signatures.size() == publicKey.keySignatures.size()
+            }
+            assert keyRing.publicKey.userIDs.size() == 1
+        }
+    }
 }
