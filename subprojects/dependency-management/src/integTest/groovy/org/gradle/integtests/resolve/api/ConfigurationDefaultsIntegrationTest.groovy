@@ -388,6 +388,7 @@ task check {
         succeeds "help"
     }
 
+    @ToBeFixedForConfigurationCache(because = "checkCopy task fails with 'No such property: canBeConsumed for class: org.gradle.api.internal.file.DefaultFileCollectionFactory\$ResolvingFileCollection'")
     def "can extend as an alternative to copying configurations"() {
         buildFile.text = """
             plugins {
@@ -441,38 +442,41 @@ task check {
             }
 
             task checkCopy {
+                def extensionToCheck = configurations.runtimeClasspathExtension
+                def copyToCheck = runtimeClasspathCopy
+                
                 doLast {
-                    assert configurations.runtimeClasspathExtension.canBeConsumed == runtimeClasspathCopy.canBeConsumed
-                    assert configurations.runtimeClasspathExtension.canBeResolved == runtimeClasspathCopy.canBeResolved
-                    assert configurations.runtimeClasspathExtension.canBeDeclaredAgainst == runtimeClasspathCopy.canBeDeclaredAgainst
-                    assert configurations.runtimeClasspathExtension.deprecatedForConsumption == runtimeClasspathCopy.deprecatedForConsumption
-                    assert configurations.runtimeClasspathExtension.deprecatedForResolution == runtimeClasspathCopy.deprecatedForResolution
-                    assert configurations.runtimeClasspathExtension.deprecatedForDeclarationAgainst == runtimeClasspathCopy.deprecatedForDeclarationAgainst
+                    assert extensionToCheck.canBeConsumed == copyToCheck.canBeConsumed
+                    assert extensionToCheck.canBeResolved == copyToCheck.canBeResolved
+                    assert extensionToCheck.canBeDeclaredAgainst == copyToCheck.canBeDeclaredAgainst
+                    assert extensionToCheck.deprecatedForConsumption == copyToCheck.deprecatedForConsumption
+                    assert extensionToCheck.deprecatedForResolution == copyToCheck.deprecatedForResolution
+                    assert extensionToCheck.deprecatedForDeclarationAgainst == copyToCheck.deprecatedForDeclarationAgainst
                     
-                    assert configurations.runtimeClasspathExtension.visible == runtimeClasspathCopy.visible
-                    assert configurations.runtimeClasspathExtension.transitive == runtimeClasspathCopy.transitive
-                    assert configurations.runtimeClasspathExtension.description == runtimeClasspathCopy.description
+                    assert extensionToCheck.visible == copyToCheck.visible
+                    assert extensionToCheck.transitive == copyToCheck.transitive
+                    assert extensionToCheck.description == copyToCheck.description
                     
                     // No need to check these
-                    //assert configurations.runtimeClasspathExtension.defaultDependencyActions == runtimeClasspathCopy.defaultDependencyActions
-                    //assert configurations.runtimeClasspathExtension.withDependencyActions == runtimeClasspathCopy.withDependencyActions
+                    //assert extensionToCheck.defaultDependencyActions == copyToCheck.defaultDependencyActions
+                    //assert extensionToCheck.withDependencyActions == copyToCheck.withDependencyActions
                     
-                    assert configurations.runtimeClasspathExtension.dependencyResolutionListeners.size() == runtimeClasspathCopy.dependencyResolutionListeners.size()
+                    assert extensionToCheck.dependencyResolutionListeners.size() == copyToCheck.dependencyResolutionListeners.size()
                     
                     // No API to check these
-                    //assert configurations.runtimeClasspathExtension.declarationAlternatives == runtimeClasspathCopy.declarationAlternatives
-                    //assert configurations.runtimeClasspathExtension.resolutionAlternatives == runtimeClasspathCopy.resolutionAlternatives
-                    //assert configurations.runtimeClasspathExtension.consumptionDeprecation == runtimeClasspathCopy.consumptionDeprecation
+                    //assert extensionToCheck.declarationAlternatives == copyToCheck.declarationAlternatives
+                    //assert extensionToCheck.resolutionAlternatives == copyToCheck.resolutionAlternatives
+                    //assert extensionToCheck.consumptionDeprecation == copyToCheck.consumptionDeprecation
                     
-                    assert configurations.runtimeClasspathExtension.getAllArtifacts() == runtimeClasspathCopy.getAllArtifacts()
+                    assert extensionToCheck.getAllArtifacts() == copyToCheck.getAllArtifacts()
                     
-                    assert configurations.runtimeClasspathExtension.attributes.asImmutable() == runtimeClasspathCopy.attributes.asImmutable()
+                    assert extensionToCheck.attributes.asImmutable() == copyToCheck.attributes.asImmutable()
                     
-                    assert configurations.runtimeClasspathExtension.excludeRules == runtimeClasspathCopy.excludeRules
+                    assert extensionToCheck.excludeRules == copyToCheck.excludeRules
                     
-                    assert configurations.runtimeClasspathExtension.dependencies == runtimeClasspathCopy.dependencies
+                    assert extensionToCheck.dependencies == copyToCheck.dependencies
                    
-                    assert configurations.runtimeClasspathExtension.dependencyConstraints == runtimeClasspathCopy.dependencyConstraints
+                    assert extensionToCheck.dependencyConstraints == copyToCheck.dependencyConstraints
                 }
             }
         """
