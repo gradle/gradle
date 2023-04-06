@@ -571,4 +571,14 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      */
     @Incubating
     Configuration disableConsistentResolution();
+
+    /**
+     * Copies the {@link DependencyResolutionListener}s associated with the other configuration
+     * to this one.
+     *
+     * @param other the configuration to use as source for copying
+     * @since 8.2
+     */
+    @Incubating
+    void addDependencyResolutionListeners(Configuration other);
 }

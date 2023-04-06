@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.ResolveException;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.FinalizableValue;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -131,6 +133,13 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
      * Returns the role used to create this configuration and set its initial allowed usage.
      */
     ConfigurationRole getRoleAtCreation();
+
+    /**
+     * Getter for a {@link ListenerBroadcast} of {@link DependencyResolutionListener}.
+     *
+     * @return the listener broadcast
+     */
+    ListenerBroadcast<DependencyResolutionListener> getDependencyResolutionListeners();
 
     /**
      * Test if the given configuration can either be declared against or extends another

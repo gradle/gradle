@@ -390,87 +390,91 @@ task check {
                 id 'java-library'
             }
             
-            def implementationCopy = configurations.implementation.copy()
+            def runtimeClasspathCopy = configurations.runtimeClasspath.copy()
 
             configurations {
-                implementationExtension {
-                    extendsFrom implementation
+                runtimeClasspathExtension {
+                    extendsFrom runtimeClasspath
                     
                     // Deprecation on copy != deprecation on original, so match the copy
-                    if (implementationCopy.deprecatedForConsumption) deprecateForConsumption()
-                    if (implementationCopy.deprecatedForResolution) deprecateForResolution()
-                    if (implementationCopy.deprecatedForDeclarationAgainst) deprecateForDeprecationAgainst()
+                    if (runtimeClasspathCopy.deprecatedForConsumption) deprecateForConsumption()
+                    if (runtimeClasspathCopy.deprecatedForResolution) deprecateForResolution()
+                    if (runtimeClasspathCopy.deprecatedForDeclarationAgainst) deprecateForDeclarationAgainst()
                     
-                    visible = implementation.visible
-                    transitive = implementation.transitive
-                    description = implementation.description
+                    visible = runtimeClasspath.visible
+                    transitive = runtimeClasspath.transitive
+                    description = runtimeClasspath.description
                     
-                    // No API
-                    //defaultDependencyActions = implementation.defaultDependencyActions
-                    //withDependencyActions = implementation.withDependencyActions
-                    //dependencyResolutionListeners = implementation.dependencyResolutionListeners
+                    // No need to copy these directly, as actions will be run prior to getting dependencies through incoming
+                    //defaultDependencyActions = runtimeClasspath.defaultDependencyActions
+                    //withDependencyActions = runtimeClasspath.withDependencyActions
                     
-                    // NO API
-                    //declarationAlternatives.addAll(implementation.declarationAlternatives)
-                    //resolutionAlternatives.addAll(implementation.resolutionAlternatives)
-                    //consumptionDeprecation.addAll(implementation.consumptionDeprecation)
+                    addDependencyResolutionListeners(runtimeClasspath)
                     
-                    artifacts.addAll(implementation.getAllArtifacts())
+                    // NO API - copying these is unnecessary
+                    //declarationAlternatives.addAll(runtimeClasspath.declarationAlternatives)
+                    //resolutionAlternatives.addAll(runtimeClasspath.resolutionAlternatives)
+                    //consumptionDeprecation.addAll(runtimeClasspath.consumptionDeprecation)
                     
-                    implementation.attributes.keySet().each { attr ->
-                        Object value = implementation.attributes.attribute(attribute)
-                        attributes.attribute(org.gradle.internal.Cast.uncheckedNonnullCast(attribute), value)
+                    artifacts.addAll(runtimeClasspath.getAllArtifacts())
+                    
+                    runtimeClasspath.attributes.keySet().each { attr ->
+                        Object value = runtimeClasspath.attributes.getAttribute(attr)
+                        attributes.attribute(org.gradle.internal.Cast.uncheckedNonnullCast(attr), value)
                     }
          
-                    implementation.excludeRules.forEach { rule -> excludeRules.add(rule) }
-                    implementation.extendsFrom.each { extended ->
+                    runtimeClasspath.excludeRules.forEach { rule -> excludeRules.add(rule) }
+                    runtimeClasspath.extendsFrom.each { extended ->
                         extended.excludeRules.forEach { rule -> excludeRules.add(rule) }
                     }
                     
-                    dependencies.addAll(implementation.dependencies)
+                    // Going through incoming causes dependencyActions to run first on source, this 
+                    // exhausts them, so the copy won't need to possess them to be a copy
+                    dependencies.addAll(runtimeClasspath.getIncoming().dependencies)
                     
-                    dependencyConstraints.addAll(implementation.dependencyConstraints)
+                    dependencyConstraints.addAll(runtimeClasspath.dependencyConstraints)
                 }
             }
 
             task checkCopy {
                 doLast {
-                    assert configurations.implementationExtension.canBeConsumed == implementationCopy.canBeConsumed
-                    assert configurations.implementationExtension.canBeResolved == implementationCopy.canBeResolved
-                    assert configurations.implementationExtension.canBeDeclaredAgainst == implementationCopy.canBeDeclaredAgainst
-                    assert configurations.implementationExtension.deprecatedForConsumption == implementationCopy.deprecatedForConsumption
-                    assert configurations.implementationExtension.deprecatedForResolution == implementationCopy.deprecatedForResolution
-                    assert configurations.implementationExtension.deprecatedForDeclarationAgainst == implementationCopy.deprecatedForDeclarationAgainst
+                    assert configurations.runtimeClasspathExtension.canBeConsumed == runtimeClasspathCopy.canBeConsumed
+                    assert configurations.runtimeClasspathExtension.canBeResolved == runtimeClasspathCopy.canBeResolved
+                    assert configurations.runtimeClasspathExtension.canBeDeclaredAgainst == runtimeClasspathCopy.canBeDeclaredAgainst
+                    assert configurations.runtimeClasspathExtension.deprecatedForConsumption == runtimeClasspathCopy.deprecatedForConsumption
+                    assert configurations.runtimeClasspathExtension.deprecatedForResolution == runtimeClasspathCopy.deprecatedForResolution
+                    assert configurations.runtimeClasspathExtension.deprecatedForDeclarationAgainst == runtimeClasspathCopy.deprecatedForDeclarationAgainst
                     
-                    assert configurations.implementationExtension.visible == implementationCopy.visible
-                    assert configurations.implementationExtension.transitive == implementationCopy.transitive
-                    assert configurations.implementationExtension.description == implementationCopy.description
+                    assert configurations.runtimeClasspathExtension.visible == runtimeClasspathCopy.visible
+                    assert configurations.runtimeClasspathExtension.transitive == runtimeClasspathCopy.transitive
+                    assert configurations.runtimeClasspathExtension.description == runtimeClasspathCopy.description
                     
-                    // No API
-                    //assert configurations.implementationExtension.defaultDependencyActions == implementationCopy.defaultDependencyActions
-                    //assert configurations.implementationExtension.withDependencyActions == implementationCopy.withDependencyActions
-                    //assert configurations.implementationExtension.dependencyResolutionListeners == implementationCopy.dependencyResolutionListeners
+                    // No need to check these
+                    //assert configurations.runtimeClasspathExtension.defaultDependencyActions == runtimeClasspathCopy.defaultDependencyActions
+                    //assert configurations.runtimeClasspathExtension.withDependencyActions == runtimeClasspathCopy.withDependencyActions
                     
-                    // No API
-                    //assert configurations.implementationExtension.declarationAlternatives == implementationCopy.declarationAlternatives
-                    //assert configurations.implementationExtension.resolutionAlternatives == implementationCopy.resolutionAlternatives
-                    //assert configurations.implementationExtension.consumptionDeprecation == implementationCopy.consumptionDeprecation
+                    assert configurations.runtimeClasspathExtension.dependencyResolutionListeners.size() == runtimeClasspathCopy.dependencyResolutionListeners.size()
                     
-                    assert configurations.implementationExtension.getAllArtifacts() == implementationCopy.getAllArtifacts()
+                    // No API to check these
+                    //assert configurations.runtimeClasspathExtension.declarationAlternatives == runtimeClasspathCopy.declarationAlternatives
+                    //assert configurations.runtimeClasspathExtension.resolutionAlternatives == runtimeClasspathCopy.resolutionAlternatives
+                    //assert configurations.runtimeClasspathExtension.consumptionDeprecation == runtimeClasspathCopy.consumptionDeprecation
                     
-                    assert configurations.implementationExtension.attributes.asImmutable() == implementationCopy.attributes.asImmutable()
+                    assert configurations.runtimeClasspathExtension.getAllArtifacts() == runtimeClasspathCopy.getAllArtifacts()
                     
-                    assert configurations.implementationExtension.excludeRules == implementationCopy.excludeRules
+                    assert configurations.runtimeClasspathExtension.attributes.asImmutable() == runtimeClasspathCopy.attributes.asImmutable()
                     
-                    assert configurations.implementationExtension.dependencies == implementationCopy.dependencies
+                    assert configurations.runtimeClasspathExtension.excludeRules == runtimeClasspathCopy.excludeRules
+                    
+                    assert configurations.runtimeClasspathExtension.dependencies == runtimeClasspathCopy.dependencies
                    
-                    assert configurations.implementationExtension.dependencyConstraints == implementationCopy.dependencyConstraints
+                    assert configurations.runtimeClasspathExtension.dependencyConstraints == runtimeClasspathCopy.dependencyConstraints
                 }
             }
         """
 
         expect:
-        executer.noDeprecationChecks() // Different warnings with embedded and conf cache executors here
+        executer.expectDocumentedDeprecationWarning("Copying configurations has been deprecated. This is scheduled to be removed in Gradle 9.0. Consider creating a new configuration and extending configuration ':runtimeClasspath' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configuration_copying_deprecated")
         succeeds ":checkCopy"
     }
 }

@@ -1984,8 +1984,8 @@ since users cannot create non-legacy configurations and there is no current publ
         }
     }
 
-    @VisibleForTesting
-    ListenerBroadcast<DependencyResolutionListener> getDependencyResolutionListeners() {
+    @Override
+    public ListenerBroadcast<DependencyResolutionListener> getDependencyResolutionListeners() {
         return dependencyResolutionListeners;
     }
 
@@ -2139,6 +2139,11 @@ since users cannot create non-legacy configurations and there is no current publ
     @Override
     public ConfigurationRole getRoleAtCreation() {
         return roleAtCreation;
+    }
+
+    @Override
+    public void addDependencyResolutionListeners(Configuration other) {
+        dependencyResolutionListeners = ((ConfigurationInternal) other).getDependencyResolutionListeners().copy();
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
