@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.derived
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class JvmDerivedVariantsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -69,13 +70,14 @@ package com.example;
 * Foo class.
 */
 public class Foo {
-    
+
 }
 """
         using m2
         succeeds("publishToMavenLocal")
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "sources jar attributes match derived variants attributes"() {
         file("consumer/build.gradle") << """
 task resolve {
@@ -122,6 +124,7 @@ task resolve {
         noExceptionThrown()
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "javadoc jar attributes match derived variants attributes"() {
         file("consumer/build.gradle") << """
 task resolve {

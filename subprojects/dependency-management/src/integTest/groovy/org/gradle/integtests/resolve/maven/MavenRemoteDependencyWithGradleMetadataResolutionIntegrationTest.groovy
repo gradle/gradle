@@ -549,10 +549,12 @@ dependencies {
     release 'test:a:1.2'
 }
 task checkDebug {
-    doLast { assert configurations.debug.files*.name == ['a-1.2-debug.jar', 'b-2.0.jar', 'c-preview-debug.jar'] }
+    def files = configurations.debug
+    doLast { assert files*.name == ['a-1.2-debug.jar', 'b-2.0.jar', 'c-preview-debug.jar'] }
 }
 task checkRelease {
-    doLast { assert configurations.release.files*.name == [] }
+    def files = configurations.release
+    doLast { assert files*.name == [] }
 }
 """
 
