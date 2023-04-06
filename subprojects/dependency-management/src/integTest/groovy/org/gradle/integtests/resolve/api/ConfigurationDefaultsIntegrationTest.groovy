@@ -388,7 +388,6 @@ task check {
         succeeds "help"
     }
 
-    @ToBeFixedForConfigurationCache(because = "checkCopy task fails with 'No such property: canBeConsumed for class: org.gradle.api.internal.file.DefaultFileCollectionFactory\$ResolvingFileCollection'")
     def "can extend as an alternative to copying configurations"() {
         buildFile.text = """
             plugins {
@@ -441,48 +440,41 @@ task check {
                 }
             }
 
-            task checkCopy {
-                def extensionToCheck = configurations.runtimeClasspathExtension
-                def copyToCheck = runtimeClasspathCopy
-                
-                doLast {
-                    assert extensionToCheck.canBeConsumed == copyToCheck.canBeConsumed
-                    assert extensionToCheck.canBeResolved == copyToCheck.canBeResolved
-                    assert extensionToCheck.canBeDeclaredAgainst == copyToCheck.canBeDeclaredAgainst
-                    assert extensionToCheck.deprecatedForConsumption == copyToCheck.deprecatedForConsumption
-                    assert extensionToCheck.deprecatedForResolution == copyToCheck.deprecatedForResolution
-                    assert extensionToCheck.deprecatedForDeclarationAgainst == copyToCheck.deprecatedForDeclarationAgainst
-                    
-                    assert extensionToCheck.visible == copyToCheck.visible
-                    assert extensionToCheck.transitive == copyToCheck.transitive
-                    assert extensionToCheck.description == copyToCheck.description
-                    
-                    // No need to check these
-                    //assert extensionToCheck.defaultDependencyActions == copyToCheck.defaultDependencyActions
-                    //assert extensionToCheck.withDependencyActions == copyToCheck.withDependencyActions
-                    
-                    assert extensionToCheck.dependencyResolutionListeners.size() == copyToCheck.dependencyResolutionListeners.size()
-                    
-                    // No API to check these
-                    //assert extensionToCheck.declarationAlternatives == copyToCheck.declarationAlternatives
-                    //assert extensionToCheck.resolutionAlternatives == copyToCheck.resolutionAlternatives
-                    //assert extensionToCheck.consumptionDeprecation == copyToCheck.consumptionDeprecation
-                    
-                    assert extensionToCheck.getAllArtifacts() == copyToCheck.getAllArtifacts()
-                    
-                    assert extensionToCheck.attributes.asImmutable() == copyToCheck.attributes.asImmutable()
-                    
-                    assert extensionToCheck.excludeRules == copyToCheck.excludeRules
-                    
-                    assert extensionToCheck.dependencies == copyToCheck.dependencies
-                   
-                    assert extensionToCheck.dependencyConstraints == copyToCheck.dependencyConstraints
-                }
-            }
+            assert configurations.runtimeClasspathExtension.canBeConsumed == runtimeClasspathCopy.canBeConsumed
+            assert configurations.runtimeClasspathExtension.canBeResolved == runtimeClasspathCopy.canBeResolved
+            assert configurations.runtimeClasspathExtension.canBeDeclaredAgainst == runtimeClasspathCopy.canBeDeclaredAgainst
+            assert configurations.runtimeClasspathExtension.deprecatedForConsumption == runtimeClasspathCopy.deprecatedForConsumption
+            assert configurations.runtimeClasspathExtension.deprecatedForResolution == runtimeClasspathCopy.deprecatedForResolution
+            assert configurations.runtimeClasspathExtension.deprecatedForDeclarationAgainst == runtimeClasspathCopy.deprecatedForDeclarationAgainst
+            
+            assert configurations.runtimeClasspathExtension.visible == runtimeClasspathCopy.visible
+            assert configurations.runtimeClasspathExtension.transitive == runtimeClasspathCopy.transitive
+            assert configurations.runtimeClasspathExtension.description == runtimeClasspathCopy.description
+            
+            // No need to check these
+            //assert configurations.runtimeClasspathExtension.defaultDependencyActions == runtimeClasspathCopy.defaultDependencyActions
+            //assert configurations.runtimeClasspathExtension.withDependencyActions == runtimeClasspathCopy.withDependencyActions
+            
+            assert configurations.runtimeClasspathExtension.dependencyResolutionListeners.size() == runtimeClasspathCopy.dependencyResolutionListeners.size()
+            
+            // No API to check these
+            //assert configurations.runtimeClasspathExtension.declarationAlternatives == runtimeClasspathCopy.declarationAlternatives
+            //assert configurations.runtimeClasspathExtension.resolutionAlternatives == runtimeClasspathCopy.resolutionAlternatives
+            //assert configurations.runtimeClasspathExtension.consumptionDeprecation == runtimeClasspathCopy.consumptionDeprecation
+            
+            assert configurations.runtimeClasspathExtension.getAllArtifacts() == runtimeClasspathCopy.getAllArtifacts()
+            
+            assert configurations.runtimeClasspathExtension.attributes.asImmutable() == runtimeClasspathCopy.attributes.asImmutable()
+            
+            assert configurations.runtimeClasspathExtension.excludeRules == runtimeClasspathCopy.excludeRules
+            
+            assert configurations.runtimeClasspathExtension.dependencies == runtimeClasspathCopy.dependencies
+           
+            assert configurations.runtimeClasspathExtension.dependencyConstraints == runtimeClasspathCopy.dependencyConstraints
         """
 
         expect:
         executer.expectDocumentedDeprecationWarning("Copying configurations has been deprecated. This is scheduled to be removed in Gradle 9.0. Consider creating a new configuration and extending configuration ':runtimeClasspath' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configuration_copying_deprecated")
-        succeeds ":checkCopy"
+        succeeds ":help"
     }
 }
