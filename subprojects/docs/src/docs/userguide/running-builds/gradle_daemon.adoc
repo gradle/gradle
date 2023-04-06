@@ -74,7 +74,7 @@ $ gradle <task> --daemon
 This flag overrides any settings that disable the Daemon in your project or user `gradle.properties` files.
 
 To enable the Daemon by default in older Gradle versions, add the following setting to the
-`gradle.properties` file in the project root or your Gradle user home:
+`gradle.properties` file in the project root or your Gradle User Home:
 
 ====
 .gradle.properties
