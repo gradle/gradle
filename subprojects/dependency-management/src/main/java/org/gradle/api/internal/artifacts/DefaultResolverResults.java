@@ -16,25 +16,61 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolveState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphValidationException;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.specs.Spec;
 
+import javax.annotation.Nullable;
+import java.io.File;
+import java.util.Set;
+import java.util.function.Function;
+
+/**
+ * Default implementation of {@link ResolverResults}.
+ */
 public class DefaultResolverResults implements ResolverResults {
-    private ResolvedConfiguration resolvedConfiguration;
-    private ResolutionResult resolutionResult;
-    private ResolveException fatalFailure;
-    private ResolveException nonFatalFailure;
-    private ResolvedLocalComponentsResult resolvedLocalComponentsResult;
-    private Object artifactResolveState;
-    private VisitedArtifactSet visitedArtifacts;
+
+    private final ResolvedLocalComponentsResult resolvedLocalComponentsResult;
+    private final ResolutionResult resolutionResult;
+    private final ResolvedConfiguration resolvedConfiguration;
+    private final VisitedArtifactSet visitedArtifacts;
+    private final ArtifactResolveState artifactResolveState;
+
+    private final ResolveException failure;
+
+    public DefaultResolverResults(
+        @Nullable ResolvedLocalComponentsResult resolvedLocalComponentsResult,
+        @Nullable ResolutionResult resolutionResult,
+        VisitedArtifactSet visitedArtifacts,
+        @Nullable ResolvedConfiguration resolvedConfiguration,
+        @Nullable ArtifactResolveState artifactResolveState,
+        @Nullable ResolveException failure
+    ) {
+        this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
+        this.resolutionResult = resolutionResult;
+        this.visitedArtifacts = visitedArtifacts;
+        this.resolvedConfiguration = resolvedConfiguration;
+        this.artifactResolveState = artifactResolveState;
+        this.failure = failure;
+    }
 
     @Override
     public boolean hasError() {
-        if (fatalFailure != null || nonFatalFailure != null) {
+        if (failure != null) {
             return true;
         }
         return resolvedConfiguration != null && resolvedConfiguration.hasError();
@@ -42,119 +78,241 @@ public class DefaultResolverResults implements ResolverResults {
 
     @Override
     public ResolvedConfiguration getResolvedConfiguration() {
-        assertHasArtifactResult();
+        if (resolvedConfiguration == null) {
+            throw new IllegalStateException("Cannot get ResolvedConfiguration before graph resolution.");
+        }
         return resolvedConfiguration;
     }
 
     @Override
     public ResolutionResult getResolutionResult() {
-        assertHasGraphResult();
+        maybeRethrowFatalError();
         return resolutionResult;
     }
 
     @Override
     public ResolvedLocalComponentsResult getResolvedLocalComponents() {
-        assertHasGraphResult();
+        maybeRethrowFatalError();
         return resolvedLocalComponentsResult;
     }
 
     @Override
+    public ArtifactResolveState getArtifactResolveState() {
+        maybeRethrowAnyError();
+        return artifactResolveState;
+    }
+
+    @Override
     public VisitedArtifactSet getVisitedArtifacts() {
-        assertHasVisitResult();
+        maybeRethrowFatalError();
         return visitedArtifacts;
     }
 
-    private void assertHasVisitResult() {
-        maybeRethrowFatalError();
-        if (visitedArtifacts == null) {
-            throw new IllegalStateException("Resolution result has not been attached.");
+    public void maybeRethrowFatalError() {
+        if (failure != null && isFatalError(failure)) {
+            throw failure;
         }
     }
 
-    private void assertHasGraphResult() {
-        maybeRethrowFatalError();
-        if (resolvedLocalComponentsResult == null) {
-            throw new IllegalStateException("Resolution result has not been attached.");
-        }
-    }
-
-    private void maybeRethrowFatalError() {
-        if (fatalFailure != null) {
-            throw fatalFailure;
-        }
+    private static boolean isFatalError(ResolveException failure) {
+        boolean isNonFatal = failure.getCause() instanceof GraphValidationException;
+        return !isNonFatal;
     }
 
     private void maybeRethrowAnyError() {
-        maybeRethrowFatalError();
-        if (nonFatalFailure != null) {
-            throw nonFatalFailure;
-        }
-    }
-
-    private void assertHasArtifactResult() {
-        if (resolvedConfiguration == null) {
-            throw new IllegalStateException("Resolution artifacts have not been attached.");
+        if (failure != null) {
+            throw failure;
         }
     }
 
     @Override
-    public void graphResolved(ResolutionResult resolutionResult, ResolvedLocalComponentsResult resolvedLocalComponentsResult, VisitedArtifactSet visitedArtifacts) {
-        this.resolutionResult = resolutionResult;
-        this.resolvedLocalComponentsResult = resolvedLocalComponentsResult;
-        this.visitedArtifacts = visitedArtifacts;
-        this.fatalFailure = null;
-    }
-
-    @Override
-    public void failed(ResolveException failure) {
-        if (isNonFatalError(failure)) {
-            nonFatalFailure = failure;
-        } else {
-            this.resolutionResult = null;
-            this.resolvedLocalComponentsResult = null;
-            this.fatalFailure = failure;
+    public ResolverResults withoutNonFatalFailure() {
+        if (failure == null || isFatalError(failure)) {
+            return this;
         }
-    }
 
-    private static boolean isNonFatalError(ResolveException failure) {
-        return failure.getCause() instanceof GraphValidationException;
+        return new DefaultResolverResults(
+            resolvedLocalComponentsResult,
+            resolutionResult,
+            visitedArtifacts,
+            resolvedConfiguration,
+            artifactResolveState,
+            null
+        );
     }
 
     @Override
-    public void artifactsResolved(ResolvedConfiguration resolvedConfiguration, VisitedArtifactSet visitedArtifacts) {
-        this.resolvedConfiguration = resolvedConfiguration;
-        this.visitedArtifacts = visitedArtifacts;
-        this.artifactResolveState = null;
+    public Throwable getNonFatalFailure() {
+        return failure != null && !isFatalError(failure) ? failure : null;
     }
 
     @Override
-    public ResolveException consumeNonFatalFailure() {
-        try {
-            return nonFatalFailure;
-        } finally {
-            nonFatalFailure = null;
+    public ResolveException getFailure() {
+        return failure;
+    }
+
+    @Override
+    public ResolverResults withFailure(ResolveException resolveException) {
+        return new DefaultResolverResults(
+            resolvedLocalComponentsResult,
+            resolutionResult,
+            visitedArtifacts,
+            resolvedConfiguration,
+            artifactResolveState,
+            resolveException
+        );
+    }
+
+    public ResolverResults updateResolutionResult(Function<ResolutionResult, ResolutionResult> updater) {
+        return new DefaultResolverResults(
+            resolvedLocalComponentsResult,
+            updater.apply(resolutionResult),
+            visitedArtifacts,
+            resolvedConfiguration,
+            artifactResolveState,
+            failure
+        );
+    }
+
+    /**
+     * Create a new result representing the result of resolving build dependencies.
+     */
+    public static ResolverResults buildDependenciesResolved(
+        ResolutionResult resolutionResult,
+        ResolvedLocalComponentsResult resolvedLocalComponentsResult,
+        VisitedArtifactSet visitedArtifacts
+    ) {
+        return new DefaultResolverResults(
+            resolvedLocalComponentsResult,
+            resolutionResult,
+            visitedArtifacts,
+            null,
+            null,
+            null
+        );
+    }
+
+    /**
+     * Create a new result representing the result of resolving the dependency graph.
+     */
+    public static ResolverResults graphResolved(
+        ResolutionResult resolutionResult,
+        ResolvedLocalComponentsResult resolvedLocalComponentsResult,
+        VisitedArtifactSet visitedArtifacts,
+        @Nullable ArtifactResolveState artifactResolveState
+    ) {
+        return new DefaultResolverResults(
+            resolvedLocalComponentsResult,
+            resolutionResult,
+            visitedArtifacts,
+            null,
+            artifactResolveState,
+            null
+        );
+    }
+
+    /**
+     * Create a new result representing the result of resolving the artifacts.
+     */
+    public static ResolverResults artifactsResolved(ResolverResults graphResults, ResolvedConfiguration resolvedConfiguration, VisitedArtifactSet visitedArtifacts) {
+        return new DefaultResolverResults(
+            graphResults.getResolvedLocalComponents(),
+            graphResults.getResolutionResult(),
+            visitedArtifacts,
+            resolvedConfiguration,
+            null, // Do not need to keep the artifact resolve state around after artifact resolution
+            null
+        );
+    }
+
+    /**
+     * Create a new result representing a failure to resolve the dependency graph.
+     */
+    public static ResolverResults failed(Exception failure, ResolveException contextualizedFailure) {
+        BrokenResolvedConfiguration broken = new BrokenResolvedConfiguration(failure, contextualizedFailure);
+        return new DefaultResolverResults(
+            null,
+            null,
+            broken,
+            broken,
+            null,
+            contextualizedFailure
+        );
+    }
+
+    /**
+     * Create a new result representing a failure to resolve the artifacts of a resolved dependency graph.
+     */
+    public static ResolverResults failed(ResolverResults graphResults, Exception failure, ResolveException contextualizedFailure) {
+        BrokenResolvedConfiguration broken = new BrokenResolvedConfiguration(failure, contextualizedFailure);
+        return artifactsResolved(graphResults, broken, broken).withFailure(contextualizedFailure);
+    }
+
+    /**
+     * Allows resolution failures to be visited.
+     */
+    private static class BrokenResolvedConfiguration implements ResolvedConfiguration, VisitedArtifactSet, SelectedArtifactSet {
+        private final Throwable originalException;
+        private final ResolveException contextualizedException;
+
+        public BrokenResolvedConfiguration(Throwable originalException, ResolveException contextualizedException) {
+            this.originalException = originalException;
+            this.contextualizedException = contextualizedException;
         }
-    }
 
-    @Override
-    public Throwable getFailure() {
-        if (fatalFailure != null) {
-            return fatalFailure;
+        @Override
+        public boolean hasError() {
+            return true;
         }
-        if (nonFatalFailure != null) {
-            return nonFatalFailure;
+
+        @Override
+        public LenientConfiguration getLenientConfiguration() {
+            throw contextualizedException;
         }
-        return null;
-    }
 
-    @Override
-    public void retainState(Object artifactResolveState) {
-        this.artifactResolveState = artifactResolveState;
-    }
+        @Override
+        public void rethrowFailure() throws ResolveException {
+            throw contextualizedException;
+        }
 
-    @Override
-    public Object getArtifactResolveState() {
-        maybeRethrowAnyError();
-        return artifactResolveState;
+        @Override
+        public Set<File> getFiles() throws ResolveException {
+            throw contextualizedException;
+        }
+
+        @Override
+        public Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException {
+            throw contextualizedException;
+        }
+
+        @Override
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException {
+            throw contextualizedException;
+        }
+
+        @Override
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
+            throw contextualizedException;
+        }
+
+        @Override
+        public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
+            throw contextualizedException;
+        }
+
+        @Override
+        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant, boolean selectFromAllVariants) {
+            return this;
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.visitFailure(originalException);
+        }
+
+        @Override
+        public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
+            visitor.visitFailure(originalException);
+        }
     }
 }

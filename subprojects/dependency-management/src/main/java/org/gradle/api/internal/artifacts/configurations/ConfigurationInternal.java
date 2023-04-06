@@ -20,7 +20,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -92,14 +91,6 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
      */
     @Nullable
     ConfigurationInternal getConsistentResolutionSource();
-
-    /**
-     * Decorates a resolve exception with more context. This can be used
-     * to give hints to the user when a resolution error happens.
-     * @param e a resolve exception
-     * @return a decorated resolve exception, or the same exception
-     */
-    ResolveException maybeAddContext(ResolveException e);
 
     /**
      * Test if this configuration can either be declared against or extends another

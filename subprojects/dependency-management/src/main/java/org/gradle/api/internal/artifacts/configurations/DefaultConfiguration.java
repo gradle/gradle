@@ -60,7 +60,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
@@ -68,10 +67,10 @@ import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
-import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.ResolveExceptionContextualizer;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
@@ -131,7 +130,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
@@ -208,7 +206,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private ResolutionStrategyInternal resolutionStrategy;
     private final FileCollectionFactory fileCollectionFactory;
-    private final DocumentationRegistry documentationRegistry;
+    private final ResolveExceptionContextualizer exceptionContextualizer;
 
     private final Set<MutationValidator> childMutationValidators = Sets.newHashSet();
     private final MutationValidator parentMutationValidator = DefaultConfiguration.this::validateParentMutation;
@@ -290,7 +288,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             NotationParser<Object, Capability> capabilityNotationParser,
             ImmutableAttributesFactory attributesFactory,
             RootComponentMetadataBuilder rootComponentMetadataBuilder,
-            DocumentationRegistry documentationRegistry,
+            ResolveExceptionContextualizer exceptionContextualizer,
             UserCodeApplicationContext userCodeApplicationContext,
             ProjectStateRegistry projectStateRegistry,
             WorkerThreadRegistry workerThreadRegistry,
@@ -325,7 +323,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.configurationAttributes = attributesFactory.mutable();
         this.domainObjectContext = domainObjectContext;
         this.intrinsicFiles = fileCollectionFromSpec(Specs.satisfyAll());
-        this.documentationRegistry = documentationRegistry;
+        this.exceptionContextualizer = exceptionContextualizer;
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
@@ -724,8 +722,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
                 ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
                 performPreResolveActions(incoming);
-                DefaultResolverResults results = new DefaultResolverResults();
-                resolver.resolveGraph(DefaultConfiguration.this, results);
+                ResolverResults results = resolver.resolveGraph(DefaultConfiguration.this);
                 dependenciesModified = false;
 
                 ResolveState newState = new GraphResolved(results);
@@ -814,37 +811,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         assertNoDependencyResolutionConsistencyCycle();
     }
 
-    @Override
-    public ResolveException maybeAddContext(ResolveException e) {
-        return failuresWithHint(e.getCauses()).orElse(e);
-    }
-
-    private Optional<ResolveException> failuresWithHint(Collection<? extends Throwable> causes) {
-        try {
-            if (ignoresSettingsRepositories()) {
-                boolean hasModuleNotFound = causes.stream().anyMatch(ModuleVersionNotFoundException.class::isInstance);
-                if (hasModuleNotFound) {
-                    return Optional.of(new ResolveExceptionWithHints(getDisplayName(), causes,
-                        join("\n", "The project declares repositories, effectively ignoring the repositories you have declared in the settings.",
-                        "You can figure out how project repositories are declared by configuring your build to fail on project repositories.",
-                        documentationRegistry.getDocumentationRecommendationFor("information", "declaring_repositories", "sub:fail_build_on_project_repositories"))));
-                }
-            }
-        } catch (Throwable e) {
-            return Optional.of(new ResolveException(getDisplayName(), ImmutableList.<Throwable>builder().addAll(causes).add(e).build()));
-        }
-        return Optional.empty();
-    }
-
-    private boolean ignoresSettingsRepositories() {
-        if (domainObjectContext instanceof ProjectInternal) {
-            ProjectInternal project = (ProjectInternal) this.domainObjectContext;
-            return !project.getRepositories().isEmpty() &&
-                !project.getGradle().getSettings().getDependencyResolutionManagement().getRepositories().isEmpty();
-        }
-        return false;
-    }
-
     private void assertNoDependencyResolutionConsistencyCycle() {
         Set<ConfigurationInternal> sources = Sets.newLinkedHashSet();
         ConfigurationInternal src = this;
@@ -900,9 +866,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (currentState.state != GRAPH_RESOLVED) {
             throw new IllegalStateException("Cannot resolve artifacts before graph has been resolved.");
         }
-        ResolverResults results = currentState.getCachedResolverResults();
-        resolver.resolveArtifacts(DefaultConfiguration.this, results);
-        return new ArtifactsResolved(results);
+        ResolverResults graphResults = currentState.getCachedResolverResults();
+        ResolverResults artifactResults = resolver.resolveArtifacts(DefaultConfiguration.this, graphResults);
+        return new ArtifactsResolved(artifactResults);
     }
 
     @Override
@@ -945,8 +911,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         ResolveState currentState = currentResolveState.update(initial -> {
             if (initial.state == UNRESOLVED) {
                 // Traverse graph
-                ResolverResults results = new DefaultResolverResults();
-                resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
+                ResolverResults results = resolver.resolveBuildDependencies(DefaultConfiguration.this);
                 markReferencedProjectConfigurationsObserved(BUILD_DEPENDENCIES_RESOLVED, results);
                 return new BuildDependenciesResolved(results);
             } // Otherwise, already have a result, so reuse it
@@ -1756,14 +1721,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             return Optional.empty();
         }
         if (failures.size() == 1) {
-            Optional<ResolveException> resolveException = failuresWithHint(failures);
-            if (resolveException.isPresent()) {
-                return resolveException;
+            ResolveException resolveException = exceptionContextualizer.maybeContextualize(failures, this);
+            if (resolveException != null) {
+                return Optional.of(resolveException);
             }
-            resolveException.ifPresent(UncheckedException::throwAsUncheckedException);
             Throwable failure = failures.iterator().next();
             if (failure instanceof ResolveException) {
-                return Optional.of((ResolveException) failure);
+                resolveException = (ResolveException) failure;
+                return Optional.of(exceptionContextualizer.contextualize(resolveException, getDisplayName()));
             }
         }
         return Optional.of(new DefaultLenientConfiguration.ArtifactResolveException(type, getIdentityPath().toString(), getDisplayName(), failures));
@@ -2313,9 +2278,15 @@ since users cannot create non-legacy configurations and there is no current publ
                         if (delegate == null) {
                             ResolveState currentState = resolveToStateOrLater(ARTIFACTS_RESOLVED);
                             delegate = currentState.getCachedResolverResults().getResolutionResult();
-                            Throwable failure = currentState.getCachedResolverResults().consumeNonFatalFailure();
+                            Throwable failure = currentState.getCachedResolverResults().getNonFatalFailure();
                             if (failure != null) {
                                 errorHandler.execute(failure);
+                            }
+
+                            // Consume the failure so we don't throw it again.
+                            // We can only consume it if we hold the project lock. Ideally, we shouldn't perform the consumption here.
+                            if (failure != null && domainObjectContext.getModel().hasMutableState()) {
+                                currentResolveState.set(new ArtifactsResolved(currentState.getCachedResolverResults().withoutNonFatalFailure()));
                             }
                         }
                     }
