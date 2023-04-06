@@ -8,9 +8,13 @@ plugins {
 description = "Internal project testing and collecting information about all the test requirements."
 
 dependencies {
-    testImplementation(platform(project(":distributions-dependencies")))
-    testImplementation(project(":internal-testing"))
-    testImplementation(project(":internal-integ-testing"))
+    testImplementation(platform(project(":distributions-dependencies"))) {
+        because("Then there will be actual versions for the `lib.*` coming from 'gradlebuild.dependency-modules'")
+    }
+
+    testImplementation(project(":internal-testing")) {
+        because("Basic predicate classes come from here")
+    }
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
@@ -22,6 +26,7 @@ dependencies {
     testRuntimeOnly(testFixtures(project(":plugins")))
     testRuntimeOnly(testFixtures(project(":signing")))
     testRuntimeOnly(testFixtures(project(":test-kit")))
+    testRuntimeOnly(testFixtures(project(":smoke-test")))
 
     testImplementation(libs.junit5JupiterApi)
     testImplementation(libs.junit5JupiterParams)

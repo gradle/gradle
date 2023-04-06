@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.SmokeTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 /**
@@ -28,7 +29,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 @Requires([
     UnitTestPreconditions.Jdk9OrLater,
     IntegTestPreconditions.NotConfigCached,
-    IntegTestPreconditions.GradleBuildJvmSpecAvailable
+    SmokeTestPreconditions.GradleBuildJvmSpecAvailable
 ])
 class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptionSmokeTest implements WithPluginValidation, ValidationMessageChecker {
 
