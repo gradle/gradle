@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
+package gradlebuild.docs;
+
+import org.gradle.api.file.DirectoryProperty;
+
 /**
- * <p>Gradle's build language API, which is available from your build files.
- * Location of the main interfaces involved in build scripts.</p>
+ * Configuration for generating Dokka based Kotlin DSL docs.
  */
-@org.gradle.api.NonNullApi
-package org.gradle.api;
+public abstract class KotlinDslReference {
+
+    /**
+     * The location of the final rendered Dokka content.
+     */
+    public abstract DirectoryProperty getRenderedDocumentation();
+
+}
