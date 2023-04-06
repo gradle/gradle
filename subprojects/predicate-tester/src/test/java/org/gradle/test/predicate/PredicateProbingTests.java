@@ -49,17 +49,19 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class PredicateProbingTests {
     public static final String VALID_PRECONDITION_COMBINATIONS_CSV = "/valid-precondition-combinations.csv";
 
-    private static List<Class<?>> loadClasses(String[] classNames) {
-        return Arrays.stream(classNames).map(
-            className -> {
-                try {
-                    return Class.forName("org.gradle.test.preconditions." + className);
-                } catch (ClassNotFoundException ex) {
-                    final String message = String.format("Class '%s' cannot be found. You might have a missing the dependency in 'subprojects/predicate-tester/builds.gradle.kts'?", className);
-                    throw new RuntimeException(message, ex);
+    private static List<Class<?>> loadClasses(List<String> classNames) {
+        return classNames
+            .stream()
+            .map(
+                className -> {
+                    try {
+                        return Class.forName("org.gradle.test.preconditions." + className);
+                    } catch (ClassNotFoundException ex) {
+                        final String message = String.format("Class '%s' cannot be found. You might have a missing the dependency in 'subprojects/predicate-tester/builds.gradle.kts'?", className);
+                        throw new RuntimeException(message, ex);
+                    }
                 }
-            }
-        ).collect(Collectors.toList());
+            ).collect(Collectors.toList());
     }
 
     private static Stream<Arguments> validPreconditionCombinationClassSource() {
