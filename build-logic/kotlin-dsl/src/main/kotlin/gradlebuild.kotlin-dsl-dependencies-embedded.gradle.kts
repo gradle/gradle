@@ -41,6 +41,12 @@ tasks {
         kotlin.srcDir(apiExtensionsFileCollection)
     }
 
+    // Workaround for https://github.com/gradle/gradle/issues/24131
+    // See gradlebuild.unittest-and-compile.gradle.kts
+    configurations["transitiveSourcesElements"].outgoing.artifact(apiExtensionsOutputDir) {
+        builtBy(generateKotlinDependencyExtensions)
+    }
+
     processResources {
         // Add generated sources to the main jar because `src` or any other Gradle distribution does not include them.
         // A more general solution is probably required: https://github.com/gradle/gradle/issues/21114

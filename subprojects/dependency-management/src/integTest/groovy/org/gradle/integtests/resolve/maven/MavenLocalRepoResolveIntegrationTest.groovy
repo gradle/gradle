@@ -19,6 +19,12 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.maven.MavenModule
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
+
 class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def setup() {
@@ -175,9 +181,13 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         failure.assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.pomFile.toURL()}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
 """)
+        failure.assertHasResolutions(repositoryHint("Maven POM"),
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
 
         when:
         module.publish()

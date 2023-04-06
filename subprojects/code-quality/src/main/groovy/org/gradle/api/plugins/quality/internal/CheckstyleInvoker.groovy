@@ -21,6 +21,7 @@ import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.exceptions.MarkedVerificationException
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.internal.logging.ConsoleRenderer
@@ -129,11 +130,13 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         }
 
         def reportXml = parseCheckstyleXml(isXmlRequired, xmlOutputLocation)
+
+        def message = getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, isSarifRequired, sarifOutputLocation, reportXml)
         if (ant.project.properties[FAILURE_PROPERTY_NAME] && !ignoreFailures) {
-            throw new GradleException(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, isSarifRequired, sarifOutputLocation, reportXml))
+            throw new MarkedVerificationException(message)
         } else {
             if (violationsExist(reportXml)) {
-                LOGGER.warn(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, isSarifRequired, sarifOutputLocation, reportXml))
+                LOGGER.warn(message)
             }
         }
     }

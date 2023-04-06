@@ -27,6 +27,7 @@ import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.hamcrest.Matcher
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.CoreMatchers.containsString
 
@@ -174,6 +175,7 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
         outputContains("Running checkstyle with toolchain '${jdk.javaHome.absolutePath}'.")
         failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
         failure.assertHasErrorOutput("Name 'class1' must match pattern")
+        failure.assertHasResolutions(SCAN)
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
 

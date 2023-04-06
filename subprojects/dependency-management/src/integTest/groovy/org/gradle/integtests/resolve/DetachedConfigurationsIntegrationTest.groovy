@@ -67,6 +67,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         run "checkDependencies"
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "detached configurations may have dependencies on other projects"() {
         given:
         settingsFile << "include 'other'"
@@ -74,10 +75,10 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id 'java-library'
             }
-            
+
             def detached = project.configurations.detachedConfiguration()
             detached.dependencies.add(project.dependencies.create(project(':other')))
-           
+
             task checkDependencies {
                 doLast {
                     assert detached.resolvedConfiguration.getFirstLevelModuleDependencies().moduleName.contains('other')
@@ -98,6 +99,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     // This behavior will be removed in Gradle 9.0
     @Deprecated
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "detached configurations can contain artifacts and resolve them during a self-dependency scenario"() {
         given:
         settingsFile << """
@@ -108,18 +110,18 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id 'java-library'
             }
-            
+
             def detached = project.configurations.detachedConfiguration()
             detached.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
             detached.dependencies.add(project.dependencies.create(project))
-            
+
             task makeArtifact(type: Zip) {
                 archiveFileName = "artifact.zip"
                 from "artifact.txt"
             }
-            
+
             detached.outgoing.artifact(tasks.makeArtifact)
-           
+
             task checkDependencies {
                 doLast {
                     assert detached.resolvedConfiguration.getFirstLevelModuleDependencies().moduleName.contains('test')
