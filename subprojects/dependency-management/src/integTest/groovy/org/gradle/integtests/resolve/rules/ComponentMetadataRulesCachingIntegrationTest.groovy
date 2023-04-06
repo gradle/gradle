@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class ComponentMetadataRulesCachingIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -32,21 +31,14 @@ dependencies {
     conf 'org.test:projectA:1.0'
 }
 
-// implement Sync manually to make sure that task is never up-to-date
-task resolve {
-    doLast {
-        delete 'libs'
-        copy {
-            from configurations.conf
-            into 'libs'
-        }
-    }
+task resolve(type: Sync) {
+    from configurations.conf
+    into 'libs'
 }
 """
         executer.withArgument("-Ddebug.modulesource=true")
     }
 
-    @ToBeFixedForConfigurationCache
     def "rule is cached across builds"() {
         repository {
             'org.test:projectA:1.0' {
@@ -100,7 +92,6 @@ dependencies {
         outputDoesNotContain('See dependency')
     }
 
-    @ToBeFixedForConfigurationCache
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def 'cached rule can access PomModuleDescriptor for Maven component'() {
         given:
@@ -249,7 +240,6 @@ dependencies {
         outputContains('Rule B executed - saw changing true')
     }
 
-    @ToBeFixedForConfigurationCache
     def 'can cache rules having a custom type attribute as parameter'() {
         repository {
             'org.test:projectA:1.0'()

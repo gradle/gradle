@@ -88,8 +88,8 @@ project(':b') {
 
 task show {
     inputs.files configurations.compile
+    def artifacts = configurations.compile.${expression}
     doLast {
-        def artifacts = configurations.compile.${expression}
         println "files: " + artifacts.collect { it.file.name }
         println "ids: " + artifacts.collect { it.id.displayName }
         println "unique ids: " + artifacts.collect { it.id }.unique()
@@ -164,8 +164,8 @@ project(':b') {
 
 task show {
     inputs.files configurations.compile
+    def artifacts = configurations.compile.${expression}
     doLast {
-        def artifacts = configurations.compile.${expression}
         println "files: " + artifacts.collect { it.file.name }
         println "ids: " + artifacts.collect { it.id.displayName }
         println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
@@ -269,8 +269,8 @@ project(':b') {
 
 task show {
     inputs.files configurations.compile.${expression}.artifactFiles
+    def artifacts = configurations.compile.${expression}
     doLast {
-        def artifacts = configurations.compile.${expression}
         println "files: " + artifacts.collect { it.file.name }
         println "ids: " + artifacts.collect { it.id.displayName }
         println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
@@ -371,8 +371,8 @@ project(':b') {
 
 task show {
     inputs.files configurations.compile.${expression}.artifactFiles
+    def artifacts = configurations.compile.${expression}
     doLast {
-        def artifacts = configurations.compile.${expression}
         println "files: " + artifacts.collect { it.file.name }
         println "ids: " + artifacts.collect { it.id.displayName }
         println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
@@ -457,13 +457,10 @@ project(':b') {
 }
 
 task show {
+    def artifacts = configurations.compile.${expression}
     doLast {
-        def artifacts = configurations.compile.${expression}
         println "files: " + artifacts.collect { it.file.name }
-        println "ids: " + artifacts.collect { it.id.displayName }
-        println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
-        println "variants: " + artifacts.collect { it.variant.attributes }
-        assert artifacts.failures.empty
+        throw new RuntimeException()
     }
 }
 """
@@ -548,10 +545,10 @@ project(':b') {
 
 task show {
     inputs.files configurations.compile
+    def artifacts = configurations.compile.incoming.artifactView {
+        attributes({it.attribute(usage, 'transformed')})
+    }.artifacts
     doLast {
-        def artifacts = configurations.compile.incoming.artifactView {
-            attributes({it.attribute(usage, 'transformed')})
-        }.artifacts
         println "files: " + artifacts.collect { it.file.name }
         println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
         println "variants: " + artifacts.collect { it.variant.attributes }
@@ -602,9 +599,10 @@ project(':b') {
 
 task show {
     inputs.files configurations.compile
+    def artifacts = configurations.compile.${expression}
+    def rootDir = rootProject.projectDir.toPath()
     doLast {
-        def artifacts = configurations.compile.${expression}
-        println "files: " + artifacts.collect { rootProject.relativePath(it.file).replace(File.separator, '/') }
+        println "files: " + artifacts.collect { rootDir.relativize(it.file.toPath()).toString().replace(File.separator, '/') }
         println "ids: " + artifacts.collect { it.id.displayName }
         println "unique ids: " + artifacts.collect { it.id }.unique()
         println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
@@ -755,6 +753,7 @@ ${showFailuresTask(expression)}
         "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
+    @ToBeFixedForConfigurationCache(because = "error reporting is different when CC is enabled")
     def "reports failure to query file dependency when artifacts are queried"() {
         buildFile << """
 dependencies {
@@ -779,6 +778,7 @@ ${showFailuresTask(expression)}
         "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
+    @ToBeFixedForConfigurationCache(because = "error reporting is different when CC is enabled")
     def "reports multiple failures to resolve artifacts when artifacts are queried"() {
         settingsFile << "include 'a'"
         buildFile << """
@@ -830,7 +830,7 @@ ${showFailuresTask(expression)}
         "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "lenient artifact view reports failure to resolve graph and artifacts"() {
         settingsFile << "include 'a', 'b'"
 
@@ -909,7 +909,7 @@ Searched in the following locations:
           - Doesn't say anything about usage (required 'compile')""")
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "successfully resolved local artifacts are built when lenient file view used as task input"() {
         settingsFile << "include 'a', 'b', 'c'"
 
@@ -977,8 +977,8 @@ task resolveLenient {
     def showFailuresTask(expression) {
         """
 task show {
+    def artifacts = configurations.compile.${expression}
     doLast {
-        def artifacts = configurations.compile.${expression}
         artifacts.collect { true }
     }
 }

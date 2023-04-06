@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.verification
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
@@ -1468,6 +1469,7 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
         terse << [true, false]
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Artifact Query API")
     def "dependency verification should work correctly with artifact queries"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
