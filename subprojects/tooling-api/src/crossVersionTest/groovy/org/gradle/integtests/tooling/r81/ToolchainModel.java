@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
+package org.gradle.integtests.tooling.r81;
 
-import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
+public interface ToolchainModel {
 
-import java.util.List;
+    String getPath();
 
-public interface JavaToolchainResolverRegistryInternal extends JavaToolchainResolverRegistry {
-
-    JavaToolchainRepositoryHandlerInternal getRepositories();
-
-    List<? extends RealizedJavaToolchainRepository> requestedRepositories();
-
-    void preventFromFurtherMutation();
+    int getJavaVersion();
 }
