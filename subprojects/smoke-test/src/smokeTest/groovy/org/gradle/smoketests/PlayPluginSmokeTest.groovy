@@ -54,7 +54,6 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         when:
         def result = runner('build')
             .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 7))
-            .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber", 8))
             .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("CollectionUtils", 7))
             .expectLegacyDeprecationWarning(abstractArchiveTaskArchivePathDeprecation())
             .expectLegacyDeprecationWarning(projectConventionDeprecation())

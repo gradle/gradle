@@ -21,6 +21,7 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Date;
 
@@ -30,7 +31,7 @@ public class FileSystemPublishArtifact implements PublishArtifactInternal {
     private final String version;
     private ArtifactFile artifactFile;
 
-    public FileSystemPublishArtifact(final FileSystemLocation fileSystemLocation, final String version) {
+    public FileSystemPublishArtifact(FileSystemLocation fileSystemLocation, @Nullable String version) {
         this.fileSystemLocation = fileSystemLocation;
         this.version = version;
     }

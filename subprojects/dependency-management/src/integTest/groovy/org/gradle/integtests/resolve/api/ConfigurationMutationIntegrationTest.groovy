@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionTest {
@@ -178,6 +179,7 @@ configurations.compile.withDependencies {
         failure.assertHasCause("Bad user code")
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "cannot add withDependencies rule after configuration has been used"() {
         when:
         buildFile << """
@@ -328,6 +330,7 @@ include 'consumer', 'producer'
         resolve.expectGraph {
             root(":", "org.test:root:1.1") {
                 edge("org.test:producer:1.0", ":producer", "org.test:producer:1.0") {
+                    compositeSubstitute()
                     module("org:explicit-dependency:3.4")
                     module("org:added-dependency:3.4")
                 }

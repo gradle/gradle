@@ -18,6 +18,8 @@ package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
 import static org.hamcrest.CoreMatchers.containsString
 
@@ -83,6 +85,9 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
             .assertExecutionFailedWithCause(containsString('consider adding an engine implementation JAR to the classpath'))
     }
 
+    // When running embedded with test distribution, the remote distribution has a newer version of
+    // junit-platform-launcher which is not compatible with the junit jupiter jars we test against.
+    @IgnoreIf({ GradleContextualExecuter.embedded })
     def "automatically loads framework dependencies from distribution"() {
         given:
         buildFile << """

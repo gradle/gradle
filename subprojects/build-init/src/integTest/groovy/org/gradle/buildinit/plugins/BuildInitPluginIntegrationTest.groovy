@@ -21,7 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.hamcrest.Matcher
 
-import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
@@ -190,7 +190,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
-    def "pom conversion to groovy build scripts is triggered when pom and no gradle file found"() {
+    def "pom conversion to kotlin build scripts is triggered when pom and no gradle file found"() {
         given:
         pom()
 
@@ -198,7 +198,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         run('init')
 
         then:
-        pomValuesUsed(rootProjectDslFixtureFor(GROOVY))
+        pomValuesUsed(rootProjectDslFixtureFor(KOTLIN))
     }
 
     def "pom conversion to #scriptDsl build scripts not triggered when build type is specified"() {
@@ -244,8 +244,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         failure.assertHasCause("""The requested build script DSL 'some-unknown-dsl' is not supported. Supported DSLs:
-  - 'groovy'
-  - 'kotlin'""")
+  - 'kotlin'
+  - 'groovy'""")
     }
 
     def "gives decent error message when using unknown test framework"() {
@@ -343,8 +343,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         succeeds "init"
-        targetDir.file("settings.gradle").assertIsFile()
-        targetDir.file("build.gradle").assertIsFile()
+        targetDir.file("settings.gradle.kts").assertIsFile()
+        targetDir.file("build.gradle.kts").assertIsFile()
     }
 
     def "fails when initializing in a project directory of another build that contains a build script"() {
@@ -405,8 +405,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         succeeds "init"
         targetDir.file("gradlew").assertIsFile()
-        targetDir.file("settings.gradle").assertIsFile()
-        targetDir.file("build.gradle").assertIsFile()
+        targetDir.file("settings.gradle.kts").assertIsFile()
+        targetDir.file("build.gradle.kts").assertIsFile()
         targetDir.file(".gradle/gradle.properties").assertHasNotChangedSince(snapshot)
     }
 
@@ -420,8 +420,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         succeeds "init"
         targetDir.file("gradlew").assertIsFile()
-        targetDir.file("settings.gradle").assertIsFile()
-        targetDir.file("build.gradle").assertIsFile()
+        targetDir.file("settings.gradle.kts").assertIsFile()
+        targetDir.file("build.gradle.kts").assertIsFile()
     }
 
     private ExecutionResult runInitWith(BuildInitDsl dsl, String... initOptions) {

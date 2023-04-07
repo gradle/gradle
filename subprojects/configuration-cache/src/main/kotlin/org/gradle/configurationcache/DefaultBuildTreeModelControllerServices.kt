@@ -76,12 +76,16 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
             val configureOnDemand = isolatedProjects || startParameter.isConfigureOnDemand
-            if (configurationCache && startParameter.writeDependencyVerifications.isNotEmpty()) {
-                // Disable configuration cache when writing dependency metadata file, it is currently not entirely supported
-                logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, StartParameterBuildOptions.DependencyVerificationWriteOption.LONG_OPTION)
-                BuildModelParameters(configureOnDemand, false, false, false, false, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
-            } else {
-                BuildModelParameters(configureOnDemand, configurationCache, isolatedProjects, false, false, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
+
+            fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
+                logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
+                return BuildModelParameters(configureOnDemand, false, false, false, false, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
+            }
+
+            when {
+                configurationCache && startParameter.writeDependencyVerifications.isNotEmpty() -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.DependencyVerificationWriteOption.LONG_OPTION)
+                configurationCache && startParameter.isExportKeys -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.ExportKeysOption.LONG_OPTION)
+                else -> BuildModelParameters(configureOnDemand, configurationCache, isolatedProjects, false, false, parallelToolingActions, invalidateCoupledProjects, configurationCacheLogLevel)
             }
         }
 

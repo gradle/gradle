@@ -21,6 +21,12 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
+
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
@@ -395,6 +401,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkGraph {
             module("org.external:external-dep:1.0") {
                 edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
+                    forced()
                     compositeSubstitute()
                 }
             }
@@ -431,9 +438,11 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkGraph {
             module("org.external:external-dep:1.0") {
                 edge("org.test:something:1.0", ":buildB", "org.test:buildB:2.0") {
+                    selectedByRule()
                     compositeSubstitute()
                 }
                 edge("org.other:something-else:1.0", ":buildB:b1", "org.test:b1:2.0") {
+                    selectedByRule()
                     compositeSubstitute()
                 }
             }
@@ -690,6 +699,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
             "  - None of the consumable configurations have attributes.")
     }
 
+    public static final REPOSITORY_HINT = repositoryHint("Maven POM")
     @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "includes build identifier in error message on failure to resolve dependencies of included build"() {
         def m = mavenRepo.module("org.test", "test", "1.2")
@@ -739,9 +749,14 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
   - ${m.pom.file.toURL()}
-If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :buildC""")
+        failure.assertHasResolutions(REPOSITORY_HINT,
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP)
+
 
         when:
         m.publish()

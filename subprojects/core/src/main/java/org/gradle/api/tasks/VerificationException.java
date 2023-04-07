@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 
 /**
  * Signals that tests have failed. This is only thrown when tests are executed and some tests have failed execution.
@@ -26,5 +27,15 @@ import org.gradle.api.GradleException;
 public class VerificationException extends GradleException {
     public VerificationException(String message) {
         super(message);
+    }
+
+    /**
+     * Allows a cause to be specified.
+     *
+     * @since 8.2
+     */
+    @Incubating
+    public VerificationException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

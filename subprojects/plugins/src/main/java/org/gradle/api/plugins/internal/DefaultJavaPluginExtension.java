@@ -35,13 +35,13 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JavaResolutionConsistency;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
+import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
-import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchainSpecInternal;
@@ -294,11 +294,11 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
             this.configurations = configurations;
 
             if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-                JvmSoftwareComponentInternal component = JavaPluginHelper.getJavaComponent(project);
+                JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
                 JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
 
-                mainCompileClasspath = component.getCompileClasspathConfiguration();
-                mainRuntimeClasspath = component.getRuntimeClasspathConfiguration();
+                mainCompileClasspath = mainFeature.getCompileClasspathConfiguration();
+                mainRuntimeClasspath = mainFeature.getRuntimeClasspathConfiguration();
                 testCompileClasspath = findConfiguration(defaultTestSuite.getSources().getCompileClasspathConfigurationName());
                 testRuntimeClasspath = findConfiguration(defaultTestSuite.getSources().getRuntimeClasspathConfigurationName());
             } else {

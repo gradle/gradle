@@ -16,8 +16,8 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
@@ -27,6 +27,7 @@ import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
+import static org.gradle.testing.fixture.JUnitCoverage.NEWEST
 
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
 class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
@@ -117,7 +118,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:4.13' }
+            dependencies { testImplementation '$testJunitCoordinates' }
             test {
                 maxParallelForks = $maxParallelForks
             }
@@ -145,7 +146,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 ${mavenCentralRepository()}
             }
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
                 testImplementation project(":dependency")
             }
         """
@@ -186,7 +187,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
             }
         """
         file("src/test/java/MyTest.java") << """
@@ -250,7 +251,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
+                testImplementation 'junit:junit:${NEWEST}'
             }
 
             test {
@@ -311,7 +312,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         where:
         frameworkName       | useMethod                 | frameworkDeps
-        "JUnit"             | "useJUnit()"              | "'junit:junit:${JUnitCoverage.NEWEST}'"
+        "JUnit"             | "useJUnit()"              | "'junit:junit:${NEWEST}'"
         "JUnit Platform"    | "useJUnitPlatform()"      | "'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'"
     }
 
@@ -327,7 +328,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
+                testImplementation 'junit:junit:${NEWEST}'
             }
 
             test {
@@ -340,36 +341,6 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         expect:
         succeeds("test")
-    }
-
-    def "options cannot be set prior to changing test framework for the default test task"() {
-        ignoreWhenJUnitPlatform()
-
-        given:
-        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
-
-        settingsFile << "rootProject.name = 'Sample'"
-        buildFile << """apply plugin: 'java'
-
-            ${mavenCentralRepository()}
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
-            }
-
-            test {
-                options {
-                    excludeCategories = ["Slow"]
-                }
-            }
-
-            test {
-                useJUnitPlatform()
-            }
-        """.stripIndent()
-
-        expect:
-        fails("test")
-        failure.assertHasCause("The value for task ':test' property 'testFrameworkProperty' is final and cannot be changed any further.")
     }
 
     def "options can be set prior to setting same test framework for a custom test task"() {
@@ -389,7 +360,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             }
 
             dependencies {
-                customTestImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
+                customTestImplementation 'junit:junit:${NEWEST}'
             }
 
             tasks.create('customTest', Test) {
@@ -404,33 +375,6 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         expect:
         succeeds("customTest")
-    }
-
-    def "options cannot be set prior to changing test framework for a custom test task"() {
-        ignoreWhenJUnitPlatform()
-
-        given:
-        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
-
-        settingsFile << "rootProject.name = 'Sample'"
-        buildFile << """apply plugin: 'java'
-
-            ${mavenCentralRepository()}
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
-            }
-
-            tasks.create('customTest', Test) {
-                options {
-                    excludeCategories = ["Slow"]
-                }
-                useJUnitPlatform()
-            }
-        """.stripIndent()
-
-        expect:
-        fails("customTest")
-        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
     def "options configured after setting test framework works"() {
@@ -538,14 +482,14 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         """.stripIndent()
     }
 
-    private static String java9Build() {
+    private String java9Build() {
         """
             apply plugin: 'java'
 
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
             }
 
             java {

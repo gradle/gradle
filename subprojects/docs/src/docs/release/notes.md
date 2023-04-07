@@ -50,7 +50,62 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+### Wrapper task validates distribution url
 
+The wrapper task now validates the configured distribution url before writing it to the `gradle-wrapper.properties` file.
+This surfaces invalid urls early and can prevent IO exceptions at execution time.
+
+More details can be found in the dedicated section of the [Gradle Wrapper](gradle_wrapper.html#[adding_the_gradle_wrapper](sec:adding_wrapper)) user manual chapter.
+
+### Java toolchains discovery progress display
+
+Progress is now displayed during [Java toolchains discovery](userguide/jvm/toochains.html#auto_detection).
+This can be useful during a cold-start of Gradle for users who have environments with a lot of JVM installations in them.
+
+### Kotlin DSL improvements
+
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the Groovy DSL with an enhanced editing experience in supported IDEs — superior content assistance, refactoring documentation, and more.
+
+#### Kotlin DSL reference
+
+A versioned reference documentation for the Gradle Kotlin DSL is now published alongside the user manual.
+This reference covers both the Kotlin DSL and the Gradle Java API.
+
+You can use the [Kotlin DSL reference](kotlin-dsl/) search functionality to drill through the available members.
+
+#### Gradle `init` defaults to the Kotlin DSL
+
+Starting with this release running `gradle init` now defaults to generating new builds using the Kotlin DSL.
+
+In interactive mode you can choose which DSL to use and the Kotlin one is now listed first:
+
+```text
+Select build script DSL:
+  1: Kotlin
+  2: Groovy
+Enter selection (default: Kotlin) [1..2]
+```
+
+See the [build init](userguide/build_init.html#sec:what_to_set_up) user manual chapter for more information.
+
+#### Fail on script compilation warnings
+
+Gradle [Kotlin DSL scripts](userguide/kotlin_dsl.html#sec:scripts) are compiled by Gradle during the configuration phase of your build.
+Deprecation warnings found by the Kotlin compiler are reported on the console when compiling the scripts.
+
+It is now possible to configure your build to fail on any warning emitted during script compilation by setting the `org.gradle.kotlin.dsl.allWarningsAsErrors` Gradle property to `true`:
+
+```properties
+# gradle.properties
+org.gradle.kotlin.dsl.allWarningsAsErrors=true
+```
+
+More details can be found in the dedicated section of the [Kotlin DSL](userguide/kotlin_dsl.html#sec:compilation_warnings) user manual chapter.
+
+### Dependency verification keys stripping
+
+PGP keys for dependency verification downloaded from key servers are now stripped to contain only necessary data.
+This feature can significantly reduce keyrings size.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -59,6 +114,7 @@ ADD RELEASE FEATURES ABOVE
 -->
 
 ## Promoted features
+
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 

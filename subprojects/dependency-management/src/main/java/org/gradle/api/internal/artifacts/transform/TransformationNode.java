@@ -42,7 +42,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType;
 import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
 import org.gradle.operations.dependencies.variants.Capability;
@@ -54,12 +53,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public abstract class TransformationNode extends CreationOrderedNode implements SelfExecutingNode {
-
-    private static final AtomicLong SEQUENCE = new AtomicLong();
 
     protected final TransformationStep transformationStep;
     protected final ResolvableArtifact artifact;
@@ -69,83 +65,6 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
     private final long transformationNodeId;
 
     private PlannedTransformStepIdentity cachedIdentity;
-
-    /**
-     * Create a chained transformation node.
-     */
-    public static ChainedTransformationNode chained(
-        ComponentVariantIdentifier targetComponentVariant,
-        AttributeContainer sourceAttributes,
-        TransformationStep current,
-        TransformationNode previous,
-        TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationExecutor buildOperationExecutor,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
-        return new ChainedTransformationNode(createId(), targetComponentVariant, sourceAttributes, current, previous, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
-    }
-
-    /**
-     * Create a chained transformation node.
-     * <p>
-     * Should only be used when loading from the configuration cache to set the node id.
-     */
-    public static ChainedTransformationNode chained(
-        long transformationNodeId,
-        ComponentVariantIdentifier targetComponentVariant,
-        AttributeContainer sourceAttributes,
-        TransformationStep current,
-        TransformationNode previous,
-        TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationExecutor buildOperationExecutor,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
-        useAssignedId(transformationNodeId);
-        return new ChainedTransformationNode(transformationNodeId, targetComponentVariant, sourceAttributes, current, previous, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
-    }
-
-    /**
-     * Create an initial transformation node.
-     */
-    public static InitialTransformationNode initial(
-        ComponentVariantIdentifier targetComponentVariant,
-        AttributeContainer sourceAttributes,
-        TransformationStep initial,
-        ResolvableArtifact artifact,
-        TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationExecutor buildOperationExecutor,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
-        return new InitialTransformationNode(createId(), targetComponentVariant, sourceAttributes, initial, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
-    }
-
-    /**
-     * Create an initial transformation node.
-     * <p>
-     * Should only be used when loading from the configuration cache to set the node id.
-     */
-    public static InitialTransformationNode initial(
-        long transformationNodeId,
-        ComponentVariantIdentifier targetComponentVariant,
-        AttributeContainer sourceAttributes,
-        TransformationStep initial,
-        ResolvableArtifact artifact,
-        TransformUpstreamDependencies upstreamDependencies,
-        BuildOperationExecutor buildOperationExecutor,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
-    ) {
-        useAssignedId(transformationNodeId);
-        return new InitialTransformationNode(transformationNodeId, targetComponentVariant, sourceAttributes, initial, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
-    }
-
-    private static long createId() {
-        return SEQUENCE.incrementAndGet();
-    }
-
-    private static void useAssignedId(long assignedUniqueId) {
-        // Increment the sequence so later assigned transform ids don't clash with the one manually assigned.
-        SEQUENCE.getAndAccumulate(assignedUniqueId, (current, assignedId) -> current > assignedId ? current : assignedId + 1);
-    }
 
     protected TransformationNode(
         long id,
@@ -192,62 +111,17 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             .map(TransformationNode::convertCapability)
             .collect(Collectors.toList());
 
-        return new PlannedTransformStepIdentity() {
-            @Override
-            public NodeType getNodeType() {
-                return NodeType.TRANSFORM_STEP;
-            }
-
-            @Override
-            public String getConsumerBuildPath() {
-                return consumerBuildPath;
-            }
-
-            @Override
-            public String getConsumerProjectPath() {
-                return consumerProjectPath;
-            }
-
-            @Override
-            public ComponentIdentifier getComponentId() {
-                return componentId;
-            }
-
-            @Override
-            public Map<String, String> getSourceAttributes() {
-                return sourceAttributes;
-            }
-
-            @Override
-            public Map<String, String> getTargetAttributes() {
-                return targetAttributes;
-            }
-
-            @Override
-            public List<? extends Capability> getCapabilities() {
-                return capabilities;
-            }
-
-            @Override
-            public String getArtifactName() {
-                return artifact.getArtifactName().toString();
-            }
-
-            @Override
-            public ConfigurationIdentity getDependenciesConfigurationIdentity() {
-                return upstreamDependencies.getConfigurationIdentity();
-            }
-
-            @Override
-            public long getTransformStepNodeId() {
-                return transformationNodeId;
-            }
-
-            @Override
-            public String toString() {
-                return "Transform '" + targetComponentVariant.getComponentId() + "' with " + transformationStep.getTransformer().getImplementationClass().getName();
-            }
-        };
+        return new DefaultPlannedTransformStepIdentity(
+            consumerBuildPath,
+            consumerProjectPath,
+            componentId,
+            sourceAttributes,
+            targetAttributes,
+            capabilities,
+            artifact.getArtifactName().toString(),
+            upstreamDependencies.getConfigurationIdentity(),
+            transformationNodeId
+        );
     }
 
     private static Capability convertCapability(org.gradle.api.capabilities.Capability capability) {
@@ -280,7 +154,9 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             return new org.gradle.operations.dependencies.variants.ProjectComponentIdentifier() {
                 @Override
                 public String getBuildPath() {
-                    return projectComponentIdentifier.getBuild().getName();
+                    // TODO: this should use a proper build path once it is available on BuildIdentifier
+                    String buildName = projectComponentIdentifier.getBuild().getName();
+                    return buildName.startsWith(":") ? buildName : (":" + buildName);
                 }
 
                 @Override
@@ -541,13 +417,13 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
         @Override
         public final BuildOperationDescriptor.Builder description() {
-            String transformerName = transformationStep.getDisplayName();
+            String transformationStepName = transformationStep.getDisplayName();
             String subjectName = describeSubject();
-            String basicName = subjectName + " with " + transformerName;
+            String basicName = subjectName + " with " + transformationStepName;
             return BuildOperationDescriptor.displayName("Transform " + basicName)
                 .progressDisplayName(TRANSFORMING_PROGRESS_PREFIX + basicName)
                 .metadata(BuildOperationCategory.TRANSFORM)
-                .details(new ExecutePlannedTransformStepBuildOperationDetails(TransformationNode.this, transformerName, subjectName));
+                .details(new ExecutePlannedTransformStepBuildOperationDetails(TransformationNode.this, transformationStepName, subjectName));
         }
 
         protected abstract String describeSubject();

@@ -103,8 +103,8 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
                     ),
                     classPathFiles.filter { it.exists() },
                     logger,
-                    { it } // TODO: translate paths
-                )
+                    allWarningsAsErrors = false
+                ) { it } // TODO: translate paths
         }
     }
 

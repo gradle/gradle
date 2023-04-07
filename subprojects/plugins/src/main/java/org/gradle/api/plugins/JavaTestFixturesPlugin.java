@@ -69,9 +69,11 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
                 testFixturesSourceSet,
                 Collections.singletonList(new ProjectDerivedCapability(project, TEST_FIXTURES_FEATURE_NAME)),
                 (ProjectInternal) project,
-                "test fixtures",
-                role
+                role,
+                false
             );
+
+            feature.withApi();
 
             DefaultJvmSoftwareComponent component = (DefaultJvmSoftwareComponent) JavaPluginHelper.getJavaComponent(project);
             component.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true));

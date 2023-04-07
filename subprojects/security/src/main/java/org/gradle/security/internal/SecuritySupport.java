@@ -25,9 +25,11 @@ import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPSignatureList;
 import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory;
+import org.bouncycastle.openpgp.operator.KeyFingerPrintCalculator;
 import org.bouncycastle.openpgp.operator.PGPContentVerifierBuilderProvider;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentVerifierBuilderProvider;
+import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -107,10 +109,13 @@ public class SecuritySupport {
         // load existing keys from keyring before
         try (InputStream ins = PGPUtil.getDecoderStream(createInputStreamFor(keyringFile))) {
             PGPObjectFactory objectFactory = new JcaPGPObjectFactory(ins);
+            KeyFingerPrintCalculator fingerprintCalculator = new JcaKeyFingerprintCalculator();
             try {
                 for (Object o : objectFactory) {
                     if (o instanceof PGPPublicKeyRing) {
-                        existingRings.add((PGPPublicKeyRing) o);
+                        // backward compatibility: old keyrings should be stripped too
+                        PGPPublicKeyRing strippedKeyRing = KeyringStripper.strip((PGPPublicKeyRing) o, fingerprintCalculator);
+                        existingRings.add(strippedKeyRing);
                     }
                 }
             } catch (Exception e) {

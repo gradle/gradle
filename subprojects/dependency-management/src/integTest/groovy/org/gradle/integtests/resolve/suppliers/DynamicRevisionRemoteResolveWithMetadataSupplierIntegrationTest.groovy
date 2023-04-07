@@ -1345,7 +1345,7 @@ group:projectB:2.2;release
             root(":", ":test:") {
                 edges.each { from, to ->
                     if (to instanceof List) {
-                        edge(from, to[0]).byReason(to[1])
+                        edge(from, to[0]).byReason(to[1]).maybeRequested()
                     } else {
                         edge(from, to)
                     }

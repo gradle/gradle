@@ -97,6 +97,13 @@ public interface ExecutionEngine {
         // TODO Parametrize UnitOfWork with this generated result
         @Nullable
         Object getOutput();
+
+        /**
+         * Whether the outputs of this execution should be stored in the build cache.
+         */
+        default boolean canStoreOutputsInCache() {
+            return true;
+        }
     }
 
     /**

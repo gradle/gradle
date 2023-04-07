@@ -203,8 +203,8 @@ public class ForkedTestClasspathFactory {
      */
     private ImmutableList<File> pathWithAdditionalModules(Iterable<? extends File> testFiles, List<TestFrameworkDistributionModule> additionalModules) {
         return ImmutableList.<File>builder()
-            .addAll(loadDistributionFiles(additionalModules))
             .addAll(testFiles)
+            .addAll(loadDistributionFiles(additionalModules))
             .build();
     }
 
