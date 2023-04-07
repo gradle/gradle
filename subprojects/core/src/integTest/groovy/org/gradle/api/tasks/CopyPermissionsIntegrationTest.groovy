@@ -458,7 +458,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         given:
         withSourceFiles("r--------")
         buildScript """
-            def p = project.services.get(FileSystemOperations).permissions(true) {
+            def p = project.services.get(FileSystemOperations).directoryPermissions {
                 all {
                     read = true
                     write = true

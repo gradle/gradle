@@ -61,24 +61,39 @@ public interface FileSystemOperations {
     WorkResult delete(Action<? super DeleteSpec> action);
 
     /**
-     * Creates and configures file access permissions. For details see {@link FileAccessPermissions}.
-     *
-     * @param directory Specifies if the permissions are being created for regular files or directories.
-     *                  Influences the default value the permissions start out with before the configuration
-     *                  is applied. For details see {@link FileAccessPermissions}.
+     * Creates and configures file access permissions. Differs from directory permissions due to
+     * the default value the permissions start out with before the configuration is applied.
+     * For details see {@link FileAccessPermissions}.
      *
      * @param configureAction The configuration that gets applied to the newly created {@code FileAccessPermissions}.
      *
      * @since 8.2
      */
     @Incubating
-    FileAccessPermissions permissions(boolean directory, Action<? super FileAccessPermissions> configureAction);
+    FileAccessPermissions filePermissions(Action<? super FileAccessPermissions> configureAction);
 
     /**
-     * TODO javadoc
+     * Creates and configures directory access permissions. Differs from file permissions due to
+     * the default value the permissions start out with before the configuration is applied.
+     * For details see {@link FileAccessPermissions}.
+     *
+     * @param configureAction The configuration that gets applied to the newly created {@code FileAccessPermissions}.
      *
      * @since 8.2
      */
     @Incubating
-    FileAccessPermissions permissions(boolean directory, String permissions);
+    FileAccessPermissions directoryPermissions(Action<? super FileAccessPermissions> configureAction);
+
+    /**
+     * Creates file/directory access permissions and initilises them via a Unix style permission string.
+     * For details see {@link FileAccessPermissions#unix(String)}.
+     * <p>
+     * Doesn't have separate variants for files and directories, like other configuration methods,
+     * because the Unix style permission input completely overwrites the default values, so
+     * the distinction doesn't matter.
+     *
+     * @since 8.2
+     */
+    @Incubating
+    FileAccessPermissions permissions(String permissions);
 }
