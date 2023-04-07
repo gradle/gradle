@@ -52,7 +52,6 @@ class KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider(additionalArg
             }
             // This class is loaded from the IDE, so we have to hardcode system property
             properties.getProperty("systemProp.org.gradle.unsafe.kotlin.assignment", "true").trim() != "false"
-                && properties.getProperty("systemProp.org.gradle.incubating.kotlin.assignment", "true").trim() != "false"
         }
     }
 }
