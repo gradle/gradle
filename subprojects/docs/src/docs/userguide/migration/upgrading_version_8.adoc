@@ -44,6 +44,17 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Deprecations
 
+[[compile_options_generated_sources_directory]]
+==== `link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html[CompileOptions]` method deprecations
+
+The following methods on `CompileOptions` are deprecated:
+
+- `getAnnotationProcessorGeneratedSourcesDirectory()`
+- `setAnnotationProcessorGeneratedSourcesDirectory(File)`
+- `setAnnotationProcessorGeneratedSourcesDirectory(Provider<File>)`
+
+Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getGeneratedSourceOutputDirectory--[DirectoryProperty getGeneratedSourceOutputDirectory()]`
+
 [[deprecated_configuration_usage]]
 ==== Using configurations incorrectly
 
