@@ -27,9 +27,9 @@ public class DefaultImmutableFileAccessPermissions extends AbstractImmutableFile
     private final ImmutableFileAccessPermission other;
 
     public DefaultImmutableFileAccessPermissions(int unixNumeric) {
-        user = new DefaultImmutableFileAccessPermission(getUserMask(unixNumeric));
-        group = new DefaultImmutableFileAccessPermission(getGroupMask(unixNumeric));
-        other = new DefaultImmutableFileAccessPermission(getOtherMask(unixNumeric));
+        user = new DefaultImmutableFileAccessPermission(getUserPartOf(unixNumeric));
+        group = new DefaultImmutableFileAccessPermission(getGroupPartOf(unixNumeric));
+        other = new DefaultImmutableFileAccessPermission(getOtherPartOf(unixNumeric));
     }
 
     @Override

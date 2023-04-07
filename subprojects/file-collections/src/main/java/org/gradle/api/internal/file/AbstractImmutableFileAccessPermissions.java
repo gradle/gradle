@@ -29,17 +29,17 @@ public abstract class AbstractImmutableFileAccessPermissions implements Immutabl
     }
 
     @SuppressWarnings("OctalInteger")
-    protected static int getUserMask(int unixNumeric) { //todo: rename, not mask, but masked value
+    protected static int getUserPartOf(int unixNumeric) {
         return (unixNumeric & 0_700) >> 6;
     }
 
     @SuppressWarnings("OctalInteger")
-    protected static int getGroupMask(int unixNumeric) { //todo: rename, not mask, but masked value
+    protected static int getGroupPartOf(int unixNumeric) {
         return (unixNumeric & 0_070) >> 3;
     }
 
     @SuppressWarnings("OctalInteger")
-    protected static int getOtherMask(int unixNumeric) { //todo: rename, not mask, but masked value
+    protected static int getOtherPartOf(int unixNumeric) {
         return unixNumeric & 0_007;
     }
 

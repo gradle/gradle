@@ -40,9 +40,9 @@ public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPer
 
     @Inject
     public DefaultFileAccessPermissions(ObjectFactory objectFactory, int unixNumeric) {
-        this.user = objectFactory.newInstance(DefaultFileAccessPermission.class, getUserMask(unixNumeric));
-        this.group = objectFactory.newInstance(DefaultFileAccessPermission.class, getGroupMask(unixNumeric));
-        this.other = objectFactory.newInstance(DefaultFileAccessPermission.class, getOtherMask(unixNumeric));
+        this.user = objectFactory.newInstance(DefaultFileAccessPermission.class, getUserPartOf(unixNumeric));
+        this.group = objectFactory.newInstance(DefaultFileAccessPermission.class, getGroupPartOf(unixNumeric));
+        this.other = objectFactory.newInstance(DefaultFileAccessPermission.class, getOtherPartOf(unixNumeric));
     }
 
     @Override
@@ -97,9 +97,9 @@ public class DefaultFileAccessPermissions extends AbstractImmutableFileAccessPer
 
     @Override
     public void fromUnixNumeric(int unixNumeric) {
-        user.fromUnixNumeric(getUserMask(unixNumeric));
-        group.fromUnixNumeric(getGroupMask(unixNumeric));
-        other.fromUnixNumeric(getOtherMask(unixNumeric));
+        user.fromUnixNumeric(getUserPartOf(unixNumeric));
+        group.fromUnixNumeric(getGroupPartOf(unixNumeric));
+        other.fromUnixNumeric(getOtherPartOf(unixNumeric));
     }
 
     @Override
