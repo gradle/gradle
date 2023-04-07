@@ -40,8 +40,8 @@ import org.gradle.api.Incubating;
  * <p>
  * The default permissions used differ between files and directories and are as follows:
  * <ul>
- *     <li>FILE: read &amp; write for OWNER, read for GROUP, read for OTHER </li>
- *     <li>DIRECTORY: read, write &amp; execute for OWNER, read &amp; execute for GROUP, read &amp; execute for OTHER</li>
+ *     <li>FILE: read &amp; write for OWNER, read for GROUP, read for OTHER (0644, r-wr--r--)</li>
+ *     <li>DIRECTORY: read, write &amp; execute for OWNER, read &amp; execute for GROUP, read &amp; execute for OTHER (0755, rwxr-xr-x)</li>
  * </ul>
  *
  * @since 8.2
@@ -60,11 +60,6 @@ public interface FileAccessPermissions {
     FileAccessPermission getOther();
 
     void other(Action<? super FileAccessPermission> configureAction);
-
-    /**
-     * Convenience method for setting the same permissions for all user groups.
-     */
-    void all(Action<? super FileAccessPermission> cofigureAction);
 
     /**
      * Sets Unix style permissions. Accept values in two styles of notation:

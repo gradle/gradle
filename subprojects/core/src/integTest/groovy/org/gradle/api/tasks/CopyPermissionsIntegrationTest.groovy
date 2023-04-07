@@ -391,18 +391,13 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
                into 'dest'
                eachFile {
                     permissions {
-                        all {
-                            read = true
-                            write = true
-                            execute = true
-                        }
                         user {
                             write = false
                         }
-                        user.execute = false
-                        group.write = false
+                        user.execute = true
+                        group.execute = true
                         other {
-                            execute = false
+                            write = true
                         }
                     }
                }
@@ -413,7 +408,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run 'copy'
 
         then:
-        assertDestinationFilePermissions("r--r-xrw-")
+        assertDestinationFilePermissions("r-xr-xrw-")
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
@@ -428,18 +423,13 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
                into("dest")
                eachFile {
                     permissions {
-                        all {
-                            read.set(true)
-                            write.set(true)
-                            execute.set(true)
-                        }
                         user {
                             write.set(false)
                         }
-                        user.execute.set(false)
-                        group.write.set(false)
+                        user.execute.set(true)
+                        group.execute.set(true)
                         other {
-                            execute.set(false)
+                            write.set(true)
                         }
                     }
                }
@@ -450,7 +440,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run 'copy'
 
         then:
-        assertDestinationFilePermissions("r--r-xrw-")
+        assertDestinationFilePermissions("r-xr-xrw-")
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
@@ -459,11 +449,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         withSourceFiles("r--------")
         buildScript """
             def p = project.services.get(FileSystemOperations).directoryPermissions {
-                all {
-                    read = true
-                    write = true
-                    execute = true
-                }
                 user {
                     write = false
                 }
@@ -486,7 +471,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
         run 'copy'
 
         then:
-        assertDestinationFilePermissions("r--r-xrw-")
+        assertDestinationFilePermissions("r-xr-xrw-")
 
         where:
         description         | setting

@@ -74,13 +74,6 @@ public class DefaultFileAccessPermissions implements FileAccessPermissionsIntern
     }
 
     @Override
-    public void all(Action<? super FileAccessPermission> configureAction) {
-        configureAction.execute(user);
-        configureAction.execute(group);
-        configureAction.execute(other);
-    }
-
-    @Override
     public void unix(String permissions) {
         try {
             if (permissions == null) {
