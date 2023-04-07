@@ -16,12 +16,17 @@
 
 package org.gradle.internal.instrumentation.model;
 
-import java.util.List;
+import org.objectweb.asm.Type;
 
-public interface CallableInfo {
-    CallableKindInfo getKind();
-    CallableOwnerInfo getOwner();
-    String getCallableName();
-    CallableReturnTypeInfo getReturnType();
-    List<ParameterInfo> getParameters();
+public class CallableReturnTypeInfo {
+
+    private final Type type;
+
+    public CallableReturnTypeInfo(Type type) {
+        this.type = type;
+    }
+
+    public Type getType() {
+        return type;
+    }
 }

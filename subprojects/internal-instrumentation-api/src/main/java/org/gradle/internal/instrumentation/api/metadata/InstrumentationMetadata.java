@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.model;
+package org.gradle.internal.instrumentation.api.metadata;
 
-import java.util.List;
-
-public interface CallableInfo {
-    CallableKindInfo getKind();
-    CallableOwnerInfo getOwner();
-    String getCallableName();
-    CallableReturnTypeInfo getReturnType();
-    List<ParameterInfo> getParameters();
+public interface InstrumentationMetadata {
+    boolean isInstanceOf(String type, String superType);
 }

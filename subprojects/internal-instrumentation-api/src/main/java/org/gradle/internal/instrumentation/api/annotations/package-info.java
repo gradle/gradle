@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.model;
-
-import java.util.List;
-
-public interface CallableInfo {
-    CallableKindInfo getKind();
-    CallableOwnerInfo getOwner();
-    String getCallableName();
-    CallableReturnTypeInfo getReturnType();
-    List<ParameterInfo> getParameters();
-}
+/**
+ * Annotations for generating build logic instrumentation.
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.internal.instrumentation.api.annotations;

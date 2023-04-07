@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.model;
+package org.gradle.internal.instrumentation.api.annotations;
 
-import java.util.List;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface CallableInfo {
-    CallableKindInfo getKind();
-    CallableOwnerInfo getOwner();
-    String getCallableName();
-    CallableReturnTypeInfo getReturnType();
-    List<ParameterInfo> getParameters();
+/**
+ * Marks that a method call on subtypes should also be intercepted
+ */
+@Retention(RetentionPolicy.CLASS)
+@Target(ElementType.METHOD)
+public @interface InterceptInherited {
 }
