@@ -330,6 +330,30 @@ In other types of projects, it will use the same version of Java used by the Gra
 
 For more details, see the [user manual](userguide/codenarc_plugin.html).
 
+### Plugin publishing to the Gradle Plugin Portal
+
+Version [1.2.0](https://plugins.gradle.org/plugin/com.gradle.plugin-publish/1.2.0) of the `com.gradle.plugin-publish` plugin is now available.
+It is required to benefit from the features and bugfixes listed below.
+
+See [documentation](userguide/publishing_gradle_plugins.html) for more details.
+
+#### Dry run for publishing plugins
+
+A new option is added to `publishPlugins` task.
+You can validate your plugins before actually publishing them using the `--validate-only` flag:
+
+```sh
+$ ./gradlew publishPlugins --validate-only
+```
+
+#### Sigstore signing support
+
+With a [plugin](https://plugins.gradle.org/plugin/dev.sigstore.sign) for doing sigstore signing, the portal accepts `*.sigstore` bundle files as an alternate signing solution.
+
+#### Shadow plugin integration fixes
+
+The bug in integration with Shadow plugin that caused JAR manifest to contain Gradle API jars has been fixed.
+
 <a name="other"></a>
 ### Other Improvements
 
@@ -446,7 +470,6 @@ Some IDE vendors worked around this shortcoming by setting the log level in othe
 The [Tooling API](userguide/third_party_integration.html#embedding) now honors the `org.gradle.logging.loglevel` setting in the project's `gradle.properties` and applies it as expected to builds started from the IDE.
 
 Learn more about [changing log levels](userguide/logging.html#sec:choosing_a_log_level) in the user manual.
-
 
 ## Promoted features
 
