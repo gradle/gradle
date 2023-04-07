@@ -84,6 +84,9 @@ public interface FileAccessPermissions {
      * <p>
      * See the examples below.
      * <p>
+     * NOTE: providing the 3 numeric digits can also be done in the octal literal form, so "0740" will
+     * be handled identically to "740".
+     * <p>
      * The SYMBOLIC notation consists of 3 sets of 3 characters. The 1st set represents the OWNER,
      * the 2nd set represents the GROUP, the 3rd set represents OTHER users.
      * <p>

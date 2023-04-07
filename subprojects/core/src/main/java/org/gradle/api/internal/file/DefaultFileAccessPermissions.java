@@ -86,19 +86,17 @@ public class DefaultFileAccessPermissions implements FileAccessPermissionsIntern
             if (permissions == null) {
                 throw new IllegalArgumentException("A value must be specified.");
             }
-            String trimmedPermissions = permissions.trim();
-            if (trimmedPermissions.length() == 3) {
-                int unixNumeric = toUnixNumericPermissions(trimmedPermissions);
+            String normalizedPermissions = normalizeUnixPermissions(permissions);
+            if (normalizedPermissions.length() == 3) {
+                int unixNumeric = toUnixNumericPermissions(normalizedPermissions);
                 fromUnixNumeric(unixNumeric);
-            } else if (trimmedPermissions.length() == 9) {
-                fromUnixSymbolic(trimmedPermissions);
+            } else if (normalizedPermissions.length() == 9) {
+                fromUnixSymbolic(normalizedPermissions);
             } else {
                 throw new IllegalArgumentException("Trimmed length must be either 3 (for numeric notation) or 9 (for symbolic notation).");
             }
-
         } catch (IllegalArgumentException cause) {
             throw new InvalidUserDataException((permissions == null ? "Null" : "'" + permissions + "'") + " isn't a proper Unix permission. " + cause.getMessage());
-            //TODO: is this the right type to throw?
         }
     }
 
@@ -121,8 +119,12 @@ public class DefaultFileAccessPermissions implements FileAccessPermissionsIntern
         other.fromUnixSymbolic(unixSymbolic.substring(6, 9));
     }
 
-    private static int toUnixNumericPermissions(int user, int group, int other) {
-        return 64 * user + 8 * group + other;
+    private static String normalizeUnixPermissions(String permissions) {
+        String trimmed = permissions.trim();
+        if (trimmed.length() == 4 && trimmed.startsWith("0")) {
+            return trimmed.substring(1);
+        }
+        return trimmed;
     }
 
     private static int toUnixNumericPermissions(String permissions) {

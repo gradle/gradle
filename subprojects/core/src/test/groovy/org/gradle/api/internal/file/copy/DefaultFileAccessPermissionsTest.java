@@ -59,7 +59,16 @@ public class DefaultFileAccessPermissionsTest {
                 }
             }
         }
+    }
+
+    @Test
+    public void unixPermissionInNumericNotation_whitespaceIsTrimmed() {
         assertEquals(0754, newUnixPermission("  754   ").toUnixNumeric());
+    }
+
+    @Test
+    public void unixPermissionInNumericNotation_octalLiteralIsAccepted() {
+        assertEquals(0754, newUnixPermission("0754").toUnixNumeric());
     }
 
     @Test
@@ -73,6 +82,10 @@ public class DefaultFileAccessPermissionsTest {
                 }
             }
         }
+    }
+
+    @Test
+    public void unixPermissionInSymbolicNotation_whitespaceIsTrimmed() {
         assertEquals(0754, newUnixPermission("  rwxr-xr--   ").toUnixNumeric());
     }
 
