@@ -195,7 +195,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         output.contains('Some non-buildable components were not shown, use --non-buildable or --all to show them.')
     }
 
-    @ToBeFixedForConfigurationCache(because = "native tasks")
     def "displays dependents across projects in a build"() {
         given:
         settingsFile.text = multiProjectSettings()
@@ -221,7 +220,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     @IgnoreIf({ GradleContextualExecuter.isParallel() })
-    @ToBeFixedForConfigurationCache(because = ":dependentComponents")
     def "can show dependent components in parallel"() {
         given: 'a multiproject build'
         settingsFile.text = multiProjectSettings()
@@ -399,7 +397,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             '''.stripIndent().trim()
     }
 
-    @ToBeFixedForConfigurationCache(because = "native tasks")
     def "circular dependencies across projects are handled gracefully"() {
         given:
         settingsFile.text = multiProjectSettings()

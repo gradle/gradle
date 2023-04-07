@@ -85,6 +85,7 @@ internal
 class ResidualProgramCompiler(
     private val outputDir: File,
     private val jvmTarget: JavaVersion,
+    private val allWarningsAsErrors: Boolean,
     private val classPath: ClassPath = ClassPath.EMPTY,
     private val originalSourceHash: HashCode,
     private val programKind: ProgramKind,
@@ -486,7 +487,8 @@ class ResidualProgramCompiler(
         LDC(programTarget.name + "/" + programKind.name + "/stage2")
         // Move HashCode value to a static field so it's cached across invocations
         loadHashCode(originalSourceHash)
-        if (requiresAccessors()) emitAccessorsClassPathForScriptHost() else GETSTATIC(ClassPath::EMPTY)
+        if (requiresSecondStageAccessors(programTarget, programKind)) emitAccessorsClassPathForScriptHost()
+        else GETSTATIC(ClassPath::EMPTY)
         invokeHost(
             ExecutableProgram.Host::evaluateSecondStageOf.name,
             "(" +
@@ -498,6 +500,10 @@ class ResidualProgramCompiler(
                 ")V"
         )
     }
+
+    private
+    fun requiresSecondStageAccessors(programTarget: ProgramTarget, programKind: ProgramKind) =
+        programTarget == ProgramTarget.Project && programKind == ProgramKind.TopLevel
 
     private
     val stagedProgram = Type.getType(ExecutableProgram.StagedProgram::class.java)
@@ -524,10 +530,6 @@ class ResidualProgramCompiler(
         Type.getType(ProgramTarget::class.java),
         Type.getType(ClassPath::class.java)
     )
-
-    private
-    fun requiresAccessors() =
-        requiresAccessors(programTarget, programKind)
 
     private
     fun MethodVisitor.emitAccessorsClassPathForScriptHost() {
@@ -713,7 +715,7 @@ class ResidualProgramCompiler(
                 scriptFile,
                 scriptDefinition,
                 compileClassPath.asFiles,
-                messageCollectorFor(logger) { path ->
+                messageCollectorFor(logger, allWarningsAsErrors) { path ->
                     if (path == scriptFile.path) originalPath
                     else path
                 }
@@ -789,8 +791,3 @@ class ResidualProgramCompiler(
     fun implicitReceiverOf(template: KClass<*>) =
         template.annotations.filterIsInstance<ImplicitReceiver>().map { it.type }.firstOrNull()
 }
-
-
-internal
-fun requiresAccessors(programTarget: ProgramTarget, programKind: ProgramKind) =
-    programTarget == ProgramTarget.Project && programKind == ProgramKind.TopLevel

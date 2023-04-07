@@ -78,7 +78,7 @@ public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentatio
             if (request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class).isPresent()) {
                 CallableInfo callable = request.getInterceptedCallable();
                 if (callable.getKind() == CallableKindInfo.AFTER_CONSTRUCTOR) {
-                    constructorRequests.computeIfAbsent(request.getInterceptedCallable().getOwner(), key -> new ArrayList<>()).add(request);
+                    constructorRequests.computeIfAbsent(request.getInterceptedCallable().getOwner().getType(), key -> new ArrayList<>()).add(request);
                 } else {
                     String nameKey = callable.getKind() == CallableKindInfo.GROOVY_PROPERTY
                         ? "get" + TextUtil.capitalize(callable.getCallableName())

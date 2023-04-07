@@ -144,6 +144,7 @@ Then force push your branch:
 The Gradle build uses [Java Toolchain](https://docs.gradle.org/current/userguide/toolchains.html) support to compile and execute tests across multiple versions of Java.
 
 Available JDKs on your machine are automatically detected and wired for the various compile and test tasks.
+Some tests require multiple JDKs to be installed on your computer, be aware of this if you make changes related to anything toolchains related.
 
 If you want to explicitly run tests with a different Java version, you need to specify `-PtestJavaVersion=#` with the major version of the JDK you want the tests to run with (e.g. `-PtestJavaVersion=14`).
 
@@ -157,7 +158,7 @@ To disable the configuration cache, run the build with `--no-configuration-cache
 
 Tasks known to have problems are listed in the build logic. You can find this list at:
 
-    build-logic-settings/build-logic-settings-plugin/src/main/kotlin/gradlebuild.internal.cc-experiment.settings.gradle.kts
+    build-logic/root-build/src/main/kotlin/gradlebuild.internal.cc-experiment.gradle.kts
 
 If you discover a task that doesn't work with the configuration but it not in this list, please add it.
 

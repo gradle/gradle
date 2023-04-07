@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Unroll
 
@@ -38,8 +39,9 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         }
 
         task checkState {
+            def files = configurations.internal
             doLast {
-                configurations.internal.resolve()
+                files.files
             }
         }
 
@@ -98,9 +100,9 @@ This method is only meant to be called on configurations which allow the (non-de
         role                      | code
         'consume or publish only' | 'canBeResolved = false'
         'bucket'                  | 'canBeResolved = false; canBeConsumed = false'
-
     }
 
+    @ToBeFixedForConfigurationCache(because = "Uses Configuration API")
     @Unroll("cannot resolve a configuration with role #role using #method")
     def "cannot resolve a configuration which is for publishing only"() {
         given:
@@ -162,7 +164,8 @@ This method is only meant to be called on configurations which allow the (non-de
             }
 
             task check {
-                doLast { configurations.compile.resolve() }
+                def files = configurations.compile
+                doLast { files.files }
             }
         }
         project(':b') {
@@ -201,7 +204,8 @@ This method is only meant to be called on configurations which allow the (non-de
             }
 
             task check {
-                doLast { configurations.compile.resolve() }
+                def files = configurations.compile
+                doLast { files.files }
             }
         }
         project(':b') {

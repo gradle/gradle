@@ -317,7 +317,8 @@ If multiple incompatible Gradle versions are in play, all should be used when se
 
 | `modules-2`           | `files-2.1`           | `metadata-2.97`           | Gradle 6.8 to Gradle 7.4
 | `modules-2`           | `files-2.1`           | `metadata-2.99`           | Gradle 7.5 to Gradle 7.6
-| `modules-2`           | `files-2.1`           | `metadata-2.100`          | Gradle 8.0 and above
+| `modules-2`           | `files-2.1`           | `metadata-2.100`          | Gradle 8.0
+| `modules-2`           | `files-2.1`           | `metadata-2.105`          | Gradle 8.1 and above
 |===
 
 [[sub:shared-readonly-cache]]

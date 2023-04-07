@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 
@@ -302,6 +303,7 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         ]
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "two configurations can use the same repositories with filtering and do not interfere with each other"() {
         def mod = mavenHttpRepo.module('org', 'foo', '1.0').publish()
 

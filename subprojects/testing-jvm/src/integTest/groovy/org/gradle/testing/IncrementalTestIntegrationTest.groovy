@@ -101,7 +101,7 @@ public class BarTest {
         file("build.gradle") << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:4.13' }
+            dependencies { testImplementation '$testJunitCoordinates' }
             test.beforeTest { println "executed " + it }
         """
 

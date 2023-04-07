@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.gmm
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 
@@ -213,6 +214,7 @@ class GradleModuleMetadataAvailableAtIntegrationTest extends AbstractModuleDepen
         }
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "resolution result can tell if a dependency is for an available-at variant"() {
         given:
         repository {
@@ -274,6 +276,7 @@ class GradleModuleMetadataAvailableAtIntegrationTest extends AbstractModuleDepen
         }
     }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "resolution result ignores an ignored available-at variant"() {
         given:
         repository {

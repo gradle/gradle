@@ -494,4 +494,40 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         then:
         succeeds ':checkDeps'
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/24426")
+    def "can use version catalogs in buildscript block of applied script"() {
+
+        given:
+        def lib = mavenHttpRepo.module('org.gradle.test', 'lib', '1.1').publish()
+        settingsKotlinFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create("libs") {
+                        library("my-lib", "org.gradle.test:lib:1.1")
+                    }
+                }
+            }
+        """
+        buildKotlinFile << """
+            apply(from = "applied.gradle.kts")
+        """
+        file("applied.gradle.kts") << """
+            buildscript {
+                dependencies {
+                    classpath(libs.my.lib)
+                }
+                repositories {
+                    maven(url = "${mavenHttpRepo.uri}")
+                }
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+
+        then:
+        succeeds ':help'
+    }
 }

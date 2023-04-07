@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.locking
 
 import org.gradle.api.artifacts.dsl.LockMode
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 abstract class AbstractLockingIntegrationTest extends AbstractDependencyResolutionTest {
@@ -174,7 +175,8 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
     }
 
-    def 'does not write lock file when build fails'() {
+    @ToBeFixedForConfigurationCache(because = "Does actually write the lock file when CC is enabled (which is fine, because all dependency resolution has completed successfully by the time the task fails)")
+    def 'does not write lock file when task execution fails'() {
         mavenRepo.module('org', 'bar', '1.1').publish()
 
         buildFile << """
@@ -201,6 +203,44 @@ task copyDeps(type: Copy) {
     doLast {
         throw new RuntimeException("Build failed")
     }
+}
+"""
+
+        when:
+        fails 'copyDeps', '--write-locks'
+
+        then:
+        lockfileFixture.expectLockStateMissing('conf')
+    }
+
+    def 'does not write lock file when dependency resolution fails'() {
+        mavenRepo.module('org', 'bar', '1.1').publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    conf {
+        beforeResolve {
+            throw new RuntimeException("Build failed")
+        }
+    }
+}
+
+dependencies {
+    conf 'org:bar:1.+'
+}
+
+task copyDeps(type: Copy) {
+    from configurations.conf
+    into "\$buildDir/output"
 }
 """
 
