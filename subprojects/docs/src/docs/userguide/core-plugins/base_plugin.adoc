@@ -57,10 +57,11 @@ Removes the <<incremental_build.adoc#sec:task_inputs_outputs,defined outputs>> o
 The Base Plugin adds no <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configurations for dependencies>>, but it does add the following configurations:
 
 `default`::
-A fallback configuration used by consumer projects. Let's say you have project B with a <<declaring_dependencies.adoc#sub:project_dependencies,project dependency>> on project A. Gradle uses some internal logic to determine which of project A's artifacts and dependencies are added to the specified configuration of project B. If no other factors apply — you don't need to worry what these are — then Gradle falls back to using everything in project A's `default` configuration.
+A fallback configuration used when dependency resolution is performed without request attributes.
 +
 *New builds and plugins should not be using the `default` configuration!*
 It remains solely for backwards compatibility.
+Dependency resolution should be performed with request attributes.
 
 `archives`::
 All artifacts defined on the `archives` configuration are automatically built by the `assemble` task.
