@@ -23,11 +23,6 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
     TestSourceFixture testSources = new TestSourceFixture()
 
     abstract TestSourceGenerator getTestSourceGenerator()
-    abstract List<String> getTestFrameworkImplementationDependencies()
-    abstract List<String> getTestFrameworkRuntimeDependencies()
-    abstract String includeCategoryOrTag(String categoryOrTag)
-    abstract String excludeCategoryOrTag(String categoryOrTag)
-    abstract String getTestFrameworkConfigurationMethod()
     abstract String getSingularCategoryOrTagName()
     abstract String getPluralCategoryOrTagName()
 

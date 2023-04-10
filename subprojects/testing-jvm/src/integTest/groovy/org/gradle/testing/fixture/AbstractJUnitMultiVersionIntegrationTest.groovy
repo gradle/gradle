@@ -19,7 +19,37 @@ package org.gradle.testing.fixture
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 
 abstract class AbstractJUnitMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
+    abstract BuildScriptConfiguration getBuildScriptConfiguration()
+
+    List<String> getTestFrameworkImplementationDependencies() {
+        return buildScriptConfiguration.testFrameworkImplementationDependencies
+    }
+
+    List<String> getTestFrameworkRuntimeDependencies() {
+        return buildScriptConfiguration.testFrameworkRuntimeDependencies
+    }
+
+    String getTestFrameworkConfigurationMethod() {
+        return buildScriptConfiguration.testFrameworkConfigurationMethod
+    }
+
+    String includeCategoryOrTag(String categoryOrTag) {
+        return "${buildScriptConfiguration.includeCategoryOrTagConfigurationElement} '${categoryOrTag}'"
+    }
+
+    String excludeCategoryOrTag(String categoryOrTag) {
+        return "${buildScriptConfiguration.excludeCategoryOrTagConfigurationElement} '${categoryOrTag}'"
+    }
+
     def setup() {
         executer.withRepositoryMirrors()
+    }
+
+    interface BuildScriptConfiguration {
+        List<String> getTestFrameworkImplementationDependencies()
+        List<String> getTestFrameworkRuntimeDependencies()
+        String getTestFrameworkConfigurationMethod()
+        String getIncludeCategoryOrTagConfigurationElement()
+        String getExcludeCategoryOrTagConfigurationElement()
     }
 }

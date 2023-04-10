@@ -16,31 +16,40 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testing.fixture.JUnitCoverage
-import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
+import org.gradle.testing.fixture.AbstractJUnitMultiVersionIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
-import static org.gradle.testing.fixture.JUnitCoverage.NEWEST
+abstract class AbstractTestTaskIntegrationTest extends AbstractJUnitMultiVersionIntegrationTest {
+    def setup() {
+        buildFile << """
+            allprojects {
+                apply plugin: 'java'
 
-@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
-class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
+                repositories {
+                    mavenCentral()
+                }
+
+                dependencies {
+                    ${testFrameworkDependencies}
+                }
+
+                test.${configureTestFramework}
+            }
+        """
+    }
 
     @Issue("GRADLE-2702")
     @ToBeFixedForConfigurationCache(because = "early dependency resolution")
     def "should not resolve configuration results when there are no tests"() {
+        given:
         buildFile << """
-            apply plugin: 'java'
-
-            configurations.all { 
+            configurations.all {
                 if (it.canBeResolved) {
-                    incoming.beforeResolve { throw new RuntimeException() } 
+                    incoming.beforeResolve { throw new RuntimeException() }
                 }
             }
         """
@@ -53,7 +62,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     def "test task is skipped when there are no tests"() {
-        buildFile << "apply plugin: 'java'"
+        given:
         file("src/test/java/not_a_test.txt")
 
         when:
@@ -68,7 +77,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         given:
         buildFile << java9Build()
 
-        file('src/test/java/MyTest.java') << standaloneTestClass()
+        file('src/test/java/MyTest.java') << standaloneTestClass
 
         when:
         succeeds 'test'
@@ -86,7 +95,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         given:
         buildFile << java9Build()
 
-        file('src/test/java/MyTest.java') << standaloneTestClass()
+        file('src/test/java/MyTest.java') << standaloneTestClass
         file('src/main/java/com/acme/Foo.java') << '''package com.acme;
             public class Foo {}
         '''
@@ -116,9 +125,6 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         and:
         buildFile << """
-            apply plugin: 'java'
-            ${mavenCentralRepository()}
-            dependencies { testImplementation '$testJunitCoordinates' }
             test {
                 maxParallelForks = $maxParallelForks
             }
@@ -140,13 +146,9 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Requires(TestPrecondition.ONLINE)
     def "re-runs tests when resources are renamed in a jar"() {
+        given:
         buildFile << """
-            allprojects {
-                apply plugin: 'java'
-                ${mavenCentralRepository()}
-            }
             dependencies {
-                testImplementation '$testJunitCoordinates'
                 testImplementation project(":dependency")
             }
         """
@@ -154,12 +156,12 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             include 'dependency'
         """
         file("src/test/java/MyTest.java") << """
-            import org.junit.*;
+            import ${importAll};
 
             public class MyTest {
                @Test
                public void test() {
-                  Assert.assertNotNull(getClass().getResource("dependency/foo.properties"));
+                  ${assertOrAssertions}.assertNotNull(getClass().getResource("dependency/foo.properties"));
                }
             }
         """.stripIndent()
@@ -182,21 +184,14 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Requires(TestPrecondition.ONLINE)
     def "re-runs tests when resources are renamed"() {
-        buildFile << """
-            apply plugin: 'java'
-            ${mavenCentralRepository()}
-
-            dependencies {
-                testImplementation '$testJunitCoordinates'
-            }
-        """
+        given:
         file("src/test/java/MyTest.java") << """
-            import org.junit.*;
+            import ${importAll};
 
             public class MyTest {
                @Test
                public void test() {
-                  Assert.assertNotNull(getClass().getResource("dependency/foo.properties"));
+                  ${assertOrAssertions}.assertNotNull(getClass().getResource("dependency/foo.properties"));
                }
             }
         """.stripIndent()
@@ -219,7 +214,8 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/3627")
     def "can reference properties from TestTaskReports when using @CompileStatic"() {
-        buildFile << """
+        given:
+        buildFile.text = """
             import groovy.transform.CompileStatic
 
             @CompileStatic
@@ -243,16 +239,9 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     def "reports failure of TestExecuter regardless of filters"() {
         given:
-        file('src/test/java/MyTest.java') << standaloneTestClass()
+        file('src/test/java/MyTest.java') << standaloneTestClass
         buildFile << """
             import org.gradle.api.internal.tasks.testing.*
-
-            apply plugin: 'java'
-
-            ${mavenCentralRepository()}
-            dependencies {
-                testImplementation 'junit:junit:${NEWEST}'
-            }
 
             test {
                 doFirst {
@@ -287,117 +276,37 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         extraArgs << [[], ["--tests", "MyTest"]]
     }
 
-    def "test framework can be set to the same value (#frameworkName) twice"() {
+    def "test framework can be set to the same value twice"() {
         given:
-        file('src/test/java/MyTest.java') << (isJUnit4() ? standaloneTestClass() : junitJupiterStandaloneTestClass())
-
-        def useMethod = isJUnitPlatform() ? "useJUnitPlatform()" : "useJUnit()"
-
-        settingsFile << "rootProject.name = 'Sample'"
-        buildFile << """apply plugin: 'java'
-
-            ${mavenCentralRepository()}
-            dependencies {
-                ${getDependencyBlockContents()}
-            }
-
-            test {
-                ${useMethod}
-                ${useMethod}
-            }
-        """
-
-        expect:
-        succeeds("test")
-    }
-
-    def "options can be set prior to setting same test framework for the default test task"() {
-        ignoreWhenJUnitPlatform()
-
-        given:
-        file('src/test/java/MyTest.java') << standaloneTestClass()
-        file("src/test/java/Slow.java") << """public interface Slow {}"""
-
-        settingsFile << "rootProject.name = 'Sample'"
-        buildFile << """apply plugin: 'java'
-
-            ${mavenCentralRepository()}
-            dependencies {
-                testImplementation 'junit:junit:${NEWEST}'
-            }
-
-            test {
-                options {
-                    excludeCategories = ["Slow"]
-                }
-                useJUnit()
-            }
-        """.stripIndent()
-
-        expect:
-        succeeds("test")
-    }
-
-    def "options can be set prior to setting same test framework for a custom test task"() {
-        ignoreWhenJUnitPlatform()
-
-        given:
-        file('src/customTest/java/MyTest.java') << standaloneTestClass()
-        file("src/customTest/java/Slow.java") << """public interface Slow {}"""
-
-        settingsFile << "rootProject.name = 'Sample'"
-        buildFile << """apply plugin: 'java'
-
-            ${mavenCentralRepository()}
-
-            sourceSets {
-                customTest
-            }
-
-            dependencies {
-                customTestImplementation 'junit:junit:${NEWEST}'
-            }
-
-            tasks.create('customTest', Test) {
-                classpath = sourceSets.customTest.runtimeClasspath
-                testClassesDirs = sourceSets.customTest.output.classesDirs
-                options {
-                    excludeCategories = ["Slow"]
-                }
-                useJUnit()
-            }
-        """.stripIndent()
-
-        expect:
-        succeeds("customTest")
-    }
-
-    def "options configured after setting test framework works"() {
-        given:
-        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
+        file('src/test/java/MyTest.java') << standaloneTestClass
 
         settingsFile << "rootProject.name = 'Sample'"
         buildFile << """
-            import org.gradle.api.internal.tasks.testing.*
-
-            apply plugin: 'java'
-
-            ${mavenCentralRepository()}
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
-                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-            }
-
             test {
-                useJUnitPlatform()
+                $configureTestFramework
+                $configureTestFramework
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds("test")
+    }
+
+    def "options configured after setting test framework"() {
+        given:
+        file('src/test/java/MyTest.java') << standaloneTestClass
+
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """
+            test {
                 options {
-                    excludeTags = ["Slow"]
+                    ${excludeCategoryOrTag("MyTest\$Slow")}
                 }
             }
 
             tasks.register('verifyTestOptions') {
                 doLast {
-                    assert tasks.getByName("test").getOptions().getExcludeTags().contains("Slow")
+                    assert tasks.getByName("test").getOptions().${buildScriptConfiguration.excludeCategoryOrTagConfigurationElement}.contains("MyTest\\\$Slow")
                 }
             }
         """.stripIndent()
@@ -408,10 +317,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     def "setForkEvery null emits deprecation warning"() {
         given:
-        buildScript """
-            plugins {
-                id 'java'
-            }
+        buildFile << """
             tasks.withType(Test).configureEach {
                 forkEvery = null
             }
@@ -426,10 +332,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     def "setForkEvery Long emits deprecation warning"() {
         given:
-        buildScript """
-            plugins {
-                id 'java'
-            }
+        buildFile << """
             tasks.withType(Test).configureEach {
                 setForkEvery(Long.valueOf(1))
             }
@@ -442,52 +345,13 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         succeeds "test", "--dry-run"
     }
 
-    private static String standaloneTestClass() {
-        return testClass('MyTest')
-    }
-
-    private static String testClass(String className) {
-        return """
-            import org.junit.*;
-
-            public class $className {
-               @Test
-               public void test() {
-                  System.out.println(System.getProperty("java.version"));
-                  Assert.assertEquals(1,1);
-               }
-            }
-        """.stripIndent()
-    }
-
-    private static String junitJupiterStandaloneTestClass() {
-        return junitJupiterTestClass('MyTest')
-    }
-
-    private static String junitJupiterTestClass(String className) {
-        return """
-            import org.junit.jupiter.api.*;
-
-            public class $className {
-               @Test
-               public void test() {
-                  System.out.println(System.getProperty("java.version"));
-                  Assertions.assertEquals(1,1);
-               }
-            }
-        """.stripIndent()
-    }
+    abstract String getStandaloneTestClass()
+    abstract String testClass(String className)
+    abstract String getImportAll()
+    abstract String getAssertOrAssertions()
 
     private String java9Build() {
         """
-            apply plugin: 'java'
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                testImplementation '$testJunitCoordinates'
-            }
-
             java {
                 sourceCompatibility = 1.9
                 targetCompatibility = 1.9

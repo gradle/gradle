@@ -14,37 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit
+package org.gradle.testing.junit4
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.junit.AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.CATEGORIES
 
-@TargetCoverage({CATEGORIES})
-class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest {
-    String testFrameworkConfigurationMethod = "useJUnit()"
+@TargetCoverage({ CATEGORIES })
+class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest implements JUnit4MultiVersionTest {
     String singularCategoryOrTagName = "category"
     String pluralCategoryOrTagName = "categories"
-
-    @Override
-    List<String> getTestFrameworkImplementationDependencies() {
-        return ["junit:junit:${version}"]
-    }
-
-    @Override
-    List<String> getTestFrameworkRuntimeDependencies() {
-        return []
-    }
-
-    @Override
-    String includeCategoryOrTag(String categoryOrTag) {
-        return "includeCategories '$categoryOrTag'"
-    }
-
-    @Override
-    String excludeCategoryOrTag(String categoryOrTag) {
-        return "excludeCategories '$categoryOrTag'"
-    }
 
     @Override
     boolean supportsCategoryOnNestedClass() {
