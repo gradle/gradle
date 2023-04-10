@@ -16,8 +16,27 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.service.ServiceRegistry;
 
 public interface WorkerTestClassProcessorFactory {
     TestClassProcessor create(ServiceRegistry serviceRegistry);
+
+    /**
+     * defines test-class stealing strategy:
+     * <ul>
+     *     <li>UNSUPPORTED: discard stealer (return null)</li>
+     *     <li>TESTWORKER: just return stealer<br>
+     *          stealing will be handled by {@link org.gradle.api.internal.tasks.testing.worker.TestWorker TestWorker}<br<
+     *          {@link TestClassProcessor#processTestClass} called by {@link org.gradle.api.internal.tasks.testing.worker.TestWorker TestWorker} must be run synchron</li>
+     *     <li>DElEGATED: return null, but store stealer to be used at the appropriate point </li>
+     * </ul>
+     *
+     * will be called before create, but only if stealer is not null
+     *
+     * @return TestClassStealer to be used by {@link org.gradle.api.internal.tasks.testing.worker.TestWorker TestWorker}
+     */
+    @Internal
+    RemoteTestClassStealer buildWorkerStealer(RemoteTestClassStealer stealer);
+
 }

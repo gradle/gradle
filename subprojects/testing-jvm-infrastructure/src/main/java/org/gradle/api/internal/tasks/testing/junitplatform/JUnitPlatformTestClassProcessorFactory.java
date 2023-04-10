@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
+import org.gradle.api.internal.tasks.testing.RemoteTestClassStealer;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.UncheckedException;
@@ -50,5 +51,10 @@ class JUnitPlatformTestClassProcessorFactory implements WorkerTestClassProcessor
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    @Override
+    public RemoteTestClassStealer buildWorkerStealer(RemoteTestClassStealer stealer) {
+        return null; // currently not supported, planned to delegate
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestClassStealer;
 
 /**
  * @see org.gradle.api.internal.tasks.testing.TestClassProcessor
@@ -36,4 +37,12 @@ public interface RemoteTestClassProcessor {
      * Does not block.
      */
     void stop();
+
+    /** Does not block; test, if testClass is not startet, and send result back to {@link TestClassStealer#handOverTestClass}  */
+    void handOverTestClass(TestClassRunInfo testClass);
+
+    /**
+     * @param result founded stolen test-class as {@link RemoteStealer.HandOverResult#getTestClass()} and is null, if no more left
+     */
+    void handedOver(RemoteStealer.HandOverResult result);
 }

@@ -19,8 +19,10 @@ package org.gradle.api.internal.tasks.testing.detection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.tasks.testing.JvmTestClassStealer;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestClassStealer;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -31,8 +33,8 @@ import org.gradle.api.internal.tasks.testing.processors.PatternMatchTestClassPro
 import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.RunPreviousFailedFirstTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
-import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.worker.ForkedTestClasspath;
+import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
@@ -81,16 +83,19 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final TestFramework testFramework = testExecutionSpec.getTestFramework();
         final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
 
-        ForkedTestClasspath classpath = testClasspathFactory.create(
+        final ForkedTestClasspath classpath = testClasspathFactory.create(
             testExecutionSpec.getClasspath(), testExecutionSpec.getModulePath(),
             testFramework, testExecutionSpec.getTestIsModule()
         );
+        final int maxParallelForks = getMaxParallelForks(testExecutionSpec);
+        final TestClassStealer testClassStealer = // only if not disabled by user, senseless in serialised environment, incompatible with forkEvery > 0
+            testExecutionSpec.isAllowTestClassStealing() && maxParallelForks > 1 && testExecutionSpec.getForkEvery() == 0  ? new JvmTestClassStealer() : null;
 
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             @Override
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(),
-                    classpath, testFramework.getWorkerConfigurationAction(), documentationRegistry);
+                    classpath, testFramework.getWorkerConfigurationAction(), documentationRegistry, testClassStealer);
             }
         };
         final Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {
@@ -102,7 +107,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         processor =
             new PatternMatchTestClassProcessor(testFilter,
                 new RunPreviousFailedFirstTestClassProcessor(testExecutionSpec.getPreviousFailedTestClasses(),
-                    new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
+                    new MaxNParallelTestClassProcessor(maxParallelForks, reforkingProcessorFactory, actorFactory)));
 
         final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
 

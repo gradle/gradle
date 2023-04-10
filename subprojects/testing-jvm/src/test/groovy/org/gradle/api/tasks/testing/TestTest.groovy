@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+//file:noinspection ConfigurationAvoidance
+
 package org.gradle.api.tasks.testing
 
 import org.gradle.api.InvalidUserDataException
@@ -23,6 +25,12 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class TestTest extends AbstractProjectBuilderSpec {
+
+    def 'test default values'() {
+        def task = project.tasks.create("test", Test)
+        expect:
+        task.allowTestClassStealing.get() == Boolean.TRUE
+    }
 
     def 'fails if custom executable does not exist'() {
         def task = project.tasks.create("test", Test)

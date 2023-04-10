@@ -31,6 +31,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -180,6 +181,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
+    private final Property<Boolean> allowTestClassStealing;
 
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -201,6 +203,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         javaLauncher.finalizeValueOnRead();
         getDryRun().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
+        allowTestClassStealing = objectFactory.property(Boolean.class).convention(Providers.TRUE);
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -208,6 +211,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         final JavaToolchainService javaToolchainService = getJavaToolchainService();
         Provider<JavaToolchainSpec> executableOverrideToolchainSpec = getProviderFactory().provider(new Callable<JavaToolchainSpec>() {
             @Override
+            @Nullable
             public JavaToolchainSpec call() {
                 return TestExecutableUtils.getExecutableToolchainSpec(Test.this, objectFactory);
             }
@@ -224,6 +228,20 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
                 @Override
                 public void execute(JavaToolchainSpec javaToolchainSpec) {}
             }));
+    }
+
+    /**
+     * Returns if allowed to 'test-class stealing' by already finished processors from processors with unstarted test-classes.<br>
+     * Only used in parallel scenarios and if supported by the testFramework
+     *
+     * @return true, if idle processors can steal work not startet from busy processors, otherwise false
+     *
+     * @since 8.4
+     */
+    @Internal
+    @Incubating
+    public Property<Boolean> getAllowTestClassStealing() {
+        return allowTestClassStealing;
     }
 
     /**
@@ -659,7 +677,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
+        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule, allowTestClassStealing.get());
     }
 
     private void validateExecutableMatchesToolchain() {

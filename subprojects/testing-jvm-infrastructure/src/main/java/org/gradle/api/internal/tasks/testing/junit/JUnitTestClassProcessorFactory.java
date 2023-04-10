@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.internal.tasks.testing.RemoteTestClassStealer;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.actor.ActorFactory;
@@ -39,5 +40,10 @@ class JUnitTestClassProcessorFactory implements WorkerTestClassProcessorFactory,
     @Override
     public TestClassProcessor create(ServiceRegistry serviceRegistry) {
         return new JUnitTestClassProcessor(spec, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), serviceRegistry.get(Clock.class));
+    }
+
+    @Override
+    public RemoteTestClassStealer buildWorkerStealer(RemoteTestClassStealer stealer) {
+        return stealer; // stealing handled by TestWorker
     }
 }

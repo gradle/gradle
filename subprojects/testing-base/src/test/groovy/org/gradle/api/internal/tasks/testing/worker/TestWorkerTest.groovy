@@ -30,15 +30,18 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
-public class TestWorkerTest extends ConcurrentSpec {
+class TestWorkerTest extends ConcurrentSpec {
     @Rule SetSystemProperties properties = new SetSystemProperties()
     def workerContext = Mock(WorkerProcessContext)
     def connection = Mock(ObjectConnection)
     def factory = Mock(WorkerTestClassProcessorFactory)
     def processor = Mock(TestClassProcessor)
     def test = Mock(TestClassRunInfo)
+    def testToSteal = Mock(TestClassRunInfo)
+    def stolenTest = Mock(TestClassRunInfo)
     def resultProcessor = Mock(TestResultProcessor)
-    def worker = new TestWorker(factory)
+    def stealer = Mock(RemoteStealer)
+    def worker = new TestWorker(factory, stealer)
     def serviceRegistry = new DefaultServiceRegistry().add(Clock, Time.clock())
 
     def setup() {
@@ -59,14 +62,18 @@ public class TestWorkerTest extends ConcurrentSpec {
         System.properties['org.gradle.test.worker'] == '<worker-id>'
 
         and:
+        1 * factory.buildWorkerStealer(_) >> { List args -> args[0] }
         1 * factory.create(_) >> processor
         1 * connection.addOutgoing(TestResultProcessor) >> resultProcessor
+        1 * connection.addOutgoing(RemoteStealer) >> stealer
         1 * connection.addIncoming(RemoteTestClassProcessor, worker)
         1 * connection.useParameterSerializers(_)
         1 * connection.connect() >> {
             start {
                 worker.startProcessing()
                 worker.processTestClass(test)
+                worker.handOverTestClass testToSteal
+                worker.processTestClass testToSteal
                 thread.block()
                 instant.stopped
                 worker.stop()
@@ -74,6 +81,13 @@ public class TestWorkerTest extends ConcurrentSpec {
         }
         1 * processor.startProcessing(_)
         1 * processor.processTestClass(test)
+        0 * processor.processTestClass(testToSteal)
+        1 * stealer.remove(test)
+        1 * stealer.handOver(_) >> { List args -> (args[0] as RemoteStealer.HandOverResult).testClass == testToSteal && (args[0] as RemoteStealer.HandOverResult).success }
+        1 * stealer.tryStealing() >> { worker.handedOver new RemoteStealer.HandOverResult(stolenTest, true) }
+        1 * stealer.remove(stolenTest)
+        1 * processor.processTestClass(stolenTest)
+        1 * stealer.tryStealing() >> { worker.handedOver new RemoteStealer.HandOverResult(null, true) }
         1 * processor.stop()
     }
 }

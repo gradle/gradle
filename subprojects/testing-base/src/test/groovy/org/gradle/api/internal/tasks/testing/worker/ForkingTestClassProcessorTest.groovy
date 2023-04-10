@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
+import org.gradle.api.internal.tasks.testing.TestClassStealer
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.remote.ObjectConnection
@@ -29,6 +30,7 @@ import org.gradle.process.internal.ExecException
 import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.process.internal.worker.WorkerProcessBuilder
+import org.gradle.process.internal.worker.WorkerProcessContext
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import spock.lang.Specification
 
@@ -39,14 +41,15 @@ class ForkingTestClassProcessorTest extends Specification {
         addOutgoing(RemoteTestClassProcessor.class) >> remoteProcessor
     }
     WorkerProcess workerProcess = Mock(WorkerProcess) {
-        getConnection() >> connection
+        getConnection() >> this.connection
     }
     WorkerProcessBuilder workerProcessBuilder = Mock(WorkerProcessBuilder) {
         build() >> workerProcess
         getJavaCommand() >> Stub(JavaExecHandleBuilder)
     }
+    TestClassStealer stealer = Mock(TestClassStealer)
     WorkerProcessFactory workerProcessFactory = Stub(WorkerProcessFactory) {
-        create(_) >> workerProcessBuilder
+        create(_ as Action<WorkerProcessContext>) >> workerProcessBuilder
     }
 
     def "acquires worker lease and starts worker process on first test"() {
@@ -62,7 +65,9 @@ class ForkingTestClassProcessorTest extends Specification {
         then:
         1 * workerLeaseRegistry.startWorker()
         1 * remoteProcessor.processTestClass(test1)
+        1 * stealer.add(test1, processor)
         1 * remoteProcessor.processTestClass(test2)
+        1 * stealer.add(test2, processor)
         1 * remoteProcessor.startProcessing()
         0 * remoteProcessor._
     }
@@ -81,10 +86,10 @@ class ForkingTestClassProcessorTest extends Specification {
         processor.forkProcess()
 
         then:
-        1 * workerProcessBuilder.applicationClasspath(_) >> { assert it[0] == appClasspath }
-        1 * workerProcessBuilder.applicationModulePath(_) >> { assert it[0] == appModulepath}
-        1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0] == implClasspath }
-        1 * workerProcessBuilder.setImplementationModulePath(_) >> { assert it[0] == implModulepath }
+        1 * workerProcessBuilder.applicationClasspath(_) >> { List it -> assert it[0] == appClasspath }
+        1 * workerProcessBuilder.applicationModulePath(_) >> { List it ->  assert it[0] == appModulepath}
+        1 * workerProcessBuilder.setImplementationClasspath(_) >> { List it -> assert it[0] == implClasspath }
+        1 * workerProcessBuilder.setImplementationModulePath(_) >> { List it -> assert it[0] == implModulepath }
     }
 
     def "stopNow does nothing when no remote processor"() {
@@ -125,7 +130,7 @@ class ForkingTestClassProcessorTest extends Specification {
     }
 
     def "captures and rethrows unrecoverable exceptions thrown by the connection"() {
-        def handler
+        def handler = null
         def processor = newProcessor()
 
         when:
@@ -133,8 +138,8 @@ class ForkingTestClassProcessorTest extends Specification {
 
         then:
         1 * workerProcess.getConnection() >> Stub(ObjectConnection) {
-            addUnrecoverableErrorHandler(_) >> { args -> handler = args[0] }
-            addOutgoing(_) >> Stub(RemoteTestClassProcessor)
+            addUnrecoverableErrorHandler(_ as Action<Throwable>) >> { List args -> handler = args[0] }
+            addOutgoing(_ as Class<RemoteTestClassProcessor>) >> Stub(RemoteTestClassProcessor)
         }
 
         when:
@@ -158,13 +163,14 @@ class ForkingTestClassProcessorTest extends Specification {
 
         then:
         1 * workerProcess.getConnection() >> Stub(ObjectConnection) {
-            addUnrecoverableErrorHandler(_) >> { args -> handler = args[0] }
-            addOutgoing(_) >> Stub(RemoteTestClassProcessor)
+            addUnrecoverableErrorHandler(_ as Action<Throwable>) >> { List args -> handler = args[0] }
+            addOutgoing(_ as Class<RemoteTestClassProcessor>) >> Stub(RemoteTestClassProcessor)
         }
 
         when:
         processor.stopNow()
         def unexpectedException = new Throwable('BOOM!')
+        handler !=null
         handler.execute(unexpectedException)
 
         and:
@@ -179,7 +185,7 @@ class ForkingTestClassProcessorTest extends Specification {
     ) {
         return new ForkingTestClassProcessor(
             workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestClassProcessorFactory),
-            Stub(JavaForkOptions), classpath, Mock(Action), Mock(DocumentationRegistry)
+            Stub(JavaForkOptions), classpath, Mock(Action), Mock(DocumentationRegistry), stealer
         )
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
@@ -58,6 +59,7 @@ public class TestEventSerializer {
         registry.register(TestStartEvent.class, new TestStartEventSerializer());
         registry.register(TestCompleteEvent.class, new TestCompleteEventSerializer());
         registry.register(DefaultTestOutputEvent.class, new DefaultTestOutputEventSerializer());
+        registry.register(RemoteStealer.HandOverResult.class, new HandOverResultEventSerializer());
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         registry.register(Throwable.class, throwableSerializer);
         registry.register(DefaultTestFailure.class, new DefaultTestFailureSerializer(throwableSerializer));
@@ -110,6 +112,22 @@ public class TestEventSerializer {
         @Override
         public void write(Encoder encoder, DefaultTestClassRunInfo value) throws Exception {
             encoder.writeString(value.getTestClassName());
+        }
+    }
+
+    @NonNullApi
+    private static class HandOverResultEventSerializer implements Serializer<RemoteStealer.HandOverResult> {
+
+        @Override
+        public RemoteStealer.HandOverResult read(Decoder decoder) throws Exception {
+            String className = decoder.readNullableString();
+            return new RemoteStealer.HandOverResult(className == null ? null: new DefaultTestClassRunInfo(className), decoder.readBoolean());
+        }
+
+        @Override
+        public void write(Encoder encoder, RemoteStealer.HandOverResult value) throws Exception {
+            encoder.writeNullableString(value.getTestClass() == null ? null:value.getTestClass().getTestClassName());
+            encoder.writeBoolean(value.isSuccess());
         }
     }
 

@@ -40,8 +40,9 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final int maxParallelForks;
     private final Set<String> previousFailedTestClasses;
     private final boolean testIsModule;
+    private final boolean allowTestClassStealing;
 
-    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule) {
+    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File> modulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule, boolean allowTestClassStealing) {
         this.testFramework = testFramework;
         this.classpath = classpath;
         this.modulePath = modulePath;
@@ -55,6 +56,7 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         this.maxParallelForks = maxParallelForks;
         this.previousFailedTestClasses = previousFailedTestClasses;
         this.testIsModule = testIsModule;
+        this.allowTestClassStealing = allowTestClassStealing;
     }
 
     @SuppressWarnings("unused")
@@ -62,8 +64,8 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     public JvmTestExecutionSpec copyWithTestFramework(TestFramework testFramework) {
         return new JvmTestExecutionSpec(testFramework, this.classpath, this.modulePath, this.candidateClassFiles,
             this.scanForTestClasses, this.testClassesDirs, this.path, this.identityPath, this.forkEvery,
-            this.javaForkOptions, this.maxParallelForks, this.previousFailedTestClasses, this.testIsModule
-        );
+            this.javaForkOptions, this.maxParallelForks, this.previousFailedTestClasses, this.testIsModule,
+            this.allowTestClassStealing);
     }
 
     public TestFramework getTestFramework() {
@@ -118,5 +120,9 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
 
     public boolean getTestIsModule() {
         return testIsModule;
+    }
+
+    public boolean isAllowTestClassStealing() {
+        return allowTestClassStealing;
     }
 }

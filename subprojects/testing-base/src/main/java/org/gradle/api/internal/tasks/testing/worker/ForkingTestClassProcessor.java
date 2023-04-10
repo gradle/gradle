@@ -17,10 +17,13 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import com.google.common.collect.Sets;
+import org.apache.commons.lang.NullArgumentException;
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestClassStealer;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -32,7 +35,11 @@ import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.worker.WorkerProcess;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -45,6 +52,8 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final Lock lock = new ReentrantLock();
     private final WorkerThreadRegistry workerThreadRegistry;
+    @Nullable
+    private final TestClassStealer testClassStealer;
     private RemoteTestClassProcessor remoteProcessor;
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
@@ -54,6 +63,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final Set<Throwable> unrecoverableExceptions = Sets.newHashSet();
 
 
+
     public ForkingTestClassProcessor(
         WorkerThreadRegistry workerThreadRegistry,
         WorkerProcessFactory workerFactory,
@@ -61,7 +71,8 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         JavaForkOptions options,
         ForkedTestClasspath classpath,
         Action<WorkerProcessBuilder> buildConfigAction,
-        DocumentationRegistry documentationRegistry
+        DocumentationRegistry documentationRegistry,
+        @Nullable TestClassStealer testClassStealer
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.workerFactory = workerFactory;
@@ -70,6 +81,12 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         this.classpath = classpath;
         this.buildConfigAction = buildConfigAction;
         this.documentationRegistry = documentationRegistry;
+        this.testClassStealer = testClassStealer;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Processor, worker: %s", workerProcess);
     }
 
     @Override
@@ -95,15 +112,37 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
                     throw e;
                 }
             }
-
+            if (testClassStealer != null) {
+                testClassStealer.add(testClass, this);
+            }
             remoteProcessor.processTestClass(testClass);
         } finally {
             lock.unlock();
         }
     }
 
+    public void handOver(TestClassRunInfo testClass) {
+        if (testClassStealer == null) {
+            throw new IllegalStateException();
+        }
+        lock.lock();
+        try {
+            if (stoppedNow) {
+                testClassStealer.handOverTestClass(this, testClass, false);
+            } else {
+                remoteProcessor.handOverTestClass(testClass);
+            }
+        } catch (Exception e) {
+            // ignore
+            testClassStealer.handOverTestClass(this, testClass, false);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     RemoteTestClassProcessor forkProcess() {
-        WorkerProcessBuilder builder = workerFactory.create(new TestWorker(processorFactory));
+        final RemoteStealer remoteStealer = testClassStealer != null ? new RemoteStealerWorker(this, testClassStealer) : null;
+        WorkerProcessBuilder builder = workerFactory.create(new TestWorker(processorFactory, remoteStealer));
         builder.setBaseName("Gradle Test Executor");
         builder.setImplementationClasspath(classpath.getImplementationClasspath());
         builder.setImplementationModulePath(classpath.getImplementationModulepath());
@@ -120,7 +159,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         connection.useParameterSerializers(TestEventSerializer.create());
         connection.addUnrecoverableErrorHandler(new Action<Throwable>() {
             @Override
-            public void execute(Throwable throwable) {
+            public void execute(@Nonnull Throwable throwable) {
                 lock.lock();
                 try {
                     if (!stoppedNow) {
@@ -132,6 +171,9 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             }
         });
         connection.addIncoming(TestResultProcessor.class, resultProcessor);
+        if (testClassStealer != null) {
+            connection.addIncoming(RemoteStealer.class, remoteStealer);
+        }
         RemoteTestClassProcessor remoteProcessor = connection.addOutgoing(RemoteTestClassProcessor.class);
         connection.connect();
         remoteProcessor.startProcessing();
@@ -151,6 +193,9 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
                     lock.unlock();
                 }
                 workerProcess.waitForStop();
+                if (testClassStealer != null) {
+                    testClassStealer.stopped(this); // release waiting stealer
+                }
             }
         } catch (ExecException e) {
             if (!stoppedNow) {
@@ -189,6 +234,46 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private void maybeRethrowUnrecoverableExceptions() {
         if (!unrecoverableExceptions.isEmpty()) {
             throw new DefaultMultiCauseException("Unexpected errors were encountered while processing test results that may result in some results being incorrect or incomplete.", unrecoverableExceptions);
+        }
+    }
+
+    // theoretical to merge with TestWorker.WorkerTestClassStealer
+    @NonNullApi
+    public static class RemoteStealerWorker implements RemoteStealer {
+        private static final Logger LOGGER = LoggerFactory.getLogger(RemoteStealerWorker.class);
+        private final transient ForkingTestClassProcessor processor;
+        private final transient TestClassStealer testClassStealer;
+
+        private RemoteStealerWorker(ForkingTestClassProcessor processor, TestClassStealer testClassStealer) {
+            this.processor = processor;
+            this.testClassStealer = testClassStealer;
+        }
+
+        @Override
+        public void remove(TestClassRunInfo testClass) {
+            testClassStealer.remove(testClass);
+        }
+
+        @Override
+        public void tryStealing() {
+            testClassStealer.stopped(processor); // ensure not stealing own not removed testClasses
+            final TestClassRunInfo testClass = testClassStealer.trySteal();
+            if (!processor.stoppedNow) {
+                processor.remoteProcessor.handedOver(new HandOverResult(testClass, true));
+            }
+        }
+
+        /**
+         * notify {@link #testClassStealer} about hand over result
+         */
+        @Override
+        public void handOver(HandOverResult result) {
+            LOGGER.debug("RemoteStealerWorker: handOver {}", result);
+            TestClassRunInfo testClass = result.getTestClass();
+            if (testClass == null) {
+                throw new NullArgumentException("result.testClass");
+            }
+            testClassStealer.handOverTestClass(processor, testClass, result.isSuccess());
         }
     }
 }

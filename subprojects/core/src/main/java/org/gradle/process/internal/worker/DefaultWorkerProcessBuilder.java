@@ -255,6 +255,11 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         }
 
         @Override
+        public String toString() {
+            return String.format("MemoryRequesting %s", delegate);
+        }
+
+        @Override
         public WorkerProcess start() {
             memoryResourceManager.requestFreeMemory(memoryAmount);
             return delegate.start();
