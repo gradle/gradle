@@ -297,9 +297,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
      * a {@link ResolvedConfiguration} that may be used to determine information about the resolve (including errors).
-     * 
-     * @implSpec Usage: This method should only be called on resolvable configurations and will emit a deprecation warning if
-     * called on a configuration that does not permit this usage, or has this usage marked as deprecated.
+     *
+     * @implSpec Usage: This method should only be called on resolvable configurations and will fail if
+     * called on a configuration that does not permit this usage.  It should warn if called on a configuration that has
+     * this usage marked as deprecated.
      *
      * @return The ResolvedConfiguration object
      */
