@@ -19,13 +19,10 @@ package org.gradle.integtests.resolve.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
-import spock.lang.Unroll
 
 @FluidDependenciesResolveTest
 class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
-
-    @Unroll("cannot resolve a configuration with role #role at execution time")
-    def "cannot resolve a configuration which is for publishing only at execution time"() {
+    def "cannot resolve a configuration with role #role at execution time"() {
         given:
         buildFile << """
 
@@ -48,17 +45,6 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        if (code == 'canBeResolved = false') {
-            executer.expectDocumentedDeprecationWarning("""Calling configuration method 'resolve()' is deprecated for configuration 'internal', which has permitted usage(s):
-\tConsumable - this configuration can be selected by another project as a dependency
-\tDeclarable Against - this configuration can have dependencies added to it
-This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
-        } else {
-            executer.expectDocumentedDeprecationWarning("""Calling configuration method 'resolve()' is deprecated for configuration 'internal', which has permitted usage(s):
-\tDeclarable Against - this configuration can have dependencies added to it
-This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
-
-        }
         fails 'checkState'
 
         then:
@@ -71,8 +57,7 @@ This method is only meant to be called on configurations which allow the (non-de
 
     }
 
-    @Unroll("cannot resolve a configuration with role #role at configuration time")
-    def "cannot resolve a configuration which is for publishing only at configuration time"() {
+    def "cannot resolve a configuration with role #role at configuration time"() {
         given:
         buildFile << """
 
@@ -103,8 +88,7 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     @ToBeFixedForConfigurationCache(because = "Uses Configuration API")
-    @Unroll("cannot resolve a configuration with role #role using #method")
-    def "cannot resolve a configuration which is for publishing only"() {
+    def "cannot resolve a configuration with role #role using #method"() {
         given:
         buildFile << """
 
@@ -150,8 +134,7 @@ This method is only meant to be called on configurations which allow the (non-de
         ].combinations()
     }
 
-    @Unroll("cannot add a dependency on a configuration role #role")
-    def "cannot add a dependency on a configuration not meant to be consumed or published"() {
+    def "cannot add a dependency on a configuration role #role"() {
         given:
         file('settings.gradle') << 'include "a", "b"'
         buildFile << """
@@ -190,8 +173,7 @@ This method is only meant to be called on configurations which allow the (non-de
         'bucket'                | 'canBeResolved = false; canBeConsumed = false'
     }
 
-    @Unroll("cannot depend on default configuration if it's not consumable (#role)")
-    def "cannot depend on default configuration if it's not consumable"() {
+    def "cannot depend on default configuration if it's not consumable (#role)"() {
         given:
         file('settings.gradle') << 'include "a", "b"'
         buildFile << """
