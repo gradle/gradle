@@ -208,7 +208,11 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
 
         // Configurations that are not declarable should not have dependencies or constraints present,
         // but we need to allow dependencies to be checked to avoid emitting many warnings when the
-        // Kotlin plugin is applied.
+        // Kotlin plugin is applied.  This is because applying the Kotlin plugin adds dependencies
+        // to the testRuntimeClasspath configuration, which is not declarable.
+        // To demonstrate this, add a check for configuration.isCanBeDeclared() && configuration.assertHasNoDeclarations() if not
+        // and run tests such as KotlinDslPluginTest, or the building-kotlin-applications samples and you'll configurations which
+        // aren't declarable against but have declared dependencies present.
         for (Dependency dependency : configuration.getDependencies()) {
             if (dependency instanceof ModuleDependency) {
                 ModuleDependency moduleDependency = (ModuleDependency) dependency;
