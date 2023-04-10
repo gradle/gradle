@@ -38,9 +38,10 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         failureCauseContains(message)
 
         where:
-        role            | methodName                | methodCall    | exceptionType                 | message
-        'consumable'    | 'resolve()'               | "resolve()"   | IllegalStateException.class   | "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'bucket'        | 'resolve()'               | "resolve()"   | IllegalStateException.class   | "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        methodName                | role            | methodCall    || exceptionType                 | message
+        'resolve()'               | 'consumable'    | 'resolve()'   || IllegalStateException.class   | "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'resolve()'               | 'bucket'        | 'resolve()'   || IllegalStateException.class   | "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'files(Closure)'          | 'consumable'    | 'files { }'   || IllegalStateException.class   | "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
     }
 
     def "calling an invalid public API method #methodName for role #role produces a deprecation warning"() {
@@ -57,8 +58,8 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         succeeds('help')
 
         where:
-        role            | methodName                | allowed                                                       | methodCall
-        'bucket'        | 'attributes(Action)'      | [ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE]  | "attributes { attribute(Attribute.of('foo', String), 'bar') }"
+        methodName                | role            | methodCall                                                        || allowed
+        'attributes(Action)'      | 'bucket'        | "attributes { attribute(Attribute.of('foo', String), 'bar') }"    || [ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE]
     }
 
     def "calling an invalid internal API method #methodName for role #role throws an exception"() {
@@ -77,8 +78,8 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         failureCauseContains(buildFailureMessage(methodName, role, allowed))
 
         where:
-        role            | methodName                | allowed                           | methodCall
-        'consumable'    | 'contains(File)'          | [ProperMethodUsage.RESOLVABLE]    | "contains(new File('foo'))"
+        methodName                  | role          | methodCall                                    || allowed
+        'contains(File)'            | 'consumable'  | "contains(new File('foo'))"                   || [ProperMethodUsage.RESOLVABLE]
     }
 
     def "calling deprecated usage produces a deprecation warning"() {
