@@ -34,6 +34,15 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
                     test {
                         useJUnit()
                         targets {
+                            all {
+                                testTask.configure {
+                                    doLast {
+                                        assert testFramework instanceof ${JUnitTestFramework.canonicalName}
+                                        assert classpath.size() == 2
+                                        assert classpath.any { it.name == "junit-${DefaultJvmTestSuite.TestingFramework.JUNIT4.getDefaultVersion()}.jar" }
+                                    }
+                                }
+                            }
                             test17 {
                                 testTask.configure {
                                     javaLauncher = javaToolchains.launcherFor {
@@ -45,18 +54,10 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-
-            [tasks.test, tasks.test17].each { task ->
-                task.doLast {
-                    assert testFramework instanceof ${JUnitTestFramework.canonicalName}
-                    assert classpath.size() == 2
-                    assert classpath.any { it.name == "junit-${DefaultJvmTestSuite.TestingFramework.JUNIT4.getDefaultVersion()}.jar" }
-                }
-            }
         """
 
         when:
-        var result = succeeds("check")
+        succeeds("check")
 
         then:
         result.assertTaskExecuted(":test")
@@ -68,7 +69,6 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             plugins {
                 id 'java'
-                id 'test-report-aggregation'
             }
 
             ${mavenCentralRepository()}
@@ -90,10 +90,10 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        var result = fails("check")
+        fails("check")
 
         then:
-        result.assertThatCause(containsNormalizedString("Cannot add task 'test' as a task with that name already exists."))
+        failure.assertThatCause(containsNormalizedString("Cannot add task 'test' as a task with that name already exists."))
     }
 
     // currently not supported, variants are ambiguous without further information
@@ -125,10 +125,10 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        var result = fails("testAggregateTestReport")
+        fails("testAggregateTestReport")
 
         then:
-        result.assertThatCause(containsNormalizedString("However we cannot choose between the following variants of project"))
+        failure.assertThatCause(containsNormalizedString("However we cannot choose between the following variants of project"))
     }
 
     def "reports of multiple targets can be aggregated if variant information is specified"() {
@@ -168,7 +168,7 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        var result = succeeds("testAggregateTestReport")
+        succeeds("testAggregateTestReport")
 
         then:
         result.assertTaskExecuted(":testAggregateTestReport")
