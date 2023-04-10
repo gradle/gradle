@@ -82,7 +82,6 @@ class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
      * Common method for handling annotations.
      */
     void visitAnnotation(Requires annotation, SpecElementInfo feature) {
-
         def predicateClassNames = annotation.value().collect {
             it.name
         }
