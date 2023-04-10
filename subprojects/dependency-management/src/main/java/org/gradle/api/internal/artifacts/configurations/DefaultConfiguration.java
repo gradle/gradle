@@ -1540,6 +1540,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return identityPath;
     }
 
+    @Override
     public DomainObjectContext getDomainObjectContext() {
         return domainObjectContext;
     }

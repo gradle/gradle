@@ -155,6 +155,14 @@ Publish the plugin by using the `publishPlugin` task.
 $ ./gradlew publishPlugins
 ----
 
+You can validate your plugins before actually publishing them using the `--validate-only` flag:
+
+[listing]
+----
+$ ./gradlew publishPlugins --validate-only
+----
+
+
 If you have not configured your {portal} key and secret values in your `gradle.properties` file, you can specify them on the command-line
 
 [listing]
