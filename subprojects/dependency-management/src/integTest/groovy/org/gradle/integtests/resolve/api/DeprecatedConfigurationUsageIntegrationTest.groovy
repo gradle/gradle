@@ -38,10 +38,19 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         failureCauseContains(message)
 
         where:
-        methodName                | role            | methodCall    || exceptionType                 | message
-        'resolve()'               | 'consumable'    | 'resolve()'   || IllegalStateException.class   | "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'resolve()'               | 'bucket'        | 'resolve()'   || IllegalStateException.class   | "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
-        'files(Closure)'          | 'consumable'    | 'files { }'   || IllegalStateException.class   | "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        methodName                                      | role            | methodCall                                  || message
+        'resolve()'                                     | 'consumable'    | 'resolve()'                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'resolve()'                                     | 'bucket'        | 'resolve()'                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'files(Closure)'                                | 'consumable'    | 'files { }'                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'files(Closure)'                                | 'bucket'        | 'files { }'                                 || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Closure)'                       | 'consumable'    | 'fileCollection { }'                        || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Closure)'                       | 'bucket'        | 'fileCollection { }'                        || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Dependency)'                    | 'consumable'    | 'fileCollection(new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency("org.jsoup", "jsoup", "1.15.3"))'  || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'fileCollection(Dependency)'                    | 'bucket'        | 'fileCollection(new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency("org.jsoup", "jsoup", "1.15.3"))'  || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getResolvedConfiguration()'                    | 'consumable'    | 'getResolvedConfiguration()'               || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getResolvedConfiguration()'                    | 'bucket'        | 'getResolvedConfiguration()'               || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getBuildDependencies()'                        | 'consumable'    | 'getBuildDependencies()'                   || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'getBuildDependencies()'                        | 'bucket'        | 'getBuildDependencies()'                   || "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
     }
 
     def "calling an invalid public API method #methodName for role #role produces a deprecation warning"() {
@@ -58,8 +67,14 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         succeeds('help')
 
         where:
-        methodName                | role            | methodCall                                                        || allowed
-        'attributes(Action)'      | 'bucket'        | "attributes { attribute(Attribute.of('foo', String), 'bar') }"    || [ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE]
+        methodName                                      | role          | methodCall                                                            || allowed
+        'attributes(Action)'                            | 'bucket'      | "attributes { attribute(Attribute.of('foo', String), 'bar') }"        || [ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE]
+        'defaultDependencies(Action)'                   | 'consumable'  | 'defaultDependencies { }'                                             || [ProperMethodUsage.DECLARABLE_AGAINST]
+        'defaultDependencies(Action)'                   | 'resolvable'  | 'defaultDependencies { }'                                             || [ProperMethodUsage.DECLARABLE_AGAINST]
+        'shouldResolveConsistentlyWith(Configuration)'  | 'consumable'  | 'shouldResolveConsistentlyWith(null)'                                 || [ProperMethodUsage.RESOLVABLE]
+        'shouldResolveConsistentlyWith(Configuration)'  | 'bucket'      | 'shouldResolveConsistentlyWith(null)'                                 || [ProperMethodUsage.RESOLVABLE]
+        'disableConsistentResolution()'                 | 'consumable'  | 'disableConsistentResolution()'                                       || [ProperMethodUsage.RESOLVABLE]
+        'disableConsistentResolution()'                 | 'bucket'      | 'disableConsistentResolution()'                                       || [ProperMethodUsage.RESOLVABLE]
     }
 
     def "calling an invalid internal API method #methodName for role #role throws an exception"() {
@@ -78,8 +93,21 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         failureCauseContains(buildFailureMessage(methodName, role, allowed))
 
         where:
-        methodName                  | role          | methodCall                                    || allowed
-        'contains(File)'            | 'consumable'  | "contains(new File('foo'))"                   || [ProperMethodUsage.RESOLVABLE]
+        methodName                          | role          | methodCall                                    || allowed
+        'contains(File)'                    | 'consumable'  | "contains(new File('foo'))"                   || [ProperMethodUsage.RESOLVABLE]
+        'setExcludeRules(Set)'              | 'consumable'  | "setExcludeRules(null)"                       || [ProperMethodUsage.DECLARABLE_AGAINST, ProperMethodUsage.RESOLVABLE]
+        'getConsistentResolutionSource()'   | 'consumable'  | "getConsistentResolutionSource()"             || [ProperMethodUsage.RESOLVABLE]
+        'getConsistentResolutionSource()'   | 'bucket'      | "getConsistentResolutionSource()"             || [ProperMethodUsage.RESOLVABLE]
+        'getDependenciesResolver()'         | 'consumable'  | "getDependenciesResolver()"                   || [ProperMethodUsage.RESOLVABLE]
+        'getDependenciesResolver()'         | 'bucket'      | "getDependenciesResolver()"                   || [ProperMethodUsage.RESOLVABLE]
+        'getResolvedState()'                | 'consumable'  | "getResolvedState()"                          || [ProperMethodUsage.RESOLVABLE]
+        'getResolvedState()'                | 'bucket'      | "getResolvedState()"                          || [ProperMethodUsage.RESOLVABLE]
+        'getSyntheticDependencies()'        | 'consumable'  | "getSyntheticDependencies()"                  || [ProperMethodUsage.RESOLVABLE]
+        'getSyntheticDependencies()'        | 'bucket'      | "getSyntheticDependencies()"                  || [ProperMethodUsage.RESOLVABLE]
+        'resetResolutionState()'            | 'consumable'  | "resetResolutionState()"                      || [ProperMethodUsage.RESOLVABLE]
+        'resetResolutionState()'            | 'bucket'      | "resetResolutionState()"                      || [ProperMethodUsage.RESOLVABLE]
+        'toRootComponentMetaData()'         | 'consumable'  | "toRootComponentMetaData()"                   || [ProperMethodUsage.RESOLVABLE]
+        'toRootComponentMetaData()'         | 'bucket'      | "toRootComponentMetaData()"                   || [ProperMethodUsage.RESOLVABLE]
     }
 
     def "calling deprecated usage produces a deprecation warning"() {
