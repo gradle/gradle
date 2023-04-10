@@ -611,26 +611,24 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public Set<File> files(Dependency... dependencies) {
-        warnOnDeprecatedUsage("files(Dependency...)", ProperMethodUsage.RESOLVABLE);
         return fileCollection(dependencies).getFiles();
     }
 
     @Override
     public Set<File> files(Closure dependencySpecClosure) {
-        warnOnDeprecatedUsage("files(Closure)", ProperMethodUsage.RESOLVABLE);
         return fileCollection(dependencySpecClosure).getFiles();
     }
 
     @Override
     public Set<File> files(Spec<? super Dependency> dependencySpec) {
-        warnOnDeprecatedUsage("files(Spec)", ProperMethodUsage.RESOLVABLE);
         return fileCollection(dependencySpec).getFiles();
     }
 
     @Override
     public FileCollection fileCollection(Spec<? super Dependency> dependencySpec) {
-        warnOnDeprecatedUsage("fileCollection(Spec)", ProperMethodUsage.RESOLVABLE);
         assertIsResolvable();
+        // After asserting, we are definitely allowed, but might be deprecated, so check to warn now
+        warnOnDeprecatedUsage("fileCollection(Spec)", ProperMethodUsage.RESOLVABLE);
         return fileCollectionFromSpec(dependencySpec);
     }
 
@@ -1851,6 +1849,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return configurationAttributes;
     }
 
+    /**
+     * {@inheritDoc}
+     * 
+     * @implNote Usage: This method should only be called on consumable or resolvable configurations and will emit a deprecation warning if
+     * called on a configuration that does not permit this usage, or has had this usage marked as deprecated.
+     */
     @Override
     public Configuration attributes(Action<? super AttributeContainer> action) {
         warnOnDeprecatedUsage("attributes(Action)", ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE);
@@ -2611,11 +2615,13 @@ since users cannot create non-legacy configurations and there is no current publ
             return isAllowed(configuration) && (allowDeprecated || !isDeprecated(configuration));
         }
 
+        public static String buildProperName(ProperMethodUsage usage) {
+            return WordUtils.capitalizeFully(usage.name().replace('_', ' '));
+        }
+
         public static String summarizeProperUsage(ProperMethodUsage... properUsages) {
             return Arrays.stream(properUsages)
-                    .map(ProperMethodUsage::name)
-                    .map(s -> s.replace('_', ' '))
-                    .map(WordUtils::capitalizeFully)
+                    .map(ProperMethodUsage::buildProperName)
                     .collect(Collectors.joining(", "));
         }
     }
