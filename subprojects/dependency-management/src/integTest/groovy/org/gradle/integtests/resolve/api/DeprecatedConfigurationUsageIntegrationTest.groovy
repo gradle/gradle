@@ -16,10 +16,71 @@
 
 package org.gradle.integtests.resolve.api
 
+import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ProperMethodUsage
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 
 class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
+    def "calling an invalid public API method #methodName for role #role fails"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+            
+            configurations.$role('custom')
+            configurations.custom.$methodCall
+        """
+
+        when:
+        executer.noDeprecationChecks() // These will be checked elsewhere, this test is about ensuring failures
+        fails('help')
+
+        then:
+        failureCauseContains(message)
+
+        where:
+        role            | methodName                | methodCall    | exceptionType                 | message
+        'consumable'    | 'resolve()'               | "resolve()"   | IllegalStateException.class   | "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+        'bucket'        | 'resolve()'               | "resolve()"   | IllegalStateException.class   | "Resolving dependency configuration 'custom' is not allowed as it is defined as 'canBeResolved=false'."
+    }
+
+    def "calling an invalid public API method #methodName for role #role produces a deprecation warning"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+            
+            configurations.$role('custom')
+            configurations.custom.$methodCall
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning(buildDeprecationMessage(methodName, role, allowed))
+        succeeds('help')
+
+        where:
+        role            | methodName                | allowed                                                       | methodCall
+        'bucket'        | 'attributes(Action)'      | [ProperMethodUsage.CONSUMABLE, ProperMethodUsage.RESOLVABLE]  | "attributes { attribute(Attribute.of('foo', String), 'bar') }"
+    }
+
+    def "calling an invalid internal API method #methodName for role #role throws an exception"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+            
+            configurations.$role('custom')
+            configurations.custom.$methodCall
+        """
+
+        when:
+        fails('help')
+
+        then:
+        failureCauseContains(buildFailureMessage(methodName, role, allowed))
+
+        where:
+        role            | methodName                | allowed                           | methodCall
+        'consumable'    | 'contains(File)'          | [ProperMethodUsage.RESOLVABLE]    | "contains(new File('foo'))"
+    }
+
     def "calling deprecated usage produces a deprecation warning"() {
         given:
         buildFile << """
@@ -91,5 +152,34 @@ This method is only meant to be called on configurations which allow the (non-de
 
         expect:
         succeeds('help')
+    }
+
+    private String buildDeprecationMessage(String methodName, String role, List<ProperMethodUsage> allowed) {
+        return """Calling configuration method '$methodName' is deprecated for configuration 'custom', which has permitted usage(s):
+${buildAllowedUsages(role)}
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): '${ buildProperNames(allowed) }'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage"""
+    }
+
+    private String buildFailureMessage(String methodName, String role, List<ProperMethodUsage> allowed) {
+        return """Calling configuration method '$methodName' is not allowed for configuration 'custom', which has permitted usage(s):
+${buildAllowedUsages(role)}
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): '${ buildProperNames(allowed) }'."""
+    }
+
+    private String buildProperNames(List<ProperMethodUsage> usages) {
+        usages.collect { ProperMethodUsage.buildProperName(it) }.join(", ")
+    }
+
+    private String buildAllowedUsages(String role) {
+        switch (role) {
+            case 'bucket':
+                return "\tDeclarable Against - this configuration can have dependencies added to it"
+            case 'consumable':
+                return "\tConsumable - this configuration can be selected by another project as a dependency"
+            case 'resolvable':
+                return "\tResolvable - this configuration can be resolved by this project to a set of files"
+            default:
+                throw new IllegalArgumentException("Unknown role: $role")
+        }
     }
 }
