@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.condition
+package org.gradle.test.precondition
 
 import org.gradle.test.precondition.RequiresExtension
 import org.spockframework.runtime.extension.ExtensionException
@@ -30,7 +30,7 @@ class RequiresExtensionTest extends Specification {
         ["value2", "value3"],
     ]
 
-    RequiresExtension extension = new RequiresExtension(values)
+    RequiresExtension extension = new RequiresExtension(values.stream())
 
     def "accept single values"() {
         when:
@@ -57,7 +57,7 @@ class RequiresExtensionTest extends Specification {
 
         then:
         final ex = thrown(ExtensionException)
-        ex.message == "Requested requirements [nonexistent] were not in the list of accepted combinations. See RequiresExtension for help."
+        ex.message.startsWith("Requested requirements [nonexistent] were not in the list of accepted combinations")
     }
 
     def "throws exception when single values are not found"() {
@@ -66,7 +66,7 @@ class RequiresExtensionTest extends Specification {
 
         then:
         final ex = thrown(ExtensionException)
-        ex.message == "Requested requirements [nonexistent1, nonexistent2] were not in the list of accepted combinations. See RequiresExtension for help."
+        ex.message.startsWith("Requested requirements [nonexistent1, nonexistent2] were not in the list of accepted combinations.")
     }
 
     def "standard implementation loads CSV correctly"() {
@@ -76,9 +76,7 @@ class RequiresExtensionTest extends Specification {
         when:
         prodExtension.checkValidCombinations(
             List.of(
-                "IntegTestPreconditions.Java5HomeAvailable",
-                "IntegTestPreconditions.Java6HomeAvailable",
-                "IntegTestPreconditions.Java7HomeAvailable"
+                "org.gradle.test.preconditions.UnitTestPreconditions\$Online"
             )
         )
 
