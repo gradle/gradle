@@ -24,34 +24,9 @@ import org.gradle.testing.junit.AbstractJUnitCategoriesOrTagsCoverageIntegration
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
 @TargetCoverage({ JUNIT_JUPITER })
-class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec {
-    String testFrameworkConfigurationMethod = "useJUnitPlatform()"
+class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec implements JUnitJupiterMultiVersionTest {
     String singularCategoryOrTagName = "tag"
     String pluralCategoryOrTagName = "tags"
-
-    @Override
-    List<String> getTestFrameworkImplementationDependencies() {
-        return ["org.junit.jupiter:junit-jupiter-api:${dependencyVersion}"]
-    }
-
-    @Override
-    List<String> getTestFrameworkRuntimeDependencies() {
-        return ["org.junit.jupiter:junit-jupiter-engine:${dependencyVersion}"]
-    }
-
-    private String getDependencyVersion() {
-        return version.toString().substring("Jupiter:".length())
-    }
-
-    @Override
-    String includeCategoryOrTag(String categoryOrTag) {
-        return "includeTags '$categoryOrTag'"
-    }
-
-    @Override
-    String excludeCategoryOrTag(String categoryOrTag) {
-        return "excludeTags '$categoryOrTag'"
-    }
 
     def "can specify include and exclude tags"() {
         given:
