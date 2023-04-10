@@ -207,20 +207,23 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
         ImmutableList.Builder<ExcludeMetadata> excludeBuilder = ImmutableList.builder();
 
         // Configurations that are not declarable should not have dependencies or constraints present,
-        // but we need to allow dependencies to be checked to avoid emitting many warnings when the
-        // Kotlin plugin is applied.
-        for (Dependency dependency : configuration.getDependencies()) {
-            if (dependency instanceof ModuleDependency) {
-                ModuleDependency moduleDependency = (ModuleDependency) dependency;
-                dependencyBuilder.add(dependencyMetadataFactory.createDependencyMetadata(
-                        componentId, configuration.getName(), attributes, moduleDependency
-                ));
-            } else if (dependency instanceof FileCollectionDependency) {
-                final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
-                fileBuilder.add(new DefaultLocalFileDependencyMetadata(fileDependency));
-            } else {
-                throw new IllegalArgumentException("Cannot convert dependency " + dependency + " to local component dependency metadata.");
+        // we should be able to safely throw an exception here if we find any.
+        if (configuration.isCanBeDeclaredAgainst()) {
+            for (Dependency dependency : configuration.getDependencies()) {
+                if (dependency instanceof ModuleDependency) {
+                    ModuleDependency moduleDependency = (ModuleDependency) dependency;
+                    dependencyBuilder.add(dependencyMetadataFactory.createDependencyMetadata(
+                            componentId, configuration.getName(), attributes, moduleDependency
+                    ));
+                } else if (dependency instanceof FileCollectionDependency) {
+                    final FileCollectionDependency fileDependency = (FileCollectionDependency) dependency;
+                    fileBuilder.add(new DefaultLocalFileDependencyMetadata(fileDependency));
+                } else {
+                    throw new IllegalArgumentException("Cannot convert dependency " + dependency + " to local component dependency metadata.");
+                }
             }
+        } else {
+            configuration.assertHasNoDeclarations();
         }
 
         // Configurations that are not declarable should not have dependencies or constraints present,
