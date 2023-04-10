@@ -210,7 +210,7 @@ See link:https://youtrack.jetbrains.com/issue/KT-57757/[KT-57757] for more infor
 === CACHEDIR.TAG files are created in global cache directories
 Gradle now emits a `CACHEDIR.TAG` file in some global cache directories, as specified in <<directory_layout#dir:gradle_user_home:cache_marking>>.
 
-This may cause these directories to no longer be searched or backed up by some tools. To disable it, use the following code in an <<init_scripts#sec:using_an_init_script,init script>> in the Gradle user home directory:
+This may cause these directories to no longer be searched or backed up by some tools. To disable it, use the following code in an <<init_scripts#sec:using_an_init_script,init script>> in the Gradle User Home:
 
 ====
 [.multi-language-sample]
@@ -566,7 +566,7 @@ Please use standard locations for settings and build files:
 [[disabling_user_home_cache_cleanup]]
 ==== Deprecated org.gradle.cache.cleanup property
 
-The `org.gradle.cache.cleanup` property in `gradle.properties` under Gradle user home has been deprecated.  Please use the <<directory_layout#dir:gradle_user_home:configure_cache_cleanup,cache cleanup DSL>> instead to disable or modify the cleanup configuration.
+The `org.gradle.cache.cleanup` property in `gradle.properties` under Gradle User Home has been deprecated.  Please use the <<directory_layout#dir:gradle_user_home:configure_cache_cleanup,cache cleanup DSL>> instead to disable or modify the cleanup configuration.
 
 Since the `org.gradle.cache.cleanup` property may still be needed for older versions of Gradle, this property may still be present and no deprecation warnings will be printed as long as it is also configured via the DSL.
 The DSL value will always take preference over the `org.gradle.cache.cleanup` property.
