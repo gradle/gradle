@@ -1046,7 +1046,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DependencyConstraintSet getDependencyConstraints() {
-        warnOnDeprecatedUsage("getDependencyConstraints()", true, ProperMethodUsage.DECLARABLE_AGAINST);
+        warnOnDeprecatedUsage("getDependencyConstraints()", ProperMethodUsage.DECLARABLE_AGAINST);
         return dependencyConstraints;
     }
 
@@ -1625,12 +1625,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private boolean isProperUsage(ProperMethodUsage... properUsages) {
-        return isProperUsage(false, properUsages);
-    }
-
-    private boolean isProperUsage(boolean allowDeprecated, ProperMethodUsage... properUsages) {
         for (ProperMethodUsage properUsage : properUsages) {
-            if (properUsage.isProperUsage(this, allowDeprecated)) {
+            if (properUsage.isProperUsage(this)) {
                 return true;
             }
         }
@@ -1650,21 +1646,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void warnOnDeprecatedUsage(String methodName, ProperMethodUsage... properUsages) {
-        warnOnDeprecatedUsage(methodName, false, properUsages);
-    }
-
-    private void warnOnDeprecatedUsage(String methodName, boolean allowDeprecated, ProperMethodUsage... properUsages) {
-        if (isProperUsage(allowDeprecated, properUsages)) {
+        if (isProperUsage(properUsages)) {
             return;
         }
 
         String msgTemplate = "Calling configuration method '%s' is deprecated for configuration '%s', which has permitted usage(s):\n" +
                 "%s\n" +
-                "This method is only meant to be called on configurations which allow the %susage(s): '%s'.";
+                "This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): '%s'.";
         String currentUsageDesc = UsageDescriber.describeCurrentUsage(this);
         String properUsageDesc = ProperMethodUsage.summarizeProperUsage(properUsages);
 
-        DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, methodName, getName(), currentUsageDesc, allowDeprecated ? "" : "(non-deprecated) ", properUsageDesc))
+        DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, methodName, getName(), currentUsageDesc, properUsageDesc))
                 .willBeRemovedInGradle9()
                 .withUpgradeGuideSection(8, "deprecated_configuration_usage")
                 .nagUser();
@@ -2611,8 +2603,8 @@ since users cannot create non-legacy configurations and there is no current publ
 
         abstract boolean isDeprecated(ConfigurationInternal configuration);
 
-        boolean isProperUsage(ConfigurationInternal configuration, boolean allowDeprecated) {
-            return isAllowed(configuration) && (allowDeprecated || !isDeprecated(configuration));
+        boolean isProperUsage(ConfigurationInternal configuration) {
+            return isAllowed(configuration) && !isDeprecated(configuration);
         }
 
         public static String buildProperName(ProperMethodUsage usage) {

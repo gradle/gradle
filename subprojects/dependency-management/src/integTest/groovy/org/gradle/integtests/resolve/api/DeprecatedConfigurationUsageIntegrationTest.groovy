@@ -75,6 +75,8 @@ class DeprecatedConfigurationUsageIntegrationTest extends AbstractIntegrationSpe
         'shouldResolveConsistentlyWith(Configuration)'  | 'bucket'      | 'shouldResolveConsistentlyWith(null)'                                 || [ProperMethodUsage.RESOLVABLE]
         'disableConsistentResolution()'                 | 'consumable'  | 'disableConsistentResolution()'                                       || [ProperMethodUsage.RESOLVABLE]
         'disableConsistentResolution()'                 | 'bucket'      | 'disableConsistentResolution()'                                       || [ProperMethodUsage.RESOLVABLE]
+        'getDependencyConstraints()'                    | 'consumable'  | 'getDependencyConstraints()'                                          || [ProperMethodUsage.DECLARABLE_AGAINST]
+        'getDependencyConstraints()'                    | 'resolvable'  | 'getDependencyConstraints()'                                          || [ProperMethodUsage.DECLARABLE_AGAINST]
     }
 
     def "calling an invalid internal API method #methodName for role #role throws an exception"() {

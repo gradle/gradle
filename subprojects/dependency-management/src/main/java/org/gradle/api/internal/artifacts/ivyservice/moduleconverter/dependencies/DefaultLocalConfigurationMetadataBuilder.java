@@ -229,15 +229,12 @@ public class DefaultLocalConfigurationMetadataBuilder implements LocalConfigurat
 
         // Configurations that are not declarable should not have dependencies or constraints present,
         // no smoke-tested plugins add constraints, so we should be able to safely throw an exception here
-        // if we find any.
-        if (configuration.isCanBeDeclaredAgainst()) {
-            for (DependencyConstraint dependencyConstraint : configuration.getDependencyConstraints()) {
-                dependencyBuilder.add(dependencyMetadataFactory.createDependencyConstraintMetadata(
-                        componentId, configuration.getName(), attributes, dependencyConstraint)
-                );
-            }
-        } else {
-            configuration.assertHasNoConstraintDeclarations();
+        // if we find any - but we'll avoid doing so for now to avoid breaking any existing builds and to
+        // remain consistent with the behavior for dependencies.
+        for (DependencyConstraint dependencyConstraint : configuration.getDependencyConstraints()) {
+            dependencyBuilder.add(dependencyMetadataFactory.createDependencyConstraintMetadata(
+                    componentId, configuration.getName(), attributes, dependencyConstraint)
+            );
         }
 
         for (ExcludeRule excludeRule : configuration.getExcludeRules()) {
