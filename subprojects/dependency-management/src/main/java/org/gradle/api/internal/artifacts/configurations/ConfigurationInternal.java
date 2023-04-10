@@ -86,6 +86,10 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
      */
     Set<ExcludeRule> getAllExcludeRules();
 
+    /**
+     * @implSpec Usage: This method should only be called on resolvable configurations and should throw an exception if
+     * called on a configuration that does not permit this usage.
+     */
     @Nullable
     ConfigurationInternal getConsistentResolutionSource();
 

@@ -403,7 +403,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     /**
      * Get the current resolved state of this configuration.
      * <p>
-     * Usage: This method should only be called on resolvable configurations and will throw an exception if
+     * Usage: This method should only be called on resolvable configurations and should throw an exception if
      * called on a configuration that does not permit this usage.
      *
      * @return the current resolved state of this configuration
@@ -595,7 +595,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     /**
      * {@inheritDoc}
      *
-     * @implNote Usage: This method should only be called on resolvable configurations and will throw an exception if
+     * @implNote Usage: This method should only be called on resolvable configurations and should throw an exception if
      * called on a configuration that does not permit this usage.
      */
     @Override
@@ -812,12 +812,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         });
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @implNote Usage: This method should only be called on resolvable configurations and will throw an exception if
-     * called on a configuration that does not permit this usage.
-     */
     @Override
     public ConfigurationInternal getConsistentResolutionSource() {
         asertValidUsage("getConsistentResolutionSource()", ProperMethodUsage.RESOLVABLE);
@@ -935,12 +929,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return new ArtifactsResolved(results);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @implNote Usage: This method should only be called on resolvable configurations and will throw an exception if
-     * called on a configuration that does not permit this usage.
-     */
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
         asertValidUsage("getDependenciesResolver()", ProperMethodUsage.RESOLVABLE);
@@ -958,12 +946,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return dependenciesResolverFactory;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @implNote Usage: This method should only be called on resolvable configurations and will throw an exception if
-     * called on a configuration that does not permit this usage.
-     */
     @Override
     public void resetResolutionState() {
         asertValidUsage("resetResolutionState()", ProperMethodUsage.RESOLVABLE);
@@ -1165,7 +1147,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     /**
      * Adds exclude rules to this configuration.
      * <p>
-     * Usage: This method should only be called on resolvable or declarable configurations and will throw an exception if
+     * Usage: This method should only be called on resolvable or declarable configurations and should throw an exception if
      * called on a configuration that does not permit this usage.
      *
      * @param excludeRules the exclude rules to add.
@@ -1465,24 +1447,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolutionStrategy;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @implNote Usage: This method should only be called on resolvable configurations and will throw an exception if
-     * called on a configuration that does not permit this usage.
-     */
     @Override
     public LocalComponentMetadata toRootComponentMetaData() {
         asertValidUsage("toRootComponentMetaData()", ProperMethodUsage.RESOLVABLE);
         return rootComponentMetadataBuilder.toRootComponentMetaData();
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @implNote Usage: This method should only be called on resolvable configurations and will throw an exception if
-     * called on a configuration that does not permit this usage.
-     */
     @Override
     public List<? extends DependencyMetadata> getSyntheticDependencies() {
         asertValidUsage("getSyntheticDependencies()", ProperMethodUsage.RESOLVABLE);
