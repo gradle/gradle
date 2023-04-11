@@ -225,7 +225,8 @@ fun Test.configureJvmForTest() {
         }
     }
     if (usesEmbeddedExecuter() && OperatingSystem.current().isWindows) {
-        // Disable incremental snapshotting for Windows, since it throws OOM
+        // Disable incremental snapshotting for Windows, since it runs OOM,
+        // root cause: https://youtrack.jetbrains.com/issue/KT-57757
         jvmArgs("-Dkotlin.incremental.useClasspathSnapshot=false")
     }
 }
