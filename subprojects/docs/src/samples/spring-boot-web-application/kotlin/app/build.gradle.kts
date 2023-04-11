@@ -21,6 +21,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(mapOf("group" to "org.junit.vintage", "module" to "junit-vintage-engine"))
     }
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.named<Test>("test") {
