@@ -132,6 +132,7 @@ to illustrate:
 As you can see separators are any of the `.`, `-`, `_`, `+` characters, plus the empty string when a numeric and a non-numeric part of the version are next to each-other.
 
 When resolving the conflict between competing versions, the following logic applies:
+
 * first the versions with the highest base version are selected, the rest are discarded
 * if there are still multiple competing versions left, then one is picked with a preference for not having a qualifier or having release status.
 
