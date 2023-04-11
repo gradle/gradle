@@ -95,6 +95,13 @@ org.gradle.kotlin.dsl.allWarningsAsErrors=true
 
 More details can be found in the dedicated section of the [Kotlin DSL](userguide/kotlin_dsl.html#sec:compilation_warnings) user manual chapter.
 
+### Boolean task options generate opposite option
+
+Task options of type `boolean`, `Boolean`, and `Property<Boolean>` now generate an opposite option to facilitate setting the value to `false`.
+For example, `--no-foo` is created for the provided option `--foo`.
+
+See the [task options](userguide/custom_tasks.html#sec:declaring_and_using_command_line_options) user manual section for more information.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
