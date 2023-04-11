@@ -17,25 +17,15 @@
 package org.gradle.internal.instrumentation.extensions.property
 
 import com.google.testing.compile.Compilation
-import com.google.testing.compile.JavaFileObjects
-import org.gradle.api.JavaVersion
-import org.gradle.internal.instrumentation.processor.ConfigurationCacheInstrumentationProcessor
-import org.gradle.internal.jvm.Jvm
-import spock.lang.Specification
-
-import javax.tools.JavaFileObject
+import org.gradle.internal.instrumentation.InstrumentationCodeGenTest
 
 import static com.google.testing.compile.CompilationSubject.assertThat
-import static com.google.testing.compile.Compiler.javac
-import static org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReaderExtension.INTERCEPTOR_GROOVY_DECLARATION_CLASS_NAME
-import static org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAnnotatedMethodReaderExtension.INTERCEPTOR_JVM_DECLARATION_CLASS_NAME
 
-class PropertyUpgradeCodeGenTest extends Specification {
+class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
 
     def "should auto generate adapter for upgraded property with originalType"() {
         given:
-        def fQName = "org.gradle.test.Task"
-        def givenSource = JavaFileObjects.forSourceString(fQName, """
+        def givenSource = source """
             package org.gradle.test;
 
             import org.gradle.api.provider.Property;
@@ -47,14 +37,13 @@ class PropertyUpgradeCodeGenTest extends Specification {
                 @UpgradedProperty(originalType = int.class)
                 public abstract Property<Integer> getMaxErrors();
             }
-        """)
+        """
 
         when:
         Compilation compilation = compile(givenSource)
 
         then:
-        def generatedClassName =  "org.gradle.internal.instrumentation.Task_Adapter"
-        def expectedOutput = JavaFileObjects.forSourceLines(generatedClassName, """
+        def generatedClass = source """
             package org.gradle.internal.instrumentation;
             import org.gradle.test.Task;
 
@@ -67,17 +56,16 @@ class PropertyUpgradeCodeGenTest extends Specification {
                     self.getMaxErrors().set(arg0);
                 }
             }
-        """)
+        """
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation)
-            .generatedSourceFile(generatedClassName)
-            .hasSourceEquivalentTo(expectedOutput)
+            .generatedSourceFile(fqName(generatedClass))
+            .hasSourceEquivalentTo(generatedClass)
     }
 
     def "should auto generate adapter for upgraded property with type #upgradedType"() {
         given:
-        def fQName = "org.gradle.test.Task"
-        def givenSource = JavaFileObjects.forSourceString(fQName, """
+        def givenSource = source"""
             package org.gradle.test;
 
             import org.gradle.api.provider.*;
@@ -90,14 +78,13 @@ class PropertyUpgradeCodeGenTest extends Specification {
                 @UpgradedProperty
                 public abstract $upgradedType getProperty();
             }
-        """)
+        """
 
         when:
         Compilation compilation = compile(givenSource)
 
         then:
-        def generatedClassName = "org.gradle.internal.instrumentation.Task_Adapter"
-        def expectedOutput = JavaFileObjects.forSourceLines(generatedClassName, """
+        def generatedClass = source """
             package org.gradle.internal.instrumentation;
             import $fullImport;
             import org.gradle.test.Task;
@@ -111,11 +98,11 @@ class PropertyUpgradeCodeGenTest extends Specification {
                     self.getProperty()$setCall;
                 }
             }
-        """)
+        """
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation)
-            .generatedSourceFile(generatedClassName)
-            .hasSourceEquivalentTo(expectedOutput)
+            .generatedSourceFile(fqName(generatedClass))
+            .hasSourceEquivalentTo(generatedClass)
 
         where:
         upgradedType                  | originalType     | getCall              | setCall            | fullImport
@@ -126,19 +113,5 @@ class PropertyUpgradeCodeGenTest extends Specification {
         "RegularFileProperty"         | "File"           | ".getAsFile().get()" | ".fileValue(arg0)" | "java.io.File"
         "DirectoryProperty"           | "File"           | ".getAsFile().get()" | ".fileValue(arg0)" | "java.io.File"
         "ConfigurableFileCollection"  | "FileCollection" | ""                   | ".setFrom(arg0)"   | "org.gradle.api.file.FileCollection"
-    }
-
-    protected static Compilation compile(JavaFileObject... fileObjects) {
-        return getCompiler()
-            .withProcessors(new ConfigurationCacheInstrumentationProcessor())
-            .compile(fileObjects)
-    }
-
-    private static com.google.testing.compile.Compiler getCompiler() {
-        if (Jvm.current().javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)) {
-            return javac().withOptions("--release=8")
-        } else {
-            return javac()
-        }
     }
 }
