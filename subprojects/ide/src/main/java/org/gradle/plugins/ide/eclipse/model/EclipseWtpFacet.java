@@ -79,7 +79,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * </pre>
  */
-public class EclipseWtpFacet {
+public abstract class EclipseWtpFacet {
 
     private final XmlFileContentMerger file;
     private List<Facet> facets = Lists.newArrayList();

@@ -16,18 +16,72 @@
 
 package org.gradle.integtests.fixtures.versions
 
+import org.gradle.internal.Factory
+import org.gradle.util.internal.VersionNumber
+
 /**
  * Kotlin Gradle Plugin Versions.
+ *
+ * See UpdateKotlinVersions.
  */
 class KotlinGradlePluginVersions {
 
-    // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
-    private static final List<String> LATEST_VERSIONS = [
-        '1.6.10', '1.6.21',
-        '1.7.0', '1.7.10', "1.7.20-RC"
+    static final List<String> LANGUAGE_VERSIONS = [
+        "1.4",
+        "1.5",
+        "1.6",
+        "1.7",
+        "1.8",
+        "1.9",
     ]
 
+    private final Factory<Properties> propertiesFactory
+    private Properties properties
+
+    KotlinGradlePluginVersions() {
+        this(new ClasspathVersionSource("kotlin-versions.properties", KotlinGradlePluginVersions.classLoader))
+    }
+
+    private KotlinGradlePluginVersions(Factory<Properties> propertiesFactory) {
+        this.propertiesFactory = propertiesFactory
+    }
+
+    private Properties loadedProperties() {
+        if (properties == null) {
+            properties = propertiesFactory.create()
+        }
+        return properties
+    }
+
+
     List<String> getLatests() {
-        return LATEST_VERSIONS
+        def versionList = loadedProperties().getProperty("latests")
+        return (versionList == null || versionList.empty) ? [] : versionList.split(",")
+    }
+
+    String getLatest() {
+        return latests.last()
+    }
+
+    List<String> getLatestsStable() {
+        return latests
+            .collect { VersionNumber.parse(it) }
+            .findAll { it.baseVersion == it }
+            .collect { it.toString() }
+    }
+
+    String getLatestStable() {
+        return latestsStable.last()
+    }
+
+    List<String> getLatestsStableOrRC() {
+        return latests.findAll {
+            def lowerCaseVersion = it.toLowerCase(Locale.US)
+            !lowerCaseVersion.contains('-m') && !(lowerCaseVersion.contains('-beta'))
+        }
+    }
+
+    String getLatestStableOrRC() {
+        return latestsStableOrRC.last()
     }
 }

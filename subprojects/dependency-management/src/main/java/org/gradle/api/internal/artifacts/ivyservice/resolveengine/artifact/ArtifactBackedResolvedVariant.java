@@ -26,7 +26,6 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -45,14 +44,14 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final DisplayName displayName;
     private final AttributeContainerInternal attributes;
     private final CapabilitiesMetadata capabilities;
-    private final Lazy<ResolvedArtifactSet> artifacts;
+    private final Supplier<ResolvedArtifactSet> artifacts;
 
     private ArtifactBackedResolvedVariant(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, Supplier<ResolvedArtifactSet> artifacts) {
         this.identifier = identifier;
         this.displayName = displayName;
         this.attributes = attributes;
         this.capabilities = capabilities;
-        this.artifacts = Lazy.locking().of(artifacts);
+        this.artifacts = artifacts;
     }
 
     public static ResolvedVariant create(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, Supplier<Collection<? extends ResolvableArtifact>> artifacts) {
@@ -61,7 +60,12 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
     private static Supplier<ResolvedArtifactSet> supplyResolvedArtifactSet(DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, Supplier<Collection<? extends ResolvableArtifact>> artifactsSupplier) {
         return () -> {
-            Collection<? extends ResolvableArtifact> artifacts = artifactsSupplier.get();
+            Collection<? extends ResolvableArtifact> artifacts;
+            try {
+                artifacts = artifactsSupplier.get();
+            } catch (Exception e) {
+                return new UnavailableResolvedArtifactSet(e);
+            }
             if (artifacts.isEmpty()) {
                 return EMPTY;
             }
@@ -135,13 +139,6 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
                     // Resolve it later
                     actions.add(new DownloadArtifactFile(artifact));
                 }
-            }
-        }
-
-        @Override
-        public void finalizeNow(boolean requireFiles) {
-            if (requireFiles) {
-                artifact.getFileSource().finalizeIfNotAlready();
             }
         }
 

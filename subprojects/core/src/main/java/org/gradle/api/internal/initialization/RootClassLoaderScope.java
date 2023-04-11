@@ -28,7 +28,7 @@ public class RootClassLoaderScope extends AbstractClassLoaderScope {
     private final CachingClassLoader cachingExportClassLoader;
 
     public RootClassLoaderScope(String name, ClassLoader localClassLoader, ClassLoader exportClassLoader, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
-        super(new ClassLoaderScopeIdentifier(null, name), classLoaderCache, listener);
+        super(new ClassLoaderScopeIdentifier(null, name), null, classLoaderCache, listener);
         this.localClassLoader = localClassLoader;
         this.cachingLocalClassLoader = new CachingClassLoader(localClassLoader);
         this.exportClassLoader = exportClassLoader;

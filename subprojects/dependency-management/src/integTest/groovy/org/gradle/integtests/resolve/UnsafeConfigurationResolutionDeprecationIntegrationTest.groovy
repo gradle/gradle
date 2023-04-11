@@ -18,10 +18,11 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 
 class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDependencyResolutionTest {
+    @Ignore("https://github.com/gradle/gradle/issues/22088")
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "configuration in another project can not be resolved"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
@@ -59,7 +60,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         result.assertHasErrorOutput("Resolution of the configuration :bar:bar was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
     }
 
-    @UnsupportedWithConfigurationCache(because = "resolves configuration from background thread")
+    @ToBeFixedForConfigurationCache(because = "uses Configuration API at runtime")
     def "exception when non-gradle thread resolves dependency graph"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
@@ -125,6 +126,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         ]
     }
 
+    @ToBeFixedForConfigurationCache(because = "uses Configuration API at runtime")
     def "no exception when non-gradle thread iterates over dependency artifacts that were declared as task inputs"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
@@ -211,12 +213,13 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
             task resolve {
                 def configuration = configurations.bar
+                def outFile = file('bar')
                 doFirst {
                     configuration.files
                     def failure = null
                     def thread = new Thread({
                         try {
-                            file('bar') << configuration.files
+                            outFile << configuration.files
                         } catch(Throwable t) {
                             failure = t
                         }
@@ -234,6 +237,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":resolve")
     }
 
+    @Ignore("https://github.com/gradle/gradle/issues/22088")
     def "fails when configuration is resolved while evaluating a different project"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 

@@ -18,7 +18,9 @@ package org.gradle.api.internal.file.collections;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.CompositeFileTree;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -38,13 +40,46 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     private final PatternSet patternSet;
     private final PathToFileResolver resolver;
     private final DefaultTaskDependency buildDependency;
+    private final FileCollectionObservationListener listener;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public DefaultConfigurableFileTree(PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public DefaultConfigurableFileTree(
+        PathToFileResolver resolver,
+        FileCollectionObservationListener listener,
+        Factory<PatternSet> patternSetFactory,
+        TaskDependencyFactory taskDependencyFactory,
+        DirectoryFileTreeFactory directoryFileTreeFactory
+    ) {
+        super(taskDependencyFactory);
         this.resolver = resolver;
+        this.listener = listener;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         patternSet = patternSetFactory.create();
         buildDependency = taskDependencyFactory.configurableDependency();
+    }
+
+    @Override
+    public Set<File> getFiles() {
+        listener.fileCollectionObserved(this);
+        return super.getFiles();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        listener.fileCollectionObserved(this);
+        return super.isEmpty();
+    }
+
+    @Override
+    public boolean contains(File file) {
+        listener.fileCollectionObserved(this);
+        return super.contains(file);
+    }
+
+    @Override
+    public FileTree visit(FileVisitor visitor) {
+        listener.fileCollectionObserved(this);
+        return super.visit(visitor);
     }
 
     @Override
@@ -150,7 +185,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     @Override
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         File dir = getDir();
-        visitor.accept(new FileTreeAdapter(directoryFileTreeFactory.create(dir, patternSet), patternSetFactory));
+        visitor.accept(new FileTreeAdapter(directoryFileTreeFactory.create(dir, patternSet), listener, taskDependencyFactory, patternSetFactory));
     }
 
     @Override

@@ -17,11 +17,11 @@ package org.gradle.execution;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
+import org.gradle.execution.plan.LocalTaskNode;
+import org.gradle.execution.plan.Node;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.build.ExecutionResult;
 
@@ -31,17 +31,21 @@ public class SelectedTaskExecutionAction implements BuildWorkExecutor {
     @Override
     public ExecutionResult<Void> execute(GradleInternal gradle, FinalizedExecutionPlan plan) {
         TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-        bindAllReferencesOfProject(taskGraph);
+        bindAllReferencesOfProject(plan);
         return taskGraph.execute(plan);
     }
 
-    private void bindAllReferencesOfProject(TaskExecutionGraph graph) {
+    private void bindAllReferencesOfProject(FinalizedExecutionPlan plan) {
         Set<Project> seen = Sets.newHashSet();
-        for (Task task : graph.getAllTasks()) {
-            if (seen.add(task.getProject())) {
-                ProjectInternal projectInternal = (ProjectInternal) task.getProject();
-                projectInternal.bindAllModelRules();
+        plan.getContents().getScheduledNodes().visitNodes(nodes -> {
+            for (Node node : nodes) {
+                if (node instanceof LocalTaskNode) {
+                    ProjectInternal taskProject = node.getOwningProject();
+                    if (seen.add(taskProject)) {
+                        taskProject.bindAllModelRules();
+                    }
+                }
             }
-        }
+        });
     }
 }

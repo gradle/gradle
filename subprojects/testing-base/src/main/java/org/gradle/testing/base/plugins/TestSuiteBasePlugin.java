@@ -28,7 +28,7 @@ import org.gradle.testing.base.internal.DefaultTestingExtension;
  * @since 7.3
  */
 @Incubating
-public class TestSuiteBasePlugin implements Plugin<Project> {
+public abstract class TestSuiteBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getExtensions().create(TestingExtension.class, "testing", DefaultTestingExtension.class);

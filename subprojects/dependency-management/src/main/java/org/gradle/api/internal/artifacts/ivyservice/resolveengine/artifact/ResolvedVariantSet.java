@@ -32,6 +32,8 @@ public interface ResolvedVariantSet {
 
     Set<ResolvedVariant> getVariants();
 
+    Set<ResolvedVariant> getAllVariants();
+
     /**
      * The provider may have been selected thanks to a different attribute set than the one from
      * the consuming configuration. This can happen whenever a dependency has additional attributes,

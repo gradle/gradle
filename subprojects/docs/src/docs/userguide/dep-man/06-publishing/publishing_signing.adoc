@@ -11,8 +11,8 @@ Here's an example that configures the plugin to sign the `mavenJava` publication
 
 .Signing a publication
 ====
-include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=sign-publication]"]
 include::sample[dir="snippets/signing/maven-publish/kotlin",files="build.gradle.kts[tags=sign-publication]"]
+include::sample[dir="snippets/signing/maven-publish/groovy",files="build.gradle[tags=sign-publication]"]
 ====
 
 This will create a `Sign` task for each publication you specify and wire all `publish__PubName__PublicationTo__RepoName__Repository` tasks to depend on it. Thus, publishing any publication will automatically create and publish the signatures for its artifacts and metadata, as you can see from this output:

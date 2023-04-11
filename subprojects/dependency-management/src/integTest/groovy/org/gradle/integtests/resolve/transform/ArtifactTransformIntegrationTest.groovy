@@ -16,11 +16,12 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.file.FileType
+import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStepBuildOperationType
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matcher
 import spock.lang.Issue
@@ -152,12 +153,12 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 println(
                     configurations.classpath.incoming.artifactView {
                             attributes.attribute(artifactType, "size")
-                        }.artifacts.artifactFiles.files
+                        }.files.files
                 )
                 println(
                     configurations.classpath.incoming.artifactView {
                             attributes.attribute(artifactType, "size")
-                        }.artifacts.artifactFiles.files
+                        }.files.files
                 )
             }
         """
@@ -326,6 +327,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 dependencies {
                     artifactTypes {
                         blue {
+                            // Intentionally use different attributes in app2 vs app's artifactType registry
                             attributes.attribute(contents, 'bin')
                         }
                     }
@@ -1022,6 +1024,118 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         outputContains("ids: [producer2.jar (producer2.jar)]")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/22735")
+    def "transform selection prioritizes shorter transforms over attribute schema matching"() {
+
+        // The lib project defines two variants:
+        // primary:
+        // - artifactType=jar
+        // - extraAttribute=preferred
+        // secondary:
+        // - artifactType=intermediate
+
+        // We make a request with the artifactType=final attribute
+
+        // Given the following transforms:
+        // A) FileSizer from artifactType=jar to artifactType=intermediate
+        // B) FileSizer from artifactType=intermediate to artifactType=final
+
+        // We could potentially construct the following transform chains:
+        // 1) primary -> A -> B -> requested
+        //  - artifactType=final
+        //  - extraAttribute=preferred
+        // 2) secondary -> B -> requested
+        //  - artifactType=final
+
+        // Both of these potential transforms are compatible, except (1) has a favorable attribute set
+        // with respect to the attribute schema. However, we want to choose (2) since it is the shorter chain.
+
+        buildFile << """
+            project(':lib') {
+                task jar(type: Jar) {
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib.jar'
+                }
+
+                configurations.compile.outgoing.variants{
+                    primary {
+                        attributes {
+                            attribute(artifactType, "jar")
+                            attribute(extraAttribute, "preferred")
+                        }
+                        artifact jar
+                    }
+                    secondary {
+                        attributes {
+                            attribute(artifactType, "intermediate")
+                        }
+                        artifact jar
+                    }
+                }
+            }
+
+            // Provides a default value of `preferred` if a given attribute is not requested.
+            abstract class DefaultingDisambiguationRule implements AttributeDisambiguationRule<String>, org.gradle.api.internal.ReusableAction {
+                @Inject
+                protected abstract ObjectFactory getObjectFactory()
+                @Override
+                void execute(MultipleCandidatesDetails<String> details) {
+                    String consumerValue = details.getConsumerValue()
+                    Set<String> candidateValues = details.getCandidateValues()
+                    if (consumerValue == null) {
+                        // Default to preferred
+                        if (candidateValues.contains("preferred")) {
+                            details.closestMatch("preferred")
+                        }
+                        // Otherwise, use the selected value
+                    } else if (candidateValues.contains(consumerValue)) {
+                        details.closestMatch(consumerValue)
+                    }
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+
+                    attributesSchema {
+                        attribute(extraAttribute).disambiguationRules.add(DefaultingDisambiguationRule)
+                    }
+
+                    registerTransform(FileSizer) { reg ->
+                        reg.getFrom().attribute(artifactType, "jar")
+                        reg.getTo().attribute(artifactType, "intermediate")
+                    }
+
+                    registerTransform(FileSizer) { reg ->
+                        reg.getFrom().attribute(artifactType, "intermediate")
+                        reg.getTo().attribute(artifactType, "final")
+                    }
+                }
+
+                task resolve {
+                    def artifactFiles = configurations.compile.incoming.artifactView { config ->
+                        config.attributes {
+                            attribute(artifactType, "final")
+                        }
+                    }.files
+                    inputs.files(artifactFiles)
+                    doLast {
+                        println "files: " + artifactFiles.files.collect { it.name }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds ":app:resolve"
+
+        then:
+        output.count("Creating FileSizer") == 1
+        output.count("Transforming") == 1
+        outputContains("files: [lib.jar.txt]")
+    }
+
     def "transform can generate multiple output files for a single input"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -1309,6 +1423,8 @@ Found the following transforms:
     }
 
     def "result is applied for all query methods"() {
+        def fixture = new ResolveTestFixture(buildFile, "compile")
+
         given:
         buildFile << """
             project(':lib') {
@@ -1334,43 +1450,20 @@ Found the following transforms:
                         to.attribute(artifactType, "size")
                     }
                 }
-                ext.checkArtifacts = { artifacts ->
-                    assert artifacts.collect { it.id.displayName } == ['lib.jar.txt (project :lib)']
-                    assert artifacts.collect { it.file.name } == ['lib.jar.txt']
-                }
-                ext.checkLegacyArtifacts = { artifacts ->
-                    assert artifacts.collect { it.id.displayName } == ['lib.jar.txt (project :lib)']
-                    assert artifacts.collect { it.file.name } == ['lib.jar.txt']
-                }
-                ext.checkFiles = { config ->
-                    assert config.collect { it.name } == ['lib.jar.txt']
-                }
-                task resolve {
-                    doLast {
-                        checkFiles configurations.compile
-                        checkFiles configurations.compile.files
-                        checkFiles configurations.compile.incoming.files
-                        checkFiles configurations.compile.resolvedConfiguration.files
-
-                        checkFiles configurations.compile.resolvedConfiguration.lenientConfiguration.files
-                        checkFiles configurations.compile.resolve()
-                        checkFiles configurations.compile.files { true }
-                        checkFiles configurations.compile.fileCollection { true }
-                        checkFiles configurations.compile.resolvedConfiguration.getFiles { true }
-                        checkFiles configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }
-
-                        checkLegacyArtifacts configurations.compile.resolvedConfiguration.resolvedArtifacts
-                        checkLegacyArtifacts configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts
-
-                        checkArtifacts configurations.compile.incoming.artifacts
-                        checkArtifacts configurations.compile.incoming.artifactView { }.artifacts
-                    }
-                }
             }
         """
+        fixture.expectDefaultConfiguration("compile")
+        fixture.prepare()
 
         expect:
-        succeeds "resolve"
+        succeeds ":app:checkDeps"
+        fixture.expectGraph {
+            root(":app", "root:app:") {
+                project(":lib", "root:lib:") {
+                    artifact(name: "lib.jar", type: "txt")
+                }
+            }
+        }
     }
 
     def "transforms are applied lazily in file collections"() {
@@ -2167,6 +2260,66 @@ Found the following transforms:
         type = scheduled ? 'scheduled' : 'immediate'
     }
 
+    def "transformation attribute cycles are permitted"() {
+        mavenRepo.module("test", "a", "1.0").publish()
+
+        buildFile << """
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+
+            dependencies {
+                compile 'test:a:1.0'
+            }
+
+            dependencies {
+                // A circular "chain" of depth 2
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, "final")
+                    to.attribute(artifactType, "somewhere")
+                }
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, "somewhere")
+                    to.attribute(artifactType, "final")
+                }
+
+                // A linear chain of depth 3
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, "jar")
+                    to.attribute(artifactType, "intermediate")
+                }
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, "intermediate")
+                    to.attribute(artifactType, "semi-final")
+                }
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, "semi-final")
+                    to.attribute(artifactType, "final")
+                }
+            }
+
+            task resolve {
+                def artifactFiles = configurations.compile.incoming.artifactView { config ->
+                    config.attributes {
+                        attribute(artifactType, "final")
+                    }
+                }.files
+                inputs.files(artifactFiles)
+                doLast {
+                    println "files: " + artifactFiles.files.collect { it.name }
+                }
+            }
+        """
+
+        when:
+        succeeds "resolve"
+
+        then:
+        output.count("Creating FileSizer") == 3
+        output.count("Transforming") == 3
+        outputContains("files: [a-1.0.jar.txt.txt.txt]")
+    }
+
     def "artifacts with same component id and extension, but different classifier remain distinguishable after transformation"() {
         def module = mavenRepo.module("test", "test", "1.3").publish()
         module.getArtifactFile(classifier: "foo").text = "1234"
@@ -2486,11 +2639,24 @@ Found the following transforms:
         outputContains("After transformer FileSizer on lib.jar (project :lib)")
 
         and:
-        with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
-            it.failure == null
-            displayName == "Transform lib.jar (project :lib) with FileSizer"
-            details.transformerName == "FileSizer"
-            details.subjectName == "lib.jar (project :lib)"
+        def executeTransformationOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
+        executeTransformationOp.failure == null
+        executeTransformationOp.displayName == "Transform lib.jar (project :lib) with FileSizer"
+        with(executeTransformationOp.details) {
+            transformerName == "FileSizer"
+            subjectName == "lib.jar (project :lib)"
+            with(plannedTransformStepIdentity) {
+                nodeType == "TRANSFORM_STEP"
+                consumerBuildPath == ":"
+                consumerProjectPath == ":app"
+                componentId == [buildPath: ":", projectPath: ":lib"]
+                sourceAttributes == [artifactType: "jar", usage: "api"]
+                targetAttributes == [artifactType: "size", usage: "api"]
+                capabilities == [[group: "root", name: "lib", version: "unspecified"]]
+                artifactName == "lib.jar"
+                dependenciesConfigurationIdentity == null
+            }
+            transformActionClass == "FileSizer"
         }
     }
 
@@ -2546,10 +2712,24 @@ Found the following transforms:
         outputContains("After transformer BrokenTransform on lib.jar (project :lib)")
 
         and:
-        with(buildOperations.only(ExecuteScheduledTransformationStepBuildOperationType)) {
-            displayName == "Transform lib.jar (project :lib) with BrokenTransform"
-            details.transformerName == "BrokenTransform"
-            details.subjectName == "lib.jar (project :lib)"
+        def executeTransformationOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
+        executeTransformationOp.failure != null
+        executeTransformationOp.displayName == "Transform lib.jar (project :lib) with BrokenTransform"
+        with(executeTransformationOp.details) {
+            transformerName == "BrokenTransform"
+            subjectName == "lib.jar (project :lib)"
+            with(plannedTransformStepIdentity) {
+                nodeType == "TRANSFORM_STEP"
+                consumerBuildPath == ":"
+                consumerProjectPath == ":app"
+                componentId == [buildPath: ":", projectPath: ":lib"]
+                sourceAttributes == [artifactType: "jar", usage: "api"]
+                targetAttributes == [artifactType: "size", usage: "api"]
+                capabilities == [[group: "root", name: "lib", version: "unspecified"]]
+                artifactName == "lib.jar"
+                dependenciesConfigurationIdentity == null
+            }
+            transformActionClass == "BrokenTransform"
         }
     }
 
@@ -2642,6 +2822,6 @@ Found the following transforms:
                     println "capabilities: " + artifacts.collect { it.variant.capabilities }
                 }
             }
-"""
+        """
     }
 }

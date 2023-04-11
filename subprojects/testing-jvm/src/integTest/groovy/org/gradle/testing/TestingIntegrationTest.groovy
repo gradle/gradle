@@ -16,24 +16,30 @@
 package org.gradle.testing
 
 import org.apache.commons.lang.RandomStringUtils
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.TextUtil
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-import static org.gradle.testing.fixture.JUnitCoverage.*
+import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_VINTAGE_JUPITER
+import static org.gradle.testing.fixture.JUnitCoverage.getNEWEST
 import static org.hamcrest.CoreMatchers.equalTo
 
 /**
  * General tests for the JVM testing infrastructure that don't deserve their own test class.
  */
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
-class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
+class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements JavaToolchainFixture {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1948")
     def "test interrupting its own thread does not kill test execution"() {
@@ -86,10 +92,10 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 }
             }
         """
-        file('build.gradle') << """
+        buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:4.13' }
+            dependencies { testImplementation '$testJunitCoordinates' }
         """
 
         when:
@@ -132,7 +138,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
             }
         """
 
@@ -161,7 +167,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation "junit:junit:4.13" }
+            dependencies { testImplementation "$testJunitCoordinates" }
             test.workingDir = "${testWorkingDir.toURI()}"
         """
 
@@ -203,7 +209,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         where:
         framework   | dependency                | superClass
-        "useJUnit"  | "junit:junit:4.13"        | "org.junit.runner.Result"
+        "useJUnit"  | "$testJunitCoordinates"   | "org.junit.runner.Result"
         "useTestNG" | "org.testng:testng:6.3.1" | "org.testng.Converter"
     }
 
@@ -223,7 +229,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 }
 
                 dependencies{
-	                othertestsImplementation "junit:junit:4.13"
+	                othertestsImplementation "$testJunitCoordinates"
                 }
 
                 task othertestsTest(type:Test){
@@ -274,12 +280,14 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         // In a nutshell, this tests that we don't even try to load classes that are there, but that we shouldn't see.
 
         when:
-        executer.withToolchainDetectionEnabled().withToolchainDownloadEnabled()
+        executer
+            .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
+            .withToolchainDetectionEnabled()
         buildScript """
             plugins {
                 id("java")
             }
-            ${withJava11Toolchain()}
+            ${javaPluginToolchainVersion(11)}
             ${mavenCentralRepository()}
             configurations { first {}; last {} }
             dependencies {
@@ -288,7 +296,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 last 'com.google.collections:google-collections:1.0'
                 implementation configurations.first + configurations.last
 
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
             }
         """
 
@@ -321,7 +329,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
             }
             tasks.withType(JavaCompile) {
                 options.with {
@@ -368,7 +376,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin:'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'junit:junit:4.13'
+                testImplementation '$testJunitCoordinates'
             }
             test {
                 testLogging {
@@ -420,6 +428,27 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         !output.contains("SecondTest > test PASSED")
     }
 
+    def "emits deprecation warning if executable specified as relative path"() {
+        given:
+        def executable = TextUtil.normaliseFileSeparators(Jvm.current().javaExecutable.toString())
+
+        buildFile << """
+            apply plugin:'java'
+            test {
+                executable = new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString()
+            }
+        """
+        when:
+        executer.expectDocumentedDeprecationWarning("Configuring a Java executable via a relative path. " +
+            "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
+            "Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against. " +
+            "Configure an absolute path to a Java executable instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#no_relative_paths_for_java_executables")
+
+        then:
+        succeeds("test")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/2661")
     def "test logging can be configured on turkish locale"() {
         given:
@@ -446,16 +475,17 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/5305")
     def "test can install an irreplaceable SecurityManager"() {
         given:
-        executer.withStackTraceChecksDisabled()
+        executer
+            .withStackTraceChecksDisabled()
             .withToolchainDetectionEnabled()
-            .withToolchainDownloadEnabled()
+        withInstallations(AvailableJavaHomes.getAvailableJvms())
         buildFile << """
             plugins {
                 id("java")
             }
-            ${withJava11Toolchain()}
+            ${javaPluginToolchainVersion(11)}
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:4.13' }
+            dependencies { testImplementation '$testJunitCoordinates' }
         """
 
         and:
@@ -491,7 +521,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
             apply plugin:'java-library'
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'junit:junit:4.13' }
+            dependencies { testImplementation '$testJunitCoordinates' }
 
             test {
                 jvmArgs("-XX:+ShowCodeDetailsInExceptionMessages")
@@ -581,16 +611,6 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 public void checkThreadName() {
                     assertEquals("Test worker", Thread.currentThread().getName());
                     Thread.currentThread().setName(getClass().getSimpleName());
-                }
-            }
-        """
-    }
-
-    private static String withJava11Toolchain() {
-        return """
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
                 }
             }
         """

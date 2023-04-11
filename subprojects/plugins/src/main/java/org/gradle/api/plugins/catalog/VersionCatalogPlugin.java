@@ -22,6 +22,9 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.catalog.internal.DefaultVersionCatalogPluginExtension;
 import org.gradle.api.plugins.catalog.internal.CatalogExtensionInternal;
@@ -37,7 +40,7 @@ import javax.inject.Inject;
  *
  * @since 7.0
  */
-public class VersionCatalogPlugin implements Plugin<Project> {
+public abstract class VersionCatalogPlugin implements Plugin<Project> {
     public static final String GENERATE_CATALOG_FILE_TASKNAME = "generateCatalogAsToml";
     public static final String GRADLE_PLATFORM_DEPENDENCIES = "versionCatalog";
     public static final String VERSION_CATALOG_ELEMENTS = "versionCatalogElements";
@@ -51,17 +54,15 @@ public class VersionCatalogPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        Configuration dependenciesConfiguration = createDependenciesConfiguration(project);
+        Configuration dependenciesConfiguration = createDependenciesConfiguration((ProjectInternal) project);
         CatalogExtensionInternal extension = createExtension(project, dependenciesConfiguration);
         TaskProvider<TomlFileGenerator> generator = createGenerator(project, extension);
-        createPublication(project, generator);
+        createPublication((ProjectInternal) project, generator);
     }
 
-    private void createPublication(Project project, TaskProvider<TomlFileGenerator> generator) {
-        Configuration exported = project.getConfigurations().create(VERSION_CATALOG_ELEMENTS, cnf -> {
+    private void createPublication(ProjectInternal project, TaskProvider<TomlFileGenerator> generator) {
+        @SuppressWarnings("deprecation") Configuration exported = project.getConfigurations().createWithRole(VERSION_CATALOG_ELEMENTS, ConfigurationRolesForMigration.INTENDED_CONSUMABLE_BUCKET_TO_INTENDED_CONSUMABLE, cnf -> {
             cnf.setDescription("Artifacts for the version catalog");
-            cnf.setCanBeConsumed(true);
-            cnf.setCanBeResolved(false);
             cnf.getOutgoing().artifact(generator);
             cnf.attributes(attrs -> {
                 attrs.attribute(Category.CATEGORY_ATTRIBUTE, project.getObjects().named(Category.class, Category.REGULAR_PLATFORM));
@@ -73,11 +74,9 @@ public class VersionCatalogPlugin implements Plugin<Project> {
         versionCatalog.addVariantsFromConfiguration(exported, new JavaConfigurationVariantMapping("compile", true));
     }
 
-    private Configuration createDependenciesConfiguration(Project project) {
-        return project.getConfigurations().create(GRADLE_PLATFORM_DEPENDENCIES, cnf -> {
+    private Configuration createDependenciesConfiguration(ProjectInternal project) {
+        return project.getConfigurations().createWithRole(GRADLE_PLATFORM_DEPENDENCIES, ConfigurationRoles.INTENDED_BUCKET, cnf -> {
             cnf.setVisible(false);
-            cnf.setCanBeConsumed(false);
-            cnf.setCanBeResolved(false);
         });
     }
 

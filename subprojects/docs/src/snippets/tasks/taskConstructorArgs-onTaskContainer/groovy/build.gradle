@@ -1,7 +1,7 @@
 // tag::inject-task-constructor[]
 abstract class CustomTask extends DefaultTask {
-    final String message
-    final int number
+    private final String message
+    private final int number
 
     @Inject
     CustomTask(String message, int number) {

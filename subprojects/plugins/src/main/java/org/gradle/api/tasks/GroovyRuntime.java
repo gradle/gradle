@@ -66,7 +66,7 @@ import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependen
  *     // such as 'GroovyCompile' or 'Groovydoc', or to execute these and other Groovy tools directly.
  * </pre>
  */
-public class GroovyRuntime {
+public abstract class GroovyRuntime {
     private static final VersionNumber GROOVY_VERSION_WITH_SEPARATE_ANT = VersionNumber.parse("2.0");
     private static final VersionNumber GROOVY_VERSION_REQUIRING_TEMPLATES = VersionNumber.parse("2.5");
 
@@ -95,7 +95,7 @@ public class GroovyRuntime {
     public FileCollection inferGroovyClasspath(final Iterable<File> classpath) {
         // alternatively, we could return project.getLayout().files(Runnable)
         // would differ in at least the following ways: 1. live 2. no autowiring
-        return new LazilyInitializedFileCollection() {
+        return new LazilyInitializedFileCollection(project.getTaskDependencyFactory()) {
 
             @Override
             public String getDisplayName() {

@@ -19,6 +19,4 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 
 public interface ArtifactPublicationServices {
     RepositoryHandler createRepositoryHandler();
-
-    ArtifactPublisher createArtifactPublisher();
 }

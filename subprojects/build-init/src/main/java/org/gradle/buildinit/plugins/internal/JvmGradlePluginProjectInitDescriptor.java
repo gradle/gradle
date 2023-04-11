@@ -80,7 +80,7 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
             buildScriptBuilder.taskMethodInvocation("Run the functional tests as part of `check`", "check", "Task", "dependsOn", functionalTest);
             buildScriptBuilder.taskMethodInvocation("Use JUnit Jupiter for unit tests.", "test", "Test", "useJUnitPlatform");
         }
-        buildScriptBuilder.methodInvocation(null, "gradlePlugin.testSourceSets", functionalTestSourceSet);
+        buildScriptBuilder.methodInvocation(null, "gradlePlugin.testSourceSets.add", functionalTestSourceSet);
     }
 
     @Override

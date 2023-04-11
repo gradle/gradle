@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import groovy.transform.SelfType
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
 
 @SelfType(BaseDeprecations)
 trait WithReportDeprecations {
@@ -26,7 +27,11 @@ trait WithReportDeprecations {
             "Please use the outputLocation property instead. " +
             "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:destination for more details."
 
-    void expectReportDestinationPropertyDeprecation() {
-        runner.expectDeprecationWarning(REPORT_DESTINATION_DEPRECATION, "https://github.com/gradle/gradle/issues/21533")
+    void expectReportDestinationPropertyDeprecation(String agpVersion) {
+        runner.expectDeprecationWarningIf(
+            VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("7.4.1"),
+            REPORT_DESTINATION_DEPRECATION,
+            "https://github.com/gradle/gradle/issues/21533"
+        )
     }
 }

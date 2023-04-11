@@ -36,8 +36,8 @@ public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
         JApiCompatibilityChange.INTERFACE_ADDED               // the added methods will be reported
     );
 
-    public BinaryBreakingChangesRule(Map<String, String> acceptedApiChanges) {
-        super(acceptedApiChanges);
+    public BinaryBreakingChangesRule(Map<String, Object> params) {
+        super(params);
     }
 
     @Override

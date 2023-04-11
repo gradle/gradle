@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
-import org.gradle.internal.component.external.model.CapabilityInternal;
+import org.gradle.api.internal.capabilities.CapabilityInternal;
 
 import java.util.ArrayDeque;
 import java.util.Collection;

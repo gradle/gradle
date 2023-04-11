@@ -84,7 +84,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo.root == uri

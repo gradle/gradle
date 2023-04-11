@@ -55,7 +55,7 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class Assemble extends DefaultTask {
+public abstract class Assemble extends DefaultTask {
     private ConfigurableFileCollection source;
     private ConfigurableFileCollection includes;
     private final Property<NativePlatform> targetPlatform;

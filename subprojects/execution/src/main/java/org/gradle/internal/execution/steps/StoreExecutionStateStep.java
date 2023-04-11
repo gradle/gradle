@@ -42,7 +42,7 @@ public class StoreExecutionStateStep<C extends PreviousExecutionContext, R exten
                         // For example the current execution fails because of a compilation failure and for the next execution the source file is fixed,
                         // so only the one changed source file needs to be compiled.
                         // If there is no previous state, then we do have output changes
-                        boolean shouldStore = result.getExecutionResult().isSuccessful() || context.getPreviousExecutionState()
+                        boolean shouldStore = result.getExecution().isSuccessful() || context.getPreviousExecutionState()
                             .map(previewExecutionState -> didOutputsChange(
                                 previewExecutionState.getOutputFilesProducedByWork(),
                                 afterExecutionState.getOutputFilesProducedByWork()))
@@ -51,7 +51,7 @@ public class StoreExecutionStateStep<C extends PreviousExecutionContext, R exten
                         if (shouldStore) {
                             history.store(
                                 context.getIdentity().getUniqueId(),
-                                result.getExecutionResult().isSuccessful(),
+                                result.getExecution().isSuccessful(),
                                 afterExecutionState
                             );
                         }

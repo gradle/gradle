@@ -44,14 +44,10 @@ public class VariantAttributesRules {
     }
 
     public ImmutableAttributes execute(VariantResolveMetadata variant, AttributeContainerInternal attributes) {
-        if (attributes == null) {
-            attributes = attributesFactory.mutable();
-        } else {
-            attributes = attributesFactory.mutable(attributes);
-        }
+        AttributeContainerInternal mutable = attributesFactory.mutable(attributes);
         for (VariantMetadataRules.VariantAction<? super AttributeContainer> action : actions) {
-            action.maybeExecute(variant, attributes);
+            action.maybeExecute(variant, mutable);
         }
-        return attributes.asImmutable();
+        return mutable.asImmutable();
     }
 }

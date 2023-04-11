@@ -33,7 +33,7 @@ import java.io.File;
  * At this moment nearly all configuration is done via {@link IdeaModule}.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
+public abstract class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 
     private IdeaModule module;
 

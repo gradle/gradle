@@ -44,16 +44,18 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
     private final IvyLocalRepositoryAccess localRepositoryAccess;
     private final IvyRemoteRepositoryAccess remoteRepositoryAccess;
 
-    public IvyResolver(String name,
-                       RepositoryTransport transport,
-                       LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                       boolean dynamicResolve,
-                       FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                       @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
-                       @Nullable InstantiatingAction<ComponentMetadataListerDetails> componentMetadataVersionListerFactory,
-                       ImmutableMetadataSources repositoryContentFilter,
-                       MetadataArtifactProvider metadataArtifactProvider,
-                       Instantiator injector, ChecksumService checksumService) {
+    public IvyResolver(
+        String name,
+        RepositoryTransport transport,
+        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+        boolean dynamicResolve,
+        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
+        @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
+        @Nullable InstantiatingAction<ComponentMetadataListerDetails> componentMetadataVersionListerFactory,
+        ImmutableMetadataSources repositoryContentFilter,
+        MetadataArtifactProvider metadataArtifactProvider,
+        Instantiator injector, ChecksumService checksumService
+    ) {
         super(
             name,
             transport.isLocal(),

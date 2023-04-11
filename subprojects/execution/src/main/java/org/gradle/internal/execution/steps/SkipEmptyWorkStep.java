@@ -19,24 +19,20 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
+import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkInputListeners;
-import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.history.AfterExecutionState;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -46,13 +42,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -83,15 +77,14 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         InputFingerprinter.Result newInputs = fingerprintPrimaryInputs(work, context, knownFileFingerprints, knownValueSnapshots);
 
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties = newInputs.getFileFingerprints();
-        if (!sourceFileProperties.isEmpty()) {
-            if (hasEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)
-            ) {
+        if (sourceFileProperties.isEmpty()) {
+            return executeWithNonEmptySources(work, context);
+        } else {
+            if (hasEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)) {
                 return skipExecutionWithEmptySources(work, context);
             } else {
-                return executeWithNoEmptySources(work, context, newInputs.getAllFileFingerprints());
+                return executeWithNonEmptySources(work, context.withInputFiles(newInputs.getAllFileFingerprints()));
             }
-        } else {
-            return executeWithNoEmptySources(work, context);
         }
     }
 
@@ -165,94 +158,21 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
 
         broadcastWorkInputs(work, true);
 
-        return new CachingResult() {
+        Try<Execution> execution = Try.successful(new Execution() {
             @Override
-            public Duration getDuration() {
-                return duration;
+            public ExecutionOutcome getOutcome() {
+                return skipOutcome;
             }
 
             @Override
-            public Try<ExecutionResult> getExecutionResult() {
-                return Try.successful(new ExecutionResult() {
-                    @Override
-                    public ExecutionOutcome getOutcome() {
-                        return skipOutcome;
-                    }
-
-                    @Override
-                    public Object getOutput() {
-                        return work.loadRestoredOutput(context.getWorkspace());
-                    }
-                });
-            }
-
-            @Override
-            public CachingState getCachingState() {
-                return CachingState.NOT_DETERMINED;
-            }
-
-            @Override
-            public ImmutableList<String> getExecutionReasons() {
-                return ImmutableList.of();
-            }
-
-            @Override
-            public Optional<AfterExecutionState> getAfterExecutionState() {
-                return Optional.empty();
-            }
-
-            @Override
-            public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                return Optional.empty();
-            }
-        };
-    }
-
-    private CachingResult executeWithNoEmptySources(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newInputFileProperties) {
-        return executeWithNoEmptySources(work, new PreviousExecutionContext() {
-            @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                return newInputFileProperties;
-            }
-
-            @Override
-            public Optional<PreviousExecutionState> getPreviousExecutionState() {
-                return context.getPreviousExecutionState();
-            }
-
-            @Override
-            public File getWorkspace() {
-                return context.getWorkspace();
-            }
-
-            @Override
-            public Optional<ExecutionHistoryStore> getHistory() {
-                return context.getHistory();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                return context.getInputProperties();
-            }
-
-            @Override
-            public UnitOfWork.Identity getIdentity() {
-                return context.getIdentity();
-            }
-
-            @Override
-            public Optional<String> getNonIncrementalReason() {
-                return context.getNonIncrementalReason();
-            }
-
-            @Override
-            public WorkValidationContext getValidationContext() {
-                return context.getValidationContext();
+            public Object getOutput() {
+                return work.loadAlreadyProducedOutput(context.getWorkspace());
             }
         });
+        return new CachingResult(duration, execution, null, ImmutableList.of(), null, CachingState.NOT_DETERMINED);
     }
 
-    private CachingResult executeWithNoEmptySources(UnitOfWork work, PreviousExecutionContext context) {
+    private CachingResult executeWithNonEmptySources(UnitOfWork work, PreviousExecutionContext context) {
         broadcastWorkInputs(work, false);
         return delegate.execute(work, context);
     }

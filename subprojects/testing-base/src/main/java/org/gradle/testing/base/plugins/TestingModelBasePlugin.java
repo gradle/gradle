@@ -46,7 +46,7 @@ import org.gradle.testing.base.internal.BaseTestSuiteSpec;
  * - Copies test binaries from {@code testSuites} into {@code binaries}.
  */
 @Incubating
-public class TestingModelBasePlugin implements Plugin<Project> {
+public abstract class TestingModelBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);

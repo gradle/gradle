@@ -66,6 +66,11 @@ public class CompositeNodeGroup extends HasFinalizers {
         return new CompositeNodeGroup(reachableFromEntryPoint, newOrdinal, finalizerGroups);
     }
 
+    @Override
+    public NodeGroup reachableFrom(OrdinalGroup newOrdinal) {
+        return new CompositeNodeGroup(reachableFromEntryPoint || newOrdinal.isReachableFromEntryPoint(), newOrdinal, finalizerGroups);
+    }
+
     public NodeGroup getOrdinalGroup() {
         return ordinalGroup;
     }

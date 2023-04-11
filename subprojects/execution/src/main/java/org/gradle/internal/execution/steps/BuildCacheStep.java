@@ -24,8 +24,8 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
+import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterExecutionState;
@@ -90,32 +90,18 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                         cacheHit.getResultingSnapshots(),
                         originMetadata,
                         true);
-                    return (AfterExecutionResult) new AfterExecutionResult() {
+                    Try<Execution> execution = Try.successful(new Execution() {
                         @Override
-                        public Try<ExecutionResult> getExecutionResult() {
-                            return Try.successful(new ExecutionResult() {
-                                @Override
-                                public ExecutionOutcome getOutcome() {
-                                    return ExecutionOutcome.FROM_CACHE;
-                                }
-
-                                @Override
-                                public Object getOutput() {
-                                    return work.loadRestoredOutput(context.getWorkspace());
-                                }
-                            });
+                        public ExecutionOutcome getOutcome() {
+                            return ExecutionOutcome.FROM_CACHE;
                         }
 
                         @Override
-                        public Duration getDuration() {
-                            return originMetadata.getExecutionTime();
+                        public Object getOutput() {
+                            return work.loadAlreadyProducedOutput(context.getWorkspace());
                         }
-
-                        @Override
-                        public Optional<AfterExecutionState> getAfterExecutionState() {
-                            return Optional.of(afterExecutionState);
-                        }
-                    };
+                    });
+                    return new AfterExecutionResult(originMetadata.getExecutionTime(), execution, afterExecutionState);
                 })
                 .orElseGet(() -> executeAndStoreInCache(cacheableWork, cacheKey, context))
             )
@@ -151,12 +137,25 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                 cacheableWork.getDisplayName(), cacheKey.getHashCode());
         }
         AfterExecutionResult result = executeWithoutCache(cacheableWork.work, context);
-        result.getExecutionResult().ifSuccessfulOrElse(
-            executionResult -> result.getAfterExecutionState()
-                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime())),
+        result.getExecution().ifSuccessfulOrElse(
+            executionResult -> storeInCacheUnlessDisabled(cacheableWork, cacheKey, result, executionResult),
             failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", cacheableWork.getDisplayName())
         );
         return result;
+    }
+
+    /**
+     * Stores the results of the given work in the build cache, unless storing was disabled for this execution or work was untracked.
+     * <p>
+     * The former is currently used only for tasks and can be triggered via {@code org.gradle.api.internal.TaskOutputsEnterpriseInternal}.
+     */
+    private void storeInCacheUnlessDisabled(CacheableWork cacheableWork, BuildCacheKey cacheKey, AfterExecutionResult result, Execution executionResult) {
+        if (executionResult.canStoreOutputsInCache()) {
+            result.getAfterExecutionState()
+                .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime()));
+        } else {
+            LOGGER.debug("Not storing result of {} in cache because storing was disabled for this execution", cacheableWork.getDisplayName());
+        }
     }
 
     private void store(CacheableWork work, BuildCacheKey cacheKey, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, Duration executionTime) {

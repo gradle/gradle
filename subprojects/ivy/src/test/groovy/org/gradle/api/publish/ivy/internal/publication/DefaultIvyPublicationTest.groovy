@@ -295,7 +295,8 @@ class DefaultIvyPublicationTest extends Specification {
             CollectionCallbackActionDecorator.NOOP,
             Mock(VersionMappingStrategyInternal),
             Mock(PlatformSupport),
-            Mock(DocumentationRegistry)
+            Mock(DocumentationRegistry),
+            TestFiles.taskDependencyFactory()
         )
         publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
 
@@ -374,7 +375,8 @@ class DefaultIvyPublicationTest extends Specification {
             CollectionCallbackActionDecorator.NOOP,
             Mock(VersionMappingStrategyInternal),
             Mock(PlatformSupport),
-            Mock(DocumentationRegistry)
+            Mock(DocumentationRegistry),
+            TestFiles.taskDependencyFactory()
         )
         publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(moduleDescriptorFile))
@@ -412,14 +414,14 @@ class DefaultIvyPublicationTest extends Specification {
     }
 
     def createComponent(def artifacts, def dependencies) {
-        def usage = Stub(UsageContext) {
+        def variant = Stub(UsageContext) {
             getName() >> 'runtime'
             getArtifacts() >> artifacts
             getDependencies() >> dependencies
             getAttributes() >> ImmutableAttributes.EMPTY
         }
         def component = Stub(SoftwareComponentInternal) {
-            getUsages() >> [usage]
+            getUsages() >> [variant]
         }
         return component
     }

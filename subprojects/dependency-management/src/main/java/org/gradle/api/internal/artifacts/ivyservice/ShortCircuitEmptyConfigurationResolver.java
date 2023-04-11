@@ -29,9 +29,9 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
+import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -69,48 +69,48 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     }
 
     @Override
-    public void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults result) {
-        if (configuration.getAllDependencies().isEmpty()) {
-            emptyGraph(configuration, result, false);
+    public void resolveBuildDependencies(ResolveContext resolveContext, ResolverResults result) {
+        if (!resolveContext.hasDependencies()) {
+            emptyGraph(resolveContext, result, false);
         } else {
-            delegate.resolveBuildDependencies(configuration, result);
+            delegate.resolveBuildDependencies(resolveContext, result);
         }
     }
 
     @Override
-    public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
-        if (configuration.getAllDependencies().isEmpty()) {
-            emptyGraph(configuration, results, true);
+    public void resolveGraph(ResolveContext resolveContext, ResolverResults results) throws ResolveException {
+        if (!resolveContext.hasDependencies()) {
+            emptyGraph(resolveContext, results, true);
         } else {
-            delegate.resolveGraph(configuration, results);
+            delegate.resolveGraph(resolveContext, results);
         }
     }
 
-    private void emptyGraph(ConfigurationInternal configuration, ResolverResults results, boolean verifyLocking) {
-        if (verifyLocking && configuration.getResolutionStrategy().isDependencyLockingEnabled()) {
-            DependencyLockingProvider dependencyLockingProvider = configuration.getResolutionStrategy().getDependencyLockingProvider();
-            DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(configuration.getName());
+    private void emptyGraph(ResolveContext resolveContext, ResolverResults results, boolean verifyLocking) {
+        if (verifyLocking && resolveContext.getResolutionStrategy().isDependencyLockingEnabled()) {
+            DependencyLockingProvider dependencyLockingProvider = resolveContext.getResolutionStrategy().getDependencyLockingProvider();
+            DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(resolveContext.getName());
             if (lockingState.mustValidateLockState() && !lockingState.getLockedDependencies().isEmpty()) {
                 // Invalid lock state, need to do a real resolution to gather locking failures
-                delegate.resolveGraph(configuration, results);
+                delegate.resolveGraph(resolveContext, results);
                 return;
             }
-            dependencyLockingProvider.persistResolvedDependencies(configuration.getName(), Collections.emptySet(), Collections.emptySet());
+            dependencyLockingProvider.persistResolvedDependencies(resolveContext.getName(), Collections.emptySet(), Collections.emptySet());
         }
-        Module module = configuration.getModule();
-        ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(module);
+        Module module = resolveContext.getModule();
+        ModuleVersionIdentifier id = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
-        ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier, configuration.getAttributes());
+        ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier, resolveContext.getAttributes());
         ResolvedLocalComponentsResult emptyProjectResult = new ResolvedLocalComponentsResultGraphVisitor(thisBuild);
         results.graphResolved(emptyResult, emptyProjectResult, EmptyResults.INSTANCE);
     }
 
     @Override
-    public void resolveArtifacts(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
-        if (configuration.getAllDependencies().isEmpty() && results.getVisitedArtifacts() == EmptyResults.INSTANCE) {
+    public void resolveArtifacts(ResolveContext resolveContext, ResolverResults results) throws ResolveException {
+        if (!resolveContext.hasDependencies() && results.getVisitedArtifacts() == EmptyResults.INSTANCE) {
             results.artifactsResolved(new EmptyResolvedConfiguration(), EmptyResults.INSTANCE);
         } else {
-            delegate.resolveArtifacts(configuration, results);
+            delegate.resolveArtifacts(resolveContext, results);
         }
     }
 
@@ -118,7 +118,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         private static final EmptyResults INSTANCE = new EmptyResults();
 
         @Override
-        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant) {
+        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant, boolean selectFromAllVariants) {
             return this;
         }
 

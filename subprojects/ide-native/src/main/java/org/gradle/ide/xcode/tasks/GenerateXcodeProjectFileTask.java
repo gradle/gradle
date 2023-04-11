@@ -71,7 +71,7 @@ import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList;
  */
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<XcodeProjectFile> {
+public abstract class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<XcodeProjectFile> {
     private static final String PRODUCTS_GROUP_NAME = "Products";
     private static final String UNBUILDABLE_BUILD_CONFIGURATION_NAME = "unbuildable";
     private final String projectPath = getProject().getPath();

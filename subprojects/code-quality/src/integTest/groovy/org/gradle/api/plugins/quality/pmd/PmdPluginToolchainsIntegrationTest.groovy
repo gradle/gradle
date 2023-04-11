@@ -17,17 +17,16 @@
 package org.gradle.api.plugins.quality.pmd
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
-
-import static org.junit.Assume.assumeNotNull
 
 /**
  * Tests to ensure toolchains specified by the {@code PmdPlugin} and
  * {@code Pmd} tasks behave as expected.
  */
-class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
+class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegrationTest implements JavaToolchainFixture {
 
     def setup() {
         executer.withArgument("--info")
@@ -106,7 +105,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
                 threads = 1
                 incrementalAnalysis = false
             }
-"""
+        """
 
         when:
         succeeds("myPmd")
@@ -117,8 +116,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
 
     Jvm setupExecutorForToolchains() {
         Jvm jdk = AvailableJavaHomes.getDifferentVersion()
-        assumeNotNull(jdk)
-        executer.withArgument("-Porg.gradle.java.installations.paths=${jdk.javaHome.absolutePath}")
+        withInstallations(jdk)
         return jdk
     }
 
@@ -148,35 +146,29 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
 
     private void writeBuildFileWithoutApplyingPmdPlugin() {
         buildFile << """
-    plugins {
-        id 'groovy'
-        id 'java'
-    }
+            plugins {
+                id 'groovy'
+                id 'java'
+            }
 
-    ${mavenCentralRepository()}
-"""
+            ${mavenCentralRepository()}
+        """
     }
 
     private void writeBuildFileWithToolchainsFromJavaPlugin(Jvm jvm) {
         writeBuildFile()
-        buildFile << """
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
-        }
-    }
-"""
+        configureJavaPluginToolchainVersion(jvm)
     }
 
     private void writeBuildFileWithToolchainsFromCheckstyleTask(Jvm jvm) {
         writeBuildFile()
         buildFile << """
-    tasks.withType(Pmd) {
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
-        }
-    }
-"""
+            tasks.withType(Pmd) {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
+                }
+            }
+        """
     }
 
     private goodCode() {

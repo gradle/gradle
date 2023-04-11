@@ -22,17 +22,21 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictException;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.locking.LockOutOfDateException;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput.Style;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+
+import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
 class ResolutionErrorRenderer implements Action<Throwable> {
     private final Spec<DependencyResult> dependencySpec;
@@ -79,17 +83,17 @@ class ResolutionErrorRenderer implements Action<Throwable> {
 
     private void handleConflict(final VersionConflictException conflict) {
         registerError(output -> {
-            output.text("Dependency resolution failed because of conflict(s) on the following module(s):");
+            Collection<Conflict> conflicts = conflict.getConflicts();
+            String plural = getPluralEnding(conflicts);
+            output.text("Dependency resolution failed because of conflict" + plural + " on the following module"+ plural + ":");
             output.println();
-            for (Pair<List<? extends ModuleVersionIdentifier>, String> identifierStringPair : conflict.getConflicts()) {
-                boolean matchesSpec = hasVersionConflictOnRequestedDependency(identifierStringPair.getLeft());
-                if (!matchesSpec) {
-                    continue;
-                }
-                output.text("   - ");
-                output.withStyle(StyledTextOutput.Style.Error).text(identifierStringPair.getRight());
-                output.println();
-            }
+            conflicts.stream()
+                .filter(idendifierStringPair -> hasVersionConflictOnRequestedDependency(idendifierStringPair.getVersions()))
+                .forEach(identifierStringPair -> {
+                    output.text("   - ");
+                    output.withStyle(Style.Error).text(identifierStringPair.getMessage());
+                    output.println();
+                });
             output.println();
         });
 
@@ -105,7 +109,7 @@ class ResolutionErrorRenderer implements Action<Throwable> {
         errorActions.add(errorAction);
     }
 
-    private boolean hasVersionConflictOnRequestedDependency(final List<? extends ModuleVersionIdentifier> versionIdentifiers) {
+    private boolean hasVersionConflictOnRequestedDependency(final Collection<? extends ModuleVersionIdentifier> versionIdentifiers) {
         Objects.requireNonNull(dependencySpec, "Dependency spec must be specified");
         for (final ModuleVersionIdentifier versionIdentifier : versionIdentifiers) {
             if (dependencySpec.isSatisfiedBy(asDependencyResult(versionIdentifier))) {

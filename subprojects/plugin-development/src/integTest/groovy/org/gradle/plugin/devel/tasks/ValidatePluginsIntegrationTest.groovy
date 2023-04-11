@@ -18,11 +18,15 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
+import static org.junit.Assume.assumeNotNull
 
 class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 
@@ -32,7 +36,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
     }
 
-    String iterableSymbol = '*'
+    String iterableSymbol = '.*'
 
     @Override
     String getNameSymbolFor(String name) {
@@ -493,8 +497,25 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            warning(notCacheableWithoutReason { type('MyTask').noReasonOnTask().includeLink() }),
-            warning(notCacheableWithoutReason { type('MyTransformAction').noReasonOnArtifactTransform().includeLink() })
+            warning("""
+                Type 'MyTask' must be annotated either with @CacheableTask or with @DisableCachingByDefault.
+
+                Reason: The task author should make clear why a task is not cacheable.
+
+                Possible solutions:
+                  1. Add @DisableCachingByDefault(because = ...).
+                  2. Add @CacheableTask.
+                  3. Add @UntrackedTask(because = ...).
+            """.stripIndent(true).trim(), "validation_problems", "disable_caching_by_default"),
+            warning("""
+                Type 'MyTransformAction' must be annotated either with @CacheableTransform or with @DisableCachingByDefault.
+
+                Reason: The transform action author should make clear why a transform action is not cacheable.
+
+                Possible solutions:
+                  1. Add @DisableCachingByDefault(because = ...).
+                  2. Add @CacheableTransform.
+            """.stripIndent(true).trim(), "validation_problems", "disable_caching_by_default")
         ])
     }
 
@@ -776,5 +797,121 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 error(missingAnnotationMessage { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
                 error(missingAnnotationMessage { type('MyTask').property("providedOptions.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23045")
+    @ValidationTestFor(
+        ValidationProblemId.NESTED_MAP_UNSUPPORTED_KEY_TYPE
+    )
+    def "key of nested map must be of type String"() {
+        def key = "key1"
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import java.util.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends DefaultTask {
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                @Nested
+                public Map<String, Options> getMapWithGStringKey() {
+                    return Collections.singletonMap("$key", new Options());
+                }
+
+                @Nested
+                public Map<String, Options> getMapWithStringKey() {
+                    return Collections.singletonMap("key2", new Options());
+                }
+
+                @Nested
+                public Map<String, Options> getMapEmpty() {
+                    return Collections.emptyMap();
+                }
+
+                @Nested
+                public Map<Integer, Options> getMapWithNonStringKey() {
+                    return Collections.singletonMap(Integer.valueOf(0), new Options());
+                }
+
+                public static class Options {
+                    @Input
+                    public String getGood() {
+                        return "good";
+                    }
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        expect:
+        assertValidationFailsWith([
+            warning(nestedMapUnsupportedKeyType { type('MyTask').property("mapWithNonStringKey").keyType("java.lang.Integer") }, 'validation_problems', 'unsupported_key_type_of_nested_map'),
+        ])
+    }
+
+    def "honors configured Java Toolchain to avoid compiled by a more recent version failure"() {
+        def currentJdk = Jvm.current()
+        def newerJdk = AvailableJavaHomes.getDifferentVersion { it.languageVersion > currentJdk.javaVersion }
+        assumeNotNull(newerJdk)
+
+        def installationPaths = [currentJdk, newerJdk].collect { it.javaHome.absolutePath }.join(",")
+
+        given:
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.work.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public abstract class MyTask extends DefaultTask {
+            }
+        """
+        executer.withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
+        buildFile << """
+            java {
+                toolchain {
+                    languageVersion.set(JavaLanguageVersion.of(${newerJdk.javaVersion.majorVersion}))
+                }
+            }
+        """
+        expect:
+        assertValidationSucceeds()
+    }
+
+    def "missing Java Toolchain plugin causes a deprecation warning"() {
+        given:
+        source("producer/settings.gradle") << ""
+        source("producer/build.gradle") << "plugins { id 'java' }"
+        source("producer/src/main/java/Test.java") << "public class Test {}"
+
+        source("consumer/settings.gradle") << ""
+        source("consumer/build.gradle") << """
+            tasks.register("validatePlugins", ValidatePlugins) {
+                classes.from("../producer/build/classes/java/main")
+                outputFile.set(project.file("\$buildDir/report.txt"))
+            }
+        """
+
+        when:
+        executer.inDirectory(file("producer"))
+            .withArgument("build")
+            .run()
+
+        executer.inDirectory(file("consumer"))
+            .expectDocumentedDeprecationWarning(
+                "Using task ValidatePlugins without applying the Java Toolchain plugin. " +
+                    "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#validate_plugins_without_java_toolchain"
+            )
+
+        then:
+        succeeds "validatePlugins"
     }
 }

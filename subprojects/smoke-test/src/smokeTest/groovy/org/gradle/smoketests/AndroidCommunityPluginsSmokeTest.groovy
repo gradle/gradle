@@ -16,35 +16,44 @@
 
 package org.gradle.smoketests
 
-import org.gradle.internal.reflect.validation.Severity
+
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
-    private static final String ANDROID_PLUGIN_VERSION_FOR_TESTS = TestedVersions.androidGradle.latestStartsWith("7.3")
+    private static final String ANDROID_PLUGIN_VERSION_FOR_TESTS = AGP_VERSIONS.latestStable
 
-    private static final String DAGGER_HILT_ANDROID_PLUGIN_ID = 'dagger.hilt.android.plugin'
-    private static final String TRIPLET_PLAY_PLUGIN_ID = 'com.github.triplet.play'
-    private static final String FLADLE_PLUGIN_ID = 'com.osacky.fladle'
-    private static final String SAFEARGS_PLUGIN_ID = 'androidx.navigation.safeargs'
     private static final String GOOGLE_SERVICES_PLUGIN_ID = 'com.google.gms.google-services'
     private static final String CRASHLYTICS_PLUGIN_ID = 'com.google.firebase.crashlytics'
     private static final String FIREBASE_PERF_PLUGIN_ID = 'com.google.firebase.firebase-perf'
-    private static final String SENTRY_PLUGIN_ID = 'io.sentry.android.gradle'
     private static final String BUGSNAG_PLUGIN_ID = 'com.bugsnag.android.gradle'
+    private static final String FLADLE_PLUGIN_ID = 'com.osacky.fladle'
+    private static final String TRIPLET_PLAY_PLUGIN_ID = 'com.github.triplet.play'
+    private static final String SAFEARGS_PLUGIN_ID = 'androidx.navigation.safeargs'
+    private static final String DAGGER_HILT_ANDROID_PLUGIN_ID = 'dagger.hilt.android.plugin'
+    private static final String SENTRY_PLUGIN_ID = 'io.sentry.android.gradle'
 
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            (GOOGLE_SERVICES_PLUGIN_ID): Versions.of('4.3.5'),
-            (CRASHLYTICS_PLUGIN_ID): Versions.of('2.9.1'),
-            (FIREBASE_PERF_PLUGIN_ID): Versions.of('1.4.1'),
-            (BUGSNAG_PLUGIN_ID): Versions.of('7.3.0'),
+            // https://mvnrepository.com/artifact/com.google.gms/google-services?repo=google
+            (GOOGLE_SERVICES_PLUGIN_ID): Versions.of('4.3.15'),
+            // https://mvnrepository.com/artifact/com.google.firebase.crashlytics/com.google.firebase.crashlytics.gradle.plugin
+            (CRASHLYTICS_PLUGIN_ID): Versions.of('2.9.4'),
+            // https://mvnrepository.com/artifact/com.google.firebase/perf-plugin
+            (FIREBASE_PERF_PLUGIN_ID): Versions.of('1.4.2'),
+            // https://plugins.gradle.org/plugin/com.bugsnag.android.gradle
+            (BUGSNAG_PLUGIN_ID): Versions.of('7.4.1'),
+            // https://plugins.gradle.org/plugin/com.osacky.fladle
             (FLADLE_PLUGIN_ID): Versions.of('0.17.4'),
-            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.7.0'),
-            (SAFEARGS_PLUGIN_ID): Versions.of('2.5.1'),
-            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.43.2'),
-            (SENTRY_PLUGIN_ID): Versions.of('3.1.4'),
+            // https://plugins.gradle.org/plugin/com.github.triplet.play
+            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.8.1'),
+            // https://mvnrepository.com/artifact/androidx.navigation.safeargs/androidx.navigation.safeargs.gradle.plugin
+            (SAFEARGS_PLUGIN_ID): Versions.of('2.5.3'),
+            // https://mvnrepository.com/artifact/com.google.dagger/hilt-android-gradle-plugin
+            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.45'),
+            // https://mvnrepository.com/artifact/io.sentry.android.gradle/io.sentry.android.gradle.gradle.plugin
+            (SENTRY_PLUGIN_ID): Versions.of('3.4.2'),
         ]
     }
 
@@ -54,24 +63,8 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
         configureAndroidProject(testedPluginId)
 
         validatePlugins {
-            switch (testedPluginId) {
-                case SENTRY_PLUGIN_ID:
-                    passing {
-                        it !in [SENTRY_PLUGIN_ID]
-                    }
-                    onPlugins([SENTRY_PLUGIN_ID]) {
-                        // https://github.com/getsentry/sentry-android-gradle-plugin/issues/370
-                        failsWith([
-                            (incorrectUseOfInputAnnotation { type('io.sentry.android.gradle.tasks.SentryUploadNativeSymbolsTask').property('buildDir').propertyType('DirectoryProperty').includeLink() }): Severity.ERROR,
-                            (incorrectUseOfInputAnnotation { type('io.sentry.android.gradle.tasks.SentryUploadProguardMappingsTask').property('uuidDirectory').propertyType('DirectoryProperty').includeLink() }): Severity.ERROR
-                        ])
-                    }
-                    break
-                default:
-                    passing {
-                        true
-                    }
-                    break
+            passing {
+                true
             }
         }
     }
@@ -169,7 +162,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
         if (testedPluginId == DAGGER_HILT_ANDROID_PLUGIN_ID) {
             return [
                 'com.android.application': ANDROID_PLUGIN_VERSION_FOR_TESTS,
-                'org.jetbrains.kotlin.android': TestedVersions.kotlin.latestStable()
+                'org.jetbrains.kotlin.android': KOTLIN_VERSIONS.latestStable
             ]
         }
         return ['com.android.application': ANDROID_PLUGIN_VERSION_FOR_TESTS]

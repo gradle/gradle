@@ -16,32 +16,74 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentInAnotherBuildProvider;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.internal.Describables;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.model.CalculatedValueContainer;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.ValueCalculator;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Provides the metadata for a local component consumed from a build that is not the producing build.
  *
- * Currently, the metadata for a component is different based on whether it is consumed from the producing build or from another build. This difference should go away, but in the meantime this class provides the mapping.
+ * <p>Currently, the metadata for a component is different based on whether it is consumed from the producing build or from another build. This difference should go away, but in the meantime this class provides the mapping.
  */
-public class DefaultLocalComponentInAnotherBuildProvider implements LocalComponentInAnotherBuildProvider {
+public class DefaultLocalComponentInAnotherBuildProvider implements LocalComponentInAnotherBuildProvider, HoldsProjectState {
     private final IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final Map<ProjectComponentIdentifier, CalculatedValueContainer<LocalComponentGraphResolveState, ?>> projects = new ConcurrentHashMap<>();
 
-    public DefaultLocalComponentInAnotherBuildProvider(IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder) {
+    public DefaultLocalComponentInAnotherBuildProvider(
+        IncludedBuildDependencyMetadataBuilder dependencyMetadataBuilder,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    ) {
         this.dependencyMetadataBuilder = dependencyMetadataBuilder;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
-    public LocalComponentMetadata getComponent(ProjectState projectState) {
-        // TODO - this should work for any build, rather than just an included build
-        CompositeBuildParticipantBuildState buildState = (CompositeBuildParticipantBuildState) projectState.getOwner();
-        if (buildState instanceof IncludedBuildState) {
-            // make sure the build is configured now (not do this for the root build, as we are already configuring it right now)
-            buildState.ensureProjectsConfigured();
+    public LocalComponentGraphResolveState getComponent(ProjectState projectState) {
+        ProjectComponentIdentifier projectIdentifier = projectState.getComponentIdentifier();
+        CalculatedValueContainer<LocalComponentGraphResolveState, ?> valueContainer = projects.computeIfAbsent(projectIdentifier, projectComponentIdentifier ->
+            calculatedValueContainerFactory.create(Describables.of("metadata of", projectIdentifier), new MetadataSupplier(projectState)));
+        // Calculate the value after adding the entry to the map, so that the value container can take care of thread synchronization
+        valueContainer.finalizeIfNotAlready();
+        return valueContainer.get();
+    }
+
+    @Override
+    public void discardAll() {
+        projects.clear();
+    }
+
+    private class MetadataSupplier implements ValueCalculator<LocalComponentGraphResolveState> {
+        private final ProjectState projectState;
+
+        public MetadataSupplier(ProjectState projectState) {
+            this.projectState = projectState;
         }
-        // Metadata builder uses mutable project state, so synchronize access to the project state
-        return projectState.fromMutableState(p -> dependencyMetadataBuilder.build(buildState, projectState.getComponentIdentifier()));
+
+        @Override
+        public LocalComponentGraphResolveState calculateValue(NodeExecutionContext context) {
+            // TODO - this should work for any build, rather than just an included build
+            CompositeBuildParticipantBuildState buildState = (CompositeBuildParticipantBuildState) projectState.getOwner();
+            if (buildState instanceof IncludedBuildState) {
+                // make sure the build is configured now (not do this for the root build, as we are already configuring it right now)
+                buildState.ensureProjectsConfigured();
+            }
+            // Metadata builder uses mutable project state, so synchronize access to the project state
+            LocalComponentMetadata metadata = projectState.fromMutableState(p -> dependencyMetadataBuilder.build(buildState, projectState.getComponentIdentifier()));
+            return new DefaultLocalComponentGraphResolveState(metadata);
+        }
     }
 }

@@ -18,11 +18,20 @@ package org.gradle.integtests.fixtures;
 
 import org.hamcrest.Matcher;
 
+import java.util.List;
+
 public interface TestClassExecutionResult {
     /**
      * Asserts that the given tests (and only the given tests) were executed for the given test class.
      */
     TestClassExecutionResult assertTestsExecuted(String... testNames);
+
+    /**
+     * Asserts that the given tests (and only the given tests) were executed for the given test class.
+     *
+     * This supports JUnit5 parameterized tests where the test name and display name may not match.
+     */
+    TestClassExecutionResult assertTestsExecuted(TestCase... testCases);
 
     TestClassExecutionResult assertTestCount(int tests, int failures, int errors);
 
@@ -81,4 +90,10 @@ public interface TestClassExecutionResult {
     TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher);
 
     TestClassExecutionResult assertDisplayName(String classDisplayName);
+
+    interface TestCase {
+        String getName();
+        String getDisplayName();
+        List<String> getMessages();
+    }
 }

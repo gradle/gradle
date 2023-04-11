@@ -18,16 +18,33 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.WorkValidationContext;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
-public interface ExecutionRequestContext extends Context {
+public class ExecutionRequestContext implements Context {
+    private final String nonIncrementalReason;
+    private final WorkValidationContext validationContext;
+
+    public ExecutionRequestContext(@Nullable String nonIncrementalReason, WorkValidationContext validationContext) {
+        this.nonIncrementalReason = nonIncrementalReason;
+        this.validationContext = validationContext;
+    }
+
+    protected ExecutionRequestContext(ExecutionRequestContext parent) {
+        this(parent.getNonIncrementalReason().orElse(null), parent.getValidationContext());
+    }
+
     /**
      * If incremental mode is disabled, this returns the reason, otherwise it's empty.
      */
-    Optional<String> getNonIncrementalReason();
+    Optional<String> getNonIncrementalReason() {
+        return Optional.ofNullable(nonIncrementalReason);
+    }
 
     /**
      * The validation context to use during the execution of the work.
      */
-    WorkValidationContext getValidationContext();
+    WorkValidationContext getValidationContext() {
+        return validationContext;
+    }
 }

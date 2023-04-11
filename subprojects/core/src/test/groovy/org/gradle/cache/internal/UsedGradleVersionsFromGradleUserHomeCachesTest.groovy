@@ -17,7 +17,7 @@
 package org.gradle.cache.internal
 
 
-import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
@@ -32,12 +32,12 @@ class UsedGradleVersionsFromGradleUserHomeCachesTest extends Specification {
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def cacheBaseDir = temporaryFolder.createDir("cache-dir")
-    def globalScopedCache = Stub(GlobalScopedCache) {
+    def cacheBuilderFactory = Stub(GlobalScopedCacheBuilderFactory) {
         getRootDir() >> cacheBaseDir
     }
 
     @Subject
-    UsedGradleVersions versions = new UsedGradleVersionsFromGradleUserHomeCaches(globalScopedCache)
+    UsedGradleVersions versions = new UsedGradleVersionsFromGradleUserHomeCaches(cacheBuilderFactory)
 
     def "returns Gradle versions from version-specific cache directories"() {
         given:

@@ -98,6 +98,15 @@ public class DependencySuccessorsOnlyNodeSet implements DependencyNodesSet {
         }
     }
 
+    @Override
+    public void healthDiagnostics(StringBuilder builder) {
+        builder.append("dependencies=").append(Node.formatNodes(orderedDependencies));
+        if (waitingFor != null && !waitingFor.isEmpty()) {
+            builder.append(", waiting-for=").append(Node.formatNodes(waitingFor));
+        }
+        builder.append(", has-failed-dependency=").append(nodeCannotStart);
+    }
+
     private void discardCompletedNodes(Node node) {
         if (waitingFor != null) {
             Iterator<Node> iterator = waitingFor.iterator();

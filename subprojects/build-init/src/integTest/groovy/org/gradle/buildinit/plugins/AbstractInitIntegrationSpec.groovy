@@ -58,34 +58,8 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         assertNoDefinedBuild(targetDir)
     }
 
-    void assertTestsDoNotExist(String className) {
-        def result = new DefaultTestExecutionResult(subprojectDir)
-        assert result.testClassDoesNotExist(className)
-    }
-
-    void assertTestsDidNotRun(String className) {
-        def result = new DefaultTestExecutionResult(subprojectDir)
-        result.assertTestClassesNotExecuted(className)
-    }
-
-    void assertIntegrationTestsDoNotExist(String className) {
-        def result = new DefaultTestExecutionResult(subprojectDir, 'build', '', '', 'integrationTest')
-        assert result.testClassDoesNotExist(className)
-    }
-
-    void assertIntegrationTestsDidNotRun(String className) {
-        def result = new DefaultTestExecutionResult(subprojectDir, 'build', '', '', 'integrationTest')
-        result.assertTestClassesNotExecuted(className)
-    }
-
     void assertTestPassed(String className, String name) {
         def result = new DefaultTestExecutionResult(subprojectDir)
-        result.assertTestClassesExecuted(className)
-        result.testClass(className).assertTestPassed(name)
-    }
-
-    void assertIntegrationTestPassed(String className, String name) {
-        def result = new DefaultTestExecutionResult(subprojectDir, 'build', '', '', 'integrationTest')
         result.assertTestClassesExecuted(className)
         result.testClass(className).assertTestPassed(name)
     }
@@ -107,6 +81,10 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         commonFilesGenerated(scriptDsl)
         subprojectDir.file("src/main/resources").assertIsDir()
         subprojectDir.file("src/test/resources").assertIsDir()
+    }
+
+    protected void gradlePropertiesGenerated() {
+        targetDir.file("gradle.properties").assertIsFile()
     }
 
     protected ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {

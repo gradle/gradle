@@ -35,7 +35,7 @@ interface SourceDistributionProvider {
 }
 
 
-class SourceDistributionResolver(val project: Project) : SourceDistributionProvider {
+class SourceDistributionResolver(private val project: Project) : SourceDistributionProvider {
 
     companion object {
         val artifactType = Attribute.of("artifactType", String::class.java)

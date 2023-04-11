@@ -18,11 +18,11 @@ package org.gradle.api.reporting.dependencies;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
@@ -34,11 +34,20 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
+import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
+import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
+import org.gradle.api.tasks.diagnostics.internal.ProjectsWithConfigurations;
 import org.gradle.internal.logging.ConsoleRenderer;
+import org.gradle.internal.serialization.Cached;
+import org.gradle.internal.serialization.Transient;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
 import java.util.Set;
+import java.util.stream.Stream;
+
+import static java.util.Collections.singleton;
+import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
  * Generates an HTML dependency report. This report
@@ -66,8 +75,9 @@ import java.util.Set;
  * </pre>
  */
 @UntrackedTask(because = "We can't describe the dependency tree of all projects as input")
-public class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
-    private Set<Project> projects;
+public abstract class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
+    private final Transient.Var<Set<Project>> projects = Transient.varOf(uncheckedCast(singleton(getProject())));
+    private final Cached<ProjectsWithConfigurations<ProjectDetails.ProjectNameAndPath, ConfigurationDetails>> projectsWithConfigurations = Cached.of(this::computeProjectsWithConfigurations);
     private final DirectoryProperty reportDir;
     private final DependencyReportContainer reports;
 
@@ -85,7 +95,6 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
      * @since 7.1
      */
     @Internal
-    @Incubating
     public DirectoryProperty getProjectReportDirectory() {
         return reportDir;
     }
@@ -146,9 +155,9 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
         }
 
         HtmlDependencyReporter reporter = new HtmlDependencyReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
-        reporter.render(getProjects(), reports.getHtml().getOutputLocation().getAsFile().get());
+        reporter.render(projectsWithConfigurations.get(), reports.getHtml().getOutputLocation().getAsFile().get());
 
-        getProject().getLogger().lifecycle("See the report at: {}", new ConsoleRenderer().asClickableFileUrl(reports.getHtml().getEntryPoint()));
+        getLogger().lifecycle("See the report at: {}", new ConsoleRenderer().asClickableFileUrl(reports.getHtml().getEntryPoint()));
     }
 
     /**
@@ -159,7 +168,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
      */
     @Internal
     public Set<Project> getProjects() {
-        return projects;
+        return projects.get();
     }
 
     /**
@@ -168,6 +177,21 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
      * @param projects The set of projects. Must not be null.
      */
     public void setProjects(Set<Project> projects) {
-        this.projects = projects;
+        this.projects.set(projects);
+    }
+
+    private ProjectsWithConfigurations<ProjectDetails.ProjectNameAndPath, ConfigurationDetails> computeProjectsWithConfigurations() {
+        return ProjectsWithConfigurations.from(
+            getProjects(),
+            ProjectDetails::withNameAndPath,
+            HtmlDependencyReportTask::getConfigurationsWhichCouldHaveDependencyInfo
+        );
+    }
+
+    private static Stream<? extends ConfigurationDetails> getConfigurationsWhichCouldHaveDependencyInfo(Project project) {
+        return project.getConfigurations().stream()
+            .map(ConfigurationInternal.class::cast)
+            .filter(c -> c.isDeclarableAgainstByExtension())
+            .map(ConfigurationDetails::of);
     }
 }

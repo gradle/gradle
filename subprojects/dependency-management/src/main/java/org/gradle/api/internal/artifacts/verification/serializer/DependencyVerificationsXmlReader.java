@@ -20,7 +20,7 @@ import com.google.common.collect.Interners;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
+import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
@@ -212,13 +212,13 @@ public class DependencyVerificationsXmlReader {
                     break;
                 default:
                     if (currentChecksum != null && ALSO_TRUST.equals(qName)) {
-                        builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null);
+                        builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null, null);
                     } else if (currentArtifact != null) {
                         if (PGP.equals(qName)) {
                             builder.addTrustedKey(currentArtifact, getAttribute(attributes, VALUE));
                         } else {
                             currentChecksum = ChecksumKind.valueOf(qName);
-                            builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), getNullableAttribute(attributes, ORIGIN));
+                            builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), getNullableAttribute(attributes, ORIGIN), getNullableAttribute(attributes, REASON));
                         }
                     }
             }
@@ -251,7 +251,8 @@ public class DependencyVerificationsXmlReader {
                 getNullableAttribute(attributes, NAME),
                 getNullableAttribute(attributes, VERSION),
                 getNullableAttribute(attributes, FILE),
-                regex
+                regex,
+                getNullableAttribute(attributes, REASON)
             );
         }
 

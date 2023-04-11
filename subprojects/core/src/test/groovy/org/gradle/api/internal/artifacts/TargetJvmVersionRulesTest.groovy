@@ -23,7 +23,6 @@ import org.gradle.api.internal.attributes.CompatibilityRule
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.DisambiguationRule
 import org.gradle.api.internal.attributes.MultipleCandidatesResult
-import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -34,7 +33,7 @@ class TargetJvmVersionRulesTest extends Specification {
     private DisambiguationRule<Object> disambiguationRules
 
     def setup() {
-        AttributesSchema schema = new DefaultAttributesSchema(Stub(ComponentAttributeMatcher), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
+        AttributesSchema schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
         compatibilityRules = schema.compatibilityRules(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
         disambiguationRules = schema.disambiguationRules(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)

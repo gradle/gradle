@@ -105,7 +105,9 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
                 edge("org:foo:{strictly [1.0,1.2]}", "org:foo:1.2")
                 edge('org:bar:1.0', 'org:bar:1.0') {
                     edge("org:foo:{strictly [1.1,1.3]}", "org:foo:1.2") {
+                        notRequested()
                         byAncestor()
+                        byReason("didn't match version 1.3")
                     }
                 }
             }
@@ -162,7 +164,9 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:bar:1') {
-                    edge("org:foo:{prefer 1.1}", "org:foo:1.1")
+                    edge("org:foo:{prefer 1.1}", "org:foo:1.1") {
+                        byReason("didn't match version 2.0")
+                    }
                 }
                 module('org:baz:1') {
                     edge("org:foo:{prefer 1.0}", "org:foo:1.1")
@@ -208,7 +212,9 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge('org:foo:{strictly 17}', 'org:foo:17')
+                edge('org:foo:{strictly 17}', 'org:foo:17') {
+                    byAncestor()
+                }
                 module('org:bar:1.0') {
                     edge("org:foo:{strictly 15}", "org:foo:17")
                 }

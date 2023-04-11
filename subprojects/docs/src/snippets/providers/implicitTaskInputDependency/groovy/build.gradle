@@ -29,5 +29,5 @@ def producer = tasks.register('producer', Producer) {
 tasks.register('consumer', Consumer) {
     // Connect the producer task output to the consumer task input
     // Don't need to add a task dependency to the consumer task. This is automatically added
-    message = producer.map { it.outputFile.get().asFile.text }
+    message = producer.flatMap { it.outputFile }.map { it.asFile.text }
 }

@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":files"))
+    implementation(project(":functional"))
     implementation(project(":file-collections"))
     implementation(project(":persistent-cache"))
     implementation(project(":core-api"))

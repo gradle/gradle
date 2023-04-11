@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
+import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.expectStrictVersion
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.ENFORCED_PLATFORM
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.LEGACY_PLATFORM
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.MODULE
@@ -38,11 +39,8 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         MODULE             // constraints in module are published with strict constraints, consumer uses normal dependencies with 'endorseStrictVersions()'
     }
 
-    def setup() {
-        resolve.withStrictReasonsCheck()
-    }
-
     String platformDependency(platformType, String dependency) {
+        //noinspection GroovyFallthrough
         switch (platformType) {
             case PLATFORM:
             case LEGACY_PLATFORM:
@@ -118,6 +116,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                     attributes = ['org.gradle.category': 'platform']
                     noArtifacts = true
                 }
+                //noinspection GroovyInArgumentCheck
                 if (platformType in [PLATFORM, MODULE]) {
                     constraint(group: 'org', artifact: 'bar', strictly: '2.0')
                     constraint(group: 'org', artifact: 'foo', strictly: '3.1.1', rejects: ['3.1', '3.2'])
@@ -132,18 +131,17 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         }
     }
 
-    static String expectStrictVersion(platformType, String requiredVersion, String rejectedVersions = '') {
-        boolean strictVersion = platformType != ENFORCED_PLATFORM
-        if (strictVersion && rejectedVersions.isEmpty()) {
+    static String expectStrictVersion(PlatformType platformType, String requiredVersion, String rejectedVersions = '') {
+        boolean enforced = platformType == ENFORCED_PLATFORM
+        if (rejectedVersions.empty) {
             return "{strictly $requiredVersion}"
+        } else {
+            if (enforced) {
+                return "{require $requiredVersion; reject $rejectedVersions}"
+            } else {
+                return "{strictly $requiredVersion; reject $rejectedVersions}"
+            }
         }
-        if (!strictVersion && !rejectedVersions.isEmpty()) {
-            return "{require $requiredVersion; reject $rejectedVersions}"
-        }
-        if (strictVersion && !rejectedVersions.isEmpty()) {
-            return "{strictly $requiredVersion; reject $rejectedVersions}"
-        }
-        requiredVersion
     }
 
     void "(1) all future releases of org:foo:3.0 are bad and the platform enforces 3.0 [#platformType]"() {
@@ -175,28 +173,31 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org:platform:1.+', 'org:platform:1.0') {
-                    byRequest()
+                edge(platformType == ENFORCED_PLATFORM ? "org:platform:${expectStrictVersion(platformType, '1.+')}" : 'org:platform:1.+', 'org:platform:1.0') {
                     if (platformType != MODULE) {
                         configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
                         noArtifacts()
                     }
-                    constraint("org:bar:${StrictVersionsInPlatformCentricDevelopmentIntegrationTest.expectStrictVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
-                    constraint("org:foo:${StrictVersionsInPlatformCentricDevelopmentIntegrationTest.expectStrictVersion(platformType, '3.0', '3.1 & 3.2')}", 'org:foo:3.0').byConstraint()
+                    if (platformType != ENFORCED_PLATFORM) {
+                        constraint("org:bar:${expectStrictVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
+                    } else {
+                        constraint("org:bar:2.0", 'org:bar:2.0').byConstraint()
+                    }
+                    constraint("org:foo:${expectStrictVersion(platformType, '3.0', '3.1 & 3.2')}", 'org:foo:3.0').byConstraint()
                 }
                 edge('org:bar', 'org:bar:2.0') {
-                    byRequest()
+                    if (platformType == ENFORCED_PLATFORM) {
+                        forced()
+                    }
                     edge('org:foo:3.1', 'org:foo:3.0') {
                         if (platformType != ENFORCED_PLATFORM) {
+                            notRequested()
                             byAncestor()
                         } else {
-                            byRequest()
+                            forced()
                         }
                     }
                 }
-            }
-            if (platformType == ENFORCED_PLATFORM) {
-                nodesWithoutRoot.each { it.forced() }
             }
         }
 
@@ -233,28 +234,31 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org:platform:1.+', 'org:platform:1.1') {
-                    byRequest()
+                edge(platformType == ENFORCED_PLATFORM ? "org:platform:${expectStrictVersion(platformType, '1.+')}" : 'org:platform:1.+', 'org:platform:1.1') {
                     if (platformType != MODULE) {
                         configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
                         noArtifacts()
                     }
-                    constraint("org:bar:${StrictVersionsInPlatformCentricDevelopmentIntegrationTest.expectStrictVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
-                    constraint("org:foo:${StrictVersionsInPlatformCentricDevelopmentIntegrationTest.expectStrictVersion(platformType, '3.1.1', '3.1 & 3.2')}", 'org:foo:3.1.1').byConstraint()
+                    if (platformType != ENFORCED_PLATFORM) {
+                        constraint("org:bar:${expectStrictVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
+                    } else {
+                        constraint('org:bar:2.0', 'org:bar:2.0').byConstraint()
+                    }
+                    constraint("org:foo:${expectStrictVersion(platformType, '3.1.1', '3.1 & 3.2')}", 'org:foo:3.1.1').byConstraint()
                 }
                 edge('org:bar', 'org:bar:2.0') {
-                    byRequest()
+                    if (platformType == ENFORCED_PLATFORM) {
+                        forced()
+                    }
                     edge('org:foo:3.1', 'org:foo:3.1.1') {
                         if (platformType != ENFORCED_PLATFORM) {
+                            notRequested()
                             byAncestor()
                         } else {
-                            byRequest()
+                            forced()
                         }
                     }
                 }
-            }
-            if (platformType == ENFORCED_PLATFORM) {
-                nodesWithoutRoot.each { it.forced() }
             }
         }
 
@@ -376,20 +380,21 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                 root(':', ':test:') {
                     constraint('org:foo:{strictly 3.2}', "org:foo:$expectedFooVersion").byConstraint()
                     edge('org:platform:1.+', 'org:platform:1.1') {
-                        byRequest()
                         if (platformType != MODULE) {
                             configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
                             noArtifacts()
                         }
-                        constraint("org:bar:${StrictVersionsInPlatformCentricDevelopmentIntegrationTest.expectStrictVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
-                        constraint("org:foo:${StrictVersionsInPlatformCentricDevelopmentIntegrationTest.expectStrictVersion(platformType, '3.1.1', '3.1 & 3.2')}", "org:foo:$expectedFooVersion").byConstraint()
+                        constraint("org:bar:${expectStrictVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
+                        constraint("org:foo:${expectStrictVersion(platformType, '3.1.1', '3.1 & 3.2')}", "org:foo:$expectedFooVersion").byConstraint()
                     }
                     edge('org:bar', 'org:bar:2.0') {
-                        edge('org:foo:3.1', "org:foo:$expectedFooVersion").byAncestor()
-                    }.byRequest()
-                }
-                if (platformType == ENFORCED_PLATFORM) {
-                    nodesWithoutRoot.each { it.forced() }
+                        edge('org:foo:3.1', "org:foo:$expectedFooVersion") {
+                            if (platformType != ENFORCED_PLATFORM) {
+                                notRequested()
+                            }
+                            byAncestor()
+                        }
+                    }
                 }
             }
         }

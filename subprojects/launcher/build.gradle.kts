@@ -50,6 +50,8 @@ dependencies {
     manifestClasspath(project(":core"))
     manifestClasspath(project(":persistent-cache"))
 
+    agentsClasspath(project(":instrumentation-agent"))
+
     testImplementation(project(":internal-integ-testing"))
     testImplementation(project(":native"))
     testImplementation(project(":cli"))
@@ -75,8 +77,8 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-native")) {
-        because("'native' distribution required for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'")
+    integTestDistributionRuntimeOnly(project(":distributions-full")) {
+        because("built-in options are required to be present at runtime for 'TaskOptionsSpec'")
     }
 }
 
@@ -84,4 +86,9 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}

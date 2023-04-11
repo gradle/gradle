@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.publish-public-libraries")
 }
 
 description = "Build operations consumed by the Gradle Enterprise plugin"

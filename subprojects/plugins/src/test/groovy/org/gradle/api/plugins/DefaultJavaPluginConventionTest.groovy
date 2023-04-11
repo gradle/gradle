@@ -23,7 +23,6 @@ import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension
-import org.gradle.api.plugins.jvm.internal.JvmPluginServices
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
@@ -37,14 +36,14 @@ class DefaultJavaPluginConventionTest extends Specification {
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def project = TestUtil.create(tmpDir).rootProject()
     def sourceSets = Stub(SourceSetContainer)
-    def toolchainSpec = TestUtil.objectFactory().newInstance(DefaultToolchainSpec)
+    def toolchainSpec = TestUtil.newInstance(DefaultToolchainSpec)
     private JavaPluginExtension extension
     private JavaPluginConvention convention
 
     def setup() {
         project.pluginManager.apply(ReportingBasePlugin)
-        extension = new DefaultJavaPluginExtension(project, sourceSets, toolchainSpec, Stub(JvmPluginServices))
-        convention = new DefaultJavaPluginConvention(project, extension)
+        extension = TestUtil.newInstance(DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec)
+        convention = TestUtil.newInstance(DefaultJavaPluginConvention.class, project, extension)
     }
 
     def "default values"() {

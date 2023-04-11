@@ -131,11 +131,11 @@ class WithSideEffectProviderTest extends ProviderSpec<Integer> {
         0 * _
 
         where:
-        description                 | wrap
-        "Provider.map"              | { p, m -> p.map(m) }
-        "Provider.flatMap"          | { p, m -> p.flatMap { Providers.of(m.call(it)) } }
-        "TransformerBackedProvider" | { p, m -> new TransformBackedProvider(m, p) }
-        "MappingProvider"           | { p, m -> new MappingProvider(Integer, p, m) }
+        description               | wrap
+        "Provider.map"            | { p, m -> p.map(m) }
+        "Provider.flatMap"        | { p, m -> p.flatMap { Providers.of(m.call(it)) } }
+        "TransformBackedProvider" | { p, m -> new TransformBackedProvider(null, p, m) }
+        "MappingProvider"         | { p, m -> new MappingProvider(Integer, p, m) }
     }
 
     def "runs the side effect when changing provider is flat-mapped to a provider with side effect"() {
@@ -186,7 +186,9 @@ class WithSideEffectProviderTest extends ProviderSpec<Integer> {
         def zippedSideEffect = Mock(ValueSupplier.SideEffect)
         def leftWithSideEffect = Providers.ofNullable(leftValue).withSideEffect(leftSideEffect)
         def rightWithSideEffect = Providers.ofNullable(rightValue).withSideEffect(rightSideEffect)
-        def zipped = leftWithSideEffect.zip(rightWithSideEffect) { a, b -> a + b } as ProviderInternal<Integer>
+        def zipped = leftWithSideEffect.zip(rightWithSideEffect) { a, b ->
+            a == Integer.MAX_VALUE ? null : (a + b)
+        } as ProviderInternal<Integer>
         def provider = zipped.withSideEffect(zippedSideEffect)
 
         when:
@@ -211,11 +213,12 @@ class WithSideEffectProviderTest extends ProviderSpec<Integer> {
         0 * _
 
         where:
-        description      | leftValue | leftRuns | rightValue | rightRuns | expectedResult
-        "both have"      | 23        | 1        | 88         | 1         | 23 + 88
-        "only left has"  | 23        | 0        | null       | 0         | null
-        "only right has" | null      | 0        | 88         | 0         | null
-        "none have"      | null      | 0        | null       | 0         | null
+        description                            | leftValue         | leftRuns | rightValue | rightRuns | expectedResult
+        "both have"                            | 23                | 1        | 88         | 1         | 23 + 88
+        "both have (but zip provider missing)" | Integer.MAX_VALUE | 0        | 88         | 0         | null
+        "only left has"                        | 23                | 0        | null       | 0         | null
+        "only right has"                       | null              | 0        | 88         | 0         | null
+        "none have"                            | null              | 0        | null       | 0         | null
     }
 
     def "carries the side effect in the execution time value for a provider of a fixed value"() {

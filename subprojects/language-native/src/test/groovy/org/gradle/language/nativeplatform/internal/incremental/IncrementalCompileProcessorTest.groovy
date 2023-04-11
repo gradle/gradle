@@ -16,7 +16,7 @@
 package org.gradle.language.nativeplatform.internal.incremental
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.cache.PersistentStateCache
+import org.gradle.cache.ObjectHolder
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -41,7 +41,7 @@ class IncrementalCompileProcessorTest extends Specification {
     def dependencyResolver = new DummyResolver()
     def virtualFileSystem = TestFiles.virtualFileSystem()
     def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
-    def stateCache = new DummyPersistentStateCache()
+    def stateCache = new DummyObjectHolder()
     def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(IncludeDirectives.EMPTY, includesParser, dependencyResolver, fileSystemAccess), new TestBuildOperationExecutor())
 
     def source1 = sourceFile("source1")
@@ -409,7 +409,7 @@ class IncrementalCompileProcessorTest extends Specification {
         tmpDir.createFile(name) << name
     }
 
-    class DummyPersistentStateCache implements PersistentStateCache<CompilationState> {
+    class DummyObjectHolder implements ObjectHolder<CompilationState> {
         private CompilationState compilationState
 
         CompilationState get() {
@@ -420,12 +420,12 @@ class IncrementalCompileProcessorTest extends Specification {
             this.compilationState = newValue
         }
 
-        CompilationState update(PersistentStateCache.UpdateAction<CompilationState> updateAction) {
+        CompilationState update(ObjectHolder.UpdateAction<CompilationState> updateAction) {
             throw new UnsupportedOperationException()
         }
 
         @Override
-        CompilationState maybeUpdate(PersistentStateCache.UpdateAction<CompilationState> updateAction) {
+        CompilationState maybeUpdate(ObjectHolder.UpdateAction<CompilationState> updateAction) {
             throw new UnsupportedOperationException()
         }
     }

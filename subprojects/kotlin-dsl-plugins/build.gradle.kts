@@ -6,9 +6,9 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "3.1.1"
+version = "4.0.11"
 
-base.archivesName.set("plugins")
+base.archivesName = "plugins"
 
 dependencies {
     compileOnly(project(":base-services"))
@@ -18,7 +18,7 @@ dependencies {
     compileOnly(project(":core"))
     compileOnly(project(":language-jvm"))
     compileOnly(project(":language-java"))
-    compileOnly(project(":plugins"))
+    compileOnly(project(":platform-jvm"))
     compileOnly(project(":plugin-development"))
     compileOnly(project(":kotlin-dsl"))
 
@@ -28,6 +28,9 @@ dependencies {
     implementation(libs.futureKotlin("stdlib-jdk8"))
     implementation(libs.futureKotlin("gradle-plugin"))
     implementation(libs.futureKotlin("sam-with-receiver"))
+    implementation(libs.futureKotlin("assignment"))
+
+    testImplementation(projects.logging)
 
     integTestImplementation(project(":base-services"))
     integTestImplementation(project(":logging"))
@@ -54,9 +57,10 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/plugins/base/**")
+    excludePatterns.add("org/gradle/kotlin/dsl/plugins/precompiled/**")
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true
 
 pluginPublish {
     bundledGradlePlugin(
@@ -93,4 +97,9 @@ pluginPublish {
         pluginId = "org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins",
         pluginClass = "org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins"
     )
+}
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

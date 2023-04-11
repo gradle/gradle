@@ -26,7 +26,7 @@ import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.SCALA
 
-abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
+abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
     abstract BuildInitDsl getBuildDsl()
     abstract Language getJvmLanguage()
 
@@ -52,7 +52,8 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         targetDir.file(settingsFile).exists()
         !targetDir.file(buildFile).exists()
 
-        targetDir.file(incubating ? "gradle/plugins" : "buildSrc").assertHasDescendants(
+        targetDir.file(incubating ? "build-logic" : "buildSrc").assertHasDescendants(
+            settingsFile,
             buildFile,
             "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-common-conventions")}",
             "src/main/${dsl.id}/some.thing.${dsl.fileNameFor("${language}-application-conventions")}",

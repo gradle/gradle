@@ -38,9 +38,11 @@ task groovydoc(type: Groovydoc) {
 }
 
 task verify {
+    def compileCustomGroovyClasspath = compileCustomGroovy.groovyClasspath
+    def groovydocGroovyClasspath = groovydoc.groovyClasspath
     doLast {
-        assert compileCustomGroovy.groovyClasspath.files.any { it.name == "$jarFile" }
-        assert groovydoc.groovyClasspath.files.any { it.name == "$jarFile" }
+        assert compileCustomGroovyClasspath.files.any { it.name == "$jarFile" }
+        assert groovydocGroovyClasspath.files.any { it.name == "$jarFile" }
     }
 }
 """
@@ -74,9 +76,15 @@ task groovydoc(type: Groovydoc) {
 }
 
 task verify {
+    def customCompileClasspathState = provider {
+        configurations.customCompileClasspath.state.toString()
+    }
+    def customRuntimeClasspathState = provider {
+        configurations.customRuntimeClasspath.state.toString()
+    }
     doLast {
-        assert configurations.customCompileClasspath.state.toString() == "UNRESOLVED"
-        assert configurations.customRuntimeClasspath.state.toString() == "UNRESOLVED"
+        assert customCompileClasspathState.get() == "UNRESOLVED"
+        assert customRuntimeClasspathState.get() == "UNRESOLVED"
     }
 }
         """
@@ -126,9 +134,13 @@ task verify {
             }
 
             task assertDirectoriesAreEquals {
+                def mainGroovySourceDirSet = sourceSets.main.groovy
+                def mainGroovyDestDir = mainGroovySourceDirSet.destinationDirectory
+                def compileGroovyDestinationDir = compileGroovy.destinationDirectory
+                def binDir = file("$buildDir/bin")
                 doLast {
-                    assert sourceSets.main.groovy.destinationDirectory.get().asFile == compileGroovy.destinationDirectory.get().asFile
-                    assert sourceSets.main.groovy.destinationDirectory.get().asFile == file("$buildDir/bin")
+                    assert mainGroovyDestDir.get().asFile == compileGroovyDestinationDir.get().asFile
+                    assert mainGroovyDestDir.get().asFile == binDir
                 }
             }
         '''

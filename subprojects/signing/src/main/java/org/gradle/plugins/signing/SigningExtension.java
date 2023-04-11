@@ -24,10 +24,12 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
@@ -59,7 +61,7 @@ import static org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation
 /**
  * The global signing configuration for a project.
  */
-public class SigningExtension {
+public abstract class SigningExtension {
 
     /**
      * The name of the configuration that all signature artifacts will be placed into ("signatures")
@@ -88,7 +90,7 @@ public class SigningExtension {
     /**
      * The provider of signatories.
      */
-    private SignatoryProvider signatories;
+    private SignatoryProvider<?> signatories;
 
     /**
      * Configures the signing settings for the given project.
@@ -98,12 +100,7 @@ public class SigningExtension {
         this.configuration = getDefaultConfiguration();
         this.signatureTypes = createSignatureTypeProvider();
         this.signatories = createSignatoryProvider();
-        project.getTasks().withType(Sign.class, new Action<Sign>() {
-            @Override
-            public void execute(Sign task) {
-                addSignatureSpecConventions(task);
-            }
-        });
+        project.getTasks().withType(Sign.class, this::addSignatureSpecConventions);
     }
 
     public final Project getProject() {
@@ -111,7 +108,8 @@ public class SigningExtension {
     }
 
     /**
-     * Whether or not this task should fail if no signatory or signature type are configured at generation time.
+     * Whether this task should fail if no signatory or signature type are configured at generation time.
+     *
      * @since 4.0
      */
     public void setRequired(boolean required) {
@@ -119,7 +117,7 @@ public class SigningExtension {
     }
 
     /**
-     * Whether or not this task should fail if no signatory or signature type are configured at generation time.
+     * Whether this task should fail if no signatory or signature type are configured at generation time.
      *
      * If {@code required} is a {@link Callable}, it will be stored and "called" on demand (i.e. when {@link #isRequired()} is called) and the return value will be interpreting according to the Groovy
      * Truth. For example:
@@ -145,7 +143,7 @@ public class SigningExtension {
     }
 
     /**
-     * Whether or not this task should fail if no signatory or signature type are configured at generation time.
+     * Whether this task should fail if no signatory or signature type are configured at generation time.
      *
      * <p>Defaults to {@code true}.</p>
      *
@@ -158,12 +156,13 @@ public class SigningExtension {
     /**
      * Provides the configuration that signature artifacts are added to. Called once during construction.
      */
+    @SuppressWarnings("deprecation")
     protected Configuration getDefaultConfiguration() {
-        ConfigurationContainer configurations = project.getConfigurations();
-        Configuration configuration = configurations.findByName(DEFAULT_CONFIGURATION_NAME);
+        final RoleBasedConfigurationContainerInternal configurations = ((ProjectInternal) project).getConfigurations();
+        final Configuration configuration = configurations.findByName(DEFAULT_CONFIGURATION_NAME);
         return configuration != null
             ? configuration
-            : configurations.create(DEFAULT_CONFIGURATION_NAME);
+            : configurations.createWithRole(DEFAULT_CONFIGURATION_NAME, ConfigurationRolesForMigration.LEGACY_TO_INTENDED_CONSUMABLE);
     }
 
     /**
@@ -176,7 +175,7 @@ public class SigningExtension {
     /**
      * Provides the signatory provider. Called once during construction.
      */
-    protected SignatoryProvider createSignatoryProvider() {
+    protected SignatoryProvider<?> createSignatoryProvider() {
         return new PgpSignatoryProvider();
     }
 
@@ -186,7 +185,8 @@ public class SigningExtension {
      * @param closure the signatory provider configuration DSL
      * @return the configured signatory provider
      */
-    public SignatoryProvider signatories(Closure closure) {
+    @SuppressWarnings("unused")
+    public SignatoryProvider<?> signatories(Closure<?> closure) {
         signatories.configure(this, closure);
         return signatories;
     }
@@ -209,15 +209,17 @@ public class SigningExtension {
         return signatureTypes.getDefaultType();
     }
 
+    @SuppressWarnings("unused")
     public void setSignatureTypes(SignatureTypeProvider signatureTypes) {
         this.signatureTypes = signatureTypes;
     }
 
+    @SuppressWarnings("unused")
     public SignatureTypeProvider getSignatureTypes() {
         return signatureTypes;
     }
 
-    public void setSignatories(SignatoryProvider signatories) {
+    public void setSignatories(SignatoryProvider<?> signatories) {
         this.signatories = signatories;
     }
 
@@ -227,8 +229,10 @@ public class SigningExtension {
 
     /**
      * Use GnuPG agent to perform signing work.
+     *
      * @since 4.5
      */
+    @SuppressWarnings("unused")
     public void useGpgCmd() {
         setSignatories(new GnupgSignatoryProvider());
     }
@@ -247,6 +251,7 @@ public class SigningExtension {
      *
      * @since 5.4
      */
+    @SuppressWarnings("unused")
     public void useInMemoryPgpKeys(@Nullable String defaultSecretKey, @Nullable String defaultPassword) {
         setSignatories(new InMemoryPgpSignatoryProvider(defaultSecretKey, defaultPassword));
     }
@@ -267,6 +272,7 @@ public class SigningExtension {
      *
      * @since 6.0
      */
+    @SuppressWarnings("unused")
     public void useInMemoryPgpKeys(@Nullable String defaultKeyId, @Nullable String defaultSecretKey, @Nullable String defaultPassword) {
         setSignatories(new InMemoryPgpSignatoryProvider(defaultKeyId, defaultSecretKey, defaultPassword));
     }
@@ -283,28 +289,13 @@ public class SigningExtension {
      */
     protected void addSignatureSpecConventions(SignatureSpec spec) {
         if (!(spec instanceof IConventionAware)) {
-            throw new InvalidUserDataException("Cannot add conventions to signature spec \'" + String.valueOf(spec) + "\' as it is not convention aware");
+            throw new InvalidUserDataException("Cannot add conventions to signature spec '" + spec + "' as it is not convention aware");
         }
 
         ConventionMapping conventionMapping = ((IConventionAware) spec).getConventionMapping();
-        conventionMapping.map("signatory", new Callable<Signatory>() {
-            @Override
-            public Signatory call() {
-                return getSignatory();
-            }
-        });
-        conventionMapping.map("signatureType", new Callable<SignatureType>() {
-            @Override
-            public SignatureType call() {
-                return getSignatureType();
-            }
-        });
-        conventionMapping.map("required", new Callable<Boolean>() {
-            @Override
-            public Boolean call() {
-                return isRequired();
-            }
-        });
+        conventionMapping.map("signatory", this::getSignatory);
+        conventionMapping.map("signatureType", this::getSignatureType);
+        conventionMapping.map("required", this::isRequired);
     }
 
     /**
@@ -318,15 +309,12 @@ public class SigningExtension {
      * @return the created tasks.
      */
     public List<Sign> sign(Task... tasks) {
-        List<Sign> result = new ArrayList<Sign>(tasks.length);
+        final List<Sign> result = new ArrayList<>(tasks.length);
         for (final Task taskToSign : tasks) {
             result.add(
-                createSignTaskFor(taskToSign.getName(), new Action<Sign>() {
-                    @Override
-                    public void execute(Sign task) {
-                        task.setDescription("Signs the archive produced by the '" + taskToSign.getName() + "' task.");
-                        task.sign(taskToSign);
-                    }
+                createSignTaskFor(taskToSign.getName(), task -> {
+                    task.setDescription("Signs the archive produced by the '" + taskToSign.getName() + "' task.");
+                    task.sign(taskToSign);
                 })
             );
         }
@@ -344,15 +332,12 @@ public class SigningExtension {
      * @return the created tasks.
      */
     public List<Sign> sign(Configuration... configurations) {
-        List<Sign> result = new ArrayList<Sign>(configurations.length);
+        final List<Sign> result = new ArrayList<>(configurations.length);
         for (final Configuration configurationToSign : configurations) {
             result.add(
-                createSignTaskFor(configurationToSign.getName(), new Action<Sign>() {
-                    @Override
-                    public void execute(Sign task) {
-                        task.setDescription("Signs all artifacts in the '" + configurationToSign.getName() + "' configuration.");
-                        task.sign(configurationToSign);
-                    }
+                createSignTaskFor(configurationToSign.getName(), task -> {
+                    task.setDescription("Signs all artifacts in the '" + configurationToSign.getName() + "' configuration.");
+                    task.sign(configurationToSign);
                 })
             );
         }
@@ -372,7 +357,7 @@ public class SigningExtension {
      * @since 4.8
      */
     public List<Sign> sign(Publication... publications) {
-        List<Sign> result = new ArrayList<Sign>(publications.length);
+        final List<Sign> result = new ArrayList<>(publications.length);
         for (final Publication publication : publications) {
             result.add(createSignTaskFor((PublicationInternal<?>) publication));
         }
@@ -392,156 +377,130 @@ public class SigningExtension {
      * @since 4.8
      */
     public List<Sign> sign(DomainObjectCollection<Publication> publications) {
-        final List<Sign> result = new ArrayList<Sign>();
-        publications.all(new Action<Publication>() {
-            @Override
-            public void execute(Publication publication) {
-                result.add(createSignTaskFor((PublicationInternal<?>) publication));
-            }
-        });
-        publications.whenObjectRemoved(new Action<Publication>() {
-            @Override
-            public void execute(Publication publication) {
-                TaskContainer tasks = project.getTasks();
-                Task task = tasks.getByName(determineSignTaskNameForPublication(publication));
-                task.setEnabled(false);
-                result.remove(task);
-            }
+        final List<Sign> result = new ArrayList<>();
+        publications.all(publication -> result.add(createSignTaskFor((PublicationInternal<?>) publication)));
+        publications.whenObjectRemoved(publication -> {
+            final TaskContainer tasks = project.getTasks();
+            final Task task = tasks.getByName(determineSignTaskNameForPublication(publication));
+            task.setEnabled(false);
+            result.remove(task);
         });
         return result;
     }
 
     private <T extends PublicationArtifact> Sign createSignTaskFor(final PublicationInternal<T> publicationToSign) {
-        final Sign signTask = project.getTasks().create(determineSignTaskNameForPublication(publicationToSign), Sign.class, new Action<Sign>() {
-            @Override
-            public void execute(Sign task) {
-                task.setDescription("Signs all artifacts in the '" + publicationToSign.getName() + "' publication.");
-                task.sign(publicationToSign);
-            }
+        final String signTaskName = determineSignTaskNameForPublication(publicationToSign);
+        if (project.getTasks().getNames().contains(signTaskName)) {
+            return project.getTasks().named(signTaskName, Sign.class).get();
+        }
+        final Sign signTask = project.getTasks().create(signTaskName, Sign.class, task -> {
+            task.setDescription("Signs all artifacts in the '" + publicationToSign.getName() + "' publication.");
+            task.sign(publicationToSign);
         });
-        final Map<Signature, T> artifacts = new HashMap<Signature, T>();
-        signTask.getSignatures().all(new Action<Signature>() {
-            @Override
-            public void execute(final Signature signature) {
-                T artifact = publicationToSign.addDerivedArtifact(Cast.uncheckedNonnullCast(signature.getSource()), new DefaultDerivedArtifactFile(signature, signTask));
-                artifact.builtBy(signTask);
-                artifacts.put(signature, artifact);
-            }
+        final Map<Signature, T> artifacts = new HashMap<>();
+        signTask.getSignatures().all(signature -> {
+            final T artifact = publicationToSign.addDerivedArtifact(
+                Cast.uncheckedNonnullCast(signature.getSource()),
+                new DefaultDerivedArtifactFile(signature, signTask)
+            );
+            artifact.builtBy(signTask);
+            artifacts.put(signature, artifact);
         });
-        signTask.getSignatures().whenObjectRemoved(new Action<Signature>() {
-            @Override
-            public void execute(Signature signature) {
-                T artifact = artifacts.remove(signature);
-                publicationToSign.removeDerivedArtifact(artifact);
-            }
+        signTask.getSignatures().whenObjectRemoved(signature -> {
+            final T artifact = artifacts.remove(signature);
+            publicationToSign.removeDerivedArtifact(artifact);
         });
         return signTask;
     }
 
     private String determineSignTaskNameForPublication(Publication publication) {
-        return "sign" + capitalize((CharSequence) publication.getName()) + "Publication";
+        return "sign" + capitalize(publication.getName()) + "Publication";
     }
 
     private Sign createSignTaskFor(CharSequence name, Action<Sign> taskConfiguration) {
-        Sign signTask = project.getTasks().create("sign" + capitalize(name), Sign.class, taskConfiguration);
+        final String signTaskName = "sign" + capitalize(name);
+        if (project.getTasks().getNames().contains(signTaskName)) {
+            return project.getTasks().named(signTaskName, Sign.class).get();
+        }
+        final Sign signTask = project.getTasks().create(signTaskName, Sign.class, taskConfiguration);
         addSignaturesToConfiguration(signTask, getConfiguration());
         return signTask;
     }
 
     protected Object addSignaturesToConfiguration(Sign task, final Configuration configuration) {
-        task.getSignatures().all(new Action<Signature>() {
-            @Override
-            public void execute(Signature sig) {
-                configuration.getArtifacts().add(sig);
-            }
-        });
-        return task.getSignatures().whenObjectRemoved(new Action<Signature>() {
-            @Override
-            public void execute(Signature sig) {
-                configuration.getArtifacts().remove(sig);
-            }
-        });
+        task.getSignatures().all(sig -> configuration.getArtifacts().add(sig));
+        return task.getSignatures().whenObjectRemoved(sig -> configuration.getArtifacts().remove(sig));
     }
 
     /**
      * Digitally signs the publish artifacts, generating signature files alongside them.
      *
-     * <p>The project's default signatory and default signature type from the {@link SigningExtension signing settings} will be used to generate the signature. The returned {@link SignOperation sign
-     * operation} gives access to the created signature files. <p> If there is no configured default signatory available, the sign operation will fail.
+     * <p>The project's default signatory and default signature type from the {@link SigningExtension signing settings} will be used to generate the signature.
+     * The returned {@link SignOperation sign operation} gives access to the created signature files.
+     * <p>If there is no configured default signatory available, the sign operation will fail.
      *
      * @param publishArtifacts The publish artifacts to sign
      * @return The executed {@link SignOperation sign operation}
      */
     public SignOperation sign(final PublishArtifact... publishArtifacts) {
-        return doSignOperation(new Action<SignOperation>() {
-            @Override
-            public void execute(SignOperation operation) {
-                operation.sign(publishArtifacts);
-            }
-        });
+        return doSignOperation(operation -> operation.sign(publishArtifacts));
     }
 
     /**
      * Digitally signs the files, generating signature files alongside them.
      *
-     * <p>The project's default signatory and default signature type from the {@link SigningExtension signing settings} will be used to generate the signature. The returned {@link SignOperation sign
-     * operation} gives access to the created signature files. <p> If there is no configured default signatory available, the sign operation will fail.
+     * <p>The project's default signatory and default signature type from the {@link SigningExtension signing settings} will be used to generate the signature.
+     * The returned {@link SignOperation sign operation} gives access to the created signature files.
+     * <p>If there is no configured default signatory available, the sign operation will fail.
      *
      * @param files The files to sign.
      * @return The executed {@link SignOperation sign operation}.
      */
     public SignOperation sign(final File... files) {
-        return doSignOperation(new Action<SignOperation>() {
-            @Override
-            public void execute(SignOperation operation) {
-                operation.sign(files);
-            }
-        });
+        return doSignOperation(operation -> operation.sign(files));
     }
 
     /**
      * Digitally signs the files, generating signature files alongside them.
      *
-     * <p>The project's default signatory and default signature type from the {@link SigningExtension signing settings} will be used to generate the signature. The returned {@link SignOperation sign
-     * operation} gives access to the created signature files. <p> If there is no configured default signatory available, the sign operation will fail.
+     * <p>The project's default signatory and default signature type from the {@link SigningExtension signing settings} will be used to generate the signature.
+     * The returned {@link SignOperation sign
+     * operation} gives access to the created signature files.
+     * <p>If there is no configured default signatory available, the sign operation will fail.
      *
      * @param classifier The classifier to assign to the created signature artifacts.
      * @param files The publish artifacts to sign.
      * @return The executed {@link SignOperation sign operation}.
      */
     public SignOperation sign(final String classifier, final File... files) {
-        return doSignOperation(new Action<SignOperation>() {
-            @Override
-            public void execute(SignOperation operation) {
-                operation.sign(classifier, files);
-            }
-        });
+        return doSignOperation(operation -> operation.sign(classifier, files));
     }
 
     /**
      * Creates a new {@link SignOperation sign operation} using the given closure to configure it before executing it.
      *
-     * <p>The project's default signatory and default signature type from the {@link SigningExtension signing settings} will be used to generate the signature. The returned {@link SignOperation sign
-     * operation} gives access to the created signature files. <p> If there is no configured default signatory available (and one is not explicitly specified in this operation's configuration), the
-     * sign operation will fail.
+     * <p>The project's default signatory and default signature type from the {@link SigningExtension signing settings} will be used to generate the signature.
+     * The returned {@link SignOperation sign
+     * operation} gives access to the created signature files.
+     * <p>If there is no configured default signatory available (and one is not explicitly specified in this operation's configuration), the sign operation will fail.
      *
      * @param closure The configuration of the {@link SignOperation sign operation}.
      * @return The executed {@link SignOperation sign operation}.
      */
-    public SignOperation sign(@DelegatesTo(SignOperation.class) Closure closure) {
+    public SignOperation sign(@DelegatesTo(SignOperation.class) Closure<?> closure) {
         return doSignOperation(closure);
     }
 
     /**
      * Creates a new {@link SignOperation sign operation} using the given action to configure it before executing it.
      *
-     * <p>The project's default signatory and default signature type from the {@link SigningExtension signing settings} will be used to generate the signature. The returned {@link SignOperation sign
-     * operation} gives access to the created signature files. <p> If there is no configured default signatory available (and one is not explicitly specified in this operation's configuration), the
-     * sign operation will fail.
+     * <p>The project's default signatory and default signature type from the {@link SigningExtension signing settings} will be used to generate the signature.
+     * The returned {@link SignOperation sign
+     * operation} gives access to the created signature files.
+     * <p>If there is no configured default signatory available (and one is not explicitly specified in this operation's configuration), the sign operation will fail.
      *
      * @param setup The configuration action of the {@link SignOperation sign operation}.
      * @return The executed {@link SignOperation sign operation}.
-     *
      * @since 7.5
      */
     @Incubating
@@ -549,17 +508,12 @@ public class SigningExtension {
         return doSignOperation(setup);
     }
 
-    protected SignOperation doSignOperation(@DelegatesTo(SignOperation.class) final Closure setup) {
-        return doSignOperation(new Action<SignOperation>() {
-            @Override
-            public void execute(SignOperation operation) {
-                operation.configure(setup);
-            }
-        });
+    protected SignOperation doSignOperation(@DelegatesTo(SignOperation.class) final Closure<?> setup) {
+        return doSignOperation(operation -> operation.configure(setup));
     }
 
     protected SignOperation doSignOperation(Action<SignOperation> setup) {
-        SignOperation operation = objectFactory().newInstance(SignOperationInternal.class);
+        final SignOperation operation = objectFactory().newInstance(SignOperationInternal.class);
         addSignatureSpecConventions(operation);
         setup.execute(operation);
         operation.execute();
@@ -570,7 +524,7 @@ public class SigningExtension {
         return project.getObjects();
     }
 
-    public SignatoryProvider getSignatories() {
+    public SignatoryProvider<?> getSignatories() {
         return signatories;
     }
 
@@ -594,9 +548,8 @@ public class SigningExtension {
 
         @Override
         public boolean shouldBePublished() {
-            return signTask.isEnabled() &&
-                signTask.getOnlyIf().isSatisfiedBy(signTask) &&
-                create().exists();
+            return signTask.isEnabled()
+                && signTask.getOnlyIf().isSatisfiedBy(signTask);
         }
     }
 }

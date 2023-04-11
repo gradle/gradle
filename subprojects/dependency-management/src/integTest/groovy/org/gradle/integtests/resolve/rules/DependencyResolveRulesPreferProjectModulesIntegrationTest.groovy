@@ -16,21 +16,24 @@
 
 package org.gradle.integtests.resolve.rules
 
-import org.gradle.api.internal.project.ProjectInternal
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.resolve.AbstractProjectDependencyConflictResolutionIntegrationSpec
-import org.gradle.internal.build.BuildState
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class DependencyResolveRulesPreferProjectModulesIntegrationTest extends AbstractIntegrationSpec {
+    def resolve = new ResolveTestFixture(buildFile, "conf")
 
     def setup() {
         mavenRepo.module("myorg", "ModuleC", "2.0").publish()
         mavenRepo.module("myorg", "ModuleD", "2.0").publish()
         mavenRepo.module("myorg", "ModuleB", '1.0').dependsOn("myorg", "ModuleC", "2.0").publish()
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+        resolve.prepare()
     }
 
     def "preferProjectModules() only influence dependency declarations in the subproject it is used in"() {
-        when:
         settingsFile << 'include "ModuleC", "Subproject_with_preferProjectModules", "Subproject_without_preferProjectModules"'
 
         buildFile << """
@@ -56,7 +59,6 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
                     conf "myorg:ModuleB:1.0"
                     conf project(":ModuleC")
                 }
-                ${AbstractProjectDependencyConflictResolutionIntegrationSpec.check('ModuleC', 'projectId("ModuleC")', 'conf', 'projectId("ModuleC")')}
             }
 
             project(":Subproject_without_preferProjectModules") {
@@ -70,20 +72,50 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
                     conf "myorg:ModuleB:1.0"
                     conf project(":ModuleC")
                 }
-
-                // 'Subproject_with_preferProjectModules' config DOES NOT influence this dependency
-                // and hence the higher version is picked from repo
-                ${AbstractProjectDependencyConflictResolutionIntegrationSpec.check('ModuleC', 'projectId("ModuleC")','conf', 'moduleId("myorg", "ModuleC", "2.0")')}
             }
-            ${AbstractProjectDependencyConflictResolutionIntegrationSpec.checkHelper(buildId, projectPath)}
 """
+        when:
+        succeeds('Subproject_with_preferProjectModules:checkDeps')
+
         then:
-        succeeds('Subproject_with_preferProjectModules:checkModuleC_conf')
-        succeeds('Subproject_without_preferProjectModules:checkModuleC_conf')
+        resolve.expectGraph {
+            root(":Subproject_with_preferProjectModules", "test:Subproject_with_preferProjectModules:") {
+                module("myorg:ModuleB:1.0") {
+                    // Prefers project, regardless of version
+                    edge("myorg:ModuleC:2.0", ":ModuleC", "myorg:ModuleC:1.0") {
+                        byConflictResolution("between versions 1.0 and 2.0")
+                    }
+                }
+                project(":ModuleC", "myorg:ModuleC:1.0") {
+                    noArtifacts()
+                }
+            }
+        }
+
+        when:
+        succeeds('Subproject_without_preferProjectModules:checkDeps')
+
+        then:
+        resolve.expectGraph {
+            root(":Subproject_without_preferProjectModules", "test:Subproject_without_preferProjectModules:") {
+                project(":Subproject_with_preferProjectModules", "test:Subproject_with_preferProjectModules:") {
+                    noArtifacts()
+                    module("myorg:ModuleB:1.0") {
+                        module("myorg:ModuleC:2.0") {
+                            byConflictResolution("between versions 1.0 and 2.0")
+                        }
+                    }
+                    // 'Subproject_with_preferProjectModules' config DOES NOT influence this dependency
+                    // and hence the higher version is picked from repo
+                    edge("project :ModuleC", "myorg:ModuleC:2.0")
+                }
+                module("myorg:ModuleB:1.0")
+                edge("project :ModuleC", "myorg:ModuleC:2.0")
+            }
+        }
     }
 
     def "preferProjectModules() does not propagate to extending configurations"() {
-        when:
         settingsFile << 'include "ModuleC", "ProjectA"'
 
         buildFile << """
@@ -118,24 +150,42 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
                     baseConf "myorg:ModuleB:1.0"
                     baseConf project(":ModuleC")
                 }
+            }
+"""
 
-                ${AbstractProjectDependencyConflictResolutionIntegrationSpec.check('ModuleC', 'projectId("ModuleC")', 'baseConf', 'projectId("ModuleC")')}
+        when:
+        succeeds('ProjectA:checkDeps')
+
+        then:
+        resolve.expectGraph {
+            root(":ProjectA", "test:ProjectA:") {
+                module("myorg:ModuleB:1.0") {
+                    module("myorg:ModuleC:2.0") {
+                        byConflictResolution("between versions 1.0 and 2.0")
+                    }
+                }
                 // 'preferProjectModules()' is not inherited from 'baseConf'
                 // and hence the higher version is picked from repo
-                ${AbstractProjectDependencyConflictResolutionIntegrationSpec.check('ModuleC', 'projectId("ModuleC")', 'conf', 'moduleId("myorg", "ModuleC", "2.0")')}
+                edge("project :ModuleC", "myorg:ModuleC:2.0")
             }
-            ${AbstractProjectDependencyConflictResolutionIntegrationSpec.checkHelper(buildId, projectPath)}
-"""
+        }
+
+        when:
+        resolve.prepare('baseConf')
+        succeeds('ProjectA:checkDeps')
+
         then:
-        succeeds('ProjectA:checkModuleC_conf')
-        succeeds('ProjectA:checkModuleC_baseConf')
-    }
-
-    String getBuildId() {
-        "((${ProjectInternal.name}) project).getServices().get(${BuildState.name}.class).getBuildIdentifier()"
-    }
-
-    String getProjectPath() {
-        "':' + projectName"
+        resolve.expectGraph {
+            root(":ProjectA", "test:ProjectA:") {
+                module("myorg:ModuleB:1.0") {
+                    edge("myorg:ModuleC:2.0", ":ModuleC", "myorg:ModuleC:1.0") {
+                        byConflictResolution("between versions 1.0 and 2.0")
+                    }
+                }
+                project("project :ModuleC", "myorg:ModuleC:1.0") {
+                    noArtifacts()
+                }
+            }
+        }
     }
 }

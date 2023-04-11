@@ -38,6 +38,10 @@ class DistributionLocatorIntegrationTest extends Specification {
         urlExist(locator.getDistributionFor(GradleVersion.version("1.12")))
     }
 
+    /**
+     * If this test fails, it means that the snapshot in `released-versions.json` is no longer available.
+     * You need to update that entry with a recent snapshot by hand.
+     */
     def "locates snapshot versions"() {
         expect:
         urlExist(locator.getDistributionFor(distributions.mostRecentReleaseSnapshot.version))

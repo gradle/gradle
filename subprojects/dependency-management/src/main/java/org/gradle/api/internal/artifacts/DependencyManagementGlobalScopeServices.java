@@ -26,16 +26,14 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ModuleSelectorStringNotationConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultLocalComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyMetadataFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalConfigurationMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleIvyDependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleDependencyMetadataConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectIvyDependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyMetadataConverter;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.CacheableTransformTypeAnnotationHandler;
@@ -44,8 +42,8 @@ import org.gradle.api.internal.artifacts.transform.InputArtifactDependenciesAnno
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
-import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
@@ -63,11 +61,9 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
-import org.gradle.internal.resource.local.FileResourceConnector;
-import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.typeconversion.CrossBuildCachingNotationConverter;
@@ -79,10 +75,6 @@ import org.gradle.work.NormalizeLineEndings;
 class DependencyManagementGlobalScopeServices {
     void configure(ServiceRegistration registration) {
         registration.add(MarkConfigurationObservedListener.class);
-    }
-
-    FileResourceRepository createFileResourceRepository(FileSystem fileSystem) {
-        return new FileResourceConnector(fileSystem);
     }
 
     ImmutableModuleIdentifierFactory createModuleIdentifierFactory() {
@@ -108,23 +100,18 @@ class DependencyManagementGlobalScopeServices {
         return new DefaultExcludeRuleConverter(moduleIdentifierFactory);
     }
 
-    ExternalModuleIvyDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
-        return new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverter);
+    DependencyMetadataFactory createDependencyMetadataFactory(ExcludeRuleConverter excludeRuleConverter) {
+        return new DefaultDependencyMetadataFactory(
+            new ProjectDependencyMetadataConverter(excludeRuleConverter),
+            new ExternalModuleDependencyMetadataConverter(excludeRuleConverter)
+        );
     }
 
-    DependencyDescriptorFactory createDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ExternalModuleIvyDependencyDescriptorFactory descriptorFactory) {
-        return new DefaultDependencyDescriptorFactory(
-            new ProjectIvyDependencyDescriptorFactory(excludeRuleConverter),
-            descriptorFactory);
-    }
-
-    LocalConfigurationMetadataBuilder createLocalConfigurationMetadataBuilder(DependencyDescriptorFactory dependencyDescriptorFactory,
-                                                                              ExcludeRuleConverter excludeRuleConverter) {
+    LocalConfigurationMetadataBuilder createLocalConfigurationMetadataBuilder(
+        DependencyMetadataFactory dependencyDescriptorFactory,
+        ExcludeRuleConverter excludeRuleConverter
+    ) {
         return new DefaultLocalConfigurationMetadataBuilder(dependencyDescriptorFactory, excludeRuleConverter);
-    }
-
-    LocalComponentMetadataBuilder createLocalComponentMetaDataBuilder(LocalConfigurationMetadataBuilder localConfigurationMetadataBuilder) {
-        return new DefaultLocalComponentMetadataBuilder(localConfigurationMetadataBuilder);
     }
 
     ResourceConnectorFactory createFileConnectorFactory() {
@@ -166,7 +153,8 @@ class DependencyManagementGlobalScopeServices {
                 InputFiles.class,
                 Internal.class,
                 Nested.class,
-                ReplacedBy.class
+                ReplacedBy.class,
+                ServiceReference.class
             ),
             ImmutableSet.of(
                 Classpath.class,

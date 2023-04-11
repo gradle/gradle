@@ -23,6 +23,11 @@ import org.gradle.util.TestUtil
 
 class DefaultListPropertyTest extends CollectionPropertySpec<List<String>> {
     @Override
+    AbstractCollectionProperty<String, List<String>> propertyWithDefaultValue() {
+        return property()
+    }
+
+    @Override
     DefaultListProperty<String> property() {
         return new DefaultListProperty<String>(host, String)
     }

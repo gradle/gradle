@@ -16,10 +16,10 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
+import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -37,6 +37,10 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
 
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_INCREMENTALLY;
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE;
+
 public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Result> {
 
     private final BuildOperationExecutor buildOperationExecutor;
@@ -47,6 +51,8 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
 
     @Override
     public Result execute(UnitOfWork work, C context) {
+        Class<? extends UnitOfWork> workType = work.getClass();
+        UnitOfWork.Identity identity = context.getIdentity();
         return buildOperationExecutor.call(new CallableBuildOperation<Result>() {
             @Override
             public Result call(BuildOperationContext operationContext) {
@@ -59,7 +65,17 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
                     .displayName("Executing " + work.getDisplayName())
-                    .details(Operation.Details.INSTANCE);
+                    .details(new Operation.Details() {
+                        @Override
+                        public Class<?> getWorkType() {
+                            return workType;
+                        }
+
+                        @Override
+                        public UnitOfWork.Identity getIdentity() {
+                            return identity;
+                        }
+                    });
             }
         });
     }
@@ -88,33 +104,27 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         try {
             workOutput = work.execute(executionRequest);
         } catch (Throwable t) {
-            return ResultImpl.failed(t, Duration.ofMillis(timer.getElapsedMillis()));
+            return Result.failed(t, Duration.ofMillis(timer.getElapsedMillis()));
         }
 
         Duration duration = Duration.ofMillis(timer.getElapsedMillis());
-        ExecutionOutcome outcome = determineOutcome(context, workOutput);
+        ExecutionOutcome mode = determineOutcome(context, workOutput);
 
-        return ResultImpl.success(duration, new ExecutionResultImpl(outcome, workOutput));
+        return Result.success(duration, new ExecutionResultImpl(mode, workOutput));
     }
 
     private static ExecutionOutcome determineOutcome(InputChangesContext context, UnitOfWork.WorkOutput workOutput) {
-        ExecutionOutcome outcome;
         switch (workOutput.getDidWork()) {
             case DID_NO_WORK:
-                outcome = ExecutionOutcome.UP_TO_DATE;
-                break;
+                return UP_TO_DATE;
             case DID_WORK:
-                boolean incremental = context.getInputChanges()
-                    .map(InputChanges::isIncremental)
-                    .orElse(false);
-                outcome = incremental
-                    ? ExecutionOutcome.EXECUTED_INCREMENTALLY
-                    : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
-                break;
+                return context.getInputChanges()
+                    .filter(InputChanges::isIncremental)
+                    .map(Functions.constant(EXECUTED_INCREMENTALLY))
+                    .orElse(EXECUTED_NON_INCREMENTALLY);
             default:
                 throw new AssertionError();
         }
-        return outcome;
     }
 
     /*
@@ -122,8 +132,8 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
      */
     public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
         interface Details {
-            Operation.Details INSTANCE = new Operation.Details() {
-            };
+            Class<?> getWorkType();
+            UnitOfWork.Identity getIdentity();
         }
 
         interface Result {
@@ -132,52 +142,28 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         }
     }
 
-    private static final class ResultImpl implements Result {
-
-        private final Duration duration;
-        private final Try<ExecutionResult> executionResultTry;
-
-        private ResultImpl(Duration duration, Try<ExecutionResult> executionResultTry) {
-            this.duration = duration;
-            this.executionResultTry = executionResultTry;
-        }
-
-        private static Result failed(Throwable t, Duration duration) {
-            return new ResultImpl(duration, Try.failure(t));
-        }
-
-        private static Result success(Duration duration, ExecutionResult executionResult) {
-            return new ResultImpl(duration, Try.successful(executionResult));
-        }
-
-        @Override
-        public Duration getDuration() {
-            return duration;
-        }
-
-        @Override
-        public Try<ExecutionResult> getExecutionResult() {
-            return executionResultTry;
-        }
-    }
-
-    private static final class ExecutionResultImpl implements ExecutionResult {
-        private final ExecutionOutcome outcome;
+    private static final class ExecutionResultImpl implements Execution {
+        private final ExecutionOutcome mode;
         private final UnitOfWork.WorkOutput workOutput;
 
-        public ExecutionResultImpl(ExecutionOutcome outcome, UnitOfWork.WorkOutput workOutput) {
-            this.outcome = outcome;
+        public ExecutionResultImpl(ExecutionOutcome mode, UnitOfWork.WorkOutput workOutput) {
+            this.mode = mode;
             this.workOutput = workOutput;
         }
 
         @Override
         public ExecutionOutcome getOutcome() {
-            return outcome;
+            return mode;
         }
 
         @Override
         public Object getOutput() {
             return workOutput.getOutput();
+        }
+
+        @Override
+        public boolean canStoreOutputsInCache() {
+            return workOutput.canStoreInCache();
         }
     }
 }

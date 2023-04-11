@@ -130,11 +130,18 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
             }
 
             task checkFiles {
+                def files = configurations.compile
                 doLast {
-                    assert configurations.compile.files == [jarFile] as Set
+                    assert files.files == [jarFile] as Set
                 }
             }
 '''
+
+        when:
+        run ":help"
+
+        then:
+        outputDoesNotContain("FILES REQUESTED")
 
         when:
         run ":checkFiles"
@@ -229,4 +236,46 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         }
     }
 
+    def "can select directory using artifact type and compatibility rule"() {
+        settingsFile << "rootProject.name='main'"
+        file("someDir").createDir()
+        buildFile << '''
+            allprojects {
+                configurations {
+                    compile {
+                        attributes {
+                            attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "thing")
+                        }
+                    }
+                }
+                dependencies {
+                    attributesSchema {
+                        attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE) {
+                            compatibilityRules.add(DirectoryIsOk)
+                        }
+                    }
+                }
+            }
+            dependencies {
+                compile files("someDir")
+            }
+            class DirectoryIsOk implements AttributeCompatibilityRule {
+                void execute(CompatibilityCheckDetails<String> details) {
+                    if (details.producerValue == ArtifactTypeDefinition.DIRECTORY_TYPE) {
+                        details.compatible()
+                    }
+                }
+            }
+'''
+
+        when:
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":main:") {
+                files << "someDir"
+            }
+        }
+    }
 }

@@ -20,6 +20,7 @@ import org.gradle.api.file.DirectoryTree
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -38,6 +39,7 @@ class SourceFoldersCreatorTest extends Specification {
     DirectoryTree resourcesTree;
     File projectRootFolder;
     File defaultOutputFolder;
+    File baseSourceOutputFolder;
 
     def setup() {
         sourceSet = Mock()
@@ -49,7 +51,8 @@ class SourceFoldersCreatorTest extends Specification {
         _ * sourceSet.allJava >> java
         _ * sourceSet.resources >> resources
         projectRootFolder = new File(tempFolder, "project-root").tap { mkdirs() }
-        defaultOutputFolder = new File(projectRootFolder, 'bin/default')
+        defaultOutputFolder = new File(projectRootFolder, EclipsePluginConstants.DEFAULT_PROJECT_OUTPUT_PATH)
+        baseSourceOutputFolder = new File(projectRootFolder, "bin")
     }
 
     def "applies excludes/includes for src folders"() {
@@ -128,7 +131,8 @@ class SourceFoldersCreatorTest extends Specification {
         _ * resources.includes >> resourcesTree.patterns.includes
         _ * resources.srcDirTrees >> [resourcesTree]
         _ * allSource.getSrcDirTrees() >> [javaTree, resourcesTree]
-        return new SourceFoldersCreator().configureProjectRelativeFolders([sourceSet], [], { File file -> file.path }, defaultOutputFolder)
+        return new SourceFoldersCreator().configureProjectRelativeFolders([sourceSet], [], { File file -> file.path },
+            defaultOutputFolder, baseSourceOutputFolder.absolutePath)
     }
 
     private List<SourceFolder> externalSourceFolders(String... paths) {
